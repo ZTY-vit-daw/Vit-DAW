@@ -1,0 +1,2838 @@
+{
+ "conversation_id": "softguide_b1_A4_20261022_212540",
+ "goal_id": "goal_17b2cd7ec1011823",
+ "run_id": "run_bca68880d5253145",
+ "reply": "没有识别到有效的插件候选；没有加载插件或修改工程。",
+ "agent_mode": "default",
+ "needs_confirmation": false,
+ "workflow": "plugin_recommendation_selection",
+ "workflow_data": {
+  "admission_boundary": {
+   "admitted_count": 1,
+   "admitted_names": [
+    "Timeless 3"
+   ],
+   "catalog_face_count": 29,
+   "catalog_search_type": "delay"
+  },
+  "axis_coverage_disclosure": {
+   "candidates": [
+    {
+     "attestation_id": "pca2_19d2d7871c22c5c9665d71fa",
+     "attested_coverage_axes": [
+      "feedback_amount",
+      "spatial_mode",
+      "wet_balance"
+     ],
+     "binary_fingerprint": "sha256:ea96ace10f79fa63f860ba335ee41796a671e8d7c2bfe5c32a7516db0c8a228c",
+     "candidate_key": "plugin_candidate_1"
+    }
+   ],
+   "frozen_semantic_axes": [
+    "feedback_amount"
+   ],
+   "required_action_coverage": [
+    {
+     "action": "adjust",
+     "axis": "feedback_amount",
+     "shape": ""
+    }
+   ],
+   "schema_version": "plugin_recommendation_axis_coverage_disclosure.v1"
+  },
+  "catalog_evidence": {
+   "exact_identity_bound": true,
+   "license_and_runtime_load_unverified": true,
+   "source": "local_scanned_plugin_index"
+  },
+  "evidence_refs": [
+   "mix.observe:obs_20261022T132601_a1b4946ae1ba"
+  ],
+  "limitations": [
+   "本次只有这一个本地可加载的延迟候选，因此没有提供风格或工作流上的对比备选。",
+   "以上关于 Timeless 3 的声音与工作流描述来自对该产品的既有认识，并不代表在本次工程里实测的结果；实际效果取决于延迟时间、反馈、滤波和干湿比的具体设置。",
+   "观察数据只包含该轨的能量/电平信息，没有提供吉他音色或编曲密度等细节，延迟量仍需按实际听感微调，例如从很低湿声、偏短延迟和适当低切开始。",
+   "本机目录证明候选已扫描且具有精确加载标识；授权状态和实际实例化仍需在确认加载时验证。"
+  ],
+  "listening_goal": "给这条吉他轨加一点轻微的延迟，让它在混音里更有空间感、尾音更连贯，同时不削弱原本的清晰度",
+  "load_proposed": false,
+  "mutation_performed": false,
+  "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+  "post_load_family": "delay",
+  "post_load_goal": "给这条吉他轨加一点轻微的延迟，让它在混音里更有空间感、尾音更连贯，同时不削弱原本的清晰度",
+  "post_load_observation_context": {
+   "command_name": "ccb_observation_request",
+   "error": "",
+   "status": "ready",
+   "summary": {
+    "actual_executed_view_ids": [
+     "track.basic_energy"
+    ],
+    "audit_receipt": {
+     "actual_executed_view_ids": [
+      "track.basic_energy"
+     ],
+     "freshness": {
+      "class": "current_observation",
+      "observed_at": "2026-10-22T13:26:01.8634225Z",
+      "project_epoch": "epoch_1d021a7bbaae606e",
+      "project_revision": "6",
+      "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+      "status": "ready"
+     },
+     "model_requested_view_ids": [
+      "track.basic_energy"
+     ],
+     "project_binding": {
+      "project_epoch": "epoch_1d021a7bbaae606e",
+      "project_revision": "6",
+      "project_state_hash": "b741e9af5e527818",
+      "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80"
+     },
+     "project_revision": "6",
+     "receipt_id": "ccbr_obs_20261022T132601_a1b4946ae1ba",
+     "requested_by": "model",
+     "schema_version": "ccb_observation_receipt.v1",
+     "scope": "selected_track",
+     "status": "executed",
+     "view_set_matches": true
+    },
+    "evidence_refs": [
+     "evidence://9093dde74e170252ed068a1397ce3d4b0342627a671193ab8daddac55eb38603",
+     "obs_20261022T132601_a1b4946ae1ba"
+    ],
+    "freshness": {
+     "class": "current_observation",
+     "observed_at": "2026-10-22T13:26:01.8634225Z",
+     "project_epoch": "epoch_1d021a7bbaae606e",
+     "project_revision": "6",
+     "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+     "status": "ready"
+    },
+    "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+    "requested_views": [
+     "track.basic_energy"
+    ],
+    "schema_version": "ccb_observation_bundle.v1",
+    "status": "ready",
+    "target_ref": {
+     "id": "1017",
+     "kind": "track",
+     "label": "guitar",
+     "source": "ccb_observation_binding",
+     "track_id": "1017",
+     "track_name": "guitar"
+    },
+    "views": {
+     "track.basic_energy": {
+      "facts": {
+       "levels": {
+        "crest_db": 3.01,
+        "headroom_db": 7.96,
+        "peak_dbfs": -7.96,
+        "rms_dbfs": -10.97,
+        "status": "ready"
+       }
+      },
+      "projection_status": "ready",
+      "status": "ready"
+     }
+    }
+   },
+   "tool": "ccb.observation_request",
+   "tool_call_id": "tool_step_1"
+  },
+  "post_load_planner": "semantic_delay",
+  "post_load_semantic_processor_intent": {
+   "confidence": 1,
+   "control_mode": "semantic_loop",
+   "evidence_refs": [
+    "obs_20261022T132601_a1b4946ae1ba"
+   ],
+   "family": "delay",
+   "intent": "admitted bounded experiment delay_feedback_adjust on axis feedback_amount",
+   "required_coverage": [
+    "feedback_amount"
+   ],
+   "schema_version": "semantic_processor_intent.v1",
+   "scope": "current_track",
+   "status": "resolved"
+  },
+  "processor_type": "delay",
+  "recommendations": [
+   {
+    "attestation_id": "pca2_19d2d7871c22c5c9665d71fa",
+    "binary_fingerprint": "sha256:ea96ace10f79fa63f860ba335ee41796a671e8d7c2bfe5c32a7516db0c8a228c",
+    "candidate_key": "plugin_candidate_1",
+    "category": "Fx|Delay",
+    "confidence": "medium",
+    "descriptive_name": "Timeless 3",
+    "format": "VST3",
+    "id": "VST3-Timeless 3-72be40c7-96546ef3",
+    "identifier": "VST3-Timeless 3-72be40c7-96546ef3",
+    "is_instrument": false,
+    "knowledge_basis": [
+     "catalog_metadata",
+     "model_knowledge",
+     "user_request",
+     "observation"
+    ],
+    "manufacturer": "FabFilter",
+    "name": "Timeless 3",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Timeless 3.vst3",
+    "primary_type": "delay",
+    "processor_family": "delay",
+    "reason": "Timeless 3 作为延迟处理器，可以同时控制延迟时间、干湿比和反馈，并用滤波让重复声只留在中高频以下或某个频段内；这刚好贴合“加一点空间感、让尾音连起来，又不削弱清晰度”的需求：湿声压低、重复偏短、过滤掉容易发浑的低频部分，吉他原本的拨弦起音就会保持在前面。",
+    "role": "recommended",
+    "subject_key": "pcs1_73c824809ccb215f4bc83fcf",
+    "tradeoff": "它本身是偏全能的调制延迟，参数面较大；只想要一个简单的固定延迟时，需要在初次设置时多花一点心思，但这样也更容易做到“轻微而不抢戏”。具体听感取决于实际设置，这里只是基于产品特性的判断。"
+   }
+  ],
+  "request_context": {
+   "agent_mode": "chat",
+   "authority_mode": "manual_confirmation",
+   "authority_mode_explicit": true,
+   "capability_route_decision": {
+    "capacity_assessment": {
+     "authority": "product_runtime",
+     "capacity_level": "within_free_state",
+     "capacity_score": 0,
+     "complexity_factors": [
+      {
+       "code": "large_track_set",
+       "observed": 6,
+       "reason": "twenty or more user tracks expand whole-project coverage",
+       "triggered": false,
+       "weight": 25
+      },
+      {
+       "code": "long_timeline",
+       "observed": 2.2,
+       "reason": "five minutes or more increases observation span",
+       "triggered": false,
+       "weight": 15
+      },
+      {
+       "code": "dense_processing_graph",
+       "observed": 0,
+       "reason": "forty or more processors increase context pressure",
+       "triggered": false,
+       "weight": 20
+      },
+      {
+       "code": "dense_routing_graph",
+       "observed": 0,
+       "reason": "routing and grouping relationships require project-wide coordination",
+       "triggered": false,
+       "weight": 20
+      },
+      {
+       "code": "automation_heavy",
+       "observed": 0,
+       "reason": "automation breadth increases cross-stage state",
+       "triggered": false,
+       "weight": 15
+      }
+     ],
+     "confidence": 0.94,
+     "observed_at": "2026-10-22T13:25:43.2893888Z",
+     "observed_facts": {
+      "active_audio_track_count": 6,
+      "automation_lane_count": 0,
+      "duration_seconds": 2.2,
+      "evidence_refs": [
+       "project.state:vitproj_edfbcab5caca41b5972b75f4f02f3f80:6"
+      ],
+      "plugin_count": 0,
+      "project_revision": "6",
+      "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+      "relationship_breadth": 0,
+      "request_scope": "project_context",
+      "routing_edge_count": 0,
+      "task_history_available": false,
+      "track_count": 6,
+      "track_group_count": 0
+     },
+     "project_revision": "6",
+     "reason_codes": [
+      "small_or_moderate_project"
+     ],
+     "schema_version": "free_state_capacity_assessment.v1",
+     "selected_capability": "free_state"
+    },
+    "controller": "minimal_audio_closure",
+    "conversation_id": "softguide_b1_A4_20261022_212540",
+    "created_at": "2026-10-22T13:25:43.2893888Z",
+    "goal_id": "goal_17b2cd7ec1011823",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+    "project_revision": "6",
+    "run_id": "run_bca68880d5253145",
+    "schema_version": "capability_route_decision.v1",
+    "semantic_entry": {
+     "confidence": 0.9,
+     "control_mode": "semantic_loop",
+     "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+     "route": "open_semantic",
+     "schema_version": "semantic_entry_decision.v1",
+     "target_scope": "project_context",
+     "user_authorization": "action_requested"
+    },
+    "task_id": "task_6da40d0fbf6b131c",
+    "updated_at": "2026-10-22T13:25:43.2893888Z"
+   },
+   "continuation_id": "cont_b0a8e6195bdf176e67d8b690",
+   "conversation_id": "softguide_b1_A4_20261022_212540",
+   "current_project_path": "D:\\Vit_DAW_wt_fsnac1\\coord\\runs\\FS-NAMED-ALIAS-COVER-1\\fs_alias_chat_20261022_2125\\driver\\fixture\\softguide_fixture.vit",
+   "durable_continuation": true,
+   "durable_continuation_id": "cont_b0a8e6195bdf176e67d8b690",
+   "free_state_capacity_assessment": {
+    "authority": "product_runtime",
+    "capacity_level": "within_free_state",
+    "capacity_score": 0,
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "reason": "twenty or more user tracks expand whole-project coverage",
+      "triggered": false,
+      "weight": 25
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "reason": "five minutes or more increases observation span",
+      "triggered": false,
+      "weight": 15
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "reason": "forty or more processors increase context pressure",
+      "triggered": false,
+      "weight": 20
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "reason": "routing and grouping relationships require project-wide coordination",
+      "triggered": false,
+      "weight": 20
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "reason": "automation breadth increases cross-stage state",
+      "triggered": false,
+      "weight": 15
+     }
+    ],
+    "confidence": 0.94,
+    "observed_at": "2026-10-22T13:25:43.2893888Z",
+    "observed_facts": {
+     "active_audio_track_count": 6,
+     "automation_lane_count": 0,
+     "duration_seconds": 2.2,
+     "evidence_refs": [
+      "project.state:vitproj_edfbcab5caca41b5972b75f4f02f3f80:6"
+     ],
+     "plugin_count": 0,
+     "project_revision": "6",
+     "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "routing_edge_count": 0,
+     "task_history_available": false,
+     "track_count": 6,
+     "track_group_count": 0
+    },
+    "project_revision": "6",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "schema_version": "free_state_capacity_assessment.v1",
+    "selected_capability": "free_state"
+   },
+   "free_state_internal_resume": true,
+   "free_state_phase": "fs8_experiment_verification",
+   "free_state_processor_type": "delay",
+   "free_state_reasoning_loop": {
+    "active_intent": "给这条吉他轨加一点轻微的延迟，让它在混音里更有空间感、尾音更连贯，同时不削弱原本的清晰度",
+    "admission_receipt": {
+     "boundary": "admitted",
+     "candidate_id": "candidate:06af56e8c489463f",
+     "failed_gate_ids": null,
+     "gate_results": {
+      "G1_project_binding": "pass",
+      "G2_capacity_assessed": "pass",
+      "G3_project_scan": "pass",
+      "G4_dimension_closed": "pass",
+      "G5_frontier_established": "pass",
+      "G6_target_evidence": "pass",
+      "G7_fresh_revision_bound_refs": "pass",
+      "G8_target_consistency": "pass"
+     },
+     "project_revision": "6",
+     "proposal_error": "",
+     "proposal_present": true,
+     "proposal_valid": true,
+     "recorded_at": "2026-10-22T13:26:09.4183981Z",
+     "schema_version": "free_state_admission_receipt.v1",
+     "status": "needs_experiment",
+     "target_evidence_ref": "obs_20261022T132601_a1b4946ae1ba"
+    },
+    "authority_mode": "ordinary",
+    "continuation_budget": 6,
+    "continuation_used": 2,
+    "conversation_id": "softguide_b1_A4_20261022_212540",
+    "created_at": "2026-10-22T13:25:43.3249362Z",
+    "current_phase": "fs8_experiment_verification",
+    "current_round_id": "r_8c8b0a7d1a6d",
+    "cycle": 0,
+    "decision_phase": "processor_materialization",
+    "experiment": {
+     "admission": {
+      "authority_mode": "ordinary",
+      "checkpoint_ref": "pending:free_state_0fab08a192ff210e",
+      "diagnostic_dose_bounds": {
+       "bounds": {
+        "feedback_pct": 3
+       },
+       "feedback_pct": 3,
+       "max_action_attempts": 1,
+       "source": "proposal"
+      },
+      "evidence_refs": [
+       "obs_20261022T132601_a1b4946ae1ba"
+      ],
+      "expected_effect": "对比确认前后这条吉他轨的干湿感与尾音收束：应更宽松连贯，且不出现节奏模糊、低频浑浊或与其它轨相互掩盖",
+      "experiment_budget": 1,
+      "hypothesis": "该吉他轨当前能量充裕且余量约 8 dB，加入极小反馈量的短延迟可在几乎不改动整体电平的前提下增加空间感与音符尾部的延续感",
+      "retained_dose_bounds": {
+       "bounds": {
+        "feedback_pct": 3
+       },
+       "feedback_pct": 3,
+       "max_action_attempts": 1,
+       "source": "proposal"
+      },
+      "rollback_plan": {
+       "kind": "agent_rollback_action",
+       "source": "existing_governed_rollback"
+      },
+      "schema_version": "vit.free_state_experiment_runtime.v1",
+      "target_ref": {
+       "id": "1017",
+       "kind": "track"
+      },
+      "typed_action": {
+       "action_domain": "delay",
+       "action_kind": "delay_feedback_adjust",
+       "feedback_pct": 3
+      },
+      "verification_plan": {
+       "experiment_budget": 1,
+       "max_action_attempts": 1
+      }
+     },
+     "contract_id": "contract_task_6da40d0fbf6b131c",
+     "conversation_id": "softguide_b1_A4_20261022_212540",
+     "current_round_id": "round-1-ee387848486bdddc",
+     "goal_id": "goal_17b2cd7ec1011823",
+     "last_trace_node_id": "trace-8c40e480d2332a21",
+     "original_intent": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+     "project_revision": "6",
+     "rounds": [
+      {
+       "checkpoint_ref": "pending:free_state_0fab08a192ff210e",
+       "number": 1,
+       "observations": [
+        {
+         "evidence_refs": [
+          "evidence://9093dde74e170252ed068a1397ce3d4b0342627a671193ab8daddac55eb38603",
+          "obs_20261022T132601_a1b4946ae1ba"
+         ],
+         "executed_view_ids": [
+          "track.basic_energy"
+         ],
+         "fresh": true,
+         "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+         "post_action": false,
+         "project_revision": "6",
+         "receipt_id": "ccbr_obs_20261022T132601_a1b4946ae1ba",
+         "recorded_at": "2026-10-22T13:26:09.4820935Z",
+         "requested_view_ids": [
+          "track.basic_energy"
+         ],
+         "summary": {
+          "actual_executed_view_ids": [
+           "track.basic_energy"
+          ],
+          "audit_receipt": {
+           "receipt_id": "ccbr_obs_20261022T132601_a1b4946ae1ba",
+           "schema_version": "ccb_observation_receipt.v1",
+           "status": "ready"
+          },
+          "evidence_refs": [
+           "evidence://9093dde74e170252ed068a1397ce3d4b0342627a671193ab8daddac55eb38603",
+           "obs_20261022T132601_a1b4946ae1ba"
+          ],
+          "freshness": {
+           "class": "current_observation",
+           "observed_at": "2026-10-22T13:26:01.8634225Z",
+           "project_epoch": "epoch_1d021a7bbaae606e",
+           "project_revision": "6",
+           "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+           "status": "ready"
+          },
+          "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+          "requested_views": [
+           "track.basic_energy"
+          ],
+          "schema_version": "ccb_observation_bundle.v1",
+          "status": "ready",
+          "target_ref": {
+           "id": "1017",
+           "kind": "track",
+           "label": "guitar",
+           "source": "ccb_observation_binding",
+           "track_id": "1017",
+           "track_name": "guitar"
+          },
+          "views": {
+           "track.basic_energy": {
+            "facts": {
+             "levels": {
+              "crest_db": 3.01,
+              "headroom_db": 7.96,
+              "peak_dbfs": -7.96,
+              "rms_dbfs": -10.97,
+              "status": "ready"
+             }
+            },
+            "projection_status": "ready",
+            "status": "ready"
+           }
+          }
+         },
+         "view_set_matches": true
+        }
+       ],
+       "phase": "observing",
+       "project_revision": "6",
+       "requested_view_ids": [
+        "track.basic_energy"
+       ],
+       "round_id": "round-1-ee387848486bdddc",
+       "started_at": "2026-10-22T13:26:09.4820935Z",
+       "status": "observing",
+       "updated_at": "2026-10-22T13:26:09.4820935Z"
+      }
+     ],
+     "run_id": "run_bca68880d5253145",
+     "schema_version": "vit.free_state_experiment_runtime.v1",
+     "settled_at": "0001-01-01T00:00:00Z",
+     "started_at": "2026-10-22T13:26:09.4708353Z",
+     "status": "running",
+     "task_state": "needs_experiment",
+     "task_state_revision": 4,
+     "turn_id": "turn:free_state_0fab08a192ff210e",
+     "updated_at": "2026-10-22T13:26:09.4820935Z"
+    },
+    "goal_id": "goal_17b2cd7ec1011823",
+    "latest_decision": {
+     "evidence_status": "plausible",
+     "improvement_proposal": {
+      "action_domain": "delay",
+      "action_kind": "delay_feedback_adjust",
+      "confidence": 0.55,
+      "evidence_refs": [
+       "obs_20261022T132601_a1b4946ae1ba"
+      ],
+      "expected_effect": "对比确认前后这条吉他轨的干湿感与尾音收束：应更宽松连贯，且不出现节奏模糊、低频浑浊或与其它轨相互掩盖",
+      "hypothesis": "该吉他轨当前能量充裕且余量约 8 dB，加入极小反馈量的短延迟可在几乎不改动整体电平的前提下增加空间感与音符尾部的延续感",
+      "improvement_intent": "给这条吉他轨加一点轻微的延迟，让它在混音里更有空间感、尾音更连贯，同时不削弱原本的清晰度",
+      "limitations": [
+       "现有证据只覆盖该轨的能量与余量状态，未包含时域尾音或与其它轨的相互关系细节，因此“轻微”的具体量感最终需以人耳对比判断"
+      ],
+      "parameter_bounds": {
+       "feedback_pct": 3
+      },
+      "schema_version": "improvement_proposal.v1",
+      "target": {
+       "id": "1017",
+       "kind": "track"
+      },
+      "verification_plan": {
+       "experiment_budget": 1,
+       "max_action_attempts": 1
+      }
+     },
+     "schema_version": "free_state_decision.v1",
+     "status": "needs_experiment",
+     "summary": "吉他轨已由轨道级能量观察确认身份与状态：峰值约 -7.96 dBFS、RMS 约 -10.97 dBFS、峰值因数约 3 dB、余量约 8 dB，说明该轨有足够余量承载一点空间类加工而不会挤压动态。用户明确要求给这条吉他轨加轻微延迟，属于加法式、可逆的听感改进，证据只能支持“可行且有余量”，不能证明现有混音有客观缺陷，因此按有界实验提出。"
+    },
+    "latest_observation": {
+     "command_name": "ccb_observation_request",
+     "status": "ready",
+     "summary": {
+      "actual_executed_view_ids": [
+       "track.basic_energy"
+      ],
+      "audit_receipt": {
+       "receipt_id": "ccbr_obs_20261022T132601_a1b4946ae1ba",
+       "schema_version": "ccb_observation_receipt.v1",
+       "status": "ready"
+      },
+      "evidence_refs": [
+       "evidence://9093dde74e170252ed068a1397ce3d4b0342627a671193ab8daddac55eb38603",
+       "obs_20261022T132601_a1b4946ae1ba"
+      ],
+      "freshness": {
+       "class": "current_observation",
+       "observed_at": "2026-10-22T13:26:01.8634225Z",
+       "project_epoch": "epoch_1d021a7bbaae606e",
+       "project_revision": "6",
+       "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+       "status": "ready"
+      },
+      "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+      "requested_views": [
+       "track.basic_energy"
+      ],
+      "schema_version": "ccb_observation_bundle.v1",
+      "status": "ready",
+      "target_ref": {
+       "id": "1017",
+       "kind": "track",
+       "label": "guitar",
+       "source": "ccb_observation_binding",
+       "track_id": "1017",
+       "track_name": "guitar"
+      },
+      "views": {
+       "track.basic_energy": {
+        "facts": {
+         "levels": {
+          "crest_db": 3.01,
+          "headroom_db": 7.96,
+          "peak_dbfs": -7.96,
+          "rms_dbfs": -10.97,
+          "status": "ready"
+         }
+        },
+        "projection_status": "ready",
+        "status": "ready"
+       }
+      }
+     },
+     "tool": "ccb.observation_request",
+     "tool_call_id": "tool_step_1"
+    },
+    "loop_id": "free_state_0fab08a192ff210e",
+    "max_cycles": 6,
+    "observation_ids": [
+     "obs_20261022T132601_a1b4946ae1ba"
+    ],
+    "observation_ledger": {
+     "available_views": {
+      "mix.multitrack_relationship": {
+       "audit_ref": {
+        "bundle_id": "ccbobs_obs_20261022T132543_611cf30f59a3",
+        "receipt_id": "ccbr_obs_20261022T132543_611cf30f59a3",
+        "receipt_schema": "ccb_observation_receipt.v1"
+       },
+       "conclusion": {
+        "digest_kind": "decision_digest",
+        "facts": {
+         "band_conflict_candidates": [
+          {
+           "band": "sub",
+           "status": "candidate",
+           "tracks": [
+            {
+             "track_id": "1012"
+            },
+            {
+             "track_id": "1007"
+            },
+            {
+             "track_id": "1022"
+            }
+           ],
+           "type": "sub_band_overlap_candidate"
+          },
+          {
+           "band": "bass",
+           "status": "candidate",
+           "tracks": [
+            {
+             "track_id": "1007"
+            },
+            {
+             "track_id": "1022"
+            },
+            {
+             "track_id": "1012"
+            }
+           ],
+           "type": "low_end_overlap"
+          },
+          {
+           "band": "low_mid",
+           "status": "candidate",
+           "tracks": [
+            {
+             "track_id": "1027"
+            },
+            {
+             "track_id": "1017"
+            },
+            {
+             "track_id": "1022"
+            }
+           ],
+           "type": "low_mid_masking_candidate"
+          },
+          {
+           "band": "mid",
+           "status": "candidate",
+           "tracks": [
+            {
+             "track_id": "1032"
+            },
+            {
+             "track_id": "1027"
+            },
+            {
+             "track_id": "1017"
+            }
+           ],
+           "type": "mid_band_overlap_candidate"
+          }
+         ],
+         "headroom_risk_tracks": [],
+         "loudness_order": [],
+         "peak_order": [],
+         "phase_risk_tracks": [],
+         "status": "ready",
+         "track_count": 6
+        },
+        "projection_status": "ready"
+       },
+       "evidence_refs": [
+        "obs_20261022T132543_611cf30f59a3",
+        "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169"
+       ],
+       "freshness": {
+        "class": "current_observation",
+        "observed_at": "2026-10-22T13:25:43.4367913Z",
+        "project_epoch": "epoch_1d021a7bbaae606e",
+        "project_revision": "6",
+        "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+        "status": "ready"
+       },
+       "limitations": [
+        "This is observation, not a B2/B3 solver result."
+       ],
+       "observation_id": "obs_20261022T132543_611cf30f59a3",
+       "project_epoch": "epoch_1d021a7bbaae606e",
+       "project_revision": "6",
+       "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+       "round": 0,
+       "status": "ready",
+       "view_id": "mix.multitrack_relationship"
+      },
+      "track:1017::track.basic_energy": {
+       "audit_ref": {
+        "bundle_id": "ccbobs_obs_20261022T132601_a1b4946ae1ba",
+        "receipt_id": "ccbr_obs_20261022T132601_a1b4946ae1ba",
+        "receipt_schema": "ccb_observation_receipt.v1"
+       },
+       "conclusion": {
+        "digest_kind": "decision_digest",
+        "facts": {
+         "levels": {
+          "crest_db": 3.01,
+          "headroom_db": 7.96,
+          "peak_dbfs": -7.96,
+          "rms_dbfs": -10.97,
+          "status": "ready"
+         }
+        },
+        "projection_status": "ready"
+       },
+       "evidence_refs": [
+        "obs_20261022T132601_a1b4946ae1ba",
+        "evidence://9093dde74e170252ed068a1397ce3d4b0342627a671193ab8daddac55eb38603"
+       ],
+       "freshness": {
+        "class": "current_observation",
+        "observed_at": "2026-10-22T13:26:01.8634225Z",
+        "project_epoch": "epoch_1d021a7bbaae606e",
+        "project_revision": "6",
+        "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+        "status": "ready"
+       },
+       "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+       "project_epoch": "epoch_1d021a7bbaae606e",
+       "project_revision": "6",
+       "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+       "round": 0,
+       "status": "ready",
+       "target_ref": {
+        "id": "1017",
+        "kind": "track",
+        "label": "guitar",
+        "source": "ccb_observation_binding",
+        "track_id": "1017",
+        "track_name": "guitar"
+       },
+       "tool_call_id": "tool_step_1",
+       "view_id": "track.basic_energy"
+      }
+     },
+     "receipt_count": 2,
+     "receipts": [
+      {
+       "evidence_refs": [
+        "obs_20261022T132543_611cf30f59a3",
+        "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169"
+       ],
+       "freshness": {
+        "class": "current_observation",
+        "observed_at": "2026-10-22T13:25:43.4367913Z",
+        "project_epoch": "epoch_1d021a7bbaae606e",
+        "project_revision": "6",
+        "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+        "status": "ready"
+       },
+       "observation_id": "obs_20261022T132543_611cf30f59a3",
+       "project_epoch": "epoch_1d021a7bbaae606e",
+       "project_revision": "6",
+       "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+       "receipt_id": "ccbr_obs_20261022T132543_611cf30f59a3",
+       "receipt_schema": "ccb_observation_receipt.v1",
+       "request_id": "fs_seed_softguide_b1_A4_20261022_212540",
+       "requested_views": [
+        "mix.multitrack_relationship"
+       ],
+       "round": 0,
+       "status": "ready"
+      },
+      {
+       "evidence_refs": [
+        "obs_20261022T132601_a1b4946ae1ba",
+        "evidence://9093dde74e170252ed068a1397ce3d4b0342627a671193ab8daddac55eb38603"
+       ],
+       "freshness": {
+        "class": "current_observation",
+        "observed_at": "2026-10-22T13:26:01.8634225Z",
+        "project_epoch": "epoch_1d021a7bbaae606e",
+        "project_revision": "6",
+        "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+        "status": "ready"
+       },
+       "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+       "project_revision": "6",
+       "receipt_id": "ccbr_obs_20261022T132601_a1b4946ae1ba",
+       "receipt_schema": "ccb_observation_receipt.v1",
+       "requested_views": [
+        "track.basic_energy"
+       ],
+       "round": 3,
+       "status": "ready",
+       "target_ref": {
+        "id": "1017",
+        "kind": "track",
+        "label": "guitar"
+       },
+       "tool_call_id": "tool_step_1"
+      }
+     ],
+     "schema_version": "free_state_observation_ledger.v1",
+     "view_observation_count": 3
+    },
+    "observation_receipts": [
+     {
+      "actual_executed_view_ids": [
+       "track.basic_energy"
+      ],
+      "freshness": {
+       "class": "current_observation",
+       "observed_at": "2026-10-22T13:26:01.8634225Z",
+       "project_epoch": "epoch_1d021a7bbaae606e",
+       "project_revision": "6",
+       "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+       "status": "ready"
+      },
+      "model_requested_view_ids": [
+       "track.basic_energy"
+      ],
+      "project_binding": {
+       "project_epoch": "epoch_1d021a7bbaae606e",
+       "project_revision": "6",
+       "project_state_hash": "b741e9af5e527818",
+       "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80"
+      },
+      "project_revision": "6",
+      "receipt_id": "ccbr_obs_20261022T132601_a1b4946ae1ba",
+      "requested_by": "model",
+      "schema_version": "ccb_observation_receipt.v1",
+      "scope": "selected_track",
+      "status": "executed",
+      "view_set_matches": true
+     }
+    ],
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+    "plugin_candidate_disclosure": {
+     "families": [
+      {
+       "action_domain": "static_eq",
+       "candidates": [
+        {
+         "format": "VST3",
+         "identifier": "VST3-bx_hybrid V2-d0ef306f-c141eb4b",
+         "manufacturer": "Plugin Alliance",
+         "name": "bx_hybrid V2"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-API-550A Stereo-695648d-874091cb",
+         "manufacturer": "Waves",
+         "name": "API-550A Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-AudioTrack Mono-695648d-bfe085c2",
+         "manufacturer": "Waves",
+         "name": "AudioTrack Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-AudioTrack Stereo-695648d-bff70bc2",
+         "manufacturer": "Waves",
+         "name": "AudioTrack Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L316 Mono-695648d-fb756ef",
+         "manufacturer": "Waves",
+         "name": "L316 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L316 Stereo-695648d-15d2d3f2",
+         "manufacturer": "Waves",
+         "name": "L316 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-ADPTR Utopia-124f78d9-2e1319e9",
+         "manufacturer": "Plugin Alliance",
+         "name": "ADPTR Utopia"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-API-550A Mono-695648d-872a0bcb",
+         "manufacturer": "Waves",
+         "name": "API-550A Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-EMO-Q4 Mono-695648d-150ca2d6",
+         "manufacturer": "Waves",
+         "name": "EMO-Q4 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-F6-RTA Mono-695648d-52bed370",
+         "manufacturer": "Waves",
+         "name": "F6-RTA Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-F6-RTA Stereo-695648d-52d55f75",
+         "manufacturer": "Waves",
+         "name": "F6-RTA Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-F6 Mono-695648d-d394ca66",
+         "manufacturer": "Waves",
+         "name": "F6 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-F6 Stereo-695648d-caaf7070",
+         "manufacturer": "Waves",
+         "name": "F6 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-LinEQ Lowband Mono-695648d-f99f12c6",
+         "manufacturer": "Waves",
+         "name": "LinEQ Lowband Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-LinEQ Lowband Stereo-695648d-f9b598c6",
+         "manufacturer": "Waves",
+         "name": "LinEQ Lowband Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Lindell 50 Channel-bdb0cd9a-a685f975",
+         "manufacturer": "Plugin Alliance",
+         "name": "Lindell 50 Channel"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-MannyM EQ Mono-695648d-15c698d8",
+         "manufacturer": "Waves",
+         "name": "MannyM EQ Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-MannyM EQ Stereo-695648d-15dd1ed8",
+         "manufacturer": "Waves",
+         "name": "MannyM EQ Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Morphoder Mono/Stereo-695648d-84463721",
+         "manufacturer": "Waves",
+         "name": "Morphoder Mono/Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Morphoder Mono-695648d-841cec21",
+         "manufacturer": "Waves",
+         "name": "Morphoder Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Morphoder Stereo-695648d-84337221",
+         "manufacturer": "Waves",
+         "name": "Morphoder Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-MultiMod Rack Mono/Stereo-695648d-fc939a97",
+         "manufacturer": "Waves",
+         "name": "MultiMod Rack Mono/Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-MultiMod Rack Mono-695648d-fc6a4f97",
+         "manufacturer": "Waves",
+         "name": "MultiMod Rack Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-MultiMod Rack Stereo-695648d-fc80d597",
+         "manufacturer": "Waves",
+         "name": "MultiMod Rack Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-OVox Mono/Stereo-695648d-a631084f",
+         "manufacturer": "Waves",
+         "name": "OVox Mono/Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-OVox Stereo-695648d-ac233a52",
+         "manufacturer": "Waves",
+         "name": "OVox Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q10 Mono-695648d-35819aff",
+         "manufacturer": "Waves",
+         "name": "Q10 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q10 Stereo-695648d-3a8f251e",
+         "manufacturer": "Waves",
+         "name": "Q10 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q3 Mono-695648d-3c0d7f3d",
+         "manufacturer": "Waves",
+         "name": "Q3 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q3 Stereo-695648d-33282547",
+         "manufacturer": "Waves",
+         "name": "Q3 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q4 Mono-695648d-5ece7f3d",
+         "manufacturer": "Waves",
+         "name": "Q4 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q4 Stereo-695648d-55e92547",
+         "manufacturer": "Waves",
+         "name": "Q4 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q6 Mono-695648d-a4507f3d",
+         "manufacturer": "Waves",
+         "name": "Q6 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q6 Stereo-695648d-9b6b2547",
+         "manufacturer": "Waves",
+         "name": "Q6 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q8 Mono-695648d-e9d27f3d",
+         "manufacturer": "Waves",
+         "name": "Q8 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Q8 Stereo-695648d-e0ed2547",
+         "manufacturer": "Waves",
+         "name": "Q8 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-RChannel Mono/Stereo-695648d-4dcaaed2",
+         "manufacturer": "Waves",
+         "name": "RChannel Mono/Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-RChannel Mono-695648d-4da163d2",
+         "manufacturer": "Waves",
+         "name": "RChannel Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-RChannel Stereo-695648d-4db7e9d2",
+         "manufacturer": "Waves",
+         "name": "RChannel Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-REQ 4 Mono-695648d-998811a",
+         "manufacturer": "Waves",
+         "name": "REQ 4 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-REQ 4 Stereo-695648d-9b50c11",
+         "manufacturer": "Waves",
+         "name": "REQ 4 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-REQ 6 Mono-695648d-111a8158",
+         "manufacturer": "Waves",
+         "name": "REQ 6 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-REQ 6 Stereo-695648d-11370c4f",
+         "manufacturer": "Waves",
+         "name": "REQ 6 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Saphira Mono-695648d-14d40b87",
+         "manufacturer": "Waves",
+         "name": "Saphira Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Saphira Stereo-695648d-14ea918d",
+         "manufacturer": "Waves",
+         "name": "Saphira Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Swivel Audio HitStrip-f8faf077-ae424e29",
+         "manufacturer": "Plugin Alliance",
+         "name": "Swivel Audio HitStrip"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-bx_hybrid V2 mix-9f10b933-c12b654b",
+         "manufacturer": "Plugin Alliance",
+         "name": "bx_hybrid V2 mix"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-bx_panEQ-91aa39c6-eb0959ff",
+         "manufacturer": "Plugin Alliance",
+         "name": "bx_panEQ"
+        }
+       ],
+       "capability": "one bounded static EQ band gain move within +/-10 dB at the family's pinned band centers"
+      },
+      {
+       "action_domain": "broadband_compression",
+       "candidates": [
+        {
+         "format": "VST3",
+         "identifier": "VST3-C1 comp Mono-695648d-65e94c5e",
+         "manufacturer": "Waves",
+         "name": "C1 comp Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C1 comp Stereo-695648d-65ffd264",
+         "manufacturer": "Waves",
+         "name": "C1 comp Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C1 comp-gate Mono-695648d-dca65958",
+         "manufacturer": "Waves",
+         "name": "C1 comp-gate Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C1 comp-gate Stereo-695648d-dcbcdf58",
+         "manufacturer": "Waves",
+         "name": "C1 comp-gate Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C1 comp-sc Mono-695648d-191c5964",
+         "manufacturer": "Waves",
+         "name": "C1 comp-sc Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C1 comp-sc Stereo-695648d-1932df64",
+         "manufacturer": "Waves",
+         "name": "C1 comp-sc Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-DPR-402 Mono-695648d-12144a9b",
+         "manufacturer": "Waves",
+         "name": "DPR-402 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-H-Comp Mono-695648d-fb691fe7",
+         "manufacturer": "Waves",
+         "name": "H-Comp Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-H-Comp Stereo-695648d-fb7fabec",
+         "manufacturer": "Waves",
+         "name": "H-Comp Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Kramer PIE Mono-695648d-3434d7ff",
+         "manufacturer": "Waves",
+         "name": "Kramer PIE Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Kramer PIE Stereo-695648d-344b5dff",
+         "manufacturer": "Waves",
+         "name": "Kramer PIE Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Lindell 254E-9587e624-324d090d",
+         "manufacturer": "Plugin Alliance",
+         "name": "Lindell 254E"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Lindell SBC-52082708-a6b7eb75",
+         "manufacturer": "Plugin Alliance",
+         "name": "Lindell SBC"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Pro-C 2-f1a6549f-763029ad",
+         "manufacturer": "FabFilter",
+         "name": "Pro-C 2"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-RCompressor Mono-695648d-16ac3c80",
+         "manufacturer": "Waves",
+         "name": "RCompressor Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-RCompressor Stereo-695648d-16c2c280",
+         "manufacturer": "Waves",
+         "name": "RCompressor Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Shadow Hills OptoMax-571db02c-57bf355a",
+         "manufacturer": "Plugin Alliance",
+         "name": "Shadow Hills OptoMax"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-TBTECH Cenozoix Compressor-ae9d39c4-c8c84a6",
+         "manufacturer": "Plugin Alliance",
+         "name": "TBTECH Cenozoix Compressor"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Unfiltered Audio SpecOps-d5dccea9-f7bad819",
+         "manufacturer": "Plugin Alliance",
+         "name": "Unfiltered Audio SpecOps"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Unfiltered Audio Zip-2ddbbdbf-12059919",
+         "manufacturer": "Plugin Alliance",
+         "name": "Unfiltered Audio Zip"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-ZamComp-a56638f7-4513e632",
+         "manufacturer": "Damien Zammit",
+         "name": "ZamComp"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-ZamCompX2-d8e8a4f7-a370e632",
+         "manufacturer": "Damien Zammit",
+         "name": "ZamCompX2"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-ZamDynamicEQ-ac4fa121-62fe1c32",
+         "manufacturer": "Damien Zammit",
+         "name": "ZamDynamicEQ"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-elysia mpressor-e4fd29ee-5c2868d",
+         "manufacturer": "Plugin Alliance",
+         "name": "elysia mpressor"
+        }
+       ],
+       "capability": "one bounded broadband compressor threshold move within +/-10 dB on a dual-channel surface"
+      },
+      {
+       "action_domain": "de_esser",
+       "candidates": [
+        {
+         "format": "VST3",
+         "identifier": "VST3-DeEsser Mono-695648d-fff9b4fa",
+         "manufacturer": "Waves",
+         "name": "DeEsser Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-DeEsser Stereo-695648d-103b00",
+         "manufacturer": "Waves",
+         "name": "DeEsser Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Sibilance Mono-695648d-f15fcaf9",
+         "manufacturer": "Waves",
+         "name": "Sibilance Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Sibilance Stereo-695648d-f17650f9",
+         "manufacturer": "Waves",
+         "name": "Sibilance Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Sibilance-Live Mono-695648d-16e9caf9",
+         "manufacturer": "Waves",
+         "name": "Sibilance-Live Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Sibilance-Live Stereo-695648d-170050f9",
+         "manufacturer": "Waves",
+         "name": "Sibilance-Live Stereo"
+        }
+       ],
+       "capability": "one bounded de-esser threshold move within +/-10 dB on a single shared parameter"
+      },
+      {
+       "action_domain": "transient_shaper",
+       "candidates": [
+        {
+         "format": "VST3",
+         "identifier": "VST3-Smack Attack Mono-695648d-eac19648",
+         "manufacturer": "Waves",
+         "name": "Smack Attack Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Smack Attack Stereo-695648d-ead81c48",
+         "manufacturer": "Waves",
+         "name": "Smack Attack Stereo"
+        }
+       ],
+       "capability": "one bounded transient attack move within +/-10 dB on a single shared parameter"
+      },
+      {
+       "action_domain": "limiter",
+       "candidates": [
+        {
+         "format": "VST3",
+         "identifier": "VST3-L1 limiter Mono-695648d-191aefbc",
+         "manufacturer": "Waves",
+         "name": "L1 limiter Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L1 limiter Stereo-695648d-193175bc",
+         "manufacturer": "Waves",
+         "name": "L1 limiter Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L1+ Ultramaximizer Stereo-695648d-56929f2c",
+         "manufacturer": "Waves",
+         "name": "L1+ Ultramaximizer Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L2 Mono-695648d-1faa9b11",
+         "manufacturer": "Waves",
+         "name": "L2 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L2 Stereo-695648d-16c5411b",
+         "manufacturer": "Waves",
+         "name": "L2 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L2-SC Mono-695648d-e9c2c30b",
+         "manufacturer": "Waves",
+         "name": "L2-SC Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L2-SC Stereo-695648d-e9df4e02",
+         "manufacturer": "Waves",
+         "name": "L2-SC Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L316 Mono-695648d-fb756ef",
+         "manufacturer": "Waves",
+         "name": "L316 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-L316 Stereo-695648d-15d2d3f2",
+         "manufacturer": "Waves",
+         "name": "L316 Stereo"
+        }
+       ],
+       "capability": "one bounded output ceiling move within +/-10 dB on a single shared parameter"
+      },
+      {
+       "action_domain": "gate_expander",
+       "candidates": [
+        {
+         "format": "VST3",
+         "identifier": "VST3-PSE Mono-695648d-b943518d",
+         "manufacturer": "Waves",
+         "name": "PSE Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-PSE Stereo-695648d-be50dbac",
+         "manufacturer": "Waves",
+         "name": "PSE Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-Pro-G-38fcf5ad-5a6e43a2",
+         "manufacturer": "FabFilter",
+         "name": "Pro-G"
+        }
+       ],
+       "capability": "one bounded gate range move within +/-10 dB on a single shared parameter"
+      },
+      {
+       "action_domain": "multiband_dynamics",
+       "candidates": [
+        {
+         "format": "VST3",
+         "identifier": "VST3-C4 Mono-695648d-bfaad650",
+         "manufacturer": "Waves",
+         "name": "C4 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C4 Stereo-695648d-b6c57c5a",
+         "manufacturer": "Waves",
+         "name": "C4 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C6 Mono-695648d-aeaa61f1",
+         "manufacturer": "Waves",
+         "name": "C6 Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C6 Stereo-695648d-a5c507fb",
+         "manufacturer": "Waves",
+         "name": "C6 Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C6-SideChain Mono-695648d-adb67e9f",
+         "manufacturer": "Waves",
+         "name": "C6-SideChain Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-C6-SideChain Stereo-695648d-adcd049f",
+         "manufacturer": "Waves",
+         "name": "C6-SideChain Stereo"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-LinMB Mono-695648d-fb0308ec",
+         "manufacturer": "Waves",
+         "name": "LinMB Mono"
+        },
+        {
+         "format": "VST3",
+         "identifier": "VST3-LinMB Stereo-695648d-fb1f93e3",
+         "manufacturer": "Waves",
+         "name": "LinMB Stereo"
+        }
+       ],
+       "capability": "one bounded per-band threshold move within +/-10 dB indexed by band_index"
+      }
+     ],
+     "schema_version": "free_state_plugin_candidate_disclosure.v1"
+    },
+    "priority_queue": {
+     "entries": [
+      {
+       "dimension": "level_headroom",
+       "priority_reason": "default_order",
+       "status": "closed"
+      },
+      {
+       "dimension": "frequency_occupancy",
+       "priority_reason": "default_order",
+       "status": "open"
+      },
+      {
+       "dimension": "dynamics",
+       "priority_reason": "default_order",
+       "status": "open"
+      },
+      {
+       "dimension": "stereo_space",
+       "priority_reason": "default_order",
+       "status": "open"
+      },
+      {
+       "dimension": "transient_event",
+       "priority_reason": "default_order",
+       "status": "open"
+      }
+     ],
+     "schema_version": "free_state_priority_queue.v1"
+    },
+    "requires_post_action_observation": false,
+    "run_id": "run_bca68880d5253145",
+    "schema_version": "free_state_reasoning_loop.v1",
+    "seed_observation": {
+     "issued_at": "2026-10-22T13:25:43.3249362Z",
+     "observation_id": "obs_20261022T132543_611cf30f59a3",
+     "project_revision": "6",
+     "receipt_id": "ccbr_obs_20261022T132543_611cf30f59a3",
+     "schema_version": "free_state_seed_observation.v1",
+     "seed_requested_by": "product_runtime",
+     "status": "ready",
+     "view_id": "mix.multitrack_relationship"
+    },
+    "status": "awaiting_experiment",
+    "target_ref": {
+     "id": "1017",
+     "kind": "track"
+    },
+    "updated_at": "2026-10-22T13:26:09.4953164Z",
+    "user_named_target": "1017"
+   },
+   "free_state_route_authorized": true,
+   "free_state_semantic_processor_intent": {
+    "confidence": 1,
+    "control_mode": "semantic_loop",
+    "evidence_refs": [
+     "obs_20261022T132601_a1b4946ae1ba"
+    ],
+    "family": "delay",
+    "intent": "admitted bounded experiment delay_feedback_adjust on axis feedback_amount",
+    "required_coverage": [
+     "feedback_amount"
+    ],
+    "schema_version": "semantic_processor_intent.v1",
+    "scope": "current_track",
+    "status": "resolved"
+   },
+   "goal_id": "goal_17b2cd7ec1011823",
+   "improvement_proposal_needs_resolution": null,
+   "minimal_audio_closure": {
+    "action_attempts": 0,
+    "actionability": "actionable",
+    "closure_id": "audio_closure_a41f445b2b4317e5",
+    "contract_id": "contract_task_6da40d0fbf6b131c",
+    "conversation_id": "softguide_b1_A4_20261022_212540",
+    "created_at": "2026-10-22T13:25:43.3179205Z",
+    "diagnostic_rounds": [
+     {
+      "conversation_id": "softguide_b1_A4_20261022_212540",
+      "evidence_status": "ready",
+      "goal_id": "goal_17b2cd7ec1011823",
+      "primary_dimension": "level_headroom",
+      "priority_reason": "default_order",
+      "project_revision": "6",
+      "round_id": "r_8ce7c72debee",
+      "run_id": "run_bca68880d5253145",
+      "schema_version": "free_state_diagnostic_round.v1",
+      "views_requested": [
+       "mix.multitrack_relationship"
+      ]
+     },
+     {
+      "conversation_id": "softguide_b1_A4_20261022_212540",
+      "evidence_status": "ready",
+      "goal_id": "goal_17b2cd7ec1011823",
+      "primary_dimension": "level_headroom",
+      "priority_reason": "default_order",
+      "project_revision": "6",
+      "round_id": "r_8c8b0a7d1a6d",
+      "run_id": "run_bca68880d5253145",
+      "schema_version": "free_state_diagnostic_round.v1",
+      "views_requested": [
+       "track.basic_energy"
+      ]
+     }
+    ],
+    "events": [
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "ContractID": "contract_task_6da40d0fbf6b131c",
+       "ConversationID": "softguide_b1_A4_20261022_212540",
+       "GoalID": "goal_17b2cd7ec1011823",
+       "Mode": "treatment",
+       "OriginalIntent": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+       "Policy": {
+        "max_action_attempts": 1,
+        "max_closure_rounds": 6,
+        "max_duty_observations": 8,
+        "max_model_protocol_repairs": 1,
+        "max_no_progress_rounds": 2,
+        "max_rollback_attempts": 1,
+        "max_unique_observation_sets": 4
+       },
+       "ProjectRevision": "6",
+       "ProjectUUID": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+       "RunID": "run_bca68880d5253145",
+       "Scope": {
+        "id": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+        "kind": "project"
+       },
+       "TaskID": "task_6da40d0fbf6b131c",
+       "TaskState": "observation_in_progress",
+       "TaskStateRevision": 1
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:1",
+      "occurred_at": "2026-10-22T13:25:43.3179205Z",
+      "sequence": 1,
+      "type": "closure_started"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "round": 1
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:2",
+      "occurred_at": "2026-10-22T13:25:43.6118993Z",
+      "sequence": 2,
+      "type": "round_started"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "reasoning",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": false,
+        "continue_once_remaining": false,
+        "dimension_closed": false,
+        "frontier_established": false,
+        "gate_passed": false,
+        "project_bound": false,
+        "queue_non_empty": false,
+        "scan_usable": false,
+        "target_evidence": false
+       },
+       "guard_passed": true,
+       "reason": "fs entry",
+       "to": "fs0_semantic_entry"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:3",
+      "occurred_at": "2026-10-22T13:25:43.6189024Z",
+      "sequence": 3,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs0_semantic_entry",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": false,
+        "continue_once_remaining": true,
+        "dimension_closed": false,
+        "frontier_established": false,
+        "gate_passed": false,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": false,
+        "target_evidence": false
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs1_project_bound"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:4",
+      "occurred_at": "2026-10-22T13:25:43.6189024Z",
+      "sequence": 4,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "duplicate": false,
+       "record": {
+        "fingerprint": "audio_observation:3e365d5e096c014de75e5fb785618c59",
+        "observation_id": "obs_20261022T132543_611cf30f59a3",
+        "project_revision": "6",
+        "provenance": "model",
+        "recorded_at": "2026-10-22T13:25:46.5518178Z",
+        "round": 1,
+        "target_ref": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+        "view_ids": [
+         "mix.multitrack_relationship"
+        ]
+       }
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:5",
+      "occurred_at": "2026-10-22T13:25:46.5518178Z",
+      "sequence": 5,
+      "type": "observation_recorded"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "actionability": "unknown",
+       "frontier": {
+        "candidates": [
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:06af56e8c489463f",
+          "issue_type": "low_mid_masking_candidate",
+          "region": "low_mid",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1017",
+           "1022",
+           "1027"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:1948c3385b56acf3",
+          "issue_type": "mid_band_overlap_candidate",
+          "region": "mid",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1017",
+           "1027",
+           "1032"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:e303642df3b9f8a8",
+          "issue_type": "sub_band_overlap_candidate",
+          "region": "sub",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1007",
+           "1012",
+           "1022"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:eed4177ee0d430d5",
+          "issue_type": "low_end_overlap",
+          "region": "bass",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1007",
+           "1012",
+           "1022"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         }
+        ],
+        "hypothesis_ids": [
+         "candidate:candidate:06af56e8c489463f",
+         "candidate:candidate:1948c3385b56acf3",
+         "candidate:candidate:e303642df3b9f8a8",
+         "candidate:candidate:eed4177ee0d430d5"
+        ]
+       },
+       "progress": true
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:6",
+      "occurred_at": "2026-10-22T13:25:46.5523189Z",
+      "sequence": 6,
+      "type": "frontier_updated"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs1_project_bound",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": true,
+        "continue_once_remaining": true,
+        "dimension_closed": false,
+        "frontier_established": true,
+        "gate_passed": false,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": true,
+        "target_evidence": false
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs2_capacity_assessed"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:7",
+      "occurred_at": "2026-10-22T13:25:46.5523189Z",
+      "sequence": 7,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs2_capacity_assessed",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": true,
+        "continue_once_remaining": true,
+        "dimension_closed": false,
+        "frontier_established": true,
+        "gate_passed": false,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": true,
+        "target_evidence": false
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs3_project_scan"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:8",
+      "occurred_at": "2026-10-22T13:25:46.5523189Z",
+      "sequence": 8,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs3_project_scan",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": true,
+        "continue_once_remaining": true,
+        "dimension_closed": false,
+        "frontier_established": true,
+        "gate_passed": false,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": true,
+        "target_evidence": false
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs4_diagnostic_round"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:9",
+      "occurred_at": "2026-10-22T13:25:46.5523189Z",
+      "sequence": 9,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "round": {
+        "conversation_id": "softguide_b1_A4_20261022_212540",
+        "evidence_status": "ready",
+        "goal_id": "goal_17b2cd7ec1011823",
+        "primary_dimension": "level_headroom",
+        "priority_reason": "default_order",
+        "project_revision": "6",
+        "round_id": "r_8ce7c72debee",
+        "run_id": "run_bca68880d5253145",
+        "schema_version": "free_state_diagnostic_round.v1",
+        "views_requested": [
+         "mix.multitrack_relationship"
+        ]
+       }
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:10",
+      "occurred_at": "2026-10-22T13:25:46.5523189Z",
+      "sequence": 10,
+      "type": "diagnostic_round_recorded"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "progress": false
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:11",
+      "occurred_at": "2026-10-22T13:25:46.5523189Z",
+      "sequence": 11,
+      "type": "round_completed"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "round": 2
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:12",
+      "occurred_at": "2026-10-22T13:25:46.7570384Z",
+      "sequence": 12,
+      "type": "round_started"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs4_diagnostic_round",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": false,
+        "continue_once_remaining": true,
+        "dimension_closed": true,
+        "frontier_established": true,
+        "gate_passed": false,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": true,
+        "target_evidence": false
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs5_candidate_frontier"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:13",
+      "occurred_at": "2026-10-22T13:25:46.7650388Z",
+      "sequence": 13,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "duplicate": false,
+       "record": {
+        "fingerprint": "audio_observation:33e848b600fab36d1e80b5eff515886f",
+        "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+        "project_revision": "6",
+        "provenance": "model",
+        "recorded_at": "2026-10-22T13:26:02.0405286Z",
+        "round": 2,
+        "target_ref": "1017",
+        "view_ids": [
+         "track.basic_energy"
+        ]
+       }
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:14",
+      "occurred_at": "2026-10-22T13:26:02.0405286Z",
+      "sequence": 14,
+      "type": "observation_recorded"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "actionability": "unknown",
+       "frontier": {
+        "candidate_id": "candidate:06af56e8c489463f",
+        "candidates": [
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:06af56e8c489463f",
+          "issue_type": "low_mid_masking_candidate",
+          "region": "low_mid",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1017",
+           "1022",
+           "1027"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:1948c3385b56acf3",
+          "issue_type": "mid_band_overlap_candidate",
+          "region": "mid",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1017",
+           "1027",
+           "1032"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:e303642df3b9f8a8",
+          "issue_type": "sub_band_overlap_candidate",
+          "region": "sub",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1007",
+           "1012",
+           "1022"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:eed4177ee0d430d5",
+          "issue_type": "low_end_overlap",
+          "region": "bass",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1007",
+           "1012",
+           "1022"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         }
+        ],
+        "hypothesis_ids": [
+         "candidate:candidate:06af56e8c489463f",
+         "candidate:candidate:1948c3385b56acf3",
+         "candidate:candidate:e303642df3b9f8a8",
+         "candidate:candidate:eed4177ee0d430d5"
+        ]
+       },
+       "progress": true
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:15",
+      "occurred_at": "2026-10-22T13:26:02.0410301Z",
+      "sequence": 15,
+      "type": "frontier_updated"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs5_candidate_frontier",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": true,
+        "continue_once_remaining": true,
+        "dimension_closed": true,
+        "frontier_established": true,
+        "gate_passed": false,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": true,
+        "target_evidence": true
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs6_target_confirmed"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:16",
+      "occurred_at": "2026-10-22T13:26:02.0410301Z",
+      "sequence": 16,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "round": {
+        "conversation_id": "softguide_b1_A4_20261022_212540",
+        "evidence_status": "ready",
+        "goal_id": "goal_17b2cd7ec1011823",
+        "primary_dimension": "level_headroom",
+        "priority_reason": "default_order",
+        "project_revision": "6",
+        "round_id": "r_8c8b0a7d1a6d",
+        "run_id": "run_bca68880d5253145",
+        "schema_version": "free_state_diagnostic_round.v1",
+        "views_requested": [
+         "track.basic_energy"
+        ]
+       }
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:17",
+      "occurred_at": "2026-10-22T13:26:02.0410301Z",
+      "sequence": 17,
+      "type": "diagnostic_round_recorded"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "progress": false
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:18",
+      "occurred_at": "2026-10-22T13:26:02.0420331Z",
+      "sequence": 18,
+      "type": "round_completed"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "round": 3
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:19",
+      "occurred_at": "2026-10-22T13:26:02.2181763Z",
+      "sequence": 19,
+      "type": "round_started"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs6_target_confirmed",
+       "guard": {
+        "admission_valid": false,
+        "capacity_assessed": true,
+        "continue_once_remaining": true,
+        "dimension_closed": true,
+        "frontier_established": true,
+        "gate_passed": true,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": true,
+        "target_evidence": true
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs7_improvement_proposal"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:20",
+      "occurred_at": "2026-10-22T13:26:09.4366957Z",
+      "sequence": 20,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "from": "fs7_improvement_proposal",
+       "guard": {
+        "admission_valid": true,
+        "capacity_assessed": true,
+        "continue_once_remaining": true,
+        "dimension_closed": true,
+        "frontier_established": true,
+        "gate_passed": false,
+        "project_bound": true,
+        "queue_non_empty": true,
+        "scan_usable": true,
+        "target_evidence": true
+       },
+       "guard_passed": true,
+       "reason": "derived from closure evidence",
+       "to": "fs8_experiment_verification"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:21",
+      "occurred_at": "2026-10-22T13:26:09.4828005Z",
+      "sequence": 21,
+      "type": "phase_transition"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "actionability": "actionable",
+       "frontier": {
+        "candidate_id": "candidate:06af56e8c489463f",
+        "candidates": [
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:06af56e8c489463f",
+          "issue_type": "low_mid_masking_candidate",
+          "region": "low_mid",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1017",
+           "1022",
+           "1027"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:1948c3385b56acf3",
+          "issue_type": "mid_band_overlap_candidate",
+          "region": "mid",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1017",
+           "1027",
+           "1032"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:e303642df3b9f8a8",
+          "issue_type": "sub_band_overlap_candidate",
+          "region": "sub",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1007",
+           "1012",
+           "1022"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         },
+         {
+          "evidence_refs": [
+           "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+           "obs_20261022T132543_611cf30f59a3"
+          ],
+          "id": "candidate:eed4177ee0d430d5",
+          "issue_type": "low_end_overlap",
+          "region": "bass",
+          "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+          "track_ids": [
+           "1007",
+           "1012",
+           "1022"
+          ],
+          "view_id": "mix.multitrack_relationship"
+         }
+        ],
+        "hypothesis_ids": [
+         "candidate:candidate:06af56e8c489463f",
+         "candidate:candidate:1948c3385b56acf3",
+         "candidate:candidate:e303642df3b9f8a8",
+         "candidate:candidate:eed4177ee0d430d5"
+        ]
+       },
+       "progress": true
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:22",
+      "occurred_at": "2026-10-22T13:26:09.4983195Z",
+      "sequence": 22,
+      "type": "frontier_updated"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "contract_id": "contract_task_6da40d0fbf6b131c",
+       "revision": 4,
+       "state": "needs_experiment"
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:23",
+      "occurred_at": "2026-10-22T13:26:09.4983195Z",
+      "sequence": 23,
+      "type": "task_state_projected"
+     },
+     {
+      "closure_id": "audio_closure_a41f445b2b4317e5",
+      "data": {
+       "progress": false
+      },
+      "event_id": "audio_closure_a41f445b2b4317e5:24",
+      "occurred_at": "2026-10-22T13:26:09.4988194Z",
+      "sequence": 24,
+      "type": "round_completed"
+     }
+    ],
+    "goal_id": "goal_17b2cd7ec1011823",
+    "hypothesis_frontier": {
+     "candidate_id": "candidate:06af56e8c489463f",
+     "candidates": [
+      {
+       "evidence_refs": [
+        "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+        "obs_20261022T132543_611cf30f59a3"
+       ],
+       "id": "candidate:06af56e8c489463f",
+       "issue_type": "low_mid_masking_candidate",
+       "region": "low_mid",
+       "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+       "track_ids": [
+        "1017",
+        "1022",
+        "1027"
+       ],
+       "view_id": "mix.multitrack_relationship"
+      },
+      {
+       "evidence_refs": [
+        "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+        "obs_20261022T132543_611cf30f59a3"
+       ],
+       "id": "candidate:1948c3385b56acf3",
+       "issue_type": "mid_band_overlap_candidate",
+       "region": "mid",
+       "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+       "track_ids": [
+        "1017",
+        "1027",
+        "1032"
+       ],
+       "view_id": "mix.multitrack_relationship"
+      },
+      {
+       "evidence_refs": [
+        "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+        "obs_20261022T132543_611cf30f59a3"
+       ],
+       "id": "candidate:e303642df3b9f8a8",
+       "issue_type": "sub_band_overlap_candidate",
+       "region": "sub",
+       "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+       "track_ids": [
+        "1007",
+        "1012",
+        "1022"
+       ],
+       "view_id": "mix.multitrack_relationship"
+      },
+      {
+       "evidence_refs": [
+        "evidence://e3063ea3483e4a62283bbbfc2ee21c062b8c8caded2813cb0bb9c467656c7169",
+        "obs_20261022T132543_611cf30f59a3"
+       ],
+       "id": "candidate:eed4177ee0d430d5",
+       "issue_type": "low_end_overlap",
+       "region": "bass",
+       "source_observation_id": "obs_20261022T132543_611cf30f59a3",
+       "track_ids": [
+        "1007",
+        "1012",
+        "1022"
+       ],
+       "view_id": "mix.multitrack_relationship"
+      }
+     ],
+     "hypothesis_ids": [
+      "candidate:candidate:06af56e8c489463f",
+      "candidate:candidate:1948c3385b56acf3",
+      "candidate:candidate:e303642df3b9f8a8",
+      "candidate:candidate:eed4177ee0d430d5"
+     ]
+    },
+    "mode": "treatment",
+    "model_protocol_repairs": 0,
+    "no_progress_streak": 0,
+    "observation_order": [
+     "audio_observation:3e365d5e096c014de75e5fb785618c59",
+     "audio_observation:33e848b600fab36d1e80b5eff515886f"
+    ],
+    "observations": {
+     "audio_observation:33e848b600fab36d1e80b5eff515886f": {
+      "fingerprint": "audio_observation:33e848b600fab36d1e80b5eff515886f",
+      "observation_id": "obs_20261022T132601_a1b4946ae1ba",
+      "project_revision": "6",
+      "provenance": "model",
+      "recorded_at": "2026-10-22T13:26:02.0405286Z",
+      "round": 2,
+      "target_ref": "1017",
+      "view_ids": [
+       "track.basic_energy"
+      ]
+     },
+     "audio_observation:3e365d5e096c014de75e5fb785618c59": {
+      "fingerprint": "audio_observation:3e365d5e096c014de75e5fb785618c59",
+      "observation_id": "obs_20261022T132543_611cf30f59a3",
+      "project_revision": "6",
+      "provenance": "model",
+      "recorded_at": "2026-10-22T13:25:46.5518178Z",
+      "round": 1,
+      "target_ref": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+      "view_ids": [
+       "mix.multitrack_relationship"
+      ]
+     }
+    },
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+    "phase": "fs8_experiment_verification",
+    "policy": {
+     "max_action_attempts": 1,
+     "max_closure_rounds": 6,
+     "max_duty_observations": 8,
+     "max_model_protocol_repairs": 1,
+     "max_no_progress_rounds": 2,
+     "max_rollback_attempts": 1,
+     "max_unique_observation_sets": 4
+    },
+    "project_revision": "6",
+    "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+    "revision": 24,
+    "rollback_attempts": 0,
+    "round_had_progress": false,
+    "round_in_progress": false,
+    "rounds_started": 3,
+    "run_id": "run_bca68880d5253145",
+    "schema_version": "minimal_audio_closure.v1",
+    "scope": {
+     "id": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+     "kind": "project"
+    },
+    "task_id": "task_6da40d0fbf6b131c",
+    "task_state": "needs_experiment",
+    "task_state_revision": 4,
+    "updated_at": "2026-10-22T13:26:09.4988194Z"
+   },
+   "orchestration_controller_decision": {
+    "authorization": "action_requested",
+    "controller": "minimal_audio_closure",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "schema_version": "orchestration_controller_decision.v1",
+    "source_route": "open_semantic",
+    "target_scope": "project_context"
+   },
+   "orchestration_controller_owner": {
+    "controller": "minimal_audio_closure",
+    "controller_id": "audio_closure_a41f445b2b4317e5",
+    "conversation_id": "softguide_b1_A4_20261022_212540",
+    "created_at": "2026-10-22T13:25:43.3179205Z",
+    "revision": 1,
+    "settlement_reason": "",
+    "status": "active",
+    "target_scope": "project_context",
+    "updated_at": "2026-10-22T13:25:43.3179205Z"
+   },
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+   "plugin_recommendation_admission_boundary": {
+    "admitted_count": 1,
+    "admitted_names": [
+     "Timeless 3"
+    ],
+    "catalog_face_count": 29,
+    "catalog_search_type": "delay"
+   },
+   "plugin_recommendation_axis_coverage_disclosure": {
+    "candidates": [
+     {
+      "attestation_id": "pca2_19d2d7871c22c5c9665d71fa",
+      "attested_coverage_axes": [
+       "feedback_amount",
+       "spatial_mode",
+       "wet_balance"
+      ],
+      "binary_fingerprint": "sha256:ea96ace10f79fa63f860ba335ee41796a671e8d7c2bfe5c32a7516db0c8a228c",
+      "candidate_key": "plugin_candidate_1"
+     }
+    ],
+    "frozen_semantic_axes": [
+     "feedback_amount"
+    ],
+    "required_action_coverage": [
+     {
+      "action": "adjust",
+      "axis": "feedback_amount",
+      "shape": ""
+     }
+    ],
+    "schema_version": "plugin_recommendation_axis_coverage_disclosure.v1"
+   },
+   "project_id": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+   "project_path": "D:\\Vit_DAW_wt_fsnac1\\coord\\runs\\FS-NAMED-ALIAS-COVER-1\\fs_alias_chat_20261022_2125\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "6",
+   "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+   "run_id": "run_bca68880d5253145",
+   "selected_track_id": "1017",
+   "selected_track_name": "",
+   "semantic_entry_decision": {
+    "confidence": 1,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "semantic_entry_verified": true,
+   "semantic_post_load_family": "delay",
+   "semantic_post_load_goal": "给这条吉他轨加一点轻微的延迟，让它在混音里更有空间感、尾音更连贯，同时不削弱原本的清晰度",
+   "semantic_post_load_handoff": true,
+   "semantic_post_load_planner": "semantic_delay",
+   "semantic_post_load_semantic_processor_intent": {
+    "confidence": 1,
+    "control_mode": "semantic_loop",
+    "evidence_refs": [
+     "obs_20261022T132601_a1b4946ae1ba"
+    ],
+    "family": "delay",
+    "intent": "admitted bounded experiment delay_feedback_adjust on axis feedback_amount",
+    "required_coverage": [
+     "feedback_amount"
+    ],
+    "schema_version": "semantic_processor_intent.v1",
+    "scope": "current_track",
+    "status": "resolved"
+   },
+   "semantic_progressive_disclosure": {
+    "schema_version": "semantic_progressive_disclosure.v1",
+    "stage": "physical_target",
+    "intent": {
+     "schema_version": "semantic_processor_intent.v1",
+     "status": "resolved",
+     "family": "delay",
+     "intent": "admitted bounded experiment delay_feedback_adjust on axis feedback_amount",
+     "required_coverage": [
+      "feedback_amount"
+     ],
+     "scope": "current_track",
+     "control_mode": "semantic_loop",
+     "confidence": 1,
+     "evidence_refs": [
+      "obs_20261022T132601_a1b4946ae1ba"
+     ]
+    },
+    "adapter_family": "delay",
+    "pca_family": "delay",
+    "required_coverage": [
+     {
+      "action": "adjust",
+      "axis": "feedback_amount"
+     }
+    ],
+    "model_view_ids": [
+     "track.basic_energy"
+    ],
+    "executed_view_ids": [
+     "track.basic_energy"
+    ],
+    "confirmation_required": false
+   },
+   "semantic_topology_plan": {
+    "exception": {
+     "code": "",
+     "reason": ""
+    },
+    "fx_track": {
+     "action": "create",
+     "name": "Delay Bus"
+    },
+    "loads": [
+     {}
+    ],
+    "mode": "bus",
+    "schema_version": "semantic_topology_plan.v1",
+    "sends": [
+     {
+      "default_amount_db": -6,
+      "source_track_id": "1017"
+     }
+    ],
+    "template_basis": "family=delay;bus_default"
+   },
+   "semantic_treatment_strategy": {
+    "global_constraints": [
+     "处理方式固定为延迟（delay），不得改用其他处理器类型",
+     "必须覆盖 feedback_amount 这一控制量",
+     "只做轻微的延迟处理，不得削弱原本的清晰度",
+     "必须先取得一个已加载并有绑定关系的延迟实例，之后才能下发参数"
+    ],
+    "schema_version": "semantic_treatment_strategy.v1",
+    "selected_choice": {
+     "choice_key": "delay_load_required_feedback_amount",
+     "confidence": "high",
+     "expected_effect": "给吉他增加一层轻量的重复尾音，让声音在混音里更宽、更连贯，同时不会把原来的拨弦瞬态掩盖掉",
+     "instance_key": "",
+     "material_difference": "这是当前唯一能落实延迟这一处理方式的可行途径；因为不存在可复用的延迟实例，所以不需要再和别的方案比较。",
+     "next_planner": "plugin_recommendation",
+     "processor_type": "delay",
+     "reason": "上游已把处理方式限定为延迟，并且这条吉他轨上没有任何已加载的延迟实例，所以只能先推荐并加载一个延迟插件，再进入反馈量的语义调整。",
+     "role": "recommended",
+     "target_mode": "load_required",
+     "title": "加载延迟插件后做轻微反馈量调整",
+     "tradeoff": "必须先完成插件加载和实例绑定，之后才能控制参数；反馈量给得过多会让尾音堆积，损伤清晰度，所以只能小幅度调整"
+    },
+    "summary": "这条吉他轨目前没有可用的延迟插件实例，因此先走“推荐并加载延迟插件”的受控步骤；加载完成后，再针对反馈量（feedback_amount）做轻微的语义级调整，以增加空间感和尾音连贯度，同时保持清晰度。"
+   },
+   "slice_id": "slice_123c6c166fff8a05",
+   "task_contract": {
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "contract_id": "contract_task_6da40d0fbf6b131c",
+    "conversation_id": "softguide_b1_A4_20261022_212540",
+    "created_at": "2026-10-22T13:25:43.3179205Z",
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "goal_id": "goal_17b2cd7ec1011823",
+    "kind": "improvement",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+    "project_revision": "6",
+    "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+    "run_id": "run_bca68880d5253145",
+    "schema_version": "vit.task_semantic_state.v1",
+    "scope": {
+     "id": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+     "kind": "project"
+    },
+    "target_discovery": "agent_observation",
+    "task_id": "task_6da40d0fbf6b131c",
+    "temporary": true
+   },
+   "task_id": "task_6da40d0fbf6b131c",
+   "task_semantic_state": {
+    "contract_id": "contract_task_6da40d0fbf6b131c",
+    "history": [
+     {
+      "event": "observation_started",
+      "occurred_at": "2026-10-22T13:25:43.3179205Z",
+      "project_revision": "6",
+      "reason": "task contract admitted",
+      "revision": 1,
+      "to": "observation_in_progress"
+     }
+    ],
+    "project_revision": "6",
+    "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+    "revision": 1,
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "terminal": false,
+    "transition_reason": "task contract admitted",
+    "updated_at": "2026-10-22T13:25:43.3179205Z"
+   },
+   "user_message": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟"
+  },
+  "schema_version": "plugin_recommendation_selection.v1",
+  "selection_performed": false,
+  "status": "invalid_selection",
+  "summary": "本地可用候选里只有 FabFilter Timeless 3，它是一台功能很全的调制/立体声延迟，用来做“轻微、可听见但不抢戏”的短延迟很合适：靠干湿比、延迟时间和滤波（低切/高切）就能把尾巴拉连贯，同时让吉他的原始瞬态和清晰度留在前面。观察到的这条吉他轨峰值约 -7.96 dBFS、RMS 约 -10.97 dBFS、动态余量约 8 dB，属于比较饱满的信号，因此更适合少量、偏短的延迟，而不是大比例的湿声。",
+  "target_ref": {
+   "fx_track_action": "create",
+   "id": "",
+   "kind": "track",
+   "label": "Delay Bus"
+  },
+  "topology_plan": {
+   "exception": {
+    "code": "",
+    "reason": ""
+   },
+   "fx_track": {
+    "action": "create",
+    "name": "Delay Bus"
+   },
+   "loads": [
+    {}
+   ],
+   "mode": "bus",
+   "schema_version": "semantic_topology_plan.v1",
+   "sends": [
+    {
+     "default_amount_db": -6,
+     "source_track_id": "1017"
+    }
+   ],
+   "template_basis": "family=delay;bus_default"
+  },
+  "typed_event": {
+   "event_type": "UserInputRequest",
+   "schema_version": "vit_agent_protocol.v0",
+   "source": {
+    "call_id": "interaction_eb2b6fcce0ca4434",
+    "conversation_id": "softguide_b1_A4_20261022_212540",
+    "goal_id": "goal_17b2cd7ec1011823",
+    "legacy_kind": "plugin_recommendation_question",
+    "metadata": {
+     "stage": "awaiting_selection",
+     "type": "plugin_recommendation_selection",
+     "workflow": "plugin_recommendation_selection"
+    },
+    "run_id": "run_bca68880d5253145"
+   },
+   "state": {
+    "id": "input_interaction_eb2b6fcce0ca4434",
+    "kind": "UserInputRequest",
+    "options": [
+     "select_plugin_candidate_1",
+     "cancel"
+    ],
+    "prompt": "本地可用候选里只有 FabFilter Timeless 3，它是一台功能很全的调制/立体声延迟，用来做“轻微、可听见但不抢戏”的短延迟很合适：靠干湿比、延迟时间和滤波（低切/高切）就能把尾巴拉连贯，同时让吉他的原始瞬态和清晰度留在前面。观察到的这条吉他轨峰值约 -7.96 dBFS、RMS 约 -10.97 dBFS、动态余量约 8 dB，属于比较饱满的信号，因此更适合少量、偏短的延迟，而不是大比例的湿声。\n主推荐：Timeless 3——Timeless 3 作为延迟处理器，可以同时控制延迟时间、干湿比和反馈，并用滤波让重复声只留在中高频以下或某个频段内；这刚好贴合“加一点空间感、让尾音连起来，又不削弱清晰度”的需求：湿声压低、重复偏短、过滤掉容易发浑的低频部分，吉他原本的拨弦起音就会保持在前面。\n准入边界：本机插件库检索到 29 款延迟，当前通过 PCA 语义控制准入的只有 Timeless 3；其余 28 款可装载，但未接入本类语义控制，不在本次推荐面。\n拓扑计划（总线默认，时域族惯例）：\n  新建 FX 轨「Delay Bus」（待创建，可改名）作为装载位置\n  源轨 ID 1017 --发送(-6.0 dB 默认，可在确认前改)--> Delay Bus（湿声回流各自源轨）\n选择一个候选后，我只会生成加载确认，不会立即加载或修改参数。",
+    "question_type": "missing_info",
+    "source": {
+     "call_id": "interaction_eb2b6fcce0ca4434",
+     "conversation_id": "softguide_b1_A4_20261022_212540",
+     "goal_id": "goal_17b2cd7ec1011823",
+     "legacy_kind": "plugin_recommendation_question",
+     "metadata": {
+      "stage": "awaiting_selection",
+      "type": "plugin_recommendation_selection",
+      "workflow": "plugin_recommendation_selection"
+     },
+     "run_id": "run_bca68880d5253145"
+    },
+    "status": "waiting_user"
+   },
+   "state_id": "input_interaction_eb2b6fcce0ca4434",
+   "state_kind": "UserInputRequest",
+   "status": "waiting_user"
+  },
+  "typed_state": {
+   "id": "input_interaction_eb2b6fcce0ca4434",
+   "kind": "UserInputRequest",
+   "options": [
+    "select_plugin_candidate_1",
+    "cancel"
+   ],
+   "prompt": "本地可用候选里只有 FabFilter Timeless 3，它是一台功能很全的调制/立体声延迟，用来做“轻微、可听见但不抢戏”的短延迟很合适：靠干湿比、延迟时间和滤波（低切/高切）就能把尾巴拉连贯，同时让吉他的原始瞬态和清晰度留在前面。观察到的这条吉他轨峰值约 -7.96 dBFS、RMS 约 -10.97 dBFS、动态余量约 8 dB，属于比较饱满的信号，因此更适合少量、偏短的延迟，而不是大比例的湿声。\n主推荐：Timeless 3——Timeless 3 作为延迟处理器，可以同时控制延迟时间、干湿比和反馈，并用滤波让重复声只留在中高频以下或某个频段内；这刚好贴合“加一点空间感、让尾音连起来，又不削弱清晰度”的需求：湿声压低、重复偏短、过滤掉容易发浑的低频部分，吉他原本的拨弦起音就会保持在前面。\n准入边界：本机插件库检索到 29 款延迟，当前通过 PCA 语义控制准入的只有 Timeless 3；其余 28 款可装载，但未接入本类语义控制，不在本次推荐面。\n拓扑计划（总线默认，时域族惯例）：\n  新建 FX 轨「Delay Bus」（待创建，可改名）作为装载位置\n  源轨 ID 1017 --发送(-6.0 dB 默认，可在确认前改)--> Delay Bus（湿声回流各自源轨）\n选择一个候选后，我只会生成加载确认，不会立即加载或修改参数。",
+   "question_type": "missing_info",
+   "source": {
+    "call_id": "interaction_eb2b6fcce0ca4434",
+    "conversation_id": "softguide_b1_A4_20261022_212540",
+    "goal_id": "goal_17b2cd7ec1011823",
+    "legacy_kind": "plugin_recommendation_question",
+    "metadata": {
+     "stage": "awaiting_selection",
+     "type": "plugin_recommendation_selection",
+     "workflow": "plugin_recommendation_selection"
+    },
+    "run_id": "run_bca68880d5253145"
+   },
+   "status": "waiting_user"
+  }
+ },
+ "goal_status": "waiting_clarification",
+ "project_history": {
+  "active_branch": "main",
+  "active_node_id": "n_20261022T132624_5f6f5743",
+  "active_worktree": "",
+  "available": true,
+  "branches": {
+   "main": "c_20261022T132609_8325885d"
+  },
+  "commit_count": 2,
+  "conversation_messages": [
+   {
+    "content": "approve",
+    "logical_message_id": "n_20261022T132624_bfacad3a",
+    "message_kind": "user",
+    "node_id": "n_20261022T132624_bfacad3a",
+    "role": "user"
+   },
+   {
+    "content": "没有识别到有效的插件候选；没有加载插件或修改工程。",
+    "logical_message_id": "n_20261022T132624_5f6f5743",
+    "message_kind": "error",
+    "node_id": "n_20261022T132624_5f6f5743",
+    "role": "assistant"
+   }
+  ],
+  "detached": false,
+  "draft": false,
+  "head": "c_20261022T132609_8325885d",
+  "initialized": true,
+  "project_label": "softguide_fixture",
+  "project_path": "D:\\Vit_DAW_wt_fsnac1\\coord\\runs\\FS-NAMED-ALIAS-COVER-1\\fs_alias_chat_20261022_2125\\driver\\fixture\\softguide_fixture.vit",
+  "project_uuid": "vitproj_edfbcab5caca41b5972b75f4f02f3f80",
+  "refs": {
+   "refs/heads/main": "c_20261022T132609_8325885d"
+  },
+  "root_project_path": "",
+  "unsaved": false,
+  "warnings": [],
+  "worktrees": [
+   {
+    "commit_id": "c_20261022T132609_8325885d",
+    "created_at": "2026-10-22T13:26:24.8037017Z",
+    "is_root": true,
+    "label": "主工作树",
+    "name": "main",
+    "origin_commit_id": "c_20261022T132609_8325885d",
+    "path": "D:\\Vit_DAW_wt_fsnac1\\coord\\runs\\FS-NAMED-ALIAS-COVER-1\\fs_alias_chat_20261022_2125\\driver\\fixture",
+    "project_file_path": "D:\\Vit_DAW_wt_fsnac1\\coord\\runs\\FS-NAMED-ALIAS-COVER-1\\fs_alias_chat_20261022_2125\\driver\\fixture\\softguide_fixture.vit",
+    "project_path": "D:\\Vit_DAW_wt_fsnac1\\coord\\runs\\FS-NAMED-ALIAS-COVER-1\\fs_alias_chat_20261022_2125\\driver\\fixture\\softguide_fixture.vit",
+    "root_project_path": "D:\\Vit_DAW_wt_fsnac1\\coord\\runs\\FS-NAMED-ALIAS-COVER-1\\fs_alias_chat_20261022_2125\\driver\\fixture\\softguide_fixture.vit"
+   }
+  ]
+ },
+ "error": "invalid_plugin_candidate_selection",
+ "lifecycle": "durable",
+ "persistence": "project_history",
+ "message_kind": "error",
+ "turn_id": "run_bca68880d5253145",
+ "logical_message_id": "n_20261022T132624_5f6f5743"
+}
