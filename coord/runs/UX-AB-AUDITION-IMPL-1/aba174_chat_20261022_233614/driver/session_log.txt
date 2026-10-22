@@ -1,0 +1,6 @@
+[round4][resume] resume start
+[round4][resume] resume hop_1 kind=confirmation goal=completed
+[round4][resume] resume experiment judgment status=409
+[round4][resume] resume hop_1 kind=confirmation goal=completed
+[round4][resume] resume nudge 1
+[round4][resume] resume nudge stop=expired_pending_mix_tick_candidate goal=completed

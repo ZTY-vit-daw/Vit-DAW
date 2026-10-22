@@ -1,0 +1,47 @@
+{
+ "round": "round4",
+ "resumed": true,
+ "conversation_id": "aba174_round4_20261023_000846",
+ "prompt": "给人声加点空间感",
+ "settle_reason": "goal_terminal",
+ "goal_status_final": "completed",
+ "stop_reasons": [
+  "expired_pending_mix_tick_candidate"
+ ],
+ "goal_statuses_seen": [
+  "completed",
+  "waiting_continue"
+ ],
+ "card_hops": [
+  {
+   "index": 1,
+   "card": {
+    "face": "interaction",
+    "id": "interaction_02fa8876eeb69cd4",
+    "kind": "confirmation"
+   },
+   "goal_status": "completed",
+   "source": "resume_walk"
+  },
+  {
+   "index": 1,
+   "card": {
+    "face": "interaction",
+    "id": "interaction_02fa8876eeb69cd4",
+    "kind": "confirmation"
+   },
+   "goal_status": "completed",
+   "source": "resume_walk"
+  }
+ ],
+ "resume_timeline": [
+  "resume start",
+  "resume hop_1 kind=confirmation goal=completed",
+  "resume experiment judgment status=409",
+  "resume hop_1 kind=confirmation goal=completed",
+  "resume nudge 1",
+  "resume nudge stop=expired_pending_mix_tick_candidate goal=completed"
+ ],
+ "resume_elapsed_s": 7.7,
+ "started_at": "2026-10-23T00:16:25.823+08:00"
+}

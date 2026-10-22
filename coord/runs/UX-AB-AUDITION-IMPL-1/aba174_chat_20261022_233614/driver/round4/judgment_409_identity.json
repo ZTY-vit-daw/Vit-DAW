@@ -1,0 +1,16 @@
+{
+ "request": {
+  "conversation_id": "aba174_round4_20261023_000846",
+  "turn_id": "dynamic_turn:dyn_75291e34fad3d653__wrong",
+  "round_id": "dynamic_round:dyn_75291e34fad3d653",
+  "audition_session_id": "audition:dynamic:dyn_75291e34fad3d653",
+  "project_revision": "6",
+  "heard_difference": "yes",
+  "preference": "b"
+ },
+ "http_status": 409,
+ "body": {
+  "error": "audition session identity mismatch",
+  "status": "error"
+ }
+}

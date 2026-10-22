@@ -1,0 +1,16 @@
+{
+ "request": {
+  "conversation_id": "aba174_round4_20261023_000846",
+  "turn_id": "turn:free_state_nonexistent",
+  "round_id": "round_nonexistent",
+  "audition_session_id": "audition:turn:free_state_nonexistent:round_nonexistent",
+  "project_revision": "6",
+  "heard_difference": "yes",
+  "preference": "b"
+ },
+ "http_status": 409,
+ "body": {
+  "error": "audition session identity mismatch",
+  "status": "error"
+ }
+}

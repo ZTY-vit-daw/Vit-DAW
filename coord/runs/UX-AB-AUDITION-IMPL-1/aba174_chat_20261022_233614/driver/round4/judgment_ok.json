@@ -1,0 +1,40 @@
+{
+ "request": {
+  "conversation_id": "aba174_round4_20261023_000846",
+  "turn_id": "dynamic_turn:dyn_75291e34fad3d653",
+  "round_id": "dynamic_round:dyn_75291e34fad3d653",
+  "audition_session_id": "audition:dynamic:dyn_75291e34fad3d653",
+  "project_revision": "6",
+  "heard_difference": "yes",
+  "preference": "b",
+  "free_text": "判定探针：选 B，保留这次调整"
+ },
+ "http_status": 200,
+ "body": {
+  "semantic_dynamic_audition": {
+   "audition_session_id": "audition:dynamic:dyn_75291e34fad3d653",
+   "blind": true,
+   "blind_disclosure": {
+    "audition_session": "audition:dynamic:dyn_75291e34fad3d653",
+    "candidate_a": "A",
+    "candidate_b": "B",
+    "decision": "retain",
+    "schema_version": "vit.semantic_dynamic_audition_blind_disclosure.v1"
+   },
+   "decision": "retain",
+   "family": "reverb",
+   "free_text": "判定探针：选 B，保留这次调整",
+   "judgment_evidence_id": "judg_ff6b2804c9c06f52",
+   "label": "B",
+   "physical": "after",
+   "plugin_id": "1047",
+   "reason": "label_carries_after",
+   "retained": true,
+   "schema_version": "vit.semantic_dynamic_audition.v1",
+   "status": "retained",
+   "ticket_id": "dyn_75291e34fad3d653",
+   "track_id": "1037"
+  },
+  "status": "ok"
+ }
+}

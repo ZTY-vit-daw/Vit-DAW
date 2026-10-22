@@ -1,0 +1,91 @@
+=== UX-AB-AUDITION-IMPL-1 real-stack leg 2026-10-22T23:48:53+08:00 ===
++ powershell bringup_aba174.ps1 -Action Start
+kernel SHA256 verified: 722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC (K3 read-only reuse)
+agent SHA256 verified: 7538E6CED474E56728E6C93456E1C53D3A0ADBE6783830DF8A93AB3B928A4FC3 (174 build 7538E6CE gate)
+vsphub SHA256 recorded: B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68
+kernel started pid=29704
+vsphub started pid=14268
+agent started pid=23540 (VIT_DAW_AUDITION_BLIND=1 inherited)
+stack ready: kernel ZMQ 5555/5556 + agent HTTP 7878 + vsphub 8787; project XML isolated at D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_chat_20261022_233614\kernel_workspace
+exit=0
++ python aba174_driver.py --round round1 --out-root /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver
+Traceback (most recent call last):
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 746, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 712, in main
+    (round_dir / "authority_switch.json").write_text(json.dumps(switch, ensure_ascii=False, indent=1), encoding="utf-8")
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\pathlib\_local.py", line 555, in write_text
+    return PathBase.write_text(self, data, encoding, errors, newline)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\pathlib\_abc.py", line 651, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\pathlib\_local.py", line 537, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:\\Vit_DAW\\coord\\runs\\UX-AB-AUDITION-IMPL-1\\aba174_chat_20261022_233614\\driver\\round1\\authority_switch.json'
+exit=1
+(script fix: round_dir mkdir before authority writes; crash preceded any prompt send)
++ python aba174_driver.py --round round1 --out-root /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver (rerun)
+[round1] settle=awaiting_user goal=waiting_confirmation stop=limit_reached turns=1 hops=2 dynamic_session=False
+exit=0
++ python assert_aba174.py --round-dir /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver/round1 (round1 classified)
+[A] FAIL
+[B] FAIL
+[C] FAIL
+[D] FAIL
+[E] FAIL
+[F] FAIL
+failures: A_goal_not_completed, A_no_executed_response, B_not_mounted, B_session_prefix, B_no_audition_ready_event, B_no_judgment_requested_event, C_revision_collision, D_judgment_not_200, D_judgment_no_evidence, D_identity_probe_not_409, D_experiment_probe_not_409, D_no_judgment_event, E_blind_not_enabled, E_labels_not_AB, F_ready_payload_contract, F_judgment_requested_payload_contract | classification: assets_missing, blind_face_missing, experiment_409_regression, judgment_route_failed, no_audition_ready, no_dynamic_chain
+exit=1
+(driver fix: answer_card now uses the card's own recommended action id; round1 consumed by the old generic-approve defect)
++ python aba174_driver.py --round round2 --out-root /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver
+Traceback (most recent call last):
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 767, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 732, in main
+    switch = post_json(args.agent_http, "/agent/authority", {"authority_mode": "full_project_access"}, 30)
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 77, in post_json
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+         ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 189, in urlopen
+    return opener.open(url, data, timeout)
+           ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 495, in open
+    response = meth(req, response)
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 604, in http_response
+    response = self.parent.error(
+        'http', request, response, code, msg, hdrs)
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 533, in error
+    return self._call_chain(*args)
+           ~~~~~~~~~~~~~~~~^^^^^^^
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 466, in _call_chain
+    result = func(*args)
+  File "C:\Users\timoz\AppData\Local\Programs\Python\Python313\Lib\urllib\request.py", line 613, in http_error_default
+    raise HTTPError(req.full_url, code, msg, hdrs, fp)
+urllib.error.HTTPError: HTTP Error 409: Conflict
+exit=1
+(round2 invocation crashed pre-prompt at the authority 409: round1's parked goal blocked the switch; driver hardened: release own stale goal + retry + env-abort shape)
++ python aba174_driver.py --round round3 --out-root /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver
+ENV_ABORT: non-aba174 goal goal_0caecb0412aa6510 is blocking the authority switch; refusing to stop a foreign goal
+exit=2
+(round3 invocation = env_interrupt shape: guard misread goal.conversation_id=None as foreign; fixed via goal-detail resolution. Budget accounting: round1=driven (tooling defect, fixed); round2/round3 invocations crashed pre-prompt = env_interrupt, zero prompts sent)
++ python aba174_driver.py --round round4 --out-root /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver
+Traceback (most recent call last):
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 824, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 803, in main
+    result = run_round(args.agent_http, args.round, PROMPT, fixture_master, round_dir, args, session_log)
+  File "D:\Vit_DAW\coord\runs\UX-AB-AUDITION-IMPL-1\aba174_driver.py", line 629, in run_round
+    goal_now = str((runtime or {}).get("goal") or {}).get("status") or goal_status
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'str' object has no attribute 'get'
+exit=1
+(round4 invocation crashed post-probes on a driver str-dict bug in the fallback block; probes/artifacts all captured; resume mode added)
++ python aba174_driver.py --round round4 --out-root /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver --resume-conversation aba174_round4_20261023_000846
+[round4][resume] settle=goal_terminal goal=completed
+exit=0

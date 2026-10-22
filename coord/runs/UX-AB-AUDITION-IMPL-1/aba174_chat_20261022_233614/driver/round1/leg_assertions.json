@@ -1,0 +1,90 @@
+{
+ "round_dir": "D:\\Vit_DAW\\coord\\runs\\UX-AB-AUDITION-IMPL-1\\aba174_chat_20261022_233614\\driver\\round1",
+ "faces": {
+  "A": {
+   "ok": false,
+   "goal_status_final": "waiting_confirmation",
+   "executed_response": null,
+   "settle_reason": "awaiting_user",
+   "receipt_fields": {
+    "receipt_id": null,
+    "after_revision": null,
+    "settlement_verified": null,
+    "ticket_id": null
+   }
+  },
+  "B": {
+   "ok": false,
+   "session_id": "",
+   "turn_id": null,
+   "round_id": null,
+   "stamp_file": null,
+   "stamp": {},
+   "audition_ready_event_seqs": [],
+   "judgment_requested_events": []
+  },
+  "C": {
+   "ok": false,
+   "candidates": [],
+   "revisions": [],
+   "revisions_distinct": false
+  },
+  "D": {
+   "ok": false,
+   "judgment_ok_status": null,
+   "judgment_decision": null,
+   "judgment_status": null,
+   "judgment_evidence_id": null,
+   "blind_disclosure": null,
+   "identity_probe_status": null,
+   "identity_probe_error": null,
+   "experiment_probe_status": null,
+   "experiment_probe_error": null,
+   "judgment_events": [],
+   "recorded_trajectory_events": []
+  },
+  "E": {
+   "ok": false,
+   "session_blind": null,
+   "candidate_labels": []
+  },
+  "F": {
+   "ok": false,
+   "ready_schema_version": null,
+   "ready_session_turn_id": null,
+   "ready_session_round_id": null,
+   "ready_candidates_ready": [],
+   "requested_node_kind": null,
+   "requested_status": null,
+   "requested_session": null
+  }
+ },
+ "failures": [
+  "A_goal_not_completed",
+  "A_no_executed_response",
+  "B_not_mounted",
+  "B_session_prefix",
+  "B_no_audition_ready_event",
+  "B_no_judgment_requested_event",
+  "C_revision_collision",
+  "D_judgment_not_200",
+  "D_judgment_no_evidence",
+  "D_identity_probe_not_409",
+  "D_experiment_probe_not_409",
+  "D_no_judgment_event",
+  "E_blind_not_enabled",
+  "E_labels_not_AB",
+  "F_ready_payload_contract",
+  "F_judgment_requested_payload_contract"
+ ],
+ "classification": [
+  "assets_missing",
+  "blind_face_missing",
+  "experiment_409_regression",
+  "judgment_route_failed",
+  "no_audition_ready",
+  "no_dynamic_chain"
+ ],
+ "conversation_id": "aba174_round1_20261022_235135",
+ "exit": 1
+}

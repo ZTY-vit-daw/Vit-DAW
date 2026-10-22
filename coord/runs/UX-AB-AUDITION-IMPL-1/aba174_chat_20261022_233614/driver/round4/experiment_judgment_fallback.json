@@ -1,0 +1,17 @@
+{
+ "request": {
+  "conversation_id": "aba174_round4_20261023_000846",
+  "turn_id": "",
+  "round_id": "",
+  "audition_session_id": "audition:turn:free_state_c8958bb93b157780:round-1-1f2feb4c4ad7d33f",
+  "project_revision": "",
+  "heard_difference": "yes",
+  "preference": "b",
+  "free_text": "恢复收口：选 B 保留"
+ },
+ "http_status": 409,
+ "body": {
+  "error": "conversation_id, turn_id, round_id, audition_session_id, and project_revision are required",
+  "status": "error"
+ }
+}
