@@ -1,0 +1,71 @@
+{
+ "conversation_id": "fs_ndw1_chat_20261022_101808_authority_probe",
+ "task_id": "task_4034f50b6685213a",
+ "goal_id": "goal_6a7742ad1a78ad8d",
+ "run_id": "run_5424b66f87a2d2b9",
+ "original_intent": "/smoke authority",
+ "reply": "authority smoke: bound=full_project_access server=full_project_access",
+ "agent_mode": "default",
+ "needs_confirmation": false,
+ "goal_status": "completed",
+ "goal_summary": "/smoke authority",
+ "stop_reason": "authority_smoke_ok",
+ "project_history": {
+  "active_branch": "main",
+  "active_node_id": "n_20261022T021815_bf8318a1",
+  "active_worktree": "",
+  "available": true,
+  "branches": {
+   "main": "c_20261022T021815_89b9cac0"
+  },
+  "commit_count": 1,
+  "conversation_messages": [
+   {
+    "content": "/smoke authority",
+    "logical_message_id": "n_20261022T021815_296ec7ee",
+    "message_kind": "user",
+    "node_id": "n_20261022T021815_296ec7ee",
+    "role": "user"
+   },
+   {
+    "content": "authority smoke: bound=full_project_access server=full_project_access",
+    "logical_message_id": "n_20261022T021815_bf8318a1",
+    "message_kind": "assistant",
+    "node_id": "n_20261022T021815_bf8318a1",
+    "role": "assistant"
+   }
+  ],
+  "detached": false,
+  "draft": false,
+  "head": "c_20261022T021815_89b9cac0",
+  "initialized": true,
+  "project_label": "fs_ndw1_fixture",
+  "project_path": "D:\\Vit_DAW_wt_ndw1\\coord\\runs\\FS-NAMED-DYNAMIC-WIRE-1\\fs_ndw1_chat_20261022_101808\\fixture\\fs_ndw1_fixture.vit",
+  "project_uuid": "vitproj_07c56ad6b2db404da18bc32cc1fa0d72",
+  "refs": {
+   "refs/heads/main": "c_20261022T021815_89b9cac0"
+  },
+  "root_project_path": "",
+  "unsaved": false,
+  "warnings": [],
+  "worktrees": [
+   {
+    "commit_id": "c_20261022T021815_89b9cac0",
+    "created_at": "2026-10-22T02:18:15.8116518Z",
+    "is_root": true,
+    "label": "主工作树",
+    "name": "main",
+    "origin_commit_id": "c_20261022T021815_89b9cac0",
+    "path": "D:\\Vit_DAW_wt_ndw1\\coord\\runs\\FS-NAMED-DYNAMIC-WIRE-1\\fs_ndw1_chat_20261022_101808\\fixture",
+    "project_file_path": "D:\\Vit_DAW_wt_ndw1\\coord\\runs\\FS-NAMED-DYNAMIC-WIRE-1\\fs_ndw1_chat_20261022_101808\\fixture\\fs_ndw1_fixture.vit",
+    "project_path": "D:\\Vit_DAW_wt_ndw1\\coord\\runs\\FS-NAMED-DYNAMIC-WIRE-1\\fs_ndw1_chat_20261022_101808\\fixture\\fs_ndw1_fixture.vit",
+    "root_project_path": "D:\\Vit_DAW_wt_ndw1\\coord\\runs\\FS-NAMED-DYNAMIC-WIRE-1\\fs_ndw1_chat_20261022_101808\\fixture\\fs_ndw1_fixture.vit"
+   }
+  ]
+ },
+ "lifecycle": "durable",
+ "persistence": "project_history",
+ "message_kind": "assistant",
+ "turn_id": "run_5424b66f87a2d2b9",
+ "logical_message_id": "n_20261022T021815_bf8318a1"
+}
