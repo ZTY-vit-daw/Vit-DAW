@@ -1,0 +1,1389 @@
+{
+ "authority_mode": "full_project_access",
+ "capability_routes": [
+  {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "49",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:49"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "49",
+    "observed_at": "2026-10-22T14:34:43.1167812Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "created_at": "2026-10-22T14:34:43.1167812Z",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_revision": "49",
+   "run_id": "run_7ee7e059415a662d",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.93,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_70c8f6dabf0ac383",
+   "updated_at": "2026-10-22T14:34:43.1167812Z"
+  }
+ ],
+ "checked_at": "2026-10-22T22:35:37.4850917+08:00",
+ "checkout_blocked": false,
+ "continuations": [
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "49",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:49"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "49",
+    "observed_at": "2026-10-22T14:34:43.1167812Z"
+   },
+   "continuation_id": "cont_6c8e807f4bc61bba0a4e28d7",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 3,
+   "free_state_current_phase": "fs7_improvement_proposal",
+   "free_state_current_round_id": "r_1fa786f22dc9",
+   "free_state_decision_status": "needs_observation",
+   "free_state_status": "observing",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "lease_expires_at": "2026-10-22T14:37:25.0148793Z",
+   "lease_owner": "scheduler_19cf8f9705cc1ef3",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "49",
+   "project_session_id": "session_20261022T143434_c9c4092b",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "run_id": "run_7ee7e059415a662d",
+   "slice_id": "slice_5c5e5a8947ffdef4",
+   "status": "running",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "task_id": "task_70c8f6dabf0ac383",
+    "goal_id": "goal_4e13f6ce0b61f635",
+    "run_id": "run_7ee7e059415a662d",
+    "conversation_id": "softguide_b1_B4_20261022_223440",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "created_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   "task_id": "task_70c8f6dabf0ac383",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "49",
+      "occurred_at": "2026-10-22T14:34:43.1541101Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   "task_state": "observation_in_progress",
+   "task_state_revision": 1,
+   "turn_id": "turn_ab92594913ded117",
+   "updated_at": "2026-10-22T14:35:25.0397744Z"
+  },
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "49",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:49"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "49",
+    "observed_at": "2026-10-22T14:34:43.1167812Z"
+   },
+   "continuation_id": "cont_ab800ac1abdd68f7fd899eda",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 3,
+   "free_state_current_phase": "fs7_improvement_proposal",
+   "free_state_current_round_id": "r_1fa786f22dc9",
+   "free_state_decision_status": "needs_observation",
+   "free_state_status": "observing",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "49",
+   "project_session_id": "session_20261022T143434_c9c4092b",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "run_id": "run_7ee7e059415a662d",
+   "slice_id": "slice_d9215fb09ec83eba",
+   "status": "completed",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "task_id": "task_70c8f6dabf0ac383",
+    "goal_id": "goal_4e13f6ce0b61f635",
+    "run_id": "run_7ee7e059415a662d",
+    "conversation_id": "softguide_b1_B4_20261022_223440",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "created_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   "task_id": "task_70c8f6dabf0ac383",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "49",
+      "occurred_at": "2026-10-22T14:34:43.1541101Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   "task_state": "observation_in_progress",
+   "task_state_revision": 1,
+   "turn_id": "turn_ab79242ca8fd4898",
+   "updated_at": "2026-10-22T14:35:24.9052026Z"
+  },
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "49",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:49"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "49",
+    "observed_at": "2026-10-22T14:34:43.1167812Z"
+   },
+   "continuation_id": "cont_c2ae55ec2b1ba53d2e199a21",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 3,
+   "free_state_current_phase": "fs7_improvement_proposal",
+   "free_state_current_round_id": "r_1fa786f22dc9",
+   "free_state_decision_status": "needs_observation",
+   "free_state_status": "observing",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "49",
+   "project_session_id": "session_20261022T143434_c9c4092b",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "run_id": "run_7ee7e059415a662d",
+   "slice_id": "slice_b65572e6135dc9b3",
+   "status": "completed",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "task_id": "task_70c8f6dabf0ac383",
+    "goal_id": "goal_4e13f6ce0b61f635",
+    "run_id": "run_7ee7e059415a662d",
+    "conversation_id": "softguide_b1_B4_20261022_223440",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "created_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   "task_id": "task_70c8f6dabf0ac383",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "49",
+      "occurred_at": "2026-10-22T14:34:43.1541101Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   "task_state": "observation_in_progress",
+   "task_state_revision": 1,
+   "turn_id": "turn_92fdeb0b3ecd0eb3",
+   "updated_at": "2026-10-22T14:35:11.1807564Z"
+  }
+ ],
+ "goal": {
+  "goal_id": "goal_4e13f6ce0b61f635",
+  "run_id": "run_7ee7e059415a662d",
+  "task": {
+   "task_id": "task_70c8f6dabf0ac383",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "status": "active",
+   "contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "task_id": "task_70c8f6dabf0ac383",
+    "goal_id": "goal_4e13f6ce0b61f635",
+    "run_id": "run_7ee7e059415a662d",
+    "conversation_id": "softguide_b1_B4_20261022_223440",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "created_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   "semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "needs_experiment",
+    "revision": 4,
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "49",
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "candidate_id": "1032",
+    "proposal": {
+     "proposal_id": "proposal_d4b8a7e03909c3fdcf3e",
+     "summary": "让人声不那么贴脸，整体往后放一点，同时保持清晰度",
+     "evidence_refs": [
+      "obs_20261022T143524_0e6240ec17f0"
+     ],
+     "bounds": [
+      "频段能量与立体声相关度只是候选线索，不能当作确定性的音色或空间缺陷结论",
+      "贴脸感也可能来自整体电平、动态或空间处理，本次只检验存在感频段这一条路径"
+     ],
+     "requires_experiment": true
+    },
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "transition_reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "49",
+      "occurred_at": "2026-10-22T14:34:43.1541101Z"
+     },
+     {
+      "revision": 2,
+      "event": "diagnostic_completed",
+      "from": "observation_in_progress",
+      "to": "diagnostic_complete",
+      "reason": "candidate diagnosis established",
+      "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+      "evidence_refs": [
+       "obs_20261022T143524_0e6240ec17f0"
+      ],
+      "project_revision": "49",
+      "occurred_at": "2026-10-22T14:35:37.3706263Z"
+     },
+     {
+      "revision": 3,
+      "event": "improvement_proposed",
+      "from": "diagnostic_complete",
+      "to": "improvement_proposal",
+      "reason": "runtime admitted bounded improvement proposal",
+      "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+      "evidence_refs": [
+       "obs_20261022T143524_0e6240ec17f0"
+      ],
+      "candidate_id": "1032",
+      "project_revision": "49",
+      "occurred_at": "2026-10-22T14:35:37.3925386Z"
+     },
+     {
+      "revision": 4,
+      "event": "experiment_required",
+      "from": "improvement_proposal",
+      "to": "needs_experiment",
+      "reason": "free-state experiment runtime admitted",
+      "summary": "bounded experiment admitted",
+      "experiment_id": "turn:free_state_a7e376bd048b3d13",
+      "project_revision": "49",
+      "occurred_at": "2026-10-22T14:35:37.4655903Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:35:37.4655903Z"
+   },
+   "run": {
+    "run_id": "run_7ee7e059415a662d",
+    "task_id": "task_70c8f6dabf0ac383",
+    "current_slice_id": "slice_c0141ea05892be51",
+    "next_slice": 5,
+    "next_turn": 5,
+    "slices": [
+     {
+      "slice_id": "slice_b65572e6135dc9b3",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 1,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-22T22:34:43.7900599+08:00",
+      "ended_at": "2026-10-22T22:34:46.969879+08:00"
+     },
+     {
+      "slice_id": "slice_d9215fb09ec83eba",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 2,
+      "max_turns": 2,
+      "max_tool_calls": 6,
+      "turns_used": 2,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-22T22:34:47.4991724+08:00",
+      "ended_at": "2026-10-22T22:35:11.1490723+08:00"
+     },
+     {
+      "slice_id": "slice_5c5e5a8947ffdef4",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 3,
+      "max_turns": 2,
+      "max_tool_calls": 6,
+      "turns_used": 2,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-22T22:35:11.3877855+08:00",
+      "ended_at": "2026-10-22T22:35:24.8672952+08:00"
+     },
+     {
+      "slice_id": "slice_c0141ea05892be51",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 4,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "status": "running",
+      "started_at": "2026-10-22T22:35:25.1539908+08:00",
+      "ended_at": "0001-01-01T00:00:00Z"
+     }
+    ],
+    "turns": [
+     {
+      "turn_id": "turn_92fdeb0b3ecd0eb3",
+      "slice_id": "slice_b65572e6135dc9b3",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 1,
+      "source": "user",
+      "status": "waiting_continue",
+      "started_at": "2026-10-22T22:34:43.7900599+08:00",
+      "ended_at": "2026-10-22T22:34:46.969879+08:00"
+     },
+     {
+      "turn_id": "turn_ab79242ca8fd4898",
+      "slice_id": "slice_d9215fb09ec83eba",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 2,
+      "source": "automatic_continuation",
+      "status": "waiting_continue",
+      "started_at": "2026-10-22T22:34:47.4991724+08:00",
+      "ended_at": "2026-10-22T22:35:11.1490723+08:00"
+     },
+     {
+      "turn_id": "turn_ab92594913ded117",
+      "slice_id": "slice_5c5e5a8947ffdef4",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 3,
+      "source": "automatic_continuation",
+      "status": "waiting_continue",
+      "started_at": "2026-10-22T22:35:11.3877855+08:00",
+      "ended_at": "2026-10-22T22:35:24.8672952+08:00"
+     },
+     {
+      "turn_id": "turn_43f114d61b41f54e",
+      "slice_id": "slice_c0141ea05892be51",
+      "run_id": "run_7ee7e059415a662d",
+      "sequence": 4,
+      "source": "automatic_continuation",
+      "status": "completed",
+      "started_at": "2026-10-22T22:35:25.1539908+08:00",
+      "ended_at": "2026-10-22T22:35:37.3551281+08:00"
+     }
+    ]
+   },
+   "created_at": "2026-10-22T22:34:40.3542331+08:00",
+   "updated_at": "2026-10-22T14:35:37.4655903Z"
+  },
+  "status": "completed",
+  "summary": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+  "created_at": "2026-10-22T22:34:40.3542331+08:00",
+  "updated_at": "2026-10-22T14:35:37.4655903Z",
+  "cancel_requested": false,
+  "last_checkpoint": "before_message_loop_model",
+  "project_history": {
+   "baseline_commit_id": "c_20261022T143440_3c581bc9",
+   "baseline_created": true,
+   "active_branch": "main",
+   "head": "c_20261022T143440_3c581bc9"
+  }
+ },
+ "kernel": {
+  "connected": true,
+  "endpoint": "tcp://127.0.0.1:5555",
+  "latency_ms": 2,
+  "message": "pong",
+  "reply_status": "ok",
+  "status": "online"
+ },
+ "note_sessions": [],
+ "pid": 22600,
+ "service": "VitAgent",
+ "shadow": {
+  "delta_seq_gaps": 12,
+  "graph_revision": null,
+  "initialized": true,
+  "last_delta_seq": 807,
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+  "track_count": 6,
+  "user_track_count": 6
+ },
+ "status": "ok",
+ "task": {
+  "task_id": "task_70c8f6dabf0ac383",
+  "goal_id": "goal_4e13f6ce0b61f635",
+  "conversation_id": "softguide_b1_B4_20261022_223440",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+  "status": "active",
+  "contract": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "contract_id": "contract_task_70c8f6dabf0ac383",
+   "task_id": "task_70c8f6dabf0ac383",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "kind": "improvement",
+   "scope": {
+    "kind": "project",
+    "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+   },
+   "temporary": true,
+   "target_discovery": "agent_observation",
+   "authorization_boundary": "governed_experiment",
+   "completion_criteria": [
+    "settle only after a governed experiment outcome",
+    "or report no_candidate_found or a distinct capability boundary with evidence"
+   ],
+   "evidence_requirements": [
+    "exact observation or audit receipt references",
+    "project revision matching the evaluated evidence",
+    "explicit limitations for every bounded conclusion"
+   ],
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "project_revision": "49",
+   "created_at": "2026-10-22T14:34:43.1541101Z"
+  },
+  "semantic_state": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "state": "needs_experiment",
+   "revision": 4,
+   "contract_id": "contract_task_70c8f6dabf0ac383",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "project_revision": "49",
+   "evidence_refs": [
+    "obs_20261022T143524_0e6240ec17f0"
+   ],
+   "candidate_id": "1032",
+   "proposal": {
+    "proposal_id": "proposal_d4b8a7e03909c3fdcf3e",
+    "summary": "让人声不那么贴脸，整体往后放一点，同时保持清晰度",
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "bounds": [
+     "频段能量与立体声相关度只是候选线索，不能当作确定性的音色或空间缺陷结论",
+     "贴脸感也可能来自整体电平、动态或空间处理，本次只检验存在感频段这一条路径"
+    ],
+    "requires_experiment": true
+   },
+   "experiment_id": "turn:free_state_a7e376bd048b3d13",
+   "transition_reason": "free-state experiment runtime admitted",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "history": [
+    {
+     "revision": 1,
+     "event": "observation_started",
+     "to": "observation_in_progress",
+     "reason": "task contract admitted",
+     "project_revision": "49",
+     "occurred_at": "2026-10-22T14:34:43.1541101Z"
+    },
+    {
+     "revision": 2,
+     "event": "diagnostic_completed",
+     "from": "observation_in_progress",
+     "to": "diagnostic_complete",
+     "reason": "candidate diagnosis established",
+     "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+     "evidence_refs": [
+      "obs_20261022T143524_0e6240ec17f0"
+     ],
+     "project_revision": "49",
+     "occurred_at": "2026-10-22T14:35:37.3706263Z"
+    },
+    {
+     "revision": 3,
+     "event": "improvement_proposed",
+     "from": "diagnostic_complete",
+     "to": "improvement_proposal",
+     "reason": "runtime admitted bounded improvement proposal",
+     "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+     "evidence_refs": [
+      "obs_20261022T143524_0e6240ec17f0"
+     ],
+     "candidate_id": "1032",
+     "project_revision": "49",
+     "occurred_at": "2026-10-22T14:35:37.3925386Z"
+    },
+    {
+     "revision": 4,
+     "event": "experiment_required",
+     "from": "improvement_proposal",
+     "to": "needs_experiment",
+     "reason": "free-state experiment runtime admitted",
+     "summary": "bounded experiment admitted",
+     "experiment_id": "turn:free_state_a7e376bd048b3d13",
+     "project_revision": "49",
+     "occurred_at": "2026-10-22T14:35:37.4655903Z"
+    }
+   ],
+   "updated_at": "2026-10-22T14:35:37.4655903Z"
+  },
+  "run": {
+   "run_id": "run_7ee7e059415a662d",
+   "task_id": "task_70c8f6dabf0ac383",
+   "current_slice_id": "slice_c0141ea05892be51",
+   "next_slice": 5,
+   "next_turn": 5,
+   "slices": [
+    {
+     "slice_id": "slice_b65572e6135dc9b3",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:34:43.7900599+08:00",
+     "ended_at": "2026-10-22T22:34:46.969879+08:00"
+    },
+    {
+     "slice_id": "slice_d9215fb09ec83eba",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 2,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:34:47.4991724+08:00",
+     "ended_at": "2026-10-22T22:35:11.1490723+08:00"
+    },
+    {
+     "slice_id": "slice_5c5e5a8947ffdef4",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 3,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:35:11.3877855+08:00",
+     "ended_at": "2026-10-22T22:35:24.8672952+08:00"
+    },
+    {
+     "slice_id": "slice_c0141ea05892be51",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 4,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "status": "running",
+     "started_at": "2026-10-22T22:35:25.1539908+08:00",
+     "ended_at": "0001-01-01T00:00:00Z"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_92fdeb0b3ecd0eb3",
+     "slice_id": "slice_b65572e6135dc9b3",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:34:43.7900599+08:00",
+     "ended_at": "2026-10-22T22:34:46.969879+08:00"
+    },
+    {
+     "turn_id": "turn_ab79242ca8fd4898",
+     "slice_id": "slice_d9215fb09ec83eba",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:34:47.4991724+08:00",
+     "ended_at": "2026-10-22T22:35:11.1490723+08:00"
+    },
+    {
+     "turn_id": "turn_ab92594913ded117",
+     "slice_id": "slice_5c5e5a8947ffdef4",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:35:11.3877855+08:00",
+     "ended_at": "2026-10-22T22:35:24.8672952+08:00"
+    },
+    {
+     "turn_id": "turn_43f114d61b41f54e",
+     "slice_id": "slice_c0141ea05892be51",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 4,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-22T22:35:25.1539908+08:00",
+     "ended_at": "2026-10-22T22:35:37.3551281+08:00"
+    }
+   ]
+  },
+  "created_at": "2026-10-22T22:34:40.3542331+08:00",
+  "updated_at": "2026-10-22T14:35:37.4655903Z"
+ },
+ "task_contract": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "contract_id": "contract_task_70c8f6dabf0ac383",
+  "task_id": "task_70c8f6dabf0ac383",
+  "goal_id": "goal_4e13f6ce0b61f635",
+  "run_id": "run_7ee7e059415a662d",
+  "conversation_id": "softguide_b1_B4_20261022_223440",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+  "kind": "improvement",
+  "scope": {
+   "kind": "project",
+   "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+  },
+  "temporary": true,
+  "target_discovery": "agent_observation",
+  "authorization_boundary": "governed_experiment",
+  "completion_criteria": [
+   "settle only after a governed experiment outcome",
+   "or report no_candidate_found or a distinct capability boundary with evidence"
+  ],
+  "evidence_requirements": [
+   "exact observation or audit receipt references",
+   "project revision matching the evaluated evidence",
+   "explicit limitations for every bounded conclusion"
+  ],
+  "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+  "project_revision": "49",
+  "created_at": "2026-10-22T14:34:43.1541101Z"
+ },
+ "task_semantic_state": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "state": "needs_experiment",
+  "revision": 4,
+  "contract_id": "contract_task_70c8f6dabf0ac383",
+  "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+  "project_revision": "49",
+  "evidence_refs": [
+   "obs_20261022T143524_0e6240ec17f0"
+  ],
+  "candidate_id": "1032",
+  "proposal": {
+   "proposal_id": "proposal_d4b8a7e03909c3fdcf3e",
+   "summary": "让人声不那么贴脸，整体往后放一点，同时保持清晰度",
+   "evidence_refs": [
+    "obs_20261022T143524_0e6240ec17f0"
+   ],
+   "bounds": [
+    "频段能量与立体声相关度只是候选线索，不能当作确定性的音色或空间缺陷结论",
+    "贴脸感也可能来自整体电平、动态或空间处理，本次只检验存在感频段这一条路径"
+   ],
+   "requires_experiment": true
+  },
+  "experiment_id": "turn:free_state_a7e376bd048b3d13",
+  "transition_reason": "free-state experiment runtime admitted",
+  "summary": "bounded experiment admitted",
+  "terminal": false,
+  "history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "to": "observation_in_progress",
+    "reason": "task contract admitted",
+    "project_revision": "49",
+    "occurred_at": "2026-10-22T14:34:43.1541101Z"
+   },
+   {
+    "revision": 2,
+    "event": "diagnostic_completed",
+    "from": "observation_in_progress",
+    "to": "diagnostic_complete",
+    "reason": "candidate diagnosis established",
+    "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "project_revision": "49",
+    "occurred_at": "2026-10-22T14:35:37.3706263Z"
+   },
+   {
+    "revision": 3,
+    "event": "improvement_proposed",
+    "from": "diagnostic_complete",
+    "to": "improvement_proposal",
+    "reason": "runtime admitted bounded improvement proposal",
+    "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "candidate_id": "1032",
+    "project_revision": "49",
+    "occurred_at": "2026-10-22T14:35:37.3925386Z"
+   },
+   {
+    "revision": 4,
+    "event": "experiment_required",
+    "from": "improvement_proposal",
+    "to": "needs_experiment",
+    "reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "project_revision": "49",
+    "occurred_at": "2026-10-22T14:35:37.4655903Z"
+   }
+  ],
+  "updated_at": "2026-10-22T14:35:37.4655903Z"
+ },
+ "task_state": "needs_experiment",
+ "task_state_revision": 4,
+ "task_trajectory": {
+  "capability_route": {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "49",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:49"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "49",
+    "observed_at": "2026-10-22T14:34:43.1167812Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "created_at": "2026-10-22T14:34:43.1167812Z",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "project_revision": "49",
+   "run_id": "run_7ee7e059415a662d",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.93,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_70c8f6dabf0ac383",
+   "updated_at": "2026-10-22T14:34:43.1167812Z"
+  },
+  "continuation": {
+   "attempt": 1,
+   "continuation_id": "cont_6c8e807f4bc61bba0a4e28d7",
+   "slice_id": "slice_5c5e5a8947ffdef4",
+   "status": "running",
+   "turn_id": "turn_ab92594913ded117",
+   "updated_at": "2026-10-22T14:35:25.0397744Z"
+  },
+  "run": {
+   "current_slice_id": "slice_c0141ea05892be51",
+   "current_turn_id": "",
+   "run_id": "run_7ee7e059415a662d",
+   "slices": [
+    {
+     "slice_id": "slice_b65572e6135dc9b3",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:34:43.7900599+08:00",
+     "ended_at": "2026-10-22T22:34:46.969879+08:00"
+    },
+    {
+     "slice_id": "slice_d9215fb09ec83eba",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 2,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:34:47.4991724+08:00",
+     "ended_at": "2026-10-22T22:35:11.1490723+08:00"
+    },
+    {
+     "slice_id": "slice_5c5e5a8947ffdef4",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 3,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:35:11.3877855+08:00",
+     "ended_at": "2026-10-22T22:35:24.8672952+08:00"
+    },
+    {
+     "slice_id": "slice_c0141ea05892be51",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 4,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "status": "running",
+     "started_at": "2026-10-22T22:35:25.1539908+08:00",
+     "ended_at": "0001-01-01T00:00:00Z"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_92fdeb0b3ecd0eb3",
+     "slice_id": "slice_b65572e6135dc9b3",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:34:43.7900599+08:00",
+     "ended_at": "2026-10-22T22:34:46.969879+08:00"
+    },
+    {
+     "turn_id": "turn_ab79242ca8fd4898",
+     "slice_id": "slice_d9215fb09ec83eba",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:34:47.4991724+08:00",
+     "ended_at": "2026-10-22T22:35:11.1490723+08:00"
+    },
+    {
+     "turn_id": "turn_ab92594913ded117",
+     "slice_id": "slice_5c5e5a8947ffdef4",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:35:11.3877855+08:00",
+     "ended_at": "2026-10-22T22:35:24.8672952+08:00"
+    },
+    {
+     "turn_id": "turn_43f114d61b41f54e",
+     "slice_id": "slice_c0141ea05892be51",
+     "run_id": "run_7ee7e059415a662d",
+     "sequence": 4,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-22T22:35:25.1539908+08:00",
+     "ended_at": "2026-10-22T22:35:37.3551281+08:00"
+    }
+   ]
+  },
+  "schema_version": "vit.task_runtime_trajectory.v1",
+  "semantic": {
+   "contract": {
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true
+   },
+   "evidence_refs": [
+    "obs_20261022T143524_0e6240ec17f0"
+   ],
+   "project_revision": "49",
+   "revision": 4,
+   "state": "needs_experiment",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "transition_reason": "free-state experiment runtime admitted",
+   "updated_at": "2026-10-22T14:35:37.4655903Z"
+  },
+  "task": {
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "created_at": "2026-10-22T22:34:40.3542331+08:00",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "goal_status": "completed",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "run_id": "run_7ee7e059415a662d",
+   "status": "active",
+   "task_id": "task_70c8f6dabf0ac383",
+   "updated_at": "2026-10-22T14:35:37.4655903Z"
+  },
+  "transitions": [
+   {
+    "candidate_id": "",
+    "event": "observation_started",
+    "evidence_refs": null,
+    "experiment_id": "",
+    "from": "",
+    "occurred_at": "2026-10-22T14:34:43.1541101Z",
+    "pending_interaction": null,
+    "project_revision": "49",
+    "reason": "task contract admitted",
+    "revision": 1,
+    "stale_for_current_revision": false,
+    "summary": "",
+    "to": "observation_in_progress"
+   },
+   {
+    "candidate_id": "",
+    "event": "diagnostic_completed",
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "experiment_id": "",
+    "from": "observation_in_progress",
+    "occurred_at": "2026-10-22T14:35:37.3706263Z",
+    "pending_interaction": null,
+    "project_revision": "49",
+    "reason": "candidate diagnosis established",
+    "revision": 2,
+    "stale_for_current_revision": false,
+    "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+    "to": "diagnostic_complete"
+   },
+   {
+    "candidate_id": "1032",
+    "event": "improvement_proposed",
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "experiment_id": "",
+    "from": "diagnostic_complete",
+    "occurred_at": "2026-10-22T14:35:37.3925386Z",
+    "pending_interaction": null,
+    "project_revision": "49",
+    "reason": "runtime admitted bounded improvement proposal",
+    "revision": 3,
+    "stale_for_current_revision": false,
+    "summary": "人声轨的中频能量占绝对主导、存在感频段能量偏低、声像完全居中，这与“贴脸靠前”的听感方向一致，但不足以证明客观缺陷；支持在存在感频段做一次不超过 2 dB 的可逆小步衰减实验，再交给耳朵判定。",
+    "to": "improvement_proposal"
+   },
+   {
+    "candidate_id": "",
+    "event": "experiment_required",
+    "evidence_refs": null,
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "from": "improvement_proposal",
+    "occurred_at": "2026-10-22T14:35:37.4655903Z",
+    "pending_interaction": null,
+    "project_revision": "49",
+    "reason": "free-state experiment runtime admitted",
+    "revision": 4,
+    "stale_for_current_revision": false,
+    "summary": "bounded experiment admitted",
+    "to": "needs_experiment"
+   }
+  ]
+ }
+}

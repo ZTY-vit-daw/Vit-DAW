@@ -1,0 +1,1227 @@
+{
+ "authority_mode": "full_project_access",
+ "capability_routes": [
+  {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "22",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:22"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "22",
+    "observed_at": "2026-10-22T14:23:27.2766083Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b2_B2_20261022_222324",
+   "created_at": "2026-10-22T14:23:27.2766083Z",
+   "goal_id": "goal_36e79e8677076210",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+   "project_revision": "22",
+   "run_id": "run_831ceffd56f95b94",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.94,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_302eeb2c10c28b50",
+   "updated_at": "2026-10-22T14:23:27.2766083Z"
+  }
+ ],
+ "checked_at": "2026-10-22T22:23:56.9130534+08:00",
+ "checkout_blocked": false,
+ "continuations": [
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "22",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:22"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "22",
+    "observed_at": "2026-10-22T14:23:27.2766083Z"
+   },
+   "continuation_id": "cont_442a0c92633ee0a6984b17bb",
+   "conversation_id": "softguide_b2_B2_20261022_222324",
+   "free_state_admission_receipt": {
+    "boundary": "admitted",
+    "candidate_id": "candidate:56a40d30236dcd92",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "22",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-22T14:23:52.6980684Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261022T142338_9b2071b22faa"
+   },
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 2,
+   "free_state_current_phase": "fs8_experiment_verification",
+   "free_state_current_round_id": "r_8091a5b58afb",
+   "free_state_decision_status": "needs_experiment",
+   "free_state_status": "awaiting_experiment",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_36e79e8677076210",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+   "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "22",
+   "project_session_id": "session_20261022T142319_7c654b3b",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "run_id": "run_831ceffd56f95b94",
+   "slice_id": "slice_9614501d41212c4e",
+   "status": "completed",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_302eeb2c10c28b50",
+    "task_id": "task_302eeb2c10c28b50",
+    "goal_id": "goal_36e79e8677076210",
+    "run_id": "run_831ceffd56f95b94",
+    "conversation_id": "softguide_b2_B2_20261022_222324",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "22",
+    "created_at": "2026-10-22T14:23:27.3184211Z"
+   },
+   "task_id": "task_302eeb2c10c28b50",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_302eeb2c10c28b50",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "22",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "22",
+      "occurred_at": "2026-10-22T14:23:27.3184211Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:23:27.3184211Z"
+   },
+   "task_state": "observation_in_progress",
+   "task_state_revision": 1,
+   "turn_id": "turn_017b0fd1b69213c6",
+   "updated_at": "2026-10-22T14:23:52.8091976Z"
+  },
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "22",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:22"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "22",
+    "observed_at": "2026-10-22T14:23:27.2766083Z"
+   },
+   "continuation_id": "cont_47f34d731751d003fe06ccdb",
+   "conversation_id": "softguide_b2_B2_20261022_222324",
+   "free_state_admission_receipt": {
+    "boundary": "admitted",
+    "candidate_id": "candidate:56a40d30236dcd92",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "22",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-22T14:23:52.6980684Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261022T142338_9b2071b22faa"
+   },
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 2,
+   "free_state_current_phase": "fs8_experiment_verification",
+   "free_state_current_round_id": "r_8091a5b58afb",
+   "free_state_decision_status": "needs_experiment",
+   "free_state_status": "awaiting_experiment",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_36e79e8677076210",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+   "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "22",
+   "project_session_id": "session_20261022T142319_7c654b3b",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "run_id": "run_831ceffd56f95b94",
+   "slice_id": "slice_9ca2e8338bd49529",
+   "status": "completed",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_302eeb2c10c28b50",
+    "task_id": "task_302eeb2c10c28b50",
+    "goal_id": "goal_36e79e8677076210",
+    "run_id": "run_831ceffd56f95b94",
+    "conversation_id": "softguide_b2_B2_20261022_222324",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "22",
+    "created_at": "2026-10-22T14:23:27.3184211Z"
+   },
+   "task_id": "task_302eeb2c10c28b50",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_302eeb2c10c28b50",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "22",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "22",
+      "occurred_at": "2026-10-22T14:23:27.3184211Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:23:27.3184211Z"
+   },
+   "task_state": "observation_in_progress",
+   "task_state_revision": 1,
+   "turn_id": "turn_0c38edebaa9fd654",
+   "updated_at": "2026-10-22T14:23:44.8449009Z"
+  }
+ ],
+ "goal": {
+  "goal_id": "goal_36e79e8677076210",
+  "run_id": "run_831ceffd56f95b94",
+  "task": {
+   "task_id": "task_302eeb2c10c28b50",
+   "goal_id": "goal_36e79e8677076210",
+   "conversation_id": "softguide_b2_B2_20261022_222324",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+   "status": "active",
+   "contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_302eeb2c10c28b50",
+    "task_id": "task_302eeb2c10c28b50",
+    "goal_id": "goal_36e79e8677076210",
+    "run_id": "run_831ceffd56f95b94",
+    "conversation_id": "softguide_b2_B2_20261022_222324",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "22",
+    "created_at": "2026-10-22T14:23:27.3184211Z"
+   },
+   "semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "needs_experiment",
+    "revision": 4,
+    "contract_id": "contract_task_302eeb2c10c28b50",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "22",
+    "evidence_refs": [
+     "obs_20261022T142338_9b2071b22faa"
+    ],
+    "candidate_id": "1027",
+    "proposal": {
+     "proposal_id": "proposal_47198fd3e7d7fcb371c6",
+     "summary": "让这条钢琴听起来不那么干，增加一点空间感与余韵（更“润”）。",
+     "evidence_refs": [
+      "obs_20261022T142338_9b2071b22faa"
+     ],
+     "bounds": [
+      "时域包络证据为部分可用，只有一个整体统计段，不能量化余音长短",
+      "“干/润”属于听感判断，最终需靠人耳 A/B 确认"
+     ],
+     "requires_experiment": true
+    },
+    "experiment_id": "turn:free_state_0bbbfed224502680",
+    "transition_reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "22",
+      "occurred_at": "2026-10-22T14:23:27.3184211Z"
+     },
+     {
+      "revision": 2,
+      "event": "diagnostic_completed",
+      "from": "observation_in_progress",
+      "to": "diagnostic_complete",
+      "reason": "candidate diagnosis established",
+      "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+      "evidence_refs": [
+       "obs_20261022T142338_9b2071b22faa"
+      ],
+      "project_revision": "22",
+      "occurred_at": "2026-10-22T14:23:52.6980684Z"
+     },
+     {
+      "revision": 3,
+      "event": "improvement_proposed",
+      "from": "diagnostic_complete",
+      "to": "improvement_proposal",
+      "reason": "runtime admitted bounded improvement proposal",
+      "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+      "evidence_refs": [
+       "obs_20261022T142338_9b2071b22faa"
+      ],
+      "candidate_id": "1027",
+      "project_revision": "22",
+      "occurred_at": "2026-10-22T14:23:52.7093104Z"
+     },
+     {
+      "revision": 4,
+      "event": "experiment_required",
+      "from": "improvement_proposal",
+      "to": "needs_experiment",
+      "reason": "free-state experiment runtime admitted",
+      "summary": "bounded experiment admitted",
+      "experiment_id": "turn:free_state_0bbbfed224502680",
+      "project_revision": "22",
+      "occurred_at": "2026-10-22T14:23:52.7601894Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:23:52.7601894Z"
+   },
+   "run": {
+    "run_id": "run_831ceffd56f95b94",
+    "task_id": "task_302eeb2c10c28b50",
+    "current_slice_id": "slice_b0f6840f1a66168b",
+    "next_slice": 4,
+    "next_turn": 4,
+    "slices": [
+     {
+      "slice_id": "slice_9ca2e8338bd49529",
+      "run_id": "run_831ceffd56f95b94",
+      "sequence": 1,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-22T22:23:27.8054682+08:00",
+      "ended_at": "2026-10-22T22:23:31.6863273+08:00"
+     },
+     {
+      "slice_id": "slice_9614501d41212c4e",
+      "run_id": "run_831ceffd56f95b94",
+      "sequence": 2,
+      "max_turns": 2,
+      "max_tool_calls": 6,
+      "turns_used": 2,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-22T22:23:32.0519713+08:00",
+      "ended_at": "2026-10-22T22:23:44.813059+08:00"
+     },
+     {
+      "slice_id": "slice_b0f6840f1a66168b",
+      "run_id": "run_831ceffd56f95b94",
+      "sequence": 3,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "status": "running",
+      "started_at": "2026-10-22T22:23:45.0380536+08:00",
+      "ended_at": "0001-01-01T00:00:00Z"
+     }
+    ],
+    "turns": [
+     {
+      "turn_id": "turn_0c38edebaa9fd654",
+      "slice_id": "slice_9ca2e8338bd49529",
+      "run_id": "run_831ceffd56f95b94",
+      "sequence": 1,
+      "source": "user",
+      "status": "waiting_continue",
+      "started_at": "2026-10-22T22:23:27.8054682+08:00",
+      "ended_at": "2026-10-22T22:23:31.6863273+08:00"
+     },
+     {
+      "turn_id": "turn_017b0fd1b69213c6",
+      "slice_id": "slice_9614501d41212c4e",
+      "run_id": "run_831ceffd56f95b94",
+      "sequence": 2,
+      "source": "automatic_continuation",
+      "status": "waiting_continue",
+      "started_at": "2026-10-22T22:23:32.0519713+08:00",
+      "ended_at": "2026-10-22T22:23:44.813059+08:00"
+     },
+     {
+      "turn_id": "turn_406e22c562a40849",
+      "slice_id": "slice_b0f6840f1a66168b",
+      "run_id": "run_831ceffd56f95b94",
+      "sequence": 3,
+      "source": "automatic_continuation",
+      "status": "completed",
+      "started_at": "2026-10-22T22:23:45.0380536+08:00",
+      "ended_at": "2026-10-22T22:23:52.6820701+08:00"
+     }
+    ]
+   },
+   "created_at": "2026-10-22T22:23:24.812039+08:00",
+   "updated_at": "2026-10-22T14:23:52.7601894Z"
+  },
+  "status": "completed",
+  "summary": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+  "created_at": "2026-10-22T22:23:24.812039+08:00",
+  "updated_at": "2026-10-22T14:23:52.7601894Z",
+  "cancel_requested": false,
+  "last_checkpoint": "before_message_loop_model",
+  "project_history": {
+   "baseline_commit_id": "c_20261022T142324_bf462003",
+   "baseline_created": true,
+   "active_branch": "main",
+   "head": "c_20261022T142324_bf462003"
+  }
+ },
+ "kernel": {
+  "connected": true,
+  "endpoint": "tcp://127.0.0.1:5555",
+  "latency_ms": 1,
+  "message": "pong",
+  "reply_status": "ok",
+  "status": "online"
+ },
+ "note_sessions": [],
+ "pid": 22600,
+ "service": "VitAgent",
+ "shadow": {
+  "delta_seq_gaps": 5,
+  "graph_revision": null,
+  "initialized": true,
+  "last_delta_seq": 438,
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+  "track_count": 6,
+  "user_track_count": 6
+ },
+ "status": "ok",
+ "task": {
+  "task_id": "task_302eeb2c10c28b50",
+  "goal_id": "goal_36e79e8677076210",
+  "conversation_id": "softguide_b2_B2_20261022_222324",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+  "status": "active",
+  "contract": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "contract_id": "contract_task_302eeb2c10c28b50",
+   "task_id": "task_302eeb2c10c28b50",
+   "goal_id": "goal_36e79e8677076210",
+   "run_id": "run_831ceffd56f95b94",
+   "conversation_id": "softguide_b2_B2_20261022_222324",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+   "kind": "improvement",
+   "scope": {
+    "kind": "project",
+    "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+   },
+   "temporary": true,
+   "target_discovery": "agent_observation",
+   "authorization_boundary": "governed_experiment",
+   "completion_criteria": [
+    "settle only after a governed experiment outcome",
+    "or report no_candidate_found or a distinct capability boundary with evidence"
+   ],
+   "evidence_requirements": [
+    "exact observation or audit receipt references",
+    "project revision matching the evaluated evidence",
+    "explicit limitations for every bounded conclusion"
+   ],
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "project_revision": "22",
+   "created_at": "2026-10-22T14:23:27.3184211Z"
+  },
+  "semantic_state": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "state": "needs_experiment",
+   "revision": 4,
+   "contract_id": "contract_task_302eeb2c10c28b50",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "project_revision": "22",
+   "evidence_refs": [
+    "obs_20261022T142338_9b2071b22faa"
+   ],
+   "candidate_id": "1027",
+   "proposal": {
+    "proposal_id": "proposal_47198fd3e7d7fcb371c6",
+    "summary": "让这条钢琴听起来不那么干，增加一点空间感与余韵（更“润”）。",
+    "evidence_refs": [
+     "obs_20261022T142338_9b2071b22faa"
+    ],
+    "bounds": [
+     "时域包络证据为部分可用，只有一个整体统计段，不能量化余音长短",
+     "“干/润”属于听感判断，最终需靠人耳 A/B 确认"
+    ],
+    "requires_experiment": true
+   },
+   "experiment_id": "turn:free_state_0bbbfed224502680",
+   "transition_reason": "free-state experiment runtime admitted",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "history": [
+    {
+     "revision": 1,
+     "event": "observation_started",
+     "to": "observation_in_progress",
+     "reason": "task contract admitted",
+     "project_revision": "22",
+     "occurred_at": "2026-10-22T14:23:27.3184211Z"
+    },
+    {
+     "revision": 2,
+     "event": "diagnostic_completed",
+     "from": "observation_in_progress",
+     "to": "diagnostic_complete",
+     "reason": "candidate diagnosis established",
+     "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+     "evidence_refs": [
+      "obs_20261022T142338_9b2071b22faa"
+     ],
+     "project_revision": "22",
+     "occurred_at": "2026-10-22T14:23:52.6980684Z"
+    },
+    {
+     "revision": 3,
+     "event": "improvement_proposed",
+     "from": "diagnostic_complete",
+     "to": "improvement_proposal",
+     "reason": "runtime admitted bounded improvement proposal",
+     "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+     "evidence_refs": [
+      "obs_20261022T142338_9b2071b22faa"
+     ],
+     "candidate_id": "1027",
+     "project_revision": "22",
+     "occurred_at": "2026-10-22T14:23:52.7093104Z"
+    },
+    {
+     "revision": 4,
+     "event": "experiment_required",
+     "from": "improvement_proposal",
+     "to": "needs_experiment",
+     "reason": "free-state experiment runtime admitted",
+     "summary": "bounded experiment admitted",
+     "experiment_id": "turn:free_state_0bbbfed224502680",
+     "project_revision": "22",
+     "occurred_at": "2026-10-22T14:23:52.7601894Z"
+    }
+   ],
+   "updated_at": "2026-10-22T14:23:52.7601894Z"
+  },
+  "run": {
+   "run_id": "run_831ceffd56f95b94",
+   "task_id": "task_302eeb2c10c28b50",
+   "current_slice_id": "slice_b0f6840f1a66168b",
+   "next_slice": 4,
+   "next_turn": 4,
+   "slices": [
+    {
+     "slice_id": "slice_9ca2e8338bd49529",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:23:27.8054682+08:00",
+     "ended_at": "2026-10-22T22:23:31.6863273+08:00"
+    },
+    {
+     "slice_id": "slice_9614501d41212c4e",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 2,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:23:32.0519713+08:00",
+     "ended_at": "2026-10-22T22:23:44.813059+08:00"
+    },
+    {
+     "slice_id": "slice_b0f6840f1a66168b",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 3,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "status": "running",
+     "started_at": "2026-10-22T22:23:45.0380536+08:00",
+     "ended_at": "0001-01-01T00:00:00Z"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_0c38edebaa9fd654",
+     "slice_id": "slice_9ca2e8338bd49529",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:23:27.8054682+08:00",
+     "ended_at": "2026-10-22T22:23:31.6863273+08:00"
+    },
+    {
+     "turn_id": "turn_017b0fd1b69213c6",
+     "slice_id": "slice_9614501d41212c4e",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:23:32.0519713+08:00",
+     "ended_at": "2026-10-22T22:23:44.813059+08:00"
+    },
+    {
+     "turn_id": "turn_406e22c562a40849",
+     "slice_id": "slice_b0f6840f1a66168b",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-22T22:23:45.0380536+08:00",
+     "ended_at": "2026-10-22T22:23:52.6820701+08:00"
+    }
+   ]
+  },
+  "created_at": "2026-10-22T22:23:24.812039+08:00",
+  "updated_at": "2026-10-22T14:23:52.7601894Z"
+ },
+ "task_contract": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "contract_id": "contract_task_302eeb2c10c28b50",
+  "task_id": "task_302eeb2c10c28b50",
+  "goal_id": "goal_36e79e8677076210",
+  "run_id": "run_831ceffd56f95b94",
+  "conversation_id": "softguide_b2_B2_20261022_222324",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+  "kind": "improvement",
+  "scope": {
+   "kind": "project",
+   "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+  },
+  "temporary": true,
+  "target_discovery": "agent_observation",
+  "authorization_boundary": "governed_experiment",
+  "completion_criteria": [
+   "settle only after a governed experiment outcome",
+   "or report no_candidate_found or a distinct capability boundary with evidence"
+  ],
+  "evidence_requirements": [
+   "exact observation or audit receipt references",
+   "project revision matching the evaluated evidence",
+   "explicit limitations for every bounded conclusion"
+  ],
+  "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+  "project_revision": "22",
+  "created_at": "2026-10-22T14:23:27.3184211Z"
+ },
+ "task_semantic_state": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "state": "needs_experiment",
+  "revision": 4,
+  "contract_id": "contract_task_302eeb2c10c28b50",
+  "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+  "project_revision": "22",
+  "evidence_refs": [
+   "obs_20261022T142338_9b2071b22faa"
+  ],
+  "candidate_id": "1027",
+  "proposal": {
+   "proposal_id": "proposal_47198fd3e7d7fcb371c6",
+   "summary": "让这条钢琴听起来不那么干，增加一点空间感与余韵（更“润”）。",
+   "evidence_refs": [
+    "obs_20261022T142338_9b2071b22faa"
+   ],
+   "bounds": [
+    "时域包络证据为部分可用，只有一个整体统计段，不能量化余音长短",
+    "“干/润”属于听感判断，最终需靠人耳 A/B 确认"
+   ],
+   "requires_experiment": true
+  },
+  "experiment_id": "turn:free_state_0bbbfed224502680",
+  "transition_reason": "free-state experiment runtime admitted",
+  "summary": "bounded experiment admitted",
+  "terminal": false,
+  "history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "to": "observation_in_progress",
+    "reason": "task contract admitted",
+    "project_revision": "22",
+    "occurred_at": "2026-10-22T14:23:27.3184211Z"
+   },
+   {
+    "revision": 2,
+    "event": "diagnostic_completed",
+    "from": "observation_in_progress",
+    "to": "diagnostic_complete",
+    "reason": "candidate diagnosis established",
+    "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+    "evidence_refs": [
+     "obs_20261022T142338_9b2071b22faa"
+    ],
+    "project_revision": "22",
+    "occurred_at": "2026-10-22T14:23:52.6980684Z"
+   },
+   {
+    "revision": 3,
+    "event": "improvement_proposed",
+    "from": "diagnostic_complete",
+    "to": "improvement_proposal",
+    "reason": "runtime admitted bounded improvement proposal",
+    "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+    "evidence_refs": [
+     "obs_20261022T142338_9b2071b22faa"
+    ],
+    "candidate_id": "1027",
+    "project_revision": "22",
+    "occurred_at": "2026-10-22T14:23:52.7093104Z"
+   },
+   {
+    "revision": 4,
+    "event": "experiment_required",
+    "from": "improvement_proposal",
+    "to": "needs_experiment",
+    "reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "experiment_id": "turn:free_state_0bbbfed224502680",
+    "project_revision": "22",
+    "occurred_at": "2026-10-22T14:23:52.7601894Z"
+   }
+  ],
+  "updated_at": "2026-10-22T14:23:52.7601894Z"
+ },
+ "task_state": "needs_experiment",
+ "task_state_revision": 4,
+ "task_trajectory": {
+  "capability_route": {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "22",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:22"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "22",
+    "observed_at": "2026-10-22T14:23:27.2766083Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b2_B2_20261022_222324",
+   "created_at": "2026-10-22T14:23:27.2766083Z",
+   "goal_id": "goal_36e79e8677076210",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+   "project_revision": "22",
+   "run_id": "run_831ceffd56f95b94",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.94,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_302eeb2c10c28b50",
+   "updated_at": "2026-10-22T14:23:27.2766083Z"
+  },
+  "continuation": {
+   "attempt": 1,
+   "continuation_id": "cont_442a0c92633ee0a6984b17bb",
+   "slice_id": "slice_9614501d41212c4e",
+   "status": "completed",
+   "turn_id": "turn_017b0fd1b69213c6",
+   "updated_at": "2026-10-22T14:23:52.8091976Z"
+  },
+  "run": {
+   "current_slice_id": "slice_b0f6840f1a66168b",
+   "current_turn_id": "",
+   "run_id": "run_831ceffd56f95b94",
+   "slices": [
+    {
+     "slice_id": "slice_9ca2e8338bd49529",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:23:27.8054682+08:00",
+     "ended_at": "2026-10-22T22:23:31.6863273+08:00"
+    },
+    {
+     "slice_id": "slice_9614501d41212c4e",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 2,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:23:32.0519713+08:00",
+     "ended_at": "2026-10-22T22:23:44.813059+08:00"
+    },
+    {
+     "slice_id": "slice_b0f6840f1a66168b",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 3,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "status": "running",
+     "started_at": "2026-10-22T22:23:45.0380536+08:00",
+     "ended_at": "0001-01-01T00:00:00Z"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_0c38edebaa9fd654",
+     "slice_id": "slice_9ca2e8338bd49529",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:23:27.8054682+08:00",
+     "ended_at": "2026-10-22T22:23:31.6863273+08:00"
+    },
+    {
+     "turn_id": "turn_017b0fd1b69213c6",
+     "slice_id": "slice_9614501d41212c4e",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:23:32.0519713+08:00",
+     "ended_at": "2026-10-22T22:23:44.813059+08:00"
+    },
+    {
+     "turn_id": "turn_406e22c562a40849",
+     "slice_id": "slice_b0f6840f1a66168b",
+     "run_id": "run_831ceffd56f95b94",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-22T22:23:45.0380536+08:00",
+     "ended_at": "2026-10-22T22:23:52.6820701+08:00"
+    }
+   ]
+  },
+  "schema_version": "vit.task_runtime_trajectory.v1",
+  "semantic": {
+   "contract": {
+    "contract_id": "contract_task_302eeb2c10c28b50",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true
+   },
+   "evidence_refs": [
+    "obs_20261022T142338_9b2071b22faa"
+   ],
+   "project_revision": "22",
+   "revision": 4,
+   "state": "needs_experiment",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "transition_reason": "free-state experiment runtime admitted",
+   "updated_at": "2026-10-22T14:23:52.7601894Z"
+  },
+  "task": {
+   "conversation_id": "softguide_b2_B2_20261022_222324",
+   "created_at": "2026-10-22T22:23:24.812039+08:00",
+   "goal_id": "goal_36e79e8677076210",
+   "goal_status": "completed",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：这条钢琴听着太干了，帮我弄润一点",
+   "run_id": "run_831ceffd56f95b94",
+   "status": "active",
+   "task_id": "task_302eeb2c10c28b50",
+   "updated_at": "2026-10-22T14:23:52.7601894Z"
+  },
+  "transitions": [
+   {
+    "candidate_id": "",
+    "event": "observation_started",
+    "evidence_refs": null,
+    "experiment_id": "",
+    "from": "",
+    "occurred_at": "2026-10-22T14:23:27.3184211Z",
+    "pending_interaction": null,
+    "project_revision": "22",
+    "reason": "task contract admitted",
+    "revision": 1,
+    "stale_for_current_revision": false,
+    "summary": "",
+    "to": "observation_in_progress"
+   },
+   {
+    "candidate_id": "",
+    "event": "diagnostic_completed",
+    "evidence_refs": [
+     "obs_20261022T142338_9b2071b22faa"
+    ],
+    "experiment_id": "",
+    "from": "observation_in_progress",
+    "occurred_at": "2026-10-22T14:23:52.6980684Z",
+    "pending_interaction": null,
+    "project_revision": "22",
+    "reason": "candidate diagnosis established",
+    "revision": 2,
+    "stale_for_current_revision": false,
+    "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+    "to": "diagnostic_complete"
+   },
+   {
+    "candidate_id": "1027",
+    "event": "improvement_proposed",
+    "evidence_refs": [
+     "obs_20261022T142338_9b2071b22faa"
+    ],
+    "experiment_id": "",
+    "from": "diagnostic_complete",
+    "occurred_at": "2026-10-22T14:23:52.7093104Z",
+    "pending_interaction": null,
+    "project_revision": "22",
+    "reason": "runtime admitted bounded improvement proposal",
+    "revision": 3,
+    "stale_for_current_revision": false,
+    "summary": "钢琴轨（1027）的观察显示：立体声相关性约 1.0，整条轨几乎完全居中、没有空间信息；时域动态只有一段很平的整体包络（峰值因数约 3dB，偏平滑）。这与用户听到的“干”在方向上相符，但属于可听层面上的合理推断，而非客观缺陷，因此先做一次有界、可回退的混响衰减微调实验。",
+    "to": "improvement_proposal"
+   },
+   {
+    "candidate_id": "",
+    "event": "experiment_required",
+    "evidence_refs": null,
+    "experiment_id": "turn:free_state_0bbbfed224502680",
+    "from": "improvement_proposal",
+    "occurred_at": "2026-10-22T14:23:52.7601894Z",
+    "pending_interaction": null,
+    "project_revision": "22",
+    "reason": "free-state experiment runtime admitted",
+    "revision": 4,
+    "stale_for_current_revision": false,
+    "summary": "bounded experiment admitted",
+    "to": "needs_experiment"
+   }
+  ]
+ }
+}

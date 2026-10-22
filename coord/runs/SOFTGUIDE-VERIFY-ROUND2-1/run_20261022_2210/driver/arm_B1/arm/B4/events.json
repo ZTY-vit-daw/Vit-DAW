@@ -1,0 +1,1362 @@
+{
+ "status": "ok",
+ "events": [
+  {
+   "seq": 1,
+   "type": "item.started",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "item_id": "semantic_entry",
+   "item_type": "classification",
+   "status": "running",
+   "title": "理解请求",
+   "body": "正在理解你的请求",
+   "created_at": "2026-10-22T22:34:40.1297923+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "logical_message_id": "agent_item:semantic_entry"
+  },
+  {
+   "seq": 2,
+   "type": "turn.started",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_type": "turn",
+   "status": "running",
+   "title": "正在处理",
+   "body": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点",
+   "payload": {
+    "completed_steps": 0,
+    "error": "",
+    "executed_count": 0,
+    "needs_confirmation": false,
+    "stop_reason": "",
+    "typed_events": null
+   },
+   "created_at": "2026-10-22T22:34:40.3542331+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_turn:run_7ee7e059415a662d"
+  },
+  {
+   "seq": 3,
+   "type": "trajectory.turn.started",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "turn:run_7ee7e059415a662d",
+   "item_type": "trajectory",
+   "status": "running",
+   "body": "正在处理",
+   "payload": {
+    "node_kind": "turn",
+    "phase": "framing",
+    "schema_version": "vit.observable_trajectory.v1",
+    "source_turn_id": "run_7ee7e059415a662d",
+    "status": "running",
+    "terminal": false,
+    "trace_node_id": "turn:run_7ee7e059415a662d",
+    "trajectory_turn_id": "run_7ee7e059415a662d",
+    "turn_id": "run_7ee7e059415a662d"
+   },
+   "created_at": "2026-10-22T22:34:40.3542331+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "trajectory:run_7ee7e059415a662d:turn:run_7ee7e059415a662d"
+  },
+  {
+   "seq": 4,
+   "type": "item.completed",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "semantic_entry",
+   "item_type": "classification",
+   "status": "completed",
+   "title": "理解请求",
+   "created_at": "2026-10-22T22:34:43.1167812+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_item:semantic_entry"
+  },
+  {
+   "seq": 5,
+   "type": "item.started",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "tool_step_1",
+   "item_type": "daw_action",
+   "status": "running",
+   "title": "正在执行操作",
+   "body": "发现当前可用的中性观察视图，以便自行选择与人声贴脸相关的观察维度",
+   "payload": {
+    "args": null,
+    "command": "",
+    "command_raw": {
+     "tool": "ccb.observation_catalog"
+    },
+    "confirmed": false,
+    "plan_item": "",
+    "source": "agentloop",
+    "tool": "ccb.observation_catalog"
+   },
+   "created_at": "2026-10-22T22:34:46.936641+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_item:run_7ee7e059415a662d:tool_step_1"
+  },
+  {
+   "seq": 6,
+   "type": "item.completed",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "tool_step_1",
+   "item_type": "daw_action",
+   "status": "completed",
+   "title": "已完成 ccb_observation_catalog",
+   "payload": {
+    "agent_action_id": "act_3109805a6f354622",
+    "command_name": "ccb_observation_catalog",
+    "confirmed": false,
+    "error": "",
+    "preview": "",
+    "requires_confirmation": false,
+    "result": {
+     "catalog": {
+      "boundary": "semantic_views_only",
+      "dimensions": [
+       "dynamics",
+       "frequency_occupancy",
+       "level_headroom",
+       "space_structure",
+       "stereo_space",
+       "transient_event"
+      ],
+      "exclusions": [
+       "raw PCM or audio buffers",
+       "waveform and spectrogram arrays",
+       "full DAD packages or evidence blobs",
+       "processor selection, parameter decisions, and mutation authority"
+      ],
+      "schema_version": "ccb_observation_catalog.v1",
+      "target_ref": {
+       "id": "",
+       "kind": "",
+       "source": "ccb_request"
+      },
+      "views": [
+       {
+        "availability": "ready_on_observation",
+        "cost_latency_class": "cheap",
+        "limitations": [
+         "Does not disclose a full TOM tree."
+        ],
+        "quality_ceiling": "compact project and TOM-adjacent identity summary",
+        "questions": [
+         "What tracks and sources are present?",
+         "What is the current project/selection structure?"
+        ],
+        "required_dependencies": [
+         "project state",
+         "MixBoard observation"
+        ],
+        "supported_target_kinds": [
+         "project",
+         "track",
+         "selection"
+        ],
+        "temporal_resolution": "state snapshot",
+        "view_id": "project.structure"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "cheap",
+        "limitations": [
+         "Change receipts confirm engineering mutations occurred. Acoustic evaluation requires fresh observation of the new state."
+        ],
+        "quality_ceiling": "bounded Shadow Project change receipt",
+        "questions": [
+         "What deterministic engineering changes occurred since the prior state?",
+         "Which current observations must be refreshed after the latest project change?"
+        ],
+        "required_dependencies": [
+         "Shadow Project change monitor",
+         "MixBoard observation binding"
+        ],
+        "supported_target_kinds": [
+         "project",
+         "track",
+         "clip",
+         "processor"
+        ],
+        "temporal_resolution": "latest state transition",
+        "view_id": "project.change_delta"
+       },
+       {
+        "availability": "ready_on_observation",
+        "cost_latency_class": "cheap",
+        "diagnostic_dimensions": [
+         "level_headroom"
+        ],
+        "quality_ceiling": "bounded level summary",
+        "questions": [
+         "How loud and peaky is the target?",
+         "Is headroom or crest factor unusual?"
+        ],
+        "required_dependencies": [
+         "waveform envelope summary"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "whole window",
+        "view_id": "track.basic_energy"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "diagnostic_dimensions": [
+         "dynamics"
+        ],
+        "limitations": [
+         "Fine envelopes and event lists stay in evidence storage."
+        ],
+        "quality_ceiling": "COM plus bounded time-energy summaries",
+        "questions": [
+         "How does energy evolve over time?",
+         "What transient and macro-dynamic structure is observable?"
+        ],
+        "required_dependencies": [
+         "time-energy summary",
+         "COM projection"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "macro and short-window summary",
+        "view_id": "track.time_dynamics"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "diagnostic_dimensions": [
+         "frequency_occupancy"
+        ],
+        "limitations": [
+         "Not a raw spectrum or a static-EQ decision."
+        ],
+        "quality_ceiling": "broad-band energy only",
+        "questions": [
+         "Where is energy concentrated by band?",
+         "Which broad tonal regions need inspection?"
+        ],
+        "required_dependencies": [
+         "band-energy summary"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "whole-window band summary",
+        "view_id": "track.timbre_frequency"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "limitations": [
+         "Sample-peak structure provides bounded clipping-risk evidence. Extreme values suggest peak-management improvement candidates, though true-peak confirmation requires additional measurement."
+        ],
+        "quality_ceiling": "sample-peak structure with explicit true-peak limitation",
+        "questions": [
+         "How are sample peaks, headroom, and crest distributed?",
+         "Are peak events concentrated or broadly elevated?"
+        ],
+        "required_dependencies": [
+         "DOM source-only projection"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "whole-window and bounded segment summary",
+        "view_id": "track.peak_structure"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "limitations": [
+         "Noise floor and a control threshold are not inferred from coarse states."
+        ],
+        "quality_ceiling": "declared activity states and interval coverage",
+        "questions": [
+         "How are active, low-energy, and silent intervals distributed?",
+         "How long are observed low-energy runs?"
+        ],
+        "required_dependencies": [
+         "DOM source-only projection"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "bounded segment summary",
+        "view_id": "track.activity_structure"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "limitations": [
+         "Whole-window bands never become time-localized events."
+        ],
+        "quality_ceiling": "bounded time-frequency evidence with explicit omissions",
+        "questions": [
+         "Is frequency energy localized to events over time?",
+         "Which time-localized frequency facts are actually available?"
+        ],
+        "required_dependencies": [
+         "DOM source-only projection"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "frequency-time event summary",
+        "view_id": "track.frequency_time_events"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "diagnostic_dimensions": [
+         "transient_event"
+        ],
+        "limitations": [
+         "Macro crest does not establish onset or sustain behavior."
+        ],
+        "quality_ceiling": "bounded transient evidence with macro-only fallback",
+        "questions": [
+         "What onset, body, and sustain structure is observable?",
+         "How consistent are transient contrasts across events?"
+        ],
+        "required_dependencies": [
+         "DOM source-only projection"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "event and envelope summary",
+        "view_id": "track.transient_structure"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "limitations": [
+         "Whole-window band energy does not establish per-band dynamics."
+        ],
+        "quality_ceiling": "bounded band-dynamics evidence with whole-window fallback",
+        "questions": [
+         "How does dynamic behavior differ by frequency band?",
+         "Are per-band crest and time variation actually available?"
+        ],
+        "required_dependencies": [
+         "DOM source-only projection"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "per-band time summary",
+        "view_id": "track.band_dynamics"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "diagnostic_dimensions": [
+         "stereo_space"
+        ],
+        "quality_ceiling": "balance/correlation summary",
+        "questions": [
+         "How wide or correlated is the target?",
+         "Is left-right balance unusual?"
+        ],
+        "required_dependencies": [
+         "stereo-relation summary"
+        ],
+        "supported_target_kinds": [
+         "track",
+         "clip",
+         "selection"
+        ],
+        "temporal_resolution": "whole-window stereo summary",
+        "view_id": "track.stereo_space"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "diagnostic_dimensions": [
+         "level_headroom"
+        ],
+        "interpretation_guidance": {
+         "patterns": [
+          {
+           "description": "Consistent level differences suggest gain adjustment candidates",
+           "name": "level_difference",
+           "signal": "consistent RMS or peak differences across tracks",
+           "suggests": [
+            "level_imbalance",
+            "track_gain"
+           ]
+          }
+         ]
+        },
+        "limitations": [
+         "This is observation, not a B2/B3 solver result."
+        ],
+        "quality_ceiling": "bounded MOM and project relationship summaries",
+        "questions": [
+         "How do track levels and risks relate?",
+         "Which track deserves attention first?"
+        ],
+        "required_dependencies": [
+         "MOM multitrack projection",
+         "project acoustic summaries"
+        ],
+        "sortable_fields": [
+         "unit_energy",
+         "energy_db"
+        ],
+        "supported_target_kinds": [
+         "project",
+         "track_group"
+        ],
+        "temporal_resolution": "project snapshot",
+        "view_id": "mix.multitrack_relationship"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "diagnostic_dimensions": [
+         "frequency_occupancy"
+        ],
+        "limitations": [
+         "Band overlaps suggest frequency-relationship improvement candidates. This is plausible evidence for bounded experiments, not deterministic masking proof."
+        ],
+        "quality_ceiling": "compact MOM frequency relationship projection",
+        "questions": [
+         "How do track band occupancies relate?",
+         "Where are broad frequency conflicts plausible?"
+        ],
+        "required_dependencies": [
+         "MOM frequency relationship",
+         "project band-energy coverage"
+        ],
+        "supported_target_kinds": [
+         "project",
+         "track_group"
+        ],
+        "temporal_resolution": "project snapshot",
+        "view_id": "mix.frequency_relationship"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "diagnostic_dimensions": [
+         "space_structure"
+        ],
+        "limitations": [
+         "Send topology is shared-space structural fact, not effect semantics; dangling edges are repair candidates, not proof of defects."
+        ],
+        "quality_ceiling": "compact MOM send/return topology projection (structural facts from the track.send.list read-back)",
+        "questions": [
+         "Which tracks send into which shared FX tracks, and at what amounts?",
+         "Are there dangling send edges whose FX target is gone?"
+        ],
+        "required_dependencies": [
+         "MOM send_topology projection",
+         "kernel track.send.list read-back"
+        ],
+        "supported_target_kinds": [
+         "project",
+         "track_group"
+        ],
+        "temporal_resolution": "project snapshot",
+        "view_id": "mix.send_topology"
+       },
+       {
+        "availability": "ready_on_request",
+        "cost_latency_class": "expensive",
+        "diagnostic_dimensions": [
+         "level_headroom",
+         "frequency_occupancy"
+        ],
+        "interpretation_guidance": {
+         "patterns": [
+          {
+           "description": "Large consistent margins across time and bands suggest level-imbalance improvement candidates",
+           "name": "large_consistent_margin",
+           "signal": "median_margin_db > 20 and risk_coverage_ratio > 0.9",
+           "suggests": [
+            "level_imbalance",
+            "track_gain"
+           ]
+          },
+          {
+           "description": "Band-specific patterns may indicate frequency-domain considerations",
+           "name": "band_specific_margin",
+           "signal": "margin concentrated in specific frequency bands",
+           "suggests": [
+            "frequency_conflict",
+            "eq"
+           ]
+          }
+         ]
+        },
+        "limitations": [
+         "Candidates are relative energetic-risk evidence showing directional energy relationships. Large consistent margins often indicate level-imbalance improvement opportunities; band-specific patterns may indicate frequency considerations. This is plausible evidence for bounded improvement hypotheses, not proof of defects."
+        ],
+        "quality_ceiling": "compact MOM directional masking-risk projection",
+        "questions": [
+         "Which directional source pairs and frequency bands are plausible masking-risk improvement candidates?"
+        ],
+        "required_dependencies": [
+         "same-window track_post_fader probes",
+         "DAD masking measurement",
+         "MOM masking projection"
+        ],
+        "sortable_fields": [
+         "median_margin_db",
+         "p90_margin_db",
+         "max_margin_db",
+         "risk_coverage_ratio"
+        ],
+        "supported_target_kinds": [
+         "project",
+         "track_group"
+        ],
+        "temporal_resolution": "synchronized project range",
+        "view_id": "mix.masking_relationship"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "cheap",
+        "limitations": [
+         "COM does not disclose a live control surface; use the processor inspector separately."
+        ],
+        "quality_ceiling": "processor scope only",
+        "questions": [
+         "Which processor is bound to this observation?",
+         "Which semantic controls are available?"
+        ],
+        "required_dependencies": [
+         "COM processor scope",
+         "read-only processor inspector"
+        ],
+        "supported_target_kinds": [
+         "processor"
+        ],
+        "temporal_resolution": "processor state snapshot",
+        "view_id": "processor.identity_and_controls"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "limitations": [
+         "Requires paired evidence for processor-caused behavior."
+        ],
+        "quality_ceiling": "compact COM behavior projection",
+        "questions": [
+         "What gain action and transient/recovery behavior is observed?"
+        ],
+        "required_dependencies": [
+         "COM paired_io projection"
+        ],
+        "supported_target_kinds": [
+         "processor",
+         "track"
+        ],
+        "temporal_resolution": "paired input/output summary",
+        "view_id": "processor.behavior"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "medium",
+        "limitations": [
+         "Requires compatible before/after COM evidence."
+        ],
+        "quality_ceiling": "compact COM change projection",
+        "questions": [
+         "How did processor behavior change between observations?"
+        ],
+        "required_dependencies": [
+         "COM change_delta projection"
+        ],
+        "supported_target_kinds": [
+         "processor",
+         "track"
+        ],
+        "temporal_resolution": "change delta",
+        "view_id": "processor.change_delta"
+       },
+       {
+        "availability": "conditional",
+        "cost_latency_class": "cheap",
+        "limitations": [
+         "Requires a prior observation in the same mix session."
+        ],
+        "quality_ceiling": "bounded delta summary",
+        "questions": [
+         "What changed between the current and previous observation?"
+        ],
+        "required_dependencies": [
+         "MixBoard observation history"
+        ],
+        "supported_target_kinds": [
+         "project",
+         "track",
+         "processor"
+        ],
+        "temporal_resolution": "observation pair",
+        "view_id": "comparison.before_after"
+       }
+      ]
+     },
+     "status": "ok"
+    },
+    "tool": "ccb.observation_catalog",
+    "undo_label": ""
+   },
+   "created_at": "2026-10-22T22:34:46.9566471+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_item:run_7ee7e059415a662d:tool_step_1"
+  },
+  {
+   "seq": 7,
+   "type": "item.completed",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "semantic_entry",
+   "item_type": "classification",
+   "status": "completed",
+   "title": "理解请求",
+   "created_at": "2026-10-22T22:34:47.0296308+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_item:semantic_entry"
+  },
+  {
+   "seq": 8,
+   "type": "turn.completed",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_type": "turn",
+   "status": "waiting_continue",
+   "title": "处理完成",
+   "body": "我还在继续处理这个任务，完成后再向你汇报。",
+   "payload": {
+    "completed_steps": 1,
+    "error": "",
+    "executed_count": 1,
+    "needs_confirmation": false,
+    "stop_reason": "limit_reached",
+    "typed_events": null
+   },
+   "created_at": "2026-10-22T22:34:47.0739714+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_turn:run_7ee7e059415a662d"
+  },
+  {
+   "seq": 9,
+   "type": "item.started",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "tool_step_1",
+   "item_type": "daw_action",
+   "status": "running",
+   "title": "正在执行操作",
+   "body": "需要人声轨自身的频段能量分布（是否存在中高频存在感堆积）和立体声相关度/宽度（是否过于居中导致听感靠前），这两项直接决定有界小步调整的方向",
+   "payload": {
+    "args": {
+     "target_ref": {
+      "id": "1032",
+      "kind": "track",
+      "label": "1032"
+     },
+     "view_ids": [
+      "track.timbre_frequency",
+      "track.stereo_space"
+     ]
+    },
+    "command": "",
+    "command_raw": {
+     "target_ref": {
+      "id": "1032",
+      "kind": "track",
+      "label": "1032"
+     },
+     "tool": "ccb.observation_request",
+     "view_ids": [
+      "track.timbre_frequency",
+      "track.stereo_space"
+     ]
+    },
+    "confirmed": false,
+    "plan_item": "",
+    "source": "agentloop",
+    "tool": "ccb.observation_request"
+   },
+   "created_at": "2026-10-22T22:35:23.6487757+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_item:run_7ee7e059415a662d:tool_step_1"
+  },
+  {
+   "seq": 10,
+   "type": "item.completed",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "tool_step_1",
+   "item_type": "daw_action",
+   "status": "completed",
+   "title": "已完成 ccb_observation_request",
+   "payload": {
+    "agent_action_id": "act_ca8ee8377bb904fd",
+    "command_name": "ccb_observation_request",
+    "confirmed": false,
+    "error": "",
+    "preview": "",
+    "requires_confirmation": false,
+    "result": {
+     "bundle": {
+      "audit_receipt": {
+       "actual_executed_view_ids": [
+        "track.timbre_frequency",
+        "track.stereo_space"
+       ],
+       "freshness": {
+        "class": "current_observation",
+        "observed_at": "2026-10-22T14:35:24.4932872Z",
+        "project_epoch": "epoch_8ef34acaab6eb6f3",
+        "project_revision": "49",
+        "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+        "status": "ready"
+       },
+       "model_requested_view_ids": [
+        "track.timbre_frequency",
+        "track.stereo_space"
+       ],
+       "project_binding": {
+        "project_epoch": "epoch_8ef34acaab6eb6f3",
+        "project_revision": "49",
+        "project_state_hash": "439229ef3821e405",
+        "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+       },
+       "project_revision": "49",
+       "receipt_id": "ccbr_obs_20261022T143524_0e6240ec17f0",
+       "requested_by": "model",
+       "schema_version": "ccb_observation_receipt.v1",
+       "scope": "selected_track",
+       "status": "executed",
+       "view_set_matches": true
+      },
+      "bundle_id": "ccbobs_obs_20261022T143524_0e6240ec17f0",
+      "disclosure_bytes": 7160,
+      "evidence_refs": [
+       "obs_20261022T143524_0e6240ec17f0",
+       "evidence://8e0913853971e9a612a29e19b1517a647c111342ff231a28cac7b6c7362008bb"
+      ],
+      "freshness": {
+       "class": "current_observation",
+       "observed_at": "2026-10-22T14:35:24.4932872Z",
+       "project_epoch": "epoch_8ef34acaab6eb6f3",
+       "project_revision": "49",
+       "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+       "status": "ready"
+      },
+      "max_disclosure_bytes": 65536,
+      "mix_session_id": "mix_6d615a6760d0",
+      "mutation_authority": false,
+      "observation_id": "obs_20261022T143524_0e6240ec17f0",
+      "project_binding": {
+       "project_epoch": "epoch_8ef34acaab6eb6f3",
+       "project_revision": "49",
+       "project_state_hash": "439229ef3821e405",
+       "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+      },
+      "read_only": true,
+      "requested_views": [
+       "track.timbre_frequency",
+       "track.stereo_space"
+      ],
+      "schema_version": "ccb_observation_bundle.v1",
+      "status": "ready",
+      "target_ref": {
+       "confidence": "high",
+       "id": "1032",
+       "kind": "track",
+       "label": "vocals",
+       "source": "selected_track_first_clip"
+      },
+      "views": {
+       "track.stereo_space": {
+        "facts": {
+         "track.1032.slow.stereo.summary": {
+          "balance_db": 0,
+          "balance_state": "centered",
+          "balance_unit": 0,
+          "capture_mode": "offline_full_song",
+          "clip_id": "1036",
+          "clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000|offset=0.0000|length=2.2000",
+          "correlation_estimate": 1,
+          "correlation_state": "highly_correlated",
+          "coverage_ratio": 1,
+          "coverage_seconds": 2.2,
+          "feature_type": "stereo_relation_summary",
+          "layer": "l3_deep",
+          "left_level_db": 0,
+          "phase_deviation": 0,
+          "phase_negative_ratio": 0,
+          "quality_evidence": {
+           "analyzed_sample_count": 97020,
+           "analyzer_version": "dad_l3_offline_analyzer.v1",
+           "channels": 1,
+           "coverage_ratio": 1,
+           "dc_offset": 0,
+           "dc_offset_ratio": 0,
+           "duration_seconds": 2.2,
+           "evidence_ref": "vit://dad.l3/feature:stereo_relation_summary/t=all@D%3A\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000#-",
+           "expected_sample_count": 97020,
+           "inf_count": 0,
+           "max_abs": 0.499969482421875,
+           "nan_count": 0,
+           "nan_inf_count": 0,
+           "nonzero_count": 96888,
+           "quality_reasons": [
+            "ok"
+           ],
+           "quality_status": "ready",
+           "sample_rate": 44100,
+           "source_identity": "source_revision+clip_revision+optional_render_revision",
+           "sum_abs": 30879.999755859375
+          },
+          "quality_reason": "ok",
+          "quality_status": "ready",
+          "request_id": "fs_seed_softguide_b2_A1_20261022_220805",
+          "right_level_db": 0,
+          "schema_version": "dad_l3_stereo_relation_summary.v1",
+          "source": "kernel_l3_offline_analyzer",
+          "source_identity": {
+           "analyzer_revision": "dad_l3_offline_analyzer.v1",
+           "analyzer_version": "dad_l3_offline_analyzer.v1",
+           "channels": 1,
+           "clip_id": "1036",
+           "clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000|offset=0.0000|length=2.2000",
+           "duration_seconds": 2.2,
+           "project_id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+           "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+           "sample_rate": 44100,
+           "source_fingerprint": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000",
+           "source_id": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav",
+           "source_revision": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000",
+           "track_id": "1032"
+          },
+          "source_kind": "clip",
+          "source_revision": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000",
+          "status": "ready",
+          "time_basis": "source_samples",
+          "track_id": "1032",
+          "updated_at": "2026-10-22T22:08:10.834+08:00"
+         }
+        },
+        "limitations": null,
+        "status": "ready",
+        "view_id": "track.stereo_space"
+       },
+       "track.timbre_frequency": {
+        "facts": {
+         "track.1032.slow.band_energy.summary": {
+          "analyzer_revision": "dad_l3_offline_analyzer.v1",
+          "analyzer_version": "dad_l3_offline_analyzer.v1",
+          "bands": {
+           "air": {
+            "energy_db": -3.077669636310026,
+            "left_unit_energy": null,
+            "max_hz": 20000,
+            "min_hz": 6000,
+            "right_unit_energy": null,
+            "sample_count": 97020,
+            "status": "ready",
+            "unit_energy": 5.240198763651282e-08
+           },
+           "bass": {
+            "energy_db": 24.47555058024189,
+            "left_unit_energy": null,
+            "max_hz": 250,
+            "min_hz": 60,
+            "right_unit_energy": null,
+            "sample_count": 97020,
+            "status": "ready",
+            "unit_energy": 2.9831135308e-05
+           },
+           "low_mid": {
+            "energy_db": 29.04801207791454,
+            "left_unit_energy": null,
+            "max_hz": 500,
+            "min_hz": 250,
+            "right_unit_energy": null,
+            "sample_count": 97020,
+            "status": "ready",
+            "unit_energy": 8.5490120996e-05
+           },
+           "mid": {
+            "energy_db": 69.72832107916459,
+            "left_unit_energy": null,
+            "max_hz": 2000,
+            "min_hz": 500,
+            "right_unit_energy": null,
+            "sample_count": 97020,
+            "status": "ready",
+            "unit_energy": 0.999877583360709
+           },
+           "presence": {
+            "energy_db": 10.582220476292752,
+            "left_unit_energy": null,
+            "max_hz": 6000,
+            "min_hz": 2000,
+            "right_unit_energy": null,
+            "sample_count": 97020,
+            "status": "ready",
+            "unit_energy": 1.217129452038136e-06
+           },
+           "sub": {
+            "energy_db": 17.38244697072257,
+            "left_unit_energy": null,
+            "max_hz": 60,
+            "min_hz": 20,
+            "right_unit_energy": null,
+            "sample_count": 97020,
+            "status": "ready",
+            "unit_energy": 5.825851643440115e-06
+           }
+          },
+          "capture_mode": "offline_full_song",
+          "channel_count": 1,
+          "channels": 1,
+          "clip_id": "1036",
+          "clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000|offset=0.0000|length=2.2000",
+          "coverage_ratio": 1,
+          "coverage_seconds": 2.2,
+          "duration_seconds": 2.2,
+          "feature_type": "band_energy_summary",
+          "layer": "l3_deep",
+          "quality_evidence": {
+           "analyzed_sample_count": 97020,
+           "analyzer_version": "dad_l3_offline_analyzer.v1",
+           "channels": 1,
+           "coverage_ratio": 1,
+           "dc_offset": 0,
+           "dc_offset_ratio": 0,
+           "duration_seconds": 2.2,
+           "evidence_ref": "vit://dad.l3/feature:band_energy_summary/t=all@D%3A\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000#-",
+           "expected_sample_count": 97020,
+           "inf_count": 0,
+           "max_abs": 0.499969482421875,
+           "nan_count": 0,
+           "nan_inf_count": 0,
+           "nonzero_count": 96888,
+           "quality_reasons": [
+            "ok"
+           ],
+           "quality_status": "ready",
+           "sample_rate": 44100,
+           "source_identity": "source_revision+clip_revision+optional_render_revision",
+           "sum_abs": 30879.999755859375
+          },
+          "quality_reason": "ok",
+          "quality_status": "ready",
+          "request_id": "fs_seed_softguide_b2_A1_20261022_220805",
+          "sample_rate": 44100,
+          "schema_version": "dad_l3_band_energy_summary.v1",
+          "source": "kernel_l3_offline_analyzer",
+          "source_identity": {
+           "analyzer_revision": "dad_l3_offline_analyzer.v1",
+           "analyzer_version": "dad_l3_offline_analyzer.v1",
+           "channels": 1,
+           "clip_id": "1036",
+           "clip_revision": "clip=1036|track=1032|source=D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000|offset=0.0000|length=2.2000",
+           "duration_seconds": 2.2,
+           "project_id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+           "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+           "sample_rate": 44100,
+           "source_fingerprint": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000",
+           "source_id": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav",
+           "source_revision": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000",
+           "track_id": "1032"
+          },
+          "source_kind": "clip",
+          "source_revision": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792678078473|length=2.2000",
+          "status": "ready",
+          "time_basis": "source_samples",
+          "track_id": "1032",
+          "updated_at": "2026-10-22T22:08:10.834+08:00"
+         }
+        },
+        "limitations": [
+         "Not a raw spectrum or a static-EQ decision."
+        ],
+        "status": "ready",
+        "view_id": "track.timbre_frequency"
+       }
+      }
+     },
+     "status": "ready"
+    },
+    "tool": "ccb.observation_request",
+    "undo_label": ""
+   },
+   "created_at": "2026-10-22T22:35:24.8580137+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "run_7ee7e059415a662d",
+   "trajectory_turn_id": "run_7ee7e059415a662d",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "agent_item:run_7ee7e059415a662d:tool_step_1"
+  },
+  {
+   "seq": 11,
+   "type": "trajectory.turn.started",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "trace-cd759d7b26548223",
+   "item_type": "trajectory",
+   "status": "running",
+   "title": "实验回合开始",
+   "body": "实验回合开始",
+   "payload": {
+    "candidate_id": "1032",
+    "checkpoint_ref": "pending:free_state_a7e376bd048b3d13",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "contract_scope": {
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "kind": "project"
+    },
+    "details": {
+     "original_intent": "请先观察工程，再给一个有界的小步改进建议：人声有点贴脸，往后放一点"
+    },
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "node_kind": "turn",
+    "outcome": "not_ready",
+    "phase": "framing",
+    "schema_version": "vit.observable_trajectory.v1",
+    "source_turn_id": "run_7ee7e059415a662d",
+    "status": "running",
+    "summary": "实验回合开始",
+    "task_state": "needs_experiment",
+    "task_state_revision": 4,
+    "task_state_schema": "vit.task_semantic_state.v1",
+    "terminal": false,
+    "trace_node_id": "trace-cd759d7b26548223",
+    "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+    "transition_reason": "free-state experiment runtime admitted",
+    "turn_id": "turn:free_state_a7e376bd048b3d13"
+   },
+   "created_at": "2026-10-22T22:35:37.4860911+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "turn:free_state_a7e376bd048b3d13",
+   "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "trajectory:turn:free_state_a7e376bd048b3d13:trace-cd759d7b26548223"
+  },
+  {
+   "seq": 12,
+   "type": "trajectory.intent.framed",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "trace-31ff7a2d55887b9e",
+   "item_type": "trajectory",
+   "status": "completed",
+   "title": "实验意图已确立",
+   "body": "实验意图已确立",
+   "payload": {
+    "candidate_id": "1032",
+    "checkpoint_ref": "pending:free_state_a7e376bd048b3d13",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "contract_scope": {
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "kind": "project"
+    },
+    "details": {
+     "target_ref": {
+      "id": "1032",
+      "kind": "track"
+     }
+    },
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "node_kind": "intent",
+    "outcome": "not_ready",
+    "parent_node_id": "trace-cd759d7b26548223",
+    "phase": "framing",
+    "schema_version": "vit.observable_trajectory.v1",
+    "source_turn_id": "run_7ee7e059415a662d",
+    "status": "completed",
+    "summary": "实验意图已确立",
+    "task_state": "needs_experiment",
+    "task_state_revision": 4,
+    "task_state_schema": "vit.task_semantic_state.v1",
+    "terminal": false,
+    "trace_node_id": "trace-31ff7a2d55887b9e",
+    "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+    "transition_reason": "free-state experiment runtime admitted",
+    "turn_id": "turn:free_state_a7e376bd048b3d13"
+   },
+   "created_at": "2026-10-22T22:35:37.4975915+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "turn:free_state_a7e376bd048b3d13",
+   "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "trajectory:turn:free_state_a7e376bd048b3d13:trace-31ff7a2d55887b9e"
+  },
+  {
+   "seq": 13,
+   "type": "trajectory.hypothesis.proposed",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "trace-2b9015a02f8f6479",
+   "item_type": "trajectory",
+   "status": "completed",
+   "title": "实验假设已提出",
+   "body": "实验假设已提出",
+   "payload": {
+    "candidate_id": "1032",
+    "checkpoint_ref": "pending:free_state_a7e376bd048b3d13",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "contract_scope": {
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "kind": "project"
+    },
+    "details": {
+     "expected_effect": "对比处理后的人声是否前倾感减轻、退后一点，且没有出现发闷、咬字变钝或与伴奏脱离",
+     "hypothesis": "人声轨在中频区能量集中、存在感频段相对偏低且声像完全居中，使它在混音中显得靠前；在存在感频段做一次小幅衰减可能降低前倾感而不损害可懂度"
+    },
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "node_kind": "hypothesis",
+    "outcome": "not_ready",
+    "parent_node_id": "trace-31ff7a2d55887b9e",
+    "phase": "hypothesizing",
+    "schema_version": "vit.observable_trajectory.v1",
+    "source_turn_id": "run_7ee7e059415a662d",
+    "status": "completed",
+    "summary": "实验假设已提出",
+    "task_state": "needs_experiment",
+    "task_state_revision": 4,
+    "task_state_schema": "vit.task_semantic_state.v1",
+    "terminal": false,
+    "trace_node_id": "trace-2b9015a02f8f6479",
+    "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+    "transition_reason": "free-state experiment runtime admitted",
+    "turn_id": "turn:free_state_a7e376bd048b3d13"
+   },
+   "created_at": "2026-10-22T22:35:37.4985922+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "turn:free_state_a7e376bd048b3d13",
+   "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "trajectory:turn:free_state_a7e376bd048b3d13:trace-2b9015a02f8f6479"
+  },
+  {
+   "seq": 14,
+   "type": "trajectory.round.started",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "trace-51f0a2eca430c6ae",
+   "item_type": "trajectory",
+   "status": "completed",
+   "title": "实验轮开始",
+   "body": "实验轮开始",
+   "payload": {
+    "candidate_id": "1032",
+    "checkpoint_ref": "pending:free_state_a7e376bd048b3d13",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "contract_scope": {
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "kind": "project"
+    },
+    "details": {
+     "requested_view_ids": [
+      "track.stereo_space",
+      "track.timbre_frequency"
+     ],
+     "round_number": 1
+    },
+    "evidence_refs": [
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "node_kind": "decision",
+    "outcome": "not_ready",
+    "parent_node_id": "trace-2b9015a02f8f6479",
+    "phase": "admitted",
+    "project_revision": "49",
+    "round_id": "round-1-705945da62edf11e",
+    "schema_version": "vit.observable_trajectory.v1",
+    "source_turn_id": "run_7ee7e059415a662d",
+    "status": "completed",
+    "summary": "实验轮开始",
+    "task_state": "needs_experiment",
+    "task_state_revision": 4,
+    "task_state_schema": "vit.task_semantic_state.v1",
+    "terminal": false,
+    "trace_node_id": "trace-51f0a2eca430c6ae",
+    "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+    "transition_reason": "free-state experiment runtime admitted",
+    "turn_id": "turn:free_state_a7e376bd048b3d13"
+   },
+   "created_at": "2026-10-22T22:35:37.4985922+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "turn:free_state_a7e376bd048b3d13",
+   "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "trajectory:turn:free_state_a7e376bd048b3d13:trace-51f0a2eca430c6ae"
+  },
+  {
+   "seq": 15,
+   "type": "trajectory.observation.recorded",
+   "conversation_id": "softguide_b1_B4_20261022_223440",
+   "goal_id": "goal_4e13f6ce0b61f635",
+   "run_id": "run_7ee7e059415a662d",
+   "item_id": "trace-08537db9ac0a5696",
+   "item_type": "trajectory",
+   "status": "completed",
+   "title": "CCB 观察已记录",
+   "body": "CCB 观察已记录",
+   "payload": {
+    "candidate_id": "1032",
+    "checkpoint_ref": "pending:free_state_a7e376bd048b3d13",
+    "contract_id": "contract_task_70c8f6dabf0ac383",
+    "contract_scope": {
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "kind": "project"
+    },
+    "details": {
+     "actual_executed_view_ids": [
+      "track.stereo_space",
+      "track.timbre_frequency"
+     ],
+     "fresh": true,
+     "observation_id": "obs_20261022T143524_0e6240ec17f0",
+     "post_action": false,
+     "receipt_id": "ccbr_obs_20261022T143524_0e6240ec17f0",
+     "requested_view_ids": [
+      "track.stereo_space",
+      "track.timbre_frequency"
+     ],
+     "view_set_matches": true
+    },
+    "evidence_refs": [
+     "evidence://8e0913853971e9a612a29e19b1517a647c111342ff231a28cac7b6c7362008bb",
+     "obs_20261022T143524_0e6240ec17f0"
+    ],
+    "experiment_id": "turn:free_state_a7e376bd048b3d13",
+    "node_kind": "observation",
+    "outcome": "not_ready",
+    "parent_node_id": "trace-51f0a2eca430c6ae",
+    "phase": "observing",
+    "project_revision": "49",
+    "round_id": "round-1-705945da62edf11e",
+    "schema_version": "vit.observable_trajectory.v1",
+    "source_turn_id": "run_7ee7e059415a662d",
+    "status": "completed",
+    "summary": "CCB 观察已记录",
+    "task_state": "needs_experiment",
+    "task_state_revision": 4,
+    "task_state_schema": "vit.task_semantic_state.v1",
+    "terminal": false,
+    "trace_node_id": "trace-08537db9ac0a5696",
+    "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+    "transition_reason": "free-state experiment runtime admitted",
+    "turn_id": "turn:free_state_a7e376bd048b3d13"
+   },
+   "created_at": "2026-10-22T22:35:37.4985922+08:00",
+   "lifecycle": "transient",
+   "persistence": "none",
+   "message_kind": "activity",
+   "turn_id": "turn:free_state_a7e376bd048b3d13",
+   "trajectory_turn_id": "turn:free_state_a7e376bd048b3d13",
+   "source_turn_id": "run_7ee7e059415a662d",
+   "logical_message_id": "trajectory:turn:free_state_a7e376bd048b3d13:trace-08537db9ac0a5696"
+  }
+ ],
+ "next_seq": 15
+}

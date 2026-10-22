@@ -1,0 +1,71 @@
+{
+ "conversation_id": "softguide_b1_authority_20261022_223433",
+ "task_id": "task_28c1b2d4c5a7e907",
+ "goal_id": "goal_a9736ccc64d69f85",
+ "run_id": "run_28a0189787e7b5cf",
+ "original_intent": "/smoke authority",
+ "reply": "authority smoke: bound=full_project_access server=full_project_access",
+ "agent_mode": "default",
+ "needs_confirmation": false,
+ "goal_status": "completed",
+ "goal_summary": "/smoke authority",
+ "stop_reason": "authority_smoke_ok",
+ "project_history": {
+  "active_branch": "main",
+  "active_node_id": "n_20261022T143434_7cc03f9b",
+  "active_worktree": "",
+  "available": true,
+  "branches": {
+   "main": "c_20261022T143427_576d5252"
+  },
+  "commit_count": 4,
+  "conversation_messages": [
+   {
+    "content": "/smoke authority",
+    "logical_message_id": "n_20261022T143433_79e67251",
+    "message_kind": "user",
+    "node_id": "n_20261022T143433_79e67251",
+    "role": "user"
+   },
+   {
+    "content": "authority smoke: bound=full_project_access server=full_project_access",
+    "logical_message_id": "n_20261022T143434_7cc03f9b",
+    "message_kind": "assistant",
+    "node_id": "n_20261022T143434_7cc03f9b",
+    "role": "assistant"
+   }
+  ],
+  "detached": false,
+  "draft": false,
+  "head": "c_20261022T143427_576d5252",
+  "initialized": true,
+  "project_label": "softguide_fixture",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+  "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+  "refs": {
+   "refs/heads/main": "c_20261022T143427_576d5252"
+  },
+  "root_project_path": "",
+  "unsaved": false,
+  "warnings": [],
+  "worktrees": [
+   {
+    "commit_id": "c_20261022T143427_576d5252",
+    "created_at": "2026-10-22T14:34:34.2015555Z",
+    "is_root": true,
+    "label": "主工作树",
+    "name": "main",
+    "origin_commit_id": "c_20261022T143427_576d5252",
+    "path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture",
+    "project_file_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+    "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+    "root_project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit"
+   }
+  ]
+ },
+ "lifecycle": "durable",
+ "persistence": "project_history",
+ "message_kind": "assistant",
+ "turn_id": "run_28a0189787e7b5cf",
+ "logical_message_id": "n_20261022T143434_7cc03f9b"
+}

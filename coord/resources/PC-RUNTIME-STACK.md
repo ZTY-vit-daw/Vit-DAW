@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-22 22:07 +0800 登记 / **SOFTGUIDE-VERIFY-ROUND2-1(175) 146 软引导 B2 臂复跑验证轮——B2 臂 10 变体全量+B1 对照 5（§E 原协议，159 继卡）**；owner=GLM-5.3-flash L1 PC ZCode 执行会话（175 卡会话）；分支 port/softguide-verify-round2-1（生产码零改动，领取提交 e2620998；登记通道偏差=main 已与 origin 合齐仍按 159/170 先例走本卡分支 push 为可见面，登记行声明）。被测=**agent 主检出 6CE34E541E77270F**（21:40 构建，含 162+169+170，22:04 哈希亲核）+vsphub B10CC41295066C48（22:04 亲核）+内核=主检出 K3 Release **722A79D7A3F53797** 只读复用（22:05 亲核，bringup 硬校验）；手动起栈三进程（bringup_sv2.ps1），VIT_PROJECT_XML 指 run 目录副本，主检出/staging workspace 零触碰，不启 UI。§8 声明（运行前）：LLM=deepseek-flash ≤135 调用（预声明 §5）；成功=腿级机械计数面如实产出（不设通过线，判读交主管）；失败分类=F-inline/F-notopo/F-halluc/F-gate/F-env（§E 逐字）+驱动缺陷轮单列；止损=第 2 次 F-gate 全停上交（169/170 修复失效或新形态证据候选）/F-halluc 全停/驱动修复 ≤2 次。错峰序=173（VSP-HUB-PUBLISH-RESILIENCE-1）之后，登记时点 173 未领取在飞、栈空闲（170 已 21:49 释放）。登记前只读核对（22:06）：四端口 tcp listen=0、VitApp/VitAgent/vsphub 进程=0、用户 Godot 未动。
+- （空闲，2026-10-22 22:42 本会话机器钟 SOFTGUIDE-VERIFY-ROUND2-1(175) 释放复核：四端口 tcp listen=0[5555/5556/7878/8787]、VitApp/VitAgent/vsphub/VitHeadless/Godot 五类进程=0；udp 面拆栈脚本复核 5555/5556 全 free 在卷）
+
+## 释放记录（2026-10-22 22:07 登记 33791860 – 22:40 释放，SOFTGUIDE-VERIFY-ROUND2-1(175)）
+
+- **SOFTGUIDE-VERIFY-ROUND2-1(175) 146 软引导 B2 臂复跑验证轮——15/15 有效轮全量完成面（B2 臂 10/10+B1 对照 5/5），一次拆栈复核净**（owner=GLM-5.3-flash L1 PC ZCode 执行会话，175 卡会话）：run=**run_20261022_2210**（agent=主检出 6CE34E541E77270F 含 162+169+170+vsphub B10CC412+K3 722A79D7 只读，VIT_PROJECT_XML 指 run 目录副本主检出零触碰，不启 UI）。机械计数：**F-gate=1**（B5 no_candidate 子形态，0 target_identity 签名，final_gate 弹回全程 0 行，止损线未触发）；**到达率=14/15 完成面**；**0 幻觉拓扑**（10 条 send 边读回亲核全 ∈ 披露集∪新建）；**域漂移收敛实证**（159 A3 other/1022→本轮 drums/1012 ✓、A4 piano/1027→guitar/1017 ✓，总线执行轮源轨 6/6 全对）。LLM=114 次全 deepseek-flash 0 error（≤135 预算内）；0 驱动缺陷轮 0 环境中断 0 产品轮原样重跑（批 2 take1 authority 409 死于变体前=操作事件留证上交）。拆栈=bringup Stop 只杀自起 pid（kernel 12800/vsphub 32920/agent 22600）→复核四端口 tcp=0、五类进程=0。工件 coord/runs/SOFTGUIDE-VERIFY-ROUND2-1/（随本卡分支入库）。
 
 ## 上一条（空闲，2026-10-22 21:49 本会话机器钟 FS-NAMED-DISCLOSE-SUPPLY-1(170) 释放复核：五端口 tcp listen=0、VitApp/VitAgent/vsphub/VitHeadless/Godot=0；170 补证腿一次过收口——A5/B1 三面断言全过详见下节）
 
