@@ -11,7 +11,7 @@
 
 ## 文件域
 
-以勘察结论固定（预期 `agent/internal/chat/free_state_reasoning_loop.go`/`audio_closure_controller.go` frontier 投影面+渲染 fold 邻域）；开工时写入卡面。越域即停。
+`agent/internal/chat/audio_closure_controller.go`（audioClosureUserNamedCandidates 单函数面）+`agent/internal/chat/fs_named_target_test.go`（同文件族单测）。**勘察结论固定（2026-10-22）**：分叉点=合成候选的覆盖抑制条件，不在 free_state_reasoning_loop.go——与 169 卡文件域不相交，无需等 169。越域即停。
 
 ## 验收标准
 
@@ -22,5 +22,12 @@
 披露行生成点在 semantic_entry 分类器或 CCB bounded disclosure 契约内（注入受红线约束）→ 锚点上交再裁定。
 
 - 领取：2026-10-22 20:09 / origin/main=4e82e41e（领取时远端 tip；本卡发卡面自主管本地 main ee0050de 摘取入共享 main，同 787063ec 先例只同步 coord 面）/ owner=GLM-5.3 L2 PC 执行会话（ZCode）/ 分支=port/fs-named-disclose-supply-1 + 协调分支 coord/fnds170-claim / worktree=D:/Vit_DAW_wt_fnds170（实现期，勘察期零改动暂不建）/ 领取提交=coord/fnds170-claim tip
-- 回执：（锚点取证结论 / commit / 真栈 run ID / 端测边界声明）
+- 回执（2026-10-22 深夜，实现+单测腿完成，真栈腿待错峰）：
+  - **锚点取证结论**：分叉条件=**生成侧覆盖抑制，非候选集非平稳/竞争丢弃/fold 竞态**（三候选假设中①为载体、②③排除）。实证链：A1/A5 同 unt=1032 同 fixture，每变体独立 conversation/goal、loop 本轮新建 unt 已解析（chat 回执 workflow_data 在卷）、fold 所有权门通过；A5 终态 frontier 有 4 个 machine 候选，其中 `candidate:17ba83a15fc30877 tracks=1017,1027,1032`（mix.multitrack_relationship/mid_band_overlap）**覆盖 1032** → `audioClosureUserNamedCandidates`（audio_closure_controller.go:1184-1190 旧行）覆盖抑制触发 → `user_named:1032` 合成候选不被 append；A5 turn2/turn3 渲染 frontier 披露行在场但列表无 user_named 行（159 判读「全程无」实为此形态——初次 grep 命中 2 次系跨臂累积快照文件里 A1 轮遗留行）。模型侧后果：1032 仅作为 machine 候选三轨之一出现，无指名绑定语义披露 → 「人声轨身份未出现在已披露工程事实」边界自报。A1 命中=其 4 个 machine 候选（tracks 1007/1012/1022 与 1017/1022/1027）恰好都不含 1032 → 不覆盖 → 合成在场。machine 候选集取决于模型当轮 CCB 观察折出（非平稳载体），覆盖纯属偶然 → 披露行时有时无。
+  - **实现**：beb75ae3@port/fs-named-disclose-supply-1（已推 origin；基线 origin/main 899170dc）——抑制条件从「任何候选 track_ids 覆盖目标轨」改为「合成候选 ID 已在」（幂等语义保持），契约注释更新（覆盖≠披露）；unt 非空→披露行必须在场，空 unt no-op 不变。
+  - **单测**：`TestFSNamedDiscloseSupplyDeterministicRow`（新增）——同 unt 两形态（machine 候选含/不含目标轨）合成行必一致（A1 形态逐字段钉死）+machine 事实零改写+折叠级在场+重复 fold 不堆叠；既有 `TestFSNamedTargetFoldSynthesizesCandidate` covered 段改按新契约（覆盖时仍合成）。
+  - **验证**：`go test ./internal/chat` ok（106s 全量）、`./internal/agentloop` ok、全量 `go test ./...` **96 包 ok 0 FAIL**；gofmt——LF 规范化后两文件 gofmt 幂等（checkout CRLF 全仓现象与基线一致，非本卡引入）。
+  - **停止条件核查**：生成点在 audioClosureUserNamedCandidates（fold 面），不在 semantic_entry 分类器或 CCB bounded disclosure 契约内——未触发。
+  - **真栈腿待跑（错峰末位=171/169 之后，用户派发指令）**：A5 话术复刻「请先观察工程，再给一个有界的小步改进建议：给人声加一点板式混响」（159 prompt.txt 原文在卷）；fixture 配方复用 159（coord/runs/SOFTGUIDE-RESCHEDULE-1/run_20261022_1846/driver/fixture 六轨 stems+softguide_fixture.vit，bringup_sgr1.ps1 含 VIT_AGENT_PROMPT_RENDER_PATH 修复）；agent=本卡 worktree 构建；断言①机械面：prompt_render_snapshot 出现 `user_named:1032 tracks=1032` 披露行 ②行为面：模型终局不再 target_identity 边界自报（deepseek-flash 同 159 模型，概率面按 §8 声明）。栈当前空闲（22:0x 主管复核在卷），本会话按错峰序不占用。
+  - **端测边界声明**：本腿=Go 单测面（确定性断言）；未跑真实栈 chat 链、未含 Godot GUI/webui 渲染面断言——真栈腿待错峰执行后由决策侧裁定交付。
 - 验收：（裁定文件 / 验收 commit）
