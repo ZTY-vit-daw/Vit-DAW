@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-22 23:0x 本会话机器钟 VSP-HUB-PUBLISH-RESILIENCE-1(173) 释放复核：七端口 tcp listen=0（5555/5556/7878/8787/18787/4444/4445）、VitApp/VitAgent/VspHub/vspr1_* 类进程=0）
+- 2026-10-22 23:36 本会话机器钟起 / **UX-AB-AUDITION-IMPL-1(174) 真栈补证腿——chat 场次④复刻**（owner=GLM-5.3 L2 PC 执行会话（ZCode，174 卡会话））：run=**coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/**（新目录不覆盖旧 run；被测件=主仓 agent/bin/VitAgent.exe SHA256 前缀 7538E6CE 含 174 改动、mtime 2026-10-22 23:18+kernel K3 722A79D7A3F53797+VspHub B10CC412）。机器=PC/占用端口 5555/5556/7878/8787（18787/4444/4445 顺带保护）。登记前核对：七端口 tcp listen=0（5555/5556/7878/8787/18787/4444/4445）、VitApp/VitAgent/VspHub/Godot 类进程=0（23:35 活体复核，origin/main 登记空闲一致）。
 
 ## 本次释放（2026-10-22 22:4x–23:0x 本会话机器钟，VSP-HUB-PUBLISH-RESILIENCE-1(173)）
 
