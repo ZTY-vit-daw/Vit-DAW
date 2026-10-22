@@ -27,6 +27,6 @@
 
 交接面牵动 semantic_entry 分类器契约（146 §② 红线：注入点不进分类器）→ 停，锚点上交换注入点。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 09:54 +0800 / origin/main=1ae57f23d284abab0af2967f7b71e6bbc00e2c33 / owner=GLM-5.3 L2 PC ZCode 执行会话（162 卡会话） / 分支=port/fs-named-dynamic-wire-1 / worktree=D:/Vit_DAW_wt_ndw1 / 领取提交=本提交（coord/ndw1-claim）
 - 回执：（设计锚点 / commit / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
