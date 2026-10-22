@@ -16,7 +16,8 @@
 - 实验路径（free_state_experiment_runtime.go:782 prepareFreeStateAudition）：needs_experiment 提案→用户确认→执行实验→**自动准备 A/B 试听**→判定落账。用户此前触发过试听的操作=此路径（显式实验/提案确认形态）。
 - 动态链路径（semantic_dynamic_workflow.go / plugin_grabber_workflow.go：**0 处 audition**）：模糊意图→模型自主决定并直接执行→completed，无任何试听面。场次④「给人声加空间感」全访问工程默认路由=此路径——「之前的操作会触发、混响处理不触发」的机制解释。
 
-**设计方向（主管推荐，待用户 2026-10-22 晚咨询后确认）**：自由态效果类 mutation（send 路由/插件装载/参数写入族）完成的动态链，完成回复自动伴生 AB 试听**入口**（非强制弹窗）；对照粒度=被处理轨 bypass vs processed（FXM 既有形态）；点击才生产（惰性渲染）；盲测（VIT_DAW_AUDITION_BLIND）保持可选；实验路径既有契约不变。
+**设计定性修正（2026-10-22 深夜，用户追问后二次取证）**：判断标准「需要用户试听」**已在提示词层**——full_access_autonomy.go:69/:82 明示「execute…and hand the result to the user's A/B listening. In this mode the user's only duty is the A/B audition」。缺陷不在模型判断（模型被明确告知链末=交付试听），而在**系统未兑现承诺**：①模型动作面零试听工具（dynamic workflow 0 处 audition，无从交付）；②动态链 runtime 无 prepareFreeStateAudition 自动挂接（实验路径有：free_state_experiment_runtime.go:782）；③呈现入口无事件可消费。**「hand to A/B audition」=空头支票**。
+**设计两案（172 设计卡评估后交用户裁定）**：主案=系统自动兑现——动态链 completed 且含效果类 mutation→复用实验路径 prepareFreeStateAudition 同机制自动挂试听入口（提示词承诺系统兜底交付，模型零新动作）；备案=模型显式试听动作（工具/结构化回复字段）按请求 prepare（更语义化但引入模型漏提供风险）。两案共同面：对照粒度=被处理轨 bypass vs processed（FXM 既有形态）、惰性生产、盲测可选、实验路径契约不变。
 
 ## 范围（两步走，本卡=第一步勘察+设计，零生产码改动）
 
