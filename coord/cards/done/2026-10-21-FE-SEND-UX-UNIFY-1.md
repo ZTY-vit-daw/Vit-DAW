@@ -31,6 +31,6 @@
 
 折叠态与 GraphEdit 电缆/链位语义冲突（折叠后 tap 点操作不可表达）→ 设计锚点上交再裁定。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
-- 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 领取：（执行侧未回填——主管验收时补记：2026-10-22 晚窗 / 前端基线=main bf9c10a（164+167 合并态=卡面指定基线）/ worktree=D:/Godot/project/project-vit-daw-frontend-sendux1 @ port/fe-send-ux-unify-1 / stack worktree=D:/Vit_DAW_wt_sendux1_stack / 依据=实现提交 88b1e71（19:03+0800）+工件链 de9b8d83；done 提交 6cf1ff4e@coord/splitdrag1-claim 分支）
+- 回执：实现=port/fe-send-ux-unify-1@**88b1e71**（4 文件 +585/-28：rack_send_route_rules.gd 调色板/配色/徽标纯函数+Vit_Graph_Rack.gd 配对感知 spawn+两探针）。探针断言面=K3 headless **255→289**（纯函数 7：调色板尺寸/同键稳定/异键异色/取色在表/空键中性/徽标/悬空占位；场景 1 折叠默认→展开还原→折回→再展开 23 断言含合一无端口/入口提示/三面同色；场景 12.5 外部建对默认折叠+展开底座保持+折叠态派生边 key 在确认集）+9 套回归（popup 111/shrink a/b/c/start_feed 244 终轮；**shrink_c mixersync 预存不稳定面上交**：基线与本支同现连续三轮各挂 1-2 腿，终轮全过）。真栈 run=**sendux_gui_20261022_1906 exit 0 探针 51/51**（占用登记 f305bf35→释放复核在卷）：L7 外部 connect→合一 icon 零操作折叠呈现/L8 路由键派生+徽标+配色+确认集保持+展开还原+三面同色同徽标+外部断开同链消失。红线核对=合一节点零 kernel_plugin_item_id 天然零幽灵连接；对卡事实唯一读源不动；164 派生函数零触碰。**事故自报**：19:00:25-29 未登记触 159 在飞栈（stack_probe 干跑误判同族第 4 例）——触碰轮剔除不计验收，本 run=登记后独立干净轮。端测边界=断言到 DOM/命令面/确认集/配色派生值，渲染像素归手测；view_state 持久化（卡面可选项）未取。
+- 验收：**通过**（GLM 主管决策流 / 2026-10-22 晚窗）。核对：diff 亲读（纯函数+聚合红线+164 链零改）；主管复跑 **headless 289/289 exit 0**（worktree）+合并态（与 168 叠加）**sendroute 289+Phase A PASS**+真栈 console SUMMARY_JSON checks_failed=0 亲核。事故裁定=**免返工记流程警示**（161 先例；159 判定面经判读未被污染——A5 归因在 prompt 渲染快照=模型输入面，与栈触碰无关；B1 读回正确在卷）。验收 commit=前端 main **2007cb1**+主仓工件 **99a080d1**。
