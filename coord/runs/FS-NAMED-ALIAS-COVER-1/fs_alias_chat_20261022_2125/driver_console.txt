@@ -1,0 +1,2 @@
+[variant A2] settle=awaiting_user goal=waiting_confirmation stop=limit_reached sends=0->0 fx=0->0 hops=2
+[variant A4] settle=awaiting_user goal=waiting_confirmation stop=limit_reached sends=0->0 fx=0->0 hops=2

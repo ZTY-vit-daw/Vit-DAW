@@ -1,0 +1,256 @@
+{
+ "driver": "softguide_exp.py",
+ "experiment": "SEMANTIC-TIMEFX-SOFTGUIDE-EXP-1",
+ "arm": "B1",
+ "variants": [
+  "A2",
+  "A4"
+ ],
+ "started_at": "2026-10-22T21:24:31.104+08:00",
+ "prefix": "请先观察工程，再给一个有界的小步改进建议：",
+ "nudge": "可以执行",
+ "variants_done": [
+  "A2",
+  "A4"
+ ],
+ "results": [
+  {
+   "arm": "B1",
+   "variant": "A2",
+   "prompt": "请先观察工程，再给一个有界的小步改进建议：给钢琴加一点混响",
+   "conversation_id": "softguide_b1_A2_20261022_212437",
+   "started_at": "2026-10-22T21:24:33.748+08:00",
+   "wallclock_start": "2026-10-22T21:24:33.748436+08:00",
+   "disclosed_tracks": [
+    {
+     "id": "1007",
+     "name": "bass"
+    },
+    {
+     "id": "1012",
+     "name": "drums"
+    },
+    {
+     "id": "1017",
+     "name": "guitar"
+    },
+    {
+     "id": "1022",
+     "name": "other"
+    },
+    {
+     "id": "1027",
+     "name": "piano"
+    },
+    {
+     "id": "1032",
+     "name": "vocals"
+    }
+   ],
+   "send_edges_before": 0,
+   "fx_tracks_before": 0,
+   "turns_sent": 1,
+   "nudges_sent": 0,
+   "settle_reason": "awaiting_user",
+   "goal_status_final": "waiting_confirmation",
+   "stop_reasons": [
+    "limit_reached"
+   ],
+   "final_stop_reason": "limit_reached",
+   "goal_statuses_seen": [
+    "waiting_clarification",
+    "waiting_confirmation",
+    "waiting_continue"
+   ],
+   "workflows": [],
+   "planned_commands": [],
+   "executed_commands": [
+    "ccb_observation_catalog"
+   ],
+   "card_hops": [
+    {
+     "index": 1,
+     "card": {
+      "face": "interaction",
+      "id": "interaction_be4a9c03ea2644f5",
+      "kind": "improvement_proposal_confirmation"
+     },
+     "goal_status": "waiting_clarification",
+     "source": "runtime_walk"
+    },
+    {
+     "index": 2,
+     "card": {
+      "face": "interaction",
+      "id": "interaction_8e94441e71630797",
+      "kind": "plugin_recommendation_question"
+     },
+     "goal_status": "waiting_clarification",
+     "source": "runtime_walk"
+    }
+   ],
+   "transport_errors": 0,
+   "timeline": [
+    "turn_1 send",
+    "turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False",
+    "walkhop_1 kind=improvement_proposal_confirmation goal=waiting_clarification",
+    "walkhop_2 kind=plugin_recommendation_question goal=waiting_clarification",
+    "settle runtime_goal=waiting_confirmation"
+   ],
+   "elapsed_s": 60.4,
+   "wallclock_end": "2026-10-22T21:25:34.169781+08:00",
+   "events_count": 21,
+   "send_edges_after": 0,
+   "fx_tracks_after": 0,
+   "fx_track_rows_after": [],
+   "send_rows_after": [],
+   "rack_state_after": [],
+   "tracks_after": [
+    {
+     "id": "1007",
+     "name": "bass"
+    },
+    {
+     "id": "1012",
+     "name": "drums"
+    },
+    {
+     "id": "1017",
+     "name": "guitar"
+    },
+    {
+     "id": "1022",
+     "name": "other"
+    },
+    {
+     "id": "1027",
+     "name": "piano"
+    },
+    {
+     "id": "1032",
+     "name": "vocals"
+    }
+   ]
+  },
+  {
+   "arm": "B1",
+   "variant": "A4",
+   "prompt": "请先观察工程，再给一个有界的小步改进建议：给这条吉他轨加一个轻微的延迟",
+   "conversation_id": "softguide_b1_A4_20261022_212540",
+   "started_at": "2026-10-22T21:25:36.401+08:00",
+   "wallclock_start": "2026-10-22T21:25:36.402020+08:00",
+   "disclosed_tracks": [
+    {
+     "id": "1007",
+     "name": "bass"
+    },
+    {
+     "id": "1012",
+     "name": "drums"
+    },
+    {
+     "id": "1017",
+     "name": "guitar"
+    },
+    {
+     "id": "1022",
+     "name": "other"
+    },
+    {
+     "id": "1027",
+     "name": "piano"
+    },
+    {
+     "id": "1032",
+     "name": "vocals"
+    }
+   ],
+   "send_edges_before": 0,
+   "fx_tracks_before": 0,
+   "turns_sent": 1,
+   "nudges_sent": 0,
+   "settle_reason": "awaiting_user",
+   "goal_status_final": "waiting_confirmation",
+   "stop_reasons": [
+    "limit_reached"
+   ],
+   "final_stop_reason": "limit_reached",
+   "goal_statuses_seen": [
+    "waiting_clarification",
+    "waiting_confirmation",
+    "waiting_continue"
+   ],
+   "workflows": [],
+   "planned_commands": [],
+   "executed_commands": [
+    "ccb_observation_catalog"
+   ],
+   "card_hops": [
+    {
+     "index": 1,
+     "card": {
+      "face": "interaction",
+      "id": "interaction_de667d2138539e35",
+      "kind": "improvement_proposal_confirmation"
+     },
+     "goal_status": "waiting_clarification",
+     "source": "runtime_walk"
+    },
+    {
+     "index": 2,
+     "card": {
+      "face": "interaction",
+      "id": "interaction_eb2b6fcce0ca4434",
+      "kind": "plugin_recommendation_question"
+     },
+     "goal_status": "waiting_clarification",
+     "source": "runtime_walk"
+    }
+   ],
+   "transport_errors": 0,
+   "timeline": [
+    "turn_1 send",
+    "turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False",
+    "walkhop_1 kind=improvement_proposal_confirmation goal=waiting_clarification",
+    "walkhop_2 kind=plugin_recommendation_question goal=waiting_clarification",
+    "settle runtime_goal=waiting_confirmation"
+   ],
+   "elapsed_s": 48.4,
+   "wallclock_end": "2026-10-22T21:26:24.807529+08:00",
+   "events_count": 21,
+   "send_edges_after": 0,
+   "fx_tracks_after": 0,
+   "fx_track_rows_after": [],
+   "send_rows_after": [],
+   "rack_state_after": [],
+   "tracks_after": [
+    {
+     "id": "1007",
+     "name": "bass"
+    },
+    {
+     "id": "1012",
+     "name": "drums"
+    },
+    {
+     "id": "1017",
+     "name": "guitar"
+    },
+    {
+     "id": "1022",
+     "name": "other"
+    },
+    {
+     "id": "1027",
+     "name": "piano"
+    },
+    {
+     "id": "1032",
+     "name": "vocals"
+    }
+   ]
+  }
+ ],
+ "status": "captured",
+ "finished_at": "2026-10-22T21:26:27.047+08:00"
+}

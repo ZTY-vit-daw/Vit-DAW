@@ -1,0 +1,14 @@
+{
+ "resolved": {
+  "A2": {
+   "user_named_target": "1027",
+   "track_name": "piano"
+  },
+  "A4": {
+   "user_named_target": "1017",
+   "track_name": "guitar"
+  }
+ },
+ "failures": [],
+ "exit": 0
+}

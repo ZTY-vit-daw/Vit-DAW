@@ -1,0 +1,15 @@
+fixture DAD ready (tracks=6)
+fixture built: D:\Vit_DAW_wt_fsnac1\coord\runs\FS-NAMED-ALIAS-COVER-1\fs_alias_chat_20261022_2125\driver\fixture\softguide_fixture.vit
+authority bound full_project_access
+[A2] turn_1 send
+[A2] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A2] walkhop_1 kind=improvement_proposal_confirmation goal=waiting_clarification
+[A2] walkhop_2 kind=plugin_recommendation_question goal=waiting_clarification
+[A2] settle runtime_goal=waiting_confirmation
+[A2] fixture open ok: bass,drums,guitar,other,piano,vocals
+[A4] turn_1 send
+[A4] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A4] walkhop_1 kind=improvement_proposal_confirmation goal=waiting_clarification
+[A4] walkhop_2 kind=plugin_recommendation_question goal=waiting_clarification
+[A4] settle runtime_goal=waiting_confirmation
+[A4] fixture open ok: bass,drums,guitar,other,piano,vocals
