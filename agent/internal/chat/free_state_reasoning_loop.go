@@ -382,9 +382,30 @@ func (s *Server) prepareFreeStateReasoningContext(conversationID, userText strin
 	// 146 §②) and fails open: a miss or an ambiguity leaves an already
 	// captured target untouched, so loops without a resolvable name keep the
 	// pre-FS-NAMED-TARGET-1 behavior byte-identically.
-	if resolved := s.resolveFreeStateUserNamedTarget(userText); resolved != "" {
-		loop.UserNamedTarget = resolved
+	resolvedUserNamedTarget := s.resolveFreeStateUserNamedTarget(userText)
+	if resolvedUserNamedTarget != "" {
+		loop.UserNamedTarget = resolvedUserNamedTarget
 	}
+	// FS-NAMED-ALIAS-COVER-1 ③: when this turn's text carries a closed-table
+	// family alias but the resolver failed open (no matching track or an
+	// ambiguity) and no earlier naming owns the loop, the reply must say so —
+	// otherwise the user believes the named track took effect while the turn
+	// actually runs on auto-selection (159 A2/A4 form). Prepare is the single
+	// writer of the marker: a qualifying turn sets it fresh, every other
+	// prepare clears a stale copy, so client echoes or durable-snapshot replays
+	// can never re-disclose on an unrelated turn. A sticky pointer from an
+	// earlier turn keeps the naming bound, so no miss-disclosure fires then.
+	unresolvedNamedAlias := ""
+	if resolvedUserNamedTarget == "" && loop.UserNamedTarget == "" {
+		unresolvedNamedAlias = freeStateUserNamedContainedAlias(freeStateUserNamedNormalizeText(userText))
+	}
+	unresolvedMarker := map[string]any(nil)
+	if unresolvedNamedAlias != "" {
+		unresolvedMarker = map[string]any{
+			"named_alias": unresolvedNamedAlias, "applied_at": "prepare_user_named_resolution",
+		}
+	}
+	requestContext = contextWithUserNamedUnresolvedMarker(requestContext, unresolvedMarker)
 	// BOUNDARY-1 §1.1: evaluate the terminal-turn triggers at the one context
 	// binding boundary both the HTTP turn and every scheduler resume cross, so
 	// the lock lands before the next model slice runs and the reserved
@@ -740,15 +761,23 @@ type freeStateUserNamedAliasFamily struct {
 }
 
 // freeStateUserNamedAliasFamilies covers the 「人声/伴奏/鼓组」 category the
-// C4 ruling named. Chinese aliases are multi-character only: a single-char
-// alias would substring-match inside unrelated words (鼓 inside 鼓励), and
-// guessing is exactly what fail-open forbids. Track-name keywords may be
-// shorter because they match against a machine-provided track name, not
-// free user text.
+// C4 ruling named, extended by FS-NAMED-ALIAS-COVER-1 with the common
+// instrumental families the 159 A2/A4 field round exposed (钢琴/吉他/贝斯/
+// 弦乐/合成器). The table stays closed machine vocabulary: anything outside
+// it fails open rather than guessing. Chinese aliases are multi-character
+// only: a single-char alias would substring-match inside unrelated words (鼓
+// inside 鼓励, 琴 inside 琴声), and guessing is exactly what fail-open
+// forbids. Track-name keywords may be shorter because they match against a
+// machine-provided track name, not free user text.
 var freeStateUserNamedAliasFamilies = []freeStateUserNamedAliasFamily{
 	{Aliases: []string{"人声", "主唱", "演唱", "vocal", "vocals", "vox"}, Keywords: []string{"vocal", "vox", "人声", "主唱", "演唱"}},
 	{Aliases: []string{"伴奏", "伴奏轨", "backing", "backing track", "accompaniment", "instrumental"}, Keywords: []string{"backing", "accomp", "instrumental", "伴奏"}},
 	{Aliases: []string{"鼓组", "鼓轨", "鼓声", "drums", "drum", "drum track", "percussion"}, Keywords: []string{"drum", "percuss", "打击乐", "鼓"}},
+	{Aliases: []string{"钢琴", "键盘", "piano", "keyboard"}, Keywords: []string{"piano", "keys", "keyboard", "钢琴", "键盘"}},
+	{Aliases: []string{"吉他", "木吉他", "电吉他", "guitar", "acoustic guitar", "electric guitar"}, Keywords: []string{"guitar", "吉他"}},
+	{Aliases: []string{"贝斯", "贝司", "bass"}, Keywords: []string{"bass", "贝斯", "贝司"}},
+	{Aliases: []string{"弦乐", "strings"}, Keywords: []string{"string", "弦乐"}},
+	{Aliases: []string{"合成器", "synth", "synthesizer"}, Keywords: []string{"synth", "合成器"}},
 }
 
 func freeStateUserNamedNormalizeText(text string) string {
@@ -820,6 +849,54 @@ func (s *Server) resolveFreeStateUserNamedTarget(userText string) string {
 		return trackID
 	}
 	return ""
+}
+
+// userNamedTargetUnresolvedContextKey rides the request context when a turn's
+// text carried a closed-table family alias but the resolver failed open and no
+// sticky naming owns the loop (FS-NAMED-ALIAS-COVER-1 ③). The response wrapper
+// turns it into the deterministic named-but-unresolved line so the user never
+// believes an unresolved naming took effect.
+const userNamedTargetUnresolvedContextKey = "user_named_target_unresolved"
+
+// freeStateUserNamedContainedAlias returns the first closed-table alias the
+// normalized user text carries, in family order — the deterministic "did the
+// user name anything this table knows" probe for the unresolved-naming
+// disclosure. It reads the same alias surface the resolver matches, never a
+// classifier.
+func freeStateUserNamedContainedAlias(text string) string {
+	for _, family := range freeStateUserNamedAliasFamilies {
+		for _, alias := range family.Aliases {
+			if alias = strings.TrimSpace(alias); alias != "" && strings.Contains(text, alias) {
+				return alias
+			}
+		}
+	}
+	return ""
+}
+
+// userNamedTargetUnresolvedDisclosure builds the deterministic line for an
+// unresolved naming; the wording is machine-owned (never model prose) so
+// repeats are recognizable and dedupe on plain containment.
+func userNamedTargetUnresolvedDisclosure(marker map[string]any) string {
+	alias := strings.TrimSpace(firstStringFromMap(marker, "named_alias"))
+	if alias == "" {
+		return ""
+	}
+	return fmt.Sprintf("指名轨『%s』未在轨集中识别，按自动选择处理。", alias)
+}
+
+// contextWithUserNamedUnresolvedMarker is the prepare-side write barrier for
+// the unresolved-naming marker (FS-NAMED-ALIAS-COVER-1 ③): nil clears a stale
+// copy from an echoed or snapshot-carried context, a marker replaces whatever
+// was there, so the key can only ever reflect the current prepare boundary.
+func contextWithUserNamedUnresolvedMarker(requestContext map[string]any, marker map[string]any) map[string]any {
+	out := cloneContext(requestContext)
+	if marker == nil {
+		delete(out, userNamedTargetUnresolvedContextKey)
+		return out
+	}
+	out[userNamedTargetUnresolvedContextKey] = cloneContext(marker)
+	return out
 }
 
 // freeStateQualifiedScanViewIDs mirrors the agentloop G3 qualified scan view
@@ -2602,6 +2679,20 @@ func (s *Server) bindFreeStateContextToResponse(resp ChatResponse, requestContex
 	}
 	if resp.WorkflowData == nil {
 		resp.WorkflowData = map[string]any{}
+	}
+	// FS-NAMED-ALIAS-COVER-1 ③: disclose a named-but-unresolved turn on every
+	// wrapped face of the turn — the sentence is a deterministic machine
+	// constant, so an inner continuation wrap plus this outer wrap dedupe by
+	// containment.
+	if marker := firstMapFromAny(requestContext[userNamedTargetUnresolvedContextKey]); len(marker) > 0 {
+		resp.WorkflowData[userNamedTargetUnresolvedContextKey] = cloneContext(marker)
+		if line := userNamedTargetUnresolvedDisclosure(marker); line != "" && !strings.Contains(resp.Reply, line) {
+			if strings.TrimSpace(resp.Reply) == "" {
+				resp.Reply = line
+			} else {
+				resp.Reply = resp.Reply + "\n" + line
+			}
+		}
 	}
 	ctx := cloneContext(firstMapFromAny(resp.WorkflowData["request_context"]))
 	ctx = mergeContext(ctx, requestContext)
