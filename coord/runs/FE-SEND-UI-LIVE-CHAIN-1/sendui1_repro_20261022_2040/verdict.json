@@ -1,0 +1,10 @@
+{
+  "card": "FE-SEND-UI-LIVE-CHAIN-1",
+  "samples": {
+
+  },
+  "steps": [
+    "stack ready at 2026-10-22T12:39:00"
+  ],
+  "finish_reason": "workspace_not_entered"
+}

@@ -1,0 +1,276 @@
+{
+  "card": "FE-SEND-UI-LIVE-CHAIN-1",
+  "samples": {
+    "A_pre_write": {
+      "at": "2026-10-22T13:05:52",
+      "repo_topology": {
+        "sends": [],
+        "fx_tracks": [],
+        "dangling": []
+      },
+      "racks": [
+        {
+          "instance_id": 192451447014,
+          "bound_kernel_track_id": "1032",
+          "rack_topology_sends": [],
+          "route_entries_track_count": 0,
+          "route_entries_signature": "{}",
+          "confirmed_edge_keys": "{  }",
+          "send_route_nodes": [],
+          "connections": []
+        }
+      ],
+      "mixer_send_slots": []
+    },
+    "B_post_write": {
+      "at": "2026-10-22T13:06:05",
+      "repo_topology": {
+        "sends": [
+          {
+            "source_track_id": "1032",
+            "source_name": "vocals",
+            "fx_track_id": "1037",
+            "fx_name": "Reverb Bus",
+            "amount_db": -6.0,
+            "send_bus": 0,
+            "return_bus": 1
+          }
+        ],
+        "fx_tracks": [
+          {
+            "track_id": "1037",
+            "name": "Reverb Bus",
+            "send_bus": 0,
+            "return_bus": 1,
+            "source_count": 1
+          }
+        ],
+        "dangling": []
+      },
+      "racks": [
+        {
+          "instance_id": 192451447014,
+          "bound_kernel_track_id": "1032",
+          "rack_topology_sends": [
+            {
+              "source_track_id": "1032",
+              "source_name": "vocals",
+              "fx_track_id": "1037",
+              "fx_name": "Reverb Bus",
+              "amount_db": -6.0,
+              "send_bus": 0,
+              "return_bus": 1
+            }
+          ],
+          "route_entries_track_count": 2,
+          "route_entries_signature": "{\"1032\":[{\"enabled\":true,\"id\":\"1042\",\"name\":\"S:Reverb Bus\",\"plugin_item_id\":\"1042\",\"type\":\"auxsend\"},{\"enabled\":true,\"id",
+          "confirmed_edge_keys": "{ \"1042|audio|1043|audio\": { \"edge_key\": \"1042|audio|1043|audio\", \"source_id\": \"1042\", \"source_pin\": 1, \"dest_id\": \"1043\", \"dest_pin\": 1 } }",
+          "send_route_nodes": [
+            {
+              "name": "SendRoutePair_0_1042",
+              "title": "SEND ◈  Reverb Bus  -6.0 dB",
+              "unified": true,
+              "is_out": false,
+              "kernel_plugin_item_id": "",
+              "route_key": "send:1032>1037",
+              "badge": "Reverb Bus",
+              "param_rows": []
+            }
+          ],
+          "connections": []
+        }
+      ],
+      "mixer_send_slots": []
+    },
+    "B2_post_expand": {
+      "at": "2026-10-22T13:06:07",
+      "repo_topology": {
+        "sends": [
+          {
+            "source_track_id": "1032",
+            "source_name": "vocals",
+            "fx_track_id": "1037",
+            "fx_name": "Reverb Bus",
+            "amount_db": -6.0,
+            "send_bus": 0,
+            "return_bus": 1
+          }
+        ],
+        "fx_tracks": [
+          {
+            "track_id": "1037",
+            "name": "Reverb Bus",
+            "send_bus": 0,
+            "return_bus": 1,
+            "source_count": 1
+          }
+        ],
+        "dangling": []
+      },
+      "racks": [
+        {
+          "instance_id": 192451447014,
+          "bound_kernel_track_id": "1032",
+          "rack_topology_sends": [
+            {
+              "source_track_id": "1032",
+              "source_name": "vocals",
+              "fx_track_id": "1037",
+              "fx_name": "Reverb Bus",
+              "amount_db": -6.0,
+              "send_bus": 0,
+              "return_bus": 1
+            }
+          ],
+          "route_entries_track_count": 2,
+          "route_entries_signature": "{\"1032\":[{\"enabled\":true,\"id\":\"1042\",\"name\":\"S:Reverb Bus\",\"plugin_item_id\":\"1042\",\"type\":\"auxsend\"},{\"enabled\":true,\"id",
+          "confirmed_edge_keys": "{ \"1042|audio|1043|audio\": { \"edge_key\": \"1042|audio|1043|audio\", \"source_id\": \"1042\", \"source_pin\": 1, \"dest_id\": \"1043\", \"dest_pin\": 1 } }",
+          "send_route_nodes": [
+            {
+              "name": "SendRoute_out_0_1042",
+              "title": "SEND ▸  Reverb Bus  -6.0 dB",
+              "unified": false,
+              "is_out": true,
+              "kernel_plugin_item_id": "1042",
+              "route_key": "send:1032>1037",
+              "badge": "Reverb Bus",
+              "param_rows": [
+                "ParamPortRow_send_level"
+              ]
+            },
+            {
+              "name": "SendRoute_in_1_1043",
+              "title": "◂ SEND  Reverb Bus",
+              "unified": false,
+              "is_out": false,
+              "kernel_plugin_item_id": "1043",
+              "route_key": "send:1032>1037",
+              "badge": "Reverb Bus",
+              "param_rows": []
+            }
+          ],
+          "connections": [
+            {
+              "from": "SendRoute_out_0_1042",
+              "to": "SendRoute_in_1_1043"
+            }
+          ]
+        }
+      ],
+      "mixer_send_slots": []
+    },
+    "B3_post_collapse": {
+      "at": "2026-10-22T13:06:09",
+      "repo_topology": {
+        "sends": [
+          {
+            "source_track_id": "1032",
+            "source_name": "vocals",
+            "fx_track_id": "1037",
+            "fx_name": "Reverb Bus",
+            "amount_db": -6.0,
+            "send_bus": 0,
+            "return_bus": 1
+          }
+        ],
+        "fx_tracks": [
+          {
+            "track_id": "1037",
+            "name": "Reverb Bus",
+            "send_bus": 0,
+            "return_bus": 1,
+            "source_count": 1
+          }
+        ],
+        "dangling": []
+      },
+      "racks": [
+        {
+          "instance_id": 192451447014,
+          "bound_kernel_track_id": "1032",
+          "rack_topology_sends": [
+            {
+              "source_track_id": "1032",
+              "source_name": "vocals",
+              "fx_track_id": "1037",
+              "fx_name": "Reverb Bus",
+              "amount_db": -6.0,
+              "send_bus": 0,
+              "return_bus": 1
+            }
+          ],
+          "route_entries_track_count": 2,
+          "route_entries_signature": "{\"1032\":[{\"enabled\":true,\"id\":\"1042\",\"name\":\"S:Reverb Bus\",\"plugin_item_id\":\"1042\",\"type\":\"auxsend\"},{\"enabled\":true,\"id",
+          "confirmed_edge_keys": "{ \"1042|audio|1043|audio\": { \"edge_key\": \"1042|audio|1043|audio\", \"source_id\": \"1042\", \"source_pin\": 1, \"dest_id\": \"1043\", \"dest_pin\": 1 } }",
+          "send_route_nodes": [
+            {
+              "name": "SendRoutePair_0_1042",
+              "title": "SEND ◈  Reverb Bus  -6.0 dB",
+              "unified": true,
+              "is_out": false,
+              "kernel_plugin_item_id": "",
+              "route_key": "send:1032>1037",
+              "badge": "Reverb Bus",
+              "param_rows": []
+            }
+          ],
+          "connections": []
+        }
+      ],
+      "mixer_send_slots": []
+    },
+    "C_post_disconnect": {
+      "at": "2026-10-22T13:06:16",
+      "repo_topology": {
+        "sends": [],
+        "fx_tracks": [],
+        "dangling": []
+      },
+      "racks": [
+        {
+          "instance_id": 192451447014,
+          "bound_kernel_track_id": "1032",
+          "rack_topology_sends": [],
+          "route_entries_track_count": 0,
+          "route_entries_signature": "{}",
+          "confirmed_edge_keys": "{  }",
+          "send_route_nodes": [],
+          "connections": []
+        }
+      ],
+      "mixer_send_slots": []
+    }
+  },
+  "steps": [
+    "stack ready at 2026-10-22T13:05:39",
+    "workspace entered at 2026-10-22T13:05:45",
+    "stems import flow issued at 2026-10-22T13:05:47",
+    "tracks settled vocals_kid=1032",
+    "focus vocals 1032",
+    "foreign connect queued=foreign_connect_sendui1",
+    "foreign rack_add queued=foreign_rack_add_sendui1 fx=1037",
+    "button-path expand issued=true",
+    "button-path collapse issued=true",
+    "foreign disconnect queued=foreign_disconnect_sendui1"
+  ],
+  "readback_after_connect": {
+    "status": "ok",
+    "sends": [
+      {
+        "source_track_id": "1032",
+        "source_name": "vocals",
+        "fx_track_id": "1037",
+        "fx_name": "Reverb Bus",
+        "amount_db": -6.0,
+        "send_bus": 0.0,
+        "return_bus": 1.0
+      }
+    ],
+    "source_is_vocals": true
+  },
+  "readback_after_disconnect": {
+    "status": "ok",
+    "sends": []
+  },
+  "finish_reason": "completed"
+}
