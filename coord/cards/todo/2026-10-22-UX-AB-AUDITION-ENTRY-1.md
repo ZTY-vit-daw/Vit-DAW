@@ -10,6 +10,14 @@
 - 用户旅程完成（19:44:36 semantic_dynamic_execution_completed）后无任何 A/B 试听提供；agent 日志/工作区零 audition 面。
 - **既有基础设施（盘点起点）**：agent 侧 MOM/mixboard ABResult（run_ab_result_smoke.ps1 健康检查在跑）、FXM（bypass/processed render 对照投影）、webui audition.ts+auditionJudgmentIdentity（盲测判断面）、内核 VitAuditionPreview（VitAuditionPreviewStateTests）、VIT_DAW_AUDITION_BLIND 环境变量（盲测模式，AGENTS §5）。Godot 前端仅 startup/wav_audition_loader（导入面，非效果对照）。
 
+## 现状机制取证（2026-10-22 晚补充，主管代码勘察）
+
+**AB 试听按执行路径挂接，动态链路径零挂接**：
+- 实验路径（free_state_experiment_runtime.go:782 prepareFreeStateAudition）：needs_experiment 提案→用户确认→执行实验→**自动准备 A/B 试听**→判定落账。用户此前触发过试听的操作=此路径（显式实验/提案确认形态）。
+- 动态链路径（semantic_dynamic_workflow.go / plugin_grabber_workflow.go：**0 处 audition**）：模糊意图→模型自主决定并直接执行→completed，无任何试听面。场次④「给人声加空间感」全访问工程默认路由=此路径——「之前的操作会触发、混响处理不触发」的机制解释。
+
+**设计方向（主管推荐，待用户 2026-10-22 晚咨询后确认）**：自由态效果类 mutation（send 路由/插件装载/参数写入族）完成的动态链，完成回复自动伴生 AB 试听**入口**（非强制弹窗）；对照粒度=被处理轨 bypass vs processed（FXM 既有形态）；点击才生产（惰性渲染）；盲测（VIT_DAW_AUDITION_BLIND）保持可选；实验路径既有契约不变。
+
 ## 范围（两步走，本卡=第一步勘察+设计，零生产码改动）
 
 ①盘点：上述既有 A/B 面与「动态链 completed（semantic_dynamic_execution_completed/162-族终态）」的最近接通点——ABResult 生产链的触发条件、资产形态、消费面；FXM 对照 render 的可用时机；②设计最小可感路径：任务完成后用户**一键听到 before/after**——触发时机（completed 事件→生产 or 惰性按需）、资产生产（bypass/processed 两版 render 或实时 bypass 切换）、呈现入口（PlanBar 完成态挂试听入口/机架/混音台——与 163/171 呈现链协调）、盲测选用（VIT_DAW_AUDITION_BLIND 既有面）；③输出设计稿（含分卡建议：agent 生产卡+前端入口卡+真栈验收腿）入 coord/reports/。
