@@ -1,7 +1,7 @@
 # SOFTGUIDE-RESCHEDULE-1 真栈腿点火手册（RUNBOOK）
 
 - 前置：[PREDECLARATION.md](PREDECLARATION.md)（§8 预声明，跑前锁定）；本手册只机械执行，不新增自由度
-- 被测：worktree `D:/Vit_DAW_wt_sgr1` 构建 agent（bin/VitAgent.exe SHA 前 16=e7ae99b31f5b01e1，生产码=main e101e19a 零改动）+ vsphub（cbecc9897175bab6）+ K3 内核只读（kernel_expected_sha256.txt 现算哈希在卷）
+- 被测：worktree `D:/Vit_DAW_wt_sgr1` 构建 agent（bin/VitAgent.exe SHA 前 16=E7AE99B31F5B01E1）+ vsphub（CBECC9897175BAB6）+ K3 内核只读（kernel_expected_sha256.txt 现算哈希在卷）
 
 ## 0. 点火条件（三条全过才可起栈）
 
