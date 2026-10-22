@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-21 22:1x FE-SEND-EXTERNAL-REFRESH-1 释放复核在卷：六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 14284 未动）
+- 2026-10-22 10:3x +0800 登记 / **FS-NAMED-DYNAMIC-WIRE-1(162) 真栈 chat 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，162 卡会话；worktree D:/Vit_DAW_wt_ndw1@port/fs-named-dynamic-wire-1@impl a6702c56 含本卡 Go 改动；内核=主检出 K3 build-feguik3 Release 722A79D7 只读复用，10:2x 哈希亲核一致；不启 UI）：dev_agent_smoke -StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke + fs_named_dynamic_wire_chat.py 一 run——场次③话术复刻（给人声加点空间感）F1 connect source=vocals + F2 改写-披露耦合。§8 声明（运行前）：LLM=1 chat+≤2 nudge+≤4 hop（softguide 同族预算）；成功=脚本 exit 0；失败分类=environment_interrupt/chat 腿环境类 exit 2/no_terminal exit 3（llm 形态，重跑一次）/named_wire_missing exit 4（本卡面缺陷）；止损=同签名 exit 4×2。登记前只读核对（10:2x）：七端口 tcp+udp=0、VitApp/VitAgent/vsphub=0、Godot=0（用户编辑器未开）。
 
 ## 最近一次释放（2026-10-21 22:0x-22:1x +0800，FE-SEND-EXTERNAL-REFRESH-1）
 
