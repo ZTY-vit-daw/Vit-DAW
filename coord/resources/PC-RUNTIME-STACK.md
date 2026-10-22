@@ -3,7 +3,35 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-22 22:0x 主管验收复核：四类进程=0、栈端口全 free；166 腿 19:2x 释放后无占用）
+- （空闲，2026-10-22 21:28 本会话机器钟 FS-NAMED-ALIAS-COVER-1(169) 释放复核：四端口 tcp=0、四类栈进程=0；169 chat 腿一次过收口——A2/A4 unt 双命中（详见下节），下一序位 170 A5 话术腿可进）
+
+## 最近一次释放（2026-10-22 21:23–21:28 本会话机器钟，FS-NAMED-ALIAS-COVER-1(169)）
+
+- 2026-10-22 21:23 登记（4a2b49d3）–21:28 释放 / **FS-NAMED-ALIAS-COVER-1(169) 真栈 chat 腿——一 run PASS 驱动 exit 0+断言器 exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，169 卡会话）：run=**fs_alias_chat_20261022_2125**（agent=worktree 构建 19DC2488 含本卡改动+K3 722A79D7 只读，VIT_PROJECT_XML 指 run 目录副本主检出零触碰）。判定面：A2「给钢琴加一点混响」unt=**1027/piano**、A4「给这条吉他轨加一个轻微的延迟」unt=**1017/guitar** 双命中非空（159 同话术 unt 缺失→F-gate/域漂移形态消除）；持久面双源在卷；③ 可选面附带验证（弦乐指名 fail-open+回复带「指名轨『弦乐』未在轨集中识别，按自动选择处理。」）；LLM=17 次全 deepseek-flash 0 error；0 环境中断 0 原样重跑。拆栈=bringup Stop 只杀自起 pid（kernel 13200/vsphub 21772/agent 27896）→复核四端口 tcp=0、四类进程=0。时戳注记：本机钟与 171 回执时戳约差 1 小时（171 写 22:2x 时本机钟 21:2x），本条以本会话机器钟为准。工件 coord/runs/FS-NAMED-ALIAS-COVER-1/（随 port/fs-named-alias-cover-1 入库）。
+
+## 最近一次释放（2026-10-22 20:1x–22:2x +0800，FE-SEND-UI-LIVE-CHAIN-1(171)）
+
+- 2026-10-22 20:1x 登记–22:2x 释放 / **FE-SEND-UI-LIVE-CHAIN-1(171) 真实 UI 复现+断点定位+修复终验——九 run 收口（四轮迭代+终验）**（owner=GLM-5.3 L2 PC ZCode 执行会话，171 卡会话；占用登记 2bc46406@coord/fe-send-ui-live-chain-1-claim）：手动 bringup 形态（kernel K3 722A79D7 只读+VspHub+agent 04D52490=用户手测会话同构建哈希亲核+Godot 4.6.1 console 窗口态真 UI，worktree project-vit-daw-frontend-senduichain1@2007cb1）；VIT_PROJECT_XML 指 run 目录工程副本（主检出 workspace default_project 零触碰亲核）。断点定位=前端消费链功能面完好+用户悬空窗=hub 停摆致写通知延迟 2m16s（agent 面锚点上交）+freed-object 修复（1516611@port/fe-send-ui-live-chain-1 已推）；终验 run sendui1_final_20261022_2210 全绿+freed=0+K3 289/289+popup 111/111。§8：LLM=0（写=agent 同构注入）。拆栈=owner 逐轮 Stop-Process 只杀自起 pid（2040/2050/2058/2110/2120/2132/2145/2158/final 九轮每轮核对）→末次复核四端口 tcp=0、VitApp/VitAgent/VspHub/Godot console=0（用户 Godot 编辑器 30564 全程未动）。工件 coord/runs/FE-SEND-UI-LIVE-CHAIN-1/（随 port 分支+卡面回执入库）。
+
+## 最近一次释放（2026-10-22 19:1x–19:2x +0800，FE-SEND-UX-UNIFY-1）
+
+- 2026-10-22 19:1x 登记–19:2x 释放 / **FE-SEND-UX-UNIFY-1(166) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，166 卡会话；占用登记 f305bf35）：run=**sendux_gui_20261022_1906**：`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 K3 722A79D7 亲核> -GodotProjectRoot <前端 worktree sendux1@88b1e71> -GodotExe <Godot 4.6.1 console>` **脚本 exit 0，真栈探针 51/51 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿+161 L7 零回退+**166 新腿全过**（外部 connect→合一 icon 零操作默认折叠+对卡隐藏→路由键/徽标/调色板配色真栈派生→折叠态派生边 key 在确认集=164 链保持→展开还原对卡+auxsend→auxreturn 电缆过确认门→三面同色同徽标→外部 disconnect 同链消失）。被测=前端 port/fe-send-ux-unify-1@88b1e71+stack worktree f9f96ddf（本地 main 生产代码，Go 零改动；origin/main 未含 164 stack 合入故基 local main）。§8：LLM=0；一次过零重跑零环境中断。拆栈=owner 手拆 VitAgent 30196/VitApp 30164（脚本完成态不自拆）→19:2x 复核四端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0。工件 coord/runs/FE-SEND-UX-UNIFY-1/（随 port/fe-send-ux-unify-1-stack@1d72100b+de9b8d83 入库待验收合入）。同表上方 19:00 事故自报（触 159 栈）已结处置=本腿独立登记干净轮
+
+### 事故自报（2026-10-22 19:00:25–29 窗口，FE-SEND-UX-UNIFY-1/166 会话）
+
+- **166 会话在 159（SOFTGUIDE-RESCHEDULE-1）占用期内未登记触碰了本栈**（161/2026-10-21 同族自报第 4 例：134/139/161/166）：19:00:25–29 本会话在前端 worktree 对 `stack_probe_sendroute_macro` 做「干跑验证」——误判 headless 不触栈，实际该探针场景模式即生产传输链，对 159 在飞栈（VitApp 27120+VitAgent 19180，18:45:32 起，占用登记=159 分支 373e4064 @ port/softguide-reschedule-1，main 分叉未推）执行了完整探针腿（K3 六腿 L1-L6+161 L7+164 L8：clear_project 保轨+删 audio 轨+add_track+connect auto_create×2+set_amount+control 宏三步+disconnect×2+外部写腿）。**159 会话注意**：19:00:25-29 窗口内 run_20261022_1846 的工程副本拓扑/轨集有非本腿命令扰动（探针自建源轨+「Reverb Bus K3/K3 Ext」FX 轨+宏节点+send.list 探针行；L2/L4/L5/L6/L7-readback 五腿 FAIL=预存 send 污染即本触碰侧证据），判读请对时戳。**损害边界待 159 侧判读**（softguide 变体若逐变体重置工程则影响收窄为窗口内单变体）。166 会话即停一切栈触碰；本卡真栈腿改等 159 释放后另行登记。探针侧无正面收益计入验收（L7/L8 新断言虽全过，因占用非法不作数）。
+
+## 最近一次释放（2026-10-22 10:27–10:3x +0800，FE-SEND-CABLE-EXTERNAL-1）
+
+- 2026-10-22 10:27 登记（2699d1d2）–10:3x 释放 / **FE-SEND-CABLE-EXTERNAL-1(164) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，164 卡会话）：run=**cableext_gui_20261022_1028**，`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 K3 722A79D7 哈希占用前亲核> -GodotProjectRoot <前端 worktree@8fb415c>` **脚本 exit 0，真栈探针 41/41 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿 L1-L6 零回退 + 161 L7 零回退 + **本卡新 L8 外部写→aux 对电缆八断言全过**（foreign request_id connect=agent 写同构→SendIn 卡与 SEND ▸ 卡零操作同现→auxsend→auxreturn GraphEdit 连接出现且**过内核确认门（防幽灵线门零放松）**→派生边 key 入确认集→恰一卡无重复→外部 disconnect→卡与电缆同链消失+确认集回零；2s 快照冷却按生产纪律等待）；chat/confirm 腿过（白名单话术非验收面）。被测前端=worktree@8fb415c（含本卡改动）+agent=stack worktree 构建 463C63C1…（Go 零改动）+K3 内核只读。§8 记账：LLM=0；一次过零重跑。拆栈=脚本 finally 后残留本腿 VitAgent 3496/VitApp 11060（路径亲核）清杀→复核七端口 tcp+udp 监听=0、VitApp/VitAgent/vsphub/Godot=0。工件 coord/runs/FE-SEND-CABLE-EXTERNAL-1/（随 port/fe-send-cable-external-1-stack@fb251fb7 入库待决策侧合入；stack 分支基于 161 的 86e854ba——SendRouteGuiSmoke ps1 复用，合入序=161 stack 先行）。
+
+## 最近一次释放（2026-10-22 10:18–10:2x +0800，FS-NAMED-DYNAMIC-WIRE-1）
+
+- 2026-10-22 10:3x 登记（bee74f6f）–10:2x 释放 / **FS-NAMED-DYNAMIC-WIRE-1(162) 真栈 chat 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，162 卡会话；worktree D:/Vit_DAW_wt_ndw1@port/fs-named-dynamic-wire-1@impl a6702c56）：run=**fs_ndw1_chat_20261022_101808**，dev_agent_smoke 拉栈（-StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke，脚本 exit 0）+fs_named_dynamic_wire_chat.py 驱动 exit 0——场次③话术逐字复刻「给人声加点空间感」单轮直达 completed，**F1 send 边 source=vocals/1032→FX/1037@-6.0**（卡面验收面达成）；判别性=指名指针供目标分支真栈实证（loop.target_ref=null+user_named_target=1032→selected_track_id=1032；main 同形态无源不成 bus 计划）；模型另选改写+披露面本轮随机分支缺席，单测四面钉死（诚实边界在 RESULTS.md）。被测 agent=worktree 构建 B37075B3（含本卡 Go 改动）+K3 722A79D7 只读（10:2x 哈希亲核）；LLM=1 chat 真链（stop=limit_reached 后调度续跑收口，0 交互卡 0 传输错误）。拆栈=owner 停 agent 1364/kernel 31788→复核七端口 tcp+udp=0、四类进程=0（含 Godot）。工件 coord/runs/FS-NAMED-DYNAMIC-WIRE-1/fs_ndw1_chat_20261022_101808/（轻件随 port/fs-named-dynamic-wire-1@227cc261 入库，重件 fixture 留盘）。
+
+## 历史占用（2026-10-22 10:3x +0800 登记，FS-NAMED-DYNAMIC-WIRE-1，已释放）
+
+- 2026-10-22 10:3x +0800 登记 / **FS-NAMED-DYNAMIC-WIRE-1(162) 真栈 chat 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，162 卡会话；worktree D:/Vit_DAW_wt_ndw1@port/fs-named-dynamic-wire-1@impl a6702c56 含本卡 Go 改动；内核=主检出 K3 build-feguik3 Release 722A79D7 只读复用，10:2x 哈希亲核一致；不启 UI）：dev_agent_smoke -StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke + fs_named_dynamic_wire_chat.py 一 run——场次③话术复刻（给人声加点空间感）F1 connect source=vocals + F2 改写-披露耦合。§8 声明（运行前）：LLM=1 chat+≤2 nudge+≤4 hop（softguide 同族预算）；成功=脚本 exit 0；失败分类=environment_interrupt/chat 腿环境类 exit 2/no_terminal exit 3（llm 形态，重跑一次）/named_wire_missing exit 4（本卡面缺陷）；止损=同签名 exit 4×2。登记前只读核对（10:2x）：七端口 tcp+udp=0、VitApp/VitAgent/vsphub=0、Godot=0（用户编辑器未开）。
 
 ## 最近一次释放（2026-10-22 19:1x–19:2x +0800，FE-SEND-UX-UNIFY-1(166)）
 
