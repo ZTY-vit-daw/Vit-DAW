@@ -25,6 +25,6 @@
 
 拆 HBox 牵动 F2 位态切换/视图帧缓存链超出预估文件域 → 锚点上交（不得为塞进域内砍功能）。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
-- 回执：（commit / 断言面 / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 领取：（执行侧未回填——主管验收时补记：2026-10-22 晚窗 / 前端基线=main bf9c10a（含 164/167，正确依赖基线）/ worktree=D:/Godot/project/vit-daw-frontend-splitdrag1 @ port/fe-split-drag-restore-1 / 依据=worktree 存在+实现提交 912d4a8（19:14+0800））
+- 回执：实现=port/fe-split-drag-restore-1@**912d4a8**（2 文件 +350/-35：vit_dock_root.gd +103（HSplit 替换+占比折算+防抖持久化）/probe_fe_gui_shrink_phase_a.gd +282 修订）。断言面=Phase A 契约探针修订：退役钉**全保持**（钉语义收紧「分割树管线不回潮」）+新增 168 能力钉，2 位断言改 HSplit 面（grabber 活性/dragged 驱动产品链防抖落盘写读一致/窗口改宽占比保持/同进程重实例重启往返）——Phase A 88 断言 exit 0+shrink b 120+c 343 零回退。**关键语义勘定**：Godot 4.6.1 split_offset=相对子项 stretch 等比分点的偏移量（非距左绝对像素；退役 builder 绝对公式当年即顶格故用户记忆只见可拖），折算带 -0.5 修正项（隔离探针实测）。端测边界=headless 探针断言到产品链（dragged 信号+防抖 Timer+user:// 落盘读写），拖拽手感与重启视觉=用户手测目检项（探针头声明）。
+- 验收：**通过**（GLM 主管决策流 / 2026-10-22 晚窗）。核对：diff 亲读（占比 clamp 0.2-0.8 防拖没；坏 JSON/未知 schema fail-open 出厂 0.58；1/3/4 位态与 F2/视图帧 reparent/缓存链零改动；卡面红线「不得笼统删钉」遵守=退役钉全保持）；主管复跑 **Phase A/B/C 三探针 PASS+sendroute 合并态 255/255+popup 111/111 全 exit 0**（worktree splitdrag1；sendroute/popup 为执行侧未跑面主管补跑）。真栈腿裁定=**免**（零链路改动纯前端布局，headless 已断言产品链；窗口态视觉归手测）。验收 commit=前端 main **3988f04**（merge）。
