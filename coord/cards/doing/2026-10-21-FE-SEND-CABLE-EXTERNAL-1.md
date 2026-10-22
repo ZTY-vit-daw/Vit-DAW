@@ -30,6 +30,6 @@ agent 经内核 `track.send.connect`（piano/1027→Reverb Bus/1037 @-6.0，内�
 
 内核回执族里找不到携带 aux 边的只读数据源（需内核新命令）→ 锚点上交（内核面另卡）。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 早窗 / 主仓 origin/main=1ae57f23（前端仓基线 origin/main=c5cac57，161 已合入）/ owner=GLM-5.3 L2 PC ZCode 执行会话（164 卡会话）/ 分支=port/fe-send-cable-external-1（前端仓）/ worktree=D:/Godot/project/project-vit-daw-frontend-cableext / 领取提交=（待回填）
 - 回执：（commit / 真栈 run ID / 探针断言面 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
