@@ -898,43 +898,101 @@ func (s *Server) executeSemanticDynamicTicket(ctx context.Context, interaction P
 		controls = append(controls, row)
 	}
 	cmd := map[string]any{"track_id": ticket.TrackID, "plugin_id": ticket.PluginID, "atomic": true, "controls": controls}
-	// The settlement bracket (D2-SEMREC1) opens only for a free-state D1
-	// experiment awaiting its single forward mutation: kernel-real before
-	// revision, persisted before render, and the pre-write drift check. A
-	// bracket that cannot open fails the execution before any parameter is
-	// written; every other caller (C2 batches, capability sessions) proceeds
-	// with the historical unbracketed shape.
-	bracket, bracketErr := s.beginSemanticDynamicSettlement(ctx, interaction, ticket)
-	if bracketErr != nil {
-		return semanticDynamicExecutionFailure(interaction, ticket, "settlement_bracket_unavailable", bracketErr, nil)
+	// UX-AB-AUDITION-IMPL-1: the execution now runs inside an A/B audition
+	// bracket (audition outer, settlement inner — settlement owns the evidence,
+	// audition owns the presentation; the two stack orthogonally). A before
+	// render resolved at the pre-write revision degrades open on failure; the
+	// settlement/apply/validate/settle block below is the bracket's mutation
+	// and keeps its fail-closed semantics unchanged (a mutation error aborts
+	// the audition without mounting and returns the historical failure
+	// response byte-for-byte); the after render then mounts the user-auditable
+	// pair in the same round. Plugin loading and pure observation never reach
+	// this function, so the hook position itself is the trigger condition — no
+	// whitelist, no skip flag.
+	auditionPlan := &semanticDynamicAuditionPlan{
+		ConversationID: interaction.ConversationID,
+		GoalID:         interaction.GoalID,
+		RunID:          interaction.RunID,
+		TicketID:       ticket.TicketID,
+		Family:         ticket.Family,
+		ProcessorType:  ticket.ProcessorType,
+		TrackID:        ticket.TrackID,
+		PluginID:       ticket.PluginID,
+		BeforeRevision: s.semanticDynamicAuditionLiveRevision(ctx),
 	}
-	if bracket != nil {
-		cmd["request_id"] = bracket.RequestID
-	}
-	applyResult, applyErr := s.applySemanticDynamicController(ctx, spec, cmd, interaction.RequestContext)
-	if applyErr != nil {
-		return semanticDynamicExecutionFailure(interaction, ticket, "typed_controller_failed", applyErr, applyResult)
-	}
-	if err := validateSemanticDynamicControllerResult(applyResult, ticket); err != nil {
-		return semanticDynamicExecutionFailure(interaction, ticket, "typed_controller_result_invalid", err, applyResult)
-	}
-	receipt := map[string]any{"schema_version": semanticDynamicReceipt, "status": "executed", "ticket_id": ticket.TicketID, "family": ticket.Family, "processor_type": ticket.ProcessorType, "track_id": ticket.TrackID, "plugin_id": ticket.PluginID, "topology_generation": ticket.TopologyGeneration, "controller_result": semanticDynamicControllerResultSummary(applyResult), "rollback": map[string]any{"status": "not_needed", "verified": true}, "post_action_verification": map[string]any{"status": "pending_model_observation", "requires_fresh_observation": true, "view_selection": "model_owned", "server_injected_view": false}}
-	if bracket != nil {
-		if settlement, ok := s.completeSemanticDynamicSettlement(ctx, bracket, ticket, applyResult); ok {
-			// receipt_id correlates the booked intervention with the journaled
-			// action (recordFreeStateExperimentAction reads it as the action id).
-			receipt["receipt_id"] = bracket.ActionID
-			for key, value := range settlement {
-				receipt[key] = value
+	var receipt map[string]any
+	var applyResult map[string]any
+	var mutationFailure *ChatResponse
+	auditionPlan.AfterRevision = func() string {
+		// The settlement-proofed after_revision is authoritative when the D2
+		// bracket ran and closed; otherwise the same VSP state channel that
+		// resolved the before revision reads the post-write revision.
+		if receipt != nil {
+			if revision := firstStringFromMap(receipt, "after_revision", "applied_revision"); revision != "" {
+				return revision
 			}
-		} else {
-			// The mutation executed but its kernel settlement evidence could
-			// not be proven; the D1 chain must refuse downstream rather than
-			// trust an unproven revision, so no settlement fields are added.
-			receipt["settlement_verified"] = false
 		}
+		return s.semanticDynamicAuditionLiveRevision(ctx)
 	}
-	return semanticDynamicExecutedResponse(interaction, receipt)
+	audition, auditionErr := s.runSemanticDynamicAuditionBracket(ctx, auditionPlan, func() error {
+		// The settlement bracket (D2-SEMREC1) opens only for a free-state D1
+		// experiment awaiting its single forward mutation: kernel-real before
+		// revision, persisted before render, and the pre-write drift check. A
+		// bracket that cannot open fails the execution before any parameter is
+		// written; every other caller (C2 batches, capability sessions) proceeds
+		// with the historical unbracketed shape.
+		bracket, bracketErr := s.beginSemanticDynamicSettlement(ctx, interaction, ticket)
+		if bracketErr != nil {
+			response := semanticDynamicExecutionFailure(interaction, ticket, "settlement_bracket_unavailable", bracketErr, nil)
+			mutationFailure = &response
+			return bracketErr
+		}
+		if bracket != nil {
+			cmd["request_id"] = bracket.RequestID
+		}
+		var applyErr error
+		applyResult, applyErr = s.applySemanticDynamicController(ctx, spec, cmd, interaction.RequestContext)
+		if applyErr != nil {
+			response := semanticDynamicExecutionFailure(interaction, ticket, "typed_controller_failed", applyErr, applyResult)
+			mutationFailure = &response
+			return applyErr
+		}
+		if err := validateSemanticDynamicControllerResult(applyResult, ticket); err != nil {
+			response := semanticDynamicExecutionFailure(interaction, ticket, "typed_controller_result_invalid", err, applyResult)
+			mutationFailure = &response
+			return err
+		}
+		receipt = map[string]any{"schema_version": semanticDynamicReceipt, "status": "executed", "ticket_id": ticket.TicketID, "family": ticket.Family, "processor_type": ticket.ProcessorType, "track_id": ticket.TrackID, "plugin_id": ticket.PluginID, "topology_generation": ticket.TopologyGeneration, "controller_result": semanticDynamicControllerResultSummary(applyResult), "rollback": map[string]any{"status": "not_needed", "verified": true}, "post_action_verification": map[string]any{"status": "pending_model_observation", "requires_fresh_observation": true, "view_selection": "model_owned", "server_injected_view": false}}
+		if bracket != nil {
+			if settlement, ok := s.completeSemanticDynamicSettlement(ctx, bracket, ticket, applyResult); ok {
+				// receipt_id correlates the booked intervention with the journaled
+				// action (recordFreeStateExperimentAction reads it as the action id).
+				receipt["receipt_id"] = bracket.ActionID
+				for key, value := range settlement {
+					receipt[key] = value
+				}
+			} else {
+				// The mutation executed but its kernel settlement evidence could
+				// not be proven; the D1 chain must refuse downstream rather than
+				// trust an unproven revision, so no settlement fields are added.
+				receipt["settlement_verified"] = false
+			}
+		}
+		return nil
+	})
+	if auditionErr != nil {
+		// The mutation failed: the audition did not mount, and the historical
+		// failure contract (including the settlement's fail-closed codes)
+		// answers unchanged.
+		if mutationFailure != nil {
+			return *mutationFailure
+		}
+		return semanticDynamicExecutionFailure(interaction, ticket, "typed_controller_failed", auditionErr, applyResult)
+	}
+	response := semanticDynamicExecutedResponse(interaction, receipt)
+	response.Reply = appendSemanticDynamicAuditionClause(response.Reply, audition)
+	response.WorkflowData["semantic_dynamic_audition"] = semanticDynamicAuditionProtocolStamp(audition)
+	return response
 }
 
 // semanticDynamicExecutedReply is the typed-controller completion face. The

@@ -571,6 +571,23 @@ func (s *Server) handleAuditionJudgment(w http.ResponseWriter, r *http.Request) 
 		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "mix_tick_audition": outcome})
 		return
 	}
+	// UX-AB-AUDITION-IMPL-1：mounted 的语义动态 A/B 卡在同一判定席应答，落账在
+	// semantic_dynamic 面（不写实验回合 evidence、不进实验状态机）。该分支对所有
+	// 不属于它的会话返回 handled=false，故下方自由态路径逐字零回退。
+	if outcome, handled, semanticErr := s.recordSemanticDynamicAuditionJudgment(r.Context(), request); handled {
+		if semanticErr != nil {
+			// 与 mix-tick 支路同源纪律（AB-JUDGMENT-CARD-1）：判定 POST 的拒绝
+			// 必须留服务端痕迹。
+			if s.logger != nil {
+				s.logger.Warn("[audition] judgment rejected (semantic-dynamic) conversation=%s session=%s turn=%s round=%s err=%v",
+					request.ConversationID, request.SessionID, request.TurnID, request.RoundID, semanticErr)
+			}
+			writeJSON(w, http.StatusConflict, map[string]any{"status": "error", "error": semanticErr.Error()})
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "semantic_dynamic_audition": outcome})
+		return
+	}
 	evidence, err := s.recordFreeStateAuditionJudgment(r.Context(), request)
 	if err != nil {
 		if s.logger != nil {
