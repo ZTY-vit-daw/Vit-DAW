@@ -1,0 +1,63 @@
+# FE-SEND-CABLE-EXTERNAL-1(164) 真栈腿 ps1 console——尾段实录（tail-60 截取，诚实边界：
+# 本腿 ps1 以管道 tail-60 运行，前段（bringup/构建日志）未落盘；探针 41/41 完整面在同目录
+# sendroute_gui_smoke_console.txt；SMOKE_EXIT=0 会话实录）
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+Godot Engine v4.6.1.stable.official.14d19694e
+
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS L1 connect auto_create
+[stack-probe] PASS L1 fx track created
+[stack-probe] PASS L1 default amount -6.0
+[stack-probe] PASS L2 send list
+[stack-probe] PASS L2 edge readback
+[stack-probe] PASS L3 SendOut plugin in state
+[stack-probe] PASS L3 SendIn plugin in state
+[stack-probe] PASS L4 set_amount
+[stack-probe] PASS L4 amount echo -12.5
+[stack-probe] PASS L4 list readback -12.5
+[stack-probe] PASS L5 control_add_macro
+[stack-probe] PASS L5 macro node snapshot
+[stack-probe] PASS L5 control_graph has new macro node
+[stack-probe] PASS L5 control_add_binding
+[stack-probe] PASS L5 binding target send level
+[stack-probe] PASS L5 control_set_macro_values
+[stack-probe] PASS L5 applied bindings 1
+[stack-probe] PASS L5 graph snapshot our bindings 1
+[stack-probe] PASS L5 graph snapshot macro_1 0.8
+[stack-probe] PASS L5 macro drives send amount
+[stack-probe] PASS L6 disconnect
+[stack-probe] PASS L6 fx released
+[stack-probe] PASS L6 list empty after disconnect
+[stack-probe] PASS L7 external connect (foreign request id)
+[stack-probe] PASS L7 external connect created fx
+[stack-probe] PASS L7 VSP-shaped repository applied
+[stack-probe] PASS L7 baseline no send node (VSP-shaped repo)
+[stack-probe] PASS L7 topology auto-applied to repository
+[stack-probe] PASS L7 SendOut card auto-present (zero user action)
+[stack-probe] PASS L7 SendOut card amount label
+[stack-probe] PASS L7 repository topology row source/fx
+[stack-probe] PASS L8 SendIn card auto-present (pair complete)
+[stack-probe] PASS L8 pair cable in graph connections
+[stack-probe] PASS L8 pair cable kernel-confirmed (ghost gate holds)
+[stack-probe] PASS L8 derived edge key in confirmed set
+[stack-probe] PASS L8 exactly one send-out card (no dual-track duplicate)
+[stack-probe] PASS L8 external disconnect ok
+[stack-probe] PASS L8 cards removed after external disconnect
+[stack-probe] PASS L8 cable removed after external disconnect
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":41,"failures":[],"status":"pass"}
+ok: sendroute GUI smoke passed (GUI command face over live stack; console: D:\Vit_DAW_wt_cableext_stack\coord\runs\FE-SEND-CABLE-EXTERNAL-1\cableext_gui_20261022_1028\sendroute_gui_smoke_console.txt)
+
+== Chat route smoke
+chat.stop_reason=limit_reached
+chat.reply=我还在继续处理这个任务，完成后再向你汇报。
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Summary
+ok: dev agent smoke completed
+SMOKE_EXIT=0
