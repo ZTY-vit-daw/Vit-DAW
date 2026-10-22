@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- **占用中（2026-10-22 19:1x 登记）/ FE-SEND-UX-UNIFY-1(166) 真栈 SendRouteGuiSmoke 腿**：owner=GLM-5.3 L2 PC ZCode 执行会话（166 卡会话）；占用前只读复核=四端口 5555/4445/7878/8787 tcp+udp 监听=0、VitApp/VitAgent 进程=0（159 run_20261022_1846 已收——进程 19:0x-19:1x 间消失，释放登记归 159 侧；衔接本表 19:00 事故自报）。被测=前端 worktree D:/Godot/project/project-vit-daw-frontend-sendux1 @ port/fe-send-ux-unify-1 @ 88b1e71（含本卡改动）+stack worktree D:/Vit_DAW_wt_sendux1_stack @ 8920e1e4（=main 生产代码，Go/内核零改动）；内核=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC（19:1x 哈希亲核=164/161 同一二进制只读复用）；不启 UI。
+- （空闲，2026-10-22 19:2x FE-SEND-UX-UNIFY-1 释放复核在卷：四端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0）
+
+## 最近一次释放（2026-10-22 19:1x–19:2x +0800，FE-SEND-UX-UNIFY-1）
+
+- 2026-10-22 19:1x 登记–19:2x 释放 / **FE-SEND-UX-UNIFY-1(166) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，166 卡会话；占用登记 f305bf35）：run=**sendux_gui_20261022_1906**：`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 K3 722A79D7 亲核> -GodotProjectRoot <前端 worktree sendux1@88b1e71> -GodotExe <Godot 4.6.1 console>` **脚本 exit 0，真栈探针 51/51 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿+161 L7 零回退+**166 新腿全过**（外部 connect→合一 icon 零操作默认折叠+对卡隐藏→路由键/徽标/调色板配色真栈派生→折叠态派生边 key 在确认集=164 链保持→展开还原对卡+auxsend→auxreturn 电缆过确认门→三面同色同徽标→外部 disconnect 同链消失）。被测=前端 port/fe-send-ux-unify-1@88b1e71+stack worktree f9f96ddf（本地 main 生产代码，Go 零改动；origin/main 未含 164 stack 合入故基 local main）。§8：LLM=0；一次过零重跑零环境中断。拆栈=owner 手拆 VitAgent 30196/VitApp 30164（脚本完成态不自拆）→19:2x 复核四端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0。工件 coord/runs/FE-SEND-UX-UNIFY-1/（随 port/fe-send-ux-unify-1-stack@1d72100b+de9b8d83 入库待验收合入）。同表上方 19:00 事故自报（触 159 栈）已结处置=本腿独立登记干净轮
 
 ### 事故自报（2026-10-22 19:00:25–29 窗口，FE-SEND-UX-UNIFY-1/166 会话）
 
