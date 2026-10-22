@@ -22,6 +22,6 @@
 
 重跑仍现 F-gate 签名 → 停止计数，保存原始工件上交（157 修复失效证据，不得原样重跑超两轮）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 10:1x +0800 / origin/main=e101e19a（9afbe12b..e101e19a 的 agent/+VitApp/ 生产 diff 为空，卡池提交）/ owner=GLM-5.3-flash L1 PC ZCode 执行会话（159 卡会话）/ 分支=port/softguide-reschedule-1 / worktree=D:/Vit_DAW_wt_sgr1 / 领取提交=本卡分支首提交（经 worktree 基 origin/main 落卡池，164 先例）；主检出本地 main 现有他卡重复阻塞提交 06b8fc98（165 blocked 与 origin e101e19a 同内容两笔，非本卡改动未动，登记上交）。依赖核对：157 已合入（主检出 audio_closure_controller.go:1175 user_named candidate 在场）、L3=152 bbea3445 合入（goalrunner_chat.go:2141 boundary 分层在场）、158 seed+carry 在场（9afbe12b）、惯例段生产在场（154/93df0fcd carriers.go:137——**B2 臂惯例 ON 条件=当前 main 构建即满足，零补丁零生产改动**）；错峰=今日序末位，162/164 真栈腿释出后再登记 PC-RUNTIME-STACK 占用
 - 回执：（工件路径 / F-gate 计数 / 到达率 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
