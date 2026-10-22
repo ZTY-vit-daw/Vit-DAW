@@ -85,12 +85,13 @@ switch ($Action) {
         if ($kernelSha.Substring(0, 16) -ne "722A79D7A3F53797") {
             throw "kernel SHA256 prefix mismatch: $($kernelSha.Substring(0, 16)) (expect 722A79D7A3F53797 = K3 build) - wrong kernel binary, refusing to start"
         }
-        Set-Content -Path (Join-Path $logs "kernel_sha256.txt") -Value $kernelSha
-        Write-Host "kernel SHA256 verified: $kernelSha (K3 read-only reuse)"
 
         $kws = Join-Path $RunDir "kernel_workspace"
         $logs = Join-Path $RunDir "logs"
         New-Item -ItemType Directory -Force -Path $kws, $logs | Out-Null
+        Set-Content -Path (Join-Path $logs "kernel_sha256.txt") -Value $kernelSha
+        Write-Host "kernel SHA256 verified: $kernelSha (K3 read-only reuse)"
+
         Copy-Item -Force "D:\Vit_DAW_wt_sgr1\VitApp\Workspace\default_project.xml" (Join-Path $kws "default_project.xml")
 
         $env:VIT_PROJECT_XML = (Join-Path $kws "default_project.xml")
@@ -107,9 +108,11 @@ switch ($Action) {
 
         $env:VIT_AGENT_LAST_LOG_PATH = (Join-Path $logs "agent_last.log")
         $env:VIT_AGENT_LLM_TELEMETRY_PATH = (Join-Path $logs "agent_llm_telemetry.jsonl")
+        $env:VIT_AGENT_PROMPT_RENDER_PATH = (Join-Path $logs "agent_prompt_render.jsonl")
         $agentProc = Start-Process -FilePath $AgentExe -WorkingDirectory $RunDir -WindowStyle Hidden -PassThru
         Remove-Item Env:VIT_AGENT_LAST_LOG_PATH -ErrorAction SilentlyContinue
         Remove-Item Env:VIT_AGENT_LLM_TELEMETRY_PATH -ErrorAction SilentlyContinue
+        Remove-Item Env:VIT_AGENT_PROMPT_RENDER_PATH -ErrorAction SilentlyContinue
         Set-Content -Path (Join-Path $logs "agent_pid.txt") -Value $agentProc.Id
         Write-Host "agent started pid=$($agentProc.Id)"
 

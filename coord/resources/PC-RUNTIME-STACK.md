@@ -3,7 +3,9 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-21 22:1x FE-SEND-EXTERNAL-REFRESH-1 释放复核在卷：六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 14284 未动）
+- 2026-10-22 18:44 +0800 登记 / **SOFTGUIDE-RESCHEDULE-1(159) 146 软引导实验重排腿——B2 臂 10 变体+B1 对照 5（§E 原协议，PREDECLARATION 0078e2ec 跑前锁定）**（owner=GLM-5.3-flash L1 PC ZCode 执行会话，159 卡会话；worktree D:/Vit_DAW_wt_sgr1@port/softguide-reschedule-1@fbbee7a9+本登记提交；生产代码零改动）：内核=主检出 K3 Release 722A79D7 只读复用（18:39 哈希亲核一致）；手动起栈三进程 kernel+vsphub+agent（bringup_sgr1.ps1：端口/进程预检+内核哈希硬校验+只杀自起 pid），VIT_PROJECT_XML 指 run 目录 kernel_workspace 工程副本，不启 UI。§8 声明（运行前）：LLM=deepseek-flash ≤90 调用（预声明 §5）；成功=腿级机械计数面如实产出（不设通过线，判读交主管）；失败分类=F-inline/F-notopo/F-halluc/F-gate/F-env（§E 逐字）+驱动缺陷轮单列不占产品轮；止损=第 2 次 F-gate 全停上交（157 修复失效证据候选）/F-halluc 全停/驱动修复 ≤2 次。登记前只读核对（18:39–18:44）：四端口 tcp free、VitApp/VitAgent/vsphub/Godot=0。**登记通道偏差如实声明**：PROTOCOL §2.2 要求「成功推 main」，但主检出 main 与 origin/main 真分叉（本地 20 未推/origin 10 未含，含主管验收 f9f96ddf 未推送面），本卡不可处置——按用户本卡直派口令以**本卡分支提交+push**为登记可见面，释放/验收时随分支合入 main；起栈前以 bringup 预检+端口硬校验兜底并发冲突（占用期主检出同名文件的 18:2x 主管空闲复核条目待合并时归位）。
+
+- （159 卡登记前的空闲基线：2026-10-21 22:1x FE-SEND-EXTERNAL-REFRESH-1 释放复核在卷；主检出侧另有 2026-10-22 18:2x 主管验收复核空闲条目待合并归位）
 
 ## 最近一次释放（2026-10-21 22:0x-22:1x +0800，FE-SEND-EXTERNAL-REFRESH-1）
 
