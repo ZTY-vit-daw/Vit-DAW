@@ -3,7 +3,12 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- **占用中（2026-10-22 21:23 本会话机器钟登记）**：FS-NAMED-ALIAS-COVER-1(169) 真栈 chat 腿（用户派发错峰序=171 之后，171 已释放复核在卷）——owner=GLM-5.3 L2 PC ZCode 执行会话（169 卡会话）；登记前预检=四类栈进程=0（VitApp/VitAgent/vsphub/VitHeadless）+5555/5556/7878/8787 tcp 监听=0；形态=157/159 手动 bringup（kernel K3 722A79D7 只读+vsphub+agent=本卡 worktree 构建 19DC2488ABC4ED91，VIT_PROJECT_XML 指 run 目录工程副本）；预计 169 腿后 170 A5 话术腿进（170 卡面自述末位=171/169 之后）
+- （空闲，2026-10-22 21:28 本会话机器钟 FS-NAMED-ALIAS-COVER-1(169) 释放复核：四端口 tcp=0、四类栈进程=0；169 chat 腿一次过收口——A2/A4 unt 双命中（详见下节），下一序位 170 A5 话术腿可进）
+
+## 最近一次释放（2026-10-22 21:23–21:28 本会话机器钟，FS-NAMED-ALIAS-COVER-1(169)）
+
+- 2026-10-22 21:23 登记（4a2b49d3）–21:28 释放 / **FS-NAMED-ALIAS-COVER-1(169) 真栈 chat 腿——一 run PASS 驱动 exit 0+断言器 exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，169 卡会话）：run=**fs_alias_chat_20261022_2125**（agent=worktree 构建 19DC2488 含本卡改动+K3 722A79D7 只读，VIT_PROJECT_XML 指 run 目录副本主检出零触碰）。判定面：A2「给钢琴加一点混响」unt=**1027/piano**、A4「给这条吉他轨加一个轻微的延迟」unt=**1017/guitar** 双命中非空（159 同话术 unt 缺失→F-gate/域漂移形态消除）；持久面双源在卷；③ 可选面附带验证（弦乐指名 fail-open+回复带「指名轨『弦乐』未在轨集中识别，按自动选择处理。」）；LLM=17 次全 deepseek-flash 0 error；0 环境中断 0 原样重跑。拆栈=bringup Stop 只杀自起 pid（kernel 13200/vsphub 21772/agent 27896）→复核四端口 tcp=0、四类进程=0。时戳注记：本机钟与 171 回执时戳约差 1 小时（171 写 22:2x 时本机钟 21:2x），本条以本会话机器钟为准。工件 coord/runs/FS-NAMED-ALIAS-COVER-1/（随 port/fs-named-alias-cover-1 入库）。
+
 
 ## 最近一次释放（2026-10-22 20:1x–22:2x +0800，FE-SEND-UI-LIVE-CHAIN-1(171)）
 
