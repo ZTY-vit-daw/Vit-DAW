@@ -3,7 +3,9 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-22 21:49 本会话机器钟 FS-NAMED-DISCLOSE-SUPPLY-1(170) 释放复核：五端口 tcp listen=0、VitApp/VitAgent/vsphub/VitHeadless/Godot=0；170 补证腿一次过收口——A5/B1 三面断言全过详见下节）
+- 2026-10-22 22:4x 本会话机器钟起 / **VSP-HUB-PUBLISH-RESILIENCE-1(173) 真栈注入腿**（owner=GLM-5.3 L2 PC ZCode 173 卡会话）：预期 run=coord/runs/VSP-HUB-PUBLISH-RESILIENCE-1/inject_*（kernel=主检出只读+vsphub/agent=worktree 构建 vspr1_*；VIT_PROJECT_XML 指 run 目录副本主检出 workspace 零触碰；hub 不可达注入=kill vsphub 进程后同构建重启）。领取前核对：五端口 tcp listen=0、VitApp/VitAgent/VspHub/Godot=0（22:0x 曾见无占用登记栈进程 12800/32920/22600 已自行消失，未触碰未复用，留此注记供判读）。
+
+- （空闲前态，2026-10-22 21:49 本会话机器钟 FS-NAMED-DISCLOSE-SUPPLY-1(170) 释放复核：五端口 tcp listen=0、VitApp/VitAgent/vsphub/VitHeadless/Godot=0；170 补证腿一次过收口——A5/B1 三面断言全过详见下节）
 
 ## 最近一次释放（2026-10-22 21:45–21:49 本会话机器钟，FS-NAMED-DISCLOSE-SUPPLY-1(170)）
 
