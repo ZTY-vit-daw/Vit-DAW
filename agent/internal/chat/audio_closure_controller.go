@@ -1168,24 +1168,25 @@ func audioClosureCandidates(existing []audioclosure.Candidate, observations []*a
 const audioClosureCandidateSourceUserIntent = "user_intent"
 
 // audioClosureUserNamedCandidates appends the FS-NAMED-TARGET-1 synthetic
-// candidate when the loop's deterministically resolved user-named track is
-// not covered by any existing candidate's track set (C4: the user's own
-// naming is intent transport, not runtime invention). The candidate carries
-// no observation id, view, issue type, or evidence refs — only the intent
-// pointer: id="user_named:"+track, source="user_intent",
-// track_ids=[track]. Deterministic id keeps it idempotent across folds; an
-// empty target is a no-op so every fold without a named target stays
-// byte-identical.
+// candidate whenever the loop's deterministically resolved user-named track
+// is non-empty (FS-NAMED-DISCLOSE-SUPPLY-1: a machine candidate whose track
+// set merely contains the named track is coverage, not disclosure — the 159
+// A5 run showed a mid_band_overlap candidate covering 1032 suppressing the
+// user_named row while the model, unable to see the naming intent in any
+// disclosed engineering fact, self-reported a boundary). The candidate
+// carries no observation id, view, issue type, or evidence refs — only the
+// intent pointer: id="user_named:"+track, source="user_intent",
+// track_ids=[track]. The deterministic id keeps the fold idempotent across
+// repeated rounds; an empty target is a no-op so every fold without a named
+// target stays byte-identical.
 func audioClosureUserNamedCandidates(candidates []audioclosure.Candidate, userNamedTarget string) []audioclosure.Candidate {
 	userNamedTarget = strings.TrimSpace(userNamedTarget)
 	if userNamedTarget == "" {
 		return candidates
 	}
 	for _, candidate := range candidates {
-		for _, trackID := range candidate.TrackIDs {
-			if strings.TrimSpace(trackID) == userNamedTarget {
-				return candidates
-			}
+		if candidate.ID == "user_named:"+userNamedTarget {
+			return candidates
 		}
 	}
 	return append(candidates, audioclosure.Candidate{
