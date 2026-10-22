@@ -73,7 +73,7 @@
 - `driver/arm_B2/arm/{A1,A2,A3,A4,A5,B1,B2,B3,B4,B5}/`、`driver/arm_B1/arm/{A1,B1,B2,B3,B4}/`：prompt.txt / chat_1.json / hop_*.json / walkhop_*.json / events.json / send_list_{before,after}.json / project_state_after.json / runtime_status_final.json / variant_summary.json / prompt_render_snapshot.jsonl
 - `driver/authority_switch.json`+`authority_probe.json`（双臂各一，批 1/对照批 1 在卷）；`driver/batch1_A1A2_console.txt`、`batch2_A3A4_console.txt`（take1 authority 409 留证）、`batch2_A3A4_console_take2.txt`、`batch3_A5B1_console.txt`、`batch4_B2B3_console.txt`、`batch5_B4B5_console.txt`、`batchc{1,2,3}_*_console.txt`
 - `driver/fixture/`：六轨 stems+softguide_fixture.vit（M2 同源配方；`fixture_MANIFEST.sha256.json` 160 件哈希清单在卷）
-- `logs/`：agent_last.log、agent_llm_telemetry.jsonl（114 行）、agent_prompt_render.jsonl、vsphub_last.log、MaterializeMetrics.log、pid 三件、kernel_sha256.txt
+- `logs/`：agent_llm_telemetry.jsonl（114 行）、agent_prompt_render.jsonl、pid 三件、kernel_sha256.txt + 日志 .txt 时点快照（agent_last/MaterializeMetrics/vsphub，`.snapshot_2340.txt`；原始 `.log` 受 .gitignore `*.log` 全局排除留盘 run 目录，6a0d8e5a）
 - **留盘不入库（重件面，159/170 先例）**：`driver/fixture/fixture_stems/`（wav 配方可再生）、`driver/fixture/.vit_history/`、`driver/fixture/.vit_derived/`、`kernel_workspace/`（运行时工程态）——均在本 run 目录原样保留可回指
 - prep 件：PREDECLARATION.md / RUNBOOK.md / bringup_sv2.ps1 / driver_softguide_exp_snapshot.py（e2620998，跑前锁定）
 
