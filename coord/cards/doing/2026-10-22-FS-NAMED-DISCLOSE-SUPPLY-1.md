@@ -30,4 +30,4 @@
   - **停止条件核查**：生成点在 audioClosureUserNamedCandidates（fold 面），不在 semantic_entry 分类器或 CCB bounded disclosure 契约内——未触发。
   - **真栈腿待跑（错峰末位=171/169 之后，用户派发指令）**：A5 话术复刻「请先观察工程，再给一个有界的小步改进建议：给人声加一点板式混响」（159 prompt.txt 原文在卷）；fixture 配方复用 159（coord/runs/SOFTGUIDE-RESCHEDULE-1/run_20261022_1846/driver/fixture 六轨 stems+softguide_fixture.vit，bringup_sgr1.ps1 含 VIT_AGENT_PROMPT_RENDER_PATH 修复）；agent=本卡 worktree 构建；断言①机械面：prompt_render_snapshot 出现 `user_named:1032 tracks=1032` 披露行 ②行为面：模型终局不再 target_identity 边界自报（deepseek-flash 同 159 模型，概率面按 §8 声明）。栈当前空闲（22:0x 主管复核在卷），本会话按错峰序不占用。
   - **端测边界声明**：本腿=Go 单测面（确定性断言）；未跑真实栈 chat 链、未含 Godot GUI/webui 渲染面断言——真栈腿待错峰执行后由决策侧裁定交付。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**实现面通过，真栈 A5 复刻腿待补**（GLM 主管决策流 / 2026-10-22 深夜）。diff 亲读（抑制条件→『合成候选 ID 已在』幂等判定，159 A5「覆盖≠披露」机制解释成立）；单测 TestFSNamedDiscloseSupplyDeterministicRow+全量 96 包 0 FAIL 复跑在集成态；实现合入=主仓 **3e72c5c4**。**待补**：真栈 A5 话术复刻腿（unt=1032 已解析且渲染披露行在场，模型不再边界自报；159 fixture 配方，栈空闲可进）——补证后整卡收口。

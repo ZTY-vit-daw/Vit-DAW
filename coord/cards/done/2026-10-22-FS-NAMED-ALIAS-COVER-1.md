@@ -30,4 +30,4 @@
   - 真栈判定面（RESULTS.md 6 项）：A2 unt=1027/piano、A4 unt=1017/guitar **双命中非空**（159 同话术 unt 缺失→F-gate #1/域漂移形态消除）；断言器 assert_leg.py exit 0（unt 非空+轨名交叉核对）；持久面双源（A2 conversation_graph=1027+A4 runtime_state loops=1017）；③附带验证（弦乐指名 unt=None+marker+回复行）；prepare 解析链 ×16；LLM=17 次全 deepseek-flash 0 error，一次过零重跑。
   - **主管合并注意**：实现基线=origin/main（157/158 在场）；主管本地未推 39 笔含 FS-NAMED-DYNAMIC-WIRE-1 同文件改动（wire marker 块在 bindFreeStateContextToResponse 内 WorkflowData init 后）。本卡 ③ 插入点与其相邻不重叠（别名表区两版本同文+prepare else 分支+resolve 后 helper 区+bind 内独立块），合并时请亲核该函数区；cherry-pick ab67d9a1 预期仅小冲突或零冲突。
   - 串行约定执行：本卡先改先合已达成（done 待验收）；170 实现面（beb75ae3，生成侧抑制条件，自述与本卡文件域不相交）按约定等本卡合入后领取实现/合入。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**通过**（GLM 主管决策流 / 2026-10-22 深夜）。核对：diff 亲读（五族表扩展纯表零解析器改动+单字规则保持+③单写者 marker 语义[qualified 置 fresh/其余清除防快照复燃/粘滞抑制]）；与 162 同文件相邻披露块冲突手解（两块并存=改写披露[解析成功]+未识别披露[fail-open]互斥场景全覆盖）；真栈 run fs_alias_chat_20261022_2125 复刻对照成立（A2=1027/A4=1017 双命中，159 unt 缺失形态消除）。验收 commit=主仓 **e5e53b31**（merge，含工件）。

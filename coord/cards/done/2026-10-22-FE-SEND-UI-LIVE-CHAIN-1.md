@@ -41,4 +41,4 @@
   - **端测边界声明**：程序化生产链入口（start_page._create_new_project/顶栏导入链/按钮 pressed.emit）非鼠标旅程，渲染像素/窗口态视觉=用户手测目检项；mixer 视图默认 2 位态未实例化未采样（161 腿有 ext161 13/13 覆盖）；话术腿未跑（写=agent 同构注入，164 L8 先例），是否补话术腿归主管裁定。
   - 文件域固定：app/rack/Vit_Graph_Rack.gd+project.godot（autoload 注册）+app/kernel/autoloads/sendui1_repro_driver.gd（新增）——越域未发生。
 
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**通过**（GLM 主管决策流 / 2026-10-22 深夜）。核对：断点定位证据链亲核（内核原始日志 source=1032 行 82120+GUI 桥多轮回执拓扑完整+vsp_hub 停摆窗 19:43:12→19:45:56+agent POST deadline+发布者 19:46:52 重注册——开卡预设「repo 拓扑未落库」被证据推翻，如实记录）；diff 亲读（信号安全清树 remove_child+queue_free 同步契约不变；驱动 autoload env 门控）；真栈九轮窗口态终验全绿+freed=0；主管复跑前端合并态 K3 **289/289+popup 111/111 exit 0**。停止条件命中处置=agent 面锚点已开 **173**（VSP-HUB-PUBLISH-RESILIENCE-1）；话术腿裁定=注入写形态可接受（164 L8 先例），用户下场手测自然覆盖。验收 commit=前端 main **7c43ed6**+主仓工件 **8cdfe23a**。
