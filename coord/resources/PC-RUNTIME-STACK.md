@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-22 21:28 本会话机器钟 FS-NAMED-ALIAS-COVER-1(169) 释放复核：四端口 tcp=0、四类栈进程=0；169 chat 腿一次过收口——A2/A4 unt 双命中（详见下节），下一序位 170 A5 话术腿可进）
+- 2026-10-22 21:45 本会话机器钟 / **FS-NAMED-DISCLOSE-SUPPLY-1(170) 真栈 chat 补证腿——A5 话术复刻**（owner=GLM-5.3 L2 PC ZCode 执行会话，170 卡会话；序=169 释放行注明的下一序位，用户派发）。预检五端口 tcp listen=0+五类进程 VitApp/VitAgent/vsphub/VitHeadless/Godot=0（在卷）。被测 agent=主检出 agent/bin/VitAgent.exe SHA256 前 8=**6CE34E54**（2026-10-22 21:40 构建=主管预备二进制；构建晚于 e5e53b31(169 合入 21:37:50)+3e72c5c4(170 merge 21:37:57)——含 169+170，169 别名表特征 bytes 亲核在卷，170 注释不进二进制故以腿上行为面断言兜底）+vsphub=B10CC412；kernel=主检出 K3 722A79D7 只读（bringup 哈希校验）；VIT_PROJECT_XML 指 run 目录 kernel_workspace 副本，不启 UI。run=coord/runs/FS-NAMED-DISCLOSE-SUPPLY-1/fs_disclose_chat_20261022_214407。
 
 ## 最近一次释放（2026-10-22 21:23–21:28 本会话机器钟，FS-NAMED-ALIAS-COVER-1(169)）
 
