@@ -3,11 +3,15 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-21 22:1x FE-SEND-EXTERNAL-REFRESH-1 释放复核在卷：六端口 tcp+udp=0、VitApp/VitAgent/vsphub=0；用户 Godot 编辑器 14284 未动）
+- （空闲，2026-10-22 18:2x 主管验收复核在卷：六端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0；164 腿 10:3x 释放后无占用）
+
+## 最近一次释放（2026-10-22 10:27–10:3x +0800，FE-SEND-CABLE-EXTERNAL-1(164)）
+
+- 2026-10-22 10:27 登记–10:3x 释放 / **FE-SEND-CABLE-EXTERNAL-1(164) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，164 卡会话；占用登记 2699d1d2）：被测前端 worktree D:/Godot/project/project-vit-daw-frontend-cableext@port/fe-send-cable-external-1@8fb415c+主仓 stack worktree D:/Vit_DAW_wt_cableext_stack（86e854ba=161 stack 基底复用，本卡零 Go/内核改动；内核=K3 722A79D7 只读 10:26 哈希亲核；不启 UI）。run=**cableext_gui_20261022_1028**：`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 K3> -GodotProjectRoot <前端 worktree> -GodotExe <Godot 4.6.1 console>` **脚本 exit 0，真栈探针 41/41 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿+161 L7 零回退+**本卡 L8 八断言全过**（foreign connect→SendIn 卡与 SEND ▸ 零操作同现→auxsend→auxreturn 连接过内核确认门→派生边 key 入确认集→无重复卡→外部 disconnect→卡与电缆同链消失+确认集回零，2s 快照冷却生产纪律等待）。§8：LLM=0；一次过零重跑零环境中断。释放复核端口/进程=0（RESULTS 在卷）。工件 coord/runs/FE-SEND-CABLE-EXTERNAL-1/（随 port/fe-send-cable-external-1-stack@fb251fb7 于 2026-10-22 主管验收 merge 入库）。
 
 ## 最近一次释放（2026-10-21 22:0x-22:1x +0800，FE-SEND-EXTERNAL-REFRESH-1）
 
-- 2026-10-21 22:0x 登记–22:1x 释放 / **FE-SEND-EXTERNAL-REFRESH-1(161) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，161 卡会话；占用登记 2cc1ce1e）：run=**sendext1_gui_20261021_220842**，`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 build Release 722A79D7 哈希占用前亲核> -GodotProjectRoot <前端 worktree@10324d8>` **脚本 exit 0，真栈探针 33/33 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿 L1-L6 零回退 + **本卡新 L7 外部写腿 8 断言全过**（foreign request_id connect=agent 写同构→真实组件装配→project_loaded→生产 transport 拉取→**SEND 卡零用户操作自动出现+电平数值+repository 拓扑落库**，含 VSP 形态盲区复现基线）；chat/confirm 腿过（Strip Silence 两条 warn 非验收面既往形态）。被测 agent=stack worktree 构建（=main 代码，Go 零改动）+K3 内核只读。§8 记账：LLM=0；一次过（首轮 bash 吞反斜杠未起栈零副作用即改）。拆栈=脚本 finally 后残留本腿 VitApp 16432/VitAgent 12260（路径亲核）清杀→复核六端口 tcp+udp=0、三类栈进程=0；用户 Godot 编辑器 14284 全程未动。工件 coord/runs/FE-SEND-EXTERNAL-REFRESH-1/（随 port/fe-send-external-refresh-1-stack@86e854ba 入库待决策侧合入）。
+- 2026-10-21 22:0x 登记–22:1x 释放 / **FE-SEND-EXTERNAL-REFRESH-1(161) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，161 卡会话；占用登记 2cc1ce1e）：run=**sendext1_gui_20261021_220842**，`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 build Release 722A79D7 哈希占用前亲核> -GodotProjectRoot <前端 worktree@10324d8>` **脚本 exit 0，真栈探针 33/33 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿 L1-L6 零回退 + **本卡新 L7 外部写腿 8 断言全过**（foreign request_id connect=agent 写同构→真实组件装配→project_loaded→生产 transport 拉取→**SEND 卡零用户操作自动出现+电平数值+repository 拓扑落库**，含 VSP 形态盲区复现基线）；chat/confirm 腿过（Strip Silence 两条 warn 非验收面既往形态）。被测 agent=stack worktree 构建（=main 代码，Go 零改动）+K3 内核只读。§8 记账：LLM=0；一次过（首轮 bash 吞反斜杠未起栈零副作用即改）。拆栈=脚本 finally 后残留本腿 VitApp 16432/VitAgent 12260（路径亲核）清杀→复核六端口 tcp+udp=0、三类栈进程=0；用户 Godot 编辑器 14284 全程未动。工件 coord/runs/FE-SEND-EXTERNAL-REFRESH-1/（随 port/fe-send-external-refresh-1-stack@86e854ba 于 2026-10-22 随 164 stack merge 入库）。
 
 ## 最近一次释放（2026-10-21 22:05 +0800，FS-LEDGER-CARRY-1(158)）
 
