@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-22 10:3x FE-SEND-CABLE-EXTERNAL-1 释放复核在卷：七端口 tcp+udp 监听=0、VitApp/VitAgent/vsphub/Godot=0）
+- **占用中（2026-10-22 19:1x 登记）/ FE-SEND-UX-UNIFY-1(166) 真栈 SendRouteGuiSmoke 腿**：owner=GLM-5.3 L2 PC ZCode 执行会话（166 卡会话）；占用前只读复核=四端口 5555/4445/7878/8787 tcp+udp 监听=0、VitApp/VitAgent 进程=0（159 run_20261022_1846 已收——进程 19:0x-19:1x 间消失，释放登记归 159 侧；衔接本表 19:00 事故自报）。被测=前端 worktree D:/Godot/project/project-vit-daw-frontend-sendux1 @ port/fe-send-ux-unify-1 @ 88b1e71（含本卡改动）+stack worktree D:/Vit_DAW_wt_sendux1_stack @ 8920e1e4（=main 生产代码，Go/内核零改动）；内核=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC（19:1x 哈希亲核=164/161 同一二进制只读复用）；不启 UI。
 
 ### 事故自报（2026-10-22 19:00:25–29 窗口，FE-SEND-UX-UNIFY-1/166 会话）
 
