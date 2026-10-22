@@ -1,0 +1,335 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-GUI-START-FEED-1 start feed view suite start
+[probe][ ok ] static feed has set_projects/1 args
+[probe][ ok ] static feed has flip/1 args
+[probe][ ok ] static feed has flip_to/1 args
+[probe][ ok ] static feed has activate_current/0 args
+[probe][ ok ] static feed has set_interaction_enabled/1 args
+[probe][ ok ] static feed has set_feed_mode_active/1 args
+[probe][ ok ] static feed has resolve_audition_source/1 args
+[probe][ ok ] static feed has card_count/0 args
+[probe][ ok ] static feed has is_tail_index/1 args
+[probe][ ok ] static feed has _handle_wheel_event/1 args
+[probe][ ok ] static feed has build_feed_entries/1 args
+[probe][ ok ] static feed has wheel_flip_allowed/2 args
+[probe][ ok ] static feed has _on_card_gui_input/2 args
+[probe][ ok ] static feed has _on_new_card_gui_input/1 args
+[probe][ ok ] static feed has set_view_mode/1 args
+[probe][ ok ] static feed has list_move_selection/1 args
+[probe][ ok ] static feed has list_activate_selected/0 args
+[probe][ ok ] static feed has responsive_card_scale_for/1 args
+[probe][ ok ] static feed has get_pending_new_project_name/0 args
+[probe][ ok ] static feed has is_new_tape_overlay_open/0 args
+[probe][ ok ] static feed has _rebuild_list_grid/0 args
+[probe][ ok ] static feed has card_transform_for_rect/1 args
+[probe][ ok ] static feed has card_visual_rect/2 args
+[probe][ ok ] static feed has _plan_view_transition/1 args
+[probe][ ok ] static feed has _play_view_transition/1 args
+[probe][ ok ] static feed has _finish_view_transition/1 args
+[probe][ ok ] static feed has _target_tile_for_index/1 args
+[probe][ ok ] static feed has _stagger_list_tiles_in/1 args
+[probe][ ok ] static feed has _record_transition_tween/2 args
+[probe][ ok ] static feed has _kill_transition_tweens/1 args
+[probe][ ok ] static feed signal open_requested
+[probe][ ok ] static feed signal new_project_requested
+[probe][ ok ] static feed signal open_file_dialog_requested
+[probe][ ok ] static feed signal engine_settings_requested
+[probe][ ok ] static feed signal new_project_confirmed
+[probe][ ok ] static page has _set_feed_mode/1 args
+[probe][ ok ] static page has _handle_feed_shortcut/1 args
+[probe][ ok ] static page has _connect_feed_view/0 args
+[probe][ ok ] static page has _on_feed_open_requested/1 args
+[probe][ ok ] static page has _is_modal_blocking_shortcuts/0 args
+[probe][ ok ] static page has _apply_recent_list_from_projects/1 args
+[probe][ ok ] static page has _on_feed_new_project_confirmed/1 args
+[probe][ ok ] static page has _create_new_project/1 args
+[probe][ ok ] static old start page MarginRoot retired
+[probe][ ok ] static old ItemList retired
+[probe][ ok ] static old BtnNewProject retired
+[probe][ ok ] static no forbidden term in scene
+[probe][ ok ] static no forbidden term in page visible labels
+[probe][ ok ] static toggle labels display/all
+[probe][ ok ] static topbar new project pill
+[probe][ ok ] static responsive constants
+[probe][ ok ] static list grid + new tape overlay structures
+[probe][ ok ] static old dark list colors retired
+[probe][ ok ] static r3 transition machinery present
+[probe][ ok ] static r3 reduced-motion fallback instant
+[probe][ ok ] static r3 resize snap gate
+[probe][ ok ] static r31 terminal ledger machinery present
+[probe][ ok ] static r31 fade overlaps flight tail (delayed parallel)
+[probe][ ok ] hash deterministic same name
+[probe][ ok ] hash differs across names
+[probe][ ok ] hash non-ascii name stable non-zero
+[probe][ ok ] atmosphere deterministic
+[probe][ ok ] atmosphere endpoints in V5 palette (rgb)
+[probe][ ok ] atmosphere pair differs across projects
+[probe][ ok ] spool fills within range
+[probe][ ok ] spool fills complementary
+[probe][ ok ] recent time empty for unix<=0
+[probe][ ok ] recent time matches local-tz composition
+[probe][ ok ] recent time shape
+[probe][ ok ] display name strips .vit
+[probe][ ok ] display name case-insensitive ext
+[probe][ ok ] display name keeps no-ext
+[probe][ ok ] display name empty path fallback
+[probe][ ok ] wav pcm16 mono ok
+[probe][ ok ] wav pcm16 mono frames
+[probe][ ok ] wav pcm16 mono mix rate
+[probe][ ok ] wav pcm16 mono not stereo
+[probe][ ok ] wav pcm16 mono stream 16bits
+[probe][ ok ] wav pcm24 stereo ok
+[probe][ ok ] wav pcm24 stereo frames
+[probe][ ok ] wav pcm24 stereo flag
+[probe][ ok ] wav pcm24 downshift data length
+[probe][ ok ] wav garbage not_wav
+[probe][ ok ] wav missing file not_wav
+[probe][ ok ] wav float codec
+[probe][ ok ] wav 8bit depth
+[probe][ ok ] wav 3ch channels
+[probe][ ok ] wav no data chunk
+[probe][ ok ] wav truncated
+[probe][ ok ] wav file load 24bit fixture ok
+[probe][ ok ] entries skip empty path
+[probe][ ok ] entry exists flag true
+[probe][ ok ] entry exists flag false for missing
+[probe][ ok ] entry name from path
+[probe][ ok ] entry mtime positive
+[probe][ ok ] entry mtime text for existing
+[probe][ ok ] entry mtime text empty for missing
+[probe][ ok ] wheel throttle inside window
+[probe][ ok ] wheel throttle boundary
+[probe][ ok ] wheel throttle outside window
+[probe][ ok ] wheel first flip allowed
+[probe][ ok ] r3 geometry roundtrip hits target rect ((560.0, 340.0))
+[probe][ ok ] r3 geometry roundtrip hits target rect ((244.0, 200.0))
+[probe][ ok ] r3 geometry roundtrip hits target rect ((1120.0, 680.0))
+[probe][ ok ] r3 geometry roundtrip hits target rect ((900.0, 540.0))
+[probe][ ok ] page old MarginRoot removed
+[probe][ ok ] page old ItemList removed
+[probe][ ok ] page feed default display mode
+[probe][ ok ] FeedLayer visible by default
+[probe][ ok ] bg paper color
+[probe][ ok ] view toggle two segments
+[probe][ ok ] view toggle labels display/all
+[probe][ ok ] topbar new project pill present
+[probe][ ok ] no forbidden term in visible texts
+[probe][ ok ] feed open_requested wired
+[probe][ ok ] feed new_project_confirmed wired
+[probe][ ok ] feed open_file_dialog_requested wired
+[probe][ ok ] feed engine_settings_requested wired
+[probe][ ok ] empty card count is tail only
+[probe][ ok ] empty cards has NewProjectCard only
+[probe][ ok ] feed throttle const
+[probe][ ok ] responsive 1920x1080 card width clamp 960
+[probe][ ok ] responsive phone keeps min width 560
+[probe][ ok ] responsive height cap 0.62*viewport
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:545)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] responsive scale applied to cards
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:551)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:552)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] cards host fills viewport 1920x1080
+[probe][ ok ] card center at viewport center 1920x1080
+[probe][ ok ] card fully inside viewport 1920x1080
+[probe][ ok ] card scaled size within design bounds 1920x1080
+[probe][ ok ] index label exists 1920x1080
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:551)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:552)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] cards host fills viewport 1366x768
+[probe][ ok ] card center at viewport center 1366x768
+[probe][ ok ] card fully inside viewport 1366x768
+[probe][ ok ] card scaled size within design bounds 1366x768
+[probe][ ok ] index label exists 1366x768
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:551)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:552)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] cards host fills viewport 900x1600
+[probe][ ok ] card center at viewport center 900x1600
+[probe][ ok ] card fully inside viewport 900x1600
+[probe][ ok ] card scaled size within design bounds 900x1600
+[probe][ ok ] index label exists 900x1600
+[probe][ ok ] index/status labels do not overlap
+[probe][ ok ] new tape overlay hidden initially
+[probe][ ok ] new project pill opens blank tape
+[probe][ ok ] blank tape default name
+[probe][ ok ] new tape confirm emits name
+[probe][ ok ] new tape overlay closes on confirm
+[probe][ ok ] new tape cancel closes overlay
+[probe][ ok ] pending name getter default
+[probe][ ok ] feed entries built 3
+[probe][ ok ] feed cards = 3 + tail
+[probe][ ok ] feed current index 0
+[probe][ ok ] only current card visible
+[probe][ ok ] tape card name
+[probe][ ok ] tape shell present
+[probe][ ok ] window reels both
+[probe][ ok ] list grid built 3+2 tiles
+[probe][ ok ] list grid columns responsive
+[probe][ ok ] list tile names
+[probe][ ok ] list tile enter button
+[probe][ ok ] production audition source empty
+[probe][ ok ] audition button disabled no source
+[probe][ ok ] audition tooltip honest
+[probe][ ok ] key down flips
+[probe][ ok ] key pageup flips back
+[probe][ ok ] key up clamps at head
+[probe][ ok ] unrelated key unhandled
+[probe][ ok ] nav up disabled at head
+[probe][ ok ] nav down enabled mid
+[probe][ ok ] nav down button flips
+[probe][ ok ] nav up button flips
+[probe][ ok ] nav down disabled at tail
+[probe][ ok ] wheel throttled inside window
+[probe][ ok ] wheel flips after window
+[probe][ ok ] wheel consecutive jump throttled
+[probe][ ok ] card surface forwards wheel
+[probe][ ok ] busy blocks key flip
+[probe][ ok ] busy disables nav
+[probe][ ok ] busy disables audition
+[probe][ ok ] list mode switched
+[probe][ ok ] list mode hides display cards host
+[probe][ ok ] list mode bg paper
+[probe][ ok ] list keyboard moves selection
+[probe][ ok ] list keyboard enter opens entry
+[probe][ ok ] list tile enter button opens entry
+[probe][ ok ] list new tile opens blank tape
+[probe][ ok ] feed mode restored
+ERROR: Attempt to disconnect a nonexistent connection from 'FeedLayer:<Control#40231765545>'. Signal: 'open_requested', callable: '<anonymous lambda>(lambda)'.
+   at: _disconnect (core/object/object.cpp:1733)
+   GDScript backtrace (most recent call first):
+       [0] _run_scene_suite (res://tools/probe_start_feed_view.gd:657)
+       [1] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] r3 selection syncs display card on return
+[probe][ ok ] enter activates open path
+[probe][ ok ] r3 instant to_list completes
+[probe][ ok ] r3 to_list pair valid
+[probe][ ok ] r3 to_list start rect = display card
+[probe][ ok ] r3 to_list end rect = target tile
+[probe][ ok ] r3 instant to_list hosts cut like R2
+[probe][ ok ] r3 instant to_list no card residue
+[probe][ ok ] r3 instant to_list selection synced
+[probe][ ok ] r3 instant to_list uniform scale kept
+[probe][ ok ] r3 instant to_display completes
+[probe][ ok ] r3 to_display start rect = selected tile
+[probe][ ok ] r3 to_display end rect = card display rect
+[probe][ ok ] r3 to_display syncs current card
+[probe][ ok ] r3 animated to_list mid state
+[probe][ ok ] r3 animated card lifted and click-through blocked
+[probe][ ok ] r3 animated flight starts at card rect
+[probe][ ok ] r3 animated stagger prepared (target in, others out)
+[probe][ ok ] r3 animated tweens alive
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_transition_suite (res://tools/probe_start_feed_view.gd:787)
+       [1] _run_scene_suite (res://tools/probe_start_feed_view.gd:666)
+       [2] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] r3 resize snaps to idle
+[probe][ ok ] r3 resize lands final list state
+[probe][ ok ] r3 resize card residue cleaned
+[probe][ ok ] r3 resize relayouts card uniform
+[probe][ ok ] r3 animated to_display mid state
+[probe][ ok ] r3 animated return starts at tile rect
+[probe][ ok ] r3 animated return card lifted
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_transition_suite (res://tools/probe_start_feed_view.gd:803)
+       [1] _run_scene_suite (res://tools/probe_start_feed_view.gd:666)
+       [2] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] r3 return resize snaps to idle
+[probe][ ok ] r3 return resize lands final display state
+[probe][ ok ] r3 return resize card recentred
+[probe][ ok ] r31 reentry base to_list mid state
+[probe][ ok ] r31 reentry snaps first then plays return
+[probe][ ok ] r31 reentry interrupt reset tile alphas
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_r31_transition_suite (res://tools/probe_start_feed_view.gd:844)
+       [1] _run_transition_suite (res://tools/probe_start_feed_view.gd:818)
+       [2] _run_scene_suite (res://tools/probe_start_feed_view.gd:666)
+       [3] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] r31 reentry resize snaps to idle
+[probe][ ok ] r31 interrupt leaves no tween alive
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_r31_transition_suite (res://tools/probe_start_feed_view.gd:858)
+       [1] _run_transition_suite (res://tools/probe_start_feed_view.gd:818)
+       [2] _run_scene_suite (res://tools/probe_start_feed_view.gd:666)
+       [3] _process (res://tools/probe_start_feed_view.gd:81)
+[probe][ ok ] r31 selection tint applied at transition start
+[probe][ ok ] r31 natural finalize reached by stepping
+[probe][ ok ] r31 natural finalize not snapped
+[probe][ ok ] r31 fade overlaps flight tail (starts ~60%)
+[probe][ ok ] r31 stagger survives natural finalize
+[probe][ ok ] r31 tiles settle full without snap jump
+[probe][ ok ] r31 settled state stable under further stepping
+[probe][ ok ] probe feed cards 2+tail
+[probe][ ok ] index label count text
+[probe][ ok ] activate emits open path
+[probe][ ok ] double click emits open path
+[probe][ ok ] flip to tail
+[probe][ ok ] activate on tail opens blank tape
+[probe][ ok ] tail confirm emits named new project
+[probe][ ok ] new card click opens blank tape again
+[probe][ ok ] standalone no-source disabled
+[probe][ ok ] standalone source enabled
+[probe][ ok ] audition plays loaded 16bit stream
+[probe][ ok ] audition button playing text
+[probe][ ok ] audition status shows rate
+[probe][ ok ] flip stops audition
+[probe][ ok ] corrupt source honest decode error
+[probe][ ok ] interaction off disables nav
+[probe][ ok ] interaction off blocks activate
+[probe] PROBE PASS (checks_total=244 failed=0 setup_failed=false)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
