@@ -1,0 +1,2 @@
+[variant A5] settle=goal_terminal goal=completed stop=limit_reached sends=0->1 fx=0->1 hops=0
+[variant B1] settle=goal_terminal goal=completed stop=limit_reached sends=0->1 fx=0->1 hops=1

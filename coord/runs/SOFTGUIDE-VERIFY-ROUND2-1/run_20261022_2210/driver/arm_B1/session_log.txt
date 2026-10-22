@@ -1,0 +1,6 @@
+fixture reused: D:\Vit_DAW\coord\runs\SOFTGUIDE-VERIFY-ROUND2-1\run_20261022_2210\driver\fixture\softguide_fixture.vit
+authority bound full_project_access
+[B4] turn_1 send
+[B4] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[B4] settle runtime_goal=completed
+[B4] fixture open ok: bass,drums,guitar,other,piano,vocals

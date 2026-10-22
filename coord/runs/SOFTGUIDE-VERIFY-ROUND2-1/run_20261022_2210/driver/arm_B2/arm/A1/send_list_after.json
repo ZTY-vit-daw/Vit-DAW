@@ -1,0 +1,38 @@
+{
+ "command_ack": {
+  "ack": {
+   "message": "Send topology read-back",
+   "stage": "completed"
+  },
+  "command": "legacy.command",
+  "legacy_command": "track.send.list",
+  "resync_hint": true,
+  "revision": 0,
+  "source": "vsp.command.response",
+  "stage": "completed",
+  "transaction_id": "tx_1792678138312416100_131"
+ },
+ "dangling": [],
+ "fx_tracks": [],
+ "message": "Send topology read-back",
+ "sends": [],
+ "sidechain": [],
+ "status": "ok",
+ "vsp": {
+  "command_ack": {
+   "ack": {
+    "message": "Send topology read-back",
+    "stage": "completed"
+   },
+   "command": "legacy.command",
+   "legacy_command": "track.send.list",
+   "resync_hint": true,
+   "revision": 0,
+   "source": "vsp.command.response",
+   "stage": "completed",
+   "transaction_id": "tx_1792678138312416100_131"
+  },
+  "transport": "vsp",
+  "version": "1.0"
+ }
+}

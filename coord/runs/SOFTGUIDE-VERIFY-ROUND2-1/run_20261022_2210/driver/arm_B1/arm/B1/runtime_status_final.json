@@ -1,0 +1,2741 @@
+{
+ "authority_mode": "full_project_access",
+ "capability_routes": [
+  {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "37",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:37"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "37",
+    "observed_at": "2026-10-22T14:31:13.2137916Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b1_B1_20261022_223110",
+   "created_at": "2026-10-22T14:31:13.2137916Z",
+   "goal_id": "goal_393b7e6aa3f3f873",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+   "project_revision": "37",
+   "run_id": "run_ee6fc97d68392cb9",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.94,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_ad28b49196eccb6b",
+   "updated_at": "2026-10-22T14:31:13.2137916Z"
+  }
+ ],
+ "checked_at": "2026-10-22T22:31:50.9979687+08:00",
+ "checkout_blocked": false,
+ "continuations": [
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "37",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:37"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "37",
+    "observed_at": "2026-10-22T14:31:13.2137916Z"
+   },
+   "continuation_id": "cont_0c1dbb3ed6704bce08c20706",
+   "conversation_id": "softguide_b1_B1_20261022_223110",
+   "free_state_admission_receipt": {
+    "boundary": "admitted",
+    "candidate_id": "user_named:1032",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "37",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-22T14:31:46.0665472Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261022T143133_280681df7e4b"
+   },
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 2,
+   "free_state_current_phase": "fs8_experiment_verification",
+   "free_state_current_round_id": "r_7638ac19b7a4",
+   "free_state_decision_status": "needs_experiment",
+   "free_state_status": "awaiting_experiment",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_393b7e6aa3f3f873",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+   "pending_interaction": {
+    "continuation_id": "cont_0c1dbb3ed6704bce08c20706",
+    "goal_id": "goal_393b7e6aa3f3f873",
+    "interaction_id": "interaction_e2a7fd2922db8b57",
+    "kind": "mix_treatment_confirmation",
+    "requests": [
+     {
+      "actions": [
+       {
+        "id": "approve",
+        "label": "确认执行",
+        "recommended": true,
+        "style": "primary"
+       },
+       {
+        "id": "cancel",
+        "label": "取消",
+        "style": "secondary"
+       }
+      ],
+      "body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+      "conversation_id": "softguide_b1_B1_20261022_223110",
+      "data": {
+       "action_kind": "pan_balance",
+       "confidence": "medium",
+       "conversation_id": "softguide_b1_B1_20261022_223110",
+       "delta_db": 0,
+       "delta_pan": 0,
+       "diagnosis_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "created_at": "2026-10-22T14:31:33.8324119Z",
+        "evidence_refs": [
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "evidence_status": {
+         "band_energy": "missing",
+         "confidence_ceiling": "high",
+         "missing": [],
+         "problem_kind": "pan_balance",
+         "spectral": "missing",
+         "strategy": "small_pan_adjust"
+        },
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "id": "diag_6af32212c64bc6b8",
+        "inferred_facts": [
+         {
+          "key": "pan_band_independent",
+          "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+          "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+         }
+        ],
+        "low_risk_next_step": "small_pan_adjust",
+        "mix_session_id": "mix_815eae8ce26a",
+        "observation_id": "obs_20261022T143133_280681df7e4b",
+        "problem_kind": "pan_balance",
+        "recommendation": {
+         "action_kind": "pan_balance",
+         "confidence": "high",
+         "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+         "processor_type": "utility",
+         "risk": "low",
+         "strategy": "small_pan_adjust"
+        },
+        "run_id": "run_ee6fc97d68392cb9",
+        "schema_version": "mix_diagnosis_context.v0",
+        "source_refs": {
+         "mix_session_id": "mix_815eae8ce26a",
+         "observation_id": "obs_20261022T143133_280681df7e4b",
+         "target_ref": "track:1032"
+        },
+        "target_ref": "track:1032",
+        "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+        "user_reported_facts": [
+         {
+          "key": "user_intent",
+          "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+          "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+         }
+        ]
+       },
+       "diagnosis_context_id": "diag_6af32212c64bc6b8",
+       "display": {
+        "action_kind": "声像设置到 0.00",
+        "card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+        "card_title": "混音建议待确认",
+        "confidence": "中",
+        "evidence": "来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。",
+        "limitations": "确认前不会写插件、参数、音量或声像。",
+        "needs_resolution": [],
+        "pending_action": "确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。",
+        "processor_type": "工具",
+        "reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+        "status": "待确认",
+        "target_ref": "Track 1032"
+       },
+       "display_card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+       "display_confidence": "中",
+       "display_reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+       "evidence_refs": [
+        "",
+        "diag_6af32212c64bc6b8",
+        "obs_20261022T143133_280681df7e4b",
+        "diag_6af32212c64bc6b8.user_reported.intent"
+       ],
+       "intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+       "needs_resolution": null,
+       "processor_type": "utility",
+       "reasoning_summary": "implicit assistant pan confirmation question",
+       "request_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "run_id": "run_ee6fc97d68392cb9"
+       },
+       "schema_version": "mix_treatment_pending.v0",
+       "status": "pending_confirmation",
+       "target": null,
+       "target_pan": 0,
+       "target_ref": "track:1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "state": {
+         "action_kind": "pan_balance",
+         "candidate_action": {
+          "action_kind": "pan_balance",
+          "confidence": "medium",
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_at": "2026-10-22T14:31:33.8324119Z",
+           "evidence_refs": [
+            "diag_6af32212c64bc6b8",
+            "obs_20261022T143133_280681df7e4b",
+            "diag_6af32212c64bc6b8.user_reported.intent"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "high",
+            "missing": [],
+            "problem_kind": "pan_balance",
+            "spectral": "missing",
+            "strategy": "small_pan_adjust"
+           },
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "id": "diag_6af32212c64bc6b8",
+           "inferred_facts": [
+            {
+             "key": "pan_band_independent",
+             "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+             "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+            }
+           ],
+           "low_risk_next_step": "small_pan_adjust",
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "problem_kind": "pan_balance",
+           "recommendation": {
+            "action_kind": "pan_balance",
+            "confidence": "high",
+            "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "small_pan_adjust"
+           },
+           "run_id": "run_ee6fc97d68392cb9",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_815eae8ce26a",
+            "observation_id": "obs_20261022T143133_280681df7e4b",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+             "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "evidence_refs": [
+           "",
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "processor_type": "utility",
+          "target_pan": 0,
+          "target_ref": "track:1032"
+         },
+         "candidate_type": "mix_treatment",
+         "confidence": "medium",
+         "domain": "mix",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "legacy_kind": "MixTreatmentPending",
+          "legacy_schema": "mix_treatment_pending.v0",
+          "metadata": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_from_turn": 4,
+           "diagnosis_context_id": "diag_6af32212c64bc6b8",
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "mix_session_id": "",
+           "observation_id": "",
+           "run_id": "run_ee6fc97d68392cb9",
+           "target_scope": "",
+           "target_track_id": "1032",
+           "track_count": 6
+          },
+          "run_id": "run_ee6fc97d68392cb9"
+         },
+         "status": "waiting_user",
+         "summary": "为 Track 1032 准备声像平衡处理。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "pan_balance",
+        "candidate_action": {
+         "action_kind": "pan_balance",
+         "confidence": "medium",
+         "diagnosis_context": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_at": "2026-10-22T14:31:33.8324119Z",
+          "evidence_refs": [
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "evidence_status": {
+           "band_energy": "missing",
+           "confidence_ceiling": "high",
+           "missing": [],
+           "problem_kind": "pan_balance",
+           "spectral": "missing",
+           "strategy": "small_pan_adjust"
+          },
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "id": "diag_6af32212c64bc6b8",
+          "inferred_facts": [
+           {
+            "key": "pan_band_independent",
+            "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+            "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+           }
+          ],
+          "low_risk_next_step": "small_pan_adjust",
+          "mix_session_id": "mix_815eae8ce26a",
+          "observation_id": "obs_20261022T143133_280681df7e4b",
+          "problem_kind": "pan_balance",
+          "recommendation": {
+           "action_kind": "pan_balance",
+           "confidence": "high",
+           "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+           "processor_type": "utility",
+           "risk": "low",
+           "strategy": "small_pan_adjust"
+          },
+          "run_id": "run_ee6fc97d68392cb9",
+          "schema_version": "mix_diagnosis_context.v0",
+          "source_refs": {
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "target_ref": "track:1032"
+          },
+          "target_ref": "track:1032",
+          "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+          "user_reported_facts": [
+           {
+            "key": "user_intent",
+            "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+            "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+           }
+          ]
+         },
+         "diagnosis_context_id": "diag_6af32212c64bc6b8",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "processor_type": "utility",
+         "target_pan": 0,
+         "target_ref": "track:1032"
+        },
+        "candidate_type": "mix_treatment",
+        "confidence": "medium",
+        "domain": "mix",
+        "evidence_refs": [
+         "",
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "status": "waiting_user",
+        "summary": "为 Track 1032 准备声像平衡处理。",
+        "target_ref": "track:1032"
+       }
+      },
+      "goal_id": "goal_393b7e6aa3f3f873",
+      "id": "interaction_e2a7fd2922db8b57",
+      "kind": "mix_treatment_confirmation",
+      "payload": {
+       "action_kind": "pan_balance",
+       "confidence": "medium",
+       "conversation_id": "softguide_b1_B1_20261022_223110",
+       "delta_db": 0,
+       "delta_pan": 0,
+       "diagnosis_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "created_at": "2026-10-22T14:31:33.8324119Z",
+        "evidence_refs": [
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "evidence_status": {
+         "band_energy": "missing",
+         "confidence_ceiling": "high",
+         "missing": [],
+         "problem_kind": "pan_balance",
+         "spectral": "missing",
+         "strategy": "small_pan_adjust"
+        },
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "id": "diag_6af32212c64bc6b8",
+        "inferred_facts": [
+         {
+          "key": "pan_band_independent",
+          "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+          "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+         }
+        ],
+        "low_risk_next_step": "small_pan_adjust",
+        "mix_session_id": "mix_815eae8ce26a",
+        "observation_id": "obs_20261022T143133_280681df7e4b",
+        "problem_kind": "pan_balance",
+        "recommendation": {
+         "action_kind": "pan_balance",
+         "confidence": "high",
+         "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+         "processor_type": "utility",
+         "risk": "low",
+         "strategy": "small_pan_adjust"
+        },
+        "run_id": "run_ee6fc97d68392cb9",
+        "schema_version": "mix_diagnosis_context.v0",
+        "source_refs": {
+         "mix_session_id": "mix_815eae8ce26a",
+         "observation_id": "obs_20261022T143133_280681df7e4b",
+         "target_ref": "track:1032"
+        },
+        "target_ref": "track:1032",
+        "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+        "user_reported_facts": [
+         {
+          "key": "user_intent",
+          "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+          "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+         }
+        ]
+       },
+       "diagnosis_context_id": "diag_6af32212c64bc6b8",
+       "display": {
+        "action_kind": "声像设置到 0.00",
+        "card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+        "card_title": "混音建议待确认",
+        "confidence": "中",
+        "evidence": "来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。",
+        "limitations": "确认前不会写插件、参数、音量或声像。",
+        "needs_resolution": [],
+        "pending_action": "确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。",
+        "processor_type": "工具",
+        "reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+        "status": "待确认",
+        "target_ref": "Track 1032"
+       },
+       "display_card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+       "display_confidence": "中",
+       "display_reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+       "evidence_refs": [
+        "",
+        "diag_6af32212c64bc6b8",
+        "obs_20261022T143133_280681df7e4b",
+        "diag_6af32212c64bc6b8.user_reported.intent"
+       ],
+       "intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+       "needs_resolution": null,
+       "processor_type": "utility",
+       "reasoning_summary": "implicit assistant pan confirmation question",
+       "request_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "run_id": "run_ee6fc97d68392cb9"
+       },
+       "schema_version": "mix_treatment_pending.v0",
+       "status": "pending_confirmation",
+       "target": null,
+       "target_pan": 0,
+       "target_ref": "track:1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "state": {
+         "action_kind": "pan_balance",
+         "candidate_action": {
+          "action_kind": "pan_balance",
+          "confidence": "medium",
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_at": "2026-10-22T14:31:33.8324119Z",
+           "evidence_refs": [
+            "diag_6af32212c64bc6b8",
+            "obs_20261022T143133_280681df7e4b",
+            "diag_6af32212c64bc6b8.user_reported.intent"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "high",
+            "missing": [],
+            "problem_kind": "pan_balance",
+            "spectral": "missing",
+            "strategy": "small_pan_adjust"
+           },
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "id": "diag_6af32212c64bc6b8",
+           "inferred_facts": [
+            {
+             "key": "pan_band_independent",
+             "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+             "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+            }
+           ],
+           "low_risk_next_step": "small_pan_adjust",
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "problem_kind": "pan_balance",
+           "recommendation": {
+            "action_kind": "pan_balance",
+            "confidence": "high",
+            "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "small_pan_adjust"
+           },
+           "run_id": "run_ee6fc97d68392cb9",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_815eae8ce26a",
+            "observation_id": "obs_20261022T143133_280681df7e4b",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+             "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "evidence_refs": [
+           "",
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "processor_type": "utility",
+          "target_pan": 0,
+          "target_ref": "track:1032"
+         },
+         "candidate_type": "mix_treatment",
+         "confidence": "medium",
+         "domain": "mix",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "legacy_kind": "MixTreatmentPending",
+          "legacy_schema": "mix_treatment_pending.v0",
+          "metadata": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_from_turn": 4,
+           "diagnosis_context_id": "diag_6af32212c64bc6b8",
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "mix_session_id": "",
+           "observation_id": "",
+           "run_id": "run_ee6fc97d68392cb9",
+           "target_scope": "",
+           "target_track_id": "1032",
+           "track_count": 6
+          },
+          "run_id": "run_ee6fc97d68392cb9"
+         },
+         "status": "waiting_user",
+         "summary": "为 Track 1032 准备声像平衡处理。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "pan_balance",
+        "candidate_action": {
+         "action_kind": "pan_balance",
+         "confidence": "medium",
+         "diagnosis_context": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_at": "2026-10-22T14:31:33.8324119Z",
+          "evidence_refs": [
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "evidence_status": {
+           "band_energy": "missing",
+           "confidence_ceiling": "high",
+           "missing": [],
+           "problem_kind": "pan_balance",
+           "spectral": "missing",
+           "strategy": "small_pan_adjust"
+          },
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "id": "diag_6af32212c64bc6b8",
+          "inferred_facts": [
+           {
+            "key": "pan_band_independent",
+            "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+            "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+           }
+          ],
+          "low_risk_next_step": "small_pan_adjust",
+          "mix_session_id": "mix_815eae8ce26a",
+          "observation_id": "obs_20261022T143133_280681df7e4b",
+          "problem_kind": "pan_balance",
+          "recommendation": {
+           "action_kind": "pan_balance",
+           "confidence": "high",
+           "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+           "processor_type": "utility",
+           "risk": "low",
+           "strategy": "small_pan_adjust"
+          },
+          "run_id": "run_ee6fc97d68392cb9",
+          "schema_version": "mix_diagnosis_context.v0",
+          "source_refs": {
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "target_ref": "track:1032"
+          },
+          "target_ref": "track:1032",
+          "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+          "user_reported_facts": [
+           {
+            "key": "user_intent",
+            "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+            "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+           }
+          ]
+         },
+         "diagnosis_context_id": "diag_6af32212c64bc6b8",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "processor_type": "utility",
+         "target_pan": 0,
+         "target_ref": "track:1032"
+        },
+        "candidate_type": "mix_treatment",
+        "confidence": "medium",
+        "domain": "mix",
+        "evidence_refs": [
+         "",
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "status": "waiting_user",
+        "summary": "为 Track 1032 准备声像平衡处理。",
+        "target_ref": "track:1032"
+       }
+      },
+      "run_id": "run_ee6fc97d68392cb9",
+      "source": "vit_agent",
+      "status": "waiting_for_user",
+      "title": "混音建议待确认",
+      "type": "mix_treatment_confirmation",
+      "workflow": "mix_treatment"
+     }
+    ],
+    "run_id": "run_ee6fc97d68392cb9",
+    "status": "waiting_confirmation",
+    "task_id": "task_ad28b49196eccb6b"
+   },
+   "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "37",
+   "project_session_id": "session_20261022T143105_2cbfa2a9",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "run_id": "run_ee6fc97d68392cb9",
+   "slice_id": "slice_94d203f52b27085f",
+   "status": "waiting_interaction",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_ad28b49196eccb6b",
+    "task_id": "task_ad28b49196eccb6b",
+    "goal_id": "goal_393b7e6aa3f3f873",
+    "run_id": "run_ee6fc97d68392cb9",
+    "conversation_id": "softguide_b1_B1_20261022_223110",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "37",
+    "created_at": "2026-10-22T14:31:13.2417956Z"
+   },
+   "task_id": "task_ad28b49196eccb6b",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "needs_experiment",
+    "revision": 4,
+    "contract_id": "contract_task_ad28b49196eccb6b",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "37",
+    "evidence_refs": [
+     "obs_20261022T143133_280681df7e4b"
+    ],
+    "candidate_id": "1032",
+    "proposal": {
+     "proposal_id": "proposal_16919b862eb2dd38faff",
+     "summary": "让人声听起来更有空间感、更有纵深与包围感，同时不牺牲咬字清晰度",
+     "evidence_refs": [
+      "obs_20261022T143133_280681df7e4b"
+     ],
+     "bounds": [
+      "左右相关性只反映宽度与干湿扩散，无法单独证明用户所说的‘空间感’缺的是混响尾音还是早期反射；本次以最小衰减步长探测",
+      "该人声与另外两条轨在中频段存在重叠候选，混响会增加中频密度，故剂量刻意保持很小",
+      "本次未取得发送拓扑证据，返回轨选择与默认发送量由装载模板给出，需在方案卡上与实际出现的结构对齐后再解释"
+     ],
+     "requires_experiment": true
+    },
+    "experiment_id": "turn:free_state_b38ca1fb270b5357",
+    "transition_reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:13.2417956Z"
+     },
+     {
+      "revision": 2,
+      "event": "diagnostic_completed",
+      "from": "observation_in_progress",
+      "to": "diagnostic_complete",
+      "reason": "candidate diagnosis established",
+      "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+      "evidence_refs": [
+       "obs_20261022T143133_280681df7e4b"
+      ],
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:46.0665472Z"
+     },
+     {
+      "revision": 3,
+      "event": "improvement_proposed",
+      "from": "diagnostic_complete",
+      "to": "improvement_proposal",
+      "reason": "runtime admitted bounded improvement proposal",
+      "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+      "evidence_refs": [
+       "obs_20261022T143133_280681df7e4b"
+      ],
+      "candidate_id": "1032",
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:46.0785596Z"
+     },
+     {
+      "revision": 4,
+      "event": "experiment_required",
+      "from": "improvement_proposal",
+      "to": "needs_experiment",
+      "reason": "free-state experiment runtime admitted",
+      "summary": "bounded experiment admitted",
+      "experiment_id": "turn:free_state_b38ca1fb270b5357",
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:46.1429192Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:31:46.1429192Z"
+   },
+   "task_state": "needs_experiment",
+   "task_state_revision": 4,
+   "turn_id": "turn_ac3e7892be5d71b3",
+   "updated_at": "2026-10-22T14:31:46.2097996Z"
+  },
+  {
+   "attempt": 1,
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "37",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:37"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "37",
+    "observed_at": "2026-10-22T14:31:13.2137916Z"
+   },
+   "continuation_id": "cont_355b688cdca8f6d6d3fae93f",
+   "conversation_id": "softguide_b1_B1_20261022_223110",
+   "free_state_admission_receipt": {
+    "boundary": "admitted",
+    "candidate_id": "user_named:1032",
+    "failed_gate_ids": null,
+    "gate_results": {
+     "G1_project_binding": "pass",
+     "G2_capacity_assessed": "pass",
+     "G3_project_scan": "pass",
+     "G4_dimension_closed": "pass",
+     "G5_frontier_established": "pass",
+     "G6_target_evidence": "pass",
+     "G7_fresh_revision_bound_refs": "pass",
+     "G8_target_consistency": "pass"
+    },
+    "project_revision": "37",
+    "proposal_error": "",
+    "proposal_present": true,
+    "proposal_valid": true,
+    "recorded_at": "2026-10-22T14:31:46.0665472Z",
+    "schema_version": "free_state_admission_receipt.v1",
+    "status": "needs_experiment",
+    "target_evidence_ref": "obs_20261022T143133_280681df7e4b"
+   },
+   "free_state_continuation_budget": 6,
+   "free_state_continuation_used": 2,
+   "free_state_current_phase": "fs8_experiment_verification",
+   "free_state_current_round_id": "r_7638ac19b7a4",
+   "free_state_decision_status": "needs_experiment",
+   "free_state_status": "awaiting_experiment",
+   "free_state_stop_reason": "",
+   "goal_id": "goal_393b7e6aa3f3f873",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+   "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+   "project_revision": "37",
+   "project_session_id": "session_20261022T143105_2cbfa2a9",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "run_id": "run_ee6fc97d68392cb9",
+   "slice_id": "slice_3df6c8359b04c220",
+   "status": "completed",
+   "task_contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_ad28b49196eccb6b",
+    "task_id": "task_ad28b49196eccb6b",
+    "goal_id": "goal_393b7e6aa3f3f873",
+    "run_id": "run_ee6fc97d68392cb9",
+    "conversation_id": "softguide_b1_B1_20261022_223110",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "37",
+    "created_at": "2026-10-22T14:31:13.2417956Z"
+   },
+   "task_id": "task_ad28b49196eccb6b",
+   "task_semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "observation_in_progress",
+    "revision": 1,
+    "contract_id": "contract_task_ad28b49196eccb6b",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "37",
+    "transition_reason": "task contract admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:13.2417956Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:31:13.2417956Z"
+   },
+   "task_state": "observation_in_progress",
+   "task_state_revision": 1,
+   "turn_id": "turn_b12664ef3753ac0c",
+   "updated_at": "2026-10-22T14:31:33.645888Z"
+  }
+ ],
+ "goal": {
+  "goal_id": "goal_393b7e6aa3f3f873",
+  "run_id": "run_ee6fc97d68392cb9",
+  "task": {
+   "task_id": "task_ad28b49196eccb6b",
+   "goal_id": "goal_393b7e6aa3f3f873",
+   "conversation_id": "softguide_b1_B1_20261022_223110",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+   "status": "waiting_interaction",
+   "contract": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "contract_id": "contract_task_ad28b49196eccb6b",
+    "task_id": "task_ad28b49196eccb6b",
+    "goal_id": "goal_393b7e6aa3f3f873",
+    "run_id": "run_ee6fc97d68392cb9",
+    "conversation_id": "softguide_b1_B1_20261022_223110",
+    "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true,
+    "target_discovery": "agent_observation",
+    "authorization_boundary": "governed_experiment",
+    "completion_criteria": [
+     "settle only after a governed experiment outcome",
+     "or report no_candidate_found or a distinct capability boundary with evidence"
+    ],
+    "evidence_requirements": [
+     "exact observation or audit receipt references",
+     "project revision matching the evaluated evidence",
+     "explicit limitations for every bounded conclusion"
+    ],
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "37",
+    "created_at": "2026-10-22T14:31:13.2417956Z"
+   },
+   "semantic_state": {
+    "schema_version": "vit.task_semantic_state.v1",
+    "state": "needs_experiment",
+    "revision": 4,
+    "contract_id": "contract_task_ad28b49196eccb6b",
+    "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+    "project_revision": "37",
+    "evidence_refs": [
+     "obs_20261022T143133_280681df7e4b"
+    ],
+    "candidate_id": "1032",
+    "proposal": {
+     "proposal_id": "proposal_16919b862eb2dd38faff",
+     "summary": "让人声听起来更有空间感、更有纵深与包围感，同时不牺牲咬字清晰度",
+     "evidence_refs": [
+      "obs_20261022T143133_280681df7e4b"
+     ],
+     "bounds": [
+      "左右相关性只反映宽度与干湿扩散，无法单独证明用户所说的‘空间感’缺的是混响尾音还是早期反射；本次以最小衰减步长探测",
+      "该人声与另外两条轨在中频段存在重叠候选，混响会增加中频密度，故剂量刻意保持很小",
+      "本次未取得发送拓扑证据，返回轨选择与默认发送量由装载模板给出，需在方案卡上与实际出现的结构对齐后再解释"
+     ],
+     "requires_experiment": true
+    },
+    "experiment_id": "turn:free_state_b38ca1fb270b5357",
+    "transition_reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "terminal": false,
+    "history": [
+     {
+      "revision": 1,
+      "event": "observation_started",
+      "to": "observation_in_progress",
+      "reason": "task contract admitted",
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:13.2417956Z"
+     },
+     {
+      "revision": 2,
+      "event": "diagnostic_completed",
+      "from": "observation_in_progress",
+      "to": "diagnostic_complete",
+      "reason": "candidate diagnosis established",
+      "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+      "evidence_refs": [
+       "obs_20261022T143133_280681df7e4b"
+      ],
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:46.0665472Z"
+     },
+     {
+      "revision": 3,
+      "event": "improvement_proposed",
+      "from": "diagnostic_complete",
+      "to": "improvement_proposal",
+      "reason": "runtime admitted bounded improvement proposal",
+      "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+      "evidence_refs": [
+       "obs_20261022T143133_280681df7e4b"
+      ],
+      "candidate_id": "1032",
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:46.0785596Z"
+     },
+     {
+      "revision": 4,
+      "event": "experiment_required",
+      "from": "improvement_proposal",
+      "to": "needs_experiment",
+      "reason": "free-state experiment runtime admitted",
+      "summary": "bounded experiment admitted",
+      "experiment_id": "turn:free_state_b38ca1fb270b5357",
+      "project_revision": "37",
+      "occurred_at": "2026-10-22T14:31:46.1429192Z"
+     }
+    ],
+    "updated_at": "2026-10-22T14:31:46.1429192Z"
+   },
+   "run": {
+    "run_id": "run_ee6fc97d68392cb9",
+    "task_id": "task_ad28b49196eccb6b",
+    "current_slice_id": "slice_a950ffbb1324774d",
+    "next_slice": 4,
+    "next_turn": 4,
+    "slices": [
+     {
+      "slice_id": "slice_3df6c8359b04c220",
+      "run_id": "run_ee6fc97d68392cb9",
+      "sequence": 1,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-22T22:31:13.7242178+08:00",
+      "ended_at": "2026-10-22T22:31:15.7202865+08:00"
+     },
+     {
+      "slice_id": "slice_94d203f52b27085f",
+      "run_id": "run_ee6fc97d68392cb9",
+      "sequence": 2,
+      "max_turns": 2,
+      "max_tool_calls": 6,
+      "turns_used": 2,
+      "tool_calls_used": 1,
+      "status": "waiting_continuation",
+      "started_at": "2026-10-22T22:31:16.0496539+08:00",
+      "ended_at": "2026-10-22T22:31:33.6148551+08:00"
+     },
+     {
+      "slice_id": "slice_a950ffbb1324774d",
+      "run_id": "run_ee6fc97d68392cb9",
+      "sequence": 3,
+      "max_turns": 1,
+      "max_tool_calls": 6,
+      "turns_used": 1,
+      "status": "waiting_interaction",
+      "started_at": "2026-10-22T22:31:33.8324119+08:00",
+      "ended_at": "2026-10-22T22:31:46.2154499+08:00"
+     }
+    ],
+    "turns": [
+     {
+      "turn_id": "turn_b12664ef3753ac0c",
+      "slice_id": "slice_3df6c8359b04c220",
+      "run_id": "run_ee6fc97d68392cb9",
+      "sequence": 1,
+      "source": "user",
+      "status": "waiting_continue",
+      "started_at": "2026-10-22T22:31:13.7242178+08:00",
+      "ended_at": "2026-10-22T22:31:15.7202865+08:00"
+     },
+     {
+      "turn_id": "turn_ac3e7892be5d71b3",
+      "slice_id": "slice_94d203f52b27085f",
+      "run_id": "run_ee6fc97d68392cb9",
+      "sequence": 2,
+      "source": "automatic_continuation",
+      "status": "waiting_continue",
+      "started_at": "2026-10-22T22:31:16.0496539+08:00",
+      "ended_at": "2026-10-22T22:31:33.6148551+08:00"
+     },
+     {
+      "turn_id": "turn_9b645b6021a84e51",
+      "slice_id": "slice_a950ffbb1324774d",
+      "run_id": "run_ee6fc97d68392cb9",
+      "sequence": 3,
+      "source": "automatic_continuation",
+      "status": "completed",
+      "started_at": "2026-10-22T22:31:33.8324119+08:00",
+      "ended_at": "2026-10-22T22:31:46.0515465+08:00"
+     }
+    ]
+   },
+   "created_at": "2026-10-22T22:31:10.6479075+08:00",
+   "updated_at": "2026-10-22T22:31:46.2154499+08:00"
+  },
+  "status": "waiting_confirmation",
+  "summary": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+  "created_at": "2026-10-22T22:31:10.6479075+08:00",
+  "updated_at": "2026-10-22T22:31:46.2154499+08:00",
+  "cancel_requested": false,
+  "last_checkpoint": "before_message_loop_model",
+  "project_history": {
+   "baseline_commit_id": "c_20261022T143110_901d916e",
+   "baseline_created": true,
+   "active_branch": "main",
+   "head": "c_20261022T143110_901d916e"
+  }
+ },
+ "kernel": {
+  "connected": true,
+  "endpoint": "tcp://127.0.0.1:5555",
+  "latency_ms": 1,
+  "message": "pong",
+  "reply_status": "ok",
+  "status": "online"
+ },
+ "note_sessions": [],
+ "pid": 22600,
+ "service": "VitAgent",
+ "shadow": {
+  "delta_seq_gaps": 9,
+  "graph_revision": null,
+  "initialized": true,
+  "last_delta_seq": 638,
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\SOFTGUIDE-VERIFY-ROUND2-1\\run_20261022_2210\\driver\\fixture\\softguide_fixture.vit",
+  "track_count": 6,
+  "user_track_count": 6
+ },
+ "status": "ok",
+ "task": {
+  "task_id": "task_ad28b49196eccb6b",
+  "goal_id": "goal_393b7e6aa3f3f873",
+  "conversation_id": "softguide_b1_B1_20261022_223110",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+  "status": "waiting_interaction",
+  "contract": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "contract_id": "contract_task_ad28b49196eccb6b",
+   "task_id": "task_ad28b49196eccb6b",
+   "goal_id": "goal_393b7e6aa3f3f873",
+   "run_id": "run_ee6fc97d68392cb9",
+   "conversation_id": "softguide_b1_B1_20261022_223110",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+   "kind": "improvement",
+   "scope": {
+    "kind": "project",
+    "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+   },
+   "temporary": true,
+   "target_discovery": "agent_observation",
+   "authorization_boundary": "governed_experiment",
+   "completion_criteria": [
+    "settle only after a governed experiment outcome",
+    "or report no_candidate_found or a distinct capability boundary with evidence"
+   ],
+   "evidence_requirements": [
+    "exact observation or audit receipt references",
+    "project revision matching the evaluated evidence",
+    "explicit limitations for every bounded conclusion"
+   ],
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "project_revision": "37",
+   "created_at": "2026-10-22T14:31:13.2417956Z"
+  },
+  "semantic_state": {
+   "schema_version": "vit.task_semantic_state.v1",
+   "state": "needs_experiment",
+   "revision": 4,
+   "contract_id": "contract_task_ad28b49196eccb6b",
+   "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+   "project_revision": "37",
+   "evidence_refs": [
+    "obs_20261022T143133_280681df7e4b"
+   ],
+   "candidate_id": "1032",
+   "proposal": {
+    "proposal_id": "proposal_16919b862eb2dd38faff",
+    "summary": "让人声听起来更有空间感、更有纵深与包围感，同时不牺牲咬字清晰度",
+    "evidence_refs": [
+     "obs_20261022T143133_280681df7e4b"
+    ],
+    "bounds": [
+     "左右相关性只反映宽度与干湿扩散，无法单独证明用户所说的‘空间感’缺的是混响尾音还是早期反射；本次以最小衰减步长探测",
+     "该人声与另外两条轨在中频段存在重叠候选，混响会增加中频密度，故剂量刻意保持很小",
+     "本次未取得发送拓扑证据，返回轨选择与默认发送量由装载模板给出，需在方案卡上与实际出现的结构对齐后再解释"
+    ],
+    "requires_experiment": true
+   },
+   "experiment_id": "turn:free_state_b38ca1fb270b5357",
+   "transition_reason": "free-state experiment runtime admitted",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "history": [
+    {
+     "revision": 1,
+     "event": "observation_started",
+     "to": "observation_in_progress",
+     "reason": "task contract admitted",
+     "project_revision": "37",
+     "occurred_at": "2026-10-22T14:31:13.2417956Z"
+    },
+    {
+     "revision": 2,
+     "event": "diagnostic_completed",
+     "from": "observation_in_progress",
+     "to": "diagnostic_complete",
+     "reason": "candidate diagnosis established",
+     "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+     "evidence_refs": [
+      "obs_20261022T143133_280681df7e4b"
+     ],
+     "project_revision": "37",
+     "occurred_at": "2026-10-22T14:31:46.0665472Z"
+    },
+    {
+     "revision": 3,
+     "event": "improvement_proposed",
+     "from": "diagnostic_complete",
+     "to": "improvement_proposal",
+     "reason": "runtime admitted bounded improvement proposal",
+     "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+     "evidence_refs": [
+      "obs_20261022T143133_280681df7e4b"
+     ],
+     "candidate_id": "1032",
+     "project_revision": "37",
+     "occurred_at": "2026-10-22T14:31:46.0785596Z"
+    },
+    {
+     "revision": 4,
+     "event": "experiment_required",
+     "from": "improvement_proposal",
+     "to": "needs_experiment",
+     "reason": "free-state experiment runtime admitted",
+     "summary": "bounded experiment admitted",
+     "experiment_id": "turn:free_state_b38ca1fb270b5357",
+     "project_revision": "37",
+     "occurred_at": "2026-10-22T14:31:46.1429192Z"
+    }
+   ],
+   "updated_at": "2026-10-22T14:31:46.1429192Z"
+  },
+  "run": {
+   "run_id": "run_ee6fc97d68392cb9",
+   "task_id": "task_ad28b49196eccb6b",
+   "current_slice_id": "slice_a950ffbb1324774d",
+   "next_slice": 4,
+   "next_turn": 4,
+   "slices": [
+    {
+     "slice_id": "slice_3df6c8359b04c220",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:31:13.7242178+08:00",
+     "ended_at": "2026-10-22T22:31:15.7202865+08:00"
+    },
+    {
+     "slice_id": "slice_94d203f52b27085f",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 2,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:31:16.0496539+08:00",
+     "ended_at": "2026-10-22T22:31:33.6148551+08:00"
+    },
+    {
+     "slice_id": "slice_a950ffbb1324774d",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 3,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "status": "waiting_interaction",
+     "started_at": "2026-10-22T22:31:33.8324119+08:00",
+     "ended_at": "2026-10-22T22:31:46.2154499+08:00"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_b12664ef3753ac0c",
+     "slice_id": "slice_3df6c8359b04c220",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:31:13.7242178+08:00",
+     "ended_at": "2026-10-22T22:31:15.7202865+08:00"
+    },
+    {
+     "turn_id": "turn_ac3e7892be5d71b3",
+     "slice_id": "slice_94d203f52b27085f",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:31:16.0496539+08:00",
+     "ended_at": "2026-10-22T22:31:33.6148551+08:00"
+    },
+    {
+     "turn_id": "turn_9b645b6021a84e51",
+     "slice_id": "slice_a950ffbb1324774d",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-22T22:31:33.8324119+08:00",
+     "ended_at": "2026-10-22T22:31:46.0515465+08:00"
+    }
+   ]
+  },
+  "created_at": "2026-10-22T22:31:10.6479075+08:00",
+  "updated_at": "2026-10-22T22:31:46.2154499+08:00"
+ },
+ "task_contract": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "contract_id": "contract_task_ad28b49196eccb6b",
+  "task_id": "task_ad28b49196eccb6b",
+  "goal_id": "goal_393b7e6aa3f3f873",
+  "run_id": "run_ee6fc97d68392cb9",
+  "conversation_id": "softguide_b1_B1_20261022_223110",
+  "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+  "kind": "improvement",
+  "scope": {
+   "kind": "project",
+   "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+  },
+  "temporary": true,
+  "target_discovery": "agent_observation",
+  "authorization_boundary": "governed_experiment",
+  "completion_criteria": [
+   "settle only after a governed experiment outcome",
+   "or report no_candidate_found or a distinct capability boundary with evidence"
+  ],
+  "evidence_requirements": [
+   "exact observation or audit receipt references",
+   "project revision matching the evaluated evidence",
+   "explicit limitations for every bounded conclusion"
+  ],
+  "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+  "project_revision": "37",
+  "created_at": "2026-10-22T14:31:13.2417956Z"
+ },
+ "task_semantic_state": {
+  "schema_version": "vit.task_semantic_state.v1",
+  "state": "needs_experiment",
+  "revision": 4,
+  "contract_id": "contract_task_ad28b49196eccb6b",
+  "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+  "project_revision": "37",
+  "evidence_refs": [
+   "obs_20261022T143133_280681df7e4b"
+  ],
+  "candidate_id": "1032",
+  "proposal": {
+   "proposal_id": "proposal_16919b862eb2dd38faff",
+   "summary": "让人声听起来更有空间感、更有纵深与包围感，同时不牺牲咬字清晰度",
+   "evidence_refs": [
+    "obs_20261022T143133_280681df7e4b"
+   ],
+   "bounds": [
+    "左右相关性只反映宽度与干湿扩散，无法单独证明用户所说的‘空间感’缺的是混响尾音还是早期反射；本次以最小衰减步长探测",
+    "该人声与另外两条轨在中频段存在重叠候选，混响会增加中频密度，故剂量刻意保持很小",
+    "本次未取得发送拓扑证据，返回轨选择与默认发送量由装载模板给出，需在方案卡上与实际出现的结构对齐后再解释"
+   ],
+   "requires_experiment": true
+  },
+  "experiment_id": "turn:free_state_b38ca1fb270b5357",
+  "transition_reason": "free-state experiment runtime admitted",
+  "summary": "bounded experiment admitted",
+  "terminal": false,
+  "history": [
+   {
+    "revision": 1,
+    "event": "observation_started",
+    "to": "observation_in_progress",
+    "reason": "task contract admitted",
+    "project_revision": "37",
+    "occurred_at": "2026-10-22T14:31:13.2417956Z"
+   },
+   {
+    "revision": 2,
+    "event": "diagnostic_completed",
+    "from": "observation_in_progress",
+    "to": "diagnostic_complete",
+    "reason": "candidate diagnosis established",
+    "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+    "evidence_refs": [
+     "obs_20261022T143133_280681df7e4b"
+    ],
+    "project_revision": "37",
+    "occurred_at": "2026-10-22T14:31:46.0665472Z"
+   },
+   {
+    "revision": 3,
+    "event": "improvement_proposed",
+    "from": "diagnostic_complete",
+    "to": "improvement_proposal",
+    "reason": "runtime admitted bounded improvement proposal",
+    "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+    "evidence_refs": [
+     "obs_20261022T143133_280681df7e4b"
+    ],
+    "candidate_id": "1032",
+    "project_revision": "37",
+    "occurred_at": "2026-10-22T14:31:46.0785596Z"
+   },
+   {
+    "revision": 4,
+    "event": "experiment_required",
+    "from": "improvement_proposal",
+    "to": "needs_experiment",
+    "reason": "free-state experiment runtime admitted",
+    "summary": "bounded experiment admitted",
+    "experiment_id": "turn:free_state_b38ca1fb270b5357",
+    "project_revision": "37",
+    "occurred_at": "2026-10-22T14:31:46.1429192Z"
+   }
+  ],
+  "updated_at": "2026-10-22T14:31:46.1429192Z"
+ },
+ "task_state": "needs_experiment",
+ "task_state_revision": 4,
+ "task_trajectory": {
+  "capability_route": {
+   "capacity_assessment": {
+    "schema_version": "free_state_capacity_assessment.v1",
+    "authority": "product_runtime",
+    "observed_facts": {
+     "project_uuid": "vitproj_c8fc2c2338a040f3a8df4257c0df7041",
+     "project_revision": "37",
+     "track_count": 6,
+     "active_audio_track_count": 6,
+     "duration_seconds": 2.2,
+     "plugin_count": 0,
+     "automation_lane_count": 0,
+     "track_group_count": 0,
+     "routing_edge_count": 0,
+     "relationship_breadth": 0,
+     "request_scope": "project_context",
+     "task_history_available": false,
+     "evidence_refs": [
+      "project.state:vitproj_c8fc2c2338a040f3a8df4257c0df7041:37"
+     ]
+    },
+    "complexity_factors": [
+     {
+      "code": "large_track_set",
+      "observed": 6,
+      "weight": 25,
+      "triggered": false,
+      "reason": "twenty or more user tracks expand whole-project coverage"
+     },
+     {
+      "code": "long_timeline",
+      "observed": 2.2,
+      "weight": 15,
+      "triggered": false,
+      "reason": "five minutes or more increases observation span"
+     },
+     {
+      "code": "dense_processing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "forty or more processors increase context pressure"
+     },
+     {
+      "code": "dense_routing_graph",
+      "observed": 0,
+      "weight": 20,
+      "triggered": false,
+      "reason": "routing and grouping relationships require project-wide coordination"
+     },
+     {
+      "code": "automation_heavy",
+      "observed": 0,
+      "weight": 15,
+      "triggered": false,
+      "reason": "automation breadth increases cross-stage state"
+     }
+    ],
+    "capacity_score": 0,
+    "capacity_level": "within_free_state",
+    "selected_capability": "free_state",
+    "reason_codes": [
+     "small_or_moderate_project"
+    ],
+    "confidence": 0.94,
+    "project_revision": "37",
+    "observed_at": "2026-10-22T14:31:13.2137916Z"
+   },
+   "controller": "minimal_audio_closure",
+   "conversation_id": "softguide_b1_B1_20261022_223110",
+   "created_at": "2026-10-22T14:31:13.2137916Z",
+   "goal_id": "goal_393b7e6aa3f3f873",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+   "project_revision": "37",
+   "run_id": "run_ee6fc97d68392cb9",
+   "schema_version": "capability_route_decision.v1",
+   "semantic_entry": {
+    "confidence": 0.94,
+    "control_mode": "semantic_loop",
+    "reason": "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+    "route": "open_semantic",
+    "schema_version": "semantic_entry_decision.v1",
+    "target_scope": "project_context",
+    "user_authorization": "action_requested"
+   },
+   "task_id": "task_ad28b49196eccb6b",
+   "updated_at": "2026-10-22T14:31:13.2137916Z"
+  },
+  "continuation": {
+   "attempt": 1,
+   "continuation_id": "cont_0c1dbb3ed6704bce08c20706",
+   "pending_interaction": {
+    "continuation_id": "cont_0c1dbb3ed6704bce08c20706",
+    "goal_id": "goal_393b7e6aa3f3f873",
+    "interaction_id": "interaction_e2a7fd2922db8b57",
+    "kind": "mix_treatment_confirmation",
+    "requests": [
+     {
+      "actions": [
+       {
+        "id": "approve",
+        "label": "确认执行",
+        "recommended": true,
+        "style": "primary"
+       },
+       {
+        "id": "cancel",
+        "label": "取消",
+        "style": "secondary"
+       }
+      ],
+      "body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+      "conversation_id": "softguide_b1_B1_20261022_223110",
+      "data": {
+       "action_kind": "pan_balance",
+       "confidence": "medium",
+       "conversation_id": "softguide_b1_B1_20261022_223110",
+       "delta_db": 0,
+       "delta_pan": 0,
+       "diagnosis_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "created_at": "2026-10-22T14:31:33.8324119Z",
+        "evidence_refs": [
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "evidence_status": {
+         "band_energy": "missing",
+         "confidence_ceiling": "high",
+         "missing": [],
+         "problem_kind": "pan_balance",
+         "spectral": "missing",
+         "strategy": "small_pan_adjust"
+        },
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "id": "diag_6af32212c64bc6b8",
+        "inferred_facts": [
+         {
+          "key": "pan_band_independent",
+          "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+          "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+         }
+        ],
+        "low_risk_next_step": "small_pan_adjust",
+        "mix_session_id": "mix_815eae8ce26a",
+        "observation_id": "obs_20261022T143133_280681df7e4b",
+        "problem_kind": "pan_balance",
+        "recommendation": {
+         "action_kind": "pan_balance",
+         "confidence": "high",
+         "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+         "processor_type": "utility",
+         "risk": "low",
+         "strategy": "small_pan_adjust"
+        },
+        "run_id": "run_ee6fc97d68392cb9",
+        "schema_version": "mix_diagnosis_context.v0",
+        "source_refs": {
+         "mix_session_id": "mix_815eae8ce26a",
+         "observation_id": "obs_20261022T143133_280681df7e4b",
+         "target_ref": "track:1032"
+        },
+        "target_ref": "track:1032",
+        "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+        "user_reported_facts": [
+         {
+          "key": "user_intent",
+          "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+          "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+         }
+        ]
+       },
+       "diagnosis_context_id": "diag_6af32212c64bc6b8",
+       "display": {
+        "action_kind": "声像设置到 0.00",
+        "card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+        "card_title": "混音建议待确认",
+        "confidence": "中",
+        "evidence": "来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。",
+        "limitations": "确认前不会写插件、参数、音量或声像。",
+        "needs_resolution": [],
+        "pending_action": "确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。",
+        "processor_type": "工具",
+        "reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+        "status": "待确认",
+        "target_ref": "Track 1032"
+       },
+       "display_card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+       "display_confidence": "中",
+       "display_reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+       "evidence_refs": [
+        "",
+        "diag_6af32212c64bc6b8",
+        "obs_20261022T143133_280681df7e4b",
+        "diag_6af32212c64bc6b8.user_reported.intent"
+       ],
+       "intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+       "needs_resolution": null,
+       "processor_type": "utility",
+       "reasoning_summary": "implicit assistant pan confirmation question",
+       "request_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "run_id": "run_ee6fc97d68392cb9"
+       },
+       "schema_version": "mix_treatment_pending.v0",
+       "status": "pending_confirmation",
+       "target": null,
+       "target_pan": 0,
+       "target_ref": "track:1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "state": {
+         "action_kind": "pan_balance",
+         "candidate_action": {
+          "action_kind": "pan_balance",
+          "confidence": "medium",
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_at": "2026-10-22T14:31:33.8324119Z",
+           "evidence_refs": [
+            "diag_6af32212c64bc6b8",
+            "obs_20261022T143133_280681df7e4b",
+            "diag_6af32212c64bc6b8.user_reported.intent"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "high",
+            "missing": [],
+            "problem_kind": "pan_balance",
+            "spectral": "missing",
+            "strategy": "small_pan_adjust"
+           },
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "id": "diag_6af32212c64bc6b8",
+           "inferred_facts": [
+            {
+             "key": "pan_band_independent",
+             "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+             "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+            }
+           ],
+           "low_risk_next_step": "small_pan_adjust",
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "problem_kind": "pan_balance",
+           "recommendation": {
+            "action_kind": "pan_balance",
+            "confidence": "high",
+            "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "small_pan_adjust"
+           },
+           "run_id": "run_ee6fc97d68392cb9",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_815eae8ce26a",
+            "observation_id": "obs_20261022T143133_280681df7e4b",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+             "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "evidence_refs": [
+           "",
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "processor_type": "utility",
+          "target_pan": 0,
+          "target_ref": "track:1032"
+         },
+         "candidate_type": "mix_treatment",
+         "confidence": "medium",
+         "domain": "mix",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "legacy_kind": "MixTreatmentPending",
+          "legacy_schema": "mix_treatment_pending.v0",
+          "metadata": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_from_turn": 4,
+           "diagnosis_context_id": "diag_6af32212c64bc6b8",
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "mix_session_id": "",
+           "observation_id": "",
+           "run_id": "run_ee6fc97d68392cb9",
+           "target_scope": "",
+           "target_track_id": "1032",
+           "track_count": 6
+          },
+          "run_id": "run_ee6fc97d68392cb9"
+         },
+         "status": "waiting_user",
+         "summary": "为 Track 1032 准备声像平衡处理。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "pan_balance",
+        "candidate_action": {
+         "action_kind": "pan_balance",
+         "confidence": "medium",
+         "diagnosis_context": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_at": "2026-10-22T14:31:33.8324119Z",
+          "evidence_refs": [
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "evidence_status": {
+           "band_energy": "missing",
+           "confidence_ceiling": "high",
+           "missing": [],
+           "problem_kind": "pan_balance",
+           "spectral": "missing",
+           "strategy": "small_pan_adjust"
+          },
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "id": "diag_6af32212c64bc6b8",
+          "inferred_facts": [
+           {
+            "key": "pan_band_independent",
+            "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+            "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+           }
+          ],
+          "low_risk_next_step": "small_pan_adjust",
+          "mix_session_id": "mix_815eae8ce26a",
+          "observation_id": "obs_20261022T143133_280681df7e4b",
+          "problem_kind": "pan_balance",
+          "recommendation": {
+           "action_kind": "pan_balance",
+           "confidence": "high",
+           "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+           "processor_type": "utility",
+           "risk": "low",
+           "strategy": "small_pan_adjust"
+          },
+          "run_id": "run_ee6fc97d68392cb9",
+          "schema_version": "mix_diagnosis_context.v0",
+          "source_refs": {
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "target_ref": "track:1032"
+          },
+          "target_ref": "track:1032",
+          "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+          "user_reported_facts": [
+           {
+            "key": "user_intent",
+            "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+            "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+           }
+          ]
+         },
+         "diagnosis_context_id": "diag_6af32212c64bc6b8",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "processor_type": "utility",
+         "target_pan": 0,
+         "target_ref": "track:1032"
+        },
+        "candidate_type": "mix_treatment",
+        "confidence": "medium",
+        "domain": "mix",
+        "evidence_refs": [
+         "",
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "status": "waiting_user",
+        "summary": "为 Track 1032 准备声像平衡处理。",
+        "target_ref": "track:1032"
+       }
+      },
+      "goal_id": "goal_393b7e6aa3f3f873",
+      "id": "interaction_e2a7fd2922db8b57",
+      "kind": "mix_treatment_confirmation",
+      "payload": {
+       "action_kind": "pan_balance",
+       "confidence": "medium",
+       "conversation_id": "softguide_b1_B1_20261022_223110",
+       "delta_db": 0,
+       "delta_pan": 0,
+       "diagnosis_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "created_at": "2026-10-22T14:31:33.8324119Z",
+        "evidence_refs": [
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "evidence_status": {
+         "band_energy": "missing",
+         "confidence_ceiling": "high",
+         "missing": [],
+         "problem_kind": "pan_balance",
+         "spectral": "missing",
+         "strategy": "small_pan_adjust"
+        },
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "id": "diag_6af32212c64bc6b8",
+        "inferred_facts": [
+         {
+          "key": "pan_band_independent",
+          "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+          "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+         }
+        ],
+        "low_risk_next_step": "small_pan_adjust",
+        "mix_session_id": "mix_815eae8ce26a",
+        "observation_id": "obs_20261022T143133_280681df7e4b",
+        "problem_kind": "pan_balance",
+        "recommendation": {
+         "action_kind": "pan_balance",
+         "confidence": "high",
+         "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+         "processor_type": "utility",
+         "risk": "low",
+         "strategy": "small_pan_adjust"
+        },
+        "run_id": "run_ee6fc97d68392cb9",
+        "schema_version": "mix_diagnosis_context.v0",
+        "source_refs": {
+         "mix_session_id": "mix_815eae8ce26a",
+         "observation_id": "obs_20261022T143133_280681df7e4b",
+         "target_ref": "track:1032"
+        },
+        "target_ref": "track:1032",
+        "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+        "user_reported_facts": [
+         {
+          "key": "user_intent",
+          "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+          "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+         }
+        ]
+       },
+       "diagnosis_context_id": "diag_6af32212c64bc6b8",
+       "display": {
+        "action_kind": "声像设置到 0.00",
+        "card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+        "card_title": "混音建议待确认",
+        "confidence": "中",
+        "evidence": "来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。",
+        "limitations": "确认前不会写插件、参数、音量或声像。",
+        "needs_resolution": [],
+        "pending_action": "确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。",
+        "processor_type": "工具",
+        "reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+        "status": "待确认",
+        "target_ref": "Track 1032"
+       },
+       "display_card_body": "结论：已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。\n依据：来自 MOM action preflight / observation evidence refs：、diag_6af32212c64bc6b8、obs_20261022T143133_280681df7e4b、diag_6af32212c64bc6b8.user_reported.intent。\n待确认动作：确认后通过 typed mix tick 对 Track 1032 执行声像设置到 0.00。\n限制：确认前不会写插件、参数、音量或声像。",
+       "display_confidence": "中",
+       "display_reasoning_summary": "已根据声像/立体声观察为 Track 1032 生成一个待确认的声像处理候选；确认前不会修改工程。",
+       "evidence_refs": [
+        "",
+        "diag_6af32212c64bc6b8",
+        "obs_20261022T143133_280681df7e4b",
+        "diag_6af32212c64bc6b8.user_reported.intent"
+       ],
+       "intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+       "needs_resolution": null,
+       "processor_type": "utility",
+       "reasoning_summary": "implicit assistant pan confirmation question",
+       "request_context": {
+        "conversation_id": "softguide_b1_B1_20261022_223110",
+        "goal_id": "goal_393b7e6aa3f3f873",
+        "run_id": "run_ee6fc97d68392cb9"
+       },
+       "schema_version": "mix_treatment_pending.v0",
+       "status": "pending_confirmation",
+       "target": null,
+       "target_pan": 0,
+       "target_ref": "track:1032",
+       "typed_event": {
+        "event_type": "PendingCandidate",
+        "schema_version": "vit_agent_protocol.v0",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "state": {
+         "action_kind": "pan_balance",
+         "candidate_action": {
+          "action_kind": "pan_balance",
+          "confidence": "medium",
+          "diagnosis_context": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_at": "2026-10-22T14:31:33.8324119Z",
+           "evidence_refs": [
+            "diag_6af32212c64bc6b8",
+            "obs_20261022T143133_280681df7e4b",
+            "diag_6af32212c64bc6b8.user_reported.intent"
+           ],
+           "evidence_status": {
+            "band_energy": "missing",
+            "confidence_ceiling": "high",
+            "missing": [],
+            "problem_kind": "pan_balance",
+            "spectral": "missing",
+            "strategy": "small_pan_adjust"
+           },
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "id": "diag_6af32212c64bc6b8",
+           "inferred_facts": [
+            {
+             "key": "pan_band_independent",
+             "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+             "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+            }
+           ],
+           "low_risk_next_step": "small_pan_adjust",
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "problem_kind": "pan_balance",
+           "recommendation": {
+            "action_kind": "pan_balance",
+            "confidence": "high",
+            "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+            "processor_type": "utility",
+            "risk": "low",
+            "strategy": "small_pan_adjust"
+           },
+           "run_id": "run_ee6fc97d68392cb9",
+           "schema_version": "mix_diagnosis_context.v0",
+           "source_refs": {
+            "mix_session_id": "mix_815eae8ce26a",
+            "observation_id": "obs_20261022T143133_280681df7e4b",
+            "target_ref": "track:1032"
+           },
+           "target_ref": "track:1032",
+           "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+           "user_reported_facts": [
+            {
+             "key": "user_intent",
+             "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+             "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+            }
+           ]
+          },
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "evidence_refs": [
+           "",
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "processor_type": "utility",
+          "target_pan": 0,
+          "target_ref": "track:1032"
+         },
+         "candidate_type": "mix_treatment",
+         "confidence": "medium",
+         "domain": "mix",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+         "kind": "PendingCandidate",
+         "processor_type": "utility",
+         "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+         "required_permission_domains": [
+          "mix.commit"
+         ],
+         "risk": "undoable_commit",
+         "source": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "legacy_kind": "MixTreatmentPending",
+          "legacy_schema": "mix_treatment_pending.v0",
+          "metadata": {
+           "conversation_id": "softguide_b1_B1_20261022_223110",
+           "created_from_turn": 4,
+           "diagnosis_context_id": "diag_6af32212c64bc6b8",
+           "goal_id": "goal_393b7e6aa3f3f873",
+           "mix_session_id": "",
+           "observation_id": "",
+           "run_id": "run_ee6fc97d68392cb9",
+           "target_scope": "",
+           "target_track_id": "1032",
+           "track_count": 6
+          },
+          "run_id": "run_ee6fc97d68392cb9"
+         },
+         "status": "waiting_user",
+         "summary": "为 Track 1032 准备声像平衡处理。",
+         "target_ref": "track:1032"
+        },
+        "state_id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "state_kind": "PendingCandidate",
+        "status": "waiting_user"
+       },
+       "typed_state": {
+        "action_kind": "pan_balance",
+        "candidate_action": {
+         "action_kind": "pan_balance",
+         "confidence": "medium",
+         "diagnosis_context": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_at": "2026-10-22T14:31:33.8324119Z",
+          "evidence_refs": [
+           "diag_6af32212c64bc6b8",
+           "obs_20261022T143133_280681df7e4b",
+           "diag_6af32212c64bc6b8.user_reported.intent"
+          ],
+          "evidence_status": {
+           "band_energy": "missing",
+           "confidence_ceiling": "high",
+           "missing": [],
+           "problem_kind": "pan_balance",
+           "spectral": "missing",
+           "strategy": "small_pan_adjust"
+          },
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "id": "diag_6af32212c64bc6b8",
+          "inferred_facts": [
+           {
+            "key": "pan_band_independent",
+            "ref": "diag_6af32212c64bc6b8.inferred.pan_band_independent",
+            "summary": "a small pan/balance adjustment can be prepared from the user's direction and confirmed target; band_energy is not a blocking dependency"
+           }
+          ],
+          "low_risk_next_step": "small_pan_adjust",
+          "mix_session_id": "mix_815eae8ce26a",
+          "observation_id": "obs_20261022T143133_280681df7e4b",
+          "problem_kind": "pan_balance",
+          "recommendation": {
+           "action_kind": "pan_balance",
+           "confidence": "high",
+           "next_step": "prepare a small reversible pan move and wait for explicit confirmation",
+           "processor_type": "utility",
+           "risk": "low",
+           "strategy": "small_pan_adjust"
+          },
+          "run_id": "run_ee6fc97d68392cb9",
+          "schema_version": "mix_diagnosis_context.v0",
+          "source_refs": {
+           "mix_session_id": "mix_815eae8ce26a",
+           "observation_id": "obs_20261022T143133_280681df7e4b",
+           "target_ref": "track:1032"
+          },
+          "target_ref": "track:1032",
+          "user_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+          "user_reported_facts": [
+           {
+            "key": "user_intent",
+            "ref": "diag_6af32212c64bc6b8.user_reported.intent",
+            "summary": "user requested a pan/balance move: 请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）"
+           }
+          ]
+         },
+         "diagnosis_context_id": "diag_6af32212c64bc6b8",
+         "evidence_refs": [
+          "",
+          "diag_6af32212c64bc6b8",
+          "obs_20261022T143133_280681df7e4b",
+          "diag_6af32212c64bc6b8.user_reported.intent"
+         ],
+         "processor_type": "utility",
+         "target_pan": 0,
+         "target_ref": "track:1032"
+        },
+        "candidate_type": "mix_treatment",
+        "confidence": "medium",
+        "domain": "mix",
+        "evidence_refs": [
+         "",
+         "diag_6af32212c64bc6b8",
+         "obs_20261022T143133_280681df7e4b",
+         "diag_6af32212c64bc6b8.user_reported.intent"
+        ],
+        "id": "pending_mix_treatment_softguide_b1_B1_20261022_223110_goal_393b7e6aa3f3f873_pan_balance_track_1032",
+        "kind": "PendingCandidate",
+        "processor_type": "utility",
+        "rationale": "已根据当前混音观察生成一个待确认的声像调整候选。",
+        "required_permission_domains": [
+         "mix.commit"
+        ],
+        "risk": "undoable_commit",
+        "source": {
+         "conversation_id": "softguide_b1_B1_20261022_223110",
+         "goal_id": "goal_393b7e6aa3f3f873",
+         "legacy_kind": "MixTreatmentPending",
+         "legacy_schema": "mix_treatment_pending.v0",
+         "metadata": {
+          "conversation_id": "softguide_b1_B1_20261022_223110",
+          "created_from_turn": 4,
+          "diagnosis_context_id": "diag_6af32212c64bc6b8",
+          "goal_id": "goal_393b7e6aa3f3f873",
+          "mix_session_id": "",
+          "observation_id": "",
+          "run_id": "run_ee6fc97d68392cb9",
+          "target_scope": "",
+          "target_track_id": "1032",
+          "track_count": 6
+         },
+         "run_id": "run_ee6fc97d68392cb9"
+        },
+        "status": "waiting_user",
+        "summary": "为 Track 1032 准备声像平衡处理。",
+        "target_ref": "track:1032"
+       }
+      },
+      "run_id": "run_ee6fc97d68392cb9",
+      "source": "vit_agent",
+      "status": "waiting_for_user",
+      "title": "混音建议待确认",
+      "type": "mix_treatment_confirmation",
+      "workflow": "mix_treatment"
+     }
+    ],
+    "run_id": "run_ee6fc97d68392cb9",
+    "status": "waiting_confirmation",
+    "task_id": "task_ad28b49196eccb6b"
+   },
+   "slice_id": "slice_94d203f52b27085f",
+   "status": "waiting_interaction",
+   "turn_id": "turn_ac3e7892be5d71b3",
+   "updated_at": "2026-10-22T14:31:46.2097996Z"
+  },
+  "run": {
+   "current_slice_id": "slice_a950ffbb1324774d",
+   "current_turn_id": "",
+   "run_id": "run_ee6fc97d68392cb9",
+   "slices": [
+    {
+     "slice_id": "slice_3df6c8359b04c220",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 1,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:31:13.7242178+08:00",
+     "ended_at": "2026-10-22T22:31:15.7202865+08:00"
+    },
+    {
+     "slice_id": "slice_94d203f52b27085f",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 2,
+     "max_turns": 2,
+     "max_tool_calls": 6,
+     "turns_used": 2,
+     "tool_calls_used": 1,
+     "status": "waiting_continuation",
+     "started_at": "2026-10-22T22:31:16.0496539+08:00",
+     "ended_at": "2026-10-22T22:31:33.6148551+08:00"
+    },
+    {
+     "slice_id": "slice_a950ffbb1324774d",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 3,
+     "max_turns": 1,
+     "max_tool_calls": 6,
+     "turns_used": 1,
+     "status": "waiting_interaction",
+     "started_at": "2026-10-22T22:31:33.8324119+08:00",
+     "ended_at": "2026-10-22T22:31:46.2154499+08:00"
+    }
+   ],
+   "turns": [
+    {
+     "turn_id": "turn_b12664ef3753ac0c",
+     "slice_id": "slice_3df6c8359b04c220",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 1,
+     "source": "user",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:31:13.7242178+08:00",
+     "ended_at": "2026-10-22T22:31:15.7202865+08:00"
+    },
+    {
+     "turn_id": "turn_ac3e7892be5d71b3",
+     "slice_id": "slice_94d203f52b27085f",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 2,
+     "source": "automatic_continuation",
+     "status": "waiting_continue",
+     "started_at": "2026-10-22T22:31:16.0496539+08:00",
+     "ended_at": "2026-10-22T22:31:33.6148551+08:00"
+    },
+    {
+     "turn_id": "turn_9b645b6021a84e51",
+     "slice_id": "slice_a950ffbb1324774d",
+     "run_id": "run_ee6fc97d68392cb9",
+     "sequence": 3,
+     "source": "automatic_continuation",
+     "status": "completed",
+     "started_at": "2026-10-22T22:31:33.8324119+08:00",
+     "ended_at": "2026-10-22T22:31:46.0515465+08:00"
+    }
+   ]
+  },
+  "schema_version": "vit.task_runtime_trajectory.v1",
+  "semantic": {
+   "contract": {
+    "contract_id": "contract_task_ad28b49196eccb6b",
+    "kind": "improvement",
+    "scope": {
+     "kind": "project",
+     "id": "vitproj_c8fc2c2338a040f3a8df4257c0df7041"
+    },
+    "temporary": true
+   },
+   "evidence_refs": [
+    "obs_20261022T143133_280681df7e4b"
+   ],
+   "project_revision": "37",
+   "revision": 4,
+   "state": "needs_experiment",
+   "summary": "bounded experiment admitted",
+   "terminal": false,
+   "transition_reason": "free-state experiment runtime admitted",
+   "updated_at": "2026-10-22T14:31:46.1429192Z"
+  },
+  "task": {
+   "conversation_id": "softguide_b1_B1_20261022_223110",
+   "created_at": "2026-10-22T22:31:10.6479075+08:00",
+   "goal_id": "goal_393b7e6aa3f3f873",
+   "goal_status": "waiting_confirmation",
+   "original_intent": "请先观察工程，再给一个有界的小步改进建议：给人声加点空间感（M2 场次原话术）",
+   "run_id": "run_ee6fc97d68392cb9",
+   "status": "waiting_interaction",
+   "task_id": "task_ad28b49196eccb6b",
+   "updated_at": "2026-10-22T22:31:46.2154499+08:00"
+  },
+  "transitions": [
+   {
+    "candidate_id": "",
+    "event": "observation_started",
+    "evidence_refs": null,
+    "experiment_id": "",
+    "from": "",
+    "occurred_at": "2026-10-22T14:31:13.2417956Z",
+    "pending_interaction": null,
+    "project_revision": "37",
+    "reason": "task contract admitted",
+    "revision": 1,
+    "stale_for_current_revision": false,
+    "summary": "",
+    "to": "observation_in_progress"
+   },
+   {
+    "candidate_id": "",
+    "event": "diagnostic_completed",
+    "evidence_refs": [
+     "obs_20261022T143133_280681df7e4b"
+    ],
+    "experiment_id": "",
+    "from": "observation_in_progress",
+    "occurred_at": "2026-10-22T14:31:46.0665472Z",
+    "pending_interaction": null,
+    "project_revision": "37",
+    "reason": "candidate diagnosis established",
+    "revision": 2,
+    "stale_for_current_revision": false,
+    "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+    "to": "diagnostic_complete"
+   },
+   {
+    "candidate_id": "1032",
+    "event": "improvement_proposed",
+    "evidence_refs": [
+     "obs_20261022T143133_280681df7e4b"
+    ],
+    "experiment_id": "",
+    "from": "diagnostic_complete",
+    "occurred_at": "2026-10-22T14:31:46.0785596Z",
+    "pending_interaction": null,
+    "project_revision": "37",
+    "reason": "runtime admitted bounded improvement proposal",
+    "revision": 3,
+    "stale_for_current_revision": false,
+    "summary": "人声轨的左右相关性约为 1.0，说明该轨完全居中、没有任何环境扩散，与用户“加点空间感”的听感诉求在方向上吻合；这属于可听的改进空间而非可证明的缺陷，因此提交一次有界、可回滚的混响衰减小步实验。",
+    "to": "improvement_proposal"
+   },
+   {
+    "candidate_id": "",
+    "event": "experiment_required",
+    "evidence_refs": null,
+    "experiment_id": "turn:free_state_b38ca1fb270b5357",
+    "from": "improvement_proposal",
+    "occurred_at": "2026-10-22T14:31:46.1429192Z",
+    "pending_interaction": null,
+    "project_revision": "37",
+    "reason": "free-state experiment runtime admitted",
+    "revision": 4,
+    "stale_for_current_revision": false,
+    "summary": "bounded experiment admitted",
+    "to": "needs_experiment"
+   }
+  ]
+ }
+}

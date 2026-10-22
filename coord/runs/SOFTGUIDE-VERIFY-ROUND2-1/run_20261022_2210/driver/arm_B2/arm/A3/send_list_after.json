@@ -1,0 +1,56 @@
+{
+ "command_ack": {
+  "ack": {
+   "message": "Send topology read-back",
+   "stage": "completed"
+  },
+  "command": "legacy.command",
+  "legacy_command": "track.send.list",
+  "resync_hint": true,
+  "revision": 0,
+  "source": "vsp.command.response",
+  "stage": "completed",
+  "transaction_id": "tx_1792678699738533200_271"
+ },
+ "dangling": [],
+ "fx_tracks": [
+  {
+   "name": "Reverb Bus",
+   "return_bus": 1,
+   "send_bus": 0,
+   "source_count": 1,
+   "track_id": "1037"
+  }
+ ],
+ "message": "Send topology read-back",
+ "sends": [
+  {
+   "amount_db": -6,
+   "fx_name": "Reverb Bus",
+   "fx_track_id": "1037",
+   "return_bus": 1,
+   "send_bus": 0,
+   "source_name": "drums",
+   "source_track_id": "1012"
+  }
+ ],
+ "sidechain": [],
+ "status": "ok",
+ "vsp": {
+  "command_ack": {
+   "ack": {
+    "message": "Send topology read-back",
+    "stage": "completed"
+   },
+   "command": "legacy.command",
+   "legacy_command": "track.send.list",
+   "resync_hint": true,
+   "revision": 0,
+   "source": "vsp.command.response",
+   "stage": "completed",
+   "transaction_id": "tx_1792678699738533200_271"
+  },
+  "transport": "vsp",
+  "version": "1.0"
+ }
+}
