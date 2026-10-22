@@ -5,10 +5,35 @@ import (
 	"encoding/json"
 	"errors"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/go-zeromq/zmq4"
 )
+
+// relay liveness counters power /health diagnostics and the resilience
+// injection leg ("hub unreachable window" quantification).
+type relayState struct {
+	lastRecvUnixMs atomic.Int64
+	recvCount      atomic.Int64
+	errorCount     atomic.Int64
+	lastErrorUnix  atomic.Int64
+}
+
+func (h *Hub) relaySnapshot() map[string]any {
+	out := map[string]any{
+		"recv_count":  h.relay.recvCount.Load(),
+		"error_count": h.relay.errorCount.Load(),
+	}
+	if lastMs := h.relay.lastRecvUnixMs.Load(); lastMs > 0 {
+		out["last_recv_at"] = time.UnixMilli(lastMs).UTC().Format(time.RFC3339Nano)
+		out["last_recv_age_ms"] = time.Since(time.UnixMilli(lastMs)).Milliseconds()
+	}
+	if errMs := h.relay.lastErrorUnix.Load(); errMs > 0 {
+		out["last_error_at"] = time.UnixMilli(errMs).UTC().Format(time.RFC3339Nano)
+	}
+	return out
+}
 
 func (h *Hub) RunTelemetryRelay(ctx context.Context) error {
 	for {
@@ -16,6 +41,8 @@ func (h *Hub) RunTelemetryRelay(ctx context.Context) error {
 			if errors.Is(err, context.Canceled) {
 				return nil
 			}
+			h.relay.errorCount.Add(1)
+			h.relay.lastErrorUnix.Store(time.Now().UTC().UnixMilli())
 			if h.logger != nil {
 				h.logger.Warn("VSP telemetry relay reconnecting after error: %v", err)
 			}
@@ -54,6 +81,8 @@ func (h *Hub) telemetryOnce(ctx context.Context) error {
 			}
 			return err
 		}
+		h.relay.recvCount.Add(1)
+		h.relay.lastRecvUnixMs.Store(time.Now().UTC().UnixMilli())
 		payload := string(msgPayload(msg))
 		h.broadcastTelemetry(payload)
 	}

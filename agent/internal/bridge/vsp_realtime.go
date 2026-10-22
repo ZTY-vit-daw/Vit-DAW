@@ -62,6 +62,16 @@ func (b *Bridge) runVSPTransportPublisher(ctx context.Context) {
 	b.runVSPRealtimeChannelPublisher(ctx, b.transportPublishCh, vspTransportClientID, vspTransportClientName)
 }
 
+const (
+	// vspPublishRetryMinBackoff/vspPublishRetryMaxBackoff bound the publish
+	// retry backoff; vspPublishRetryBudget bounds how long one frame is
+	// retained for retry before it is dropped (live frames are replaceable,
+	// the next frame retries against a recovered hub immediately).
+	vspPublishRetryMinBackoff = 250 * time.Millisecond
+	vspPublishRetryMaxBackoff = 2 * time.Second
+	vspPublishRetryBudget     = 110 * time.Second
+)
+
 func (b *Bridge) runVSPRealtimeChannelPublisher(ctx context.Context, channel <-chan map[string]any, clientID, clientName string) {
 	hubURL := strings.TrimSpace(b.cfg.VSPHubURL)
 	if hubURL == "" || channel == nil {
@@ -73,7 +83,12 @@ func (b *Bridge) runVSPRealtimeChannelPublisher(ctx context.Context, channel <-c
 	}
 	nextWarnAt := time.Time{}
 	failures := 0
+	pendingSince := time.Time{}
+	var pending map[string]any
+	var retryTimer <-chan time.Time
+	backoff := vspPublishRetryMinBackoff
 	for {
+		attempt := false
 		select {
 		case <-ctx.Done():
 			return
@@ -81,20 +96,52 @@ func (b *Bridge) runVSPRealtimeChannelPublisher(ctx context.Context, channel <-c
 			if len(payload) == 0 {
 				continue
 			}
-			if err := b.publishVSPRealtimePayload(ctx, client, payload); err != nil {
-				failures++
-				if b.logger != nil && time.Now().After(nextWarnAt) {
-					b.logger.Warn("VSP realtime publish pending failures=%d error=%v", failures, err)
-					nextWarnAt = time.Now().Add(5 * time.Second)
-				}
-				select {
-				case <-ctx.Done():
-					return
-				case <-time.After(250 * time.Millisecond):
-				}
-				continue
+			// latest-only: a fresher frame replaces the retained one
+			pending = payload
+			if retryTimer == nil {
+				attempt = true
 			}
+		case <-retryTimer:
+			retryTimer = nil
+			attempt = true
+		}
+		if !attempt || len(pending) == 0 {
+			continue
+		}
+		err := b.publishVSPRealtimePayload(ctx, client, pending)
+		if err == nil {
+			pending = nil
 			failures = 0
+			pendingSince = time.Time{}
+			backoff = vspPublishRetryMinBackoff
+			retryTimer = nil
+			continue
+		}
+		if pendingSince.IsZero() {
+			pendingSince = time.Now()
+		}
+		failures++
+		if b.logger != nil && time.Now().After(nextWarnAt) {
+			b.logger.Warn("VSP realtime publish pending failures=%d client=%s error=%v", failures, clientID, err)
+			nextWarnAt = time.Now().Add(5 * time.Second)
+		}
+		if time.Since(pendingSince) >= vspPublishRetryBudget {
+			if b.logger != nil {
+				b.logger.Warn("VSP realtime publish dropped after retry budget failures=%d client=%s", failures, clientID)
+			}
+			pending = nil
+			failures = 0
+			pendingSince = time.Time{}
+			backoff = vspPublishRetryMinBackoff
+			retryTimer = nil
+			continue
+		}
+		if retryTimer == nil {
+			retryTimer = time.After(backoff)
+		}
+		backoff *= 2
+		if backoff > vspPublishRetryMaxBackoff {
+			backoff = vspPublishRetryMaxBackoff
 		}
 	}
 }

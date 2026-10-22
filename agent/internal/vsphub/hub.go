@@ -27,6 +27,7 @@ type Hub struct {
 	realtime *RealtimeStore
 	events   *EventStore
 	assets   *AssetMaterializationStore
+	relay    relayState
 	started  time.Time
 
 	requests atomic.Int64
