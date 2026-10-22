@@ -27,12 +27,22 @@ func (h *Hub) Health() map[string]any {
 		"transport_bindings":  h.transportDiagnostics(cfg),
 		"session_count":       h.sessions.Count(),
 		"stream_count":        h.streams.Count(),
+		"streams":             h.streamsSnapshot(),
+		"relay":               h.relaySnapshot(),
 		"realtime":            h.realtime.Snapshot(),
 		"events":              h.events.Snapshot(),
 		"assets":              h.assets.Snapshot(),
 		"requests":            h.requests.Load(),
 		"errors":              h.errors.Load(),
 	}
+}
+
+func (h *Hub) streamsSnapshot() []map[string]any {
+	out := []map[string]any{}
+	for _, stream := range h.streams.Clients() {
+		out = append(out, stream.SnapshotInfo())
+	}
+	return out
 }
 
 func (h *Hub) Status() map[string]any {
@@ -56,6 +66,8 @@ func (h *Hub) Status() map[string]any {
 		"sessions":            h.sessions.Snapshot(),
 		"session_count":       h.sessions.Count(),
 		"stream_count":        h.streams.Count(),
+		"streams":             h.streamsSnapshot(),
+		"relay":               h.relaySnapshot(),
 		"realtime":            h.realtime.Snapshot(),
 		"events":              h.events.Snapshot(),
 		"requests":            h.requests.Load(),

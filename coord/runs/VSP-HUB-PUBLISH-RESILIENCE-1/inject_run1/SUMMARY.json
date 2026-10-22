@@ -1,0 +1,52 @@
+﻿{
+    "checks_failed":  0,
+    "pids":  {
+                 "hub":  20516,
+                 "agent":  29472,
+                 "kernel":  30396
+             },
+    "outage_sec":  12,
+    "checks":  [
+                   {
+                       "detail":  "probe saw 26 telemetry deliveries after 2 baseline writes",
+                       "ok":  true,
+                       "check":  "baseline_deltas_delivered"
+                   },
+                   {
+                       "detail":  "ws state during outage: Aborted",
+                       "ok":  true,
+                       "check":  "probe_connection_cut_during_outage"
+                   },
+                   {
+                       "detail":  "outage start -\u003e probe reconnected: 13.27s (incl. 12s injected outage)",
+                       "ok":  true,
+                       "check":  "reconnect_after_recovery"
+                   },
+                   {
+                       "detail":  "captured 78 contiguous delta seqs (range 28..105) (recovery-point-relative)",
+                       "ok":  true,
+                       "check":  "post_recovery_delta_seq_contiguous"
+                   },
+                   {
+                       "detail":  "get_project_state id-hits=34 expected\u003e=8",
+                       "ok":  true,
+                       "check":  "state_convergence_pull"
+                   },
+                   {
+                       "detail":  "relay={\"error_count\":0,\"last_recv_age_ms\":6,\"last_recv_at\":\"2026-10-22T14:50:42.27Z\",\"recv_count\":605}",
+                       "ok":  true,
+                       "check":  "hub_health_relay_diagnostics"
+                   },
+                   {
+                       "detail":  "streams entries=1",
+                       "ok":  true,
+                       "check":  "hub_health_streams_diagnostics"
+                   },
+                   {
+                       "detail":  "agent pid=29472 exited=False",
+                       "ok":  true,
+                       "check":  "agent_survived_outage"
+                   }
+               ],
+    "recovery_reconnect_seconds":  13.27
+}
