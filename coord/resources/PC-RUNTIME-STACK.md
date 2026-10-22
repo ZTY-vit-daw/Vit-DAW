@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-22 10:27 +0800 登记 / **FE-SEND-CABLE-EXTERNAL-1(164) 真栈 SendRouteGuiSmoke 腿**（owner=GLM-5.3 L2 PC ZCode 执行会话，164 卡会话；被测前端 worktree D:/Godot/project/project-vit-daw-frontend-cableext@port/fe-send-cable-external-1@8fb415c（含本卡前端改动）；主仓 stack worktree D:/Vit_DAW_wt_cableext_stack@port/fe-send-cable-external-1-stack@86e854ba=161 stack 分支基底（SendRouteGuiSmoke ps1 复用），本卡零 Go/内核改动；内核=主检出 K3 build-feguik3 Release VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读复用，10:26 哈希亲核一致；不启 UI）：dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 K3> -GodotProjectRoot <前端 worktree> -GodotExe <Godot 4.6.1 console> 一 run——K3 六腿零回退 + 161 L7 零回退 + 本卡新 L8 外部写→aux 对电缆出现/外部断开同链消失腿。§8 声明（运行前）：LLM=0（chat 腿走脚本既有白名单话术非验收面，161 同款）；成功=脚本 exit 0（探针 SUMMARY_JSON checks_failed=0）；失败分类=environment_interrupt（栈起不来/端口占用）/assertion_fail（探针断言）/script_exception；止损=同签名 assertion_fail ×2。登记前只读核对（10:26）：七端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0（用户编辑器未开）。
+- （空闲，2026-10-22 10:3x FE-SEND-CABLE-EXTERNAL-1 释放复核在卷：七端口 tcp+udp 监听=0、VitApp/VitAgent/vsphub/Godot=0）
+
+## 最近一次释放（2026-10-22 10:27–10:3x +0800，FE-SEND-CABLE-EXTERNAL-1）
+
+- 2026-10-22 10:27 登记（2699d1d2）–10:3x 释放 / **FE-SEND-CABLE-EXTERNAL-1(164) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，164 卡会话）：run=**cableext_gui_20261022_1028**，`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 K3 722A79D7 哈希占用前亲核> -GodotProjectRoot <前端 worktree@8fb415c>` **脚本 exit 0，真栈探针 41/41 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿 L1-L6 零回退 + 161 L7 零回退 + **本卡新 L8 外部写→aux 对电缆八断言全过**（foreign request_id connect=agent 写同构→SendIn 卡与 SEND ▸ 卡零操作同现→auxsend→auxreturn GraphEdit 连接出现且**过内核确认门（防幽灵线门零放松）**→派生边 key 入确认集→恰一卡无重复→外部 disconnect→卡与电缆同链消失+确认集回零；2s 快照冷却按生产纪律等待）；chat/confirm 腿过（白名单话术非验收面）。被测前端=worktree@8fb415c（含本卡改动）+agent=stack worktree 构建 463C63C1…（Go 零改动）+K3 内核只读。§8 记账：LLM=0；一次过零重跑。拆栈=脚本 finally 后残留本腿 VitAgent 3496/VitApp 11060（路径亲核）清杀→复核七端口 tcp+udp 监听=0、VitApp/VitAgent/vsphub/Godot=0。工件 coord/runs/FE-SEND-CABLE-EXTERNAL-1/（随 port/fe-send-cable-external-1-stack@fb251fb7 入库待决策侧合入；stack 分支基于 161 的 86e854ba——SendRouteGuiSmoke ps1 复用，合入序=161 stack 先行）。
 
 ## 最近一次释放（2026-10-22 10:18–10:2x +0800，FS-NAMED-DYNAMIC-WIRE-1）
 
