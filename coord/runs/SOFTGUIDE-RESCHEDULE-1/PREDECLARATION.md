@@ -36,8 +36,7 @@ F-inline（inline 装载源轨）/ F-notopo（提案无位置主张）/ F-halluc
 
 ## 6. 运行环境
 
-- 真实栈：dev_agent_smoke -StartKernel 模式自起（内核=K3 build 722A79D7 **只读复用**，跑前 SHA 哈希亲核；含 K1 send 命令族，track.send.list 读回可用）+ agent=本卡 worktree 构建（=main 生产码）+ UI/vsphub 按 §E B 三件套形态补齐（-StartUI 先绑 5555 跳过自启时按 146 复刻分支手动补起并留证）。
-- VIT_PROJECT_XML 指 run 目录工程副本；主检出/staging workspace 零触碰；fixture 由驱动在 run 目录自建（§10 隔离）。
+- 真实栈（修订于起栈前，157/158 实证形态）：**手动起栈三进程**——内核=K3 build 722A79D7 主检出 Release **只读复用**（跑前 SHA 哈希亲核；含 K1 send 命令族，track.send.list 读回可用；VIT_PROJECT_XML 指 run 目录工程副本、内核工作目录=run 目录 kernel_workspace/，主检出 workspace 零触碰）+ vsphub=本卡 worktree 构建（8787，agent 自动注册）+ agent=本卡 worktree 构建（=main 生产码，HTTP 7878，工作目录=run 目录，日志/遥测/prompt_render 全落 run 目录 VitApp/Workspace/Logs/）。**Godot UI 不启**——chat 链判定面不涉 GUI（157/158 先例形态），端测边界见 §8。fixture 由驱动在 run 目录自建（§10 隔离）。
 - 栈占用：**今日序末位**——162/164 真栈腿释出后，按 PROTOCOL §2.2 登记 PC-RUNTIME-STACK 再跑；释放后复核端口/进程归零。
 
 ## 7. 工件契约
