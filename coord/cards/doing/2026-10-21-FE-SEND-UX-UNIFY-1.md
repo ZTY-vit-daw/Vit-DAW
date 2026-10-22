@@ -31,6 +31,6 @@
 
 折叠态与 GraphEdit 电缆/链位语义冲突（折叠后 tap 点操作不可表达）→ 设计锚点上交再裁定。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 晚窗 / 主仓 origin/main=9e3601bc / owner=GLM-5.3 L2 PC ZCode 执行会话（166 卡会话）/ 分支=port/fe-send-ux-unify-1（前端仓）/ worktree=D:/Godot/project/project-vit-daw-frontend-sendux1 / 前端基线=bf9c10a（164+167 合并态=卡面指定基线；前端 origin/main=c5cac57 尚未含该合并，合入归主管）/ 领取提交=见本提交
 - 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
