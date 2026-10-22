@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-22 18:44 +0800 登记 / **SOFTGUIDE-RESCHEDULE-1(159) 146 软引导实验重排腿——B2 臂 10 变体+B1 对照 5（§E 原协议，PREDECLARATION 0078e2ec 跑前锁定）**（owner=GLM-5.3-flash L1 PC ZCode 执行会话，159 卡会话；worktree D:/Vit_DAW_wt_sgr1@port/softguide-reschedule-1@fbbee7a9+本登记提交；生产代码零改动）：内核=主检出 K3 Release 722A79D7 只读复用（18:39 哈希亲核一致）；手动起栈三进程 kernel+vsphub+agent（bringup_sgr1.ps1：端口/进程预检+内核哈希硬校验+只杀自起 pid），VIT_PROJECT_XML 指 run 目录 kernel_workspace 工程副本，不启 UI。§8 声明（运行前）：LLM=deepseek-flash ≤90 调用（预声明 §5）；成功=腿级机械计数面如实产出（不设通过线，判读交主管）；失败分类=F-inline/F-notopo/F-halluc/F-gate/F-env（§E 逐字）+驱动缺陷轮单列不占产品轮；止损=第 2 次 F-gate 全停上交（157 修复失效证据候选）/F-halluc 全停/驱动修复 ≤2 次。登记前只读核对（18:39–18:44）：四端口 tcp free、VitApp/VitAgent/vsphub/Godot=0。**登记通道偏差如实声明**：PROTOCOL §2.2 要求「成功推 main」，但主检出 main 与 origin/main 真分叉（本地 20 未推/origin 10 未含，含主管验收 f9f96ddf 未推送面），本卡不可处置——按用户本卡直派口令以**本卡分支提交+push**为登记可见面，释放/验收时随分支合入 main；起栈前以 bringup 预检+端口硬校验兜底并发冲突（占用期主检出同名文件的 18:2x 主管空闲复核条目待合并时归位）。
+- （空闲，2026-10-22 19:0x SOFTGUIDE-RESCHEDULE-1 释放复核在卷：tcp 5555/5556/7878/8787/4445+udp 4445/5555/5556 全 free、VitApp/VitAgent/vsphub/Godot=0；159 卡 18:44–19:0x 占用后释放）
+
+## 最近一次释放（2026-10-22 19:0x +0800，SOFTGUIDE-RESCHEDULE-1）
+
+- 2026-10-22 18:44 登记–19:0x 释放 / **SOFTGUIDE-RESCHEDULE-1(159) 146 软引导实验重排腿——预声明 §4.1 止损②命中全停（F-gate ×2），B2 臂停于 6/10**（owner=GLM-5.3-flash L1 PC ZCode 执行会话，159 卡会话；占用登记 373e4064）：run=**run_20261022_1846**，softguide_exp.py §E 原协议（PREDECLARATION 0078e2ec 跑前锁定）——**A2/A5 两轮同签名 target_identity 能力边界自报**（A2=「钢琴」不在 157 闭集别名表=设计内 fail-open；A5=unt 1032 已解析但渲染披露面无 user_named:1032，与 A1 同值有披露成对实证——fold/披露面证据上交主管）；到达率 4/6（A1 插件选择卡+A3/A4/B1 总线执行）；硬判据 **0 幻觉拓扑**（send_list 读回亲核）；总线执行 3/6 @-6dB、源轨正确 1/3（B1 vocals/1032→Reverb Bus；域漂移 2：A3 other/1022、A4 piano/1027）；惯例段 6/6 轮 prompt_render 亲核在场；LLM=42 次 deepseek-flash 0 error（≤90 预算内）；0 驱动缺陷轮 0 环境中断 0 原样重跑。被测 agent=E7AE99B31F5B01E1（worktree 构建，生产码=e101e19a 零改动）+K3 722A79D7 只读（18:39 哈希亲核）。拆栈=bringup Stop 只杀自起 pid（kernel 27120/vsphub 25248/agent 19180）→复核 tcp 五端口+udp 三端口全 free、四类进程=0。**登记通道偏差**（PROTOCOL §2.2 推 main 要求；main 真分叉不可推，以本卡分支 push 为可见面）已随登记行声明，释放随分支合入 main。工件 coord/runs/SOFTGUIDE-RESCHEDULE-1/run_20261022_1846/（RESULTS.md 判定面，随本卡分支入库待决策侧合入）。
 
 - （159 卡登记前的空闲基线：2026-10-21 22:1x FE-SEND-EXTERNAL-REFRESH-1 释放复核在卷；主检出侧另有 2026-10-22 18:2x 主管验收复核空闲条目待合并归位）
 

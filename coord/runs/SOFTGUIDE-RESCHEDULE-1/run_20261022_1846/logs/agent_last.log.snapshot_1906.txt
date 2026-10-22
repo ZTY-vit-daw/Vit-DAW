@@ -1,0 +1,500 @@
+2026-10-22T18:54:32 [INFO] [timing] agent_loop_chat total_ms=20347 conversation=softguide_b2_A4_20261022_185403 goal=goal_8825660e7ba86ed8 mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-22T18:54:32 [INFO] [f6.gate] conversation=softguide_b2_A4_20261022_185403 goal=goal_8825660e7ba86ed8 chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-22T18:54:32 [INFO] [continuation.claim] claimed id=cont_7a52b75742d64355495e49a6 goal=goal_8825660e7ba86ed8 conversation=softguide_b2_A4_20261022_185403 attempt=1 lease_until=2026-10-22T10:56:32Z
+2026-10-22T18:54:32 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-22T18:54:32 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:54:32 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:54:32 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-22T18:54:32 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:54:32 [INFO] [timing] harness.refresh_shadow ms=13 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:54:46 [INFO] [timing] message_loop.llm ms=14053 goal=goal_8825660e7ba86ed8 conversation=softguide_b2_A4_20261022_185403 turn=4 messages=3 chars=57901 message_chars=0:system:14772,1:user:142,2:user:42987 err=false
+2026-10-22T18:54:46 [INFO] [free-state.ledger] boundary conversation=softguide_b2_A4_20261022_185403 goal=goal_8825660e7ba86ed8 executed=0 ccb_observations=1 ids=[obs_20261022T105431_c871cb55e9e0] snapshot_loop=true continuation_loop=false stored_receipts=1
+2026-10-22T18:54:46 [INFO] [timing] harness.invoke total_ms=23 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-22T18:54:46 [INFO] [continuation.arm] conversation=softguide_b2_A4_20261022_185403 goal=goal_8825660e7ba86ed8 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:54:50 [INFO] [timing] kernel.send_command ms=2 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T18:54:50 [INFO] [timing] harness.invoke total_ms=13 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T18:54:54 [INFO] [timing] harness.invoke total_ms=4087 tool=plugin.semantic_search command=plugin_semantic_search status=ok confirmed=false err=false
+2026-10-22T18:55:00 [INFO] [timing] execute_decisions total_ms=0 decisions=0 replies=0 confirmed=true err=false
+2026-10-22T18:55:00 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1037" action="property_changed:id"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-22T18:55:00 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=track.send.connect err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-22T18:55:00 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:00 [INFO] [timing] harness.refresh_shadow ms=27 reason=track.send.connect status=ok err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-22T18:55:00 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:00 [INFO] [timing] kernel.send_command ms=68 command=track.send.connect tool=track.send.connect confirmed=true err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-22T18:55:00 [INFO] [timing] harness.invoke total_ms=80 tool=track.send.connect command=track.send.connect status=ok confirmed=true err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1038" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1039" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1038" action="property_changed:remapOnTempoChange"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1037" action="property_changed:name"
+2026-10-22T18:55:00 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1037" action="property_changed:vit_fx_role"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1037" action="property_changed:vit_send_bus"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1037" action="property_changed:vit_return_bus"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1040" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1041" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1038" action="property_changed:volume"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="AUXBUSNAMES" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="NAME" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="NAME" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1042" action="node_added"
+2026-10-22T18:55:00 [INFO] [timing] kernel.vsp_state_snapshot ms=11 reason=rack_add_node err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1042" action="property_changed:auxSendSliderPos"
+2026-10-22T18:55:00 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:00 [INFO] [timing] harness.refresh_shadow ms=38 reason=rack_add_node status=ok err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1043" action="node_added"
+2026-10-22T18:55:00 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:00 [INFO] [timing] kernel.send_command ms=166 command=rack_add_node tool=rack.add_node confirmed=true err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-10-22T18:55:00 [INFO] [timing] harness.invoke total_ms=192 tool=rack.add_node command=rack_add_node status=ok confirmed=true err=false
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1044" action="property_changed:name"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1044" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1045" action="property_changed:id"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1045" action="property_changed:remapOnTempoChange"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1046" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-10-22T18:55:00 [WARN] [shadow] delta seq gap #2 last=316 current=318
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="1047" action="property_changed:state"
+2026-10-22T18:55:00 [WARN] [telemetry] delta seq gap last=316 current=318
+2026-10-22T18:55:00 [WARN] [shadow] delta seq gap #3 last=318 current=320
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:55:00 [WARN] [telemetry] delta seq gap last=318 current=320
+2026-10-22T18:55:00 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:55:01 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:01 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=12
+2026-10-22T18:55:17 [DEBUG] [shadow] live delta uid="1047" action="property_changed:state"
+2026-10-22T18:55:17 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:55:17 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:55:18 [INFO] [timing] agent_loop_chat total_ms=46204 conversation=softguide_b2_A4_20261022_185403 goal=goal_8825660e7ba86ed8 mode= status=completed stop=semantic_dynamic_execution_completed completed_steps=0 executed=3
+2026-10-22T18:55:18 [INFO] [f6.gate] conversation=softguide_b2_A4_20261022_185403 goal=goal_8825660e7ba86ed8 chainEnded=true status=completed respGoal=completed runtimeGoal=completed
+2026-10-22T18:55:18 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=12
+2026-10-22T18:55:18 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=12 commit=c_20261022T105518_f94a4518 rebound=1 total_ms=103
+2026-10-22T18:55:18 [INFO] [timing] kernel.send_command ms=2 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T18:55:18 [INFO] [timing] harness.invoke total_ms=22 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T18:55:19 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:19 [INFO] [timing] kernel.send_command ms=24 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T18:55:19 [INFO] [timing] harness.invoke total_ms=48 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T18:55:47 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-22T18:55:47 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:55:48 [INFO] [media_refs] ms=0 conversation=softguide_b2_authority_20261022_185547 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-22T18:55:48 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=13
+2026-10-22T18:55:48 [INFO] [chat.artifacts] conversation=softguide_b2_authority_20261022_185547 response_artifacts=0 request_artifacts=0 executed=0 reply_len=69
+2026-10-22T18:55:48 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=13 commit=c_20261022T105548_960bc9ce rebound=1 total_ms=28
+2026-10-22T18:55:48 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:55:48 [INFO] [timing] http.chat total_ms=883 conversation=softguide_b2_authority_20261022_185547 message_len=16
+2026-10-22T18:55:48 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:55:48 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=open_project err=false
+2026-10-22T18:55:48 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:55:48 [INFO] [timing] harness.refresh_shadow ms=11 reason=open_project status=ok err=false
+2026-10-22T18:55:48 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:55:48 [INFO] [timing] kernel.send_command ms=76 command=open_project tool=project.open confirmed=true err=false
+2026-10-22T18:55:49 [INFO] [timing] harness.invoke total_ms=193 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-10-22T18:55:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=manual_confirmation
+2026-10-22T18:55:49 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:55:49 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" uuid=vitproj_ba5835b536314677993f23436f3d1b18 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-22T18:55:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-22T18:55:53 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:55:53 [INFO] [timing] kernel.send_command ms=10 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T18:55:53 [INFO] [timing] harness.invoke total_ms=13 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T18:55:53 [INFO] [timing] kernel.send_command ms=3 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T18:55:53 [INFO] [timing] harness.invoke total_ms=12 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T18:55:59 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=capacity_project_facts err=false
+2026-10-22T18:55:59 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:55:59 [INFO] [timing] harness.refresh_shadow ms=17 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:55:59 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=mix_request_observation_project_scope_state err=false
+2026-10-22T18:55:59 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:55:59 [INFO] [timing] harness.refresh_shadow ms=8 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-22T18:55:59 [INFO] [timing] harness.invoke total_ms=233 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=true err=false
+2026-10-22T18:55:59 [INFO] [free-state.seed] booked conversation=softguide_b2_A5_20261022_185553 observation=obs_20261022T105559_0b91332ee384 receipt=ccbr_obs_20261022T105559_0b91332ee384 revision=14 scan_satisfied=true
+2026-10-22T18:55:59 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=user_named_target_resolution err=false
+2026-10-22T18:55:59 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:55:59 [INFO] [timing] harness.refresh_shadow ms=20 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:56:01 [INFO] [timing] message_loop.llm ms=1774 goal=goal_0dfe289c30559055 conversation=softguide_b2_A5_20261022_185553 turn=1 messages=2 chars=52326 message_chars=0:system:14772,1:user:37554 err=false
+2026-10-22T18:56:01 [INFO] [timing] harness.invoke total_ms=12 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-22T18:56:01 [INFO] [timing] message_loop.tool ms=13 goal=goal_0dfe289c30559055 tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-22T18:56:01 [INFO] [free-state.ledger] boundary conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 executed=1 ccb_observations=0 ids=[] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-22T18:56:01 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:56:01 [INFO] [continuation.arm] conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_7ed3a19fe279b5543704cc52 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:56:01 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-22T18:56:01 [INFO] [timing] agent_loop_chat total_ms=7401 conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-22T18:56:01 [INFO] [media_refs] ms=0 conversation=softguide_b2_A5_20261022_185553 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-22T18:56:01 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=14
+2026-10-22T18:56:01 [INFO] [chat.artifacts] conversation=softguide_b2_A5_20261022_185553 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-22T18:56:01 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=14 commit=c_20261022T105601_d6692c77 rebound=1 total_ms=19
+2026-10-22T18:56:01 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:56:01 [INFO] [timing] http.chat total_ms=8223 conversation=softguide_b2_A5_20261022_185553 message_len=93
+2026-10-22T18:56:01 [INFO] [continuation.claim] claimed id=cont_7ed3a19fe279b5543704cc52 goal=goal_0dfe289c30559055 conversation=softguide_b2_A5_20261022_185553 attempt=1 lease_until=2026-10-22T10:58:01Z
+2026-10-22T18:56:01 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-22T18:56:01 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:01 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:56:01 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-22T18:56:01 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:01 [INFO] [timing] harness.refresh_shadow ms=23 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:56:05 [INFO] [timing] message_loop.llm ms=4134 goal=goal_0dfe289c30559055 conversation=softguide_b2_A5_20261022_185553 turn=2 messages=2 chars=59895 message_chars=0:system:14772,1:user:45123 err=false
+2026-10-22T18:56:20 [INFO] [timing] message_loop.llm ms=14721 goal=goal_0dfe289c30559055 conversation=softguide_b2_A5_20261022_185553 turn=3 messages=3 chars=60037 message_chars=0:system:14772,1:user:142,2:user:45123 err=false
+2026-10-22T18:56:20 [INFO] [timing] harness.invoke total_ms=215 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-22T18:56:20 [INFO] [timing] message_loop.tool ms=217 goal=goal_0dfe289c30559055 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-22T18:56:20 [INFO] [free-state.ledger] boundary conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 executed=1 ccb_observations=1 ids=[obs_20261022T105620_23ca4a0cb8fc] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-22T18:56:20 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:56:20 [INFO] [continuation.arm] conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_dcdb7b7ffd9ddce470116776 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:56:20 [INFO] [timing] agent_loop_chat total_ms=19216 conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-22T18:56:20 [INFO] [f6.gate] conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-22T18:56:20 [INFO] [continuation.claim] claimed id=cont_dcdb7b7ffd9ddce470116776 goal=goal_0dfe289c30559055 conversation=softguide_b2_A5_20261022_185553 attempt=1 lease_until=2026-10-22T10:58:20Z
+2026-10-22T18:56:20 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-22T18:56:20 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:20 [INFO] [timing] harness.refresh_shadow ms=14 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:56:20 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-22T18:56:20 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:20 [INFO] [timing] harness.refresh_shadow ms=13 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:56:35 [INFO] [timing] message_loop.llm ms=14343 goal=goal_0dfe289c30559055 conversation=softguide_b2_A5_20261022_185553 turn=4 messages=3 chars=57903 message_chars=0:system:14772,1:user:142,2:user:42989 err=false
+2026-10-22T18:56:35 [INFO] [free-state.ledger] boundary conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 executed=0 ccb_observations=1 ids=[obs_20261022T105620_23ca4a0cb8fc] snapshot_loop=true continuation_loop=false stored_receipts=1
+2026-10-22T18:56:35 [INFO] [continuation.arm] conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:56:35 [INFO] [timing] agent_loop_chat total_ms=14458 conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 mode=default status=completed stop=capability_blocked completed_steps=2 executed=0
+2026-10-22T18:56:35 [INFO] [f6.gate] conversation=softguide_b2_A5_20261022_185553 goal=goal_0dfe289c30559055 chainEnded=true status=completed respGoal=completed runtimeGoal=completed
+2026-10-22T18:56:35 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=14
+2026-10-22T18:56:38 [INFO] [timing] kernel.send_command ms=2 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T18:56:38 [INFO] [timing] harness.invoke total_ms=11 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T18:56:38 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:38 [INFO] [timing] kernel.send_command ms=8 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T18:56:38 [INFO] [timing] harness.invoke total_ms=17 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T18:56:39 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:39 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=open_project err=false
+2026-10-22T18:56:39 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:39 [INFO] [timing] harness.refresh_shadow ms=14 reason=open_project status=ok err=false
+2026-10-22T18:56:39 [INFO] [shadow] initialized tracks=0 project_path="<nil>" replayed_deltas=0
+2026-10-22T18:56:39 [INFO] [timing] kernel.send_command ms=56 command=open_project tool=project.open confirmed=true err=false
+2026-10-22T18:56:39 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=manual_confirmation
+2026-10-22T18:56:39 [INFO] [timing] harness.invoke total_ms=126 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-10-22T18:56:39 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:56:39 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" uuid=vitproj_ba5835b536314677993f23436f3d1b18 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-22T18:56:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-22T18:56:42 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2795587 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185642_000000000_plugin_list_available_library_plugin_list_2795587.json
+2026-10-22T18:56:43 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:43 [INFO] [timing] kernel.send_command ms=8 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T18:56:43 [INFO] [timing] harness.invoke total_ms=13 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T18:56:43 [WARN] [continuation.stall] reason=runtime-state-reload-failed err=open D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\.vit_history\.sessions\vitproj_ba5835b536314677993f23436f3d1b18\session_20261022T105639_9abee2d7\workspace\state\agent_runtime_state.json: The process cannot access the file because it is being used by another process.
+2026-10-22T18:56:43 [INFO] [timing] kernel.send_command ms=1 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T18:56:43 [INFO] [timing] harness.invoke total_ms=12 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T18:56:45 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=capacity_project_facts err=false
+2026-10-22T18:56:45 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:45 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:56:45 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=mix_request_observation_project_scope_state err=false
+2026-10-22T18:56:45 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:45 [INFO] [timing] harness.refresh_shadow ms=16 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-22T18:56:45 [INFO] [timing] harness.invoke total_ms=234 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=true err=false
+2026-10-22T18:56:45 [INFO] [free-state.seed] booked conversation=softguide_b2_B1_20261022_185643 observation=obs_20261022T105645_bc5484bfb21a receipt=ccbr_obs_20261022T105645_bc5484bfb21a revision=14 scan_satisfied=true
+2026-10-22T18:56:45 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=user_named_target_resolution err=false
+2026-10-22T18:56:45 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:45 [INFO] [timing] harness.refresh_shadow ms=16 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:56:47 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2882432 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185647_000000000_plugin_list_available_library_plugin_list_2882432.json
+2026-10-22T18:56:48 [INFO] [timing] message_loop.llm ms=3009 goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 turn=1 messages=2 chars=54454 message_chars=0:system:14772,1:user:39682 err=false
+2026-10-22T18:56:48 [INFO] [timing] harness.invoke total_ms=11 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-22T18:56:48 [INFO] [timing] message_loop.tool ms=12 goal=goal_f639c17cba40465a tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-22T18:56:48 [INFO] [free-state.ledger] boundary conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a executed=1 ccb_observations=0 ids=[] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-22T18:56:48 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:56:48 [INFO] [continuation.arm] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_f0d140a2ec6816174e5b7d69 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:56:48 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-22T18:56:48 [INFO] [timing] agent_loop_chat total_ms=4530 conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-22T18:56:48 [INFO] [media_refs] ms=0 conversation=softguide_b2_B1_20261022_185643 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-22T18:56:48 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=14
+2026-10-22T18:56:48 [INFO] [chat.artifacts] conversation=softguide_b2_B1_20261022_185643 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-22T18:56:48 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:56:48 [INFO] [timing] http.chat total_ms=5214 conversation=softguide_b2_B1_20261022_185643 message_len=111
+2026-10-22T18:56:48 [INFO] [continuation.claim] claimed id=cont_f0d140a2ec6816174e5b7d69 goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 attempt=1 lease_until=2026-10-22T10:58:48Z
+2026-10-22T18:56:48 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-22T18:56:48 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:48 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:56:48 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-22T18:56:48 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:48 [INFO] [timing] harness.refresh_shadow ms=16 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:56:54 [INFO] [timing] message_loop.llm ms=5769 goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 turn=2 messages=2 chars=62060 message_chars=0:system:14772,1:user:47288 err=false
+2026-10-22T18:56:55 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2975952 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185655_000000000_plugin_list_available_library_plugin_list_2975952.json
+2026-10-22T18:56:55 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:56:55 [INFO] control reply spilled to file cmd=get_project_state request_id=ipc_2 bytes=34852 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185655_000000000_get_project_state_ipc_2.json
+2026-10-22T18:57:11 [INFO] [timing] message_loop.llm ms=17043 goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 turn=3 messages=3 chars=62202 message_chars=0:system:14772,1:user:142,2:user:47288 err=false
+2026-10-22T18:57:12 [INFO] [timing] harness.invoke total_ms=1131 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-22T18:57:12 [INFO] [timing] message_loop.tool ms=1142 goal=goal_f639c17cba40465a tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-22T18:57:12 [INFO] [free-state.ledger] boundary conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a executed=1 ccb_observations=1 ids=[obs_20261022T105712_6a3232500eba] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-22T18:57:12 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:57:12 [INFO] [continuation.arm] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_4d904887359f63815c52fb5d lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:57:12 [INFO] [timing] agent_loop_chat total_ms=24191 conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-22T18:57:12 [INFO] [f6.gate] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-22T18:57:13 [INFO] [continuation.claim] claimed id=cont_4d904887359f63815c52fb5d goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 attempt=1 lease_until=2026-10-22T10:59:13Z
+2026-10-22T18:57:13 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=capacity_project_facts err=false
+2026-10-22T18:57:13 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:57:13 [INFO] [timing] harness.refresh_shadow ms=13 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:57:13 [INFO] [timing] kernel.vsp_state_snapshot ms=21 reason=user_named_target_resolution err=false
+2026-10-22T18:57:13 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:57:13 [INFO] [timing] harness.refresh_shadow ms=32 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:57:27 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_4251700 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185727_000000000_plugin_list_available_library_plugin_list_4251700.json
+2026-10-22T18:57:27 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:57:27 [INFO] control reply spilled to file cmd=get_project_state request_id=ipc_2 bytes=34852 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185727_000000000_get_project_state_ipc_2.json
+2026-10-22T18:57:40 [INFO] [timing] message_loop.llm ms=27119 goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 turn=4 messages=3 chars=60596 message_chars=0:system:14772,1:user:142,2:user:45682 err=false
+2026-10-22T18:57:41 [INFO] [timing] harness.invoke total_ms=1026 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-22T18:57:41 [INFO] [timing] message_loop.tool ms=1029 goal=goal_f639c17cba40465a tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-22T18:57:41 [INFO] [free-state.ledger] boundary conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a executed=1 ccb_observations=1 ids=[obs_20261022T105741_4fcc050aea65] snapshot_loop=true continuation_loop=true stored_receipts=1
+2026-10-22T18:57:41 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:57:41 [INFO] [continuation.arm] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_203944f307e725ece99a2b3e lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:57:41 [INFO] [timing] agent_loop_chat total_ms=28385 conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a mode=default status=waiting_continue stop=limit_reached completed_steps=3 executed=1
+2026-10-22T18:57:41 [INFO] [f6.gate] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-22T18:57:41 [INFO] [continuation.claim] claimed id=cont_203944f307e725ece99a2b3e goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 attempt=1 lease_until=2026-10-22T10:59:41Z
+2026-10-22T18:57:41 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=capacity_project_facts err=false
+2026-10-22T18:57:41 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:57:41 [INFO] [timing] harness.refresh_shadow ms=17 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:57:41 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=user_named_target_resolution err=false
+2026-10-22T18:57:41 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:57:41 [INFO] [timing] harness.refresh_shadow ms=19 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:58:00 [INFO] [timing] message_loop.llm ms=18437 goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 turn=5 messages=3 chars=60581 message_chars=0:system:14772,1:user:142,2:user:45667 err=false
+2026-10-22T18:58:01 [INFO] [timing] harness.invoke total_ms=945 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-22T18:58:01 [INFO] [timing] message_loop.tool ms=947 goal=goal_f639c17cba40465a tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-22T18:58:01 [INFO] [free-state.ledger] boundary conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a executed=1 ccb_observations=1 ids=[obs_20261022T105801_b9a749fe5953] snapshot_loop=true continuation_loop=true stored_receipts=2
+2026-10-22T18:58:01 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:58:01 [INFO] [continuation.arm] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_6acdd2b609e5dd5c338b0e3e lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:58:01 [INFO] [timing] agent_loop_chat total_ms=19551 conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a mode=default status=waiting_continue stop=limit_reached completed_steps=4 executed=1
+2026-10-22T18:58:01 [INFO] [f6.gate] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-22T18:58:01 [INFO] [continuation.claim] claimed id=cont_6acdd2b609e5dd5c338b0e3e goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 attempt=1 lease_until=2026-10-22T11:00:01Z
+2026-10-22T18:58:01 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=capacity_project_facts err=false
+2026-10-22T18:58:01 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:58:01 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-22T18:58:01 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-22T18:58:01 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:58:01 [INFO] [timing] harness.refresh_shadow ms=21 reason=user_named_target_resolution status=ok err=false
+2026-10-22T18:58:01 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2743500 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185801_000000000_plugin_list_available_library_plugin_list_2743500.json
+2026-10-22T18:58:03 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2667173 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185803_000000000_plugin_list_available_library_plugin_list_2667173.json
+2026-10-22T18:58:12 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2685506 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185812_000000000_plugin_list_available_library_plugin_list_2685506.json
+2026-10-22T18:58:14 [INFO] [timing] message_loop.llm ms=13016 goal=goal_f639c17cba40465a conversation=softguide_b2_B1_20261022_185643 turn=6 messages=3 chars=61019 message_chars=0:system:14772,1:user:142,2:user:46105 err=false
+2026-10-22T18:58:14 [INFO] [free-state.ledger] boundary conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a executed=0 ccb_observations=1 ids=[obs_20261022T105801_b9a749fe5953] snapshot_loop=true continuation_loop=false stored_receipts=3
+2026-10-22T18:58:14 [INFO] [timing] harness.invoke total_ms=25 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-22T18:58:14 [INFO] [mix.treatment.pending] stored conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a run=run_e6e08de2cfeaec5a action=pan_balance processor=utility target=track:1032 observation=
+2026-10-22T18:58:14 [INFO] [continuation.arm] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T18:58:18 [INFO] [timing] kernel.send_command ms=2 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T18:58:18 [INFO] [timing] harness.invoke total_ms=10 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T18:58:22 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2736543 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185822_000000000_plugin_list_available_library_plugin_list_2736543.json
+2026-10-22T18:58:22 [INFO] [timing] harness.invoke total_ms=4077 tool=plugin.semantic_search command=plugin_semantic_search status=ok confirmed=false err=false
+2026-10-22T18:58:27 [INFO] [timing] execute_decisions total_ms=0 decisions=0 replies=0 confirmed=true err=false
+2026-10-22T18:58:27 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1037" action="property_changed:id"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-22T18:58:27 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=track.send.connect err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-22T18:58:27 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:58:27 [INFO] [timing] harness.refresh_shadow ms=28 reason=track.send.connect status=ok err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-22T18:58:27 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:58:27 [INFO] [timing] kernel.send_command ms=80 command=track.send.connect tool=track.send.connect confirmed=true err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1038" action="node_added"
+2026-10-22T18:58:27 [INFO] [timing] harness.invoke total_ms=90 tool=track.send.connect command=track.send.connect status=ok confirmed=true err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1039" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1038" action="property_changed:remapOnTempoChange"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1037" action="property_changed:name"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1037" action="property_changed:vit_fx_role"
+2026-10-22T18:58:27 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1037" action="property_changed:vit_send_bus"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1037" action="property_changed:vit_return_bus"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1040" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1041" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1038" action="property_changed:volume"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="AUXBUSNAMES" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="NAME" action="node_added"
+2026-10-22T18:58:27 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=rack_add_node err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T18:58:27 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:58:27 [INFO] [timing] harness.refresh_shadow ms=27 reason=rack_add_node status=ok err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="NAME" action="node_added"
+2026-10-22T18:58:27 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:58:27 [INFO] [timing] kernel.send_command ms=101 command=rack_add_node tool=rack.add_node confirmed=true err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1042" action="node_added"
+2026-10-22T18:58:27 [INFO] [timing] harness.invoke total_ms=121 tool=rack.add_node command=rack_add_node status=ok confirmed=true err=false
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1042" action="property_changed:auxSendSliderPos"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1043" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1044" action="property_changed:name"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1044" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1045" action="property_changed:id"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1045" action="property_changed:remapOnTempoChange"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1046" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="1047" action="property_changed:state"
+2026-10-22T18:58:27 [WARN] [shadow] delta seq gap #4 last=378 current=380
+2026-10-22T18:58:27 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:58:27 [WARN] [telemetry] delta seq gap last=378 current=380
+2026-10-22T18:58:28 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:58:28 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=16
+2026-10-22T18:58:31 [INFO] [timing] agent_loop_chat total_ms=30105 conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a mode= status=completed stop=semantic_dynamic_execution_completed completed_steps=0 executed=3
+2026-10-22T18:58:31 [INFO] [f6.gate] conversation=softguide_b2_B1_20261022_185643 goal=goal_f639c17cba40465a chainEnded=true status=waiting_interaction respGoal=completed runtimeGoal=waiting_confirmation
+2026-10-22T18:58:31 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=16
+2026-10-22T18:58:31 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=16 commit=c_20261022T105831_9073c5ab rebound=1 total_ms=19
+2026-10-22T18:58:31 [INFO] [mix.treatment.pending] resolver decision conversation=softguide_b2_B1_20261022_185643 status=ready_pan_tick action=pan_balance processor=utility target=track:1032
+2026-10-22T18:58:31 [WARN] [mix.tick.pending] candidate validation failed conversation=softguide_b2_B1_20261022_185643 将 Track 1032 的声像设置为 +0.00 err=工程轨道数量已经变化
+2026-10-22T18:58:31 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit revision=16
+2026-10-22T18:58:31 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ba5835b536314677993f23436f3d1b18
+2026-10-22T18:58:31 [INFO] [timing] http.interaction_respond total_ms=16578 interaction=interaction_2da704d16df313a1 action=approve
+2026-10-22T18:58:31 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T18:58:33 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2742756 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185833_000000000_plugin_list_available_library_plugin_list_2742756.json
+2026-10-22T18:58:33 [INFO] [timing] kernel.send_command ms=1 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T18:58:33 [INFO] [timing] harness.invoke total_ms=12 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T18:58:33 [INFO] [shadow] initialized tracks=7 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=1
+2026-10-22T18:58:33 [INFO] [timing] kernel.send_command ms=9 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T18:58:33 [INFO] [timing] harness.invoke total_ms=13 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T18:58:44 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2700333 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185844_000000000_plugin_list_available_library_plugin_list_2700333.json
+2026-10-22T18:59:43 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2672906 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185943_000000000_plugin_list_available_library_plugin_list_2672906.json
+2026-10-22T18:59:46 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_5990017 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_185946_000000000_plugin_list_available_library_plugin_list_5990017.json
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1011" action="node_removed"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1016" action="node_removed"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1021" action="node_removed"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1026" action="node_removed"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1031" action="node_removed"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1036" action="node_removed"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:vit_analysis_manifest_json"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:modifiedBy"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1047" action="property_changed:state"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1048" action="property_changed:id"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1049" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1050" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1049" action="property_changed:remapOnTempoChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1048" action="property_changed:name"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1048" action="property_changed:name"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1051" action="property_changed:id"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1052" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1053" action="node_added"
+2026-10-22T19:00:26 [INFO] [shadow] initialized tracks=14 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=7
+2026-10-22T19:00:26 [INFO] control reply spilled to file cmd=get_project_state request_id=ipc_6 bytes=47366 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_190026_000000000_get_project_state_ipc_6.json
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1052" action="property_changed:remapOnTempoChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1051" action="property_changed:name"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1051" action="property_changed:vit_fx_role"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1051" action="property_changed:vit_send_bus"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1051" action="property_changed:vit_return_bus"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1054" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1055" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1052" action="property_changed:volume"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="NAME" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="NAME" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1056" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1056" action="property_changed:auxSendSliderPos"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1057" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1056" action="property_changed:auxSendSliderPos"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="VIT_PARAM_LINK_GRAPH" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="VIT_CONTROL_NODE" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="VIT_PARAM_BINDING" action="node_added"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="VIT_CONTROL_NODE" action="property_changed:macro_1_value"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="1056" action="property_changed:auxSendSliderPos"
+2026-10-22T19:00:26 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1056" action="node_removed"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1057" action="node_removed"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1054" action="node_removed"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1055" action="node_removed"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1052" action="property_changed:volume"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1051" action="property_changed:vit_fx_role"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1051" action="property_changed:vit_send_bus"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1051" action="property_changed:vit_return_bus"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1058" action="property_changed:id"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1059" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1060" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1059" action="property_changed:remapOnTempoChange"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1058" action="property_changed:name"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1058" action="property_changed:vit_fx_role"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1058" action="property_changed:vit_send_bus"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1058" action="property_changed:vit_return_bus"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1061" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1062" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1059" action="property_changed:volume"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="NAME" action="property_changed:name"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1063" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1063" action="property_changed:auxSendSliderPos"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="1064" action="node_added"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:27 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:00:27 [INFO] [shadow] initialized tracks=10 project_path="D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=4
+2026-10-22T19:00:27 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=18
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1063" action="node_removed"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1064" action="node_removed"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1061" action="node_removed"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1062" action="node_removed"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1059" action="property_changed:volume"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1058" action="property_changed:vit_fx_role"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1058" action="property_changed:vit_send_bus"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="1058" action="property_changed:vit_return_bus"
+2026-10-22T19:00:29 [DEBUG] [shadow] live delta uid="0/1f6de49" action="property_changed:lastSignificantChange"
+2026-10-22T19:01:40 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_2689260 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_190140_000000000_plugin_list_available_library_plugin_list_2689260.json
+2026-10-22T19:01:42 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_5431563 bytes=1288808 file=D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\logs\BridgeReplies\20261022_190142_000000000_plugin_list_available_library_plugin_list_5431563.json

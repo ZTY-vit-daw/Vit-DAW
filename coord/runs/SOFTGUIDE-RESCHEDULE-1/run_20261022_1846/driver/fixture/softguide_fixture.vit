@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EDIT appVersion="Unknown" projectID="0/1f6de49" creationTime="0" modifiedBy="timoz"
+      vit_project_uuid="vitproj_ba5835b536314677993f23436f3d1b18" lastSignificantChange="1a16344f98d"
+      vit_agent_history_generation="save_20261022T104607_1be69fc6"
+      vit_project_parent_uuid="vitproj_a82afadaa59148c7844ad1755e813074"
+      vit_analysis_manifest_json="{&quot;schema_version&quot;: &quot;vit_analysis_manifest.v1&quot;, &quot;project_uuid&quot;: &quot;vitproj_ba5835b536314677993f23436f3d1b18&quot;, &quot;project_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\softguide_fixture.vit&quot;, &quot;analyzer&quot;: &quot;waveform_envelope_baker&quot;, &quot;status&quot;: &quot;ready&quot;, &quot;l1_waveform_rows&quot;: [{&quot;clip_id&quot;: &quot;1011&quot;, &quot;clip_revision&quot;: &quot;clip=1011|track=1007|source=D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\bass.wav|size=194084|mtime=1792665965515|length=2.2000|offset=0.0000|length=2.2000&quot;, &quot;crest_db&quot;: 3.010583022719612, &quot;duration_seconds&quot;: 2.2, &quot;feature_stride&quot;: 6, &quot;file_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\bass.wav&quot;, &quot;frame_count&quot;: 1024, &quot;headroom_db&quot;: 9.11924501370542, &quot;peak_abs&quot;: 0.3499755859375, &quot;peak_dbfs&quot;: -9.11924501370542, &quot;reason&quot;: &quot;ok&quot;, &quot;rms&quot;: 0.247462045347913, &quot;rms_dbfs&quot;: -12.129828036425032, &quot;sample_rate&quot;: 44100, &quot;source_fingerprint&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\bass.wav|size=194084|mtime=1792665965515|length=2.2000&quot;, &quot;source_id&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\bass.wav&quot;, &quot;source_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\bass.wav&quot;, &quot;source_revision&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\bass.wav|size=194084|mtime=1792665965515|length=2.2000&quot;, &quot;status&quot;: &quot;ready&quot;, &quot;track_id&quot;: &quot;1007&quot;, &quot;updated_at&quot;: &quot;2026-10-22T18:46:06.058+08:00&quot;}, {&quot;clip_id&quot;: &quot;1016&quot;, &quot;clip_revision&quot;: &quot;clip=1016|track=1012|source=D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792665965532|length=2.2000|offset=0.0000|length=2.2000&quot;, &quot;crest_db&quot;: 3.010458446343714, &quot;duration_seconds&quot;: 2.2, &quot;feature_stride&quot;: 6, &quot;file_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\drums.wav&quot;, &quot;frame_count&quot;: 1024, &quot;headroom_db&quot;: 6.936103161438021, &quot;peak_abs&quot;: 0.449981689453125, &quot;peak_dbfs&quot;: -6.936103161438021, &quot;reason&quot;: &quot;ok&quot;, &quot;rms&quot;: 0.318179298214626, &quot;rms_dbfs&quot;: -9.946561607781735, &quot;sample_rate&quot;: 44100, &quot;source_fingerprint&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792665965532|length=2.2000&quot;, &quot;source_id&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\drums.wav&quot;, &quot;source_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\drums.wav&quot;, &quot;source_revision&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\drums.wav|size=194084|mtime=1792665965532|length=2.2000&quot;, &quot;status&quot;: &quot;ready&quot;, &quot;track_id&quot;: &quot;1012&quot;, &quot;updated_at&quot;: &quot;2026-10-22T18:46:06.108+08:00&quot;}, {&quot;clip_id&quot;: &quot;1021&quot;, &quot;clip_revision&quot;: &quot;clip=1021|track=1017|source=D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\guitar.wav|size=194084|mtime=1792665965548|length=2.2000|offset=0.0000|length=2.2000&quot;, &quot;crest_db&quot;: 3.010167202202541, &quot;duration_seconds&quot;: 2.2, &quot;feature_stride&quot;: 6, &quot;file_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\guitar.wav&quot;, &quot;frame_count&quot;: 1024, &quot;headroom_db&quot;: 7.959595426791961, &quot;peak_abs&quot;: 0.39996337890625, &quot;peak_dbfs&quot;: -7.959595426791961, &quot;reason&quot;: &quot;ok&quot;, &quot;rms&quot;: 0.282821140033374, &quot;rms_dbfs&quot;: -10.969762628994502, &quot;sample_rate&quot;: 44100, &quot;source_fingerprint&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\guitar.wav|size=194084|mtime=1792665965548|length=2.2000&quot;, &quot;source_id&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\guitar.wav&quot;, &quot;source_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\guitar.wav&quot;, &quot;source_revision&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\guitar.wav|size=194084|mtime=1792665965548|length=2.2000&quot;, &quot;status&quot;: &quot;ready&quot;, &quot;track_id&quot;: &quot;1017&quot;, &quot;updated_at&quot;: &quot;2026-10-22T18:46:06.157+08:00&quot;}, {&quot;clip_id&quot;: &quot;1026&quot;, &quot;clip_revision&quot;: &quot;clip=1026|track=1022|source=D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\other.wav|size=194084|mtime=1792665965564|length=2.2000|offset=0.0000|length=2.2000&quot;, &quot;crest_db&quot;: 3.010789642081246, &quot;duration_seconds&quot;: 2.2, &quot;feature_stride&quot;: 6, &quot;file_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\other.wav&quot;, &quot;frame_count&quot;: 1024, &quot;headroom_db&quot;: 10.457928342551646, &quot;peak_abs&quot;: 0.29998779296875, &quot;peak_dbfs&quot;: -10.457928342551646, &quot;reason&quot;: &quot;ok&quot;, &quot;rms&quot;: 0.212111444111984, &quot;rms_dbfs&quot;: -13.468717984632892, &quot;sample_rate&quot;: 44100, &quot;source_fingerprint&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\other.wav|size=194084|mtime=1792665965564|length=2.2000&quot;, &quot;source_id&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\other.wav&quot;, &quot;source_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\other.wav&quot;, &quot;source_revision&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\other.wav|size=194084|mtime=1792665965564|length=2.2000&quot;, &quot;status&quot;: &quot;ready&quot;, &quot;track_id&quot;: &quot;1022&quot;, &quot;updated_at&quot;: &quot;2026-10-22T18:46:06.210+08:00&quot;}, {&quot;clip_id&quot;: &quot;1031&quot;, &quot;clip_revision&quot;: &quot;clip=1031|track=1027|source=D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\piano.wav|size=194084|mtime=1792665965582|length=2.2000|offset=0.0000|length=2.2000&quot;, &quot;crest_db&quot;: 3.010183825239198, &quot;duration_seconds&quot;: 2.2, &quot;feature_stride&quot;: 6, &quot;file_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\piano.wav&quot;, &quot;frame_count&quot;: 1024, &quot;headroom_db&quot;: 7.959595426791961, &quot;peak_abs&quot;: 0.39996337890625, &quot;peak_dbfs&quot;: -7.959595426791961, &quot;reason&quot;: &quot;ok&quot;, &quot;rms&quot;: 0.28282059877141, &quot;rms_dbfs&quot;: -10.969779252031159, &quot;sample_rate&quot;: 44100, &quot;source_fingerprint&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\piano.wav|size=194084|mtime=1792665965582|length=2.2000&quot;, &quot;source_id&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\piano.wav&quot;, &quot;source_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\piano.wav&quot;, &quot;source_revision&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\piano.wav|size=194084|mtime=1792665965582|length=2.2000&quot;, &quot;status&quot;: &quot;ready&quot;, &quot;track_id&quot;: &quot;1027&quot;, &quot;updated_at&quot;: &quot;2026-10-22T18:46:06.259+08:00&quot;}, {&quot;clip_id&quot;: &quot;1036&quot;, &quot;clip_revision&quot;: &quot;clip=1036|track=1032|source=D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792665965599|length=2.2000|offset=0.0000|length=2.2000&quot;, &quot;crest_db&quot;: 3.010376643921265, &quot;duration_seconds&quot;: 2.2, &quot;feature_stride&quot;: 6, &quot;file_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\vocals.wav&quot;, &quot;frame_count&quot;: 1024, &quot;headroom_db&quot;: 6.021130074090242, &quot;peak_abs&quot;: 0.499969482421875, &quot;peak_dbfs&quot;: -6.021130074090242, &quot;reason&quot;: &quot;ok&quot;, &quot;rms&quot;: 0.353528690106086, &quot;rms_dbfs&quot;: -9.031506718011507, &quot;sample_rate&quot;: 44100, &quot;source_fingerprint&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792665965599|length=2.2000&quot;, &quot;source_id&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\vocals.wav&quot;, &quot;source_path&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\vocals.wav&quot;, &quot;source_revision&quot;: &quot;D:\\Vit_DAW_wt_sgr1\\coord\\runs\\SOFTGUIDE-RESCHEDULE-1\\run_20261022_1846\\driver\\fixture\\fixture_stems\\vocals.wav|size=194084|mtime=1792665965599|length=2.2000&quot;, &quot;status&quot;: &quot;ready&quot;, &quot;track_id&quot;: &quot;1032&quot;, &quot;updated_at&quot;: &quot;2026-10-22T18:46:06.310+08:00&quot;}], &quot;updated_at&quot;: &quot;2026-10-22T10:46:07.3271662Z&quot;}">
+  <TRANSPORT endToEnd="1" position="0.0"/>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
+  </TEMPOSEQUENCE>
+  <VIDEO/>
+  <CLICKTRACK level="0.6000000238418579"/>
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="0.6376281516">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS>
+    <RACK id="1044" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1045" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="1.0" y="1.0" plugin_identifier="VST3-Pro-R-4bc24482-78c01fa6"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="78c01fa6" uid="7fe57fc1" filename="C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-R.vst3"
+                name="Pro-R" manufacturer="FabFilter" id="1047" enabled="1" remapOnTempoChange="1"
+                process="1" state="677.VMjLgvo....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9LCNy3hQEwFVFkjKt3hK1MjKt3hKDUEaYcVUGEldAgGUqE0Qi8FMwjkKt3hKtPUQt3hKt3hKtX2SHcmX1kiKt3hK2jFaYw1aO4hKt3xJLkGS4cyPt3hYxAkKt3hYq3hKt3RN4UlRtcDTPsxQvjCdxXmM0LjKt3xLO4hKtX1JHc2a2QDQR8DQxUGSogEZ43hKt3hKt3hKt3BTZ8jLGETPt3hKt3hKt3hcO4hKt3hKt3hKt3hZwjGNQAkKt3hKt3hKt3xMC4hKt3hKt3hKt3xa3HVYDQjKt3hKt3hKt3xJt3hKt3hKt3hKt.kVOIyQAEjKt3hKt3hKtX2St3hKt3hKt3hKtnVL4giTP4hKt3hK0I0PXcyPt3hKt3hKt3hYq3hKt3RNCIySoUETt3hKt3xPt3hK2LjKt3BRP4hKtX1Jt3hKtjSZO8lSQAkKt3hZtTmVz7jMC4hKt3hKt3hKlshKt3hKtnVL4gSTP4hKt3hKt3hKtbyPt3hKt3hKt3hYq3hKt3hKpESd3DETt3hKt3hKt3hK2LjKt3hKt3hKtX1Jt3hKt3hZwjGNQAkKt3hKt3hKt3xMC4hKt3hKt3hKlsBT3kDQwLjKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3RPt3hK4LjKt3hKtDjKt3hKD4hKt3hK77RRC8Vav8lak4Fc9vSREQVZzMzatQmbuwFakImOwHiKFkEUYoVPt3hKt3hKt3hKtvyKIUDYoQ2Pu4Fcx8FarUlb9vyKVMEUy.Ea0cVZtMEcgQWY9.."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1047" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1047" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1047" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1047" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1047" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1047" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+  </RACKS>
+  <MASTERPLUGINS/>
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="midiin_4b684aa" name="SG Device I/O"/>
+    <INPUTDEVICE deviceID="midiin_1683015f" name="StudioRack"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293b" name="Input 1"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293c" name="Input 2"/>
+  </INPUTDEVICES>
+  <TRACKCOMPS/>
+  <SCENES/>
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60"/>
+  </PITCHSEQUENCE>
+  <VIT_AUDIO_SETTINGS migration_state="defaulted_new_project" defaulted_origin="new_project"
+                      schema_version="vit_project_audio_settings.v1" sample_rate_hz="48000"
+                      record_file_type="WAV/BWF" record_bit_depth="24" pcm_format="int24"
+                      internal_processing_format="unknown" import_sample_rate_policy="ask"
+                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
+                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="48000"
+                      render_default_bit_depth="24" render_default_file_type="WAV"
+                      dither_policy="unknown"/>
+  <AUXBUSNAMES>
+    <NAME bus="0" name="Reverb Bus"/>
+    <NAME bus="1" name="Reverb Bus Ret"/>
+    <NAME bus="2" name="Reverb Bus K3 Ext 16"/>
+    <NAME bus="3" name="Reverb Bus K3 Ext 16"/>
+  </AUXBUSNAMES>
+  <VIT_PARAM_LINK_GRAPH graph_id="control_graph" domain="control">
+    <VIT_PARAM_SURFACE surface_id="main_surface" name="Main Control Surface" kind="macro_panel"/>
+    <VIT_CONTROL_NODE node_id="macro_a0bd079978854262ab9b1dfff8812946" kind="macropanel"
+                      name="Space K3" x="640.0" y="320.0" min="0.0" max="1.0" default_value="0.0"
+                      current_value="0.0" enabled="1" macro_count="1" macro_1_value="0.8"/>
+    <VIT_PARAM_BINDING binding_id="binding_4904c4d79a83431fbbf7a0ff69174c3f" source_node_id="macro_a0bd079978854262ab9b1dfff8812946"
+                       source_output="macro_1" target_kind="plugin_param" target_plugin_id="1056"
+                       target_param_id="send level" target_node_id="" target_input="value"
+                       range_min="0.0" range_max="1.0" curve="linear" enabled="1"/>
+  </VIT_PARAM_LINK_GRAPH>
+  <ARRANGERTRACK name="Arranger" id="1002"/>
+  <CHORDTRACK name="Chord" id="1003"/>
+  <MARKERTRACK id="1004" name="Marker"/>
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS/>
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS/>
+  </MASTERTRACK>
+  <TRACK id="1007" name="bass" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\fixture_stems\bass.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1012" name="drums" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\fixture_stems\drums.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1013" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1014" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1017" name="guitar" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\fixture_stems\guitar.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1018" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1019" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1022" name="other" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\fixture_stems\other.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1023" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1024" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1027" name="piano" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\fixture_stems\piano.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1028" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1029" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1032" name="vocals" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\fixture_stems\vocals.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="auxsend" id="1042" enabled="1" quickParamName="send level"
+            remapOnTempoChange="1" busNum="0" auxSendSliderPos="0.5488116145133972">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="auxreturn" id="1043" enabled="1" remapOnTempoChange="1"
+            busNum="1"/>
+    <PLUGIN type="volume" id="1033" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1034" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1037" name="Reverb Bus" vit_fx_role="send_return_fx" vit_send_bus="0"
+         vit_return_bus="1">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="auxreturn" id="1040" enabled="1" remapOnTempoChange="1"
+            busNum="0"/>
+    <PLUGIN type="auxsend" id="1041" enabled="1" quickParamName="send level"
+            remapOnTempoChange="1" busNum="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="rack" rackType="1044" id="1046" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1038" enabled="1" remapOnTempoChange="1" volume="0.006096747238188982">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1039" enabled="1"/>
+  </TRACK>
+  <TRACK id="1048">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1049" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1050" enabled="1"/>
+  </TRACK>
+  <TRACK id="1058" name="Reverb Bus K3 Ext 1670">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1059" enabled="1" remapOnTempoChange="1" volume="0.740818202495575">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1060" enabled="1"/>
+  </TRACK>
+  <TRACK id="1051" name="Reverb Bus K3 1064">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1052" enabled="1" remapOnTempoChange="1" volume="0.740818202495575">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1053" enabled="1"/>
+  </TRACK>
+</EDIT>
