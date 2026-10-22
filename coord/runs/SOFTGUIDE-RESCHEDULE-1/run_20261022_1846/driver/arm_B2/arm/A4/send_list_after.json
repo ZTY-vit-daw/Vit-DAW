@@ -1,0 +1,56 @@
+{
+ "command_ack": {
+  "ack": {
+   "message": "Send topology read-back",
+   "stage": "completed"
+  },
+  "command": "legacy.command",
+  "legacy_command": "track.send.list",
+  "resync_hint": true,
+  "revision": 0,
+  "source": "vsp.command.response",
+  "stage": "completed",
+  "transaction_id": "tx_1792666518776078600_372"
+ },
+ "dangling": [],
+ "fx_tracks": [
+  {
+   "name": "Delay Bus",
+   "return_bus": 1,
+   "send_bus": 0,
+   "source_count": 1,
+   "track_id": "1037"
+  }
+ ],
+ "message": "Send topology read-back",
+ "sends": [
+  {
+   "amount_db": -6,
+   "fx_name": "Delay Bus",
+   "fx_track_id": "1037",
+   "return_bus": 1,
+   "send_bus": 0,
+   "source_name": "piano",
+   "source_track_id": "1027"
+  }
+ ],
+ "sidechain": [],
+ "status": "ok",
+ "vsp": {
+  "command_ack": {
+   "ack": {
+    "message": "Send topology read-back",
+    "stage": "completed"
+   },
+   "command": "legacy.command",
+   "legacy_command": "track.send.list",
+   "resync_hint": true,
+   "revision": 0,
+   "source": "vsp.command.response",
+   "stage": "completed",
+   "transaction_id": "tx_1792666518776078600_372"
+  },
+  "transport": "vsp",
+  "version": "1.0"
+ }
+}

@@ -3,7 +3,15 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-22 18:2x 主管验收复核在卷：六端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0；164 腿 10:3x 释放后无占用）
+- （空闲，2026-10-22 22:0x 主管验收复核：四类进程=0、栈端口全 free；166 腿 19:2x 释放后无占用）
+
+## 最近一次释放（2026-10-22 19:1x–19:2x +0800，FE-SEND-UX-UNIFY-1(166)）
+
+- 2026-10-22 19:1x 登记–19:2x 释放 / **FE-SEND-UX-UNIFY-1(166) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，166 卡会话；占用登记 f305bf35@coord/splitdrag1-claim 分支——登记通道偏差同 159 形态已在 RESULTS 声明）：run=**sendux_gui_20261022_1906**，真栈探针 **51/51 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿+161 L7 零回退+166 新腿（L7 折叠默认零操作+L8 三面配色同徽标+164 确认集保持）。**事故记录**：19:00:25-29 未登记触 159 在飞栈（stack_probe 干跑误判同族第 4 例，自报在卷）——该触碰轮剔除不计验收，本 run=登记后独立干净轮；主管裁定=免返工记流程警示，159 判定面经主管判读未被污染（A5 归因在 prompt 渲染快照=模型输入面）。拆栈 owner 手拆 VitAgent 30196/VitApp 30164→复核进程/端口=0（RESULTS 在卷）。工件 coord/runs/FE-SEND-UX-UNIFY-1/（随 port/fe-send-ux-unify-1-stack@de9b8d83 于 2026-10-22 主管验收 merge 入库）。
+
+## 最近一次释放（2026-10-22 18:44–19:0x +0800，SOFTGUIDE-RESCHEDULE-1(159)）
+
+- 2026-10-22 18:44 登记–19:0x 释放 / **SOFTGUIDE-RESCHEDULE-1(159) 146 软引导实验重排腿——预声明 §4.1 止损②命中全停（F-gate ×2），B2 臂停于 6/10**（owner=GLM-5.3-flash L1 PC ZCode 执行会话，159 卡会话；占用登记 373e4064）：run=**run_20261022_1846**，softguide_exp.py §E 原协议（PREDECLARATION 0078e2ec 跑前锁定）——**A2/A5 两轮同签名 target_identity 能力边界自报**（A2=「钢琴」不在 157 闭集别名表=设计内 fail-open；A5=unt 1032 已解析但渲染披露面无 user_named:1032，与 A1 同值有披露成对实证——fold/披露面证据上交主管）；到达率 4/6（A1 插件选择卡+A3/A4/B1 总线执行）；硬判据 **0 幻觉拓扑**（send_list 读回亲核）；总线执行 3/6 @-6dB、源轨正确 1/3（B1 vocals/1032→Reverb Bus；域漂移 2：A3 other/1022、A4 piano/1027）；惯例段 6/6 轮 prompt_render 亲核在场；LLM=42 次 deepseek-flash 0 error（≤90 预算内）；0 驱动缺陷轮 0 环境中断 0 原样重跑。被测 agent=E7AE99B31F5B01E1（worktree 构建，生产码=e101e19a 零改动）+K3 722A79D7 只读（18:39 哈希亲核）。拆栈=bringup Stop 只杀自起 pid（kernel 27120/vsphub 25248/agent 19180）→复核 tcp 五端口+udp 三端口全 free、四类进程=0。**登记通道偏差**（PROTOCOL §2.2 推 main 要求；main 真分叉不可推，以本卡分支 push 为可见面）已随登记行声明，释放随分支合入 main。工件 coord/runs/SOFTGUIDE-RESCHEDULE-1/run_20261022_1846/（RESULTS.md 判定面，随本卡分支入库待决策侧合入）。
 
 ## 最近一次释放（2026-10-22 10:27–10:3x +0800，FE-SEND-CABLE-EXTERNAL-1(164)）
 

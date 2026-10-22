@@ -1,0 +1,10 @@
+fixture reused: D:\Vit_DAW_wt_sgr1\coord\runs\SOFTGUIDE-RESCHEDULE-1\run_20261022_1846\driver\fixture\softguide_fixture.vit
+authority bound full_project_access
+[A5] turn_1 send
+[A5] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[A5] settle runtime_goal=completed
+[A5] fixture open ok: bass,drums,guitar,other,piano,vocals
+[B1] turn_1 send
+[B1] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[B1] walkhop_1 kind=mix_treatment_confirmation goal=completed
+[B1] fixture open ok: bass,drums,guitar,other,piano,vocals
