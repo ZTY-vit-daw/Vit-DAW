@@ -25,6 +25,6 @@
 
 分栏结构已被有意重设计（非回归而是设计变更）→ 上交用户裁定（恢复 vs 新设计）。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-22 晚窗 / Vit_DAW origin/main=1ae57f23 / GLM-5.3-Flash（ZCode PC 执行会话，用户口令指定领取本卡）/ 分支=port/fe-split-resize-regression-1（前端仓独立 worktree D:/Godot/project/vit-daw-frontend-fe-split-resize，基线=前端 main c5cac57 即含 161 合入面）/ 领取提交=本提交；领取核对：卡在 todo 且派发已确认、依赖无、doing 唯一在飞卡 GEN-SUNO-WEB-DESIGN-1 为 Mac 侧文件域零冲突、前端仓 main=c5cac57）
 - 回执：（commit / 定位结论 / 验收工件 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
