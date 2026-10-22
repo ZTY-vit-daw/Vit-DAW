@@ -5,6 +5,10 @@
 
 - （空闲，2026-10-22 10:3x FE-SEND-CABLE-EXTERNAL-1 释放复核在卷：七端口 tcp+udp 监听=0、VitApp/VitAgent/vsphub/Godot=0）
 
+### 事故自报（2026-10-22 19:00:25–29 窗口，FE-SEND-UX-UNIFY-1/166 会话）
+
+- **166 会话在 159（SOFTGUIDE-RESCHEDULE-1）占用期内未登记触碰了本栈**（161/2026-10-21 同族自报第 4 例：134/139/161/166）：19:00:25–29 本会话在前端 worktree 对 `stack_probe_sendroute_macro` 做「干跑验证」——误判 headless 不触栈，实际该探针场景模式即生产传输链，对 159 在飞栈（VitApp 27120+VitAgent 19180，18:45:32 起，占用登记=159 分支 373e4064 @ port/softguide-reschedule-1，main 分叉未推）执行了完整探针腿（K3 六腿 L1-L6+161 L7+164 L8：clear_project 保轨+删 audio 轨+add_track+connect auto_create×2+set_amount+control 宏三步+disconnect×2+外部写腿）。**159 会话注意**：19:00:25-29 窗口内 run_20261022_1846 的工程副本拓扑/轨集有非本腿命令扰动（探针自建源轨+「Reverb Bus K3/K3 Ext」FX 轨+宏节点+send.list 探针行；L2/L4/L5/L6/L7-readback 五腿 FAIL=预存 send 污染即本触碰侧证据），判读请对时戳。**损害边界待 159 侧判读**（softguide 变体若逐变体重置工程则影响收窄为窗口内单变体）。166 会话即停一切栈触碰；本卡真栈腿改等 159 释放后另行登记。探针侧无正面收益计入验收（L7/L8 新断言虽全过，因占用非法不作数）。
+
 ## 最近一次释放（2026-10-22 10:27–10:3x +0800，FE-SEND-CABLE-EXTERNAL-1）
 
 - 2026-10-22 10:27 登记（2699d1d2）–10:3x 释放 / **FE-SEND-CABLE-EXTERNAL-1(164) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC ZCode 执行会话，164 卡会话）：run=**cableext_gui_20261022_1028**，`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe <主检出 K3 722A79D7 哈希占用前亲核> -GodotProjectRoot <前端 worktree@8fb415c>` **脚本 exit 0，真栈探针 41/41 PASS**（SUMMARY_JSON checks_failed=0）——K3 六腿 L1-L6 零回退 + 161 L7 零回退 + **本卡新 L8 外部写→aux 对电缆八断言全过**（foreign request_id connect=agent 写同构→SendIn 卡与 SEND ▸ 卡零操作同现→auxsend→auxreturn GraphEdit 连接出现且**过内核确认门（防幽灵线门零放松）**→派生边 key 入确认集→恰一卡无重复→外部 disconnect→卡与电缆同链消失+确认集回零；2s 快照冷却按生产纪律等待）；chat/confirm 腿过（白名单话术非验收面）。被测前端=worktree@8fb415c（含本卡改动）+agent=stack worktree 构建 463C63C1…（Go 零改动）+K3 内核只读。§8 记账：LLM=0；一次过零重跑。拆栈=脚本 finally 后残留本腿 VitAgent 3496/VitApp 11060（路径亲核）清杀→复核七端口 tcp+udp 监听=0、VitApp/VitAgent/vsphub/Godot=0。工件 coord/runs/FE-SEND-CABLE-EXTERNAL-1/（随 port/fe-send-cable-external-1-stack@fb251fb7 入库待决策侧合入；stack 分支基于 161 的 86e854ba——SendRouteGuiSmoke ps1 复用，合入序=161 stack 先行）。
