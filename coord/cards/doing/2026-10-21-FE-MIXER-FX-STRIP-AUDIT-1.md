@@ -21,6 +21,6 @@
 
 FX 轨 strip 的 send 元素承担既有功能面（如断开入口）且移除会丢功能 → 锚点上交设计再裁定。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 10:03 / 主仓 origin/main=1ae57f23（前端仓 origin/main=c5cac57，161 已合入基线）/ owner=GLM-5.3 flash（ZCode 执行会话，PC，167 领取流）/ 分支=port/fe-mixer-fx-strip-audit-1（前端仓，基线 c5cac57）/ worktree=D:/Godot/project/vit-daw-frontend-mixerfx / 文件域核对=与 doing（GEN-SUNO-WEB-DESIGN-1）及并行在飞 164（app/rack/Vit_Graph_Rack.gd 邻域）/165（legacy/window_manager 邻域）/166（rack send 渲染邻域，依赖 164 串行未领取）均不交；本卡只触 vit_dock/views/mixer 邻域。/ 领取提交=（推送后回填）
 - 回执：（commit / 断言面 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
