@@ -3,6 +3,12 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
+- （空闲，2026-10-22 23:0x 本会话机器钟 VSP-HUB-PUBLISH-RESILIENCE-1(173) 释放复核：七端口 tcp listen=0（5555/5556/7878/8787/18787/4444/4445）、VitApp/VitAgent/VspHub/vspr1_* 类进程=0）
+
+## 本次释放（2026-10-22 22:4x–23:0x 本会话机器钟，VSP-HUB-PUBLISH-RESILIENCE-1(173)）
+
+- 22:4x 登记（2928a92a）–23:0x 释放 / **VSP-HUB-PUBLISH-RESILIENCE-1(173) 真栈注入腿+adapter 直测探针腿**（owner=GLM-5.3 L2 PC ZCode 173 卡会话）：run=**coord/runs/VSP-HUB-PUBLISH-RESILIENCE-1/inject_run1**（两连全 PASS 净 exit 0：8 检查=基线 26 delta 送达/断供注入探针连接即断/hub 重启后重连 1.1s/恢复点后 78 delta seq 连续零缺口/get_project_state 收敛/hub relay+streams 诊断面在场/agent 全程存活；kernel=主检出只读+vsphub/agent=worktree 构建 e06d54a7；VIT_PROJECT_XML 指 run 目录副本主检出零触碰）；附带腿=adapter_live_probe（真 kernel+hub 8787，探针 3/3 PASS）+隔离 suspend 腿（18787 独立端口，GUI watchdog stale@15s/硬重连@30s/恢复重连+hub write_failed 驱逐亲核，日志入 run 目录）。拆栈=逐 pid Stop-Process 只杀自起进程→复核七端口 0、五类进程 0。工件随 port/vsp-hub-publish-resilience-1@e06d54a7 入库。
+
 - 2026-10-22 22:4x 本会话机器钟起 / **VSP-HUB-PUBLISH-RESILIENCE-1(173) 真栈注入腿**（owner=GLM-5.3 L2 PC ZCode 173 卡会话）：预期 run=coord/runs/VSP-HUB-PUBLISH-RESILIENCE-1/inject_*（kernel=主检出只读+vsphub/agent=worktree 构建 vspr1_*；VIT_PROJECT_XML 指 run 目录副本主检出 workspace 零触碰；hub 不可达注入=kill vsphub 进程后同构建重启）。领取前核对：五端口 tcp listen=0、VitApp/VitAgent/VspHub/Godot=0（22:0x 曾见无占用登记栈进程 12800/32920/22600 已自行消失，未触碰未复用，留此注记供判读）。
 
 - （空闲前态，2026-10-22 21:49 本会话机器钟 FS-NAMED-DISCLOSE-SUPPLY-1(170) 释放复核：五端口 tcp listen=0、VitApp/VitAgent/vsphub/VitHeadless/Godot=0；170 补证腿一次过收口——A5/B1 三面断言全过详见下节）
