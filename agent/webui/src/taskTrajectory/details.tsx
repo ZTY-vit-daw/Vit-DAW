@@ -18,6 +18,7 @@ const semanticLabels: Record<string, string> = {
   human_judgment_required: "等待你的判断",
   capability_blocked: "能力受限",
   settled: "任务已完成",
+  completed: "已完成",
   cancelled: "任务已取消",
   failed: "任务失败",
   closed: "本轮已收尾"
