@@ -126,9 +126,12 @@ func TestFSNamedTargetFoldSynthesizesCandidate(t *testing.T) {
 	if again := audioClosureUserNamedCandidates(merged, "9002"); len(again) != 2 {
 		t.Fatalf("named-target merge is not idempotent: %+v", again)
 	}
-	// A named track already covered by a machine candidate is left alone.
-	if covered := audioClosureUserNamedCandidates(machine, "9006"); len(covered) != 1 {
-		t.Fatalf("covered named target appended a duplicate: %+v", covered)
+	// FS-NAMED-DISCLOSE-SUPPLY-1: a machine candidate covering the named
+	// track is coverage, not disclosure — the synthetic row must still be
+	// appended (159 A5: a covering mid_band_overlap candidate suppressed the
+	// user_named row and the model self-reported a target-identity boundary).
+	if covered := audioClosureUserNamedCandidates(machine, "9006"); len(covered) != 2 {
+		t.Fatalf("covered named target lost the disclosure row: %+v", covered)
 	}
 	// Empty target is a strict no-op and the input slice is never mutated.
 	if empty := audioClosureUserNamedCandidates(machine, "  "); len(empty) != 1 || len(machine) != 1 {
@@ -153,6 +156,69 @@ func TestFSNamedTargetFoldSynthesizesCandidate(t *testing.T) {
 	legacy, _ := audioClosureFrontier(audioclosure.HypothesisFrontier{}, decision, nil)
 	if len(legacy.Candidates) != 0 {
 		t.Fatalf("legacy frontier wrapper synthesized a candidate: %+v", legacy.Candidates)
+	}
+}
+
+// TestFSNamedDiscloseSupplyDeterministicRow pins the FS-NAMED-DISCLOSE-SUPPLY-1
+// acceptance face: with the same resolved user_named_target the synthetic
+// disclosure row must be present in an identical A1 shape whether or not the
+// machine candidate set happens to cover the named track (159 A1 hit vs A5
+// miss on the same target 1032/9002-shaped fixture), and repeated folds never
+// stack rows or rewrite machine facts.
+func TestFSNamedDiscloseSupplyDeterministicRow(t *testing.T) {
+	uncovered := []audioclosure.Candidate{{ID: "candidate:fixture", TrackIDs: []string{"9006"}}}
+	covered := []audioclosure.Candidate{{ID: "candidate:fixture", TrackIDs: []string{"9002", "9006"}}}
+	rowFor := func(candidates []audioclosure.Candidate) (audioclosure.Candidate, bool) {
+		for _, candidate := range candidates {
+			if candidate.ID == "user_named:9002" {
+				return candidate, true
+			}
+		}
+		return audioclosure.Candidate{}, false
+	}
+	sameRow := func(a, b audioclosure.Candidate) bool {
+		return a.ID == b.ID && a.Source == b.Source &&
+			strings.Join(a.TrackIDs, ",") == strings.Join(b.TrackIDs, ",") &&
+			a.SourceObservationID == b.SourceObservationID && a.ViewID == b.ViewID
+	}
+	rowUncovered, okUncovered := rowFor(audioClosureUserNamedCandidates(uncovered, "9002"))
+	rowCovered, okCovered := rowFor(audioClosureUserNamedCandidates(covered, "9002"))
+	if !okUncovered || !okCovered {
+		t.Fatalf("user_named disclosure row missing: uncovered=%v covered=%v", okUncovered, okCovered)
+	}
+	if !sameRow(rowUncovered, rowCovered) {
+		t.Fatalf("same named target produced different disclosure rows: %+v vs %+v", rowUncovered, rowCovered)
+	}
+	if rowCovered.ID != "user_named:9002" || rowCovered.Source != audioClosureCandidateSourceUserIntent ||
+		len(rowCovered.TrackIDs) != 1 || rowCovered.TrackIDs[0] != "9002" ||
+		rowCovered.SourceObservationID != "" || rowCovered.ViewID != "" {
+		t.Fatalf("disclosure row drifted from the A1 shape: %+v", rowCovered)
+	}
+	// Coverage adds the intent row; it never rewrites machine facts.
+	if len(covered) != 1 || covered[0].ID != "candidate:fixture" || len(covered[0].TrackIDs) != 2 {
+		t.Fatalf("machine candidate mutated by the disclosure merge: %+v", covered)
+	}
+	// Fold level: the covering-machine shape (159 A5) still carries the row
+	// through the full fold, and a repeated fold stays idempotent.
+	decision := agentloop.FreeStateDecision{
+		SchemaVersion: agentloop.FreeStateDecisionSchema,
+		Status:        agentloop.FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+	}
+	existing := audioclosure.HypothesisFrontier{Candidates: covered}
+	folded, _ := audioClosureFrontierWithUserNamedTarget(existing, decision, nil, "9002")
+	rowFolded, okFolded := rowFor(folded.Candidates)
+	if !okFolded || !sameRow(rowFolded, rowCovered) {
+		t.Fatalf("fold dropped or reshaped the disclosure row under machine coverage: ok=%v row=%+v", okFolded, rowFolded)
+	}
+	refolded, _ := audioClosureFrontierWithUserNamedTarget(audioclosure.HypothesisFrontier{Candidates: folded.Candidates}, decision, nil, "9002")
+	count := 0
+	for _, candidate := range refolded.Candidates {
+		if candidate.ID == "user_named:9002" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatalf("repeated fold stacked disclosure rows: %d in %+v", count, refolded.Candidates)
 	}
 }
 
