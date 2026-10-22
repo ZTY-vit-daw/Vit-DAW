@@ -31,5 +31,5 @@ agent 经内核 `track.send.connect`（piano/1027→Reverb Bus/1037 @-6.0，内�
 内核回执族里找不到携带 aux 边的只读数据源（需内核新命令）→ 锚点上交（内核面另卡）。
 
 - 领取：2026-10-22 早窗 / 主仓 origin/main=1ae57f23（前端仓基线 origin/main=c5cac57，161 已合入）/ owner=GLM-5.3 L2 PC ZCode 执行会话（164 卡会话）/ 分支=port/fe-send-cable-external-1（前端仓）/ worktree=D:/Godot/project/project-vit-daw-frontend-cableext / 领取提交=a8dfe20b（重放于 162/165/163 三笔领取之上，本卡零冲突）
-- 回执：（commit / 真栈 run ID / 探针断言面 / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 回执：实现=前端 port/fe-send-cable-external-1@**8fb415c**（4 文件 +244：Vit_Graph_Rack.gd 边集合成+rack_send_route_rules.gd 纯函数+两探针）+stack 工件 **fb251fb7**。真栈 run=**cableext_gui_20261022_1028 exit 0**（占用登记 2699d1d2/释放复核在卷）：探针 **41/41**（K3 六腿+161 L7 零回退+L8 八断言：foreign connect→SendIn 卡与 SEND ▸ 零操作同现→auxsend→auxreturn 连接过内核确认门→无重复卡→外部断开→卡与电缆同链消失+确认集回零）。探针断言面=K3 231→**247**（纯函数 7 fail-closed+场景 12.5 九断言）+9 套回归零回退（popup 111/shrink a/b/c/start_feed 244）。取证锚定=内核回执族无显式 aux 边，**停止条件不触发**（SendOut/SendIn 成对插源轨 pluginList 相邻对=内核确认事实，list_tracks 保序回执派生，零内核新命令）。端测边界=headless 断言到连接表+确认集+卡节点，渲染像素（电缆视觉）归用户手测；FX 轨画布湿链未派生（归 166 域）。
+- 验收：**通过**（GLM 主管决策流 / 2026-10-22 晚窗）。核对：diff 亲读（纯函数 fail-closed+同一确认集+防幽灵线门零放松+rack.disconnect_pins 零触碰探针钉死）；主管复跑 **K3 247 exit 0**（worktree）+真栈 console SUMMARY_JSON checks_failed=0 亲核；**探针与 167 同文件冲突手解**（164+16 与 167+8 叠加）后**合并态 255/255 主管复跑 exit 0**（前端主检出）。验收 commit=前端 main **bf9c10a**+主仓 **45e19588**（stack 工件含 161 遗留腿一并入库）。

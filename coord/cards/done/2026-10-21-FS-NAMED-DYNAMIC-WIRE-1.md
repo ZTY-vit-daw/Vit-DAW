@@ -28,5 +28,5 @@
 交接面牵动 semantic_entry 分类器契约（146 §② 红线：注入点不进分类器）→ 停，锚点上交换注入点。
 
 - 领取：2026-10-22 09:54 +0800 / origin/main=1ae57f23d284abab0af2967f7b71e6bbc00e2c33 / owner=GLM-5.3 L2 PC ZCode 执行会话（162 卡会话） / 分支=port/fs-named-dynamic-wire-1 / worktree=D:/Vit_DAW_wt_ndw1 / 领取提交=本提交（coord/ndw1-claim）
-- 回执：（设计锚点 / commit / 真栈 run ID / 端测边界声明）
-- 验收：（裁定文件 / 验收 commit）
+- 回执：设计锚点=**单一咽喉函数 bindFreeStateAuthoritativeTrack**（交接注入点不进分类器，146 §② 红线未触发；plugin_recommendation/semantic_dynamic_workflow/goalrunner_chat 零改动）。实现=port/fs-named-dynamic-wire-1@**a6702c56**（3 文件 +822：free_state_reasoning_loop.go 咽喉改写+四面单测 fs_named_dynamic_wire_test.go+驱动 fs_named_dynamic_wire_chat.py）+工件 **227cc261**。真栈 run=**fs_ndw1_chat_20261022_101808 exit 0**（占用登记 bee74f6f/拆栈复核在卷）：F1 connect source=**vocals/1032**→FX/1037@-6.0（场次③话术复刻）；判别性=loop.target_ref=null（模型未绑轨）下 selected_track_id=1032 只能由本卡改写产生；「模型另选→改写+披露」面真栈本轮未观测（随机分支缺席，单测四面钉死，如实记录）。端测边界=agent HTTP 面+内核 ZMQ 真实派发；不覆盖 webui 渲染面（E2E-WEBUI-1 层级缺位同既往）。
+- 验收：**通过**（GLM 主管决策流 / 2026-10-22 晚窗）。核对：核心 diff 亲读（指名≠模型选择才改写+标记；无指针 fail-open 逐字节保持；模型已绑指名=零标记；轨名同源内核轨集读不出退裸 ID；机器句披露 Contains 去重）；单测族主管复跑 ok+集成态全仓 go test ./... **exit 0**；RESULTS 判读面亲核。验收 commit=**1495bb92**（merge，含工件）。
