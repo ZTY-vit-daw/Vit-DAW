@@ -36,5 +36,5 @@
 盘点发现既有 AB 面全部不可用（需从零建渲染管线）→ 设计稿如实标注+最小可行面（如仅 bypass 开关实时对照）上交用户裁定范围。
 
 - 领取：2026-10-22 20:12 / origin/main=2b3a9b05（领取时远端 tip；本卡发卡面自主管本地 main ee0050de 摘取入共享 main，同 787063ec/2b3a9b05 先例只同步 coord 面）/ owner=GLM-5.3 L2 PC 执行会话（ZCode，172 卡会话）/ 分支=主仓 main（勘察设计卡零生产码，用户明示主仓登记；无 port 分支）+ 协调分支 coord/aba172-claim / worktree=主仓 D:/Vit_DAW（勘察期零生产码改动）/ 领取提交=coord/aba172-claim tip
-- 回执：（设计稿路径 / 关键结论）
+- 回执：设计稿=coord/reports/2026-10-22-ab-audition-entry-design.md（主仓工作树+协调分支 coord/aba172-claim 双留存）/ 关键结论：①既有面盘点全部可用（内核 AuditionPreview 状态机/agent 事件链/webui 判定卡消费链/render 生产/盲测面均生产就绪），停止条件未触发；缺的只有动态链执行腿零挂接（semantic_dynamic_workflow.go grep 0 处 audition 实证，卡面定性成立）；②终案推荐=主案系统自动兑现——在 executeSemanticDynamicTicket 挂 mix-tick 形态 audition bracket（before render→参数写→after render→mount 会话→audition.ready 事件），复刻 runMixTickAuditionBracket 时序，零内核/零 webui 改动；备案不推荐（触发确定性与 159/170 概率性供应缺口同族）；③对照粒度修正（需裁定）：内核 start_render 无轨级/插件 bypass 参数（TransportAudioService.cpp:1185 实证）→首版整工程 before/after，卡面预设「FXM 轨级粒度」转后置卡 B；④判定落账需第三身份通道（judgment POST 现双路由不识别动态链身份，free-state 校验绑 loop.Experiment.ID 必 409）——按 mix-tick 同模式扩展；⑤与 171 无依赖、文件域不相交（171=Godot 前端仓，172 首版=agent Go 侧）可并行；⑥三处需用户裁定：终案确认/对照粒度/同步 bracket 基线（渲染时长降级线授权实现卡实测定）/ 零生产码改动（工作树唯一新增=设计稿），勘察边界=无真栈 run，结论全部代码锚点取证
 - 验收：（裁定文件 / 验收 commit）
