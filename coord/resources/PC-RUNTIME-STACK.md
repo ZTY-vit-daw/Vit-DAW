@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- （空闲，2026-10-22 19:2x FE-SEND-UX-UNIFY-1 释放复核在卷：四端口 tcp+udp=0、VitApp/VitAgent/vsphub/Godot=0）
+- **占用中（2026-10-22 20:1x 登记）**：FE-SEND-UI-LIVE-CHAIN-1(171) 真实 UI 复现+断点定位腿（今晚错峰序首位，用户口令指定）——owner=GLM-5.3 L2 PC ZCode 执行会话（171 卡会话）；登记前预检=四类栈进程=0（VitApp/VitAgent/vsphub/VitHeadless；用户 Godot 编辑器 30564 --editor 在跑不动）+5555/5556/7878/7879/8787 tcp_listen/udp=0；预计含 -StartUI 真栈形态（Godot 前端拉起）；占用登记=coord/fe-send-ui-live-chain-1-claim 领取提交（FF 推共享 main）
 
 ## 最近一次释放（2026-10-22 19:1x–19:2x +0800，FE-SEND-UX-UNIFY-1）
 
