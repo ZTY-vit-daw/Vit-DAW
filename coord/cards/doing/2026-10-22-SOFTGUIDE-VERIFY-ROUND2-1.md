@@ -21,6 +21,7 @@
 
 F-gate ×2 同签名 → 全停保存工件上交（169/170 修复失效或新形态证据）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-22 22:04 +0800 / origin/main=**9b79ceb3**（与本地 main 一致，159 分叉已合齐；9b79ceb3 卡池提交面）/ owner=GLM-5.3-flash L1 PC ZCode 执行会话（175 卡会话）/ 分支=**port/softguide-verify-round2-1**（主检出直接建分支，无独立 worktree——被测=主检出 VitAgent.exe 6CE34E541E77270F 亲核[21:40 构建，含 162+169+170]，与 170 登记同一二进制；vsphub B10CC41295066C48 亲核；kernel=主检出 K3 722A79D7A3F53797 亲核只读）/ 领取提交=本卡分支首提交（prep+领取，经分支落卡池，159/170 先例；登记通道偏差同 159/166/170 形态在登记行声明）。依赖核对：169+170 已合入（done 卡在卷+主检出二进制含修复），162 已合入（159 域漂移注记的缺位面本轮收敛观察条件成立）；错峰=173（VSP-HUB-PUBLISH-RESILIENCE-1）之后——登记时点 173 未领取在飞、栈空闲（170 已 21:49 释放）。领取基线工作树：M VitApp/Workspace/default_project.xml（领取前已有，本卡不触碰）+coord 未track工件（他卡/他腿留盘，不触碰）
+
 - 回执：（工件路径 / F-gate 计数 / 到达率 / 域漂移观察 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
