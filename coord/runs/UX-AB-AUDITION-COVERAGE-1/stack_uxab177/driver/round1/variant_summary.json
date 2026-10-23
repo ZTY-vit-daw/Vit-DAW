@@ -1,0 +1,166 @@
+{
+ "round": "round1",
+ "prompt": "给人声加点空间感",
+ "conversation_id": "uxab177_round1_20261023_192308",
+ "started_at": "2026-10-23T19:23:04.042+08:00",
+ "disclosed_tracks": [
+  {
+   "id": "1007",
+   "name": "bass"
+  },
+  {
+   "id": "1012",
+   "name": "drums"
+  },
+  {
+   "id": "1017",
+   "name": "guitar"
+  },
+  {
+   "id": "1022",
+   "name": "other"
+  },
+  {
+   "id": "1027",
+   "name": "piano"
+  },
+  {
+   "id": "1032",
+   "name": "vocals"
+  }
+ ],
+ "send_edges_before": 0,
+ "turns_sent": 1,
+ "nudges_sent": 0,
+ "settle_reason": "awaiting_user",
+ "goal_status_final": "waiting_confirmation",
+ "stop_reasons": [
+  "limit_reached"
+ ],
+ "final_stop_reason": "limit_reached",
+ "goal_statuses_seen": [
+  "waiting_clarification",
+  "waiting_confirmation",
+  "waiting_continue"
+ ],
+ "executed_commands": [
+  "ccb_observation_catalog"
+ ],
+ "card_hops": [
+  {
+   "index": 1,
+   "card": {
+    "face": "interaction",
+    "id": "interaction_6ef7791647f932b1",
+    "kind": "improvement_proposal_confirmation"
+   },
+   "goal_status": "waiting_clarification",
+   "source": "runtime_walk"
+  },
+  {
+   "index": 2,
+   "card": {
+    "face": "interaction",
+    "id": "interaction_21c88b945d4dd282",
+    "kind": "plugin_recommendation_question",
+    "action": "select_plugin_candidate_1"
+   },
+   "goal_status": "waiting_confirmation",
+   "source": "runtime_walk"
+  },
+  {
+   "index": 3,
+   "card": {
+    "face": "interaction",
+    "id": "interaction_5d61eed6aa9488ad",
+    "kind": "confirmation",
+    "action": "approve"
+   },
+   "goal_status": "waiting_confirmation",
+   "source": "runtime_walk"
+  },
+  {
+   "index": 4,
+   "card": {
+    "face": "interaction",
+    "id": "interaction_2936d3cd47510657",
+    "kind": "confirmation",
+    "action": "approve"
+   },
+   "goal_status": "waiting_continue",
+   "source": "runtime_walk"
+  }
+ ],
+ "transport_errors": 0,
+ "timeline": [
+  "turn_1 send",
+  "turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False",
+  "walkhop_1 kind=improvement_proposal_confirmation goal=waiting_clarification",
+  "walkhop_2 kind=plugin_recommendation_question goal=waiting_confirmation",
+  "walkhop_3 kind=confirmation goal=waiting_confirmation",
+  "walkhop_4 kind=confirmation goal=waiting_continue",
+  "settle runtime_goal=waiting_confirmation"
+ ],
+ "elapsed_s": 76.3,
+ "events_count": 36,
+ "send_edges_after": 1,
+ "judgment_stage": {
+  "conversation_id": "uxab177_round1_20261023_192308",
+  "dynamic_sessions": [
+   {
+    "session_id": "audition:dynamic:topo_plan_f0521d5da3a421d6",
+    "event_seq": 24
+   },
+   {
+    "session_id": "audition:dynamic:topo_plan_f0521d5da3a421d6",
+    "event_seq": 26
+   },
+   {
+    "session_id": "audition:dynamic:dyn_54f4e4c03a760efc",
+    "event_seq": 29
+   },
+   {
+    "session_id": "audition:dynamic:dyn_54f4e4c03a760efc",
+    "event_seq": 31
+   }
+  ],
+  "topo_session_found": true,
+  "ticket_session_found": true,
+  "executed_commands": [
+   "ccb_observation_catalog"
+  ],
+  "connect_leg_dispatched": false,
+  "load_leg_dispatched": false,
+  "topo_identity": {
+   "conversation_id": "uxab177_round1_20261023_192308",
+   "turn_id": "",
+   "round_id": "",
+   "audition_session_id": "audition:dynamic:topo_plan_f0521d5da3a421d6",
+   "project_revision": ""
+  },
+  "probe_wrong_turn": {
+   "expect": 409,
+   "got": 409
+  },
+  "probe_topo_correct": {
+   "expect": "200 or 409(replaced)",
+   "got": 409
+  },
+  "topo_judgment_outcome": {},
+  "topo_candidate_assets": [
+   {
+    "label": "A",
+    "source_ref": "D:\\Vit_DAW_wt_uxab177\\coord\\runs\\UX-AB-AUDITION-COVERAGE-1\\stack_uxab177\\driver\\round1\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\uxab177_round1_20261023_192308\\after_revision_4.wav",
+    "exists": true,
+    "size": 582904
+   },
+   {
+    "label": "B",
+    "source_ref": "D:\\Vit_DAW_wt_uxab177\\coord\\runs\\UX-AB-AUDITION-COVERAGE-1\\stack_uxab177\\driver\\round1\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\uxab177_round1_20261023_192308\\before_revision_2.wav",
+    "exists": true,
+    "size": 582904
+   }
+  ],
+  "events_after_count": 37
+ }
+}

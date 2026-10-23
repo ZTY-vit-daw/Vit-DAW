@@ -902,17 +902,19 @@ func semanticTermScore(haystack, term string, score int) int {
 // finishPluginGrabberLoadWorkflow 确认执行后的收尾入口：bus 拓扑计划先
 // 派发 connect+load 两腿（同一 harness 门：写闸授权键+PCA 装载 token 均在
 // 派发前铸造），再进入共用的参数抓取尾段；单轨 insert 计划（含 inline
-// 例外）维持原路径零变化。
+// 例外）维持原路径零变化。bus 两腿落地后回复拼上等价伴生 audition 的
+// 条款（UX-AB-AUDITION-COVERAGE-1）：挂卡即入口行，降级即降级见证行，
+// 腿失败=bracket 零值=条款原样省略（失败 summary 是诚实面）。
 func (s *Server) finishPluginGrabberLoadWorkflow(ctx context.Context, plan PendingPlan, replies []map[string]any, fallbackMessage string) (string, []map[string]any) {
 	if topologyPlan := semanticTopologyPlanFromAny(plan.WorkflowData[semanticTopologyPlanContextKey]); topologyPlan != nil && topologyPlan.Mode == semanticTopologyModeBus && len(topologyPlan.Sends) > 0 {
-		busReplies, busErr := s.executeSemanticTopologyBusLegs(ctx, plan, topologyPlan)
+		busReplies, audition, busErr := s.executeSemanticTopologyBusLegs(ctx, plan, topologyPlan)
 		replies = append(busReplies, replies...)
 		summary := semanticTopologyBusFinishSummary(topologyPlan, busReplies, busErr)
 		if busErr != nil {
 			return strings.TrimSpace(fallbackMessage + "\n" + summary), replies
 		}
 		message, replies := s.finishPluginGrabberLoadSteps(ctx, plan, replies, fallbackMessage)
-		return strings.TrimSpace(summary + "\n" + message), replies
+		return strings.TrimSpace(appendSemanticTopologyAuditionClause(summary, audition) + "\n" + message), replies
 	}
 	return s.finishPluginGrabberLoadSteps(ctx, plan, replies, fallbackMessage)
 }
@@ -927,15 +929,43 @@ func (s *Server) finishPluginGrabberLoadWorkflow(ctx context.Context, plan Pendi
 //
 // TIMEFX-BUS-WRITEGATE-1 写门（派发面前）：派发 connect 前按当前观察披露
 // 重新核校引用轨——覆盖停泊计划确认窗的状态漂移与持久化往返后的计划。
-func (s *Server) executeSemanticTopologyBusLegs(ctx context.Context, plan PendingPlan, topologyPlan *semanticTopologyPlan) ([]map[string]any, error) {
-	replies := []map[string]any{}
-	send := topologyPlan.Sends[0]
+//
+// UX-AB-AUDITION-COVERAGE-1：这两腿是效果类突变（send 路由+插件装载）在
+// 非 ticket 执行路径上的唯一实证行使面，因此与语义动态 ticket 同样跑在
+// A/B audition bracket 内——before 渲染取 connect 前修订、两腿为 mutation、
+// after 渲染取装载后修订、挂 audition:dynamic:topo_* 会话。渲染/准备失败
+// fail-open（已确认的两腿照跑，回复写降级见证行）；腿失败=mutation 失败=
+// 不挂卡、错误原样上抛。无会话身份（conversation 缺席）的计划无法挂用户
+// 可归属的卡，按历史形态跑无 bracket 两腿。
+func (s *Server) executeSemanticTopologyBusLegs(ctx context.Context, plan PendingPlan, topologyPlan *semanticTopologyPlan) ([]map[string]any, semanticDynamicAuditionBracket, error) {
 	if s == nil || s.harness == nil {
-		return replies, fmt.Errorf("harness 不可用，无法执行总线拓扑")
+		return []map[string]any{}, semanticDynamicAuditionBracket{}, fmt.Errorf("harness 不可用，无法执行总线拓扑")
 	}
 	if gateErr := semanticTopologyWriteGateIssue(topologyPlan, s.semanticTopologyObservedState(ctx)); gateErr != nil {
-		return replies, gateErr
+		return []map[string]any{}, semanticDynamicAuditionBracket{}, gateErr
 	}
+	auditionPlan := s.semanticTopologyAuditionPlan(ctx, &plan, topologyPlan)
+	if auditionPlan == nil {
+		replies, err := s.dispatchSemanticTopologyBusLegs(ctx, plan, topologyPlan)
+		return replies, semanticDynamicAuditionBracket{}, err
+	}
+	var replies []map[string]any
+	var legsErr error
+	audition, _ := s.runSemanticDynamicAuditionBracket(ctx, auditionPlan, func() error {
+		replies, legsErr = s.dispatchSemanticTopologyBusLegs(ctx, plan, topologyPlan)
+		return legsErr
+	})
+	if replies == nil {
+		replies = []map[string]any{}
+	}
+	return replies, audition, legsErr
+}
+
+// dispatchSemanticTopologyBusLegs 是两腿的原始派发序列（历史逻辑逐字
+// 保留），只被 executeSemanticTopologyBusLegs 的 bracket mutation 调用。
+func (s *Server) dispatchSemanticTopologyBusLegs(ctx context.Context, plan PendingPlan, topologyPlan *semanticTopologyPlan) ([]map[string]any, error) {
+	replies := []map[string]any{}
+	send := topologyPlan.Sends[0]
 	connectCommand := map[string]any{
 		"cmd":             "track.send.connect",
 		"source_track_id": send.SourceTrackID,

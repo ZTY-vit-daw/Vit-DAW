@@ -1,0 +1,14 @@
+[
+ {
+  "label": "A",
+  "source_ref": "D:\\Vit_DAW_wt_uxab177\\coord\\runs\\UX-AB-AUDITION-COVERAGE-1\\stack_uxab177\\driver\\round1\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\uxab177_round1_20261023_192308\\after_revision_4.wav",
+  "exists": true,
+  "size": 582904
+ },
+ {
+  "label": "B",
+  "source_ref": "D:\\Vit_DAW_wt_uxab177\\coord\\runs\\UX-AB-AUDITION-COVERAGE-1\\stack_uxab177\\driver\\round1\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\uxab177_round1_20261023_192308\\before_revision_2.wav",
+  "exists": true,
+  "size": 582904
+ }
+]

@@ -1,0 +1,85 @@
+{
+ "schema_version": "uxab177.leg_assertions.v1",
+ "round": "D:\\Vit_DAW_wt_uxab177\\coord\\runs\\UX-AB-AUDITION-COVERAGE-1\\stack_uxab177\\driver\\round1",
+ "faces": {
+  "A_connect_leg_dispatched": true,
+  "A_load_leg_dispatched": true,
+  "A_executed_commands": [
+   "ccb_observation_catalog",
+   "ccb_observation_request",
+   "get_plugin_parameters",
+   "rack_add_node",
+   "track.send.connect"
+  ],
+  "B_topo_session_count": 2,
+  "B_mount_row_seq": 24,
+  "B_all_dynamic_sessions": [
+   "audition:dynamic:topo_plan_f0521d5da3a421d6",
+   "audition:dynamic:topo_plan_f0521d5da3a421d6",
+   "audition:dynamic:dyn_54f4e4c03a760efc",
+   "audition:dynamic:dyn_54f4e4c03a760efc"
+  ],
+  "B_session_id": "audition:dynamic:topo_plan_f0521d5da3a421d6",
+  "B_candidate_labels": [
+   "A",
+   "B"
+  ],
+  "B_ready_event_seqs": [
+   24,
+   26
+  ],
+  "C_assets": [
+   {
+    "label": "A",
+    "source_ref": "D:\\Vit_DAW_wt_uxab177\\coord\\runs\\UX-AB-AUDITION-COVERAGE-1\\stack_uxab177\\driver\\round1\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\uxab177_round1_20261023_192308\\after_revision_4.wav",
+    "exists": true,
+    "size": 582904
+   },
+   {
+    "label": "B",
+    "source_ref": "D:\\Vit_DAW_wt_uxab177\\coord\\runs\\UX-AB-AUDITION-COVERAGE-1\\stack_uxab177\\driver\\round1\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\uxab177_round1_20261023_192308\\before_revision_2.wav",
+    "exists": true,
+    "size": 582904
+   }
+  ],
+  "C_render_names": [
+   "after_revision_4.wav",
+   "before_revision_2.wav"
+  ],
+  "C_commit_refs": [
+   "semantic_dynamic:topo_plan_f0521d5da3a421d6:after",
+   "semantic_dynamic:topo_plan_f0521d5da3a421d6:before"
+  ],
+  "D_probe_wrong_turn": {
+   "expect": 409,
+   "got": 409
+  },
+  "D_probe_topo_correct": {
+   "expect": "200 or 409(replaced)",
+   "got": 409,
+   "artifact": "judgment_topo_ok_v2.json"
+  },
+  "D_topo_outcome": {
+   "ticket_id": null,
+   "family": null,
+   "decision": null,
+   "status": null,
+   "judgment_evidence_id": null
+  },
+  "D_409_body": {
+   "error": "audition session identity mismatch",
+   "status": "error"
+  },
+  "E_blind": true,
+  "F_ticket_session_found": true,
+  "round_settle": {
+   "goal_status_final": "waiting_confirmation",
+   "settle_reason": "awaiting_user",
+   "turns_sent": 1,
+   "nudges_sent": 0
+  }
+ },
+ "failures": [],
+ "failure_classes": [],
+ "verdict": "PASS"
+}
