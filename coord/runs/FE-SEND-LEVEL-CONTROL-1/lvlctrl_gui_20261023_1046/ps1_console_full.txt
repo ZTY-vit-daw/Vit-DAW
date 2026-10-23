@@ -1,0 +1,138 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261023_095200\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=15280 workdir=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=9
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=15280
+ok: ZMQ SUB listening: 5556 pid=15280
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1053 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== sendroute GUI smoke (FE-SENDROUTE-MACRO-GUI-1)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS L1 connect auto_create
+[stack-probe] PASS L1 fx track created
+[stack-probe] PASS L1 default amount -6.0
+[stack-probe] PASS L2 send list
+[stack-probe] PASS L2 edge readback
+[stack-probe] PASS L3 SendOut plugin in state
+[stack-probe] PASS L3 SendIn plugin in state
+[stack-probe] PASS L4 set_amount
+[stack-probe] PASS L4 amount echo -12.5
+[stack-probe] PASS L4 list readback -12.5
+[stack-probe] PASS L5 control_add_macro
+[stack-probe] PASS L5 macro node snapshot
+[stack-probe] PASS L5 control_graph has new macro node
+[stack-probe] PASS L5 control_add_binding
+[stack-probe] PASS L5 binding target send level
+[stack-probe] PASS L5 control_set_macro_values
+[stack-probe] PASS L5 applied bindings 1
+[stack-probe] PASS L5 graph snapshot our bindings 1
+[stack-probe] PASS L5 graph snapshot macro_1 0.8
+[stack-probe] PASS L5 macro drives send amount
+[stack-probe] PASS L6 disconnect
+[stack-probe] PASS L6 fx released
+[stack-probe] PASS L6 list empty after disconnect
+[stack-probe] PASS L7 external connect (foreign request id)
+[stack-probe] PASS L7 external connect created fx
+[stack-probe] PASS L7 VSP-shaped repository applied
+[stack-probe] PASS L7 baseline no send node (VSP-shaped repo)
+[stack-probe] PASS L7 topology auto-applied to repository
+[stack-probe] PASS L7 unified send icon auto-present (zero user action, default collapsed)
+[stack-probe] PASS L7 collapsed hides pair cards (166)
+[stack-probe] PASS L7 unified amount label
+[stack-probe] PASS L7 repository topology row source/fx
+[stack-probe] PASS L8 unified route key from real topology
+[stack-probe] PASS L8 unified badge is fx track name
+[stack-probe] PASS L8 unified color from fixed palette hash
+[stack-probe] PASS L8 collapsed derived key stays in confirmed set (164 chain intact)
+[stack-probe] PASS L9 collapsed chain keys in confirmed set
+[stack-probe] PASS L9 collapsed chain lines drawn to bus anchors
+[stack-probe] PASS L8 expand restores SendOut card (pair complete)
+[stack-probe] PASS L8 expanded SendOut amount label
+[stack-probe] PASS L8 SendIn card auto-present (pair complete)
+[stack-probe] PASS L8 pair cable in graph connections
+[stack-probe] PASS L8 pair cable kernel-confirmed (ghost gate holds)
+[stack-probe] PASS L8 derived edge key in confirmed set
+[stack-probe] PASS L9 expanded chain keys in confirmed set
+[stack-probe] PASS L9 expanded chain lines drawn to anchors
+[stack-probe] PASS L8 exactly one send-out card (no dual-track duplicate)
+[stack-probe] PASS L8 expanded cards share unified color
+[stack-probe] PASS L8 expanded badges match unified badge
+[stack-probe] PASS L8 aux cable color consumes route color
+[stack-probe] PASS L10 adjust entry on SendOut card
+WARNING: This control can't grab focus. Use set_focus_mode() and set_focus_behavior_recursive() to allow a control to get focus.
+   at: grab_focus (scene/gui/control.cpp:2365)
+   GDScript backtrace (most recent call first):
+       [0] _on_send_level_adjust_pressed (res://app/rack/Vit_Graph_Rack.gd:3474)
+       [1] _run_external_refresh_leg (res://tools/stack_probe_sendroute_macro.gd:415)
+[stack-probe] PASS L10 popup opens with spin on click
+[stack-probe] PASS L10 spin initial value matches topology (-6.0)
+[stack-probe] PASS L10 set_amount converges to readback -9.5
+[stack-probe] PASS L8 external disconnect ok
+[stack-probe] PASS L8 cards removed after external disconnect
+[stack-probe] PASS L8 cable removed after external disconnect
+[stack-probe] PASS L9 chain keys removed after external disconnect
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":60,"failures":[],"status":"pass"}
+ok: sendroute GUI smoke passed (GUI command face over live stack; console: D:\Vit_DAW\coord\runs\FE-SEND-LEVEL-CONTROL-1\lvlctrl_gui_20261023_1046\sendroute_gui_smoke_console.txt)
+
+== Chat route smoke
+chat.stop_reason=limit_reached
+chat.reply=我还在继续处理这个任务，完成后再向你汇报。
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Summary
+ok: dev agent smoke completed
