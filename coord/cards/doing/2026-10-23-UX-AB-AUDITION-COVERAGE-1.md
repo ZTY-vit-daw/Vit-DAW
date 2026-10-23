@@ -27,6 +27,6 @@
 
 旁路路径的 before render 时机不可逆且无等价挂点 → 设计锚点上交（该路径降级方案裁定）。
 
-- 领取：（时间 / origin/main hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-23 / origin/main=08588c8c / owner=GLM-5.3 L2 PC 执行会话（ZCode，177 卡会话）/ 分支=port/ux-ab-audition-coverage-1 / worktree=D:/Vit_DAW_wt_uxab177 / 领取提交=coord/uxab177-claim。取证腿已完成（零 LLM 复现轮，history 面四源可回指）：缺失轮=webui_mvjr15zw（00:21–00:23，卡面 00:27–00:34 窗系回忆偏差=内核空档）；三轮效果突变均走直发 bus 两腿 track.send.connect(auto_create)+rack_add_node（executeSemanticTopologyBusLegs，source=chat）零 bracket，ticket 参数写腿三轮均有 audition——结论+P1–P6 旁路清单见 coord/runs/UX-AB-AUDITION-COVERAGE-1/forensics_1/FORENSICS.md（工件随 port 分支入库）；本轮修 P1（实证行使面），P2–P6 上交裁定。
 - 回执：（旁路清单 / commit / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
