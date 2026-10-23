@@ -1,0 +1,16 @@
+fixture copied from 170 run: D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit
+authority bound full_project_access
+[round1] turn_1 send
+[round1] turn_1 stop=limit_reached goal=waiting_continue needs_confirm=False
+[round1] walkhop_1 kind=improvement_proposal_confirmation goal=waiting_clarification
+[round1] walkhop_2 kind=plugin_recommendation_question goal=waiting_confirmation
+[round1] walkhop_3 kind=confirmation goal=waiting_confirmation
+[round1] walkhop_4 kind=confirmation goal=waiting_continue
+[round1] settle runtime_goal=waiting_confirmation
+[round1] fixture open ok: bass,drums,guitar,other,piano,vocals
+[round1] judgment.topo_session_found=true
+[round1] judgment.ticket_session_found=true
+[round1] judgment.connect_leg_dispatched=false
+[round1] judgment.load_leg_dispatched=false
+[round1] judgment.probe_wrong_turn={"expect": 409, "got": 409}
+[round1] judgment.probe_topo_correct={"expect": "200 or 409(replaced)", "got": 409}

@@ -1,0 +1,16 @@
+{
+ "request": {
+  "conversation_id": "uxab177_round1_20261023_192308",
+  "turn_id": "dynamic_turn:topo_plan_f0521d5da3a421d6__wrong",
+  "round_id": "dynamic_round:topo_plan_f0521d5da3a421d6",
+  "audition_session_id": "audition:dynamic:topo_plan_f0521d5da3a421d6",
+  "project_revision": "4",
+  "heard_difference": "yes",
+  "preference": "b"
+ },
+ "http_status": 409,
+ "body": {
+  "error": "audition session identity mismatch",
+  "status": "error"
+ }
+}

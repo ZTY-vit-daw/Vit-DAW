@@ -1,0 +1,1 @@
+[round1] settle=awaiting_user goal=waiting_confirmation stop=limit_reached turns=1 hops=4 dynamic_session=None

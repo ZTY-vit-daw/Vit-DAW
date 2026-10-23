@@ -1,0 +1,17 @@
+{
+ "request": {
+  "conversation_id": "uxab177_round1_20261023_192308",
+  "turn_id": "dynamic_turn:topo_plan_f0521d5da3a421d6",
+  "round_id": "dynamic_round:topo_plan_f0521d5da3a421d6",
+  "audition_session_id": "audition:dynamic:topo_plan_f0521d5da3a421d6",
+  "project_revision": "4",
+  "heard_difference": "yes",
+  "preference": "b",
+  "free_text": "判定探针v2：topo 通道选 B，保留这次装载"
+ },
+ "http_status": 409,
+ "body": {
+  "error": "audition session identity mismatch",
+  "status": "error"
+ }
+}

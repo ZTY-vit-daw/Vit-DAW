@@ -110,6 +110,59 @@ func semanticDynamicAuditionRoundID(ticketID, trackID string) string {
 	return "dynamic_round:" + sanitizeCanaryID(firstNonEmpty(ticketID, trackID))
 }
 
+// semanticTopologyAuditionFamily marks the direct bus-topology leg channel on
+// the mounted record and its judgment outcome (UX-AB-AUDITION-COVERAGE-1);
+// it never collides with the ticket families (processorintent families).
+const semanticTopologyAuditionFamily = "topology_bus"
+
+// semanticTopologyAuditionTicketID namespaces the bus-topology legs' audition
+// inside the audition:dynamic: family: the parked plan id is unique per
+// confirmation, so the identity is stable for a re-executed plan and
+// collision-free against ticket sessions in the same conversation.
+func semanticTopologyAuditionTicketID(planID string) string {
+	return "topo_" + firstNonEmpty(strings.TrimSpace(planID), "plan_"+randomID())
+}
+
+// semanticTopologyAuditionPlan builds the bracket plan for the non-ticket
+// effect mutations of the bus topology legs (send routing + plugin load on the
+// FX track). A plan without a conversation identity cannot mount a
+// user-attributable card, so it answers nil and the caller runs the legs
+// unbracketed (the historical shape) instead of mounting an anonymous session.
+func (s *Server) semanticTopologyAuditionPlan(ctx context.Context, plan *PendingPlan, topologyPlan *semanticTopologyPlan) *semanticDynamicAuditionPlan {
+	if s == nil || plan == nil || topologyPlan == nil || len(topologyPlan.Sends) == 0 {
+		return nil
+	}
+	conversationID := firstNonEmpty(
+		cleanContextText(plan.WorkflowData["conversation_id"]),
+		cleanContextText(plan.Context["conversation_id"]),
+	)
+	if conversationID == "" {
+		return nil
+	}
+	goalID, runID := goalIDsFromContext(plan.Context)
+	processorType := ""
+	for _, load := range topologyPlan.Loads {
+		if strings.TrimSpace(load.PluginName) != "" {
+			processorType = load.PluginName
+			break
+		}
+	}
+	if processorType == "" {
+		processorType = firstNonEmpty(firstNonEmptyText(plan.WorkflowData, "plugin_name"), topologyPlan.FXTrack.Name)
+	}
+	return &semanticDynamicAuditionPlan{
+		ConversationID: conversationID,
+		GoalID:         goalID,
+		RunID:          runID,
+		TicketID:       semanticTopologyAuditionTicketID(plan.ID),
+		Family:         semanticTopologyAuditionFamily,
+		ProcessorType:  processorType,
+		TrackID:        topologyPlan.Sends[0].SourceTrackID,
+		BeforeRevision: s.semanticDynamicAuditionLiveRevision(ctx),
+		AfterRevision:  func() string { return s.semanticDynamicAuditionLiveRevision(ctx) },
+	}
+}
+
 // semanticDynamicAuditionLiveRevision resolves the kernel project revision
 // through the same VSP state channel the settlement bracket's before snapshot
 // uses (semanticSettlementStateClient), so an audition render and the
@@ -744,6 +797,18 @@ func appendSemanticDynamicAuditionClause(report string, bracket semanticDynamicA
 		return strings.TrimSpace(report) + "\n" + clause
 	}
 	return report
+}
+
+// appendSemanticTopologyAuditionClause is the bus-topology leg face of the
+// same witness: the mounted wording is shared verbatim with the ticket
+// channel, while the degraded wording names what actually executed (connect
+// and load legs with their dispatch receipts) instead of the ticket channel's
+// parameter readback, which the bus legs never performed.
+func appendSemanticTopologyAuditionClause(report string, bracket semanticDynamicAuditionBracket) string {
+	if bracket.Record != nil || bracket.Degraded == "" {
+		return appendSemanticDynamicAuditionClause(report, bracket)
+	}
+	return strings.TrimSpace(report) + "\n" + "这次的 A/B 对照试听没能生成（原因：" + firstNonEmpty(bracket.Degraded, "渲染不可用") + "），发送连接与装载已执行并带回执。"
 }
 
 // semanticDynamicAuditionTerminalClause is the executed-face wording: a

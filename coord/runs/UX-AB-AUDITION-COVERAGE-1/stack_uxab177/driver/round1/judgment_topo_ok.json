@@ -1,0 +1,17 @@
+{
+ "request": {
+  "conversation_id": "uxab177_round1_20261023_192308",
+  "turn_id": "",
+  "round_id": "",
+  "audition_session_id": "audition:dynamic:topo_plan_f0521d5da3a421d6",
+  "project_revision": "",
+  "heard_difference": "yes",
+  "preference": "b",
+  "free_text": "判定探针：topo 通道选 B，保留这次装载"
+ },
+ "http_status": 409,
+ "body": {
+  "error": "conversation_id, turn_id, round_id, audition_session_id, and project_revision are required",
+  "status": "error"
+ }
+}
