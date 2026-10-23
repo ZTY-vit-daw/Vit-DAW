@@ -13,6 +13,10 @@
   ②弹窗弹出位置错（anchor.get_global_rect() 在 GraphNode 变换/缩放下坐标错→弹到可视区外，用户感知=无响应；headless 曾出 grab_focus 警告）；
   ③真实外部写形态下 finder 未命中静默早退（探针形态已排除，真实形态 kernel_item 一致性待复核——handler `_find_plugin_graph_node_by_kernel_item` 未命中时**静默 return**，应加诊断日志）。
 
+## 根因收敛（用户手测补证 2026-10-23 深夜二）
+
+用户二次取证已把三候选砍剩一个：**「▣ 折叠」按钮与普通插件卡按钮均可点动**（整卡按钮层/GraphNode 吞事件排除）；**点击「发送量」后弹窗确有出现（高亮可见）**（按钮→handler→popup 链路通、位置在屏内）；**随后在弹窗上的点击/拖动直接移动了下层插件卡**——即弹窗可见但其区域鼠标事件完全穿透回画布，弹窗内 SpinBox/箭头收不到任何输入。与 headless 真栈跑出的 `grab_focus` 警告（popup 后 SpinBox「can't grab focus」）同族=**PopupPanel 输入/焦点层未正确建立**。首选排查方向：PopupPanel 作为 GraphEdit 子节点挂在 `add_child` 下，其输入层被 GraphEdit/GraphNode 事件处理路径抢占或 popup 层级未就绪；修复方向候选=弹窗挂载点移出 GraphEdit 子树（画布顶层 Control/CanvasLayer）或改用原生弹层（AcceptDialog/Window 族），保证输入层独立。
+
 ## 范围
 
 ①窗口态取证：真实鼠标事件注入（`Viewport.push_input` 构造 InputEventMouseButton 在按钮全局位置）观察事件走向（Button.gui_input 是否触发/GraphNode dragged 是否触发/弹窗 global 位置）——区分三候选；②修复（按取证结论：事件穿透修正/弹窗定位修正/handler 诊断与 fail-open 提示）；③**探针断言升级**：L10 与 K3 lvl178 断言改真实事件管线（push_input 于按钮 rect 中心），禁止 emit 直调冒充点击——该纪律升格为 FE 系探针通则；④窗口态手感=用户手测复验。
