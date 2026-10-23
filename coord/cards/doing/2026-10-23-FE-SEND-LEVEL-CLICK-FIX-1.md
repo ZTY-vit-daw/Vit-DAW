@@ -33,6 +33,6 @@
 
 真实事件管线断言在 Godot 4.6 探针环境不可注入（headless 限制）→ 以窗口态 Godot 进程内自驱动取证脚本替代并如实声明边界。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-23 深夜 本会话机器钟 / origin/main=476e62d8（领取前 fetch 亲核=当前 main HEAD；前端仓 fetch 亲核 origin/main=9015cfde=178 合入态） / owner=GLM-5.3 L2 PC 前端执行会话（ZCode，182 卡会话，机器=PC） / 分支=port/fe-send-level-click-fix-1（基=前端仓 origin/main 9015cfd） / worktree=D:/Godot/project/vit-daw-frontend-lvlfix1（独立 worktree；主仓协调分支 coord/fe-send-level-click-fix-1-claim@D:/Vit_DAW_wt_lvlfix1_coord） / 领取提交=本 commit
 - 回执：（根因裁定 / commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
