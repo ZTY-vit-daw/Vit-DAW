@@ -3,6 +3,8 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
+- 2026-10-23 19:2x 本会话机器钟起 / **UX-AB-AUDITION-COVERAGE-1(177) 真栈复现腿**（owner=GLM-5.3 L2 PC 执行会话（ZCode，177 卡会话））：预期 run=coord/runs/UX-AB-AUDITION-COVERAGE-1/stack_uxab177（随 port/ux-ab-audition-coverage-1 分支入库；agent=worktree 构建 C72801D9 含 P1 bracket；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读；vsphub=主检出 B10CC412；RepoRoot=worktree D:/Vit_DAW_wt_uxab177；VIT_PROJECT_XML 指 run 目录副本主检出零触碰；VIT_DAW_AUDITION_BLIND=1=场次⑤同面）。占用前核对：5555/5556/7878/8787 tcp listen=0、VitApp/VitAgent/VspHub/Godot 进程=0（bringup Status exit 0）。预计单卡内一 run（预算 ≤3 轮）。
+
 - 2026-10-23 10:4x 登记（8161fafb）–10:5x 释放 / **FE-SEND-LEVEL-CONTROL-1(178) 真栈 SendRouteGuiSmoke 腿——一 run PASS exit 0**（owner=GLM-5.3 L2 PC 前端执行会话（ZCode，176/178 卡会话））：run=**coord/runs/FE-SEND-LEVEL-CONTROL-1/lvlctrl_gui_20261023_1046**（工件随 port/fe-send-level-control-1-stack@c5fa2cd4）：脚本 exit 0，stack probe **60/60**（SUMMARY_JSON checks_failed=0=176 后基线 56+L10 调量 4 断言：入口在场/点击弹窗/初值-6.0/真栈 set_amount→repository 拓扑读回收敛 -9.5）；被测=前端 worktree@port/fe-send-level-control-1@**513d26f**；kernel=主检出 K3 722A79D7 只读。拆栈=手拆 VitAgent 16432/VitApp 15280→复核进程=0、六端口 tcp listen=0、4445/5555 udp=0。
 
 - 2026-10-23 10:4x 本会话机器钟起 / **FE-SEND-LEVEL-CONTROL-1(178) 真栈 SendRouteGuiSmoke 腿**（owner=GLM-5.3 L2 PC 前端执行会话（ZCode，176/178 卡会话））：预期 run=coord/runs/FE-SEND-LEVEL-CONTROL-1/lvlctrl_gui_*（被测=前端 worktree D:/Godot/project/vit-daw-frontend-sendchain1@port/fe-send-level-control-1；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读；RepoRoot=主检出 D:/Vit_DAW，Go 零改动；Godot 4.6.1 console headless）。占用前核对：VitApp/VitAgent/VspHub/Godot 进程=0、六端口 tcp listen=0（177 卡未登记占用，无撞车）。
