@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-24 2x:xx 本会话机器钟起 / **D1-MIXTREAT-KIND-GUARD-1(184) 真栈 chat 腿**（owner=GLM-5.3 L2 PC 执行会话（ZCode，184 卡会话））：预期 run=coord/runs/D1-MIXTREAT-KIND-GUARD-1/chatnl_*（dev_agent_smoke -Scenario journey_free_state_nl，取证话术「给人声加点空间感」JourneyNlPromptBase64 复刻；被测 agent=worktree D:/Vit_DAW_wt_d1guard1@port/d1-mixtreat-kind-guard-1 构建——含守卫改动；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读亲核；journey berth 隔离：kernel workdir+VIT_PROJECT_XML=run 目录 git 干净副本、VIT_HISTORY_DRAFT_ROOT=run 目录，主检出 Workspace 零触碰）。§8 预算：≤3 轮独立调用；成功=exit 0+用户面英文错误签名零出现+拓扑读回零非法变更（逐轮不变量）；失败分类=环境中断（修复重跑不计轮）/LLM shape miss（不变量仍须绿，形态记录）/确定性断言失败（同签名两次即停）。占用前核对：VitApp/VitAgent/VspHub=0、六端口 tcp listen=0、4445/5555 udp=0（用户 Godot 编辑器 8736 在场不占栈端口，不触碰）；远端记录空闲已 fetch 亲核。
+（空——最新释放见下条）
+
+## 最近一次释放（2026-10-24 20:5x–21:0x，D1-MIXTREAT-KIND-GUARD-1(184) 真栈 chat 腿）
+
+- 2026-10-24 20:5x 登记（360daafd）–21:0x 释放 / **D1-MIXTREAT-KIND-GUARD-1(184) 真栈 chat 腿——三轮全绿收口（含 round 3 守卫活触发=取证形态活复现）**（owner=GLM-5.3 L2 PC 执行会话（ZCode，184 卡会话））：run=**coord/runs/D1-MIXTREAT-KIND-GUARD-1/{chatnl_20261024_205621, chatnl_20261024_210031, chatnl_20261024_210506}**（工件随 port/d1-mixtreat-kind-guard-1@afb728c8 入库；RESULTS.md 回执）。dev_agent_smoke -Scenario journey_free_state_nl -JourneyNlPromptBase64=取证话术「给人声加点空间感」×3 轮均 **exit 0**；逐轮不变量全绿=用户面英文错误签名零出现（chat/hop/卡/事件面 needle 扫描）+拓扑读回零非法变更（ui/state 只读探针差分+applied_signal=false+executed=0）；**round 3（21:06:39）守卫活触发**：reverb/reverb_decay_adjust 准入（target 1012 Lead Vocal）下模型提案 pan_balance/utility/track:1012→action_kind 拒收+goal 诚实收敛 completed（stop=mix_treatment_refused_d1_admission_mismatch），与 forensic_20261024_1950 逐字段同构；r1/r2=形态 miss（no_candidate）不变量仍绿。§8：≤3 轮预算用 3，零盲跑（r2 探针跨轮污染假阳性已按确定性失败分类定位修正——验证器时间界参数，非栈故障）。被测 agent=worktree D:/Vit_DAW_wt_d1guard1@port/d1-mixtreat-kind-guard-1@5d9c3eaa 构建（含守卫改动）；kernel=主检出 K3 722A79D7 只读亲核；journey berth 隔离（kernel workdir+VIT_PROJECT_XML=run 目录 git 干净副本+VIT_HISTORY_DRAFT_ROOT=run 目录），主检出 Workspace 零触碰。拆栈=脚本各轮自带 teardown（Stop 自录 pid）→复核 VitApp/VitAgent/VspHub=0、5555/5556/7878/8787/18787 tcp listen=0（用户 Godot 编辑器 8736 全程未动）。
 
 ## 最近一次释放（2026-10-24 19:2x–19:5x，主管验收复跑腿 179+183 合并态）
 
