@@ -3,6 +3,8 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
+- 2026-10-24 18:3x 本会话机器钟起 / **PROBE-SHRINKC-MIXERSYNC-1(179) shrink_c mixersync 腿活栈复现取证轮**（owner=GLM-5.3-flash PC 执行会话（ZCode，179 卡会话）；占用登记=本条提交）：预期 run=coord/runs/PROBE-SHRINKC-MIXERSYNC-1/shrinkc_repro_20261024_182813（预声明 PREDECLARATION.md 同目录）。栈形态=kernel+agent（+vsphub）不启 GUI：kernel=主检出 K3 VitApp.exe（SHA256=722A79D7…，起栈前亲核）只读，VIT_PROJECT_XML 指 run 目录副本+独立 kernel_workspace（JOURNEY 隔离形态，主检出 Workspace 零触碰）；agent=主检出 Go 树新构建落 run 目录（4c7736c9 与 c1285d68 Go 零差异）；被测探针=前端 worktree D:/Godot/project/vit-daw-frontend-shrinkc@ee8fa0e headless 进程（将赢得 UDP 4444 绑定收真电平流——本卡复现机理的必要条件）。无栈 Leg A（3 轮）已先行完成，不占栈。与 183 错峰：领取核对时 183 未登记占用、六端口 tcp listen=0、VitApp/VitAgent/vsphub/Godot=0（18:2x 复核两遍）；183 若登记占用则本卡等待其空窗。
+
 - 2026-10-23 21:5x 登记（7c2a5f18）–2026-10-24 00:0x 释放 / **FE-SEND-LEVEL-CLICK-FIX-1(182) 真栈 SendRouteGuiSmoke 腿——收口 run exit 0 stack 64/64**（owner=GLM-5.3 L2 PC 前端执行会话（ZCode，182 卡会话））：run=**coord/runs/FE-SEND-LEVEL-CLICK-FIX-1/lvlclick_gui_000525**（`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke` **脚本 exit 0，stack probe 64/64 PASS**=56 基线+L10 真实事件管线八断言：入口/点击送达/弹窗开启/rect 在屏内/初值 -6.0/grab_focus/上箭头真实点击 +0.5/拓扑读回 -5.5 收敛；首轮 lvlclick_gui_235724 59/60=根窗尺寸断言修复前留档）；被测=前端 worktree D:/Godot/project/vit-daw-frontend-lvlfix1@port/fe-send-level-click-fix-1@**b4f9171**；kernel=主检出 K3 722A79D7 只读亲核；RepoRoot=主检出（Go 零改动）；Godot 4.6.1 console headless。拆栈=手拆 VitApp/VitAgent→复核 VitApp/VitAgent/vsphub/非编辑器 Godot=0、六端口 tcp listen=0、4445/5555 udp=0（用户 Godot 编辑器全程未动）。
 
 
