@@ -1,0 +1,343 @@
+2026-10-24T19:48:59 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-10-24T19:48:59 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-24T19:48:59 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-24T19:48:59 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-24T19:48:59 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-24T19:48:59 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-24T19:48:59 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-24T19:48:59 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-24T19:48:59 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1792842539072_460468988 type=session.hello_ack
+2026-10-24T19:48:59 [INFO] [shadow] initialized tracks=15 project_path="" replayed_deltas=0
+2026-10-24T19:48:59 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:48:59 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:48:59 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:00 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:00 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:00 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:00 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:01 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:01 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:01 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:01 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:02 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:02 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:02 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:02 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:03 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:03 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:03 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:03 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:04 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:04 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:04 [INFO] [workspace] activation pending uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 reason=startup_recovery_disabled_new_session
+2026-10-24T19:49:04 [WARN] [workspace] refused stale project identity rebind path=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit active_uuid=vitproj_32a11f34a6cd4076aef8865e78e3ce6f rejected_uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7
+2026-10-24T19:49:04 [WARN] [workspace] refused stale project identity rebind path=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit active_uuid=vitproj_32a11f34a6cd4076aef8865e78e3ce6f rejected_uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7
+2026-10-24T19:49:04 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-24T19:49:04 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_37b68721ad40429fa4e9bd7cc20e78a7
+2026-10-24T19:49:04 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261024T114904_772eee26\\Unsaved.vit" uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-24T19:49:04 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=version_project_new err=false
+2026-10-24T19:49:04 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-24T19:49:04 [INFO] [timing] harness.refresh_shadow ms=16 reason=version_project_new status=ok err=false
+2026-10-24T19:49:04 [INFO] [timing] harness.invoke total_ms=57 tool=version.project_new command=version_project_new status=ok confirmed=true err=false
+2026-10-24T19:49:04 [INFO] [timing] async version_project_new total_ms=61 ack_action=act_77f843086793aedc status=ok err=false
+2026-10-24T19:49:04 [WARN] [workspace] refused stale project identity rebind path=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit active_uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 rejected_uuid=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:49:04 [WARN] [workspace] refused stale project identity rebind path=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit active_uuid=vitproj_37b68721ad40429fa4e9bd7cc20e78a7 rejected_uuid=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:49:04 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:49:04 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261024T114904_772eee26\\Unsaved.vit" uuid=vitproj_32a11f34a6cd4076aef8865e78e3ce6f recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-24T19:49:06 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_10306335 bytes=1288808 file=D:\Vit_DAW\VitApp\Workspace\Logs\BridgeReplies\20261024_194906_000000000_plugin_list_available_library_plugin_list_10306335.json
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="VIT_AUDIO_SETTINGS" action="property_changed:sample_rate_hz"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="VIT_AUDIO_SETTINGS" action="property_changed:record_bit_depth"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="VIT_AUDIO_SETTINGS" action="property_changed:render_default_sample_rate_hz"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="VIT_AUDIO_SETTINGS" action="property_changed:render_default_bit_depth"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="VIT_AUDIO_SETTINGS" action="property_changed:pcm_format"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="0/1ad53a7" action="property_changed:lastSignificantChange"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_role"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:elastiqueMode"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:pan"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:colour"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:proxyAllowed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:resamplingQuality"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_insert_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1012" action="property_changed:id"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1013" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1013" action="property_changed:remapOnTempoChange"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1012" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_role"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:elastiqueMode"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:pan"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:colour"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:proxyAllowed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:resamplingQuality"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_insert_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1017" action="property_changed:id"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1018" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1019" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1018" action="property_changed:remapOnTempoChange"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1017" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1017" action="property_changed:vit_import_role"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1017" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1017" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:elastiqueMode"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:pan"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:colour"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:proxyAllowed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:resamplingQuality"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:vit_import_insert_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1021" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1022" action="property_changed:id"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1023" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1024" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1023" action="property_changed:remapOnTempoChange"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1022" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1022" action="property_changed:vit_import_role"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1022" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1022" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:elastiqueMode"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:pan"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:colour"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:proxyAllowed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:resamplingQuality"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:vit_import_insert_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1026" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1027" action="property_changed:id"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1028" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1029" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1028" action="property_changed:remapOnTempoChange"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1027" action="property_changed:name"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1027" action="property_changed:vit_import_role"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1027" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1027" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:elastiqueMode"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:pan"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:colour"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:proxyAllowed"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:resamplingQuality"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:vit_import_insert_file"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1031" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="1032" action="property_changed:id"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T19:49:24 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1033" action="node_added"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1034" action="node_added"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1033" action="property_changed:remapOnTempoChange"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1032" action="property_changed:name"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1032" action="property_changed:vit_import_role"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1032" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1032" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:elastiqueMode"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:pan"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="node_added"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:colour"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:proxyAllowed"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:resamplingQuality"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:vit_import_source_file"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:vit_import_insert_file"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="1036" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="0/1ad53a7" action="property_changed:lastSignificantChange"
+2026-10-24T19:49:25 [DEBUG] [shadow] live delta uid="0/1ad53a7" action="property_changed:lastSignificantChange"
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\bass.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\bass.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\bass.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1012 clip_id=1016 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\drums.wav status=ready
+2026-10-24T19:49:25 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=41153 file=D:\Vit_DAW\VitApp\Workspace\Logs\BridgeReplies\20261024_194925_000000000_telemetry_audio_feature_data_ready.json
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1012 clip_id=1016 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\drums.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1012 clip_id=1016 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\drums.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1017 clip_id=1021 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\guitar.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1017 clip_id=1021 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\guitar.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1017 clip_id=1021 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\guitar.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1022 clip_id=1026 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\other.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1022 clip_id=1026 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\other.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1022 clip_id=1026 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\other.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1027 clip_id=1031 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\piano.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1027 clip_id=1031 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\piano.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1027 clip_id=1031 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\piano.wav status=ready
+2026-10-24T19:49:25 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:49:25 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1032 clip_id=1036 project_id=current target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\vocals.wav status=ready
+2026-10-24T19:49:25 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=38215 file=D:\Vit_DAW\VitApp\Workspace\Logs\BridgeReplies\20261024_194925_000000000_telemetry_audio_feature_data_ready.json
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1032 clip_id=1036 project_id=vitproj_32a11f34a6cd4076aef8865e78e3ce6f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\vocals.wav status=ready
+2026-10-24T19:49:25 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1032 clip_id=1036 project_id=vitproj_32a11f34a6cd4076aef8865e78e3ce6f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p06\stems\vocals.wav status=ready
+2026-10-24T19:49:31 [INFO] [webui] serving root=D:\Vit_DAW\agent\webui\dist index_mod=2026-10-15T20:15:44+08:00 assets=index-DSb5AJYB.css,index-f4mlRsOx.js build_mark=project-aware-mondrian-workbench-v1-20260713
+2026-10-24T19:49:33 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-24T19:49:33 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:49:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-24T19:49:50 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-24T19:49:50 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:49:50 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-24T19:49:50 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=mix_request_observation_project_scope_state err=false
+2026-10-24T19:49:50 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:49:50 [INFO] [timing] harness.refresh_shadow ms=15 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-24T19:49:53 [INFO] [timing] harness.invoke total_ms=2872 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=true err=false
+2026-10-24T19:49:53 [INFO] [free-state.seed] booked conversation=webui_mvmc6dkv observation=obs_20261024T114953_802b637d7bc5 receipt=ccbr_obs_20261024T114953_802b637d7bc5 revision=2 scan_satisfied=true
+2026-10-24T19:49:53 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-24T19:49:53 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:49:53 [INFO] [timing] harness.refresh_shadow ms=15 reason=user_named_target_resolution status=ok err=false
+2026-10-24T19:49:56 [INFO] [timing] message_loop.llm ms=2706 goal=goal_0937f79b771afded conversation=webui_mvmc6dkv turn=1 messages=2 chars=52666 message_chars=0:system:14772,1:user:37894 err=false
+2026-10-24T19:49:56 [INFO] [timing] harness.invoke total_ms=12 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-24T19:49:56 [INFO] [timing] message_loop.tool ms=13 goal=goal_0937f79b771afded tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-24T19:49:56 [INFO] [free-state.ledger] boundary conversation=webui_mvmc6dkv goal=goal_0937f79b771afded executed=1 ccb_observations=0 ids=[] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-24T19:49:56 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:49:56 [INFO] [continuation.arm] conversation=webui_mvmc6dkv goal=goal_0937f79b771afded status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_94759f89a58d1c05c319a092 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-24T19:49:56 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-24T19:49:56 [INFO] [timing] agent_loop_chat total_ms=14582 conversation=webui_mvmc6dkv goal=goal_0937f79b771afded mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-24T19:49:56 [INFO] [media_refs] ms=0 conversation=webui_mvmc6dkv user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-24T19:49:56 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit revision=2
+2026-10-24T19:49:56 [INFO] [chat.artifacts] conversation=webui_mvmc6dkv response_artifacts=0 request_artifacts=0 executed=1 reply_len=106
+2026-10-24T19:49:56 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit revision=2 commit=c_20261024T114956_5e1c9c98 rebound=1 total_ms=22
+2026-10-24T19:49:56 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:49:56 [INFO] [timing] http.chat total_ms=15161 conversation=webui_mvmc6dkv message_len=24
+2026-10-24T19:49:56 [INFO] [continuation.claim] claimed id=cont_94759f89a58d1c05c319a092 goal=goal_0937f79b771afded conversation=webui_mvmc6dkv attempt=1 lease_until=2026-10-24T11:51:56Z
+2026-10-24T19:49:56 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-24T19:49:56 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:49:56 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-24T19:49:56 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=user_named_target_resolution err=false
+2026-10-24T19:49:56 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:49:56 [INFO] [timing] harness.refresh_shadow ms=23 reason=user_named_target_resolution status=ok err=false
+2026-10-24T19:50:04 [INFO] [timing] message_loop.llm ms=7599 goal=goal_0937f79b771afded conversation=webui_mvmc6dkv turn=2 messages=2 chars=60447 message_chars=0:system:14772,1:user:45675 err=false
+2026-10-24T19:50:14 [INFO] [timing] message_loop.llm ms=10183 goal=goal_0937f79b771afded conversation=webui_mvmc6dkv turn=3 messages=3 chars=60589 message_chars=0:system:14772,1:user:142,2:user:45675 err=false
+2026-10-24T19:50:14 [INFO] [timing] harness.invoke total_ms=227 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-24T19:50:14 [INFO] [timing] message_loop.tool ms=228 goal=goal_0937f79b771afded tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-24T19:50:14 [INFO] [free-state.ledger] boundary conversation=webui_mvmc6dkv goal=goal_0937f79b771afded executed=1 ccb_observations=1 ids=[obs_20261024T115014_46f54bbe5cc1] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-24T19:50:14 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:50:14 [INFO] [continuation.arm] conversation=webui_mvmc6dkv goal=goal_0937f79b771afded status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_91aad23304f75fe4ac8d4e29 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-24T19:50:14 [INFO] [timing] agent_loop_chat total_ms=18152 conversation=webui_mvmc6dkv goal=goal_0937f79b771afded mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-24T19:50:14 [INFO] [f6.gate] conversation=webui_mvmc6dkv goal=goal_0937f79b771afded chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-24T19:50:14 [INFO] [continuation.claim] claimed id=cont_91aad23304f75fe4ac8d4e29 goal=goal_0937f79b771afded conversation=webui_mvmc6dkv attempt=1 lease_until=2026-10-24T11:52:14Z
+2026-10-24T19:50:14 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-24T19:50:14 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:50:14 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-24T19:50:14 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-24T19:50:14 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=12
+2026-10-24T19:50:14 [INFO] [timing] harness.refresh_shadow ms=15 reason=user_named_target_resolution status=ok err=false
+2026-10-24T19:50:31 [INFO] [timing] message_loop.llm ms=16413 goal=goal_0937f79b771afded conversation=webui_mvmc6dkv turn=4 messages=3 chars=57807 message_chars=0:system:14772,1:user:142,2:user:42893 err=false
+2026-10-24T19:50:31 [INFO] [free-state.ledger] boundary conversation=webui_mvmc6dkv goal=goal_0937f79b771afded executed=0 ccb_observations=1 ids=[obs_20261024T115014_46f54bbe5cc1] snapshot_loop=true continuation_loop=false stored_receipts=1
+2026-10-24T19:50:31 [INFO] [timing] harness.invoke total_ms=24 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-24T19:50:31 [INFO] [mix.treatment.pending] stored conversation=webui_mvmc6dkv goal=goal_0937f79b771afded run=run_f11358a6bf1d69e5 action=pan_balance processor=utility target=track:1032 observation=
+2026-10-24T19:50:31 [INFO] [continuation.arm] conversation=webui_mvmc6dkv goal=goal_0937f79b771afded status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-24T19:50:31 [INFO] [timing] agent_loop_chat total_ms=16603 conversation=webui_mvmc6dkv goal=goal_0937f79b771afded mode= status=completed stop=semantic_treatment_capability_boundary completed_steps=0 executed=0
+2026-10-24T19:50:31 [INFO] [f6.gate] conversation=webui_mvmc6dkv goal=goal_0937f79b771afded chainEnded=true status=waiting_interaction respGoal=completed runtimeGoal=waiting_confirmation
+2026-10-24T19:50:31 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit revision=2
+2026-10-24T19:50:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:50:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:50:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:50:31 [INFO] [mix.treatment.pending] resolver decision conversation=webui_mvmc6dkv status=ready_pan_tick action=pan_balance processor=utility target=track:1032
+2026-10-24T19:50:32 [WARN] [d1] execution blocked conversation=webui_mvmc6dkv reason=D1-S1 requires one bounded reverb_decay_adjust
+2026-10-24T19:50:32 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20261024T114904_772eee26\Unsaved.vit revision=2
+2026-10-24T19:50:32 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_32a11f34a6cd4076aef8865e78e3ce6f
+2026-10-24T19:50:32 [INFO] [timing] http.interaction_respond total_ms=1074 interaction=interaction_74ea6d9b1b0637ab action=approve
