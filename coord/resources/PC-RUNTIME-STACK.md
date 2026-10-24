@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-24 21:2x 本会话机器钟起 / **主管验收复跑腿（184 D1-MIXTREAT-KIND-GUARD-1 合并态 affb611a）**（owner=GLM-5.3 主管决策流 ZCode 验收会话）：预期 run=coord/runs/D1-MIXTREAT-KIND-GUARD-1/supv_chatnl_*（journey_free_state_nl berth 取证话术复刻一轮；agent=主检出合并态构建；kernel=主检出 K3 722A79D7 只读；journey 隔离=run 目录 kernel workspace+VIT_PROJECT_XML）。占用前只读核对：VitApp/VitAgent/vsphub=0、栈端口 tcp=0（仅用户 Godot 编辑器 8736 在场不触碰）。§8 预声明：1 轮；成功=exit 0+needle 零命中+零非法 mutation；失败分类=环境中断/LLM shape miss（不变量仍须绿）/确定性断言失败（同签名两次即停）。
+（空——最新释放见下条）
+
+## 最近一次释放（2026-10-24 21:3x，主管验收复跑腿 184 合并态）
+
+- 2026-10-24 21:2x 登记（7f6a589d）–21:3x 释放 / **主管验收复跑腿（184 D1-MIXTREAT-KIND-GUARD-1 合并态 affb611a）——一轮 exit 0 全绿**（owner=GLM-5.3 主管决策流 ZCode 验收会话）：run=**coord/runs/D1-MIXTREAT-KIND-GUARD-1/supv_chatnl_20261024_213310**（journey_free_state_nl berth+取证话术逐字复刻；agent=主检出合并态 affb611a 脚本自建；kernel=主检出 K3 722A79D7 只读，journey 隔离 workdir）。**脚本 exit 0**；本轮形态=no_candidate_found（LLM 随机分支，同执行侧 r1/r2；不变量亲核全绿=冻结口错误族 needle 用户面 0 命中+applied_signal=false+mix_treatment 事件 0）。§8：1 轮预算用 1，零盲跑。拆栈=脚本自带 teardown（agent 31596/kernel 17576）→复核 VitApp/VitAgent/VspHub=0、栈端口 tcp=0（用户 Godot 编辑器 8736 全程未动）。
 
 ## 最近一次释放（2026-10-24 20:5x–21:0x，D1-MIXTREAT-KIND-GUARD-1(184) 真栈 chat 腿）
 
