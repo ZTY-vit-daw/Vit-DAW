@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-24 19:5x 本会话机器钟起 / **主管验收复跑腿（179+183 前端合并态 5da6360）**（owner=GLM-5.3 主管决策流 ZCode 验收会话）：预期 run=coord/runs/FE-SEND-LEVEL-FADER-1/supv_rerun_20261024_*（SendRouteGuiSmoke 全栈腿+shrink/fader/popup/realinput/start_feed 探针腿；被测前端=主检出合并态 5da6360；kernel=主检出 K3 722A79D7 只读占用前亲核；RepoRoot=主检出；VIT_PROJECT_XML=run 目录 git 干净版隔离副本——183 首轮污染教训）。占用前只读核对：VitApp/VitAgent/vsphub/Godot 进程=0、六端口 tcp listen=0、4445/5555 udp=0。
+（空——最新释放见下条）
+
+## 最近一次释放（2026-10-24 19:2x–19:5x，主管验收复跑腿 179+183 合并态）
+
+- 2026-10-24 19:5x 登记（dda3ea5f）–19:5x 释放 / **主管验收复跑腿（179+183 前端合并态 5da6360）——两相位全绿收口**（owner=GLM-5.3 主管决策流 ZCode 验收会话）：run=**coord/runs/FE-SEND-LEVEL-FADER-1/supv_rerun_20261024_1955**。Phase B=SendRouteGuiSmoke（VIT_PROJECT_XML=git 干净版隔离副本）脚本 exit 0 **stack probe 72/72**（K3/L8/L9/L10 零回退+L11 推子拖动腿 8/8，隔离副本一次过；脚本残留 VitApp 21796/VitAgent 32548 本腿手拆后复核=0 再进 Phase A）；Phase A=裸栈（kernel 18596+vsphub 31124+agent 29928）探针族 shrink_c×2/shrink_a/shrink_b/fader 35/popup 111/realinput 15/start_feed 244 **全 PASS**。被测=前端主检出合并态 5da6360；kernel=主检出 K3 722A79D7 只读亲核。拆栈=Stop-Process 18596/31124/29928→复核四类进程=0、七端口 tcp=0、4445/5555 udp=0。
 
 ## 最近一次释放（2026-10-24 19:07 登记 – 19:12 释放，FE-SEND-LEVEL-FADER-1(183)）
 

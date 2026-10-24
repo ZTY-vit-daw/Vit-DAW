@@ -1,0 +1,83 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS L1 connect auto_create
+[stack-probe] PASS L1 fx track created
+[stack-probe] PASS L1 default amount -6.0
+[stack-probe] PASS L2 send list
+[stack-probe] PASS L2 edge readback
+[stack-probe] PASS L3 SendOut plugin in state
+[stack-probe] PASS L3 SendIn plugin in state
+[stack-probe] PASS L4 set_amount
+[stack-probe] PASS L4 amount echo -12.5
+[stack-probe] PASS L4 list readback -12.5
+[stack-probe] PASS L5 control_add_macro
+[stack-probe] PASS L5 macro node snapshot
+[stack-probe] PASS L5 control_graph has new macro node
+[stack-probe] PASS L5 control_add_binding
+[stack-probe] PASS L5 binding target send level
+[stack-probe] PASS L5 control_set_macro_values
+[stack-probe] PASS L5 applied bindings 1
+[stack-probe] PASS L5 graph snapshot our bindings 1
+[stack-probe] PASS L5 graph snapshot macro_1 0.8
+[stack-probe] PASS L5 macro drives send amount
+[stack-probe] PASS L6 disconnect
+[stack-probe] PASS L6 fx released
+[stack-probe] PASS L6 list empty after disconnect
+[stack-probe] PASS L7 external connect (foreign request id)
+[stack-probe] PASS L7 external connect created fx
+[stack-probe] PASS L7 VSP-shaped repository applied
+[stack-probe] PASS L7 baseline no send node (VSP-shaped repo)
+[stack-probe] PASS L7 topology auto-applied to repository
+[stack-probe] PASS L7 unified send icon auto-present (zero user action, default collapsed)
+[stack-probe] PASS L7 collapsed hides pair cards (166)
+[stack-probe] PASS L7 unified amount label
+[stack-probe] PASS L7 repository topology row source/fx
+[stack-probe] PASS L8 unified route key from real topology
+[stack-probe] PASS L8 unified badge is fx track name
+[stack-probe] PASS L8 unified color from fixed palette hash
+[stack-probe] PASS L8 collapsed derived key stays in confirmed set (164 chain intact)
+[stack-probe] PASS L9 collapsed chain keys in confirmed set
+[stack-probe] PASS L9 collapsed chain lines drawn to bus anchors
+[stack-probe] PASS L8 expand restores SendOut card (pair complete)
+[stack-probe] PASS L8 expanded SendOut amount label
+[stack-probe] PASS L8 SendIn card auto-present (pair complete)
+[stack-probe] PASS L8 pair cable in graph connections
+[stack-probe] PASS L8 pair cable kernel-confirmed (ghost gate holds)
+[stack-probe] PASS L8 derived edge key in confirmed set
+[stack-probe] PASS L9 expanded chain keys in confirmed set
+[stack-probe] PASS L9 expanded chain lines drawn to anchors
+[stack-probe] PASS L8 exactly one send-out card (no dual-track duplicate)
+[stack-probe] PASS L8 expanded cards share unified color
+[stack-probe] PASS L8 expanded badges match unified badge
+[stack-probe] PASS L8 aux cable color consumes route color
+[stack-probe] PASS L10 adjust entry on SendOut card
+[stack-probe] PASS L10 real-event click reaches button rect center (182)
+[stack-probe] PASS L10 popup opens with spin on click
+[stack-probe] PASS L10 popup rect fully on-screen (182)
+[stack-probe] PASS L10 spin initial value matches topology (-6.0)
+[stack-probe] PASS L10 spin grab focus holds after popup (182)
+[stack-probe] PASS L10 spin up-arrow real click steps +0.5 (182)
+[stack-probe] PASS L10 set_amount converges to readback -5.5
+[stack-probe] PASS L11 fader on SendOut card (183)
+[stack-probe] PASS L11 fader value label present (183)
+[stack-probe] PASS L11 fader initial unit maps readback -5.5 (183)
+[stack-probe] PASS L11 real press reaches fader (183)
+[stack-probe] PASS L11 mid-drag repository amount unchanged (183)
+[stack-probe] PASS L11 mid-drag fader value label echoes preview (183)
+[stack-probe] PASS L11 drag release readback converges (183)
+[stack-probe] PASS L11 fader unit resyncs from readback (183)
+[stack-probe] PASS L8 external disconnect ok
+[stack-probe] PASS L8 cards removed after external disconnect
+[stack-probe] PASS L8 cable removed after external disconnect
+[stack-probe] PASS L9 chain keys removed after external disconnect
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":72,"failures":[],"status":"pass"}
