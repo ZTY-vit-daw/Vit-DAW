@@ -8,7 +8,7 @@ import (
 // RenderProfile is the consumer take-up face (03 §2): consumers declare who
 // they are and may only TRIM which fields/blocks they consume. There is no
 // custom-template entry point — template evolution happens in this engine
-// only, which is what "生成插件壳/外部适配器/VitReel/编曲共用同一契约"
+// only, which is what "生成插件壳/外部适配器/VitTape/编曲共用同一契约"
 // means in verifiable form.
 type RenderProfile struct {
 	// ConsumerID is one of gen_api | gen_plugin | arrange | vitreel (free
