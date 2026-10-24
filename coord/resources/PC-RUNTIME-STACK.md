@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（空——最新释放见下条）
+- 2026-10-24 2x:xx 本会话机器钟起 / **D1-MIXTREAT-KIND-GUARD-1(184) 真栈 chat 腿**（owner=GLM-5.3 L2 PC 执行会话（ZCode，184 卡会话））：预期 run=coord/runs/D1-MIXTREAT-KIND-GUARD-1/chatnl_*（dev_agent_smoke -Scenario journey_free_state_nl，取证话术「给人声加点空间感」JourneyNlPromptBase64 复刻；被测 agent=worktree D:/Vit_DAW_wt_d1guard1@port/d1-mixtreat-kind-guard-1 构建——含守卫改动；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读亲核；journey berth 隔离：kernel workdir+VIT_PROJECT_XML=run 目录 git 干净副本、VIT_HISTORY_DRAFT_ROOT=run 目录，主检出 Workspace 零触碰）。§8 预算：≤3 轮独立调用；成功=exit 0+用户面英文错误签名零出现+拓扑读回零非法变更（逐轮不变量）；失败分类=环境中断（修复重跑不计轮）/LLM shape miss（不变量仍须绿，形态记录）/确定性断言失败（同签名两次即停）。占用前核对：VitApp/VitAgent/VspHub=0、六端口 tcp listen=0、4445/5555 udp=0（用户 Godot 编辑器 8736 在场不占栈端口，不触碰）；远端记录空闲已 fetch 亲核。
 
 ## 最近一次释放（2026-10-24 19:2x–19:5x，主管验收复跑腿 179+183 合并态）
 
