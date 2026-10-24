@@ -1,0 +1,12 @@
+{
+  "started_at": "2026-10-24 18:33:5x",
+  "kernel_pid": 12740,
+  "kernel_exe": "D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe",
+  "kernel_sha256": "722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC",
+  "vsphub_pid": 25304,
+  "agent_pid": 36548,
+  "agent_exe": "D:/Vit_DAW_wt_shrinkc/coord/runs/PROBE-SHRINKC-MIXERSYNC-1/shrinkc_repro_20261024_182813/VitAgent_shrinkc.exe",
+  "agent_sha256_16": "6C41DAAB8BF00B20",
+  "kernel_workspace": "run_dir/kernel_workspace (VIT_PROJECT_XML isolated)",
+  "note": "bringup_shrinkc.ps1 health endpoint used /agent/health (wrong); actual ready verified via /health 200. Pids recorded manually after manual verification."
+}
