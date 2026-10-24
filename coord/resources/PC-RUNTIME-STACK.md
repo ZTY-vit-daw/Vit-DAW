@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（空——最新释放见下条）
+- 2026-10-24 19:07 本会话机器钟起 / **FE-SEND-LEVEL-FADER-1(183) 真栈 SendRouteGuiSmoke 腿**（owner=ZCode GLM-5.3 PC 前端执行会话（183 卡会话））：预期 run=coord/runs/FE-SEND-LEVEL-FADER-1/lvlfader_gui_*（被测=前端 worktree D:/Godot/project/vit-daw-frontend-lvlfader1@port/fe-send-level-fader-1@**060a5e9** 含发送量推子直调+stack_probe L11 拖动腿；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读（19:0x 占用前亲核一致）；RepoRoot=主仓 stack worktree D:/Vit_DAW_wt_lvlfader1_stack@port/fe-send-level-fader-1-stack（Go 零改动）；Godot 4.6.1 console headless）。占用前核对（19:0x）：VitApp/VitAgent/vsphub/非编辑器 Godot=0、六端口 tcp listen=0、4445/5555 udp=0（179 释放后无新占用）。
 
 ## 最近一次释放（2026-10-24 18:3x 登记 – 19:1x 释放，PROBE-SHRINKC-MIXERSYNC-1(179)）
 
