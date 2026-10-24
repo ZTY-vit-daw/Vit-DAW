@@ -2509,6 +2509,37 @@ func (s *Server) chatResponseFromAgentLoopResult(conversationID, mode string, re
 			}
 		}
 	}
+	// D1-MIXTREAT-KIND-GUARD-1: a pending mix treatment that can never
+	// satisfy the conversation's active D1-S1 admission must not reach the
+	// durable store or the executable confirmation card at all — the
+	// 2026-10-24 forensic (reverb admission, pan_balance proposal, approve,
+	// frozen-gate reason leaked verbatim into the chat reply) showed the
+	// unguarded shape as a card whose only end state is a blocked execution.
+	// Refuse before recordGoalResult stores the candidate and before the
+	// response override below publishes the card; the turn settles honestly
+	// with localized guidance and the round stays schedulable (the same
+	// demotion shape as the refused-settle window above). Sessions without a
+	// D1-S1 admission never take this branch.
+	if strings.TrimSpace(conversationID) != "" {
+		if treatment := res.ExecutionMemory.PendingMixTreatment; treatment != nil && strings.EqualFold(strings.TrimSpace(treatment.Status), "pending_confirmation") {
+			if spec, mismatch := s.d1AdmissionMismatchForPendingMixTreatment(conversationID, *treatment); mismatch != "" {
+				if s.logger != nil {
+					s.logger.Info("[mix.treatment.pending] refused D1-S1 admission mismatch conversation=%s goal=%s action=%s processor=%s target=%s mismatch=%s",
+						conversationID, res.GoalID, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef, mismatch)
+				}
+				res.ExecutionMemory.PendingMixTreatment = nil
+				if res.Status == agentruntime.StatusWaitingConfirmation {
+					if res.Continuation != nil {
+						res.Status = agentruntime.StatusWaitingContinue
+					} else {
+						res.Status = agentruntime.StatusCompleted
+					}
+				}
+				res.StopReason = mixTreatmentRefusedD1AdmissionMismatchReason
+				res.Reply = d1MixTreatmentAdmissionMismatchReply(*treatment, spec, mismatch)
+			}
+		}
+	}
 	if err := s.recordGoalResult(conversationID, res); err != nil {
 		// The downgrade leaves only a stop-reason string on the envelope;
 		// the underlying persist error (lease owner/expiry) must reach the

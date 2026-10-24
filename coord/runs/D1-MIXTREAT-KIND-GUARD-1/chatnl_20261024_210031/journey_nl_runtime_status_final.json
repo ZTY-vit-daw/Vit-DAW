@@ -1,0 +1,1223 @@
+﻿{
+    "authority_mode":  "full_project_access",
+    "capability_routes":  [
+                              {
+                                  "capacity_assessment":  {
+                                                              "schema_version":  "free_state_capacity_assessment.v1",
+                                                              "authority":  "product_runtime",
+                                                              "observed_facts":  {
+                                                                                     "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                                                     "project_revision":  "6",
+                                                                                     "track_count":  2,
+                                                                                     "active_audio_track_count":  2,
+                                                                                     "duration_seconds":  2.2,
+                                                                                     "plugin_count":  0,
+                                                                                     "automation_lane_count":  0,
+                                                                                     "track_group_count":  0,
+                                                                                     "routing_edge_count":  0,
+                                                                                     "relationship_breadth":  0,
+                                                                                     "request_scope":  "project_context",
+                                                                                     "task_history_available":  false,
+                                                                                     "evidence_refs":  [
+                                                                                                           "project.state:vitproj_1cb835ed83be4b0ca6530984da7416b5:6"
+                                                                                                       ]
+                                                                                 },
+                                                              "complexity_factors":  [
+                                                                                         {
+                                                                                             "code":  "large_track_set",
+                                                                                             "observed":  2,
+                                                                                             "weight":  25,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "long_timeline",
+                                                                                             "observed":  2.2,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "five minutes or more increases observation span"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_processing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "forty or more processors increase context pressure"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "dense_routing_graph",
+                                                                                             "observed":  0,
+                                                                                             "weight":  20,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                         },
+                                                                                         {
+                                                                                             "code":  "automation_heavy",
+                                                                                             "observed":  0,
+                                                                                             "weight":  15,
+                                                                                             "triggered":  false,
+                                                                                             "reason":  "automation breadth increases cross-stage state"
+                                                                                         }
+                                                                                     ],
+                                                              "capacity_score":  0,
+                                                              "capacity_level":  "within_free_state",
+                                                              "selected_capability":  "free_state",
+                                                              "reason_codes":  [
+                                                                                   "small_or_moderate_project"
+                                                                               ],
+                                                              "confidence":  0.94,
+                                                              "project_revision":  "6",
+                                                              "observed_at":  "2026-10-24T13:01:25.4940378Z"
+                                                          },
+                                  "controller":  "minimal_audio_closure",
+                                  "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                                  "created_at":  "2026-10-24T13:01:25.4940378Z",
+                                  "goal_id":  "goal_ed5b4be265b1c170",
+                                  "original_intent":  "给人声加点空间感",
+                                  "project_revision":  "6",
+                                  "run_id":  "run_4c68e920f30bc477",
+                                  "schema_version":  "capability_route_decision.v1",
+                                  "semantic_entry":  {
+                                                         "confidence":  0.96,
+                                                         "control_mode":  "semantic_loop",
+                                                         "reason":  "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+                                                         "route":  "open_semantic",
+                                                         "schema_version":  "semantic_entry_decision.v1",
+                                                         "target_scope":  "project_context",
+                                                         "user_authorization":  "action_requested"
+                                                     },
+                                  "task_id":  "task_c26a1d018450c5f9",
+                                  "updated_at":  "2026-10-24T13:01:25.4940378Z"
+                              }
+                          ],
+    "checked_at":  "2026-10-24T21:02:00.1955707+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+                          {
+                              "attempt":  1,
+                              "capacity_assessment":  {
+                                                          "schema_version":  "free_state_capacity_assessment.v1",
+                                                          "authority":  "product_runtime",
+                                                          "observed_facts":  {
+                                                                                 "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                                                 "project_revision":  "6",
+                                                                                 "track_count":  2,
+                                                                                 "active_audio_track_count":  2,
+                                                                                 "duration_seconds":  2.2,
+                                                                                 "plugin_count":  0,
+                                                                                 "automation_lane_count":  0,
+                                                                                 "track_group_count":  0,
+                                                                                 "routing_edge_count":  0,
+                                                                                 "relationship_breadth":  0,
+                                                                                 "request_scope":  "project_context",
+                                                                                 "task_history_available":  false,
+                                                                                 "evidence_refs":  [
+                                                                                                       "project.state:vitproj_1cb835ed83be4b0ca6530984da7416b5:6"
+                                                                                                   ]
+                                                                             },
+                                                          "complexity_factors":  [
+                                                                                     {
+                                                                                         "code":  "large_track_set",
+                                                                                         "observed":  2,
+                                                                                         "weight":  25,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "long_timeline",
+                                                                                         "observed":  2.2,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "five minutes or more increases observation span"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_processing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "forty or more processors increase context pressure"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_routing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "automation_heavy",
+                                                                                         "observed":  0,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "automation breadth increases cross-stage state"
+                                                                                     }
+                                                                                 ],
+                                                          "capacity_score":  0,
+                                                          "capacity_level":  "within_free_state",
+                                                          "selected_capability":  "free_state",
+                                                          "reason_codes":  [
+                                                                               "small_or_moderate_project"
+                                                                           ],
+                                                          "confidence":  0.94,
+                                                          "project_revision":  "6",
+                                                          "observed_at":  "2026-10-24T13:01:25.4940378Z"
+                                                      },
+                              "continuation_id":  "cont_64c4856e61f3b54809158cc3",
+                              "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                              "free_state_admission_receipt":  {
+                                                                   "boundary":  "admitted",
+                                                                   "candidate_id":  "user_named:1012",
+                                                                   "failed_gate_ids":  null,
+                                                                   "gate_results":  {
+                                                                                        "G1_project_binding":  "pass",
+                                                                                        "G2_capacity_assessed":  "pass",
+                                                                                        "G3_project_scan":  "pass",
+                                                                                        "G4_dimension_closed":  "pass",
+                                                                                        "G5_frontier_established":  "pass",
+                                                                                        "G6_target_evidence":  "pass",
+                                                                                        "G7_fresh_revision_bound_refs":  "pass",
+                                                                                        "G8_target_consistency":  "pass"
+                                                                                    },
+                                                                   "project_revision":  "6",
+                                                                   "proposal_error":  "",
+                                                                   "proposal_present":  true,
+                                                                   "proposal_valid":  true,
+                                                                   "recorded_at":  "2026-10-24T13:01:57.2887921Z",
+                                                                   "schema_version":  "free_state_admission_receipt.v1",
+                                                                   "status":  "needs_experiment",
+                                                                   "target_evidence_ref":  "obs_20261024T130147_c37b8e811f14"
+                                                               },
+                              "free_state_continuation_budget":  6,
+                              "free_state_continuation_used":  2,
+                              "free_state_current_phase":  "fs8_experiment_verification",
+                              "free_state_current_round_id":  "r_a8fa6e74e6e5",
+                              "free_state_decision_status":  "needs_experiment",
+                              "free_state_status":  "awaiting_experiment",
+                              "free_state_stop_reason":  "",
+                              "goal_id":  "goal_ed5b4be265b1c170",
+                              "original_intent":  "给人声加点空间感",
+                              "project_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit",
+                              "project_revision":  "6",
+                              "project_session_id":  "session_20261024T130109_7bfda6f6",
+                              "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                              "run_id":  "run_4c68e920f30bc477",
+                              "slice_id":  "slice_b87f08d3f8b66ce0",
+                              "status":  "completed",
+                              "task_contract":  {
+                                                    "schema_version":  "vit.task_semantic_state.v1",
+                                                    "contract_id":  "contract_task_c26a1d018450c5f9",
+                                                    "task_id":  "task_c26a1d018450c5f9",
+                                                    "goal_id":  "goal_ed5b4be265b1c170",
+                                                    "run_id":  "run_4c68e920f30bc477",
+                                                    "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                                                    "original_intent":  "给人声加点空间感",
+                                                    "kind":  "improvement",
+                                                    "scope":  {
+                                                                  "kind":  "project",
+                                                                  "id":  "vitproj_1cb835ed83be4b0ca6530984da7416b5"
+                                                              },
+                                                    "temporary":  true,
+                                                    "target_discovery":  "agent_observation",
+                                                    "authorization_boundary":  "governed_experiment",
+                                                    "completion_criteria":  [
+                                                                                "settle only after a governed experiment outcome",
+                                                                                "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                            ],
+                                                    "evidence_requirements":  [
+                                                                                  "exact observation or audit receipt references",
+                                                                                  "project revision matching the evaluated evidence",
+                                                                                  "explicit limitations for every bounded conclusion"
+                                                                              ],
+                                                    "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                    "project_revision":  "6",
+                                                    "created_at":  "2026-10-24T13:01:25.5103015Z"
+                                                },
+                              "task_id":  "task_c26a1d018450c5f9",
+                              "task_semantic_state":  {
+                                                          "schema_version":  "vit.task_semantic_state.v1",
+                                                          "state":  "observation_in_progress",
+                                                          "revision":  1,
+                                                          "contract_id":  "contract_task_c26a1d018450c5f9",
+                                                          "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                          "project_revision":  "6",
+                                                          "transition_reason":  "task contract admitted",
+                                                          "terminal":  false,
+                                                          "history":  [
+                                                                          {
+                                                                              "revision":  1,
+                                                                              "event":  "observation_started",
+                                                                              "to":  "observation_in_progress",
+                                                                              "reason":  "task contract admitted",
+                                                                              "project_revision":  "6",
+                                                                              "occurred_at":  "2026-10-24T13:01:25.5103015Z"
+                                                                          }
+                                                                      ],
+                                                          "updated_at":  "2026-10-24T13:01:25.5103015Z"
+                                                      },
+                              "task_state":  "observation_in_progress",
+                              "task_state_revision":  1,
+                              "turn_id":  "turn_f8e4c97012af4686",
+                              "updated_at":  "2026-10-24T13:01:57.3608826Z"
+                          },
+                          {
+                              "attempt":  1,
+                              "capacity_assessment":  {
+                                                          "schema_version":  "free_state_capacity_assessment.v1",
+                                                          "authority":  "product_runtime",
+                                                          "observed_facts":  {
+                                                                                 "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                                                 "project_revision":  "6",
+                                                                                 "track_count":  2,
+                                                                                 "active_audio_track_count":  2,
+                                                                                 "duration_seconds":  2.2,
+                                                                                 "plugin_count":  0,
+                                                                                 "automation_lane_count":  0,
+                                                                                 "track_group_count":  0,
+                                                                                 "routing_edge_count":  0,
+                                                                                 "relationship_breadth":  0,
+                                                                                 "request_scope":  "project_context",
+                                                                                 "task_history_available":  false,
+                                                                                 "evidence_refs":  [
+                                                                                                       "project.state:vitproj_1cb835ed83be4b0ca6530984da7416b5:6"
+                                                                                                   ]
+                                                                             },
+                                                          "complexity_factors":  [
+                                                                                     {
+                                                                                         "code":  "large_track_set",
+                                                                                         "observed":  2,
+                                                                                         "weight":  25,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "long_timeline",
+                                                                                         "observed":  2.2,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "five minutes or more increases observation span"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_processing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "forty or more processors increase context pressure"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "dense_routing_graph",
+                                                                                         "observed":  0,
+                                                                                         "weight":  20,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                     },
+                                                                                     {
+                                                                                         "code":  "automation_heavy",
+                                                                                         "observed":  0,
+                                                                                         "weight":  15,
+                                                                                         "triggered":  false,
+                                                                                         "reason":  "automation breadth increases cross-stage state"
+                                                                                     }
+                                                                                 ],
+                                                          "capacity_score":  0,
+                                                          "capacity_level":  "within_free_state",
+                                                          "selected_capability":  "free_state",
+                                                          "reason_codes":  [
+                                                                               "small_or_moderate_project"
+                                                                           ],
+                                                          "confidence":  0.94,
+                                                          "project_revision":  "6",
+                                                          "observed_at":  "2026-10-24T13:01:25.4940378Z"
+                                                      },
+                              "continuation_id":  "cont_ea750a7f15741f5bd2c59305",
+                              "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                              "free_state_admission_receipt":  {
+                                                                   "boundary":  "admitted",
+                                                                   "candidate_id":  "user_named:1012",
+                                                                   "failed_gate_ids":  null,
+                                                                   "gate_results":  {
+                                                                                        "G1_project_binding":  "pass",
+                                                                                        "G2_capacity_assessed":  "pass",
+                                                                                        "G3_project_scan":  "pass",
+                                                                                        "G4_dimension_closed":  "pass",
+                                                                                        "G5_frontier_established":  "pass",
+                                                                                        "G6_target_evidence":  "pass",
+                                                                                        "G7_fresh_revision_bound_refs":  "pass",
+                                                                                        "G8_target_consistency":  "pass"
+                                                                                    },
+                                                                   "project_revision":  "6",
+                                                                   "proposal_error":  "",
+                                                                   "proposal_present":  true,
+                                                                   "proposal_valid":  true,
+                                                                   "recorded_at":  "2026-10-24T13:01:57.2887921Z",
+                                                                   "schema_version":  "free_state_admission_receipt.v1",
+                                                                   "status":  "needs_experiment",
+                                                                   "target_evidence_ref":  "obs_20261024T130147_c37b8e811f14"
+                                                               },
+                              "free_state_continuation_budget":  6,
+                              "free_state_continuation_used":  2,
+                              "free_state_current_phase":  "fs8_experiment_verification",
+                              "free_state_current_round_id":  "r_a8fa6e74e6e5",
+                              "free_state_decision_status":  "needs_experiment",
+                              "free_state_status":  "awaiting_experiment",
+                              "free_state_stop_reason":  "",
+                              "goal_id":  "goal_ed5b4be265b1c170",
+                              "original_intent":  "给人声加点空间感",
+                              "project_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit",
+                              "project_revision":  "6",
+                              "project_session_id":  "session_20261024T130109_7bfda6f6",
+                              "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                              "run_id":  "run_4c68e920f30bc477",
+                              "slice_id":  "slice_5f2655df175d8466",
+                              "status":  "completed",
+                              "task_contract":  {
+                                                    "schema_version":  "vit.task_semantic_state.v1",
+                                                    "contract_id":  "contract_task_c26a1d018450c5f9",
+                                                    "task_id":  "task_c26a1d018450c5f9",
+                                                    "goal_id":  "goal_ed5b4be265b1c170",
+                                                    "run_id":  "run_4c68e920f30bc477",
+                                                    "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                                                    "original_intent":  "给人声加点空间感",
+                                                    "kind":  "improvement",
+                                                    "scope":  {
+                                                                  "kind":  "project",
+                                                                  "id":  "vitproj_1cb835ed83be4b0ca6530984da7416b5"
+                                                              },
+                                                    "temporary":  true,
+                                                    "target_discovery":  "agent_observation",
+                                                    "authorization_boundary":  "governed_experiment",
+                                                    "completion_criteria":  [
+                                                                                "settle only after a governed experiment outcome",
+                                                                                "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                            ],
+                                                    "evidence_requirements":  [
+                                                                                  "exact observation or audit receipt references",
+                                                                                  "project revision matching the evaluated evidence",
+                                                                                  "explicit limitations for every bounded conclusion"
+                                                                              ],
+                                                    "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                    "project_revision":  "6",
+                                                    "created_at":  "2026-10-24T13:01:25.5103015Z"
+                                                },
+                              "task_id":  "task_c26a1d018450c5f9",
+                              "task_semantic_state":  {
+                                                          "schema_version":  "vit.task_semantic_state.v1",
+                                                          "state":  "observation_in_progress",
+                                                          "revision":  1,
+                                                          "contract_id":  "contract_task_c26a1d018450c5f9",
+                                                          "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                          "project_revision":  "6",
+                                                          "transition_reason":  "task contract admitted",
+                                                          "terminal":  false,
+                                                          "history":  [
+                                                                          {
+                                                                              "revision":  1,
+                                                                              "event":  "observation_started",
+                                                                              "to":  "observation_in_progress",
+                                                                              "reason":  "task contract admitted",
+                                                                              "project_revision":  "6",
+                                                                              "occurred_at":  "2026-10-24T13:01:25.5103015Z"
+                                                                          }
+                                                                      ],
+                                                          "updated_at":  "2026-10-24T13:01:25.5103015Z"
+                                                      },
+                              "task_state":  "observation_in_progress",
+                              "task_state_revision":  1,
+                              "turn_id":  "turn_b8aa065024252d94",
+                              "updated_at":  "2026-10-24T13:01:47.1574847Z"
+                          }
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_ed5b4be265b1c170",
+                 "run_id":  "run_4c68e920f30bc477",
+                 "task":  {
+                              "task_id":  "task_c26a1d018450c5f9",
+                              "goal_id":  "goal_ed5b4be265b1c170",
+                              "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                              "original_intent":  "给人声加点空间感",
+                              "status":  "active",
+                              "contract":  {
+                                               "schema_version":  "vit.task_semantic_state.v1",
+                                               "contract_id":  "contract_task_c26a1d018450c5f9",
+                                               "task_id":  "task_c26a1d018450c5f9",
+                                               "goal_id":  "goal_ed5b4be265b1c170",
+                                               "run_id":  "run_4c68e920f30bc477",
+                                               "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                                               "original_intent":  "给人声加点空间感",
+                                               "kind":  "improvement",
+                                               "scope":  {
+                                                             "kind":  "project",
+                                                             "id":  "vitproj_1cb835ed83be4b0ca6530984da7416b5"
+                                                         },
+                                               "temporary":  true,
+                                               "target_discovery":  "agent_observation",
+                                               "authorization_boundary":  "governed_experiment",
+                                               "completion_criteria":  [
+                                                                           "settle only after a governed experiment outcome",
+                                                                           "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                                       ],
+                                               "evidence_requirements":  [
+                                                                             "exact observation or audit receipt references",
+                                                                             "project revision matching the evaluated evidence",
+                                                                             "explicit limitations for every bounded conclusion"
+                                                                         ],
+                                               "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                               "project_revision":  "6",
+                                               "created_at":  "2026-10-24T13:01:25.5103015Z"
+                                           },
+                              "semantic_state":  {
+                                                     "schema_version":  "vit.task_semantic_state.v1",
+                                                     "state":  "needs_experiment",
+                                                     "revision":  4,
+                                                     "contract_id":  "contract_task_c26a1d018450c5f9",
+                                                     "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                     "project_revision":  "6",
+                                                     "evidence_refs":  [
+                                                                           "obs_20261024T130147_c37b8e811f14"
+                                                                       ],
+                                                     "candidate_id":  "1012",
+                                                     "proposal":  {
+                                                                      "proposal_id":  "proposal_6464f90618a0a3fe0733",
+                                                                      "summary":  "让人声听起来更有前后纵深与空间感，同时不损害清晰度与低频厚度",
+                                                                      "evidence_refs":  [
+                                                                                            "obs_20261024T130147_c37b8e811f14"
+                                                                                        ],
+                                                                      "bounds":  [
+                                                                                     "本轮仅取得该人声轨的空间观测，未取得工程结构与发送拓扑证据，因此装载位置与默认发送量以运行时生成的总线方案为准",
+                                                                                     "相关性为 1 也可能源于素材本身为单声道录音，混响未必能带来真正的立体声宽度，只能带来深度与尾音"
+                                                                                 ],
+                                                                      "requires_experiment":  true
+                                                                  },
+                                                     "experiment_id":  "turn:free_state_dbbabf0e3ab1ffd0",
+                                                     "transition_reason":  "free-state experiment runtime admitted",
+                                                     "summary":  "bounded experiment admitted",
+                                                     "terminal":  false,
+                                                     "history":  [
+                                                                     {
+                                                                         "revision":  1,
+                                                                         "event":  "observation_started",
+                                                                         "to":  "observation_in_progress",
+                                                                         "reason":  "task contract admitted",
+                                                                         "project_revision":  "6",
+                                                                         "occurred_at":  "2026-10-24T13:01:25.5103015Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  2,
+                                                                         "event":  "diagnostic_completed",
+                                                                         "from":  "observation_in_progress",
+                                                                         "to":  "diagnostic_complete",
+                                                                         "reason":  "candidate diagnosis established",
+                                                                         "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261024T130147_c37b8e811f14"
+                                                                                           ],
+                                                                         "project_revision":  "6",
+                                                                         "occurred_at":  "2026-10-24T13:01:57.2887921Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  3,
+                                                                         "event":  "improvement_proposed",
+                                                                         "from":  "diagnostic_complete",
+                                                                         "to":  "improvement_proposal",
+                                                                         "reason":  "runtime admitted bounded improvement proposal",
+                                                                         "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261024T130147_c37b8e811f14"
+                                                                                           ],
+                                                                         "candidate_id":  "1012",
+                                                                         "project_revision":  "6",
+                                                                         "occurred_at":  "2026-10-24T13:01:57.2967935Z"
+                                                                     },
+                                                                     {
+                                                                         "revision":  4,
+                                                                         "event":  "experiment_required",
+                                                                         "from":  "improvement_proposal",
+                                                                         "to":  "needs_experiment",
+                                                                         "reason":  "free-state experiment runtime admitted",
+                                                                         "summary":  "bounded experiment admitted",
+                                                                         "experiment_id":  "turn:free_state_dbbabf0e3ab1ffd0",
+                                                                         "project_revision":  "6",
+                                                                         "occurred_at":  "2026-10-24T13:01:57.3322136Z"
+                                                                     }
+                                                                 ],
+                                                     "updated_at":  "2026-10-24T13:01:57.3322136Z"
+                                                 },
+                              "run":  {
+                                          "run_id":  "run_4c68e920f30bc477",
+                                          "task_id":  "task_c26a1d018450c5f9",
+                                          "current_slice_id":  "slice_afe9dcc765d86c53",
+                                          "next_slice":  4,
+                                          "next_turn":  4,
+                                          "slices":  [
+                                                         {
+                                                             "slice_id":  "slice_5f2655df175d8466",
+                                                             "run_id":  "run_4c68e920f30bc477",
+                                                             "sequence":  1,
+                                                             "max_turns":  1,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  1,
+                                                             "tool_calls_used":  1,
+                                                             "status":  "waiting_continuation",
+                                                             "started_at":  "2026-10-24T21:01:26.5198656+08:00",
+                                                             "ended_at":  "2026-10-24T21:01:29.9281845+08:00"
+                                                         },
+                                                         {
+                                                             "slice_id":  "slice_b87f08d3f8b66ce0",
+                                                             "run_id":  "run_4c68e920f30bc477",
+                                                             "sequence":  2,
+                                                             "max_turns":  2,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  2,
+                                                             "tool_calls_used":  1,
+                                                             "status":  "waiting_continuation",
+                                                             "started_at":  "2026-10-24T21:01:30.1061908+08:00",
+                                                             "ended_at":  "2026-10-24T21:01:47.1379297+08:00"
+                                                         },
+                                                         {
+                                                             "slice_id":  "slice_afe9dcc765d86c53",
+                                                             "run_id":  "run_4c68e920f30bc477",
+                                                             "sequence":  3,
+                                                             "max_turns":  1,
+                                                             "max_tool_calls":  6,
+                                                             "turns_used":  1,
+                                                             "status":  "running",
+                                                             "started_at":  "2026-10-24T21:01:47.2987288+08:00",
+                                                             "ended_at":  "0001-01-01T00:00:00Z"
+                                                         }
+                                                     ],
+                                          "turns":  [
+                                                        {
+                                                            "turn_id":  "turn_b8aa065024252d94",
+                                                            "slice_id":  "slice_5f2655df175d8466",
+                                                            "run_id":  "run_4c68e920f30bc477",
+                                                            "sequence":  1,
+                                                            "source":  "user",
+                                                            "status":  "waiting_continue",
+                                                            "started_at":  "2026-10-24T21:01:26.5198656+08:00",
+                                                            "ended_at":  "2026-10-24T21:01:29.9281845+08:00"
+                                                        },
+                                                        {
+                                                            "turn_id":  "turn_f8e4c97012af4686",
+                                                            "slice_id":  "slice_b87f08d3f8b66ce0",
+                                                            "run_id":  "run_4c68e920f30bc477",
+                                                            "sequence":  2,
+                                                            "source":  "automatic_continuation",
+                                                            "status":  "waiting_continue",
+                                                            "started_at":  "2026-10-24T21:01:30.1061908+08:00",
+                                                            "ended_at":  "2026-10-24T21:01:47.1379297+08:00"
+                                                        },
+                                                        {
+                                                            "turn_id":  "turn_017f93caf0a1b325",
+                                                            "slice_id":  "slice_afe9dcc765d86c53",
+                                                            "run_id":  "run_4c68e920f30bc477",
+                                                            "sequence":  3,
+                                                            "source":  "automatic_continuation",
+                                                            "status":  "completed",
+                                                            "started_at":  "2026-10-24T21:01:47.2987288+08:00",
+                                                            "ended_at":  "2026-10-24T21:01:57.2777918+08:00"
+                                                        }
+                                                    ]
+                                      },
+                              "created_at":  "2026-10-24T21:01:22.4648538+08:00",
+                              "updated_at":  "2026-10-24T13:01:57.3322136Z"
+                          },
+                 "status":  "completed",
+                 "summary":  "给人声加点空间感",
+                 "created_at":  "2026-10-24T21:01:22.4648538+08:00",
+                 "updated_at":  "2026-10-24T13:01:57.3322136Z",
+                 "cancel_requested":  false,
+                 "last_checkpoint":  "before_message_loop_model"
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+
+                      ],
+    "pid":  4380,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  null,
+                   "initialized":  true,
+                   "last_delta_seq":  74,
+                   "project_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit",
+                   "track_count":  2,
+                   "user_track_count":  2
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_c26a1d018450c5f9",
+                 "goal_id":  "goal_ed5b4be265b1c170",
+                 "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                 "original_intent":  "给人声加点空间感",
+                 "status":  "active",
+                 "contract":  {
+                                  "schema_version":  "vit.task_semantic_state.v1",
+                                  "contract_id":  "contract_task_c26a1d018450c5f9",
+                                  "task_id":  "task_c26a1d018450c5f9",
+                                  "goal_id":  "goal_ed5b4be265b1c170",
+                                  "run_id":  "run_4c68e920f30bc477",
+                                  "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                                  "original_intent":  "给人声加点空间感",
+                                  "kind":  "improvement",
+                                  "scope":  {
+                                                "kind":  "project",
+                                                "id":  "vitproj_1cb835ed83be4b0ca6530984da7416b5"
+                                            },
+                                  "temporary":  true,
+                                  "target_discovery":  "agent_observation",
+                                  "authorization_boundary":  "governed_experiment",
+                                  "completion_criteria":  [
+                                                              "settle only after a governed experiment outcome",
+                                                              "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                          ],
+                                  "evidence_requirements":  [
+                                                                "exact observation or audit receipt references",
+                                                                "project revision matching the evaluated evidence",
+                                                                "explicit limitations for every bounded conclusion"
+                                                            ],
+                                  "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                  "project_revision":  "6",
+                                  "created_at":  "2026-10-24T13:01:25.5103015Z"
+                              },
+                 "semantic_state":  {
+                                        "schema_version":  "vit.task_semantic_state.v1",
+                                        "state":  "needs_experiment",
+                                        "revision":  4,
+                                        "contract_id":  "contract_task_c26a1d018450c5f9",
+                                        "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                        "project_revision":  "6",
+                                        "evidence_refs":  [
+                                                              "obs_20261024T130147_c37b8e811f14"
+                                                          ],
+                                        "candidate_id":  "1012",
+                                        "proposal":  {
+                                                         "proposal_id":  "proposal_6464f90618a0a3fe0733",
+                                                         "summary":  "让人声听起来更有前后纵深与空间感，同时不损害清晰度与低频厚度",
+                                                         "evidence_refs":  [
+                                                                               "obs_20261024T130147_c37b8e811f14"
+                                                                           ],
+                                                         "bounds":  [
+                                                                        "本轮仅取得该人声轨的空间观测，未取得工程结构与发送拓扑证据，因此装载位置与默认发送量以运行时生成的总线方案为准",
+                                                                        "相关性为 1 也可能源于素材本身为单声道录音，混响未必能带来真正的立体声宽度，只能带来深度与尾音"
+                                                                    ],
+                                                         "requires_experiment":  true
+                                                     },
+                                        "experiment_id":  "turn:free_state_dbbabf0e3ab1ffd0",
+                                        "transition_reason":  "free-state experiment runtime admitted",
+                                        "summary":  "bounded experiment admitted",
+                                        "terminal":  false,
+                                        "history":  [
+                                                        {
+                                                            "revision":  1,
+                                                            "event":  "observation_started",
+                                                            "to":  "observation_in_progress",
+                                                            "reason":  "task contract admitted",
+                                                            "project_revision":  "6",
+                                                            "occurred_at":  "2026-10-24T13:01:25.5103015Z"
+                                                        },
+                                                        {
+                                                            "revision":  2,
+                                                            "event":  "diagnostic_completed",
+                                                            "from":  "observation_in_progress",
+                                                            "to":  "diagnostic_complete",
+                                                            "reason":  "candidate diagnosis established",
+                                                            "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                            "evidence_refs":  [
+                                                                                  "obs_20261024T130147_c37b8e811f14"
+                                                                              ],
+                                                            "project_revision":  "6",
+                                                            "occurred_at":  "2026-10-24T13:01:57.2887921Z"
+                                                        },
+                                                        {
+                                                            "revision":  3,
+                                                            "event":  "improvement_proposed",
+                                                            "from":  "diagnostic_complete",
+                                                            "to":  "improvement_proposal",
+                                                            "reason":  "runtime admitted bounded improvement proposal",
+                                                            "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                            "evidence_refs":  [
+                                                                                  "obs_20261024T130147_c37b8e811f14"
+                                                                              ],
+                                                            "candidate_id":  "1012",
+                                                            "project_revision":  "6",
+                                                            "occurred_at":  "2026-10-24T13:01:57.2967935Z"
+                                                        },
+                                                        {
+                                                            "revision":  4,
+                                                            "event":  "experiment_required",
+                                                            "from":  "improvement_proposal",
+                                                            "to":  "needs_experiment",
+                                                            "reason":  "free-state experiment runtime admitted",
+                                                            "summary":  "bounded experiment admitted",
+                                                            "experiment_id":  "turn:free_state_dbbabf0e3ab1ffd0",
+                                                            "project_revision":  "6",
+                                                            "occurred_at":  "2026-10-24T13:01:57.3322136Z"
+                                                        }
+                                                    ],
+                                        "updated_at":  "2026-10-24T13:01:57.3322136Z"
+                                    },
+                 "run":  {
+                             "run_id":  "run_4c68e920f30bc477",
+                             "task_id":  "task_c26a1d018450c5f9",
+                             "current_slice_id":  "slice_afe9dcc765d86c53",
+                             "next_slice":  4,
+                             "next_turn":  4,
+                             "slices":  [
+                                            {
+                                                "slice_id":  "slice_5f2655df175d8466",
+                                                "run_id":  "run_4c68e920f30bc477",
+                                                "sequence":  1,
+                                                "max_turns":  1,
+                                                "max_tool_calls":  6,
+                                                "turns_used":  1,
+                                                "tool_calls_used":  1,
+                                                "status":  "waiting_continuation",
+                                                "started_at":  "2026-10-24T21:01:26.5198656+08:00",
+                                                "ended_at":  "2026-10-24T21:01:29.9281845+08:00"
+                                            },
+                                            {
+                                                "slice_id":  "slice_b87f08d3f8b66ce0",
+                                                "run_id":  "run_4c68e920f30bc477",
+                                                "sequence":  2,
+                                                "max_turns":  2,
+                                                "max_tool_calls":  6,
+                                                "turns_used":  2,
+                                                "tool_calls_used":  1,
+                                                "status":  "waiting_continuation",
+                                                "started_at":  "2026-10-24T21:01:30.1061908+08:00",
+                                                "ended_at":  "2026-10-24T21:01:47.1379297+08:00"
+                                            },
+                                            {
+                                                "slice_id":  "slice_afe9dcc765d86c53",
+                                                "run_id":  "run_4c68e920f30bc477",
+                                                "sequence":  3,
+                                                "max_turns":  1,
+                                                "max_tool_calls":  6,
+                                                "turns_used":  1,
+                                                "status":  "running",
+                                                "started_at":  "2026-10-24T21:01:47.2987288+08:00",
+                                                "ended_at":  "0001-01-01T00:00:00Z"
+                                            }
+                                        ],
+                             "turns":  [
+                                           {
+                                               "turn_id":  "turn_b8aa065024252d94",
+                                               "slice_id":  "slice_5f2655df175d8466",
+                                               "run_id":  "run_4c68e920f30bc477",
+                                               "sequence":  1,
+                                               "source":  "user",
+                                               "status":  "waiting_continue",
+                                               "started_at":  "2026-10-24T21:01:26.5198656+08:00",
+                                               "ended_at":  "2026-10-24T21:01:29.9281845+08:00"
+                                           },
+                                           {
+                                               "turn_id":  "turn_f8e4c97012af4686",
+                                               "slice_id":  "slice_b87f08d3f8b66ce0",
+                                               "run_id":  "run_4c68e920f30bc477",
+                                               "sequence":  2,
+                                               "source":  "automatic_continuation",
+                                               "status":  "waiting_continue",
+                                               "started_at":  "2026-10-24T21:01:30.1061908+08:00",
+                                               "ended_at":  "2026-10-24T21:01:47.1379297+08:00"
+                                           },
+                                           {
+                                               "turn_id":  "turn_017f93caf0a1b325",
+                                               "slice_id":  "slice_afe9dcc765d86c53",
+                                               "run_id":  "run_4c68e920f30bc477",
+                                               "sequence":  3,
+                                               "source":  "automatic_continuation",
+                                               "status":  "completed",
+                                               "started_at":  "2026-10-24T21:01:47.2987288+08:00",
+                                               "ended_at":  "2026-10-24T21:01:57.2777918+08:00"
+                                           }
+                                       ]
+                         },
+                 "created_at":  "2026-10-24T21:01:22.4648538+08:00",
+                 "updated_at":  "2026-10-24T13:01:57.3322136Z"
+             },
+    "task_contract":  {
+                          "schema_version":  "vit.task_semantic_state.v1",
+                          "contract_id":  "contract_task_c26a1d018450c5f9",
+                          "task_id":  "task_c26a1d018450c5f9",
+                          "goal_id":  "goal_ed5b4be265b1c170",
+                          "run_id":  "run_4c68e920f30bc477",
+                          "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                          "original_intent":  "给人声加点空间感",
+                          "kind":  "improvement",
+                          "scope":  {
+                                        "kind":  "project",
+                                        "id":  "vitproj_1cb835ed83be4b0ca6530984da7416b5"
+                                    },
+                          "temporary":  true,
+                          "target_discovery":  "agent_observation",
+                          "authorization_boundary":  "governed_experiment",
+                          "completion_criteria":  [
+                                                      "settle only after a governed experiment outcome",
+                                                      "or report no_candidate_found or a distinct capability boundary with evidence"
+                                                  ],
+                          "evidence_requirements":  [
+                                                        "exact observation or audit receipt references",
+                                                        "project revision matching the evaluated evidence",
+                                                        "explicit limitations for every bounded conclusion"
+                                                    ],
+                          "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                          "project_revision":  "6",
+                          "created_at":  "2026-10-24T13:01:25.5103015Z"
+                      },
+    "task_semantic_state":  {
+                                "schema_version":  "vit.task_semantic_state.v1",
+                                "state":  "needs_experiment",
+                                "revision":  4,
+                                "contract_id":  "contract_task_c26a1d018450c5f9",
+                                "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                "project_revision":  "6",
+                                "evidence_refs":  [
+                                                      "obs_20261024T130147_c37b8e811f14"
+                                                  ],
+                                "candidate_id":  "1012",
+                                "proposal":  {
+                                                 "proposal_id":  "proposal_6464f90618a0a3fe0733",
+                                                 "summary":  "让人声听起来更有前后纵深与空间感，同时不损害清晰度与低频厚度",
+                                                 "evidence_refs":  [
+                                                                       "obs_20261024T130147_c37b8e811f14"
+                                                                   ],
+                                                 "bounds":  [
+                                                                "本轮仅取得该人声轨的空间观测，未取得工程结构与发送拓扑证据，因此装载位置与默认发送量以运行时生成的总线方案为准",
+                                                                "相关性为 1 也可能源于素材本身为单声道录音，混响未必能带来真正的立体声宽度，只能带来深度与尾音"
+                                                            ],
+                                                 "requires_experiment":  true
+                                             },
+                                "experiment_id":  "turn:free_state_dbbabf0e3ab1ffd0",
+                                "transition_reason":  "free-state experiment runtime admitted",
+                                "summary":  "bounded experiment admitted",
+                                "terminal":  false,
+                                "history":  [
+                                                {
+                                                    "revision":  1,
+                                                    "event":  "observation_started",
+                                                    "to":  "observation_in_progress",
+                                                    "reason":  "task contract admitted",
+                                                    "project_revision":  "6",
+                                                    "occurred_at":  "2026-10-24T13:01:25.5103015Z"
+                                                },
+                                                {
+                                                    "revision":  2,
+                                                    "event":  "diagnostic_completed",
+                                                    "from":  "observation_in_progress",
+                                                    "to":  "diagnostic_complete",
+                                                    "reason":  "candidate diagnosis established",
+                                                    "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261024T130147_c37b8e811f14"
+                                                                      ],
+                                                    "project_revision":  "6",
+                                                    "occurred_at":  "2026-10-24T13:01:57.2887921Z"
+                                                },
+                                                {
+                                                    "revision":  3,
+                                                    "event":  "improvement_proposed",
+                                                    "from":  "diagnostic_complete",
+                                                    "to":  "improvement_proposal",
+                                                    "reason":  "runtime admitted bounded improvement proposal",
+                                                    "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261024T130147_c37b8e811f14"
+                                                                      ],
+                                                    "candidate_id":  "1012",
+                                                    "project_revision":  "6",
+                                                    "occurred_at":  "2026-10-24T13:01:57.2967935Z"
+                                                },
+                                                {
+                                                    "revision":  4,
+                                                    "event":  "experiment_required",
+                                                    "from":  "improvement_proposal",
+                                                    "to":  "needs_experiment",
+                                                    "reason":  "free-state experiment runtime admitted",
+                                                    "summary":  "bounded experiment admitted",
+                                                    "experiment_id":  "turn:free_state_dbbabf0e3ab1ffd0",
+                                                    "project_revision":  "6",
+                                                    "occurred_at":  "2026-10-24T13:01:57.3322136Z"
+                                                }
+                                            ],
+                                "updated_at":  "2026-10-24T13:01:57.3322136Z"
+                            },
+    "task_state":  "needs_experiment",
+    "task_state_revision":  4,
+    "task_trajectory":  {
+                            "capability_route":  {
+                                                     "capacity_assessment":  {
+                                                                                 "schema_version":  "free_state_capacity_assessment.v1",
+                                                                                 "authority":  "product_runtime",
+                                                                                 "observed_facts":  {
+                                                                                                        "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                                                                                                        "project_revision":  "6",
+                                                                                                        "track_count":  2,
+                                                                                                        "active_audio_track_count":  2,
+                                                                                                        "duration_seconds":  2.2,
+                                                                                                        "plugin_count":  0,
+                                                                                                        "automation_lane_count":  0,
+                                                                                                        "track_group_count":  0,
+                                                                                                        "routing_edge_count":  0,
+                                                                                                        "relationship_breadth":  0,
+                                                                                                        "request_scope":  "project_context",
+                                                                                                        "task_history_available":  false,
+                                                                                                        "evidence_refs":  [
+                                                                                                                              "project.state:vitproj_1cb835ed83be4b0ca6530984da7416b5:6"
+                                                                                                                          ]
+                                                                                                    },
+                                                                                 "complexity_factors":  [
+                                                                                                            {
+                                                                                                                "code":  "large_track_set",
+                                                                                                                "observed":  2,
+                                                                                                                "weight":  25,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "twenty or more user tracks expand whole-project coverage"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "long_timeline",
+                                                                                                                "observed":  2.2,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "five minutes or more increases observation span"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_processing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "forty or more processors increase context pressure"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "dense_routing_graph",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  20,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "routing and grouping relationships require project-wide coordination"
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "code":  "automation_heavy",
+                                                                                                                "observed":  0,
+                                                                                                                "weight":  15,
+                                                                                                                "triggered":  false,
+                                                                                                                "reason":  "automation breadth increases cross-stage state"
+                                                                                                            }
+                                                                                                        ],
+                                                                                 "capacity_score":  0,
+                                                                                 "capacity_level":  "within_free_state",
+                                                                                 "selected_capability":  "free_state",
+                                                                                 "reason_codes":  [
+                                                                                                      "small_or_moderate_project"
+                                                                                                  ],
+                                                                                 "confidence":  0.94,
+                                                                                 "project_revision":  "6",
+                                                                                 "observed_at":  "2026-10-24T13:01:25.4940378Z"
+                                                                             },
+                                                     "controller":  "minimal_audio_closure",
+                                                     "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                                                     "created_at":  "2026-10-24T13:01:25.4940378Z",
+                                                     "goal_id":  "goal_ed5b4be265b1c170",
+                                                     "original_intent":  "给人声加点空间感",
+                                                     "project_revision":  "6",
+                                                     "run_id":  "run_4c68e920f30bc477",
+                                                     "schema_version":  "capability_route_decision.v1",
+                                                     "semantic_entry":  {
+                                                                            "confidence":  0.96,
+                                                                            "control_mode":  "semantic_loop",
+                                                                            "reason":  "product runtime selected free_state after project structure observation (score=0, reasons=small_or_moderate_project)",
+                                                                            "route":  "open_semantic",
+                                                                            "schema_version":  "semantic_entry_decision.v1",
+                                                                            "target_scope":  "project_context",
+                                                                            "user_authorization":  "action_requested"
+                                                                        },
+                                                     "task_id":  "task_c26a1d018450c5f9",
+                                                     "updated_at":  "2026-10-24T13:01:25.4940378Z"
+                                                 },
+                            "continuation":  {
+                                                 "attempt":  1,
+                                                 "continuation_id":  "cont_64c4856e61f3b54809158cc3",
+                                                 "slice_id":  "slice_b87f08d3f8b66ce0",
+                                                 "status":  "completed",
+                                                 "turn_id":  "turn_f8e4c97012af4686",
+                                                 "updated_at":  "2026-10-24T13:01:57.3608826Z"
+                                             },
+                            "run":  {
+                                        "current_slice_id":  "slice_afe9dcc765d86c53",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_4c68e920f30bc477",
+                                        "slices":  [
+                                                       {
+                                                           "slice_id":  "slice_5f2655df175d8466",
+                                                           "run_id":  "run_4c68e920f30bc477",
+                                                           "sequence":  1,
+                                                           "max_turns":  1,
+                                                           "max_tool_calls":  6,
+                                                           "turns_used":  1,
+                                                           "tool_calls_used":  1,
+                                                           "status":  "waiting_continuation",
+                                                           "started_at":  "2026-10-24T21:01:26.5198656+08:00",
+                                                           "ended_at":  "2026-10-24T21:01:29.9281845+08:00"
+                                                       },
+                                                       {
+                                                           "slice_id":  "slice_b87f08d3f8b66ce0",
+                                                           "run_id":  "run_4c68e920f30bc477",
+                                                           "sequence":  2,
+                                                           "max_turns":  2,
+                                                           "max_tool_calls":  6,
+                                                           "turns_used":  2,
+                                                           "tool_calls_used":  1,
+                                                           "status":  "waiting_continuation",
+                                                           "started_at":  "2026-10-24T21:01:30.1061908+08:00",
+                                                           "ended_at":  "2026-10-24T21:01:47.1379297+08:00"
+                                                       },
+                                                       {
+                                                           "slice_id":  "slice_afe9dcc765d86c53",
+                                                           "run_id":  "run_4c68e920f30bc477",
+                                                           "sequence":  3,
+                                                           "max_turns":  1,
+                                                           "max_tool_calls":  6,
+                                                           "turns_used":  1,
+                                                           "status":  "running",
+                                                           "started_at":  "2026-10-24T21:01:47.2987288+08:00",
+                                                           "ended_at":  "0001-01-01T00:00:00Z"
+                                                       }
+                                                   ],
+                                        "turns":  [
+                                                      {
+                                                          "turn_id":  "turn_b8aa065024252d94",
+                                                          "slice_id":  "slice_5f2655df175d8466",
+                                                          "run_id":  "run_4c68e920f30bc477",
+                                                          "sequence":  1,
+                                                          "source":  "user",
+                                                          "status":  "waiting_continue",
+                                                          "started_at":  "2026-10-24T21:01:26.5198656+08:00",
+                                                          "ended_at":  "2026-10-24T21:01:29.9281845+08:00"
+                                                      },
+                                                      {
+                                                          "turn_id":  "turn_f8e4c97012af4686",
+                                                          "slice_id":  "slice_b87f08d3f8b66ce0",
+                                                          "run_id":  "run_4c68e920f30bc477",
+                                                          "sequence":  2,
+                                                          "source":  "automatic_continuation",
+                                                          "status":  "waiting_continue",
+                                                          "started_at":  "2026-10-24T21:01:30.1061908+08:00",
+                                                          "ended_at":  "2026-10-24T21:01:47.1379297+08:00"
+                                                      },
+                                                      {
+                                                          "turn_id":  "turn_017f93caf0a1b325",
+                                                          "slice_id":  "slice_afe9dcc765d86c53",
+                                                          "run_id":  "run_4c68e920f30bc477",
+                                                          "sequence":  3,
+                                                          "source":  "automatic_continuation",
+                                                          "status":  "completed",
+                                                          "started_at":  "2026-10-24T21:01:47.2987288+08:00",
+                                                          "ended_at":  "2026-10-24T21:01:57.2777918+08:00"
+                                                      }
+                                                  ]
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+                                             "contract":  {
+                                                              "contract_id":  "contract_task_c26a1d018450c5f9",
+                                                              "kind":  "improvement",
+                                                              "scope":  {
+                                                                            "kind":  "project",
+                                                                            "id":  "vitproj_1cb835ed83be4b0ca6530984da7416b5"
+                                                                        },
+                                                              "temporary":  true
+                                                          },
+                                             "evidence_refs":  [
+                                                                   "obs_20261024T130147_c37b8e811f14"
+                                                               ],
+                                             "project_revision":  "6",
+                                             "revision":  4,
+                                             "state":  "needs_experiment",
+                                             "summary":  "bounded experiment admitted",
+                                             "terminal":  false,
+                                             "transition_reason":  "free-state experiment runtime admitted",
+                                             "updated_at":  "2026-10-24T13:01:57.3322136Z"
+                                         },
+                            "task":  {
+                                         "conversation_id":  "dev_journey_fs_nl_20261024_210107",
+                                         "created_at":  "2026-10-24T21:01:22.4648538+08:00",
+                                         "goal_id":  "goal_ed5b4be265b1c170",
+                                         "goal_status":  "completed",
+                                         "original_intent":  "给人声加点空间感",
+                                         "run_id":  "run_4c68e920f30bc477",
+                                         "status":  "active",
+                                         "task_id":  "task_c26a1d018450c5f9",
+                                         "updated_at":  "2026-10-24T13:01:57.3322136Z"
+                                     },
+                            "transitions":  [
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "observation_started",
+                                                    "evidence_refs":  null,
+                                                    "experiment_id":  "",
+                                                    "from":  "",
+                                                    "occurred_at":  "2026-10-24T13:01:25.5103015Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "6",
+                                                    "reason":  "task contract admitted",
+                                                    "revision":  1,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "",
+                                                    "to":  "observation_in_progress"
+                                                },
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "diagnostic_completed",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261024T130147_c37b8e811f14"
+                                                                      ],
+                                                    "experiment_id":  "",
+                                                    "from":  "observation_in_progress",
+                                                    "occurred_at":  "2026-10-24T13:01:57.2887921Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "6",
+                                                    "reason":  "candidate diagnosis established",
+                                                    "revision":  2,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                    "to":  "diagnostic_complete"
+                                                },
+                                                {
+                                                    "candidate_id":  "1012",
+                                                    "event":  "improvement_proposed",
+                                                    "evidence_refs":  [
+                                                                          "obs_20261024T130147_c37b8e811f14"
+                                                                      ],
+                                                    "experiment_id":  "",
+                                                    "from":  "diagnostic_complete",
+                                                    "occurred_at":  "2026-10-24T13:01:57.2967935Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "6",
+                                                    "reason":  "runtime admitted bounded improvement proposal",
+                                                    "revision":  3,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "人声轨 1012（Lead Vocal）的空间观测显示左右相关度估计为 1，即信号几乎完全居中、没有可利用的立体声差异。这与用户“加点空间感”的听感诉求方向一致，但该读数只说明当前谈不上有空间纵深，并不构成客观缺陷，因此按有界可逆实验处理：给该轨的空间路径小幅增加混响衰减量。",
+                                                    "to":  "improvement_proposal"
+                                                },
+                                                {
+                                                    "candidate_id":  "",
+                                                    "event":  "experiment_required",
+                                                    "evidence_refs":  null,
+                                                    "experiment_id":  "turn:free_state_dbbabf0e3ab1ffd0",
+                                                    "from":  "improvement_proposal",
+                                                    "occurred_at":  "2026-10-24T13:01:57.3322136Z",
+                                                    "pending_interaction":  null,
+                                                    "project_revision":  "6",
+                                                    "reason":  "free-state experiment runtime admitted",
+                                                    "revision":  4,
+                                                    "stale_for_current_revision":  false,
+                                                    "summary":  "bounded experiment admitted",
+                                                    "to":  "needs_experiment"
+                                                }
+                                            ]
+                        }
+}

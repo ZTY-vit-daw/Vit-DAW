@@ -1,0 +1,118 @@
+﻿{
+    "at":  "2026-10-24T20:57:09.8761451+08:00",
+    "seq":  3,
+    "project":  {
+                    "delta_seq_gaps":  0,
+                    "graph_revision":  null,
+                    "initialized":  true,
+                    "last_delta_seq":  2,
+                    "observability":  null,
+                    "pending_job_data":  null,
+                    "project_health":  null,
+                    "project_path":  "",
+                    "track_count":  6,
+                    "user_track_count":  6
+                },
+    "track_count":  6,
+    "tracks":  [
+                   {
+                       "track_id":  "1007",
+                       "name":  "bass",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   },
+                   {
+                       "track_id":  "1012",
+                       "name":  "drums",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   },
+                   {
+                       "track_id":  "1017",
+                       "name":  "guitar",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   },
+                   {
+                       "track_id":  "1022",
+                       "name":  "other",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   },
+                   {
+                       "track_id":  "1027",
+                       "name":  "piano",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   },
+                   {
+                       "track_id":  "1032",
+                       "name":  "vocals",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   }
+               ],
+    "rack_node_ids":  [
+
+                      ]
+}

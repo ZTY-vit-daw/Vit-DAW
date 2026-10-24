@@ -1,0 +1,28 @@
+{
+  "card": "D1-MIXTREAT-KIND-GUARD-1",
+  "run_dir": "chatnl_20261024_210031",
+  "responses_scanned": 2,
+  "events_scanned": 30,
+  "needle_findings": [],
+  "needles_pass": true,
+  "topology_changes": [],
+  "topology_pass": true,
+  "topology_note": "applied_signal=false; zero drift required",
+  "final_snapshot": "ui_state_0007.json",
+  "final_snapshot_at": "2026-10-24T21:01:26.9233270+08:00",
+  "journey_summary": {
+    "classification": "no_candidate_found",
+    "nl_settle_reason": "goal_terminal",
+    "nl_goal_status_final": "completed",
+    "hops_driven": 0,
+    "applied_signal": false,
+    "applied_basis": "",
+    "stop_reasons_observed": [
+      "limit_reached"
+    ],
+    "nl_first_stop_reason": "limit_reached",
+    "success_strict_card_chain": false,
+    "success_policy_chain": false
+  },
+  "verdict_pass": true
+}
