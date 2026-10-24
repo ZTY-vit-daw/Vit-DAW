@@ -26,6 +26,6 @@
 
 勘察发现守卫前移会破坏既有 mix tick 确认语义（如无准入会话的正常 pan/gain 卡）→ 锚点上交再裁（守卫必须限定「活跃 D1-S1 准入存在」分支）。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-24 20:16 / origin/main=3e856afd（fetch 亲核=本地 main） / owner=GLM-5.3 L2 PC 执行会话（ZCode，本会话） / 分支 port/d1-mixtreat-kind-guard-1 / worktree D:/Vit_DAW_wt_d1guard1 / 领取提交见下回执前回填
 - 回执：（守卫挂点结论 / commit / 单测面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
