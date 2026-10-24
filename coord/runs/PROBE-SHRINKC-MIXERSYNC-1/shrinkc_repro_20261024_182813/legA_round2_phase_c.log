@@ -1,0 +1,2021 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-GUI-C-FLOATING Phase C suite start
+[probe] PASS static: floating view card script exists
+[probe] PASS static: card promote/close signals
+[probe] PASS static: card warn/promote/close buttons
+[probe] PASS static: card draggable pointer injection
+[probe] PASS static: card content host + promoted state
+[probe] PASS static: floating window script exists
+[probe] PASS static: floating window extends Window
+[probe] PASS static: floating window independent-system policy
+[probe] PASS static: floating window reattach + os close
+[probe] PASS static: floating window single-view host
+[probe] PASS static: floating window does not reuse legacy detached script
+[probe] PASS static: floating view manager exists
+[probe] PASS static: manager dual-mode state machine
+[probe] PASS static: manager snapshot API
+[probe] PASS static: manager independent from window_manager
+[probe] PASS static: drawer chip click signal
+[probe] PASS static: drawer chip click semantics float
+[probe] PASS static: drawer tip click=float
+[probe] PASS static: panel float button + signal
+[probe] PASS static: drag click semantics signal
+[probe] PASS static: stage status bar script exists
+[probe] PASS static: status bar three elements
+[probe] PASS static: status bar terminal copy
+[probe] PASS static: root floating entry APIs
+[probe] PASS static: root floating probe surface
+[probe] PASS static: root floating mount before modal panel
+[probe] PASS static: root status bar mount
+[probe] PASS static: root drawer chip handler
+[probe] PASS static: root F2 handler retained
+[probe] PASS static: anchor track detail path
+[probe] PASS static: anchor audio clip detail path
+[probe] PASS static: anchor master output path
+[probe] PASS static: anchor piano roll window path
+[probe] PASS static: window_manager intact
+[probe] PASS static: legacy detached script retained as reference
+[probe] PASS static: transport bar retained as-is (red-line outside)
+[probe] PASS static: drawer bar still mounted in workspace shell
+[probe] PASS static: ui motion policy module exists
+[probe] PASS static: motion durations 120-220ms constants
+[probe] PASS static: motion headless guard
+[probe] PASS static: motion ease policy cubic
+[probe] PASS static: drawer overlay z + motion
+[probe] PASS static: panel overlay z > transport 80
+[probe] PASS static: panel top gap >= 12px
+[probe] PASS static: panel motion tween + backdrop fade
+[probe] PASS static: panel shelf scrollable
+[probe] PASS static: card open/close/attach/promote motion
+[probe] PASS static: window content reveal motion
+[probe] PASS static: manager spawn origin provider + motion hooks
+[probe] PASS static: root overlay z constants
+[probe] PASS static: root overlay metric sync from chrome
+[probe] PASS static: root floating layer levelled
+[probe] PASS static: root stage push/pull transition
+[probe] PASS static: root overlay snapshot probe surface
+[probe] PASS static: viewport frame clip chain in scene  |  clip_count=3
+[probe] PASS static: frame runtime clip chain enforcement
+[probe] PASS static: loaded view root size clamp
+[probe] PASS static: loaded view resize re-clamp wiring
+[probe] PASS static: mixer narrow-slot responsive policy
+[probe] PASS static: mixer toolbar horizontal scroll
+[probe] PASS static: mixer group panel auto-collapse + restore
+[probe] PASS static: mixer strips scrollbar probe surface
+[probe] PASS static: root track structure command set
+[probe] PASS static: root structure command predicate wired
+[probe] PASS static: root refresh emits project_loaded
+[probe] PASS static: mixer structure command fallback
+[probe] PASS static: mixer telemetry structure detection
+[probe] PASS static: mixer resync throttle window
+[probe] PASS static: mixer project_loaded rebuild retained
+[probe] PASS static: mixer live-refresh probe surface
+[probe] phase3: instantiating res://vit_dock/scenes/VitDockRoot.tscn
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS assembly: default stage slots = 2 (Phase B regression)  |  count=2
+[probe] PASS assembly: engine default pair  |  ["timeline", "graph_rack", "", ""]
+[probe] PASS assembly: drawer mounted with chips  |  ViewDrawerBar:<Control#141935250753>
+[probe] PASS assembly: drawer chips = spawnable six  |  count=6
+[probe] PASS assembly: drawer closed by default
+[probe] PASS assembly: switch panel mounted hidden  |  StageSwitchPanel:<Control#141415156827>
+[probe] PASS assembly: panel float buttons = backstage cards  |  backstage=4 float=4
+[probe] PASS assembly: floating layer mounted above stage  |  StageFloatingLayer:<Control#141364824857>
+[probe] PASS assembly: floating manager mounted
+[probe] PASS assembly: no floating cards at boot  |  cards=0 windows=0
+[probe] PASS assembly: window_manager anchor mounted
+[probe] PASS assembly: status bar mounted at main-area bottom  |  StageStatusBar:<PanelContainer#158326591663>
+[probe] PASS assembly: status bar is last TopLevelShell child  |  StageStatusBar
+[probe] PASS assembly: status bar visible  |  { "mounted": true, "visible": true, "stage_text": "台前 2 位 · Timeline / Graph Rack", "shortcut_text": "快捷键：F2 台前调度 · ▦ 视图抽屉 · 双击 MIDI 卷帘上台 · Ctrl+S 保存", "agent_note_text": "agent 对话 = DAW 窗外独立窗口（webui）" }
+[probe] PASS assembly: status bar stage text default  |  台前 2 位 · Timeline / Graph Rack
+[probe] PASS assembly: status bar shortcut hint  |  快捷键：F2 台前调度 · ▦ 视图抽屉 · 双击 MIDI 卷帘上台 · Ctrl+S 保存
+[probe] PASS assembly: status bar agent external-window note  |  agent 对话 = DAW 窗外独立窗口（webui）
+[probe] PASS assert5: spectral chip present in open drawer
+[probe] PASS assert5: drag controller present for click semantics
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _on_drawer_chip_clicked (res://vit_dock/scenes/vit_dock_root.gd:1824)
+       [7] _on_drag_click_performed (res://vit_dock/widgets/view_drawer_bar.gd:257)
+       [8] notify_pointer_released (res://vit_dock/widgets/stage_pointer_drag.gd:92)
+       [9] _chip_click_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:425)
+       [10] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [3] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [4] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [5] _on_drawer_chip_clicked (res://vit_dock/scenes/vit_dock_root.gd:1824)
+       [6] _on_drag_click_performed (res://vit_dock/widgets/view_drawer_bar.gd:257)
+       [7] notify_pointer_released (res://vit_dock/widgets/stage_pointer_drag.gd:92)
+       [8] _chip_click_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:425)
+       [9] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _on_drawer_chip_clicked (res://vit_dock/scenes/vit_dock_root.gd:1824)
+       [7] _on_drag_click_performed (res://vit_dock/widgets/view_drawer_bar.gd:257)
+       [8] notify_pointer_released (res://vit_dock/widgets/stage_pointer_drag.gd:92)
+       [9] _chip_click_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:425)
+       [10] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] mount_content (res://vit_dock/widgets/floating_view_card.gd:66)
+       [2] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [3] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [4] _on_drawer_chip_clicked (res://vit_dock/scenes/vit_dock_root.gd:1824)
+       [5] _on_drag_click_performed (res://vit_dock/widgets/view_drawer_bar.gd:257)
+       [6] notify_pointer_released (res://vit_dock/widgets/stage_pointer_drag.gd:92)
+       [7] _chip_click_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:425)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS assert5: chip click closes drawer (用后收起)
+[probe] PASS assert5: chip click instantiates one floating card  |  count=1
+[probe] PASS assert5: floating entry view_type spectral  |  [{ "view_type": "spectral", "card_id": "float_1", "viewport_id": "vp_float_1_spectral", "promoted": false, "card_visible": true, "window_open": false, "window_title": "", "content_parent": "card", "position": (-75.5, 127.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }]
+[probe] PASS assert5: floating card visible in dock  |  { "view_type": "spectral", "card_id": "float_1", "viewport_id": "vp_float_1_spectral", "promoted": false, "card_visible": true, "window_open": false, "window_title": "", "content_parent": "card", "position": (-75.5, 127.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS assert5: floating card hosts live view instance  |  card
+[probe] PASS assert5: floating viewport id namespaced  |  vp_float_1_spectral
+[probe] PASS assert5: floating card node reachable  |  FloatingViewCard_spectral:<PanelContainer#178358586919>
+[probe] PASS assert5: card carries warn/promote/close controls  |  { "card_id": "float_1", "view_type": "spectral", "view_label": "Spectral", "promoted": false, "dragging": false, "visible": true, "has_content": true, "position": (-75.5, 127.0), "size": (380.0, 294.0), "has_warn_button": true, "has_promote_button": true, "has_close_button": true, "motion_enabled": false, "motion_active": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS assert5: card content frame = spectral view  |  ViewportFrame:<PanelContainer#177855271086>
+[probe] PASS assert5: card cascade position  |  actual=(-75.5, 127.0) expected=(-75.5, 127.0)
+[probe] PASS assert5: window_manager windows untouched (anchor isolated)  |  count=0
+[probe] PASS floatcard: card head present
+[probe] PASS floatcard: drag moves card by pointer delta  |  before=(-75.5, 127.0) after=(44.5, 197.0)
+[probe] PASS floatcard: drag released cleanly  |  { "card_id": "float_1", "view_type": "spectral", "view_label": "Spectral", "promoted": false, "dragging": false, "visible": true, "has_content": true, "position": (44.5, 197.0), "size": (380.0, 294.0), "has_warn_button": true, "has_promote_button": true, "has_close_button": true, "motion_enabled": false, "motion_active": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS promote: promote button present
+WARNING: Can't change "gui_embed_subwindows" while a child window is displayed. Consider hiding all child windows before changing this value.
+   at: set_embedding_subwindows (scene/main/viewport.cpp:4153)
+   GDScript backtrace (most recent call first):
+       [0] _apply_window_policy (res://vit_dock/widgets/floating_view_window.gd:132)
+       [1] _ready (res://vit_dock/widgets/floating_view_window.gd:27)
+       [2] promote_to_window (res://vit_dock/core/floating_view_manager.gd:173)
+       [3] _on_card_promote_requested (res://vit_dock/core/floating_view_manager.gd:359)
+       [4] <anonymous lambda> (res://vit_dock/widgets/floating_view_card.gd:292)
+       [5] _promote_window_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:492)
+       [6] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:87)
+       [7] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+ERROR: Window 0 spawned at invalid position: (44, 197).
+   at: _popup_base (scene/main/window.cpp:2123)
+   GDScript backtrace (most recent call first):
+       [0] open_at_card_rect (res://vit_dock/widgets/floating_view_window.gd:79)
+       [1] promote_to_window (res://vit_dock/core/floating_view_manager.gd:175)
+       [2] _on_card_promote_requested (res://vit_dock/core/floating_view_manager.gd:359)
+       [3] <anonymous lambda> (res://vit_dock/widgets/floating_view_card.gd:292)
+       [4] _promote_window_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:492)
+       [5] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:87)
+       [6] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+[probe] PASS promote: entry promoted to window  |  [{ "view_type": "spectral", "card_id": "float_1", "viewport_id": "vp_float_1_spectral", "promoted": true, "card_visible": false, "window_open": true, "window_title": "Vit-Dock 浮窗 - Spectral", "content_parent": "window", "position": (44.5, 197.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }]
+[probe] PASS promote: floating card hidden while window holds content  |  { "view_type": "spectral", "card_id": "float_1", "viewport_id": "vp_float_1_spectral", "promoted": true, "card_visible": false, "window_open": true, "window_title": "Vit-Dock 浮窗 - Spectral", "content_parent": "window", "position": (44.5, 197.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS promote: window open with content  |  { "view_type": "spectral", "card_id": "float_1", "viewport_id": "vp_float_1_spectral", "promoted": true, "card_visible": false, "window_open": true, "window_title": "Vit-Dock 浮窗 - Spectral", "content_parent": "window", "position": (44.5, 197.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS promote: real Godot Window instance created  |  StageFloatingWindow_1:<Window#183811181985>
+[probe] PASS promote: window is independent Window node (child of root viewport)  |  root:<Window#26239567273>
+[probe] PASS promote: window uses Phase C script not legacy detached  |  (res://vit_dock/widgets/floating_view_window.gd):<GDScript#-9223371982765029813>
+[probe] PASS promote: window title names view  |  Vit-Dock 浮窗 - Spectral
+[probe] PASS promote: window policy non-transient/exclusive  |  { "window_id": "win_1", "view_type": "spectral", "view_label": "Spectral", "title": "Vit-Dock 浮窗 - Spectral", "visible": true, "has_content": true, "transient": false, "exclusive": false, "has_reattach_button": true, "size": (551, 441), "position": (-243, -188), "content_alpha": 1.0, "motion_enabled": false }
+[probe] PASS promote: window min size policy  |  (480, 320)
+[probe] PASS promote: window content mounted  |  { "window_id": "win_1", "view_type": "spectral", "view_label": "Spectral", "title": "Vit-Dock 浮窗 - Spectral", "visible": true, "has_content": true, "transient": false, "exclusive": false, "has_reattach_button": true, "size": (551, 441), "position": (-243, -188), "content_alpha": 1.0, "motion_enabled": false }
+[probe] PASS promote: window reattach entry present
+[probe] PASS promote: window manager anchor table untouched  |  count=0
+[probe] PASS promote: window content is spectral live view  |  ViewportFrame:<PanelContainer#177855271086>
+[probe] PASS reattach: reattach button present
+[probe] PASS reattach: entry back in card mode  |  { "view_type": "spectral", "card_id": "float_1", "viewport_id": "vp_float_1_spectral", "promoted": false, "card_visible": true, "window_open": false, "window_title": "", "content_parent": "card", "position": (44.5, 197.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS reattach: content back in floating card  |  card
+[probe] PASS reattach: window released  |  windows=0
+[probe] PASS reattach: floating item still open as card  |  [{ "view_type": "spectral", "card_id": "float_1", "viewport_id": "vp_float_1_spectral", "promoted": false, "card_visible": true, "window_open": false, "window_title": "", "content_parent": "card", "position": (44.5, 197.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }]
+[probe] PASS reattach: card reachable after reattach  |  FloatingViewCard_spectral:<PanelContainer#178358586919>
+[probe] PASS warnclose: warn button present
+WARNING: Can't change "gui_embed_subwindows" while a child window is displayed. Consider hiding all child windows before changing this value.
+   at: set_embedding_subwindows (scene/main/viewport.cpp:4153)
+   GDScript backtrace (most recent call first):
+       [0] _apply_window_policy (res://vit_dock/widgets/floating_view_window.gd:132)
+       [1] _ready (res://vit_dock/widgets/floating_view_window.gd:27)
+       [2] promote_to_window (res://vit_dock/core/floating_view_manager.gd:173)
+       [3] _on_card_promote_requested (res://vit_dock/core/floating_view_manager.gd:359)
+       [4] <anonymous lambda> (res://vit_dock/widgets/floating_view_card.gd:289)
+       [5] _warn_and_close_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:548)
+       [6] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:93)
+       [7] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+ERROR: Window 0 spawned at invalid position: (44, 197).
+   at: _popup_base (scene/main/window.cpp:2123)
+   GDScript backtrace (most recent call first):
+       [0] open_at_card_rect (res://vit_dock/widgets/floating_view_window.gd:79)
+       [1] promote_to_window (res://vit_dock/core/floating_view_manager.gd:175)
+       [2] _on_card_promote_requested (res://vit_dock/core/floating_view_manager.gd:359)
+       [3] <anonymous lambda> (res://vit_dock/widgets/floating_view_card.gd:289)
+       [4] _warn_and_close_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:548)
+       [5] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:93)
+       [6] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+[probe] PASS warnclose: warn entry also promotes to real Window (same semantics)  |  StageFloatingWindow_1:<Window#185254021848>
+[probe] PASS warnclose: system close removes floating entry  |  []
+[probe] PASS warnclose: no leaked floating windows  |  count=0
+[probe] PASS warnclose: no leaked floating cards
+[probe] PASS panel: F2 opens switch panel
+[probe] PASS panel: piano_roll backstage card exposes float button
+[probe] PASS panel: open before float action
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _on_stage_panel_float_requested (res://vit_dock/scenes/vit_dock_root.gd:1831)
+       [7] <anonymous lambda> (res://vit_dock/widgets/stage_switch_panel.gd:312)
+       [8] _panel_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:594)
+       [9] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [3] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [4] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [5] _on_stage_panel_float_requested (res://vit_dock/scenes/vit_dock_root.gd:1831)
+       [6] <anonymous lambda> (res://vit_dock/widgets/stage_switch_panel.gd:312)
+       [7] _panel_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:594)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _on_stage_panel_float_requested (res://vit_dock/scenes/vit_dock_root.gd:1831)
+       [7] <anonymous lambda> (res://vit_dock/widgets/stage_switch_panel.gd:312)
+       [8] _panel_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:594)
+       [9] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] mount_content (res://vit_dock/widgets/floating_view_card.gd:66)
+       [2] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [3] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [4] _on_stage_panel_float_requested (res://vit_dock/scenes/vit_dock_root.gd:1831)
+       [5] <anonymous lambda> (res://vit_dock/widgets/stage_switch_panel.gd:312)
+       [6] _panel_float_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:594)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS panel: float action closes panel (V11 semantics)
+[probe] PASS panel: float button instantiates floating card (same semantics)  |  [{ "view_type": "piano_roll", "card_id": "float_2", "viewport_id": "vp_float_2_piano_roll", "promoted": false, "card_visible": true, "window_open": false, "window_title": "", "content_parent": "card", "position": (-75.5, 127.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }]
+[probe] PASS panel: floating card for piano_roll reachable  |  FloatingViewCard_piano_roll:<PanelContainer#190824059259>
+[probe] PASS panel: card close button present
+[probe] PASS panel: card close removes floating item  |  []
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:612)
+       [7] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:99)
+       [8] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [3] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [4] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [5] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:612)
+       [6] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:99)
+       [7] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:612)
+       [7] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:99)
+       [8] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] mount_content (res://vit_dock/widgets/floating_view_card.gd:66)
+       [2] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [3] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [4] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:612)
+       [5] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:99)
+       [6] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS multiopen: explicit origin opens card  |  { "opened": true, "reason": "", "view_type": "mixer", "card_id": "float_3", "viewport_id": "vp_float_3_mixer", "position": (320.0, 210.0) }
+[probe] PASS multiopen: card honors origin  |  (320.0, 210.0)
+[probe] PASS multiopen: duplicate open focuses existing card  |  { "opened": false, "reason": "already_open_card", "view_type": "mixer", "card_id": "float_3", "viewport_id": "vp_float_3_mixer" }
+[probe] PASS multiopen: still one mixer card  |  [{ "view_type": "mixer", "card_id": "float_3", "viewport_id": "vp_float_3_mixer", "promoted": false, "card_visible": true, "window_open": false, "window_title": "", "content_parent": "card", "position": (320.0, 210.0), "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }]
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:622)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [3] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [4] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [5] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:622)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] mount_content (res://vit_dock/widgets/floating_view_card.gd:65)
+       [4] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [5] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [6] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:622)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] mount_content (res://vit_dock/widgets/floating_view_card.gd:66)
+       [2] open_floating (res://vit_dock/core/floating_view_manager.gd:102)
+       [3] vit_open_view_as_floating (res://vit_dock/scenes/vit_dock_root.gd:1840)
+       [4] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:622)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS multiopen: different views multi-open  |  count=2
+WARNING: Can't change "gui_embed_subwindows" while a child window is displayed. Consider hiding all child windows before changing this value.
+   at: set_embedding_subwindows (scene/main/viewport.cpp:4153)
+   GDScript backtrace (most recent call first):
+       [0] _apply_window_policy (res://vit_dock/widgets/floating_view_window.gd:132)
+       [1] _ready (res://vit_dock/widgets/floating_view_window.gd:27)
+       [2] promote_to_window (res://vit_dock/core/floating_view_manager.gd:173)
+       [3] vit_promote_floating_to_window (res://vit_dock/scenes/vit_dock_root.gd:1846)
+       [4] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:625)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+ERROR: Window 0 spawned at invalid position: (320, 210).
+   at: _popup_base (scene/main/window.cpp:2123)
+   GDScript backtrace (most recent call first):
+       [0] open_at_card_rect (res://vit_dock/widgets/floating_view_window.gd:79)
+       [1] promote_to_window (res://vit_dock/core/floating_view_manager.gd:175)
+       [2] vit_promote_floating_to_window (res://vit_dock/scenes/vit_dock_root.gd:1846)
+       [3] _duplicate_open_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:625)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+[probe] PASS multiopen: api promote to window  |  { "promoted": true, "reason": "", "view_type": "mixer", "window_id": "win_3" }
+[probe] PASS multiopen: duplicate open focuses existing window  |  { "opened": false, "reason": "already_open_window", "view_type": "mixer", "card_id": "float_3", "viewport_id": "vp_float_3_mixer" }
+[probe] PASS multiopen: api reattach back to card  |  { "reattached": true, "reason": "", "view_type": "mixer" }
+[probe] PASS multiopen: close mixer card
+[probe] PASS multiopen: close detail card
+[probe] PASS multiopen: all floating items closed  |  cards=0 windows=0
+[probe] PASS statusbar: default 2 slots text  |  text=台前 2 位 · Timeline / Graph Rack 
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _stage_push_view (res://vit_dock/scenes/vit_dock_root.gd:1661)
+       [6] _status_bar_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:646)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [4] _stage_push_view (res://vit_dock/scenes/vit_dock_root.gd:1661)
+       [5] _status_bar_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:646)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _stage_push_view (res://vit_dock/scenes/vit_dock_root.gd:1661)
+       [6] _status_bar_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:646)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _stage_push_view (res://vit_dock/scenes/vit_dock_root.gd:1661)
+       [6] _status_bar_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:647)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [4] _stage_push_view (res://vit_dock/scenes/vit_dock_root.gd:1661)
+       [5] _status_bar_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:647)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _stage_push_view (res://vit_dock/scenes/vit_dock_root.gd:1661)
+       [6] _status_bar_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:647)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS statusbar: four slots text  |  台前 4 位 · Timeline / Graph Rack / Piano Roll / Mixer
+[probe] PASS statusbar: four slots view names  |  台前 4 位 · Timeline / Graph Rack / Piano Roll / Mixer
+[probe] PASS statusbar: shortcut hints  |  快捷键：F2 台前调度 · ▦ 视图抽屉 · 双击 MIDI 卷帘上台 · Ctrl+S 保存
+[probe] PASS statusbar: agent external-window note  |  agent 对话 = DAW 窗外独立窗口（webui）
+[probe] PASS statusbar: pull updates to 3 slots  |  text=台前 3 位 · Timeline / Graph Rack / Piano Roll 
+[probe] PASS statusbar: empty stage text  |  text=台前 0 位 · 空台 
+[probe] PASS statusbar: reset restores 2 slots text  |  text=台前 2 位 · Timeline / Graph Rack 
+[probe] PASS statusbar: no floating interference  |  []
+[probe] PASS overlay: transport chrome z present (app chrome 4096)  |  transport_z=4096
+[probe] PASS overlay: drawer z above stage content  |  drawer=300 stage_max=10 detail={ "z": 10, "path": "/root/VitDockRoot/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/StageSlotGrid/ViewportFrame/VBox/ContentHost/Stack/ViewInstanceHost/TimelineDockAdapter/Layout/TrackScroll/TrackList/Track_Master/Track_Split/Right_3D_Wrapper/Master_Output_Strip" }
+[probe] PASS overlay: floating layer z above stage content  |  floating=360 stage_max=10 detail={ "z": 10, "path": "/root/VitDockRoot/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/StageSlotGrid/ViewportFrame/VBox/ContentHost/Stack/ViewInstanceHost/TimelineDockAdapter/Layout/TrackScroll/TrackList/Track_Master/Track_Split/Right_3D_Wrapper/Master_Output_Strip" }
+[probe] PASS overlay: panel z above transport 80 requirement  |  panel=4096
+[probe] PASS overlay: panel z at/above stage content  |  panel=4096 stage_max=10 detail={ "z": 10, "path": "/root/VitDockRoot/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/StageSlotGrid/ViewportFrame/VBox/ContentHost/Stack/ViewInstanceHost/TimelineDockAdapter/Layout/TrackScroll/TrackList/Track_Master/Track_Split/Right_3D_Wrapper/Master_Output_Strip" }
+[probe] PASS overlay: z order panel >= floating > drawer  |  panel=4096 floating=360 drawer=300
+[probe] PASS overlay: panel painted after chrome subtree (tree order at equal z)  |  panel_index=12 top_level_index=0
+[probe] PASS overlay: panel top gap >= 12  |  gap=12.0
+[probe] PASS overlay: panel top margin = chrome + gap  |  margin=266.0 chrome=254.0 gap=12.0
+[probe] PASS overlay: panel row anchored at top margin  |  row=266.0 margin=266.0
+[probe] PASS overlay: workspace rect usable  |  [P: (-103.5, 71.0), S: (574.0, 116.0)]
+[probe] PASS overlay: motion durations within 120-220ms  |  { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" }
+[probe] PASS overlay: motion disabled in headless
+[probe] PASS overlay: drawer mounted for idempotency
+[probe] PASS overlay: drawer double-open idempotent  |  { "z_index": 300, "panel_open": true, "panel_visible": true, "panel_alpha": 1.0, "panel_offset_top": 34.0, "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" }, "overlay_z_const": 300 }
+[probe] PASS overlay: drawer close lands hidden terminal  |  { "z_index": 300, "panel_open": false, "panel_visible": false, "panel_alpha": 1.0, "panel_offset_top": 34.0, "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" }, "overlay_z_const": 300 }
+[probe] PASS overlay: panel mounted
+[probe] PASS overlay: panel double-open idempotent visible  |  { "z_index": 4096, "overlay_z_const": 4096, "min_top_gap": 12.0, "top_margin": 266.0, "row_offset_top": 266.0, "row_alpha": 1.0, "backdrop_alpha": 1.0, "panel_open": true, "visible": true, "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS overlay: panel open row alpha terminal 1  |  { "z_index": 4096, "overlay_z_const": 4096, "min_top_gap": 12.0, "top_margin": 266.0, "row_offset_top": 266.0, "row_alpha": 1.0, "backdrop_alpha": 1.0, "panel_open": true, "visible": true, "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS overlay: panel close lands hidden terminal  |  { "z_index": 4096, "overlay_z_const": 4096, "min_top_gap": 12.0, "top_margin": 266.0, "row_offset_top": 266.0, "row_alpha": 1.0, "backdrop_alpha": 1.0, "panel_open": false, "visible": false, "motion_enabled": false, "motion_policy": { "duration_fast": 0.12, "duration_base": 0.16, "duration_slow": 0.2, "min_duration_ms": 120.0, "max_duration_ms": 220.0, "ease_out": "cubic", "ease_in": "cubic" } }
+[probe] PASS overlay: floating spawn origin inside workspace  |  spawn=(-75.5, 127.0) workspace=[P: (-103.5, 71.0), S: (574.0, 116.0)]
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:108)
+       [6] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:108)
+       [5] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:108)
+       [6] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:108)
+       [4] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted timeline_2
+[probe] PASS clip: frame clips contents timeline_2
+[probe] PASS clip: content host clip chain timeline_2  |  host=true stack=true
+[probe] PASS clip: loaded view root present timeline_2
+[probe] PASS clip: view root within slot content rect timeline_2  |  content=[P: (9.0, 7.0), S: (486.0, 404.0)] root=[P: (9.0, 7.0), S: (486.0, 404.0)]
+[probe] PASS clip: view root size clamped to host timeline_2  |  content_size=(486.0, 404.0) root_size=(486.0, 404.0)
+[probe] PASS clip: content host not wider than slot timeline_2  |  content_w=486.0 slot=504.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted timeline_3
+[probe] PASS clip: frame clips contents timeline_3
+[probe] PASS clip: content host clip chain timeline_3  |  host=true stack=true
+[probe] PASS clip: loaded view root present timeline_3
+[probe] PASS clip: view root within slot content rect timeline_3  |  content=[P: (9.0, 7.0), S: (482.0, 404.0)] root=[P: (9.0, 7.0), S: (482.0, 404.0)]
+[probe] PASS clip: view root size clamped to host timeline_3  |  content_size=(482.0, 404.0) root_size=(482.0, 404.0)
+[probe] PASS clip: content host not wider than slot timeline_3  |  content_w=482.0 slot=500.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted timeline_4
+[probe] PASS clip: frame clips contents timeline_4
+[probe] PASS clip: content host clip chain timeline_4  |  host=true stack=true
+[probe] PASS clip: loaded view root present timeline_4
+[probe] PASS clip: view root within slot content rect timeline_4  |  content=[P: (9.0, 7.0), S: (582.0, 404.0)] root=[P: (9.0, 7.0), S: (582.0, 404.0)]
+[probe] PASS clip: view root size clamped to host timeline_4  |  content_size=(582.0, 404.0) root_size=(582.0, 404.0)
+[probe] PASS clip: content host not wider than slot timeline_4  |  content_w=582.0 slot=600.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted graph_rack_2
+[probe] PASS clip: frame clips contents graph_rack_2
+[probe] PASS clip: content host clip chain graph_rack_2  |  host=true stack=true
+[probe] PASS clip: loaded view root present graph_rack_2
+[probe] PASS clip: view root within slot content rect graph_rack_2  |  content=[P: (9.0, 7.0), S: (486.0, 404.0)] root=[P: (9.0, 7.0), S: (486.0, 404.0)]
+[probe] PASS clip: view root size clamped to host graph_rack_2  |  content_size=(486.0, 404.0) root_size=(486.0, 404.0)
+[probe] PASS clip: content host not wider than slot graph_rack_2  |  content_w=486.0 slot=504.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted graph_rack_3
+[probe] PASS clip: frame clips contents graph_rack_3
+[probe] PASS clip: content host clip chain graph_rack_3  |  host=true stack=true
+[probe] PASS clip: loaded view root present graph_rack_3
+[probe] PASS clip: view root within slot content rect graph_rack_3  |  content=[P: (9.0, 7.0), S: (482.0, 404.0)] root=[P: (9.0, 7.0), S: (482.0, 404.0)]
+[probe] PASS clip: view root size clamped to host graph_rack_3  |  content_size=(482.0, 404.0) root_size=(482.0, 404.0)
+[probe] PASS clip: content host not wider than slot graph_rack_3  |  content_w=482.0 slot=500.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted graph_rack_4
+[probe] PASS clip: frame clips contents graph_rack_4
+[probe] PASS clip: content host clip chain graph_rack_4  |  host=true stack=true
+[probe] PASS clip: loaded view root present graph_rack_4
+[probe] PASS clip: view root within slot content rect graph_rack_4  |  content=[P: (9.0, 7.0), S: (582.0, 404.0)] root=[P: (9.0, 7.0), S: (582.0, 404.0)]
+[probe] PASS clip: view root size clamped to host graph_rack_4  |  content_size=(582.0, 404.0) root_size=(582.0, 404.0)
+[probe] PASS clip: content host not wider than slot graph_rack_4  |  content_w=582.0 slot=600.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted piano_roll_2
+[probe] PASS clip: frame clips contents piano_roll_2
+[probe] PASS clip: content host clip chain piano_roll_2  |  host=true stack=true
+[probe] PASS clip: loaded view root present piano_roll_2
+[probe] PASS clip: view root within slot content rect piano_roll_2  |  content=[P: (9.0, 7.0), S: (486.0, 404.0)] root=[P: (9.0, 7.0), S: (486.0, 404.0)]
+[probe] PASS clip: view root size clamped to host piano_roll_2  |  content_size=(486.0, 404.0) root_size=(486.0, 404.0)
+[probe] PASS clip: content host not wider than slot piano_roll_2  |  content_w=486.0 slot=504.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted piano_roll_3
+[probe] PASS clip: frame clips contents piano_roll_3
+[probe] PASS clip: content host clip chain piano_roll_3  |  host=true stack=true
+[probe] PASS clip: loaded view root present piano_roll_3
+[probe] PASS clip: view root within slot content rect piano_roll_3  |  content=[P: (9.0, 7.0), S: (482.0, 404.0)] root=[P: (9.0, 7.0), S: (482.0, 404.0)]
+[probe] PASS clip: view root size clamped to host piano_roll_3  |  content_size=(482.0, 404.0) root_size=(482.0, 404.0)
+[probe] PASS clip: content host not wider than slot piano_roll_3  |  content_w=482.0 slot=500.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted piano_roll_4
+[probe] PASS clip: frame clips contents piano_roll_4
+[probe] PASS clip: content host clip chain piano_roll_4  |  host=true stack=true
+[probe] PASS clip: loaded view root present piano_roll_4
+[probe] PASS clip: view root within slot content rect piano_roll_4  |  content=[P: (9.0, 7.0), S: (582.0, 404.0)] root=[P: (9.0, 7.0), S: (582.0, 404.0)]
+[probe] PASS clip: view root size clamped to host piano_roll_4  |  content_size=(582.0, 404.0) root_size=(582.0, 404.0)
+[probe] PASS clip: content host not wider than slot piano_roll_4  |  content_w=582.0 slot=600.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted spectral_2
+[probe] PASS clip: frame clips contents spectral_2
+[probe] PASS clip: content host clip chain spectral_2  |  host=true stack=true
+[probe] PASS clip: loaded view root present spectral_2
+[probe] PASS clip: view root within slot content rect spectral_2  |  content=[P: (9.0, 7.0), S: (486.0, 404.0)] root=[P: (9.0, 7.0), S: (486.0, 404.0)]
+[probe] PASS clip: view root size clamped to host spectral_2  |  content_size=(486.0, 404.0) root_size=(486.0, 404.0)
+[probe] PASS clip: content host not wider than slot spectral_2  |  content_w=486.0 slot=504.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted spectral_3
+[probe] PASS clip: frame clips contents spectral_3
+[probe] PASS clip: content host clip chain spectral_3  |  host=true stack=true
+[probe] PASS clip: loaded view root present spectral_3
+[probe] PASS clip: view root within slot content rect spectral_3  |  content=[P: (9.0, 7.0), S: (482.0, 404.0)] root=[P: (9.0, 7.0), S: (482.0, 404.0)]
+[probe] PASS clip: view root size clamped to host spectral_3  |  content_size=(482.0, 404.0) root_size=(482.0, 404.0)
+[probe] PASS clip: content host not wider than slot spectral_3  |  content_w=482.0 slot=500.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted spectral_4
+[probe] PASS clip: frame clips contents spectral_4
+[probe] PASS clip: content host clip chain spectral_4  |  host=true stack=true
+[probe] PASS clip: loaded view root present spectral_4
+[probe] PASS clip: view root within slot content rect spectral_4  |  content=[P: (9.0, 7.0), S: (582.0, 404.0)] root=[P: (9.0, 7.0), S: (582.0, 404.0)]
+[probe] PASS clip: view root size clamped to host spectral_4  |  content_size=(582.0, 404.0) root_size=(582.0, 404.0)
+[probe] PASS clip: content host not wider than slot spectral_4  |  content_w=582.0 slot=600.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted detail_2
+[probe] PASS clip: frame clips contents detail_2
+[probe] PASS clip: content host clip chain detail_2  |  host=true stack=true
+[probe] PASS clip: loaded view root present detail_2
+[probe] PASS clip: view root within slot content rect detail_2  |  content=[P: (9.0, 7.0), S: (486.0, 404.0)] root=[P: (9.0, 7.0), S: (486.0, 404.0)]
+[probe] PASS clip: view root size clamped to host detail_2  |  content_size=(486.0, 404.0) root_size=(486.0, 404.0)
+[probe] PASS clip: content host not wider than slot detail_2  |  content_w=486.0 slot=504.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted detail_3
+[probe] PASS clip: frame clips contents detail_3
+[probe] PASS clip: content host clip chain detail_3  |  host=true stack=true
+[probe] PASS clip: loaded view root present detail_3
+[probe] PASS clip: view root within slot content rect detail_3  |  content=[P: (9.0, 7.0), S: (482.0, 404.0)] root=[P: (9.0, 7.0), S: (482.0, 404.0)]
+[probe] PASS clip: view root size clamped to host detail_3  |  content_size=(482.0, 404.0) root_size=(482.0, 404.0)
+[probe] PASS clip: content host not wider than slot detail_3  |  content_w=482.0 slot=500.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted detail_4
+[probe] PASS clip: frame clips contents detail_4
+[probe] PASS clip: content host clip chain detail_4  |  host=true stack=true
+[probe] PASS clip: loaded view root present detail_4
+[probe] PASS clip: view root within slot content rect detail_4  |  content=[P: (9.0, 7.0), S: (582.0, 404.0)] root=[P: (9.0, 7.0), S: (582.0, 404.0)]
+[probe] PASS clip: view root size clamped to host detail_4  |  content_size=(582.0, 404.0) root_size=(582.0, 404.0)
+[probe] PASS clip: content host not wider than slot detail_4  |  content_w=582.0 slot=600.0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted mixer_2
+[probe] PASS clip: frame clips contents mixer_2
+[probe] PASS clip: content host clip chain mixer_2  |  host=true stack=true
+[probe] PASS clip: loaded view root present mixer_2
+[probe] PASS clip: view root within slot content rect mixer_2  |  content=[P: (9.0, 7.0), S: (486.0, 404.0)] root=[P: (9.0, 7.0), S: (486.0, 404.0)]
+[probe] PASS clip: view root size clamped to host mixer_2  |  content_size=(486.0, 404.0) root_size=(486.0, 404.0)
+[probe] PASS clip: content host not wider than slot mixer_2  |  content_w=486.0 slot=504.0
+[probe] PASS clip: mixer narrow detected mixer_2  |  { "width": 486.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer toolbar horizontal scroll mixer_2  |  { "width": 486.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer strips scrollbar present mixer_2  |  { "width": 486.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer group panel auto-collapsed in narrow slot mixer_2  |  { "width": 486.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer wide slot restores group panel mixer_2  |  { "width": 982.0, "narrow_threshold": 820.0, "narrow": false, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": false, "auto_collapsed": false, "main_split_offset": 220, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer wide slot split offset restored mixer_2  |  { "width": 982.0, "narrow_threshold": 820.0, "narrow": false, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": false, "auto_collapsed": false, "main_split_offset": 220, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted mixer_3
+[probe] PASS clip: frame clips contents mixer_3
+[probe] PASS clip: content host clip chain mixer_3  |  host=true stack=true
+[probe] PASS clip: loaded view root present mixer_3
+[probe] PASS clip: view root within slot content rect mixer_3  |  content=[P: (9.0, 7.0), S: (482.0, 404.0)] root=[P: (9.0, 7.0), S: (482.0, 404.0)]
+[probe] PASS clip: view root size clamped to host mixer_3  |  content_size=(482.0, 404.0) root_size=(482.0, 404.0)
+[probe] PASS clip: content host not wider than slot mixer_3  |  content_w=482.0 slot=500.0
+[probe] PASS clip: mixer narrow detected mixer_3  |  { "width": 482.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer toolbar horizontal scroll mixer_3  |  { "width": 482.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer strips scrollbar present mixer_3  |  { "width": 482.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer group panel auto-collapsed in narrow slot mixer_3  |  { "width": 482.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer wide slot restores group panel mixer_3  |  { "width": 982.0, "narrow_threshold": 820.0, "narrow": false, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": false, "auto_collapsed": false, "main_split_offset": 220, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer wide slot split offset restored mixer_3  |  { "width": 982.0, "narrow_threshold": 820.0, "narrow": false, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": false, "auto_collapsed": false, "main_split_offset": 220, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [4] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [5] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _clip_chain_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:688)
+       [3] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS clip: frame mounted mixer_4
+[probe] PASS clip: frame clips contents mixer_4
+[probe] PASS clip: content host clip chain mixer_4  |  host=true stack=true
+[probe] PASS clip: loaded view root present mixer_4
+[probe] PASS clip: view root within slot content rect mixer_4  |  content=[P: (9.0, 7.0), S: (582.0, 404.0)] root=[P: (9.0, 7.0), S: (582.0, 404.0)]
+[probe] PASS clip: view root size clamped to host mixer_4  |  content_size=(582.0, 404.0) root_size=(582.0, 404.0)
+[probe] PASS clip: content host not wider than slot mixer_4  |  content_w=582.0 slot=600.0
+[probe] PASS clip: mixer narrow detected mixer_4  |  { "width": 582.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer toolbar horizontal scroll mixer_4  |  { "width": 582.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer strips scrollbar present mixer_4  |  { "width": 582.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer group panel auto-collapsed in narrow slot mixer_4  |  { "width": 582.0, "narrow_threshold": 820.0, "narrow": true, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": true, "auto_collapsed": true, "main_split_offset": 40, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer wide slot restores group panel mixer_4  |  { "width": 982.0, "narrow_threshold": 820.0, "narrow": false, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": false, "auto_collapsed": false, "main_split_offset": 220, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+[probe] PASS clip: mixer wide slot split offset restored mixer_4  |  { "width": 982.0, "narrow_threshold": 820.0, "narrow": false, "toolbar_scroll": true, "toolbar_scroll_h_mode": 1, "groups_collapsed": false, "auto_collapsed": false, "main_split_offset": 220, "strip_scroll": true, "strip_h_scroll_bar": true, "strip_h_mode": 1 }
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:772)
+       [5] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:111)
+       [6] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [2] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [3] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:772)
+       [4] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:111)
+       [5] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:50)
+       [3] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:714)
+       [4] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:772)
+       [5] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:111)
+       [6] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:715)
+       [2] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:772)
+       [3] _run_phase (res://tools/probe_fe_gui_shrink_phase_c.gd:111)
+       [4] _process (res://tools/probe_fe_gui_shrink_phase_c.gd:70)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS mixersync: mixer frame mounted
+[probe] PASS mixersync: mixer adapter root reachable
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:790)
+       [7] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:717)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:790)
+       [6] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:717)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:790)
+       [7] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:717)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:790)
+       [6] _mount_clip_probe_frame (res://tools/probe_fe_gui_shrink_phase_c.gd:717)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+[probe] PASS mixersync: project_loaded applied
+[probe] PASS mixersync: strips follow project snapshot (2 tracks)  |  { "strip_count": 2, "track_ids": ["trk_lr_a", "trk_lr_b"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0 }, "record_name_by_id": { "trk_lr_a": "Alpha", "trk_lr_b": "Beta" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_b": "#6fb3d9" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "", "last_known_track_ids": ["trk_lr_a", "trk_lr_b"], "min_interval_msec": 500 }
+[probe] PASS mixersync: strip track ids match  |  ["trk_lr_a", "trk_lr_b"]
+[probe] PASS mixersync: new tracks named from repository  |  { "trk_lr_a": "Alpha", "trk_lr_b": "Beta" }
+[probe] PASS mixersync: new track fader at 0 dB  |  fader_a=0.0
+[probe] PASS mixersync: new track color assigned  |  #d96f6f
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:806)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:806)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:806)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:806)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:806)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:806)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+[probe] PASS mixersync: add track grows strips to 3  |  { "strip_count": 3, "track_ids": ["trk_lr_a", "trk_lr_b", "trk_lr_c"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0, "trk_lr_c": 0.0 }, "record_name_by_id": { "trk_lr_a": "Alpha", "trk_lr_b": "Beta", "trk_lr_c": "Gamma" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_b": "#6fb3d9", "trk_lr_c": "#c98cff" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_b": -6.0, "trk_lr_c": 0.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "", "last_known_track_ids": ["trk_lr_a", "trk_lr_b", "trk_lr_c"], "min_interval_msec": 500 }
+[probe] PASS mixersync: added strip fader 0 dB  |  { "trk_lr_a": 0.0, "trk_lr_b": -6.0, "trk_lr_c": 0.0 }
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:816)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:816)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:816)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:816)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:816)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:816)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+[probe] PASS mixersync: rename synced  |  { "trk_lr_a": "Alpha Renamed", "trk_lr_b": "Beta", "trk_lr_c": "Gamma" }
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:824)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:824)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+ERROR: Parameter "data.tree" is null.
+   at: get_tree (scene/main/node.h:549)
+   GDScript backtrace (most recent call first):
+       [0] _project_command_service (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:432)
+       [1] refresh_track_group_pick_state (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:128)
+       [2] _create_mixer_strip (res://vit_dock/views/mixer_dock_adapter.gd:1080)
+       [3] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1001)
+       [4] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [5] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [6] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:824)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_child_index' in base 'VBoxContainer'.
+   at: _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+   GDScript backtrace (most recent call first):
+       [0] _build_send_slot_ui (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:166)
+       [1] _ready (res://vit_dock/views/mixer/vit_mixer_channel_strip.gd:105)
+       [2] _rebuild_strips (res://vit_dock/views/mixer_dock_adapter.gd:1003)
+       [3] _on_project_loaded (res://vit_dock/views/mixer_dock_adapter.gd:539)
+       [4] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1148)
+       [5] _mixer_live_refresh_pins (res://tools/probe_fe_gui_shrink_phase_c.gd:824)
+       [6] _wait_frames (res://tools/probe_fe_gui_shrink_phase_c.gd:126)
+[probe] PASS mixersync: delete track shrinks strips to 2  |  { "strip_count": 2, "track_ids": ["trk_lr_a", "trk_lr_c"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "record_name_by_id": { "trk_lr_a": "Alpha Renamed", "trk_lr_c": "Gamma" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_c": "#6fb3d9" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "", "last_known_track_ids": ["trk_lr_a", "trk_lr_c"], "min_interval_msec": 500 }
+[probe] PASS mixersync: telemetry track-set change schedules resync  |  { "strip_count": 2, "track_ids": ["trk_lr_a", "trk_lr_c"], "fader_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "record_name_by_id": { "trk_lr_a": "Alpha Renamed", "trk_lr_c": "Gamma" }, "record_color_by_id": { "trk_lr_a": "#d96f6f", "trk_lr_c": "#6fb3d9" }, "record_volume_db_by_id": { "trk_lr_a": 0.0, "trk_lr_c": 0.0 }, "virtualized": false, "resync_pending": false, "resync_reason": "telemetry_track_set_changed", "last_known_track_ids": ["trk_lr_a", "trk_lr_external"], "min_interval_msec": 500 }
+[probe] PASS mixersync: root predicate accepts track commands
+[probe] PASS mixersync: root predicate rejects non-structure commands
+[probe] PASS anchor: window_manager present before probe
+[probe] PASS anchor: detail window table starts empty  |  count=0
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:195)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:91)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4780)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:199)
+       [1] activate_view (res://vit_dock/scenes/viewport_frame.gd:91)
+       [2] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4780)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:202)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:91)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4780)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:214)
+[probe] PASS anchor: track detail still opens via window_manager  |  count=1
+[probe] PASS anchor: track detail window is legacy detached Window (anchor semantics)  |  DetachedViewportWindow:<Window#463772586342>
+[probe] PASS anchor: window_manager cleanup restores empty table  |  count=0
+[probe] PASS anchor: no floating windows after anchor probe  |  count=0
+[probe] ---- probe verdict ----
+[probe] checks=342 failed=0 setup_failed=false
+[probe] PROBE PASS
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 5 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)

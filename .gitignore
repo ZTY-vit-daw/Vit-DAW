@@ -31,6 +31,8 @@ tmp_sodium_cmake/
 # Logs and diagnostics
 # -----------------------------
 *.log
+# 2026-10-24 主管裁定：coord/runs 工件证据日志豁免 *.log（179 分支日志静默漏提交同因；验收证据须可回指远端）
+!coord/runs/**/*.log
 VitApp/Workspace/Logs/
 diagnosis_*.png
 baker_diag.log
