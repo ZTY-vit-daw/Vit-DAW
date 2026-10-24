@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-24 19:07 本会话机器钟起 / **FE-SEND-LEVEL-FADER-1(183) 真栈 SendRouteGuiSmoke 腿**（owner=ZCode GLM-5.3 PC 前端执行会话（183 卡会话））：预期 run=coord/runs/FE-SEND-LEVEL-FADER-1/lvlfader_gui_*（被测=前端 worktree D:/Godot/project/vit-daw-frontend-lvlfader1@port/fe-send-level-fader-1@**060a5e9** 含发送量推子直调+stack_probe L11 拖动腿；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读（19:0x 占用前亲核一致）；RepoRoot=主仓 stack worktree D:/Vit_DAW_wt_lvlfader1_stack@port/fe-send-level-fader-1-stack（Go 零改动）；Godot 4.6.1 console headless）。占用前核对（19:0x）：VitApp/VitAgent/vsphub/非编辑器 Godot=0、六端口 tcp listen=0、4445/5555 udp=0（179 释放后无新占用）。
+（空——最新释放见下条）
+
+## 最近一次释放（2026-10-24 19:07 登记 – 19:12 释放，FE-SEND-LEVEL-FADER-1(183)）
+
+- 2026-10-24 19:07 登记（0a6dd0bf）–19:12 释放 / **FE-SEND-LEVEL-FADER-1(183) 真栈 SendRouteGuiSmoke 腿——收口 run exit 0 stack 72/72**（owner=ZCode GLM-5.3 PC 前端执行会话（183 卡会话））：run=**coord/runs/FE-SEND-LEVEL-FADER-1/sendroute_gui_20261024_191155**（工件随 port/fe-send-level-fader-1-stack@c9570847；`dev_agent_smoke -StartKernel -RestartAgent -SendRouteGuiSmoke -KernelExe 主检出 K3 -GodotProjectRoot 前端 lvlfader1 -GodotExe 4.6.1 console` 脚本 exit 0，stack probe **72/72 PASS**=182 基线 64+**L11 推子拖动腿 8 断言**：推子在场/初始 unit 映射读回 -5.5/真实事件管线拖动 motion→press→motion…→release 全程 push_input/拖中 repository 零落值+值 label 本地回显/释放读回收敛量化值/推子位随拓扑回执同步）。**首轮 190938=67/72 留档**——5 失败全为**主检出运行时工程预存 send 边 1032→1037@+6.0 污染**（SendRouteGuiSmoke 非 journey、内核按 exe 目录加载主检出 default_project.xml，该文件本轮前已含此边——grep 亲核；182 当时无此边故全绿；本卡零内核/脚本/工程改动），未触碰主检出状态，改 VIT_PROJECT_XML 指 git 干净版隔离副本复跑一次过全绿（173/174 先例隔离面）。被测=前端 worktree D:/Godot/project/vit-daw-frontend-lvlfader1@port/fe-send-level-fader-1@**060a5e9**（已推远端）；kernel=主检出 K3 722A79D7 只读（19:0x 占用前亲核一致）；RepoRoot=主仓 stack worktree D:/Vit_DAW_wt_lvlfader1_stack@port/fe-send-level-fader-1-stack（Go 零改动）；Godot 4.6.1 console headless。§8：LLM=0；复跑=改跑法后首跑非同签名重试。拆栈=owner 手拆两轮残留（首轮 VitAgent 14624/VitApp 14856、收口轮 VitAgent 10288/VitApp 7480，路径亲核自起）→19:12 复核六端口 tcp listen=0、4445/5555 udp=0、VitApp/VitAgent/vsphub/非编辑器 Godot=0（用户 Godot 编辑器全程未动）。
 
 ## 最近一次释放（2026-10-24 18:3x 登记 – 19:1x 释放，PROBE-SHRINKC-MIXERSYNC-1(179)）
 
