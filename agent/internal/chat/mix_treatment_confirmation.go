@@ -12,6 +12,7 @@ import (
 	"vit-daw-agent/internal/agentloop"
 	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/experiment"
+	agentruntime "vit-daw-agent/internal/runtime"
 )
 
 type mixResolverDecision struct {
@@ -93,10 +94,27 @@ func (s *Server) handlePendingMixTreatmentChat(ctx context.Context, conversation
 				"diagnosis_context":    cloneContext(treatment.DiagnosisContext),
 			},
 		})
-		if decision.Status == "ready_gain_tick" {
-			return s.executeResolvedMixTreatmentMixTick(ctx, conversationID, req, mode, treatment, decision), true
-		}
-		if decision.Status == "ready_pan_tick" {
+		if decision.Status == "ready_gain_tick" || decision.Status == "ready_pan_tick" {
+			// D1-MIXTREAT-KIND-GUARD-1 approve-face defense: a card issued
+			// before the admission armed can still be approved after, and the
+			// execution dispatch would then dead-end at the frozen gate. The
+			// same mismatch predicate as the issuance guard converts that race
+			// into the honest refusal instead of a blocked execution.
+			if spec, mismatch := s.d1AdmissionMismatchForPendingMixTreatment(conversationID, treatment); mismatch != "" {
+				if s != nil && s.logger != nil {
+					s.logger.Info("[mix.treatment.pending] refused D1-S1 admission mismatch at approve conversation=%s status=%s action=%s processor=%s target=%s mismatch=%s",
+						conversationID, decision.Status, treatment.ActionKind, treatment.ProcessorType, treatment.TargetRef, mismatch)
+				}
+				return ChatResponse{
+					ConversationID: conversationID,
+					AgentMode:      mode,
+					Reply:          d1MixTreatmentAdmissionMismatchReply(treatment, spec, mismatch),
+					Workflow:       "mix_treatment",
+					WorkflowData:   map[string]any{"status": "refused_d1_admission_mismatch", "mismatch": mismatch, "mutation_performed": false},
+					GoalStatus:     string(agentruntime.StatusCompleted),
+					StopReason:     mixTreatmentRefusedD1AdmissionMismatchReason,
+				}, true
+			}
 			return s.executeResolvedMixTreatmentMixTick(ctx, conversationID, req, mode, treatment, decision), true
 		}
 		return ChatResponse{
@@ -365,6 +383,111 @@ func (s *Server) resolvePanBalanceTreatment(treatment agentloop.MixTreatmentPend
 		"delta_pan": deltaPan,
 	}
 	return decision
+}
+
+// mixTreatmentRefusedD1AdmissionMismatchReason is the machine stop reason for
+// a pending mix treatment refused because the conversation's active D1-S1
+// admission can never admit its action. Kept machine-side; the user face is
+// d1MixTreatmentAdmissionMismatchReply.
+const mixTreatmentRefusedD1AdmissionMismatchReason = "mix_treatment_refused_d1_admission_mismatch"
+
+// predictMixTreatmentExecutableOperation mirrors the resolver's executable
+// branches (resolveGainBalanceTreatment / resolvePanBalanceTreatment) without
+// touching server state: it returns the mix tick operation the approve surface
+// would dispatch for this treatment, or "" when the resolver would stop at a
+// non-executable status (needs_clarification / needs_preparation), whose
+// approve reply is already honest and needs no admission guard.
+func predictMixTreatmentExecutableOperation(treatment agentloop.MixTreatmentPending) string {
+	if targetNeedsClarification(treatment.TargetRef, treatment.NeedsResolution) {
+		return ""
+	}
+	switch strings.ToLower(strings.TrimSpace(treatment.ActionKind)) {
+	case "gain_balance":
+		if trackIDFromTreatmentTarget(treatment.TargetRef) == "" {
+			return ""
+		}
+		deltaDB := treatmentDeltaDB(treatment)
+		if deltaDB == 0 || math.Abs(deltaDB) > experiment.D1S1MaxAbsDeltaDB {
+			return ""
+		}
+		return "track_gain_adjust"
+	case "pan_balance":
+		if trackIDFromTreatmentTarget(treatment.TargetRef) == "" {
+			return ""
+		}
+		if targetPan := treatmentTargetPan(treatment); targetPan != nil {
+			if *targetPan < -1 || *targetPan > 1 {
+				return ""
+			}
+			return "track_pan_set"
+		}
+		deltaPan := treatmentDeltaPan(treatment)
+		if deltaPan == 0 || math.Abs(deltaPan) > experiment.D1S1MaxAbsDeltaPan {
+			return ""
+		}
+		return "track_pan_adjust"
+	default:
+		return ""
+	}
+}
+
+// d1AdmissionMismatchForPendingMixTreatment reports whether a pending mix
+// treatment must be refused because its conversation holds a D1-S1 admission
+// the treatment can never satisfy. The predicate mirrors the execution
+// dispatch (executePendingMixTickCandidate routes every mix tick into the D1
+// frozen chain once loop.Experiment holds a D1-S1 admission): the resolver can
+// only derive track_gain_adjust / track_pan_set / track_pan_adjust, so under
+// any other admitted kind — or against the admitted observation target — the
+// confirmation card's only end state is a blocked execution. Returns the
+// admitted domain spec plus the mismatch family: "" (no refusal),
+// "action_kind", or "target". Sessions without a D1-S1 admission never take
+// this branch.
+func (s *Server) d1AdmissionMismatchForPendingMixTreatment(conversationID string, treatment agentloop.MixTreatmentPending) (experiment.D1S1DomainSpec, string) {
+	if s == nil || strings.TrimSpace(conversationID) == "" {
+		return experiment.D1S1DomainSpec{}, ""
+	}
+	loop, ok := s.freeStateLoop(conversationID)
+	if !ok || loop.Experiment == nil || !loop.Experiment.Admission.IsD1S1() {
+		return experiment.D1S1DomainSpec{}, ""
+	}
+	spec, specOK := experiment.D1S1DomainSpecFor(loop.Experiment.Admission)
+	if !specOK {
+		return experiment.D1S1DomainSpec{}, ""
+	}
+	operation := predictMixTreatmentExecutableOperation(treatment)
+	if operation == "" {
+		return experiment.D1S1DomainSpec{}, ""
+	}
+	if operation != spec.ActionKind {
+		return spec, "action_kind"
+	}
+	targetID := trackIDFromTreatmentTarget(treatment.TargetRef)
+	admittedID := firstStringFromMap(loop.Experiment.Admission.TargetRef, "id", "track_id")
+	if targetID != "" && admittedID != "" && targetID != admittedID {
+		return spec, "target"
+	}
+	return experiment.D1S1DomainSpec{}, ""
+}
+
+// d1MixTreatmentAdmissionMismatchReply renders the honest localized refusal
+// for a mix treatment that can never satisfy the conversation's active D1-S1
+// admission: the copy names the admitted dose action and the refused family,
+// states that nothing was mutated, and steers to the two legal continuations
+// (settle this round first, or cancel the experiment). The machine-side
+// reason never rides the reply.
+func d1MixTreatmentAdmissionMismatchReply(treatment agentloop.MixTreatmentPending, spec experiment.D1S1DomainSpec, mismatch string) string {
+	if mismatch == "target" {
+		return "这个建议我不会发起执行确认：本轮实验轮的剂量动作只针对已准入的目标轨，这条建议的目标不在本轮准入范围内。没有修改工程。可以等本轮实验收口后再处理，或让我撤销实验另开一轮。"
+	}
+	refused := "声像/电平"
+	switch strings.ToLower(strings.TrimSpace(treatment.ActionKind)) {
+	case "pan_balance":
+		refused = "声像"
+	case "gain_balance":
+		refused = "电平"
+	}
+	return fmt.Sprintf("这个建议我不会发起执行确认：当前实验轮限定为%s类的剂量动作，%s类调整不在本轮剂量范围内。没有修改工程。可以等本轮实验收口后再调整，或让我撤销实验另开一轮。",
+		d1AdmissionActionDomainLabel(spec.ActionDomain), refused)
 }
 
 func (s *Server) executeResolvedMixTreatmentMixTick(ctx context.Context, conversationID string, req ChatRequest, mode string, treatment agentloop.MixTreatmentPending, decision mixResolverDecision) ChatResponse {

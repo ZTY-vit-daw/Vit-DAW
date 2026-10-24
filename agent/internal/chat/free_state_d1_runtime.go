@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"vit-daw-agent/internal/agentloop"
+	"vit-daw-agent/internal/agentprotocol"
 	"vit-daw-agent/internal/executionports"
 	"vit-daw-agent/internal/executionruntime"
 	"vit-daw-agent/internal/executionverifiers"
@@ -792,7 +793,65 @@ func d1BlockedResponse(loop freeStateReasoningLoop, reason string) ChatResponse 
 		d1BlockedResponseLogger(loop.ConversationID, reason)
 	}
 	return ChatResponse{ConversationID: loop.ConversationID, GoalID: loop.GoalID, RunID: loop.RunID, Workflow: "free_state_d1_s1",
-		WorkflowData: map[string]any{"status": "blocked", "mutation_performed": false}, GoalStatus: string(agentruntime.StatusFailed), StopReason: "d1_execution_blocked", Error: reason, Reply: reason}
+		WorkflowData: map[string]any{"status": "blocked", "mutation_performed": false}, GoalStatus: string(agentruntime.StatusFailed), StopReason: "d1_execution_blocked", Error: reason, Reply: localizedD1BlockedReply(loop, reason)}
+}
+
+// localizedD1BlockedReply renders the user-facing copy for a blocked D1-S1
+// execution. The structured Error keeps the machine reason verbatim for
+// diagnostics; the Reply must never leak it (the 2026-10-24 forensic:
+// "D1-S1 requires one bounded reverb_decay_adjust" reached the chat surface
+// verbatim). Same shape as the 157 invalid_referral boundary face:
+// localized, actionable, honest about zero mutation.
+func localizedD1BlockedReply(loop freeStateReasoningLoop, reason string) string {
+	if strings.Contains(reason, "target does not match admitted") {
+		return "这次执行已在目标核对处停止：待执行动作的目标与实验准入的目标不一致。没有修改工程。可以让我重新观察后再生成符合本轮准入目标的建议。"
+	}
+	if strings.Contains(reason, "requires one bounded") {
+		return fmt.Sprintf("这次执行已在本轮实验的剂量边界停止：当前实验轮只允许%s类的剂量动作，其他调整不在本轮剂量范围内。没有修改工程。可以等本轮实验收口后再调整，或让我撤销实验另开一轮。",
+			d1BlockedReplyDomainLabel(loop))
+	}
+	return "这次实验动作在执行边界被停止，没有修改工程。可以让我重新观察后再给出符合本轮实验范围的建议。"
+}
+
+func d1BlockedReplyDomainLabel(loop freeStateReasoningLoop) string {
+	if loop.Experiment != nil {
+		if spec, ok := experiment.D1S1DomainSpecFor(loop.Experiment.Admission); ok {
+			return d1AdmissionActionDomainLabel(spec.ActionDomain)
+		}
+	}
+	return "已准入"
+}
+
+// d1AdmissionActionDomainLabel localizes the D1-S1 admission domain rows for
+// user-facing boundary copy. The admission table remains the bounds
+// authority; this is display vocabulary only.
+func d1AdmissionActionDomainLabel(domain string) string {
+	switch strings.ToLower(strings.TrimSpace(domain)) {
+	case agentprotocol.ImprovementActionDomainTrackGain:
+		return "电平"
+	case agentprotocol.ImprovementActionDomainPan:
+		return "声像"
+	case agentprotocol.ImprovementActionDomainStaticEQ:
+		return "静态均衡"
+	case agentprotocol.ImprovementActionDomainBroadbandCompression:
+		return "宽带压缩"
+	case agentprotocol.ImprovementActionDomainDeEsser:
+		return "齿音处理"
+	case agentprotocol.ImprovementActionDomainTransientShaper:
+		return "瞬态整形"
+	case agentprotocol.ImprovementActionDomainLimiter:
+		return "限幅"
+	case agentprotocol.ImprovementActionDomainGateExpander:
+		return "噪声门"
+	case agentprotocol.ImprovementActionDomainMultibandDynamics:
+		return "多段动态"
+	case agentprotocol.ImprovementActionDomainReverb:
+		return "混响"
+	case agentprotocol.ImprovementActionDomainDelay:
+		return "延迟"
+	default:
+		return "已准入"
+	}
 }
 
 // SETTLE-CHAIN-1: the deterministic post-action booking retries inside the
