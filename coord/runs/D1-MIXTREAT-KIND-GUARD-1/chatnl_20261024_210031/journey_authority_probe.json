@@ -1,0 +1,73 @@
+﻿{
+    "conversation_id":  "dev_journey_fs_nl_authority_20261024_210107",
+    "task_id":  "task_c161733491a64498",
+    "goal_id":  "goal_5bd9cf565a36e9ff",
+    "run_id":  "run_0316773b82b18050",
+    "original_intent":  "/smoke authority",
+    "reply":  "authority smoke: bound=full_project_access server=full_project_access",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "goal_status":  "completed",
+    "goal_summary":  "/smoke authority",
+    "stop_reason":  "authority_smoke_ok",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261024T130122_5604a536",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261024T130121_226cd6e5"
+                                         },
+                            "commit_count":  1,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "/smoke authority",
+                                                              "logical_message_id":  "n_20261024T130121_d7221e80",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261024T130121_d7221e80",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                              "logical_message_id":  "n_20261024T130122_5604a536",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261024T130122_5604a536",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261024T130121_226cd6e5",
+                            "initialized":  true,
+                            "project_label":  "journey_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit",
+                            "project_uuid":  "vitproj_1cb835ed83be4b0ca6530984da7416b5",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261024T130121_226cd6e5"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261024T130121_226cd6e5",
+                                                  "created_at":  "2026-10-24T13:01:22.4187942Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261024T130121_226cd6e5",
+                                                  "path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_0316773b82b18050",
+    "logical_message_id":  "n_20261024T130122_5604a536"
+}

@@ -1,0 +1,246 @@
+2026-10-24T21:05:17 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-10-24T21:05:17 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-24T21:05:17 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-24T21:05:17 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-24T21:05:17 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-24T21:05:17 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-24T21:05:17 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-24T21:05:17 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:17 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-24T21:05:17 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:17 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:18 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=state_summary err=false
+2026-10-24T21:05:18 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-24T21:05:18 [INFO] [timing] harness.refresh_shadow ms=16 reason=state_summary status=ok err=false
+2026-10-24T21:05:18 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:18 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:18 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:18 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:19 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:19 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:19 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:19 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-24T21:05:19 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=new_project err=false
+2026-10-24T21:05:19 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-24T21:05:19 [INFO] [timing] harness.refresh_shadow ms=3 reason=new_project status=ok err=false
+2026-10-24T21:05:19 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-24T21:05:19 [INFO] [timing] kernel.send_command ms=55 command=new_project tool=project.new confirmed=true err=false
+2026-10-24T21:05:19 [INFO] [workspace] activation pending uuid=vitproj_5f2106ab47084d0fa4456d58af86d385 reason=startup_recovery_disabled_new_session
+2026-10-24T21:05:19 [INFO] [timing] harness.invoke total_ms=106 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-10-24T21:05:19 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-24T21:05:19 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_5f2106ab47084d0fa4456d58af86d385
+2026-10-24T21:05:19 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\agent_drafts\\draft_20261024T130519_f5625149\\Unsaved.vit" uuid=vitproj_5f2106ab47084d0fa4456d58af86d385 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-24T21:05:19 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-10-24T21:05:19 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=project.import_folder_as_stems err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_role"
+2026-10-24T21:05:19 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-24T21:05:19 [INFO] [timing] harness.refresh_shadow ms=17 reason=project.import_folder_as_stems status=ok err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_source_file"
+2026-10-24T21:05:19 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-24T21:05:19 [INFO] [timing] kernel.send_command ms=53 command=project.import_folder_as_stems tool=project.import_folder_as_stems confirmed=true err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T21:05:19 [WARN] [tim.assert] asserter=sample_rate check=consistency status=fail track=1007 value=44100 threshold=48000 code=assert_sample_rate_mismatch
+2026-10-24T21:05:19 [WARN] [tim.assert] asserter=sample_rate check=consistency status=fail track=1012 value=44100 threshold=48000 code=assert_sample_rate_mismatch
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:elastiqueMode"
+2026-10-24T21:05:19 [INFO] [timing] harness.invoke total_ms=73 tool=project.import_folder_as_stems command=project.import_folder_as_stems status=ok confirmed=true err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:pan"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T21:05:19 [INFO] [timing] kernel.send_command ms=2 command=project.audio_analysis_start tool=project.audio_analysis_start confirmed=true err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-10-24T21:05:19 [INFO] [timing] harness.invoke total_ms=22 tool=project.audio_analysis_start command=project.audio_analysis_start status=ok confirmed=true err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:colour"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:proxyAllowed"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:resamplingQuality"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_source_file"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_insert_file"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1012" action="property_changed:id"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-24T21:05:19 [INFO] [timing] kernel.send_command ms=11 command=project.audio_analysis_status tool=project.audio_analysis_status confirmed=true err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1013" action="node_added"
+2026-10-24T21:05:19 [INFO] [timing] harness.invoke total_ms=22 tool=project.audio_analysis_status command=project.audio_analysis_status status=ok confirmed=true err=false
+2026-10-24T21:05:19 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1013" action="property_changed:remapOnTempoChange"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1012" action="property_changed:name"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_role"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_source_file"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:elastiqueMode"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:pan"
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=4
+2026-10-24T21:05:20 [INFO] [timing] kernel.send_command ms=51 command=save_as_project tool=project.save_as confirmed=true err=false
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="node_added"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:colour"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:proxyAllowed"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:resamplingQuality"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_source_file"
+2026-10-24T21:05:20 [INFO] [timing] harness.invoke total_ms=137 tool=project.save_as command=save_as_project status=ok confirmed=true err=false
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_insert_file"
+2026-10-24T21:05:20 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_115125959b0448c2a164c36e1f82e517
+2026-10-24T21:05:20 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" uuid=vitproj_115125959b0448c2a164c36e1f82e517 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_media_copy_policy"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="0/2164bb1" action="property_changed:lastSignificantChange"
+2026-10-24T21:05:20 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Bass.wav status=ready
+2026-10-24T21:05:20 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Bass.wav status=ready
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=4
+2026-10-24T21:05:20 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Bass.wav status=ready
+2026-10-24T21:05:20 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1012 clip_id=1016 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Lead Vocal.wav status=ready
+2026-10-24T21:05:20 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1012 clip_id=1016 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Lead Vocal.wav status=ready
+2026-10-24T21:05:20 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=new_project err=false
+2026-10-24T21:05:20 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1012 clip_id=1016 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Lead Vocal.wav status=ready
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-24T21:05:20 [INFO] [timing] harness.refresh_shadow ms=7 reason=new_project status=ok err=false
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="0/2164bb1" action="property_changed:vit_agent_history_generation"
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-24T21:05:20 [INFO] [timing] kernel.send_command ms=54 command=new_project tool=project.new confirmed=true err=false
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="0/2164bb1" action="property_changed:vit_project_uuid"
+2026-10-24T21:05:20 [DEBUG] [shadow] live delta uid="0/2164bb1" action="property_changed:vit_project_parent_uuid"
+2026-10-24T21:05:20 [INFO] [timing] harness.invoke total_ms=97 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-10-24T21:05:20 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_daff98b5cc564b66a475a0f79e5f38e0
+2026-10-24T21:05:20 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\agent_drafts\\draft_20261024T130520_e691ce0e\\Unsaved.vit" uuid=vitproj_daff98b5cc564b66a475a0f79e5f38e0 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-24T21:05:20 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=open_project err=false
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:20 [INFO] [timing] harness.refresh_shadow ms=4 reason=open_project status=ok err=false
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:20 [INFO] [timing] kernel.send_command ms=44 command=open_project tool=project.open confirmed=true err=false
+2026-10-24T21:05:20 [INFO] [timing] harness.invoke total_ms=72 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-10-24T21:05:20 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_115125959b0448c2a164c36e1f82e517
+2026-10-24T21:05:20 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" uuid=vitproj_115125959b0448c2a164c36e1f82e517 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-24T21:05:20 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:20 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=6
+2026-10-24T21:05:23 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:23 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:24 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-24T21:05:24 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_115125959b0448c2a164c36e1f82e517
+2026-10-24T21:05:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-24T21:05:29 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:29 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:33 [INFO] [media_refs] ms=0 conversation=dev_journey_fs_nl_authority_20261024_210519 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-24T21:05:33 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\project\journey_fixture.vit revision=6
+2026-10-24T21:05:33 [INFO] [chat.artifacts] conversation=dev_journey_fs_nl_authority_20261024_210519 response_artifacts=0 request_artifacts=0 executed=0 reply_len=69
+2026-10-24T21:05:33 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\project\journey_fixture.vit revision=6 commit=c_20261024T130533_aeab5668 rebound=1 total_ms=25
+2026-10-24T21:05:33 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_115125959b0448c2a164c36e1f82e517
+2026-10-24T21:05:33 [INFO] [timing] http.chat total_ms=569 conversation=dev_journey_fs_nl_authority_20261024_210519 message_len=16
+2026-10-24T21:05:35 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=capacity_project_facts err=false
+2026-10-24T21:05:35 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:35 [INFO] [timing] harness.refresh_shadow ms=13 reason=capacity_project_facts status=ok err=false
+2026-10-24T21:05:35 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=mix_request_observation_project_scope_state err=false
+2026-10-24T21:05:35 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:35 [INFO] [timing] harness.refresh_shadow ms=4 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-24T21:05:35 [WARN] VSP realtime publish pending failures=12 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:35 [WARN] VSP realtime publish pending failures=12 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:35 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:36 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Bass.wav status=ready
+2026-10-24T21:05:36 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Bass.wav status=ready
+2026-10-24T21:05:36 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Bass.wav status=ready
+2026-10-24T21:05:36 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1012 clip_id=1016 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Lead Vocal.wav status=ready
+2026-10-24T21:05:36 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1012 clip_id=1016 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Lead Vocal.wav status=ready
+2026-10-24T21:05:36 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1012 clip_id=1016 project_id=vitproj_115125959b0448c2a164c36e1f82e517 target_path=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\fixture_stems\Lead Vocal.wav status=ready
+2026-10-24T21:05:36 [INFO] [timing] harness.invoke total_ms=953 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=true err=false
+2026-10-24T21:05:36 [INFO] [free-state.seed] booked conversation=dev_journey_fs_nl_20261024_210519 observation=obs_20261024T130536_baa7fcaf8b43 receipt=ccbr_obs_20261024T130536_baa7fcaf8b43 revision=6 scan_satisfied=true
+2026-10-24T21:05:36 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=user_named_target_resolution err=false
+2026-10-24T21:05:36 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:36 [INFO] [timing] harness.refresh_shadow ms=17 reason=user_named_target_resolution status=ok err=false
+2026-10-24T21:05:40 [INFO] [timing] message_loop.llm ms=3679 goal=goal_2d151e343dce5bc5 conversation=dev_journey_fs_nl_20261024_210519 turn=1 messages=2 chars=50598 message_chars=0:system:14772,1:user:35826 err=false
+2026-10-24T21:05:40 [INFO] [timing] harness.invoke total_ms=9 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-24T21:05:40 [INFO] [timing] message_loop.tool ms=10 goal=goal_2d151e343dce5bc5 tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-24T21:05:40 [INFO] [free-state.ledger] boundary conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 executed=1 ccb_observations=0 ids=[] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-24T21:05:40 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_115125959b0448c2a164c36e1f82e517
+2026-10-24T21:05:40 [INFO] [continuation.arm] conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_a699f43957f6aa6f9baf8c27 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-24T21:05:40 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-24T21:05:40 [INFO] [timing] agent_loop_chat total_ms=6520 conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-24T21:05:40 [INFO] [media_refs] ms=0 conversation=dev_journey_fs_nl_20261024_210519 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-24T21:05:40 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_210506\project\journey_fixture.vit revision=6
+2026-10-24T21:05:40 [INFO] [chat.artifacts] conversation=dev_journey_fs_nl_20261024_210519 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-24T21:05:40 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_115125959b0448c2a164c36e1f82e517
+2026-10-24T21:05:40 [INFO] [timing] http.chat total_ms=7038 conversation=dev_journey_fs_nl_20261024_210519 message_len=24
+2026-10-24T21:05:40 [INFO] [continuation.claim] claimed id=cont_a699f43957f6aa6f9baf8c27 goal=goal_2d151e343dce5bc5 conversation=dev_journey_fs_nl_20261024_210519 attempt=1 lease_until=2026-10-24T13:07:40Z
+2026-10-24T21:05:40 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=capacity_project_facts err=false
+2026-10-24T21:05:40 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:40 [INFO] [timing] harness.refresh_shadow ms=5 reason=capacity_project_facts status=ok err=false
+2026-10-24T21:05:40 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=user_named_target_resolution err=false
+2026-10-24T21:05:40 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:05:40 [INFO] [timing] harness.refresh_shadow ms=14 reason=user_named_target_resolution status=ok err=false
+2026-10-24T21:05:41 [WARN] VSP realtime publish pending failures=15 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:41 [WARN] VSP realtime publish pending failures=15 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:47 [WARN] VSP realtime publish pending failures=18 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:47 [WARN] VSP realtime publish pending failures=18 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:53 [WARN] VSP realtime publish pending failures=21 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:53 [WARN] VSP realtime publish pending failures=21 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:55 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:59 [WARN] VSP realtime publish pending failures=24 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:05:59 [WARN] VSP realtime publish pending failures=24 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:05 [WARN] VSP realtime publish pending failures=27 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:05 [WARN] VSP realtime publish pending failures=27 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:11 [WARN] VSP realtime publish pending failures=30 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:11 [WARN] VSP realtime publish pending failures=30 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:15 [INFO] [timing] message_loop.llm ms=34715 goal=goal_2d151e343dce5bc5 conversation=dev_journey_fs_nl_20261024_210519 turn=2 messages=2 chars=58181 message_chars=0:system:14772,1:user:43409 err=false
+2026-10-24T21:06:15 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:17 [WARN] VSP realtime publish pending failures=33 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:17 [WARN] VSP realtime publish pending failures=33 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:23 [WARN] VSP realtime publish pending failures=36 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:23 [WARN] VSP realtime publish pending failures=36 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:24 [INFO] [timing] message_loop.llm ms=9294 goal=goal_2d151e343dce5bc5 conversation=dev_journey_fs_nl_20261024_210519 turn=3 messages=3 chars=59273 message_chars=0:system:14772,1:user:1092,2:user:43409 err=false
+2026-10-24T21:06:25 [INFO] [timing] harness.invoke total_ms=845 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-24T21:06:25 [INFO] [timing] message_loop.tool ms=846 goal=goal_2d151e343dce5bc5 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-24T21:06:25 [INFO] [free-state.ledger] boundary conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 executed=1 ccb_observations=1 ids=[obs_20261024T130625_a6795754e467] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-24T21:06:25 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_115125959b0448c2a164c36e1f82e517
+2026-10-24T21:06:25 [INFO] [continuation.arm] conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_73f45a706dac95b19f31cc1f lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-24T21:06:25 [INFO] [timing] agent_loop_chat total_ms=44986 conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-24T21:06:25 [INFO] [f6.gate] conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-24T21:06:25 [INFO] [continuation.claim] claimed id=cont_73f45a706dac95b19f31cc1f goal=goal_2d151e343dce5bc5 conversation=dev_journey_fs_nl_20261024_210519 attempt=1 lease_until=2026-10-24T13:08:25Z
+2026-10-24T21:06:25 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=capacity_project_facts err=false
+2026-10-24T21:06:25 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:06:25 [INFO] [timing] harness.refresh_shadow ms=6 reason=capacity_project_facts status=ok err=false
+2026-10-24T21:06:25 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=user_named_target_resolution err=false
+2026-10-24T21:06:25 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210506\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-24T21:06:25 [INFO] [timing] harness.refresh_shadow ms=18 reason=user_named_target_resolution status=ok err=false
+2026-10-24T21:06:29 [WARN] VSP realtime publish pending failures=39 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:29 [WARN] VSP realtime publish pending failures=39 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:35 [WARN] VSP realtime publish pending failures=42 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:35 [WARN] VSP realtime publish pending failures=42 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:35 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:39 [INFO] [timing] message_loop.llm ms=13959 goal=goal_2d151e343dce5bc5 conversation=dev_journey_fs_nl_20261024_210519 turn=4 messages=3 chars=57594 message_chars=0:system:14772,1:user:1092,2:user:41730 err=false
+2026-10-24T21:06:39 [INFO] [free-state.ledger] boundary conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 executed=0 ccb_observations=1 ids=[obs_20261024T130625_a6795754e467] snapshot_loop=true continuation_loop=false stored_receipts=1
+2026-10-24T21:06:39 [INFO] [timing] harness.invoke total_ms=27 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-24T21:06:39 [INFO] [mix.treatment.pending] refused D1-S1 admission mismatch conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 action=pan_balance processor=utility target=track:1012 mismatch=action_kind
+2026-10-24T21:06:39 [INFO] [continuation.arm] conversation=dev_journey_fs_nl_20261024_210519 goal=goal_2d151e343dce5bc5 status=completed stop=mix_treatment_refused_d1_admission_mismatch limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-24T21:06:41 [WARN] VSP realtime publish pending failures=45 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-24T21:06:41 [WARN] VSP realtime publish pending failures=45 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

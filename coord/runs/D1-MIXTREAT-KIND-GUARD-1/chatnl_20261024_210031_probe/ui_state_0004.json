@@ -1,0 +1,54 @@
+﻿{
+    "at":  "2026-10-24T21:01:11.8438353+08:00",
+    "seq":  4,
+    "project":  {
+                    "delta_seq_gaps":  0,
+                    "graph_revision":  null,
+                    "initialized":  true,
+                    "last_delta_seq":  74,
+                    "observability":  null,
+                    "pending_job_data":  null,
+                    "project_health":  null,
+                    "project_path":  "D:\\Vit_DAW_wt_d1guard1\\coord\\runs\\D1-MIXTREAT-KIND-GUARD-1\\chatnl_20261024_210031\\project\\journey_fixture.vit",
+                    "track_count":  2,
+                    "user_track_count":  2
+                },
+    "track_count":  2,
+    "tracks":  [
+                   {
+                       "track_id":  "1007",
+                       "name":  "Bass",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   },
+                   {
+                       "track_id":  "1012",
+                       "name":  "Lead Vocal",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "volume_db":  0,
+                       "gain_db":  0,
+                       "fader_db":  0,
+                       "mute":  false,
+                       "solo":  false,
+                       "plugin_count":  0,
+                       "plugins":  [
+
+                                   ],
+                       "routing_edge_count":  0
+                   }
+               ],
+    "rack_node_ids":  [
+
+                      ]
+}

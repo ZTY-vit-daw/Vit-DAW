@@ -1,0 +1,48 @@
+ok: draft root isolation: source=external VIT_HISTORY_DRAFT_ROOT=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_205621\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_d1guard1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_d1guard1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_d1guard1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_d1guard1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=2152 workdir=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_205621\kernel_workspace
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_d1guard1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+ok: scenario berth project identity stable: vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+
+== Scenario journey_free_state_nl: demo journey -- berth + J1 legs -> one real-LLM free-state experiment round -> confirm hop -> post-application chain
+
+== Journey fixture: build the two-stem project, bake DAD analysis, persist
+ok: fixture DAD ready (tracks=2)
+ok: fixture persisted: D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_205621\project\journey_fixture.vit
+
+== LEG 1 (project open): open_project through the agent tool face
+ok: open restored both stems: [Bass,Lead Vocal]
+
+== LEG 2 (authority grant): full project access switches and binds the input chain
+ok: authority held full_project_access across the activation window
+ok: input chain binds full_project_access with no confirmation card
+
+== LEG 3 (free-state NL round): fixed utterance (+ bounded nudges) -> real LLM chain -> settle -> assembly-face capture
+
+== LEG 4 (confirm hop): direct-drive /agent/interaction/respond on the pending confirmation card
+warn: no pending confirmation card mounted; hop not driven (full-access auto-authorized chains mount no user card -- recorded, not a gate failure)
+ok: stack healthy after the journey (tool_count=295)
+warn: NL round did not complete the chain: classification=no_candidate_found (recorded; probabilistic face, exit not affected)
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=11940
+ok: stopped scenario kernel pid=2152
+
+== Summary
+ok: dev agent smoke completed (scenario=journey_free_state_nl, artifacts=D:\Vit_DAW_wt_d1guard1\coord\runs\D1-MIXTREAT-KIND-GUARD-1\chatnl_20261024_205621)
