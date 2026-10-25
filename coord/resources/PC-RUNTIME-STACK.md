@@ -3,7 +3,11 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-25 19:37 登记 / **M3-ENVELOPE-DATACHAN-1(187) 真栈 GUI client 腿**（owner=ZCode GLM-5.3 PC 执行会话（187 卡专属））：预期 run=coord/runs/M3-ENVELOPE-DATACHAN-1/datachan_gui_*（被测=前端 worktree D:/Godot/project/vit-daw-frontend-m3dc1@port/m3-envelope-datachan-1@75bdef38——AutomationClient 三方法 GUI 传输链腿 automation_datachan；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读亲核一致，VIT_PROJECT_XML=run 目录 git 干净副本隔离（183 先例，主检出 Workspace 零触碰）；agent=主仓 worktree D:/Vit_DAW_wt_m3dc1 构建重启（Go 零改动）；Godot 4.6.1 console headless）。占用前核对：VitApp/VitAgent/VspHub/Godot 进程=0、UDP 4444/4445=0、TCP 5555/5556/7878/8787 listen=0（含本会话独立探针 run2 解析错误腿遗留 Godot 22736 自产自清后核净）。
+（空——最新释放见下条）
+
+## 最近一次释放（2026-10-25 19:37 登记 – 19:50 释放，M3-ENVELOPE-DATACHAN-1(187)，含第一轮撞栈事故披露）
+
+- 2026-10-25 19:37 登记（54765bac）–19:50 释放 / **M3-ENVELOPE-DATACHAN-1(187) 真栈 GUI client 腿——第二轮 PASS exit 0（16/16）+第一轮撞用户在飞栈事故（如实披露，待主管裁定）**（owner=ZCode GLM-5.3 PC 执行会话（187 卡专属））：run=**coord/runs/M3-ENVELOPE-DATACHAN-1/{datachan_gui_20261025_193812（第一轮=事故+探针缺陷留证）, datachan_gui_20261025_194233（第二轮=PASS 收口）}**（工件随主仓 port/m3-envelope-datachan-1-stack 入库）。第二轮：`dev_agent_smoke -StartKernel -RestartAgent -AutomationDatachanGuiSmoke -NoChatSmoke -NoStripSilenceSmoke -KernelExe 主检出 K3 -GodotProjectRoot 前端 worktree m3dc1 -GodotExe 4.6.1 console` **脚本 exit 0，stack probe 16/16 PASS**（setup 3+L1 空曲线披露 2+L2 三点 mode=full 逐点回读 3+L3 区域替换 apply_region_edit 纯函数预测 vs 活内核逐点对账 4+L4 全域清除回读空 2+L5 错误透传活栈 2；180 横幅双源在场）；被测=前端 worktree@port/m3-envelope-datachan-1@75bdef38；kernel=**自启** pid 9044（主检出 K3 722A79D7 只读亲核一致）+VIT_PROJECT_XML=run 目录 git 干净副本隔离（副本被写 19:42:51=隔离生效亲证；主检出 Workspace/default_project.xml 本轮零触碰）；agent=worktree 构建 pid 24084。**第一轮事故（19:38-19:41）**：占用前检查（~19:36）四端口/进程=0 后、ps1 启动（19:38:22）前窗口内**用户自行拉起在飞栈**（agent 17316+kernel，7 轨 stems 工程）；本轮 ps1 走"Start or reuse"分支静默复用——探针 setup clear_project/add_track **在用户活内存工程上执行**（第一轮 console+ps1 trail 留证）；**盘上零损失**：repo Workspace/default_project.xml 内容=完整 stems（末次写 19:39:01=ps1 前置腿触发的清场前自动保存，用户态先于 clear 落盘；此后无写），用户下次开工程从盘重载=无损；用户栈 19:41:3x 前已下线（非本 owner 手拆——ps1 throw 路径零 teardown 输出、本 owner 仅拆自录 pid）；第一轮另含探针缺陷（_automation 惰性初始化时序→watchdog 超时 exit 1，script_exception 分类）。**根因**：占用登记后~启动前缺一次即时进程/端口复核（检查 19:36 vs 启动 19:38:22 空窗）+dev_agent_smoke"Start or reuse"静默复用放大；待主管裁定（复跑纪律已按修复后首跑执行）。释放复核（19:50）：VitApp/VitAgent/Godot 全域=0、UDP 4444/4445=0、TCP 5555/5556/7878/8787 listen=0。
 
 ## 最近一次释放（2026-10-25 18:45 登记 – 18:5x 释放，PROBE-DRYRUN-WARNING-1(180)）
 
