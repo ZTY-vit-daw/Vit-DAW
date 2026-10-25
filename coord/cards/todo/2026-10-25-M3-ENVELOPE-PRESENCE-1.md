@@ -26,6 +26,8 @@
 
 ## 停止条件
 
+- **主管补注 2026-10-25（189 验收披露折入）**：活内核实证 get_plugin_parameters 对**内置轨级插件（volume 等）回 error only available for external plugins**（189 run L1 逐字在卷）——本卡在场性字段的自然覆盖面=**外部（rack VST）插件参数**；内置参数不在该回执面属内核既有形态而非本卡缺陷。实现时：外部插件参数行加 envelope_point_count；内置参数（volume/pan）在场性缺口如实登记边界并上交（自动展开对轨级参数的覆盖留主管另裁数据源——候选=轨级 automation.get_curve 探测或内核轨参数面小扩，不在本卡擅自扩）。
+
 - get_plugin_parameters 描述符构建点与 M3-RECON/186 锚点族不符（内核已重构）→锚点上交；
 - getNumPoints 对某参数族（轨级 volume/pan）不可达（无曲线对象挂载）→如实回 0 并记录边界，不硬造。
 
