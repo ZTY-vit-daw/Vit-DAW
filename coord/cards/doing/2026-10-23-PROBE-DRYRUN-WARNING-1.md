@@ -18,6 +18,6 @@
 
 无（极小卡；若勘察发现探针入口分散多处，取最近四事故涉及的 sendroute 族入口为主，其余登记余量）。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-25 18:37 / origin/main c111f5f3 / ZCode GLM-5.3 L1 PC 执行会话（ZCode，180 卡会话）/ 前端仓 port/probe-dryrun-warning-1（基线 5da6360）+主仓协调 coord/probe-dryrun-warning-1-claim / D:/Godot/project/vit-daw-frontend-probedrywarn1 + D:/Vit_DAW_wt_probedrywarn1_coord / 领取提交见推送）
 - 回执：（commit / 警告行证据 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
