@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（空——最新释放见下条）
+- 2026-10-25 晚窗本会话机器钟起 / **FE-FX-WETCHAIN-BADGE-1(185) 真栈 SendRouteGuiSmoke 腿**（owner=ZCode GLM-5.3 L1 PC 前端执行会话（ZCode，185 卡会话））：预期 run=coord/runs/FE-FX-WETCHAIN-BADGE-1/sendroute_gui_*（被测=前端 worktree D:/Godot/project/vit-daw-frontend-wetchain1@port/fe-fx-wetchain-badge-1；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读；RepoRoot=stack worktree D:/Vit_DAW_wt_wetchain1_stack@port/fe-fx-wetchain-badge-1-stack@77bba48c（Go 零改动，VIT_PROJECT_XML 指 run workspace 的 git 干净版 default_project.xml 副本=183 隔离面先例）；Godot 4.6.1 console headless）。占用前核对：VitApp/VitAgent/vsphub/Godot 进程=0、5555/5556/4445/7878/8787/18787 tcp listen=0（180 已释放，无撞车）。腿面=stack probe L1-L11 基线+**L12 湿链徽标腿**（装载→徽标出现→卸载→回落「（空）」），同时覆盖 180 遗留验证面（横幅与 72/72 同现）。
 
 ## 最近一次释放（2026-10-25 18:45 登记 – 18:5x 释放，PROBE-DRYRUN-WARNING-1(180)）
 
