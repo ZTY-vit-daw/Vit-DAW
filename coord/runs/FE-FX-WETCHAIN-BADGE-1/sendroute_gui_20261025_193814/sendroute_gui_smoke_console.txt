@@ -1,0 +1,101 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_sendroute_macro.tscn time=2026-10-25T19:38:43 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS L1 connect auto_create
+[stack-probe] PASS L1 fx track created
+[stack-probe] PASS L1 default amount -6.0
+[stack-probe] PASS L2 send list
+[stack-probe] FAIL L2 edge readback | { "source_track_id": "1032", "source_name": "vocals", "fx_track_id": "1037", "fx_name": "Reverb Bus", "amount_db": 6.0, "send_bus": 0.0, "return_bus": 1.0 }
+[stack-probe] PASS L3 SendOut plugin in state
+[stack-probe] PASS L3 SendIn plugin in state
+[stack-probe] PASS L4 set_amount
+[stack-probe] PASS L4 amount echo -12.5
+[stack-probe] FAIL L4 list readback -12.5 | [{ "source_track_id": "1032", "source_name": "vocals", "fx_track_id": "1037", "fx_name": "Reverb Bus", "amount_db": 6.0, "send_bus": 0.0, "return_bus": 1.0 }, { "source_track_id": "1048", "source_name": "Track 8", "fx_track_id": "1051", "fx_name": "Reverb Bus K3 1122", "amount_db": -12.5, "send_bus": 2.0, "return_bus": 3.0 }]
+[stack-probe] PASS L5 control_add_macro
+[stack-probe] PASS L5 macro node snapshot
+[stack-probe] PASS L5 control_graph has new macro node
+[stack-probe] PASS L5 control_add_binding
+[stack-probe] PASS L5 binding target send level
+[stack-probe] PASS L5 control_set_macro_values
+[stack-probe] PASS L5 applied bindings 1
+[stack-probe] PASS L5 graph snapshot our bindings 1
+[stack-probe] PASS L5 graph snapshot macro_1 0.8
+[stack-probe] FAIL L5 macro drives send amount | amount=6.0 expected≈1.537
+[stack-probe] PASS L6 disconnect
+[stack-probe] PASS L6 fx released
+[stack-probe] FAIL L6 list empty after disconnect | [{ "source_track_id": "1032", "source_name": "vocals", "fx_track_id": "1037", "fx_name": "Reverb Bus", "amount_db": 6.0, "send_bus": 0.0, "return_bus": 1.0 }]
+[stack-probe] PASS L7 external connect (foreign request id)
+[stack-probe] PASS L7 external connect created fx
+[stack-probe] PASS L7 VSP-shaped repository applied
+[stack-probe] PASS L7 baseline no send node (VSP-shaped repo)
+[stack-probe] PASS L7 topology auto-applied to repository
+[stack-probe] PASS L7 unified send icon auto-present (zero user action, default collapsed)
+[stack-probe] PASS L7 collapsed hides pair cards (166)
+[stack-probe] PASS L7 unified amount label
+[stack-probe] FAIL L7 repository topology row source/fx | { "source_track_id": "1032", "source_name": "vocals", "fx_track_id": "1037", "fx_name": "Reverb Bus", "amount_db": 6.0, "send_bus": 0, "return_bus": 1 }
+[stack-probe] PASS L8 unified route key from real topology
+[stack-probe] PASS L8 unified badge is fx track name
+[stack-probe] PASS L8 unified color from fixed palette hash
+[stack-probe] PASS L8 collapsed derived key stays in confirmed set (164 chain intact)
+[stack-probe] PASS L9 collapsed chain keys in confirmed set
+[stack-probe] PASS L9 collapsed chain lines drawn to bus anchors
+[stack-probe] PASS L8 expand restores SendOut card (pair complete)
+[stack-probe] PASS L8 expanded SendOut amount label
+[stack-probe] PASS L8 SendIn card auto-present (pair complete)
+[stack-probe] PASS L8 pair cable in graph connections
+[stack-probe] PASS L8 pair cable kernel-confirmed (ghost gate holds)
+[stack-probe] PASS L8 derived edge key in confirmed set
+[stack-probe] PASS L9 expanded chain keys in confirmed set
+[stack-probe] PASS L9 expanded chain lines drawn to anchors
+[stack-probe] PASS L8 exactly one send-out card (no dual-track duplicate)
+[stack-probe] PASS L8 expanded cards share unified color
+[stack-probe] PASS L8 expanded badges match unified badge
+[stack-probe] PASS L8 aux cable color consumes route color
+[stack-probe] PASS L10 adjust entry on SendOut card
+[stack-probe] PASS L10 real-event click reaches button rect center (182)
+[stack-probe] PASS L10 popup opens with spin on click
+[stack-probe] PASS L10 popup rect fully on-screen (182)
+[stack-probe] PASS L10 spin initial value matches topology (-6.0)
+[stack-probe] PASS L10 spin grab focus holds after popup (182)
+[stack-probe] PASS L10 spin up-arrow real click steps +0.5 (182)
+[stack-probe] PASS L10 set_amount converges to readback -5.5
+[stack-probe] PASS L11 fader on SendOut card (183)
+[stack-probe] PASS L11 fader value label present (183)
+[stack-probe] PASS L11 fader initial unit maps readback -5.5 (183)
+[stack-probe] PASS L11 real press reaches fader (183)
+[stack-probe] PASS L11 mid-drag repository amount unchanged (183)
+[stack-probe] PASS L11 mid-drag fader value label echoes preview (183)
+[stack-probe] PASS L11 drag release readback converges (183)
+[stack-probe] PASS L11 fader unit resyncs from readback (183)
+[stack-probe] PASS L8 external disconnect ok
+[stack-probe] PASS L8 cards removed after external disconnect
+[stack-probe] PASS L8 cable removed after external disconnect
+[stack-probe] PASS L9 chain keys removed after external disconnect
+[stack-probe] PASS L12 connect auto_create (wet route)
+[stack-probe] PASS L12 fx track created
+[stack-probe] PASS L12 unified icon present (wet route)
+[stack-probe] PASS L12 empty fx rack badge shows explicit empty form
+[stack-probe] PASS L12 rack_add_node loads plugin onto fx track
+[stack-probe] FAIL L12 badge shows loaded plugin after rack_add_node | New Rack
+[stack-probe] FAIL L12 expanded SendIn card badge matches loaded plugin | card=true badge=New Rack
+[stack-probe] PASS L12 SendOut card (source side) carries no badge row
+[stack-probe] FAIL L12 list_tracks receipt carries fx rack member (data source) | fx rack member missing in receipt
+[stack-probe] SUMMARY_JSON {"checks_failed":8,"checks_total":81,"failures":["L2 edge readback | { \"source_track_id\": \"1032\", \"source_name\": \"vocals\", \"fx_track_id\": \"1037\", \"fx_name\": \"Reverb Bus\", \"amount_db\": 6.0, \"send_bus\": 0.0, \"return_bus\": 1.0 }","L4 list readback -12.5 | [{ \"source_track_id\": \"1032\", \"source_name\": \"vocals\", \"fx_track_id\": \"1037\", \"fx_name\": \"Reverb Bus\", \"amount_db\": 6.0, \"send_bus\": 0.0, \"return_bus\": 1.0 }, { \"source_track_id\": \"1048\", \"source_name\": \"Track 8\", \"fx_track_id\": \"1051\", \"fx_name\": \"Reverb Bus K3 1122\", \"amount_db\": -12.5, \"send_bus\": 2.0, \"return_bus\": 3.0 }]","L5 macro drives send amount | amount=6.0 expected≈1.537","L6 list empty after disconnect | [{ \"source_track_id\": \"1032\", \"source_name\": \"vocals\", \"fx_track_id\": \"1037\", \"fx_name\": \"Reverb Bus\", \"amount_db\": 6.0, \"send_bus\": 0.0, \"return_bus\": 1.0 }]","L7 repository topology row source/fx | { \"source_track_id\": \"1032\", \"source_name\": \"vocals\", \"fx_track_id\": \"1037\", \"fx_name\": \"Reverb Bus\", \"amount_db\": 6.0, \"send_bus\": 0, \"return_bus\": 1 }","L12 badge shows loaded plugin after rack_add_node | New Rack","L12 expanded SendIn card badge matches loaded plugin | card=true badge=New Rack","L12 list_tracks receipt carries fx rack member (data source) | fx rack member missing in receipt"],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_sendroute_macro.tscn","time":"2026-10-25T19:38:43"},"status":"fail"}

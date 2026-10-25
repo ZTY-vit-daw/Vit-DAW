@@ -1,0 +1,55 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-FX-WETCHAIN-BADGE-1 fx wet-chain badge suite start
+WARNING: VitTelemetryManager: bind 4444 failed: 2
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://app/kernel/autoloads/telemetry_manager.gd:168)
+[probe] PASS badge185 names non-array input -> empty
+[probe] PASS badge185 names empty tracks -> empty
+[probe] PASS badge185 names strip aux pair + system hidden, keep order
+[probe] PASS badge185 names skip malformed rows (no id / no name / non-dict)
+[probe] PASS badge185 names per-track independent (plain track also derived)
+[probe] PASS badge185 names track id key fallback (id)
+[probe] PASS badge185 names non-array plugins -> empty member list
+[probe] PASS badge185 text empty -> （空）
+[probe] PASS badge185 text non-array -> （空）
+[probe] PASS badge185 text single name verbatim
+[probe] PASS badge185 text two names joined
+[probe] PASS badge185 text three names summarized with count
+[probe] PASS badge185 text five names summarized with count
+[probe] PASS badge185 text blank names stripped
+[probe] PASS badge185 unified icon rendered (default collapsed)
+[probe] PASS badge185 unified badge row present
+[probe] PASS badge185 unified badge hidden before snapshot (fail-closed)
+[probe] PASS badge185 unified badge caption 「湿链」
+[probe] PASS badge185 unified badge visible after snapshot
+[probe] PASS badge185 unified badge text matches fx rack member
+[probe] PASS badge185 badge adds zero graph connections
+[probe] PASS badge185 plain plugin card has no badge row
+SCRIPT ERROR: Invalid call. Nonexistent function 'track_send_list' in base 'Nil'.
+   at: _request_send_topology_refresh (res://app/rack/Vit_Graph_Rack.gd:2638)
+   GDScript backtrace (most recent call first):
+       [0] _request_send_topology_refresh (res://app/rack/Vit_Graph_Rack.gd:2638)
+[probe] PASS badge185 expanded SendOut card present
+[probe] PASS badge185 expanded SendIn card present
+[probe] PASS badge185 SendOut card (source side) has no badge row
+[probe] PASS badge185 SendIn card badge row present + text matches topology
+[probe] PASS badge185 rack change auto-refreshes badge (no manual labels call)
+[probe] PASS badge185 light refresh does not rebuild canvas (same card instance)
+[probe] PASS badge185 refresh keeps fader untouched while dragging (183 gate)
+[probe] PASS badge185 badge still refreshes during fader drag
+[probe] PASS badge185 unloaded fx rack shows explicit empty form
+[probe] PASS badge185 dangling route hides badge (fail-closed)
+[probe] PASS badge185 snapshot cache miss hides badge (fail-closed)
+[probe] PASS badge185 collapse rebuild keeps unified badge
+[probe] PASS badge185 built out-card content has no badge row
+[probe] PROBE PASS (checks_total=35)
