@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（空——最新释放见下条）
+- 2026-10-25 19:37 登记 / **M3-ENVELOPE-DATACHAN-1(187) 真栈 GUI client 腿**（owner=ZCode GLM-5.3 PC 执行会话（187 卡专属））：预期 run=coord/runs/M3-ENVELOPE-DATACHAN-1/datachan_gui_*（被测=前端 worktree D:/Godot/project/vit-daw-frontend-m3dc1@port/m3-envelope-datachan-1@75bdef38——AutomationClient 三方法 GUI 传输链腿 automation_datachan；kernel=主检出 K3 VitApp.exe SHA256=722A79D7A3F53797F5713209D812D8CE9F2888CB2A7E743286FA56B99629DFEC 只读亲核一致，VIT_PROJECT_XML=run 目录 git 干净副本隔离（183 先例，主检出 Workspace 零触碰）；agent=主仓 worktree D:/Vit_DAW_wt_m3dc1 构建重启（Go 零改动）；Godot 4.6.1 console headless）。占用前核对：VitApp/VitAgent/VspHub/Godot 进程=0、UDP 4444/4445=0、TCP 5555/5556/7878/8787 listen=0（含本会话独立探针 run2 解析错误腿遗留 Godot 22736 自产自清后核净）。
 
 ## 最近一次释放（2026-10-25 18:45 登记 – 18:5x 释放，PROBE-DRYRUN-WARNING-1(180)）
 
