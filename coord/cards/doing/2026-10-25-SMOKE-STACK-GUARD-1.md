@@ -25,6 +25,6 @@
 
 ps1 启动步骤结构大改（守卫插入点失锚）→ 锚点上交。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-25 晚窗 / origin/main=aa06fca7 / owner=GLM-5.3 L1 PC 执行会话（ZCode，SMOKE-STACK-GUARD-1 卡会话）/ 分支 port/smoke-stack-guard-1 / worktree D:\Vit_DAW_wt_guard1 / 领取提交见回执（本行随卡片 mv 提交）。领取时基线 `git rev-parse HEAD`=aa06fca7，主工作树 `git status --short` 仅本卡域外工件/运行时状态（VitApp/Workspace 运行时、coord/runs 工件、agent/webui/design 未跟踪设计稿），`git diff --stat` 领取前 scripts/ 零改动。领取前真栈核查：5555/5556/4445/7878/8787/18787 tcp listen=0 udp=0，VitApp/VitAgent/VspHub/Godot 进程=0。
 - 回执：（commit / 两守卫证据 / 回归模式清单 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
