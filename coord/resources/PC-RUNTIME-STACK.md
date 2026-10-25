@@ -3,7 +3,9 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-- 2026-10-25 20:29 登记 / **SMOKE-STACK-GUARD-1(188) 真栈验收腿（守卫①假监听中止+真栈复用放行+回归模式+守卫②GUI 腿隔离默认）**（owner=GLM-5.3 L1 PC 执行会话（ZCode，188 卡会话））：run=coord/runs/SMOKE-STACK-GUARD-1/guard1_20261025_2025（工件随 port/smoke-stack-guard-1 入库）；被测=worktree D:/Vit_DAW_wt_guard1@port/smoke-stack-guard-1 的 dev_agent_smoke.ps1 两守卫（ps1 单文件域，Go 零改动）；kernel=主检出 build VitApp.exe 只读复用；agent=worktree 构建；假监听构造用 7878/5555（本腿自有测试进程，随腿拆净）。与 185 错峰裁定：其 20:22 复跑登记腿已于 20:23:42 PASS 收口（84/84，工件 SUMMARY_JSON 亲核）+20:26 复核 VitApp/VitAgent=0、5555/5556/4445/7878 tcp listen=0/UDP 4445=0（其释放文书未推，以工件+进程面双重证据判定其真栈使用已结束；不覆盖、不代写其记录行）。本登记推送后 ≤60s 即时复核再启动；预计单会话串行（driver T1–T6 + GUI 隔离腿 T7–T8），跑完即拆栈推释放。
+## 最近一次释放（2026-10-25 20:29 登记（73be5071）– 21:2x 释放，SMOKE-STACK-GUARD-1(188) 验收腿收口）
+
+- 2026-10-25 20:29 登记（73be5071）–21:2x 释放 / **SMOKE-STACK-GUARD-1(188) 真栈验收腿——守卫①假监听/真栈中止+放行复用+回归、守卫②GUI 腿隔离默认，全 PASS 收口**（owner=GLM-5.3 L1 PC 执行会话（ZCode，188 卡会话））：run=**coord/runs/SMOKE-STACK-GUARD-1/guard1_20261025_2025**（工件随 port/smoke-stack-guard-1@1d145979 入库；RESULTS.md 回执）。被测=worktree D:/Vit_DAW_wt_guard1 的 dev_agent_smoke.ps1 两守卫（ps1 单文件域，Go 零改动）；kernel=主检出 build VitApp.exe 只读复用；agent=worktree 构建。验收面：T1/T2b 假监听（7878/5555）→agent/kernel 步守卫显式 throw exit≠0+指引在场；T4 真栈占用（T3 自启栈留存）无放行→kernel 步守卫中止（185 事故形态复刻拦截）；T5 `-AllowForeignStack`→复用路径 exit=0+双 FOREIGN warn；T7/T7b AutomationDatachanGuiSmoke 两轮——T7b **exitcode=0**、探针 16/16、隔离 marker 时间线自洽（副本被内核写 21:14:08=187 二轮同款证据形态）、主检出 default_project.xml 两轮 sha256 逐字节一致零触碰。登记-启动合规：登记推送 20:46:30→即时复核 20:46:39（9s）；与 185 错峰亲核互为印证（其释放记录在案）。拆栈复核（T6/T8 两轮+终检）：5555/5556/7878/8787/18787 tcp listen=0、UDP 4444/4445=0、VitApp/VitAgent/VspHub/Godot=0；假监听测试进程全数拆净。事故披露：driver 脚本 T3 后挂起（进程被杀，T4-T6 改直接调用落盘）+t7 一轮 ps1 console 清理失误损失（T7b 全证据重跑补齐）——详见 RESULTS.md §五。
 
 ## 最近一次释放（2026-10-25 20:22 登记（bdeb0dcc）– 20:3x 释放，FE-FX-WETCHAIN-BADGE-1(185) 复跑）
 
