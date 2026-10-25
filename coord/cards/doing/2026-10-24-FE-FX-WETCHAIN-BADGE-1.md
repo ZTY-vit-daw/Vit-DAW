@@ -35,4 +35,8 @@ pluginList 回执面不含 FX 轨 rack 成员（数据源与勘察假设不符�
   - **真栈首轮**：sendroute_gui_20261025_193814 exit 1（81 断言 8 败）——族 1 五败=主检出 build 目录预存边 1032→1037@+6.0 污染（183 首轮同款；根因=dev_agent_smoke VIT_PROJECT_XML 仅 journey berth 设置，复跑修正=调用方 shell 显式透传，已录上交件 §四）；族 2 三败=停止条件触发面（上交）。§2.2 登记 e5facf80→释放复核进程/端口=0。
   - **commit**：前端仓 `port/fe-fx-wetchain-badge-1`（rules 两纯函数+Vit_Graph_Rack 徽标行/缓存/刷新面+独立探针+stack L12+180 横幅笔误顺带修）；主仓 `port/fe-fx-wetchain-badge-1-stack`（run 工件+headless 工件+上交件）。
   - **端测边界声明**：headless 探针=注入回执面（fake transport）；真栈腿仅首轮（含污染与停止条件触发），**徽标装载/卸载端到端绿尚未达成**——待裁定后换源复跑（VIT_PROJECT_XML 隔离透传）补齐。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：（进行中——主管停止条件裁定 2026-10-25 晚窗：**换源批准，本卡继续**）
+  - **裁定①（换源）**：数据源从 list_tracks 轨级 plugins 换 **get_project_state 的 tracks[].rack.nodes**（前端消费 repo rack_nodes 快照面 get_rack_nodes_by_track，project_repository.gd:106-114/:287——167 目标选择器同源面）。「零新请求面、只消费既有回执」实质约束保持；**不开内核改面**（list_tracks 补成员方案否决——越本卡文件域且替代面已足）。
+  - **裁定②（成员序）**：rack.nodes 序列序=卡面①「rack 成员序」的等价物，认可；若复跑发现回执序不稳定（去重/排序异常）再上交。
+  - **裁定③（复跑）**：族 1 预存边污染按 183 先例 VIT_PROJECT_XML 隔离副本复跑。**复跑三纪律（188 落地前）**：a) 启动前 fetch PC-RUNTIME-STACK 并即时复核进程/端口（距启动 ≤60s，不得沿用早前检查）；b) ps1 报 already listening→停下人工核归属，禁止静默复用；c) §2.2 登记推送后再启动。
+  - **事故注记（主管更正）**：本卡 19:38:07 §2.2 登记成立（先前「未登记」判断系分支未及时可见，更正销账）；首轮与 C1(187) 同刻双真栈腿互染（C1 静默复用本卡自启栈 11900/17316，双方探针在同一内核交错 clear/add——首轮族 1 归因维持预存边，但读回混乱可能含串扰成分）；复跑隔离后以干净结果为准。**换源影响=派生输入+刷新挂点（ANALYSIS §三候选 a：project_loaded 外部变化面追加 repo rack_nodes 重读+轻量标签刷新=与 161 同构最小改）**，呈现层/探针结构/L12 骨架复用，预计 ≤0.25 天。
