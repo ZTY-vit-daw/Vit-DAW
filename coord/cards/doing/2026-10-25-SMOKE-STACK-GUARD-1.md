@@ -26,5 +26,5 @@
 ps1 启动步骤结构大改（守卫插入点失锚）→ 锚点上交。
 
 - 领取：2026-10-25 晚窗 / origin/main=aa06fca7 / owner=GLM-5.3 L1 PC 执行会话（ZCode，SMOKE-STACK-GUARD-1 卡会话）/ 分支 port/smoke-stack-guard-1 / worktree D:\Vit_DAW_wt_guard1 / 领取提交见回执（本行随卡片 mv 提交）。领取时基线 `git rev-parse HEAD`=aa06fca7，主工作树 `git status --short` 仅本卡域外工件/运行时状态（VitApp/Workspace 运行时、coord/runs 工件、agent/webui/design 未跟踪设计稿），`git diff --stat` 领取前 scripts/ 零改动。领取前真栈核查：5555/5556/4445/7878/8787/18787 tcp listen=0 udp=0，VitApp/VitAgent/VspHub/Godot 进程=0。
-- 回执：（commit / 两守卫证据 / 回归模式清单 / 端测边界声明）
+- 回执：done 待验收（2026-10-25 21:2x）。实现 commit=**1d145979**（分支 port/smoke-stack-guard-1 已推 origin；worktree D:\Vit_DAW_wt_guard1）。两守卫证据（run=coord/runs/SMOKE-STACK-GUARD-1/guard1_20261025_2025/，RESULTS.md 全文）：①假监听 7878/5555 → agent/kernel 步守卫显式 throw exit≠0+指引文案在场（T1/T2b），真栈占用同形中止（T4，185 事故形态复刻拦截），`-AllowForeignStack` 复用路径走通 exit=0+双 FOREIGN warn（T5）；②GUI 腿隔离默认生效（T7b exitcode.txt=0）：VIT_PROJECT_XML 自动指 run 目录 git 干净副本、marker 时间线自洽（副本 21:14:08 被内核写=187 二轮同款证据形态）、主检出 default_project.xml 两轮 sha256 逐字节一致零触碰、探针 16/16。回归模式清单：T5 复用态默认腿族 exit=0+T7b 干净端口默认腿族 13 ok 行+exitcode=0（journey 零改动=diff 亲读，未重跑）。端测边界：本卡无 webui/Godot 渲染面改动（E2E/JOURNEY 层级不适用）；T3 退出码未捕获（driver 挂起+console 清理失误，T7b 补证）；t7 一轮 ps1 console 损失已披露并以 T7b 重跑补齐。真栈占用 73be5071（20:29 登记/20:46:39 即时复核）→已拆栈释放（复核六端口/UDP/四类进程=0）。
 - 验收：（裁定文件 / 验收 commit）
