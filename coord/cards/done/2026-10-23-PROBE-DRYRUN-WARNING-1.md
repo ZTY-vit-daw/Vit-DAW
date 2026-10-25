@@ -18,6 +18,6 @@
 
 无（极小卡；若勘察发现探针入口分散多处，取最近四事故涉及的 sendroute 族入口为主，其余登记余量）。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
-- 回执：（commit / 警告行证据 / 端测边界声明）
+- 领取：（2026-10-25 18:37 / origin/main c111f5f3 / ZCode GLM-5.3 L1 PC 执行会话（ZCode，180 卡会话）/ 前端仓 port/probe-dryrun-warning-1（基线 5da6360）+主仓协调 coord/probe-dryrun-warning-1-claim / D:/Godot/project/vit-daw-frontend-probedrywarn1 + D:/Vit_DAW_wt_probedrywarn1_coord / 领取提交 0ccadea0）
+- 回执：（前端 commit **f891117**（port/probe-dryrun-warning-1 已推远端，单文件 +39/-0）；工件 commit=主仓 port/probe-dryrun-warning-1（coord/runs/PROBE-DRYRUN-WARNING-1/，RESULTS.md 回执）；警告行证据=probedrywarn_nostack_ab/changed_banner_console_cached.txt——横幅 9 行含 `STACK_TOUCH_WARNING scene=stack_probe_sendroute_macro.tscn time=2026-10-25T18:48:48 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run` +SUMMARY_JSON 内嵌 stack_warning 字段（console/报告双源）；零回退=无栈 A/B 与基线 5da6360 逐字节同构仅增横幅行（exit 1/1，IPC Timeout fail-closed 不变）；勘察结论=sendroute 族（tools/stack_probe_sendroute_macro.gd）为前端仓唯一栈探针头，其余 12 个 probe_*.gd 为假客户端独立探针不触栈，余量无；端测边界声明=纯 print+字典键增量无真栈腿（卡面明示），真栈 72/72+横幅同现留待下次 SendRouteGuiSmoke 自然覆盖，烟测 SUMMARY_JSON 断言面兼容已亲核；验证腿 §2.2 登记 d50cb06b 自守本卡纪律（登记先于任何探针跑含干跑））
 - 验收：（裁定文件 / 验收 commit）

@@ -5,6 +5,10 @@
 
 （空——最新释放见下条）
 
+## 最近一次释放（2026-10-25 18:45 登记 – 18:5x 释放，PROBE-DRYRUN-WARNING-1(180)）
+
+- 2026-10-25 18:45 登记（d50cb06b）–18:5x 释放 / **PROBE-DRYRUN-WARNING-1(180) 探针头验证腿（无栈形态 A/B 对照跑）——横幅双源证据+零回退收口**（owner=ZCode GLM-5.3 L1 PC 执行会话（ZCode，180 卡会话））：run=**coord/runs/PROBE-DRYRUN-WARNING-1/probedrywarn_nostack_ab**（工件随 port/probe-dryrun-warning-1 入库；RESULTS.md 回执）。形态=**不启 kernel/agent/vsphub**——4 轮探针 Godot headless 进程跑（基线 detached@5da6360 vs 带横幅 f891117 × 无/有 .godot 类缓存）：改动版横幅 9 行+`STACK_TOUCH_WARNING`（场景名+时间戳）+SUMMARY_JSON `stack_warning` 双源在场；A/B console 唯一差异=横幅行+字典键，IPC Timeout 快速失败/exit 1 与基线逐字节同构=零回退。本腿自守本卡纪律：登记先于任何探针跑（含干跑）。释放复核：VitApp/VitAgent/VspHub/Godot 进程=0、UDP 4444/4445=0（探针进程自带退出，无残留）。
+
 ## 最近一次释放（2026-10-24 21:3x，主管验收复跑腿 184 合并态）
 
 - 2026-10-24 21:2x 登记（7f6a589d）–21:3x 释放 / **主管验收复跑腿（184 D1-MIXTREAT-KIND-GUARD-1 合并态 affb611a）——一轮 exit 0 全绿**（owner=GLM-5.3 主管决策流 ZCode 验收会话）：run=**coord/runs/D1-MIXTREAT-KIND-GUARD-1/supv_chatnl_20261024_213310**（journey_free_state_nl berth+取证话术逐字复刻；agent=主检出合并态 affb611a 脚本自建；kernel=主检出 K3 722A79D7 只读，journey 隔离 workdir）。**脚本 exit 0**；本轮形态=no_candidate_found（LLM 随机分支，同执行侧 r1/r2；不变量亲核全绿=冻结口错误族 needle 用户面 0 命中+applied_signal=false+mix_treatment 事件 0）。§8：1 轮预算用 1，零盲跑。拆栈=脚本自带 teardown（agent 31596/kernel 17576）→复核 VitApp/VitAgent/VspHub=0、栈端口 tcp=0（用户 Godot 编辑器 8736 全程未动）。
