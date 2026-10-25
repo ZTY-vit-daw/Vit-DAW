@@ -4,6 +4,7 @@
 ## 当前占用
 
 - 2026-10-25 20:22 本会话机器钟起 / **FE-FX-WETCHAIN-BADGE-1(185) 真栈复跑腿（主管换源裁定后）**（owner=ZCode GLM-5.3 L1 PC 前端执行会话（ZCode，185 卡会话））：预期 run=coord/runs/FE-FX-WETCHAIN-BADGE-1/sendroute_gui_20261025_202253（被测=前端 worktree wetchain1@port/fe-fx-wetchain-badge-1 换源态；kernel=主检出 K3 722A79D7 只读；RepoRoot=stack worktree D:/Vit_DAW_wt_wetchain1_stack；Godot 4.6.1 console headless；**VIT_PROJECT_XML=run 目录 git 干净版 default_project.xml 隔离副本**（stack worktree HEAD 版，183 先例）——族 1 预存边污染复跑修正）。**复跑三纪律执行**（185 裁定③）：a) 启动前 fetch origin（无新登记）+即时复核进程/端口=0（20:22，距启动 <60s）；b) ps1 报 already listening 即停人工核归属；c) 本登记推送后再启动。与 188（ps1 守卫卡，不占栈）/189（20:21 已领取，卡面自带三纪律错峰注记）无并发占用。
+- 2026-10-25 20:29 登记 / **SMOKE-STACK-GUARD-1(188) 真栈验收腿（守卫①假监听中止+真栈复用放行+回归模式+守卫②GUI 腿隔离默认）**（owner=GLM-5.3 L1 PC 执行会话（ZCode，188 卡会话））：run=coord/runs/SMOKE-STACK-GUARD-1/guard1_20261025_2025（工件随 port/smoke-stack-guard-1 入库）；被测=worktree D:/Vit_DAW_wt_guard1@port/smoke-stack-guard-1 的 dev_agent_smoke.ps1 两守卫（ps1 单文件域，Go 零改动）；kernel=主检出 build VitApp.exe 只读复用；agent=worktree 构建；假监听构造用 7878/5555（本腿自有测试进程，随腿拆净）。与 185 错峰裁定：其 20:22 复跑登记腿已于 20:23:42 PASS 收口（84/84，工件 SUMMARY_JSON 亲核）+20:26 复核 VitApp/VitAgent=0、5555/5556/4445/7878 tcp listen=0/UDP 4445=0（其释放文书未推，以工件+进程面双重证据判定其真栈使用已结束；不覆盖、不代写其记录行）。本登记推送后 ≤60s 即时复核再启动；预计单会话串行（driver T1–T6 + GUI 隔离腿 T7–T8），跑完即拆栈推释放。
 
 ## 最近一次释放（2026-10-25 19:38 登记（e5facf80）– 19:5x 释放，FE-FX-WETCHAIN-BADGE-1(185)）
 
