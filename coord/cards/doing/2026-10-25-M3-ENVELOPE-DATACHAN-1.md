@@ -29,6 +29,6 @@
 
 回执形态与 186 勘察锚点不符（内核已重构）→ 锚点上交再裁。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-25 晚窗 / 主仓 origin/main=c6cef2da / 前端仓 main=ee03262 / owner=ZCode GLM-5.3 PC 执行会话（M3-ENVELOPE-DATACHAN-1 专属） / 前端分支 port/m3-envelope-datachan-1 / worktree D:/Godot/project/vit-daw-frontend-m3dc1 / 领取提交=本提交
 - 回执：（commit / 探针断言面 / 真栈 run ID / delta_update 核定结论 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
