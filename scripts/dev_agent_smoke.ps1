@@ -62,6 +62,12 @@ param(
     # live stack (frontend probe scene drives VitIpcClient UDP 4445 -> agent
     # bridge -> kernel ZMQ, the production GUI transport).
     [switch]$SendRouteGuiSmoke,
+    # M3-ENVELOPE-DATACHAN-1（C1/187）: automation 数据通道 GUI client 腿 over the
+    # live stack（前端 AutomationClient 三方法 get_curve/set_points/clear_region 走
+    # 生产 GUI 传输链；探针场景=tools/stack_probe_automation_datachan.tscn）。
+    # 腿=空曲线→三点逐点回读→区域替换纯函数预测 vs 活内核对账→全域清除回读空→
+    # 错误透传。需要 kernel+agent berth（-StartKernel -RestartAgent）。
+    [switch]$AutomationDatachanGuiSmoke,
     # VITNOTE-IMPL-4：工程级写租约并发场景（双 chat 各触发一次 B2 能力执行，
     # 双 approve 并发入栈——断言两执行段租约区间不重叠且后来者真实排队；
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
@@ -8345,6 +8351,73 @@ if ($SendRouteGuiSmoke) {
         throw ("sendroute GUI smoke exited 0 but summary line missing (console: " + $guiConsolePath + ")")
     }
     Write-Ok ("sendroute GUI smoke passed (GUI command face over live stack; console: " + $guiConsolePath + ")")
+}
+
+if ($AutomationDatachanGuiSmoke) {
+    Write-Step "automation datachan GUI smoke (M3-ENVELOPE-DATACHAN-1)"
+    # M3 步骤③ C1 GUI client 腿（复用 M3-KERNEL-1 冒测腿形态扩 GUI 传输面）：
+    # 断言体=前端仓 tools/stack_probe_automation_datachan.tscn（场景模式，autoload
+    # VitIpcClient→UDP 4445→agent bridge→内核 ZMQ——生产 GUI 同一传输链）；三命令
+    # automation.get_curve/set_points/clear_region 全部经前端 AutomationClient
+    # （rack_client 同款 no-wait+kernel_command_signal_bus 回执面，本卡交付面）。
+    # 腿：setup clear_project/add_track/get_project_state 发现 volume 插件→L1
+    # get_curve 空曲线（point_count=0+time_base/bypass 披露）→L2 set_points 三点
+    # （mode=full/written=3）→逐点回读一致→L3 区域替换（apply_region_edit 纯函数
+    # 预测 vs 活内核逐点对账）→L4 clear_region 全域清除→回读空→L5 错误透传
+    # （目标缺失+空点集拒收，内核文案原样）。需要 kernel+agent berth
+    # （-StartKernel -RestartAgent）。
+    if ([string]::IsNullOrWhiteSpace($ResolvedGodotProjectRoot)) {
+        throw ("automation datachan GUI smoke requires -GodotProjectRoot (frontend repo with tools/stack_probe_automation_datachan.tscn)")
+    }
+    if ([string]::IsNullOrWhiteSpace($ResolvedGodotExe)) {
+        throw ("automation datachan GUI smoke requires -GodotExe")
+    }
+    $datachanProbeScene = Join-Path $ResolvedGodotProjectRoot "tools\stack_probe_automation_datachan.tscn"
+    if (-not (Test-Path -LiteralPath $datachanProbeScene)) {
+        throw ("automation datachan GUI smoke probe scene missing: " + $datachanProbeScene)
+    }
+    $datachanBridgeUp = $false
+    $datachanBridgeDeadline = (Get-Date).AddSeconds(30)
+    while ((Get-Date) -lt $datachanBridgeDeadline) {
+        $datachanUdpEp = Get-NetUDPEndpoint -LocalPort 4445 -ErrorAction SilentlyContinue
+        if (($datachanUdpEp | Measure-Object).Count -gt 0) { $datachanBridgeUp = $true; break }
+        Start-Sleep -Milliseconds 500
+    }
+    if (-not $datachanBridgeUp) {
+        throw ("automation datachan GUI smoke: agent bridge UDP 4445 not listening (need -RestartAgent)")
+    }
+    $datachanArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($datachanArtifactsDir)) {
+        $datachanArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\automation_datachan_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $datachanArtifactsDir)) {
+        New-Item -ItemType Directory -Path $datachanArtifactsDir -Force | Out-Null
+    }
+    $datachanConsolePath = Join-Path $datachanArtifactsDir "automation_datachan_console.txt"
+    $datachanPriorSkipDev = [Environment]::GetEnvironmentVariable("VIT_SKIP_DEV_AUTOSTART", "Process")
+    $env:VIT_SKIP_DEV_AUTOSTART = "1"
+    try {
+        # PS5.1 原生 stderr 重定向把首条 NativeCommandError 记录外抛（GDExtension
+        # 缺库噪音必现）——经 cmd /c 原生重定向捕获完整 stdout+stderr 到工件。
+        & cmd /c ('"' + $ResolvedGodotExe + '" --headless --path "' + $ResolvedGodotProjectRoot + '" res://tools/stack_probe_automation_datachan.tscn > "' + $datachanConsolePath + '" 2>&1')
+        $datachanExit = $LASTEXITCODE
+    }
+    finally {
+        if ($null -eq $datachanPriorSkipDev) {
+            Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:VIT_SKIP_DEV_AUTOSTART = $datachanPriorSkipDev
+        }
+    }
+    Get-Content -LiteralPath $datachanConsolePath -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+    if ($datachanExit -ne 0) {
+        throw ("automation datachan GUI smoke failed with exit code $datachanExit (console: " + $datachanConsolePath + ")")
+    }
+    if (-not (Select-String -LiteralPath $datachanConsolePath -Pattern "SUMMARY_JSON" -Quiet)) {
+        throw ("automation datachan GUI smoke exited 0 but summary line missing (console: " + $datachanConsolePath + ")")
+    }
+    Write-Ok ("automation datachan GUI smoke passed (AutomationClient over live stack; console: " + $datachanConsolePath + ")")
 }
 
 if (-not $NoChatSmoke) {

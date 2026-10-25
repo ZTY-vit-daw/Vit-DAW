@@ -1,0 +1,84 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261025_193822\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_m3dc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_m3dc1\agent\bin\VitAgent.dev-smoke.exe
+warn: port 7878 is still listening after restart request; pid=17316
+ok: installed agent bin: D:\Vit_DAW_wt_m3dc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_m3dc1\agent\vitagent.exe
+
+== Start kernel
+ok: kernel command port already listening: 5555
+
+== Start or reuse agent
+ok: agent HTTP port already listening: 7878 pid=17316
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=7
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=11900
+ok: ZMQ SUB listening: 5556 pid=11900
+
+== Project state invoke
+project.state status=ok error=
+
+== automation datachan GUI smoke (M3-ENVELOPE-DATACHAN-1)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+WARNING: VitTelemetryManager: bind 4444 failed: 2
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://app/kernel/autoloads/telemetry_manager.gd:168)
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑�?headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指�?4445/遥测 4444）→ agent bridge �?内核 ZMQ
+[stack-probe] !!! 执行前必须完�?PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动�?
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先�?污染他会在飞栈（134/139/161/166 四起干跑误判同族事故�?
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_automation_datachan.tscn time=2026-10-25T19:38:43 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup volume plugin discovered
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_curve_payload' in base 'Nil'.
+   at: _run_suite (res://tools/stack_probe_automation_datachan.gd:203)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://tools/stack_probe_automation_datachan.gd:203)
+       [1] _send_setup (res://tools/stack_probe_automation_datachan.gd:122)
+       [2] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [3] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [4] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+[stack-probe] FAIL watchdog timeout | suite did not finish in 150.000000s
+[stack-probe] SUMMARY_JSON {"checks_failed":1,"checks_total":4,"failures":["watchdog timeout | suite did not finish in 150.000000s"],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_automation_datachan.tscn","time":"2026-10-25T19:38:43"},"status":"fail"}
+automation datachan GUI smoke failed with exit code 1 (console: D:\Vit_DAW_wt_m3dc1\coord\runs\M3-ENVELOPE-DATACHAN-1\d
+atachan_gui_20261025_193812\smoke_artifacts\automation_datachan_console.txt)
+����λ�� D:\Vit_DAW_wt_m3dc1\scripts\dev_agent_smoke.ps1:8415 �ַ�: 9
++         throw ("automation datachan GUI smoke failed with exit code $ ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (automation data...an_console.txt):String) [], RuntimeException
+    + FullyQualifiedErrorId : automation datachan GUI smoke failed with exit code 1 (console: D:\Vit_DAW_wt_m3dc1\coor 
+   d\runs\M3-ENVELOPE-DATACHAN-1\datachan_gui_20261025_193812\smoke_artifacts\automation_datachan_console.txt)
+ 
+PS1_EXIT=1
