@@ -35,6 +35,12 @@ pluginList 回执面不含 FX 轨 rack 成员（数据源与勘察假设不符�
   - **真栈首轮**：sendroute_gui_20261025_193814 exit 1（81 断言 8 败）——族 1 五败=主检出 build 目录预存边 1032→1037@+6.0 污染（183 首轮同款；根因=dev_agent_smoke VIT_PROJECT_XML 仅 journey berth 设置，复跑修正=调用方 shell 显式透传，已录上交件 §四）；族 2 三败=停止条件触发面（上交）。§2.2 登记 e5facf80→释放复核进程/端口=0。
   - **commit**：前端仓 `port/fe-fx-wetchain-badge-1`（rules 两纯函数+Vit_Graph_Rack 徽标行/缓存/刷新面+独立探针+stack L12+180 横幅笔误顺带修）；主仓 `port/fe-fx-wetchain-badge-1-stack`（run 工件+headless 工件+上交件）。
   - **端测边界声明**：headless 探针=注入回执面（fake transport）；真栈腿仅首轮（含污染与停止条件触发），**徽标装载/卸载端到端绿尚未达成**——待裁定后换源复跑（VIT_PROJECT_XML 隔离透传）补齐。
+- 回执续（2026-10-25 20:3x——**换源裁定后收口：全链绿，交主管验收**）：
+  - **换源实现**（裁定①/ANALYSIS §三候选 a）：rules 纯函数改 `fx_wet_chain_names_from_rack_nodes`（rack.nodes 行+repo 回退轨级行兼容；**rack 容器行剔除**=首轮 "New Rack" 实证的防御面，探针 fixture 断言）；Vit_Graph_Rack 湿链缓存改 `_reread_fx_wet_chain_from_repository`（repo `get_rack_nodes_by_track` 派生，独立签名轻刷新）挂 **project_loaded 外部变化面**+`_apply_k3_snapshots` 重建就位；list_tracks 湿链段删除。前端 commit=`port/fe-fx-wetchain-badge-1@14da2d4`。
+  - **headless**：独立腿 36/36（换注入链=project_loaded emit+容器行剔除+空键跳过三断言增面）；零回退全家 9 套绿（K3 313/popup 111/realinput 15/shrink abc/start_feed 244/fader 35/datachan 域外）。
+  - **真栈复跑**：`sendroute_gui_20261025_202253` **exit 0 stack 84/84**（首轮 81+L12 增 3 全 PASS）——L12 全链：空 rack「（空）」→rack_add_node TDR Nova→**徽标=TDR Nova**（换源生效）→展开 SendIn 卡同文本+SendOut 无徽标→rack.nodes 携带成员行断言 PASS（数据源真栈实证）→delete_plugin→回落「（空）」。**族 1 污染消除**：VIT_PROJECT_XML 隔离副本透传后 L2/L4/L5/L6/L7 零复发。**180 遗留验证面达成**：横幅 stack_warning 与 84/84 同帧。**三纪律执行**：a) fetch+20:22 即时复核（<60s）；b) 无 already listening；c) 登记 bdeb0dcc 推送后启动；§2.2 释放登记含与 188 错峰亲核（其 20:29 登记，本腿拆栈在其起栈前）。
+  - **工件**：coord/runs/FE-FX-WETCHAIN-BADGE-1/{sendroute_gui_20261025_202253, headless_r2}/（主仓 `port/fe-fx-wetchain-badge-1-stack@26b7ece8` 合入）。
+  - **端测边界声明（终版）**：徽标呈现/装载/卸载端到端已达成（真栈 84/84）；窗口态手感（用户手测面）未覆盖——P3 体验补全卡无手测义务面（共享协作/harness 收口不新增用户手测义务，2026-10-09 裁定）。
 - 验收：（进行中——主管停止条件裁定 2026-10-25 晚窗：**换源批准，本卡继续**）
   - **裁定①（换源）**：数据源从 list_tracks 轨级 plugins 换 **get_project_state 的 tracks[].rack.nodes**（前端消费 repo rack_nodes 快照面 get_rack_nodes_by_track，project_repository.gd:106-114/:287——167 目标选择器同源面）。「零新请求面、只消费既有回执」实质约束保持；**不开内核改面**（list_tracks 补成员方案否决——越本卡文件域且替代面已足）。
   - **裁定②（成员序）**：rack.nodes 序列序=卡面①「rack 成员序」的等价物，认可；若复跑发现回执序不稳定（去重/排序异常）再上交。
