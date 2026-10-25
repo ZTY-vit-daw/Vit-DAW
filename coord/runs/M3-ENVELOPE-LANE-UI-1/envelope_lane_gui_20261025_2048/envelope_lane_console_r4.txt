@@ -1,0 +1,51 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+WARNING: VitTelemetryManager: bind 4444 failed: 2
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://app/kernel/autoloads/telemetry_manager.gd:168)
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_envelope_lane.tscn time=2026-10-25T21:50:29 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup volume plugin discovered
+[stack-probe] PASS setup wrapper present + sized
+[stack-probe] PASS setup envelope lane mounted
+[stack-probe] PASS setup lane kernel track id bound
+[stack-probe] PASS setup select volume parameter
+[stack-probe] PASS L1 probe-side get_plugin_parameters verbatim disclosure
+[stack-probe] PASS L1 param descriptors lane==kernel consistency
+[stack-probe] PASS L1 lane empty-curve disclosure state
+[stack-probe] PASS L1 kernel confirms empty (lane==kernel)
+[stack-probe] PASS L2 set_points full fields
+[stack-probe] PASS L2 lane presentation loaded after re-select
+[stack-probe] PASS L2 lane presentation readback == written points
+[stack-probe] PASS L3 second param absent (single-param plugin, switch leg via bogus param only)
+[stack-probe] PASS L3 bogus param error verbatim on live stack
+[stack-probe] PASS L4 precondition volume presentation restored
+[stack-probe] PASS L4 open lane body → envelope_lane
+[stack-probe] PASS L4 near point → envelope_lane_point
+[stack-probe] PASS L4 arbitration consumes envelope press + selects row + focuses lane
+[stack-probe] PASS L4 arbitration clears clip selection
+[stack-probe] PASS L4 point press focuses point index (C4 consumption face)
+[stack-probe] PASS L4 closed lane resolves legacy vocabulary
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":23,"failures":[],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_envelope_lane.tscn","time":"2026-10-25T21:50:29"},"status":"pass"}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
