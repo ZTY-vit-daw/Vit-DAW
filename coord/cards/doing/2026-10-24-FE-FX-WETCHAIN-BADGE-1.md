@@ -27,6 +27,6 @@ FX 轨卡（SendIn/总线对卡的 FX 侧）上以**徽标/摘要**呈现内部�
 
 pluginList 回执面不含 FX 轨 rack 成员（数据源与勘察假设不符）→ 锚点上交再裁。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-25 晚窗 / 主仓 origin/main=c6cef2da / 前端仓 main=ee03262（180 合入亲核） / owner=ZCode GLM-5.3 L1 PC 前端执行会话（FE-FX-WETCHAIN-BADGE-1 专属） / 分支 port/fe-fx-wetchain-badge-1 / worktree D:/Godot/project/vit-daw-frontend-wetchain1 / 领取提交=本提交）
 - 回执：（择型结论 / commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
