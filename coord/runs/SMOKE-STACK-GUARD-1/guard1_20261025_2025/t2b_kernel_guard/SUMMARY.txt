@@ -1,0 +1,1 @@
+﻿T2b fake-listener(5555+7878)/kernel-guard: exit=1 kernel_guard_present=True guidance_present=True listeners_left=0

@@ -1,0 +1,9 @@
+SMOKE-STACK-GUARD-1 (188) guard-1 acceptance summary
+- T1 fake-listener(7878)/agent-guard: exit=1 guard_throw_present=True PASS
+- T2 (driver original) exit=1 guard=False -- pre-T3 run died at "Missing agent binary" precheck (worktree agent exe not built yet); superseded by T2b
+- T2b fake-listener(5555+7878)/kernel-guard: exit=1 kernel_guard_present=True guidance_present=True listeners_left=0 PASS
+- T3 regression clean stack: console shows full default leg flow + "ok: dev agent smoke completed" (build+kernel+agent); exit code not captured (driver hang, see driver_incident.txt); corroborated by T5 same leg family exit=0
+- T4 reuse-blocked (real foreign stack, T3 kernel+agent left up): exit=1 kernel_guard=True guidance=True PASS
+- T5 reuse-allowed (-AllowForeignStack): exit=0 foreign_kernel_warn=True foreign_agent_warn=True completed=True PASS
+- T6 teardown: busy_ports=0 udp4445=0 stack_procs=0 PASS
+Driver hang note: driver_guard_acceptance.ps1 stalled after T3 console completion (never reached T4 dir creation); driver process killed, T4/T5/T6 executed as equivalent direct invocations recorded in t4_/t5_/t6 artifacts.

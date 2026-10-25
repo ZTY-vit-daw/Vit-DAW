@@ -1,0 +1,13 @@
+﻿ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261025_204828\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_guard1
+agent http: http://127.0.0.1:7878
+Missing agent binary: D:\Vit_DAW_wt_guard1\agent\bin\VitAgent.exe. Run without -SkipBuild first.
+所在位置 D:\Vit_DAW_wt_guard1\scripts\dev_agent_smoke.ps1:1278 字符: 5
++     throw "Missing agent binary: $AgentExe. Run without -SkipBuild fi ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Missing agent b...kipBuild first.:String) [], RuntimeException
+    + FullyQualifiedErrorId : Missing agent binary: D:\Vit_DAW_wt_guard1\agent\bin\VitAgent.exe. Run without -SkipBuil 
+   d first.
+ 

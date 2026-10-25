@@ -1,0 +1,71 @@
+﻿ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261025_211401\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_guard1\coord\runs\SMOKE-STACK-GUARD-1\guard1_20261025_2025\t7b_gui_isolation\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_guard1
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=36892 workdir=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_guard1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=36892
+ok: ZMQ SUB listening: 5556 pid=36892
+
+== Project state invoke
+project.state status=ok error=
+
+== automation datachan GUI smoke (M3-ENVELOPE-DATACHAN-1)
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 璀﹀憡锛圥ROBE-DRYRUN-WARNING-1锛夛細骞茶窇=蹇呰Е鏍堚€斺€旀湰鎺㈤拡娌℃湁涓嶈Е鏍堢殑妯″紡
+[stack-probe] !!! 浠讳綍妯″紡锛堝惈鎵€璋撱€屽共璺戙€?headless/鍙鑵匡級閮借蛋鐢熶骇浼犺緭閾撅細
+[stack-probe] !!!   VitIpcClient UDP锛堟寚浠?4445/閬ユ祴 4444锛夆啋 agent bridge 鈫?鍐呮牳 ZMQ
+[stack-probe] !!! 鎵ц鍓嶅繀椤诲畬鎴?PC-RUNTIME-STACK 搂2.2 鍗犵敤鐧昏骞舵垚鍔熸帹 main 鍚庡啀鍚姩锛?
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 鏈櫥璁板厛璺?姹℃煋浠栦細鍦ㄩ鏍堬紙134/139/161/166 鍥涜捣骞茶窇璇垽鍚屾棌浜嬫晠锛?
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_automation_datachan.tscn time=2026-10-25T21:14:06 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup volume plugin discovered
+[stack-probe] PASS L1 get_curve empty ok+disclosure
+[stack-probe] PASS L1 time_base is time (write precondition)
+[stack-probe] PASS L2 set_points full fields
+[stack-probe] PASS L2 readback point_count 3
+[stack-probe] PASS L2 readback point-by-point
+[stack-probe] PASS L3 seed 5 points
+[stack-probe] PASS L3 pure-function prediction ok
+[stack-probe] PASS L3 set_points region mode fields
+[stack-probe] PASS L3 readback == pure-function prediction
+[stack-probe] PASS L4 clear_region fields
+[stack-probe] PASS L4 readback empty
+[stack-probe] PASS L5 target missing kind+verbatim
+[stack-probe] PASS L5 empty points kind+verbatim
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":16,"failures":[],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_automation_datachan.tscn","time":"2026-10-25T21:14:06"},"status":"pass"}
+ok: automation datachan GUI smoke passed (AutomationClient over live stack; console: D:\Vit_DAW_wt_guard1\coord\runs\SMOKE-STACK-GUARD-1\guard1_20261025_2025\t7b_gui_isolation\automation_datachan_console.txt)
+ok: GUI leg project isolation evidence: isolated copy last written (UTC) 2026-10-25T13:14:08.1408756Z after leg automation_datachan_gui; marker: D:\Vit_DAW_wt_guard1\coord\runs\SMOKE-STACK-GUARD-1\guard1_20261025_2025\t7b_gui_isolation\gui_project_isolation.json
+
+== Summary
+ok: dev agent smoke completed

@@ -73,6 +73,14 @@ param(
     # 证据=VIT_WRITE_LEASE_EVENTS_PATH JSONL 工件时间戳）。
     [switch]$WriteLeaseSmoke,
     [switch]$Strict,
+    # SMOKE-STACK-GUARD-1 (188): explicit opt-in for reusing a stack this run
+    # did NOT start (kernel / agent port already owned by a foreign pid) in the
+    # "Start or reuse" steps. Default off: a foreign listener aborts the run
+    # (PROTOCOL.md section 2.2 amendment 2 -- the 187x185 same-minute
+    # double-stack incident made silent reuse the collision amplifier).
+    # Forensics / deliberate-takeover invocations set this switch and own the
+    # ownership check against coord/resources/PC-RUNTIME-STACK.md.
+    [switch]$AllowForeignStack,
     [int]$WaitSeconds = 20,
     # SMOKE-SCEN-RANGE-1 (2026-10-04): region-line re-verification scenarios,
     # each its own pass/fail group: "note_time" (note payload v3.1 time
@@ -286,6 +294,64 @@ function Get-TcpListener {
     param([int]$Port)
     return Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
         Select-Object -First 1
+}
+
+# SMOKE-STACK-GUARD-1 (188) guard 1: stack-port ownership guard. The "Start or
+# reuse" kernel/agent steps used to silently adopt whatever was already
+# listening -- the collision amplifier behind the 187x185 same-minute
+# double-stack incident (PROTOCOL.md section 2.2 amendment 2). A listener this
+# run started itself passes; anything else aborts with guidance unless the
+# caller opted in with -AllowForeignStack (reads the script-scope switch the
+# same way Fail-Or-Warn reads $Strict).
+function Assert-StackPortOwnership {
+    param(
+        [string]$Role,
+        [int]$Port,
+        [object]$Listener,
+        [int]$OwnProcId
+    )
+    if ($null -eq $Listener) {
+        return
+    }
+    $listenerPid = 0
+    try { $listenerPid = [int]$Listener.OwningProcess } catch { $listenerPid = 0 }
+    if ($OwnProcId -gt 0 -and $listenerPid -eq $OwnProcId) {
+        Write-Ok ($Role + " port " + $Port + " already listening (this run's own " + $Role + ", pid=" + $listenerPid + ")")
+        return
+    }
+    if ($AllowForeignStack) {
+        Write-WarnLine ("-AllowForeignStack: reusing a FOREIGN " + $Role + " on port " + $Port + " pid=" + $listenerPid + "; verify the owner in coord/resources/PC-RUNTIME-STACK.md (section 2.2 ledger) before trusting any result from this run")
+        return
+    }
+    throw (
+        "port " + $Port + " is already listening but pid " + $listenerPid + " is not a process this run started (" + $Role + " start step). " +
+        "Silent reuse of a foreign stack is forbidden: SMOKE-STACK-GUARD-1 / PROTOCOL.md section 2.2 amendment 2 (187x185 same-minute double-stack incident). " +
+        "Check the ownership ledger coord/resources/PC-RUNTIME-STACK.md and confirm the stack owner before proceeding; " +
+        "to deliberately attach to a foreign stack (forensics/takeover), re-run with -AllowForeignStack."
+    )
+}
+
+# SMOKE-STACK-GUARD-1 (188) guard 2 helper: after a GUI scenario leg finishes,
+# refresh the project-isolation marker with the isolated copy's last-write
+# timestamp -- the evidence shape of the 187 second-round run (run dir carries
+# the copy path plus when the kernel actually wrote it). No-op when the leg ran
+# with a caller-provided VIT_PROJECT_XML or outside GUI leg mode.
+function Write-GuiLegProjectIsolationPost {
+    param([string]$Leg)
+    if ($null -eq $GuiLegProjectIsolation) {
+        return
+    }
+    $copyPath = [string]$GuiLegProjectIsolation["isolated_copy"]
+    $markerPath = [string]$GuiLegProjectIsolation["marker_path"]
+    if (-not (Test-Path -LiteralPath $copyPath)) {
+        return
+    }
+    $writtenAt = (Get-Item -LiteralPath $copyPath).LastWriteTimeUtc.ToString("o")
+    $GuiLegProjectIsolation["isolated_copy_written_at"] = $writtenAt
+    $GuiLegProjectIsolation["leg_finished"] = $Leg
+    $GuiLegProjectIsolation["leg_finished_at"] = (Get-Date).ToString("o")
+    $GuiLegProjectIsolation | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $markerPath -Encoding UTF8
+    Write-Ok ("GUI leg project isolation evidence: isolated copy last written (UTC) " + $writtenAt + " after leg " + $Leg + "; marker: " + $markerPath)
 }
 
 function Wait-HttpReady {
@@ -1118,6 +1184,61 @@ if (-not [string]::IsNullOrWhiteSpace($VitDraftMarkerDir)) {
 Write-Ok ("draft root isolation: source=" + $VitDraftRootSource + " VIT_HISTORY_DRAFT_ROOT=" + [System.Environment]::GetEnvironmentVariable("VIT_HISTORY_DRAFT_ROOT", "Process"))
 Assert-DraftRootIsolation
 
+# SMOKE-STACK-GUARD-1 (188) guard 2: GUI scenario legs (SendRouteGuiSmoke /
+# AutomationDatachanGuiSmoke, later siblings join this condition) default the
+# kernel's default project to a run-dir isolated copy of the GIT-CLEAN
+# default_project.xml. Before this, a non-journey GUI leg ran the kernel
+# against the deployed VitApp\Workspace\default_project.xml and its probe edits
+# landed in the main checkout (the 183/185 first-round project pollution); the
+# manual fix used for the 187 second round -- VIT_PROJECT_XML pointing at a
+# run-dir copy -- becomes the script default here. A caller-provided
+# VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
+# isolation untouched (this block never runs in scenario mode).
+$GuiLegProjectIsolation = $null
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke) -and -not $ScenarioMode) {
+    $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
+        Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
+    }
+    else {
+        $GuiLegIsolationDir = $RunArtifactsDir
+        if ([string]::IsNullOrWhiteSpace($GuiLegIsolationDir)) {
+            $GuiLegIsolationDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\gui_project_isolation_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+        }
+        if (-not [System.IO.Path]::IsPathRooted($GuiLegIsolationDir)) {
+            $GuiLegIsolationDir = [System.IO.Path]::GetFullPath((Join-Path -Path (Get-Location).Path -ChildPath $GuiLegIsolationDir))
+        }
+        New-Item -ItemType Directory -Path $GuiLegIsolationDir -Force | Out-Null
+        $GuiLegProjectCopy = Join-Path $GuiLegIsolationDir "default_project.xml"
+        # Git-clean copy. Piping `git show` through PowerShell would re-encode
+        # non-ASCII XML bytes, so redirect inside cmd for a byte-exact blob
+        # (same native-redirection pattern as the Godot probe legs below).
+        & cmd /c ('git -C "' + $RepoRoot + '" show HEAD:VitApp/Workspace/default_project.xml > "' + $GuiLegProjectCopy + '"')
+        if ($LASTEXITCODE -ne 0) {
+            throw ("GUI leg project isolation: git show HEAD:VitApp/Workspace/default_project.xml failed with exit code " + $LASTEXITCODE + " (repo: " + $RepoRoot + ")")
+        }
+        if (-not (Test-Path -LiteralPath $GuiLegProjectCopy) -or ((Get-Item -LiteralPath $GuiLegProjectCopy).Length -le 0)) {
+            throw ("GUI leg project isolation: git-clean default_project.xml copy missing or empty: " + $GuiLegProjectCopy)
+        }
+        if ($null -eq ((Get-Content -LiteralPath $GuiLegProjectCopy -Raw) -as [xml])) {
+            throw ("GUI leg project isolation: git-clean default_project.xml copy is not parseable XML: " + $GuiLegProjectCopy)
+        }
+        # Set before ANY process start so the kernel (and the restarted agent)
+        # inherit it for the whole script lifetime.
+        Set-Item -LiteralPath "env:VIT_PROJECT_XML" -Value $GuiLegProjectCopy
+        $GuiLegProjectIsolation = @{
+            card           = "SMOKE-STACK-GUARD-1"
+            mode           = "gui_leg_default_isolation"
+            isolated_copy  = $GuiLegProjectCopy
+            marker_path    = (Join-Path $GuiLegIsolationDir "gui_project_isolation.json")
+            source         = ("git HEAD " + (& git -C $RepoRoot rev-parse HEAD) + ":VitApp/Workspace/default_project.xml")
+            created_at     = (Get-Date).ToString("o")
+        }
+        $GuiLegProjectIsolation | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $GuiLegProjectIsolation["marker_path"] -Encoding UTF8
+        Write-Ok ("GUI leg project isolation: VIT_PROJECT_XML=" + $GuiLegProjectCopy + " (git-clean run-dir copy; deployed default_project.xml stays untouched)")
+    }
+}
+
 Write-Step "VitAgent dev smoke"
 Write-Host ("repo: " + $RepoRoot)
 Write-Host ("agent http: " + $AgentHttp)
@@ -1206,6 +1327,11 @@ if ($StartKernel) {
         Start-Sleep -Seconds 2
     }
     else {
+        # SMOKE-STACK-GUARD-1 (188) guard 1: the listener predates this run
+        # (the kernel start step has not started anything yet), so it is a
+        # foreign stack unless it is this run's own kernel (defensive pid
+        # match) -- refuse instead of silently reusing it.
+        Assert-StackPortOwnership -Role "kernel" -Port ([int]$ZmqReqPort) -Listener (Get-TcpListener -Port ([int]$ZmqReqPort)) -OwnProcId ([int]$ScenarioKernelProcId)
         Write-Ok ("kernel command port already listening: " + $ZmqReqPort)
     }
 }
@@ -1322,6 +1448,14 @@ if ($null -eq $listener) {
     Write-Ok ("started agent: " + $AgentExe)
 }
 else {
+    # SMOKE-STACK-GUARD-1 (188) guard 1: $listener was sampled before this run
+    # started any agent, so a non-null listener is a foreign stack (defensive
+    # pid match against this run's own agent) -- refuse instead of silently
+    # reusing it. This also closes the non-Strict leak where the restart
+    # Fail-Or-Warn above left a foreign agent in place.
+    $ownAgentPid = 0
+    if ($null -ne $ScenarioAgentProcId) { $ownAgentPid = [int]$ScenarioAgentProcId }
+    Assert-StackPortOwnership -Role "agent" -Port $httpPort -Listener $listener -OwnProcId $ownAgentPid
     Write-Ok ("agent HTTP port already listening: " + $httpPort + " pid=" + $listener.OwningProcess)
     if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds 3)) {
         Fail-Or-Warn ("port " + $httpPort + " is listening but /health did not respond")
@@ -8351,6 +8485,7 @@ if ($SendRouteGuiSmoke) {
         throw ("sendroute GUI smoke exited 0 but summary line missing (console: " + $guiConsolePath + ")")
     }
     Write-Ok ("sendroute GUI smoke passed (GUI command face over live stack; console: " + $guiConsolePath + ")")
+    Write-GuiLegProjectIsolationPost -Leg "sendroute_gui"
 }
 
 if ($AutomationDatachanGuiSmoke) {
@@ -8418,6 +8553,7 @@ if ($AutomationDatachanGuiSmoke) {
         throw ("automation datachan GUI smoke exited 0 but summary line missing (console: " + $datachanConsolePath + ")")
     }
     Write-Ok ("automation datachan GUI smoke passed (AutomationClient over live stack; console: " + $datachanConsolePath + ")")
+    Write-GuiLegProjectIsolationPost -Leg "automation_datachan_gui"
 }
 
 if (-not $NoChatSmoke) {
