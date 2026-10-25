@@ -28,6 +28,6 @@
 
 时间线主场结构与既有卡面先例大面积不符（TimelineEditStore/输入仲裁已重构）→ 锚点上交再裁。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
-- 回执：（报告路径 / 五问结论摘要 / 实施卡拆分建议）
+- 领取：2026-10-25 晚窗 / 主仓 origin/main=e6456b6d（前端仓勘察基线 main=5da6360f 只读零改动）/ owner=GLM-5.3-flash 勘察会话 @ PC（D:\Vit_DAW_wt_m3envrec1）/ 分支 port/m3-envelope-recon-1 / worktree D:/Vit_DAW_wt_m3envrec1 / 领取提交=本提交（报告+卡面领取/回执一并，勘察卡零代码无前置实现提交）
+- 回执：[runs/M3-ENVELOPE-LANE-RECON-1/RECON.md](../../runs/M3-ENVELOPE-LANE-RECON-1/RECON.md)（五问逐条锚点+grep 附录）/ 五问结论摘要：①主场=虚拟行容器（drop_router :657-688）→track_row.tscn→Track_Row_Controller→TrackLane2D，车道工厂单点 `_ensure_lane_2d_layer`（Track_Row_Controller.gd:1033-1063）+双层视图枚举（lane :11-12/行 :28-29），仲裁器 hit-kind 词表（TimelineViewMapping.gd:116-228）+match 分派（TimelineInputArbitrator.gd:503-550）+4px 手势状态机可复用；②通道=legacy UDP 4445 面零新请求面可承载（get_curve 已入只读白名单；建议案 A 直连+按需拉取，案 B VSP 信封 CAS 并列，推送非必要——delta_update 覆盖 plugin state 未证）；③rack 徽章挂点=Vit_Graph_Rack.gd:2034-2036 徽标 chip 邻域+:2331-2350 工厂，**播放头联动 app/rack/ 零既有钩子（登记新建面）**，「参数有包络」在场性 get_plugin_parameters 回执缺字段（标注点②）；④183 三段式（Vit_Graph_Rack.gd:3609-3619 拖动零发包/:3650-3659 恰一笔/:1993-1997 回显门）可整体移植，语义差=set_points 区域替换需前端持工作副本；**标注点①：已合入 set_points 无 base_revision 参数，现役 CAS=VSP 信封级（VspKernelReference.cpp:2507-2530），游标=project_store.gd vsp_revision**；⑤建议 4 卡（C1 数据通道新文件/C2 车道 UI/C3 机架徽章/C4 写回闭环）——C1/C2/C4 与 180/185 文件域不相交，**唯 C3 与 185 同文件 Vit_Graph_Rack.gd 时序单列（185 合入后领取）**；停止条件未触发（TimelineEditStore/仲裁器/183 先例与卡面假设一致）
 - 验收：（裁定文件 / 验收 commit）
