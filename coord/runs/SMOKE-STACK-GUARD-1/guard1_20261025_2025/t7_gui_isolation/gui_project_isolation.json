@@ -1,0 +1,11 @@
+﻿{
+    "created_at":  "2026-10-25T21:10:11.2587867+08:00",
+    "isolated_copy_written_at":  "2026-10-25T13:10:17.5449783Z",
+    "leg_finished":  "automation_datachan_gui",
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD aa06fca78a6cb1939333e3449ad36da324582ac1:VitApp/Workspace/default_project.xml",
+    "marker_path":  "D:\\Vit_DAW_wt_guard1\\coord\\runs\\SMOKE-STACK-GUARD-1\\guard1_20261025_2025\\t7_gui_isolation\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_guard1\\coord\\runs\\SMOKE-STACK-GUARD-1\\guard1_20261025_2025\\t7_gui_isolation\\default_project.xml",
+    "mode":  "gui_leg_default_isolation",
+    "leg_finished_at":  "2026-10-25T21:10:17.7488335+08:00"
+}

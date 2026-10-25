@@ -1,0 +1,31 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他会在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_automation_datachan.tscn time=2026-10-25T21:10:16 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup volume plugin discovered
+[stack-probe] PASS L1 get_curve empty ok+disclosure
+[stack-probe] PASS L1 time_base is time (write precondition)
+[stack-probe] PASS L2 set_points full fields
+[stack-probe] PASS L2 readback point_count 3
+[stack-probe] PASS L2 readback point-by-point
+[stack-probe] PASS L3 seed 5 points
+[stack-probe] PASS L3 pure-function prediction ok
+[stack-probe] PASS L3 set_points region mode fields
+[stack-probe] PASS L3 readback == pure-function prediction
+[stack-probe] PASS L4 clear_region fields
+[stack-probe] PASS L4 readback empty
+[stack-probe] PASS L5 target missing kind+verbatim
+[stack-probe] PASS L5 empty points kind+verbatim
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":16,"failures":[],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_automation_datachan.tscn","time":"2026-10-25T21:10:16"},"status":"pass"}

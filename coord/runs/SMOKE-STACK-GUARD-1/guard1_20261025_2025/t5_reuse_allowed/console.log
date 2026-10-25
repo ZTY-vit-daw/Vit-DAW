@@ -1,0 +1,35 @@
+﻿ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261025_210921\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_guard1
+agent http: http://127.0.0.1:7878
+
+== Start kernel
+warn: -AllowForeignStack: reusing a FOREIGN kernel on port 5555 pid=24760; verify the owner in coord/resources/PC-RUNTIME-STACK.md (section 2.2 ledger) before trusting any result from this run
+ok: kernel command port already listening: 5555
+
+== Start or reuse agent
+warn: -AllowForeignStack: reusing a FOREIGN agent on port 7878 pid=33092; verify the owner in coord/resources/PC-RUNTIME-STACK.md (section 2.2 ledger) before trusting any result from this run
+ok: agent HTTP port already listening: 7878 pid=33092
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=12
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=24760
+ok: ZMQ SUB listening: 5556 pid=24760
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed

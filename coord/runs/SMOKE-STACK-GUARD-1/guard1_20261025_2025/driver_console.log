@@ -1,0 +1,11 @@
+
+== preflight: stack ports must be free
+preflight ok: 5555/7878 free
+
+== T1 fake listener 7878 -> agent-step guard must abort
+T1 exit=1 guard=True
+
+== T2 fake listener 5555 -> kernel-step guard must abort
+T2 exit=1 guard=False
+
+== T3 clean-stack default regression (build+kernel+agent) -> exit 0
