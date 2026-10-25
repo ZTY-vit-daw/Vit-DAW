@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（空——最新释放见下条）
+- 2026-10-25 20:22 本会话机器钟起 / **FE-FX-WETCHAIN-BADGE-1(185) 真栈复跑腿（主管换源裁定后）**（owner=ZCode GLM-5.3 L1 PC 前端执行会话（ZCode，185 卡会话））：预期 run=coord/runs/FE-FX-WETCHAIN-BADGE-1/sendroute_gui_20261025_202253（被测=前端 worktree wetchain1@port/fe-fx-wetchain-badge-1 换源态；kernel=主检出 K3 722A79D7 只读；RepoRoot=stack worktree D:/Vit_DAW_wt_wetchain1_stack；Godot 4.6.1 console headless；**VIT_PROJECT_XML=run 目录 git 干净版 default_project.xml 隔离副本**（stack worktree HEAD 版，183 先例）——族 1 预存边污染复跑修正）。**复跑三纪律执行**（185 裁定③）：a) 启动前 fetch origin（无新登记）+即时复核进程/端口=0（20:22，距启动 <60s）；b) ps1 报 already listening 即停人工核归属；c) 本登记推送后再启动。与 188（ps1 守卫卡，不占栈）/189（20:21 已领取，卡面自带三纪律错峰注记）无并发占用。
 
 ## 最近一次释放（2026-10-25 19:38 登记（e5facf80）– 19:5x 释放，FE-FX-WETCHAIN-BADGE-1(185)）
 
