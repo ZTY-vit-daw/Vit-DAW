@@ -3,7 +3,7 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 ## 当前占用
 
-（空——最新释放见下条）
+- 2026-10-25 18:45 本会话机器钟起 / **PROBE-DRYRUN-WARNING-1(180) 探针头验证腿（无栈形态 A/B 对照跑）**（owner=ZCode GLM-5.3 L1 PC 执行会话（ZCode，180 卡会话））：预期 run=coord/runs/PROBE-DRYRUN-WARNING-1/probedrywarn_nostack_ab（被测=前端 worktree D:/Godot/project/vit-daw-frontend-probedrywarn1@port/probe-dryrun-warning-1 + 基线对照 detached@5da6360；Godot 4.6.1 console headless；**不启 kernel/agent/vsphub**——探针无栈形态跑，UDP 4445 指令无监听目标、UDP 4444 遥测绑定进程内短暂占用）。占用前核对：VitApp/VitAgent/VspHub 进程=0、六端口 tcp listen=0、4444/4445 udp=0。按本卡新加横幅纪律：探针任何模式（含干跑）先登记后跑。
 
 ## 最近一次释放（2026-10-24 21:3x，主管验收复跑腿 184 合并态）
 
