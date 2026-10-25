@@ -1,0 +1,67 @@
+diff --git a/tools/stack_probe_sendroute_macro.gd b/tools/stack_probe_sendroute_macro.gd
+index 64a8070..76086c5 100644
+--- a/tools/stack_probe_sendroute_macro.gd
++++ b/tools/stack_probe_sendroute_macro.gd
+@@ -35,6 +35,8 @@ extends Node
+ ##      外部断开（foreign request_id）+project_loaded 再到达→卡与电缆同链消失、
+ ##      确认集回零（161 的 2s 快照冷却按生产纪律等待，不绕过）。
+ ## 工件：PASS/FAIL 行打 stdout（ps1 捕获 console 落 run 目录）；摘要 JSON 打 stdout 尾行。
++## PROBE-DRYRUN-WARNING-1（180）：启动头部强制打「干跑=必触栈」警告横幅（见
++## _print_stack_occupation_warning——任何模式都走生产传输链，跑前必须 §2.2 登记）。
+ ## 用法（须先有 kernel+agent berth 在 5555/4445）：
+ ##   godot --headless --path <前端仓> res://tools/stack_probe_sendroute_macro.tscn
+ ## 退出码：0=全绿；1=断言失败；2=环境不可用。
+@@ -57,9 +59,40 @@ var _checks_total := 0
+ var _checks_failed := 0
+ var _fail_lines: Array[String] = []
+ var _finished := false
++var _warn_scene_name := ""
++var _warn_started_at := ""
++
++
++# ==========================================================
++# PROBE-DRYRUN-WARNING-1（180）：干跑=必触栈警告横幅——134/139/161/166
++# 四起干跑误判同族事故的流程卫生锚（最近 166：误判「headless 不触栈」实际执行
++# 完整探针腿污染 159 在飞栈）。事实面：本探针任何模式（含所谓「干跑」/
++# headless/只读腿）都走生产传输链 VitIpcClient UDP（指令 4445/遥测 4444）→
++# agent bridge → 内核 ZMQ，不存在不触栈的跑法；执行前必须先完成
++# PC-RUNTIME-STACK §2.2 占用登记并成功推 main。双源：横幅行打 stdout（ps1
++# 捕获 console 落 run 目录=工件报告源一）；同一警告内嵌 SUMMARY_JSON
++# stack_warning 字段（机器可读报告源二）。
++# ==========================================================
++func _print_stack_occupation_warning() -> void:
++	var dt := Time.get_datetime_dict_from_system()
++	_warn_started_at = "%04d-%02d-%02dT%02d:%02d:%02d" % [dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second]
++	_warn_scene_name = scene_file_path.get_file() if not scene_file_path.is_empty() else str(get_script().get_path()).get_file()
++	for line in [
++		"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
++		"!!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式",
++		"!!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：",
++		"!!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ",
++		"!!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：",
++		"!!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md",
++		"!!! 未登记先跑=污染他会在飞栈（134/139/161/166 四起干跑误判同族事故）",
++		"STACK_TOUCH_WARNING scene=%s time=%s transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run" % [_warn_scene_name, _warn_started_at],
++		"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
++	]:
++		print("[stack-probe] " + line)
+ 
+ 
+ func _ready() -> void:
++	_print_stack_occupation_warning()
+ 	var watchdog := Timer.new()
+ 	watchdog.wait_time = _WATCHDOG_SEC
+ 	watchdog.one_shot = true
+@@ -207,6 +240,12 @@ func _finish() -> void:
+ 	_finished = true
+ 	var summary := {
+ 		"status": "pass" if _checks_failed == 0 else "fail",
++		"stack_warning": {
++			"card": "PROBE-DRYRUN-WARNING-1",
++			"rule": "ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run",
++			"scene": _warn_scene_name,
++			"time": _warn_started_at,
++		},
+ 		"checks_total": _checks_total,
+ 		"checks_failed": _checks_failed,
+ 		"failures": _fail_lines,
