@@ -1,0 +1,27 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Identifier "VitWaveformReader" not declared in the current scope.
+   at: GDScript::reload (res://app/kernel/autoloads/telemetry_manager.gd:174)
+ERROR: Failed to load script "res://app/kernel/autoloads/telemetry_manager.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+ERROR: Failed to instantiate an autoload, script 'res://app/kernel/autoloads/telemetry_manager.gd' does not inherit from 'Node'.
+   at: start (main/main.cpp:4407)
+SCRIPT ERROR: Parse Error: Could not find type "ProjectEventHub" in the current scope.
+   at: GDScript::reload (res://app/rack/Vit_Graph_Rack.gd:259)
+SCRIPT ERROR: Parse Error: Could not find type "ProjectEventHub" in the current scope.
+   at: GDScript::reload (res://app/rack/Vit_Graph_Rack.gd:4643)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+   at: GDScript::reload (res://tools/stack_probe_sendroute_macro.gd:0)
+ERROR: Failed to load script "res://tools/stack_probe_sendroute_macro.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他会在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_sendroute_macro.tscn time=2026-10-25T18:43:52 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] FAIL setup clear_project | IPC Timeout for cmd: clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":1,"checks_total":1,"failures":["setup clear_project | IPC Timeout for cmd: clear_project"],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_sendroute_macro.tscn","time":"2026-10-25T18:43:52"},"status":"fail"}

@@ -1,0 +1,18 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+SCRIPT ERROR: Parse Error: Identifier "VitWaveformReader" not declared in the current scope.
+   at: GDScript::reload (res://app/kernel/autoloads/telemetry_manager.gd:174)
+ERROR: Failed to load script "res://app/kernel/autoloads/telemetry_manager.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+ERROR: Failed to instantiate an autoload, script 'res://app/kernel/autoloads/telemetry_manager.gd' does not inherit from 'Node'.
+   at: start (main/main.cpp:4407)
+SCRIPT ERROR: Parse Error: Could not find type "ProjectEventHub" in the current scope.
+   at: GDScript::reload (res://app/rack/Vit_Graph_Rack.gd:259)
+SCRIPT ERROR: Parse Error: Could not find type "ProjectEventHub" in the current scope.
+   at: GDScript::reload (res://app/rack/Vit_Graph_Rack.gd:4643)
+SCRIPT ERROR: Compile Error: Failed to compile depended scripts.
+   at: GDScript::reload (res://tools/stack_probe_sendroute_macro.gd:0)
+ERROR: Failed to load script "res://tools/stack_probe_sendroute_macro.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+[stack-probe] FAIL setup clear_project | IPC Timeout for cmd: clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":1,"checks_total":1,"failures":["setup clear_project | IPC Timeout for cmd: clear_project"],"status":"fail"}
