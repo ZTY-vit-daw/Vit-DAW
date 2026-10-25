@@ -28,5 +28,11 @@ FX 轨卡（SendIn/总线对卡的 FX 侧）上以**徽标/摘要**呈现内部�
 pluginList 回执面不含 FX 轨 rack 成员（数据源与勘察假设不符）→ 锚点上交再裁。
 
 - 领取：（2026-10-25 晚窗 / 主仓 origin/main=c6cef2da / 前端仓 main=ee03262（180 合入亲核） / owner=ZCode GLM-5.3 L1 PC 前端执行会话（FE-FX-WETCHAIN-BADGE-1 专属） / 分支 port/fe-fx-wetchain-badge-1 / worktree D:/Godot/project/vit-daw-frontend-wetchain1 / 领取提交=本提交）
-- 回执：（择型结论 / commit / 探针断言面 / 真栈 run ID / 端测边界声明）
+- 回执：（2026-10-25 晚窗——**停止条件触发，上交裁定**；headless 全绿+实现就位，真栈首轮 exit 1 两族失败，族 2=数据源与勘察假设不符）
+  - **上交件**：[runs/FE-FX-WETCHAIN-BADGE-1/ANALYSIS-stopcondition.md](../../runs/FE-FX-WETCHAIN-BADGE-1/ANALYSIS-stopcondition.md)（触发证据/两侧源码根因/替代数据面亲核/待裁三点）。
+  - **触发**：真栈 L12 实证 list_tracks 轨级 pluginList 只呈现 rack 容器实例（名 "New Rack"，tracktion 新建 rack 默认名），rack 成员（TDR Nova）住 rack DAG 内——卡面①「从同源 pluginList+rack 成员序派生」字面路径不成立。**替代面已亲核**：get_project_state 回执 `tracks[].rack.nodes`（内核 CommandDispatcher.cpp:1797 createRackState）携带成员全字段（name/type/item id 序），前端 repo 已缓存已消费（project_repository rack_nodes 快照=167 侧链口同一面）——**零新请求面约束可保持**，待裁定换源继续（预计 ≤0.25 天，呈现层/探针结构可复用）。
+  - **headless 断言面**：独立腿 probe_fx_wet_chain_badge **35/35 PASS**（纯函数 13：成员序派生/aux 对+系统隐藏剔除/畸形跳过/文本截断「（空）」/单/双/≥3 前二+计数；装配 22：合一 icon 徽标 fail-closed 隐藏→快照显化/红线零新增画布连线/普通插件卡与 SendOut 卡无徽标/展开 SendIn 卡同文本/轻刷新不重建（实例同一）/拖动门不互抢/空 rack「（空）」/悬空+缓存 miss 隐藏/折叠重建保持/构建面守卫）。**零回退**：K3 313 / popup 111 / realinput 15 / shrink a·b·c / start_feed 244 / fader 35 全绿（popup 首败=worktree 缺 .godot/imported 产物——基线 ee03262 对照全绿+import 重建后全绿，环境因素非 diff；183 回执 worktree 缓存坑的第二形态，后续新 worktree 应复制 .godot 后先跑 --import）。
+  - **真栈首轮**：sendroute_gui_20261025_193814 exit 1（81 断言 8 败）——族 1 五败=主检出 build 目录预存边 1032→1037@+6.0 污染（183 首轮同款；根因=dev_agent_smoke VIT_PROJECT_XML 仅 journey berth 设置，复跑修正=调用方 shell 显式透传，已录上交件 §四）；族 2 三败=停止条件触发面（上交）。§2.2 登记 e5facf80→释放复核进程/端口=0。
+  - **commit**：前端仓 `port/fe-fx-wetchain-badge-1`（rules 两纯函数+Vit_Graph_Rack 徽标行/缓存/刷新面+独立探针+stack L12+180 横幅笔误顺带修）；主仓 `port/fe-fx-wetchain-badge-1-stack`（run 工件+headless 工件+上交件）。
+  - **端测边界声明**：headless 探针=注入回执面（fake transport）；真栈腿仅首轮（含污染与停止条件触发），**徽标装载/卸载端到端绿尚未达成**——待裁定后换源复跑（VIT_PROJECT_XML 隔离透传）补齐。
 - 验收：（裁定文件 / 验收 commit）
