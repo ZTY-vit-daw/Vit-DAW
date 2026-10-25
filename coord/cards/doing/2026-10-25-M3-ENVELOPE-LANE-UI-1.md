@@ -28,6 +28,6 @@
 - 车道工厂/仲裁词表与 186 锚点不符（已重构）→锚点上交；
 - 行高联动须改 vit_track_lane_2d.gd 才能成立（C 案侵入假设失效）→上交再裁（可能转 A 案）。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-25 20:21 晚窗 / 主仓 origin/main=6009b37c / 前端仓领取基线 main=3413fe8（C1 合入亲核；worktree git status --short 干净+git diff --stat 空）/ owner=ZCode GLM-5.3 PC 执行会话（M3-ENVELOPE-LANE-UI-1 专属）/ 前端分支 port/m3-envelope-lane-ui-1 / worktree D:/Godot/project/vit-daw-frontend-m3envui1 / 领取提交=本提交
 - 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
