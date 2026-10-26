@@ -33,4 +33,4 @@
   - **真栈 run**：`envelope_badge_gui_20261026_195054`——ps1 最小腿 exit 0（kernel=190 自建二进制只读复用 sha256 85b4e8df 亲核）+`stack_probe_plugin_envelope_badge` **21/21 连续两轮 exit 0**：装载 ValhallaSupermassive→拉描述符零包络徽章隐藏→set_points 三点→Get Params 强刷**徽章出现「1参数·3点」**（内核直拉对照=3）→clear→强刷**徽章消失**（对照全零）。§2.2 登记 7cf57c0a/释放 026ac9aa（同 commit 前缀 7b995ba9）；三纪律执行（19:53:18 即时复核<60s+瞬态 --import 进程甄别+19:54:34 终核全零；无 already listening；登记先于启动）；错峰互查=192 todo 未领取无占用+193 无栈腿亲核；VIT_PROJECT_XML 隔离+主检出零触碰双证（sha256+mtime）。
   - **设计披露**：徽章形态=caption「包络」+chip「N参数·M点」（淡紫曲线域色）；零包络/未达=隐藏（灰态零信息=添噪，勘察择型）；再拉触发=Get Params 既有强刷面（⌗params 提示已明示）擦 rows 缓存走既有 `_request_param_port_rows`——**命令面零新增**；刷新面=ctrl_params_ 回执面+节点重建缓存初始化（185 同位先例）。
   - **端测边界声明**：真栈腿=生产传输链全链真实往返+真 Vit_Graph_Rack+活内核（含 190）真实装载/写点/清点；**未覆盖**=渲染面像素级目检与用户旅程（E2E-WEBUI-1/JOURNEY-1 建设面）、OS 级事件注入（探针为对象级直调既有处理器）、多插件多参数视觉布局（纯函数聚合已覆盖）、内置轨级参数包络（190 数据源边界，主管已裁另裁数据源——缺口显示为无徽章不造假）。
-- 验收：（裁定文件 / 验收 commit）
+- 验收：**整卡 pass**（GLM 主管决策流 2026-10-26；rulings/2026-10-26-M3-ENVELOPE-RACK-BADGE-1-pass.md；前端合入 9bffdd4）
