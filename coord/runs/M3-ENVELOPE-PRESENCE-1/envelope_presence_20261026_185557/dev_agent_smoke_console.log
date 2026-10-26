@@ -1,0 +1,56 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261026_185618\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_envp1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_envp1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_envp1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_envp1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_envp1\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=14824 workdir=D:\Vit_DAW_wt_envp1\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_envp1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=14824
+ok: ZMQ SUB listening: 5556 pid=14824
+
+== Project state invoke
+project.state status=ok error=
+
+== envelope presence smoke (M3-ENVELOPE-PRESENCE-1)
+  disclosed curve-driven drift on target row: {"dry level": {"envelope_point_count": {"before": 0, "after": 3}}}
+envelope presence smoke: PASS
+  - new_project
+  - save_as_project
+  - plugin_search:ValhallaSupermassive
+  - add_audio_track
+  - rack_add_node
+  - baseline.envelope_point_count.all_zero
+  - baseline.snapshot_stability
+  - automation.set_points.write3_flat
+  - envelope_point_count.target_is_3
+  - existing_fields.zero_change.diff_level
+  - envelope_point_count.after_clear_zero
+  - after_clear.matches_baseline
+summary written: D:\Vit_DAW_wt_envp1\coord\runs\M3-ENVELOPE-PRESENCE-1\envelope_presence_20261026_185557\envelope_presence_summary.json
+ok: envelope presence smoke passed (kernel command face; summary: D:\Vit_DAW_wt_envp1\coord\runs\M3-ENVELOPE-PRESENCE-1\envelope_presence_20261026_185557\envelope_presence_summary.json)
+
+== Summary
+ok: dev agent smoke completed

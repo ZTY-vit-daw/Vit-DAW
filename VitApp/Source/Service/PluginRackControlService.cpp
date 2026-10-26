@@ -649,6 +649,23 @@ void appendBindingTargetPropertiesToParameterDescriptors (juce::Array<juce::var>
     }
 }
 
+void appendEnvelopePointCountsToParameterDescriptors (juce::Array<juce::var>& parameterDescriptors,
+                                                      te::Plugin& plugin)
+{
+    for (const auto& parameter : parameterDescriptors)
+    {
+        auto* object = parameter.getDynamicObject();
+        if (object == nullptr)
+            continue;
+
+        auto pointCount = 0;
+        if (auto param = resolvePluginParameterByID (plugin, object->getProperty ("raw_param_id").toString()))
+            pointCount = param->getCurve().getNumPoints();
+
+        object->setProperty ("envelope_point_count", pointCount);
+    }
+}
+
 te::AudioTrack* findAudioTrackByIndex (te::Edit& edit, int trackIndex)
 {
     if (trackIndex <= 0)
@@ -3246,6 +3263,7 @@ juce::String PluginRackControlService::handleGetPluginParameters (const juce::Dy
     auto parametersArray = VitPluginGrabber::buildParameterDescriptors (*ext, templateRole);
     appendBindingTargetPropertiesToParameterDescriptors (parametersArray, *plugin);
     const auto currentSignatureHash = parameterSurfaceSignature (parametersArray);
+    appendEnvelopePointCountsToParameterDescriptors (parametersArray, *plugin);
     const auto recommendedGroups = VitPluginGrabber::buildRecommendedGroups (parametersArray);
     const auto quickControls = VitPluginGrabber::buildQuickControls (parametersArray, templateRole);
     juce::Array<juce::var> bindingTargets;
