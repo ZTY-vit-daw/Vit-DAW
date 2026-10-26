@@ -1,0 +1,64 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] M3-ENVELOPE-DATACHAN-1 automation datachan suite start
+[probe] PASS A1 get_curve wire cmd
+[probe] PASS A2 get_curve wire command
+[probe] PASS A3 get_curve payload addressing only
+[probe] PASS A4 get_curve default request_id
+[probe] PASS A5 get_curve read timeout tier
+[probe] PASS A6 set_points wire cmd
+[probe] PASS A7 set_points full payload no region key
+[probe] PASS A8 set_points payload deep-copied
+[probe] PASS A9 set_points write timeout tier
+[probe] PASS A10 set_points region shape
+[probe] PASS A11 set_points region floats
+[probe] PASS A12 clear_region wire cmd+region
+[probe] PASS A13 clear_region default request_id+write tier
+[probe] PASS A14 injected transport never resolves VitIpcClient
+[probe] PASS A15 client exposes rack-style no-wait face
+[probe] PASS B1 get_curve ok flag+disclosure
+[probe] PASS B2 get_curve points normalized floats
+[probe] PASS B3 get_curve ids echoed
+[probe] PASS B4 set_points full fields
+[probe] PASS B5 set_points full region empty-dict
+[probe] PASS B6 set_points region fields+floats
+[probe] PASS B7 clear_region fields
+[probe] PASS B8 clear_region no fabricated mode/written/time_base
+[probe] PASS B9 error reply shape
+[probe] PASS C1 beats_curve_rejected + verbatim passthrough
+[probe] PASS C2 beats_curve_rejected + verbatim passthrough
+[probe] PASS C3 empty_points_rejected + verbatim passthrough
+[probe] PASS C4 target_missing + verbatim passthrough
+[probe] PASS C5 target_missing + verbatim passthrough
+[probe] PASS C6 target_missing + verbatim passthrough
+[probe] PASS C7 target_missing + verbatim passthrough
+[probe] PASS C8 no_active_edit + verbatim passthrough
+[probe] PASS C9 point_out_of_domain + verbatim passthrough
+[probe] PASS C10 point_out_of_domain + verbatim passthrough
+[probe] PASS C11 point_out_of_domain + verbatim passthrough
+[probe] PASS C12 malformed_region + verbatim passthrough
+[probe] PASS C13 malformed_region + verbatim passthrough
+[probe] PASS C14 unknown_error + verbatim passthrough
+[probe] PASS D1 region edit ok
+[probe] PASS D2 half-open drop [start,end) mirrored
+[probe] PASS D3 new point at region end accepted (kernel closed domain)
+[probe] PASS D4 new point outside region rejected
+[probe] PASS D5 new point at t==end ok
+[probe] PASS D6 bad regions rejected
+[probe] PASS D7 point domain validation mirrored
+[probe] PASS D8 c defaults to 0.0
+[probe] PASS D9 region clear half-open
+[probe] PASS D10 full replace sorted full-set packet
+[probe] PASS D11 C4 composition edit->full packet
+[probe] PASS D12 pure functions mutate no inputs
+[probe] PROBE PASS (checks_total=50)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
