@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>M3-ENVELOPE-CLOSEUP-RECON-1 · 包络视窗形态选项预览 v1</title>
+<style>
+  :root{
+    --bg:#0e1013; --panel:#15181d; --panel2:#1a1e24; --line:#2a2f37;
+    --ink:#dde3e9; --dim:#8a94a0; --ikb:#2d5bdc; --yellow:#f2c744; --orange:#ff7a33; --cyan:#57b8ff; --green:#3fbf8f;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.65 "Segoe UI",system-ui,-apple-system,sans-serif;padding:32px 40px 64px}
+  h1{font-size:22px;letter-spacing:.5px;margin-bottom:4px}
+  h1 .tag{color:var(--yellow);font-size:13px;font-weight:600;margin-left:10px;vertical-align:middle}
+  .sub{color:var(--dim);font-size:12.5px;margin-bottom:28px}
+  h2{font-size:16px;margin:34px 0 6px;padding-left:10px;border-left:4px solid var(--ikb)}
+  h2 small{color:var(--dim);font-weight:400;font-size:12.5px;margin-left:8px}
+  .desc{color:var(--dim);font-size:12.5px;margin:0 0 14px 14px}
+  .opt{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+  .opt.three{grid-template-columns:1fr 1fr 1fr}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px}
+  .card h3{font-size:13.5px;margin-bottom:2px}
+  .card h3 .k{display:inline-block;background:var(--ikb);color:#fff;font-size:11px;border-radius:3px;padding:1px 7px;margin-right:7px;vertical-align:1px}
+  .card .verdict{font-size:11.5px;margin-bottom:10px}
+  .verdict.rec{color:var(--green)} .verdict.alt{color:var(--dim)} .verdict.no{color:var(--orange)}
+  .note{font-size:12px;color:var(--dim);margin-top:8px}
+  .wire{background:var(--panel2);border:1px solid var(--line);border-radius:4px;width:100%;display:block}
+  table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:10px}
+  th,td{border:1px solid var(--line);padding:5px 9px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:var(--dim);font-weight:600}
+  .foot{margin-top:40px;color:var(--dim);font-size:12px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+
+<h1>包络视窗 · 形态选项预览<span class="tag">M3-ENVELOPE-CLOSEUP-RECON-1 · D1/D2/D3 待用户裁定</span></h1>
+<div class="sub">静态结构示意（非最终视觉稿）。每项附推荐标记：● 推荐 / ○ 备选 / ✕ 不推荐（勘察报告 §8）。裁定后才开 C4 实施卡。</div>
+
+<!-- ==================== D1 ==================== -->
+<h2>D1 视窗切换入口<small>包络视窗从哪里进入</small></h2>
+<div class="desc">先例链：轨头钢琴卷帘按钮（Track_Row_Controller.gd:3816）／空槽启动器（viewport_frame.gd:49）／registry 注册即达（viewport_registry.gd:5）。</div>
+
+<div class="opt three">
+  <div class="card">
+    <h3><span class="k">A</span>轨头专用按钮</h3>
+    <div class="verdict alt">○ 备选（链路最顺，但 Track_Row_Controller.gd 在 192 文件域，须 192 合入后追加）</div>
+    <svg class="wire" viewBox="0 0 320 150">
+      <rect x="10" y="18" width="300" height="26" rx="3" fill="#101318" stroke="#2a2f37"/>
+      <circle cx="26" cy="31" r="7" fill="#232a33"/><rect x="38" y="24" width="60" height="14" rx="2" fill="#232a33"/>
+      <circle cx="26" cy="31" r="5" fill="#3fbf8f" opacity=".6"/>
+      <rect x="242" y="22" width="22" height="18" rx="3" fill="#232a33" stroke="#39424d"/>
+      <rect x="268" y="22" width="22" height="18" rx="3" fill="#232a33" stroke="#39424d"/>
+      <rect x="232" y="21" width="24" height="20" rx="3" fill="#2d5bdc" stroke="#57b8ff"/>
+      <text x="244" y="35" text-anchor="middle" font-size="11" fill="#fff"> Env</text>
+      <circle cx="284" cy="31" r="5.5" fill="#f2c744"/>
+      <rect x="10" y="56" width="300" height="12" fill="#131720" stroke="#2a2f37"/>
+      <text x="16" y="66" font-size="9" fill="#8a94a0">轨头行 · M/S/R · [卷帘][包络] · 3D 区</text>
+      <rect x="10" y="80" width="300" height="46" rx="3" fill="#0f141c" stroke="#2a2f37"/>
+      <path d="M20 108 L90 100 L160 116 L230 96 L300 104" stroke="#57b8ff" fill="none" stroke-width="2"/>
+      <text x="16" y="138" font-size="10" fill="#8a94a0">点 Env → 包络视窗（独立浮窗/台前槽，钢琴卷帘同款双路径）</text>
+    </svg>
+    <div class="note">一键直达；入口与钢琴卷帘并排心智一致。风险点：文件域与 192（车道三态档在飞）相交，须错峰。</div>
+  </div>
+  <div class="card">
+    <h3><span class="k">B</span>车道头「放大」按钮 / 车道双击</h3>
+    <div class="verdict rec">● 推荐（卡面 Q7 指定关系=车道呈现+点击进视窗；同样待 192 合入后接线）</div>
+    <svg class="wire" viewBox="0 0 320 150">
+      <rect x="10" y="14" width="300" height="112" rx="3" fill="#101318" stroke="#2a2f37"/>
+      <rect x="14" y="18" width="292" height="22" fill="#151b23"/>
+      <rect x="20" y="22" width="90" height="14" rx="2" fill="#232a33"/><text x="24" y="33" font-size="9" fill="#aeb8c2">插件▾ 参数▾</text>
+      <rect x="266" y="21" width="34" height="16" rx="3" fill="#2d5bdc"/><text x="283" y="33" text-anchor="middle" font-size="10" fill="#fff">⤢</text>
+      <text x="216" y="33" font-size="9" fill="#f2c744">⤢=进视窗</text>
+      <path d="M20 76 C 80 40, 140 100, 190 66 S 270 50, 302 60" stroke="#57b8ff" fill="none" stroke-width="2"/>
+      <circle cx="20" cy="76" r="3.5" fill="#d9e8ff"/><circle cx="190" cy="66" r="3.5" fill="#d9e8ff"/><circle cx="302" cy="60" r="3.5" fill="#d9e8ff"/>
+      <line x1="150" y1="34" x2="150" y2="126" stroke="#ff7a33" stroke-width="3" opacity=".25"/>
+      <line x1="150" y1="34" x2="150" y2="126" stroke="#ff7a33" stroke-width="1.2"/>
+      <text x="16" y="140" font-size="10" fill="#8a94a0">底部包络车道（189）· 头部 ⤢ 按钮或车道体双击 → 视窗（ctx 预选当前参数）</text>
+    </svg>
+    <div class="note">从车道进=带着已选 (plugin,param) 直达，免二次选择；语义「小图→特写」最自然。</div>
+  </div>
+  <div class="card">
+    <h3><span class="k">C</span>空槽启动器菜单</h3>
+    <div class="verdict rec">● 推荐为首版必做（registry 注册 envelope 后零成本自动出现，零文件域冲突）</div>
+    <svg class="wire" viewBox="0 0 320 150">
+      <rect x="10" y="14" width="145" height="112" rx="3" fill="#0f141c" stroke="#2a2f37"/>
+      <path d="M20 80 L70 62 L120 92" stroke="#57b8ff" fill="none" stroke-width="2" opacity=".6"/>
+      <rect x="10" y="14" width="145" height="16" fill="#151b23"/><text x="16" y="26" font-size="9" fill="#8a94a0">Timeline</text>
+      <rect x="165" y="14" width="145" height="112" rx="3" fill="#101318" stroke="#2a2f37" stroke-dasharray="4 3"/>
+      <text x="237" y="58" text-anchor="middle" font-size="10" fill="#8a94a0">空槽 ▾ 启动视图</text>
+      <g font-size="10" fill="#dde3e9">
+        <rect x="192" y="66" width="92" height="13" rx="2" fill="#1d232c"/><text x="198" y="76">Graph Rack</text>
+        <rect x="192" y="82" width="92" height="13" rx="2" fill="#1d232c"/><text x="198" y="92">Piano Roll</text>
+        <rect x="192" y="98" width="92" height="13" rx="2" fill="#2d5bdc"/><text x="198" y="108" fill="#fff">Envelope ★新</text>
+      </g>
+      <text x="16" y="140" font-size="10" fill="#8a94a0">viewport_registry.gd +1 条目 → EmptyViewportLauncher 自动列出（viewport_frame.gd:49-51）</text>
+    </svg>
+    <div class="note">首版与 A/B 不互斥：注册面是唯一必做项；A/B 是「更近的入口」。</div>
+  </div>
+</div>
+
+<!-- ==================== D2 ==================== -->
+<h2>D2 参数页签形态<small>视窗内多参数选择（Serum 式）</small></h2>
+<div class="desc">数据链 189 已就绪：rack_nodes 目录 → get_plugin_parameters 描述符（envelope_point_count 标记有包络项，190 内核字段、前端首消费）。</div>
+
+<div class="opt">
+  <div class="card">
+    <h3><span class="k">A</span>Serum 式横向页签条</h3>
+    <div class="verdict rec">● 推荐（多参数横向扫视快，Serum 心智一致）</div>
+    <svg class="wire" viewBox="0 0 460 210">
+      <rect x="10" y="10" width="440" height="190" rx="4" fill="#101318" stroke="#2a2f37"/>
+      <rect x="10" y="10" width="440" height="22" fill="#151b23"/>
+      <text x="18" y="25" font-size="10" fill="#aeb8c2">Nova · Output</text>
+      <text x="330" y="25" font-size="9" fill="#8a94a0">t: 0.0–32.4s ▸ zoom 100%</text>
+      <g font-size="10">
+        <rect x="18" y="36" width="64" height="18" rx="3" fill="#2d5bdc"/><text x="50" y="49" text-anchor="middle" fill="#fff">Dry Level</text>
+        <rect x="86" y="36" width="64" height="18" rx="3" fill="#1d232c" stroke="#313945"/><text x="118" y="49" text-anchor="middle" fill="#dde3e9">Wet Level ◦3</text>
+        <rect x="154" y="36" width="64" height="18" rx="3" fill="#1d232c" stroke="#313945"/><text x="186" y="49" text-anchor="middle" fill="#8a94a0">Delay</text>
+        <rect x="222" y="36" width="70" height="18" rx="3" fill="#1d232c" stroke="#313945"/><text x="257" y="49" text-anchor="middle" fill="#8a94a0">Reverb Size</text>
+        <text x="300" y="49" font-size="12" fill="#8a94a0">›››</text>
+      </g>
+      <text x="18" y="70" font-size="9" fill="#f2c744">◦3 = envelope_point_count 3（有包络标记，190 字段）·灰=无包络仍可选</text>
+      <path d="M22 150 C 90 92, 170 168, 250 118 S 380 96, 438 112" stroke="#57b8ff" fill="none" stroke-width="2.4"/>
+      <circle cx="22" cy="150" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="250" cy="118" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="438" cy="112" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/>
+      <line x1="180" y1="60" x2="180" y2="200" stroke="#ff7a33" stroke-width="3.4" opacity=".22"/>
+      <line x1="180" y1="60" x2="180" y2="200" stroke="#ff7a33" stroke-width="1.3"/>
+      <text x="18" y="194" font-size="9" fill="#8a94a0">0s</text><text x="428" y="194" font-size="9" fill="#8a94a0">32.4s</text>
+    </svg>
+    <div class="note">页签=当前插件的参数（envelope_point_count>0 亮标）；插件切换用左上插件名下拉（rack_nodes 目录）。</div>
+  </div>
+  <div class="card">
+    <h3><span class="k">B</span>两级下拉（车道同式放大）</h3>
+    <div class="verdict alt">○ 备选（实现最薄=189 头部组件原样放大，首版简化退路）</div>
+    <svg class="wire" viewBox="0 0 460 210">
+      <rect x="10" y="10" width="440" height="190" rx="4" fill="#101318" stroke="#2a2f37"/>
+      <rect x="10" y="10" width="440" height="22" fill="#151b23"/>
+      <rect x="18" y="14" width="120" height="15" rx="2" fill="#1d232c" stroke="#313945"/><text x="26" y="26" font-size="10" fill="#dde3e9">Nova ▾</text>
+      <rect x="144" y="14" width="140" height="15" rx="2" fill="#1d232c" stroke="#313945"/><text x="152" y="26" font-size="10" fill="#dde3e9">Dry Level ▾</text>
+      <path d="M22 150 C 90 92, 170 168, 250 118 S 380 96, 438 112" stroke="#57b8ff" fill="none" stroke-width="2.4"/>
+      <circle cx="22" cy="150" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="250" cy="118" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="438" cy="112" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/>
+      <line x1="180" y1="32" x2="180" y2="200" stroke="#ff7a33" stroke-width="3.4" opacity=".22"/>
+      <line x1="180" y1="32" x2="180" y2="200" stroke="#ff7a33" stroke-width="1.3"/>
+      <text x="18" y="194" font-size="9" fill="#8a94a0">与 189 车道头完全同式（track_envelope_lane_2d.gd:775 _build_header）·画布最大化</text>
+    </svg>
+    <div class="note">切换参数两跳（下拉×2）；参数多时下拉滚动。优点=车道/视窗交互完全一致。</div>
+  </div>
+</div>
+
+<!-- ==================== D3 ==================== -->
+<h2>D3 曲率句柄形态<small>c 字段编辑（车道 189 仅折线呈现、c 未消费——视窗为首版曲率落点）</small></h2>
+<div class="desc">写回锚点：set_points points=[{t,v,c}]，region 模式区域替换（automation_client.gd:81-85）。</div>
+
+<div class="opt three">
+  <div class="card">
+    <h3><span class="k">A</span>段中点单柄</h3>
+    <div class="verdict rec">● 推荐（一柄=一段，直觉；右键预设降门槛）</div>
+    <svg class="wire" viewBox="0 0 320 170">
+      <rect x="8" y="8" width="304" height="154" rx="4" fill="#0f141c" stroke="#2a2f37"/>
+      <path d="M24 128 C 84 40, 150 44, 168 96 C 184 144, 240 146, 296 40" stroke="#57b8ff" fill="none" stroke-width="2.2"/>
+      <circle cx="24" cy="128" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="168" cy="96" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="296" cy="40" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/>
+      <line x1="96" y1="46" x2="96" y2="92" stroke="#f2c744" stroke-width="1.2" stroke-dasharray="3 2"/>
+      <rect x="89" y="38" width="14" height="14" rx="3" fill="#f2c744"/>
+      <text x="96" y="118" text-anchor="middle" font-size="9" fill="#f2c744">c 柄（段中点）</text>
+      <text x="14" y="158" font-size="9.5" fill="#8a94a0">拖柄 ↕ = 改 c（曲率 -1…+1）</text>
+      <g font-size="9.5" fill="#dde3e9">
+        <rect x="196" y="98" width="88" height="14" rx="2" fill="#1d232c" stroke="#313945"/><text x="202" y="109">线性 (c=0)</text>
+        <rect x="196" y="114" width="88" height="14" rx="2" fill="#1d232c" stroke="#313945"/><text x="202" y="125">快入 / 快出</text>
+        <rect x="196" y="130" width="88" height="14" rx="2" fill="#2d5bdc"/><text x="202" y="141" fill="#fff">S 曲 (c=±0.5)</text>
+      </g>
+      <text x="196" y="92" font-size="9" fill="#f2c744">右键柄 → 预设菜单</text>
+    </svg>
+    <div class="note">句柄常显（选中段时）；拖=连续曲率，右键=四档预设（线性/快入/快出/S）。</div>
+  </div>
+  <div class="card">
+    <h3><span class="k">B</span>双贝兹柄（PS 曲线式）</h3>
+    <div class="verdict no">✕ 首版过度（表达力最强，但柄数×2、命中面拥挤、学习成本高）</div>
+    <svg class="wire" viewBox="0 0 320 170">
+      <rect x="8" y="8" width="304" height="154" rx="4" fill="#0f141c" stroke="#2a2f37"/>
+      <path d="M24 128 C 90 128, 110 40, 168 96 C 214 142, 250 40, 296 40" stroke="#57b8ff" fill="none" stroke-width="2.2"/>
+      <circle cx="24" cy="128" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="168" cy="96" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="296" cy="40" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/>
+      <line x1="24" y1="128" x2="90" y2="128" stroke="#f2c744" stroke-width="1" stroke-dasharray="3 2"/><circle cx="90" cy="128" r="3.5" fill="#f2c744"/>
+      <line x1="168" y1="96" x2="110" y2="40" stroke="#f2c744" stroke-width="1" stroke-dasharray="3 2"/><circle cx="110" cy="40" r="3.5" fill="#f2c744"/>
+      <line x1="168" y1="96" x2="214" y2="142" stroke="#ff7a33" stroke-width="1" stroke-dasharray="3 2"/><circle cx="214" cy="142" r="3.5" fill="#ff7a33"/>
+      <line x1="296" y1="40" x2="250" y2="40" stroke="#ff7a33" stroke-width="1" stroke-dasharray="3 2"/><circle cx="250" cy="40" r="3.5" fill="#ff7a33"/>
+      <text x="14" y="158" font-size="9.5" fill="#8a94a0">每段两端各一出/入柄 · 96px 车道内不可行，视窗内可行但拥挤</text>
+    </svg>
+    <div class="note">且 c 是单标量语义（内核点结构 {t,v,c} 单键），双柄须映射压缩到单 c——表达力被数据模型限死，双柄成本买不回收益。</div>
+  </div>
+  <div class="card">
+    <h3><span class="k">C</span>无柄纯右键预设</h3>
+    <div class="verdict alt">○ 最省（零句柄件；精度最低=四档离散）</div>
+    <svg class="wire" viewBox="0 0 320 170">
+      <rect x="8" y="8" width="304" height="154" rx="4" fill="#0f141c" stroke="#2a2f37"/>
+      <path d="M24 128 C 84 40, 150 44, 168 96" stroke="#57b8ff" fill="none" stroke-width="2.2"/>
+      <path d="M168 96 C 184 144, 240 146, 296 40" stroke="#57b8ff" fill="none" stroke-width="2.2" stroke-dasharray="5 3"/>
+      <circle cx="24" cy="128" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="168" cy="96" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/><circle cx="296" cy="40" r="4.5" fill="#e8f2ff" stroke="#57b8ff"/>
+      <text x="230" y="70" font-size="9.5" fill="#f2c744">◄ 右键此段</text>
+      <g font-size="9.5" fill="#dde3e9">
+        <rect x="200" y="76" width="96" height="14" rx="2" fill="#1d232c" stroke="#313945"/><text x="206" y="87">线性 c=0</text>
+        <rect x="200" y="92" width="96" height="14" rx="2" fill="#1d232c" stroke="#313945"/><text x="206" y="103">快入 c=-1</text>
+        <rect x="200" y="108" width="96" height="14" rx="2" fill="#1d232c" stroke="#313945"/><text x="206" y="119">快出 c=+1</text>
+        <rect x="200" y="124" width="96" height="14" rx="2" fill="#1d232c" stroke="#313945"/><text x="206" y="135">S 曲 c=±0.5</text>
+      </g>
+      <text x="14" y="158" font-size="9.5" fill="#8a94a0">无可视句柄 · 曲率仅四档离散值</text>
+    </svg>
+    <div class="note">若用户裁定 A，则 C 的预设菜单 = A 右键菜单复用（同一 PopupMenu 件）。</div>
+  </div>
+</div>
+
+<table>
+  <tr><th>裁定点</th><th>勘察推荐</th><th>关键依赖/风险</th></tr>
+  <tr><td>D1 入口</td><td>首版 C（启动器）+ B（车道⤢，待 192 合入）；A 备选</td><td>A/B 文件域与 192 相交（Track_Row_Controller.gd / track_envelope_lane_2d.gd）</td></tr>
+  <tr><td>D2 页签</td><td>A（Serum 式横向页签条）</td><td>TabContainer 先例 detail_dock_adapter.gd:33；envelope_point_count 仅外部插件参数覆盖（190 边界如实呈现）</td></tr>
+  <tr><td>D3 曲率句柄</td><td>A（段中点单柄+右键预设）</td><td>c=单标量（automation_client.gd:254-268）——双柄表达力被数据模型限死</td></tr>
+</table>
+
+<div class="foot">
+M3-ENVELOPE-CLOSEUP-RECON-1 · PC 执行会话 2026-10-26 · 前端仓基线 main=20873f8（只读）· 详见同目录 recon-report.md（七问锚点+推荐案）<br>
+形态类裁定点过用户后才开 C4 实施卡（决策档 2026-10-25）。
+</div>
+
+</body>
+</html>
