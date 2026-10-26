@@ -1,0 +1,53 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_envelope_closeup.tscn time=2026-10-26T21:37:27 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup plugin_search (fallback=false)
+[stack-probe] PASS setup rack_add_node loads external plugin
+[stack-probe] PASS setup descriptors warm (get_plugin_parameters rows ready)
+[stack-probe] PASS setup target param picked
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://tools/stack_probe_envelope_closeup.gd:322)
+[stack-probe] PASS V1 canvas mounted after setup_view
+[stack-probe] PASS V1 param tabs built from live kernel descriptors (production transport)
+[stack-probe] PASS V1 fresh plugin descriptors all envelope_point_count==0
+[stack-probe] PASS V1 select target param
+[stack-probe] PASS V1 empty curve disclosed (fresh envelope)
+[stack-probe] PASS V2 external set_points three points ok
+[stack-probe] PASS V2 closeup presents external write (auto re-pull via bus)
+[stack-probe] PASS V2 kernel get_curve cross-check point-by-point
+[stack-probe] PASS V3 drag point (local gesture state machine, one write on release)
+[stack-probe] PASS V3 kernel get_curve cross-check (echo gate verified)
+[stack-probe] PASS V4 add point on segment press (press-to-drag, release commits)
+[stack-probe] PASS V4 kernel cross-check four points
+[stack-probe] PASS V5 Delete removes focused point
+[stack-probe] PASS V5 kernel cross-check back to three points
+[stack-probe] PASS V6 external write during drag reaches kernel
+[stack-probe] PASS V6 external refresh ignored during drag (working copy kept, no jump)
+[stack-probe] PASS V6 release merges on echo (local edit wins region, external kept outside)
+[stack-probe] PASS V6 kernel cross-check merged curve
+[stack-probe] PASS V7 delete down to sole point (t=5 kept)
+[stack-probe] PASS V7 delete-to-empty via clear_region (sole-point branch)
+[stack-probe] PASS V7 kernel cross-check back to empty
+[stack-probe] PASS cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":28,"failures":[],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_envelope_closeup.tscn","time":"2026-10-26T21:37:27"},"status":"pass"}
