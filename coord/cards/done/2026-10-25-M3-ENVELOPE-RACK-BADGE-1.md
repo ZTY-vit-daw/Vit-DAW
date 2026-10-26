@@ -27,5 +27,10 @@
 190 合入后的回执形态与本卡假设不符（envelope_point_count 未按卡面落地）→锚点上交。
 
 - 领取：2026-10-26 19:27 / origin/main=de8a607a / owner=GLM-5.3 PC 执行会话（ZCode 本会话）/ 分支=port/m3-envelope-rack-badge-1 / worktree=D:/Godot/vit-daw-frontend-m3envbadge1（基线 20873f8）/ 领取提交=本提交（coord-only，hash 见 git log de8a607a 之后）
-- 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
+- 回执：2026-10-26 晚窗自验完成，交主管验收（详 [runs/M3-ENVELOPE-RACK-BADGE-1/envelope_badge_gui_20261026_195054/RESULTS.md](../../runs/M3-ENVELOPE-RACK-BADGE-1/envelope_badge_gui_20261026_195054/RESULTS.md)）——
+  - **commit**：前端仓 `port/m3-envelope-rack-badge-1@08df199`（5 文件 +872/-0：Vit_Graph_Rack.gd 徽章行+刷新钩子+Get Params 强刷再拉 / rack_node_display_rules.gd plugin_envelope_badge_state 纯函数 / 两探针新文件）；主仓 `port/m3-envelope-rack-badge-1-stack@b3eaa724`（真栈工件）；均已推远端。**stack_probe_sendroute_macro.gd 与 app/timeline、app/tracks 零触碰**（git diff --stat 亲证=192 卡域边界）。
+  - **探针断言面**：独立探针 `probe_plugin_envelope_badge.gd` **33/33 exit 0**（纯函数 12：缺字段/非数值/负值/bool fail-closed+int/float 双收+聚合+文本精确；装配 21：卡头位在场+默认隐藏+caption→⌗params 恰一笔 ctrl_params_→回执显化文本精确→逐插件隔离→零包络隐藏→pre-190 形态隐藏不造假→重建缓存消费零新请求→Get Params 强刷再拉→红线零连线零新请求）；既有 10 件零回退（**185 badge 36+189 datachan 50** 新基线+lane 39/macro 313/fader 35/realinput 15/shrink abc/start_feed 244/popup 111 全 exit 0）。
+  - **真栈 run**：`envelope_badge_gui_20261026_195054`——ps1 最小腿 exit 0（kernel=190 自建二进制只读复用 sha256 85b4e8df 亲核）+`stack_probe_plugin_envelope_badge` **21/21 连续两轮 exit 0**：装载 ValhallaSupermassive→拉描述符零包络徽章隐藏→set_points 三点→Get Params 强刷**徽章出现「1参数·3点」**（内核直拉对照=3）→clear→强刷**徽章消失**（对照全零）。§2.2 登记 7cf57c0a/释放 026ac9aa（同 commit 前缀 7b995ba9）；三纪律执行（19:53:18 即时复核<60s+瞬态 --import 进程甄别+19:54:34 终核全零；无 already listening；登记先于启动）；错峰互查=192 todo 未领取无占用+193 无栈腿亲核；VIT_PROJECT_XML 隔离+主检出零触碰双证（sha256+mtime）。
+  - **设计披露**：徽章形态=caption「包络」+chip「N参数·M点」（淡紫曲线域色）；零包络/未达=隐藏（灰态零信息=添噪，勘察择型）；再拉触发=Get Params 既有强刷面（⌗params 提示已明示）擦 rows 缓存走既有 `_request_param_port_rows`——**命令面零新增**；刷新面=ctrl_params_ 回执面+节点重建缓存初始化（185 同位先例）。
+  - **端测边界声明**：真栈腿=生产传输链全链真实往返+真 Vit_Graph_Rack+活内核（含 190）真实装载/写点/清点；**未覆盖**=渲染面像素级目检与用户旅程（E2E-WEBUI-1/JOURNEY-1 建设面）、OS 级事件注入（探针为对象级直调既有处理器）、多插件多参数视觉布局（纯函数聚合已覆盖）、内置轨级参数包络（190 数据源边界，主管已裁另裁数据源——缺口显示为无徽章不造假）。
 - 验收：（裁定文件 / 验收 commit）
