@@ -1,7 +1,11 @@
 # PC 真实运行栈占用记录
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
-## 当前占用（2026-10-26 21:31 登记，M3-ENVELOPE-CLOSEUP-VIEW-1(194) 真栈腿）
+## 最近一次释放（2026-10-26 21:31 登记（d3bcd919）– 21:38 释放，M3-ENVELOPE-CLOSEUP-VIEW-1(194)）
+
+- 2026-10-26 21:31 登记（d3bcd919）–21:38 释放 / **M3-ENVELOPE-CLOSEUP-VIEW-1(194) 真栈腿——收口全绿：ps1 最小腿 exit 0 + stack_probe_envelope_closeup 28/28 连续两轮 exit 0（R2 21:37/R3 21:38；R1 探针期望缺陷轮留证，V1-V5 核心面首轮即绿，修正 2f232a0 后零生产改动）**（owner=ZCode GLM-5.3 PC 执行会话（ZCode，194 卡会话））：run=**coord/runs/M3-ENVELOPE-CLOSEUP-VIEW-1/envelope_closeup_20261026_2131**（工件随 port/m3-envelope-closeup-view-1-stack 入库；RESULTS.md 回执）。被测=前端 worktree envcloseup1@port/m3-envelope-closeup-view-1@2f232a0（包络特写视窗交付面）；kernel=**192 自建二进制只读复用**（本卡零内核改动亲核 e70bafc7..origin/main 无 VitApp/ 提交）pid 14164 本腿 ps1 自启；agent=stack worktree D:/Vit_DAW_wt_envcloseup1_stack（499239bb）构建 pid 7188。腿：装载 ValhallaSupermassive→V1 开视窗（ctx 预选+真描述符/曲线生产链+页签 envelope_point_count 全零灰显+空曲线披露）→V2 外部写三点→**canvas 呈现逐点（t,v,c）一致+内核 get_curve 对照一致**→V3 视窗拖点（局部手势机）释放恰一笔 region→回显门+内核对照→V4 折线加点按下即建→V5 Delete 删点→V6 **拖拽态外部写挂起忽略+释放合并（区域内本地覆盖+region 外外部保留）+内核对照**→V7 删至唯一点 clear_region 回空+内核对照。三纪律：a) 登记 d3bcd919 推送后 21:31:58 即时复核全零（<60s）；b) 无 already listening；c) 登记先于启动。VIT_PROJECT_XML 隔离亲证：副本 sha 947E4D00→338365E6（末次写 21:37=内核自动保存），stack worktree default_project.xml 运行前后同哈希 947E4D00+git 干净，主检出 1fef9ce9 未动。拆栈=owner 手拆 VitAgent 7188/VitApp 14164（路径亲核归属）→21:38:22 复核 VitApp/VitAgent/vsphub/Godot 本腿=0、TCP 5555/5556/7878/8787/18787 listen=0、UDP 4444/4445=0。注记（不处置）：登记前两个非本腿 Godot 进程（33164/12836，不占栈端口未动）。
+
+
 
 - 2026-10-26 21:31 登记 / **M3-ENVELOPE-CLOSEUP-VIEW-1(194) 真栈腿**（owner=ZCode GLM-5.3 PC 执行会话（ZCode，194 卡会话））：预期 run=coord/runs/M3-ENVELOPE-CLOSEUP-VIEW-1/envelope_closeup_20261026_2131。被测=前端 worktree D:/Godot/project/vit-daw-frontend-envcloseup1@port/m3-envelope-closeup-view-1@0a81337（包络特写视窗交付面）；kernel=**192 自建二进制只读复用** D:/Vit_DAW_wt_envauto1/VitApp/build/VitApp_artefacts/Release/VitApp.exe（本卡零内核改动亲核：e70bafc7..origin/main 无 VitApp/ 提交；sha 与 192 回执同源 5D31056A 系）本腿 -StartKernel 自启；agent=stack worktree D:/Vit_DAW_wt_envcloseup1_stack（origin/main=499239bb）构建；VIT_PROJECT_XML=run 目录 git 干净版隔离副本（947E4D00 基线，源=stack worktree）显式透传；ps1=-StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke 最小腿+探针场景 stack_probe_envelope_closeup.tscn 手动驱动（189/192 同款形态）。占用前核对：fetch 重读当前占用空（最新释放 192@20:13）+21:31 进程/端口全零（TCP 5555/5556/7878/8787/18787 listen=0；UDP 4444/4445=0）；另见两个非本腿 Godot 进程（33164 7MB/12836 137MB，不占栈端口，留档不动——189 同款注记纪律）。
 
