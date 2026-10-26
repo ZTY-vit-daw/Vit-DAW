@@ -27,6 +27,6 @@
 - 视图切换机制与假设不符（如视窗挂载需重构宿主容器）→锚点上交；
 - 时间轴复用面缺关键件（播放头/缩放无法在 2D 画布视窗复用）→如实记录并给新建件估算。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-26 晚 / origin=main b3b87248 / owner=GLM-5.3 PC 执行会话 / 协调分支 coord/closeup1-claim（纯勘察无实现分支，前端仓只读基线 20873f8）/ worktree D:/Vit_DAW_wt_closeup1_coord / 领取提交=本条 commit
 - 回执：（报告链接 / 形态选项清单 / 勘察锚点摘要）
 - 验收：（裁定文件 / 验收 commit）
