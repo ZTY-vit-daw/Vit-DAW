@@ -1,9 +1,10 @@
 # PC 真实运行栈占用记录
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
-## 当前占用
+## 当前占用（2026-10-26 20:2x 本会话机器钟起 / M3-ENVELOPE-LANE-AUTO-1(192) 真栈腿）
 
-（空——最新释放见下条）
+- 2026-10-26 20:2x 登记 / **M3-ENVELOPE-LANE-AUTO-1(192) 真栈腿**（owner=ZCode GLM-5.3 PC 执行会话（ZCode，192 卡会话））：预期 run=coord/runs/M3-ENVELOPE-LANE-AUTO-1/envelope_lane_auto_*。被测=前端 worktree D:/Godot/project/vit-daw-frontend-envauto1@port/m3-envelope-lane-auto-1（三态自动档+自动展开腿交付面）；kernel=stack worktree D:/Vit_DAW_wt_envauto1 自建 VitApp.exe（源=main tip e70bafc7 含 190 合入 87b032e2，CMake configure+build exit 0，sha256 5D31056A…）本腿 -StartKernel 自启；agent=stack worktree 构建（Go 零改动）；VIT_PROJECT_XML=run 目录 git 干净版隔离副本（947E4D00 基线）显式透传；ps1=-StartKernel -RestartAgent -NoChatSmoke -NoStripSilenceSmoke 最小腿+探针场景 stack_probe_envelope_lane_auto.tscn 手动驱动（189 datachan 腿同款形态）。占用前核对：191 已释放（19:56，其释放记录在案=错峰互查兑现）+fetch 重读当前占用空+进程/端口全零（VitApp/VitAgent/vsphub/Godot=0；TCP 5555/5556/7878/8787/18787 listen=0；UDP 4444/4445=0）。
+
 ## 最近一次释放（2026-10-26 19:52 登记（7cf57c0a）– 19:56 释放，M3-ENVELOPE-RACK-BADGE-1(191)）
 
 - 2026-10-26 19:52 登记（7cf57c0a）–19:56 释放 / **M3-ENVELOPE-RACK-BADGE-1(191) 真栈腿——一轮收口全绿：ps1 最小腿 exit 0 + stack_probe_plugin_envelope_badge 21/21 连续两轮 exit 0（r1 19:55:52/r2 19:56:1x）**（owner=GLM-5.3 PC 执行会话 ZCode（191 卡会话））：run=**coord/runs/M3-ENVELOPE-RACK-BADGE-1/envelope_badge_gui_20261026_195054**（工件随 port/m3-envelope-rack-badge-1-stack@b3eaa724 入库）。被测=前端 worktree m3envbadge1@port/m3-envelope-rack-badge-1@08df199（徽章交付面）；kernel=**190 卡自建二进制只读复用**（sha256 85b4e8df…38c9 与 190 回执亲核一致=含 envelope_point_count）pid 23640 本腿自启；agent=stack worktree D:/Vit_DAW_wt_m3badge1_stack 构建 pid 33320。腿：装载 ValhallaSupermassive→拉描述符零包络徽章隐藏→set_points 三点→Get Params 强刷**徽章出现文本精确「1参数·3点」**（内核直拉对照=3）→clear_region→强刷**徽章消失**（对照全零）。三纪律：a) 登记 7cf57c0a 推送后 19:53:18 即时复核（<60s）栈进程/端口全零（另有 19:53:03 起 Godot --headless --import 瞬态对进程=非栈导入操作，甄别后 40s 自退，19:54:34 终核全零）；b) 无 already listening（kernel 23640 本腿 ps1 自启）；c) 登记先于启动。VIT_PROJECT_XML 隔离亲证：隔离副本末次写 19:56（内核自动保存）；主检出 default_project.xml sha256=1fef9ce9（=189 回执运行后记录）+mtime 2026-10-25 19:39:01=本腿零触碰双证。拆栈=owner 手拆 VitAgent 33320/VitApp 23640→19:56:26 复核 VitApp/VitAgent/VspHub/Godot=0、TCP 5555/5556/7878/8787/18787 listen=0、UDP 4444/4445=0。错峰互查在案：192 todo 未领取无占用+193 无栈腿（其收口注记亲核）。
