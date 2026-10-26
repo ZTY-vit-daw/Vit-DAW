@@ -1,0 +1,1 @@
+62993f54 claim(M3-ENVELOPE-LANE-AUTO-1,192): PC 执行会话领取——前端仓基线 main=20873f8，分支 port/m3-envelope-lane-auto-1，worktree D:/Godot/project/vit-daw-frontend-envauto1；191 仍在 todo（错峰对象）+栈占用空亲核
