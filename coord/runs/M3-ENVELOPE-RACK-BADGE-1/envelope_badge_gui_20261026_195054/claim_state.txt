@@ -1,0 +1,17 @@
+== frontend worktree ==
+08df199cfa05f94a620e26823225ecbafd2dcad9
+08df199 impl(M3-ENVELOPE-RACK-BADGE-1,191): 机架插件卡「参数有包络」徽章——rack_node_display_rules 新增 plugin_envelope_badge_state 纯函数（缺字段/非数值/负值/bool=无包络 fail-closed；int/float 双收；计数聚合+N参数·M点文本）+Vit_Graph_Rack 卡头徽标行 PluginEnvelopeBadgeRow（工厂 body 后挂装，185 湿链徽标同位形态；零包络/未达=隐藏不添噪）+_refresh_plugin_envelope_badge（随 ctrl_params_ 回执面 _refresh_param_port_holders 刷新+节点重建缓存初始化）+Get Params 既有强刷面擦缓存再拉（命令面零新增）；独立探针 probe_plugin_envelope_badge.gd 33/33+既有 10 件零回退（185 badge 36/189 datachan 50/lane 39/macro 313/fader 35/realinput 15/shrink abc/start_feed 244/popup 111）+真栈探针 stack_probe_plugin_envelope_badge.gd/.tscn（装载→拉描述符→零包络隐藏→set_points→Get Params 强刷显化→clear→消失）
+
+== frontend diff stat vs baseline 20873f8 ==
+ app/rack/Vit_Graph_Rack.gd                   |  60 ++++
+ app/rack/rack_node_display_rules.gd          |  33 +++
+ tools/probe_plugin_envelope_badge.gd         | 396 +++++++++++++++++++++++++++
+ tools/stack_probe_plugin_envelope_badge.gd   | 377 +++++++++++++++++++++++++
+ tools/stack_probe_plugin_envelope_badge.tscn |   6 +
+ 5 files changed, 872 insertions(+)
+
+== kernel exe sha256 ==
+85b4e8df38c9f174fdeb6cb9c92fa9446c643fa495798199a01d85945d3a60e3
+
+== main repo origin/main at run ==
+3a4b368cd20612a556eeb7290779340fd98050e4
