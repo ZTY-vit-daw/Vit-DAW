@@ -30,6 +30,6 @@ vit_dock/views/envelope_dock_adapter.gd+.tscn（新）/ vit_dock/views/envelope_
 - 写回链 c 字段/region 语义与 C1 契约不符→锚点上交；
 - 与钢琴卷帘/详绘画布视窗的状态互斥或资源冲突超勘察预期→上交。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-26 晚窗 / 主仓 origin/main=5bc607a1 / 前端仓领取基线 main=53293a5（worktree envcloseup1 新建后 git status --short 干净亲核）/ owner=ZCode GLM-5.3 PC 执行会话（M3-ENVELOPE-CLOSEUP-VIEW-1 卡 194 专属）/ 前端分支 port/m3-envelope-closeup-view-1 / worktree D:/Godot/project/vit-daw-frontend-envcloseup1 / 领取提交=（hash 后补）；领取前核对：卡在 todo+派发已确认（fetch 亲读 origin/main=5bc607a1）、依赖无（191/192 已合入前端 main=53293a5）、doing 仅 GEN-SUNO-WEB-DESIGN-1（域不相交）、195 未领取（依赖本卡）、PC-RUNTIME-STACK 当前占用=空（最新释放 192@20:13）。
 - 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
