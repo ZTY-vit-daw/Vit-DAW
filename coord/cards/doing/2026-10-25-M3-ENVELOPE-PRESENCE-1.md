@@ -31,6 +31,6 @@
 - get_plugin_parameters 描述符构建点与 M3-RECON/186 锚点族不符（内核已重构）→锚点上交；
 - getNumPoints 对某参数族（轨级 volume/pan）不可达（无曲线对象挂载）→如实回 0 并记录边界，不硬造。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：（2026-10-26 18:36 +0800 / origin/main=6fc7b57ad6996c142c2cab8bf18ee524ea579ed4 / GLM-5.3 PC 执行侧 ZCode 会话（本卡会话，用户口令指定领取卡 190）/ 分支=port/m3-envelope-presence-1（worktree D:\Vit_DAW_wt_envp1）+ 协调 worktree D:\Vit_DAW_wt_envp1_coord（coord/envp1-claim）/ 领取提交=本提交。领取时核对：卡在 todo 派发已确认（用户形态裁定链）、依赖 M3-KERNEL-1 已合入、doing 池唯一卡 GEN-SUNO-WEB-DESIGN-1 文件域=coord/runs 零生产代码不相交、scripts/ 域无 doing 占用（复用既有脚本优先）；执行 worktree 基线 HEAD=6fc7b57a、git status --short=空）
 - 回执：（commit / 冒测 run ID / 字段覆盖面说明 / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
