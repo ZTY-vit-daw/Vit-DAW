@@ -30,6 +30,19 @@ param(
     # ref.diff identity+content 边界）。
     [switch]$RefQuerySmoke,
     [switch]$AutomationCurveSmoke,
+    # M3-ENVELOPE-PRESENCE-1 (190): envelope_point_count descriptor column
+    # leg over the live kernel (assertion body in
+    # scripts/envelope_presence_smoke.py, kernel ZMQ command face direct --
+    # same shape as automation_curve_smoke.py; external plugin load follows
+    # the pgtdc probe precedent: kernel rack_add_node, never the PCA-gated
+    # agent load tool). Legs: load external plugin -> no-envelope baseline
+    # twice (every row envelope_point_count == 0, snapshots identical) ->
+    # automation.set_points three flat points -> get_plugin_parameters
+    # target row envelope_point_count == 3, untouched rows 0 ->
+    # diff-level existing-field zero-change assertion ->
+    # automation.clear_region -> back to baseline. Leg only needs the
+    # kernel stack available after -StartKernel; no agent HTTP face.
+    [switch]$EnvelopePresenceSmoke,
     # KERNEL-SETTEMPO-PERSIST-1：edit-state 变更注册回归（set_tempo open 形态
     # save/reload 往返+clear_project/undo/redo 往返正例；断言体在
     # scripts/settempo_persist_smoke.py，内核 ZMQ 命令面直连）。
@@ -8307,6 +8320,40 @@ if ($AutomationCurveSmoke) {
         throw ("automation curve smoke passed but summary artifact missing: " + $automationSummaryPath)
     }
     Write-Ok ("automation curve smoke passed (kernel command face; summary: " + $automationSummaryPath + ")")
+}
+
+if ($EnvelopePresenceSmoke) {
+    Write-Step "envelope presence smoke (M3-ENVELOPE-PRESENCE-1)"
+    # envelope_point_count 描述符列冒测腿：断言体在
+    # scripts/envelope_presence_smoke.py（形态=automation_curve_smoke.py，
+    # 内核 ZMQ 命令面直连；外部插件装载走 pgtdc 探针先例 rack_add_node，
+    # 不碰 PCA 门控的 agent 装载工具面）。腿：装载外部插件→无包络基线双查
+    # （每行 envelope_point_count==0+快照全等）→ set_points 三平坦点→
+    # 目标行==3/未动行==0 → 既有字段 diff 级零改动断言 → clear_region→
+    # 回基线。腿只需内核栈在 -StartKernel 后可用；不依赖 agent HTTP 面。
+    $envelopeSmokeScript = Join-Path $RepoRoot "scripts\envelope_presence_smoke.py"
+    if (-not (Test-Path -LiteralPath $envelopeSmokeScript)) {
+        throw ("envelope presence smoke script missing: " + $envelopeSmokeScript)
+    }
+    $envelopeArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($envelopeArtifactsDir)) {
+        $envelopeArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\envelope_presence_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $envelopeArtifactsDir)) {
+        New-Item -ItemType Directory -Path $envelopeArtifactsDir -Force | Out-Null
+    }
+    $envelopeSummaryPath = Join-Path $envelopeArtifactsDir "envelope_presence_summary.json"
+    $envelopeConsolePath = Join-Path $envelopeArtifactsDir "envelope_presence_console.txt"
+    & python $envelopeSmokeScript --url ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path (Join-Path $envelopeArtifactsDir "envelope_presence_project.vit") --output $envelopeSummaryPath > $envelopeConsolePath 2>&1
+    $envelopeExit = $LASTEXITCODE
+    Get-Content -LiteralPath $envelopeConsolePath | ForEach-Object { Write-Host $_ }
+    if ($envelopeExit -ne 0) {
+        throw ("envelope presence smoke failed with exit code $envelopeExit (console: " + $envelopeConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $envelopeSummaryPath)) {
+        throw ("envelope presence smoke passed but summary artifact missing: " + $envelopeSummaryPath)
+    }
+    Write-Ok ("envelope presence smoke passed (kernel command face; summary: " + $envelopeSummaryPath + ")")
 }
 
 if ($SetTempoPersistSmoke) {
