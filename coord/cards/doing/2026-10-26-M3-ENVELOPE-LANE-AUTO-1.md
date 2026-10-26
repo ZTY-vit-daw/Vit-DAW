@@ -22,6 +22,6 @@
 - 190 回执未按卡面到达前端消费链（envelope_point_count 缺失）→锚点上交；
 - 三态档与既有让路链/仲裁器冲突超勘察预期→上交。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-26 晚窗 / 主仓 origin/main=de8a607a / 前端仓领取基线 main=20873f8（worktree git status --short 干净亲核）/ owner=ZCode GLM-5.3 PC 执行会话（M3-ENVELOPE-LANE-AUTO-1 卡 192 专属）/ 前端分支 port/m3-envelope-lane-auto-1 / worktree D:/Godot/project/vit-daw-frontend-envauto1 / 领取提交=本提交；领取前核对：191 仍在 todo 未领取（真栈错峰对象）、doing 仅 GEN-SUNO-WEB-DESIGN-1（域不相交）、PC-RUNTIME-STACK 当前占用=空（最新释放 190@18:57）。
 - 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
