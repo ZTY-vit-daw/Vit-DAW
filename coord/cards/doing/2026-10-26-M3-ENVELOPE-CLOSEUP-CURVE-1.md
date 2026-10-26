@@ -21,6 +21,6 @@
 - 内核 get_curve 回执不携带 c 值（读回校验面缺失）→锚点上交（如实记录，不虚构读回断言）；
 - 曲线采样性能超帧预算（重绘节流失效）→上交取证。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-26 22:15 晚窗 / 主仓 origin/main=c23f3606 / 前端仓领取基线 main=ef3fc29（worktree envcurve1 新建后 git status --short 干净亲核）/ owner=ZCode GLM-5.3 PC 执行会话（M3-ENVELOPE-CLOSEUP-CURVE-1 卡 195 专属）/ 前端分支 port/m3-envelope-closeup-curve-1 / worktree D:/Godot/project/vit-daw-frontend-envcurve1 / 领取提交=（hash 后补）；领取前核对：卡在 todo+派发已确认（用户裁定链，fetch 亲读 origin/main=c23f3606）、依赖 194 已验收合入（前端 main=ef3fc29=194 merge 提交）、doing 仅 GEN-SUNO-WEB-DESIGN-1（域不相交）、PC-RUNTIME-STACK 当前占用=空（最新释放 194@21:38）。
 - 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
