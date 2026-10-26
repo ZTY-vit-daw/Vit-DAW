@@ -26,6 +26,6 @@
 
 190 合入后的回执形态与本卡假设不符（envelope_point_count 未按卡面落地）→锚点上交。
 
-- 领取：（时间 / origin hash / owner / 分支 / worktree / 领取提交）
+- 领取：2026-10-26 19:27 / origin/main=de8a607a / owner=GLM-5.3 PC 执行会话（ZCode 本会话）/ 分支=port/m3-envelope-rack-badge-1 / worktree=D:/Godot/vit-daw-frontend-m3envbadge1（基线 20873f8）/ 领取提交=本提交（coord-only，hash 见 git log de8a607a 之后）
 - 回执：（commit / 探针断言面 / 真栈 run ID / 端测边界声明）
 - 验收：（裁定文件 / 验收 commit）
