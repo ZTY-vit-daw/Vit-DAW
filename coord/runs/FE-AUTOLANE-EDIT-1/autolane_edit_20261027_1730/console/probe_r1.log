@@ -1,0 +1,50 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_autolane_edit.tscn time=2026-10-27T17:45:07 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup track volume plugin discovered (196 face)
+[stack-probe] PASS E1 container mounted in real row assembly
+[stack-probe] PASS E1b two-state toggle present in real row assembly
+[stack-probe] PASS E1c toggle on expands container
+[stack-probe] PASS E1d default volume lane binding settled via production chain
+[stack-probe] PASS E1e default volume lane discloses EMPTY via production get_curve chain
+[stack-probe] PASS E2 press on EMPTY lane creates first point (press-create)
+[stack-probe] PASS E2b zero writes during gesture (bus count)
+[stack-probe] PASS E2c release commits first point via echo gate (empty→loaded)
+[stack-probe] PASS E2d exactly one automation.set_points completion on bus (恰一笔)
+[stack-probe] PASS E2e kernel get_curve readback identical (t,v,c)
+[stack-probe] PASS E3 polyline add point (press-create on extension line) commits 2 points
+[stack-probe] PASS E3b kernel readback 2 points identical
+[stack-probe] PASS E4 drag point v commits one write (echo settled)
+[stack-probe] PASS E4b kernel readback identical after move
+[stack-probe] PASS E5 press on segment handle enters curve drag
+[stack-probe] PASS E5b continuous c drag reaches target (c=-0.5) and commits one write
+[stack-probe] PASS E5c kernel get_curve readback carries c (曲率 c 读回一致)
+[stack-probe] PASS E6 preset fast_in kernel readback c=-1.0
+[stack-probe] PASS E6 preset smooth_s kernel readback c=-0.5
+[stack-probe] PASS E6 preset linear kernel readback c=0.0
+[stack-probe] PASS E7 delete focused point leaves exactly 1 point
+[stack-probe] PASS E7b kernel readback 1 point after delete
+[stack-probe] PASS E8 pre-undo edit committed (v moved)
+[stack-probe] PASS E8b Ctrl+Z kernel undo transaction replied
+[stack-probe] PASS E8c after undo lane presentation == kernel readback == pre-edit state
+[stack-probe] PASS E8d after redo lane presentation == kernel readback == post-edit state
+[stack-probe] PASS cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":30,"failures":[],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_autolane_edit.tscn","time":"2026-10-27T17:45:07"},"status":"pass"}
