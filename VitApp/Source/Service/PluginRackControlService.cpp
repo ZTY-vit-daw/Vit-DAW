@@ -666,6 +666,102 @@ void appendEnvelopePointCountsToParameterDescriptors (juce::Array<juce::var>& pa
     }
 }
 
+juce::var buildTrackLevelParameterDisplayProbe (te::AutomatableParameter& parameter)
+{
+    // Same read-only value_to_string sampling as the external-plugin display
+    // probe in VitPluginGrabber; kept local because that helper is private to
+    // the grabber translation unit. Volume/pan are continuous parameters, so
+    // no discrete-label branch is needed here.
+    juce::Array<juce::var> samples;
+    juce::Array<juce::var> capabilities;
+    juce::Array<juce::var> issues;
+
+    auto probe = std::make_unique<juce::DynamicObject>();
+    probe->setProperty ("mode", "read_only_value_to_string");
+    probe->setProperty ("current_text", parameter.getCurrentValueAsString());
+    probe->setProperty ("label", parameter.getLabel());
+
+    for (const auto normalisedValue : { 0.0f, 0.25f, 0.5f, 0.75f, 1.0f })
+    {
+        const auto clippedNormalised = juce::jlimit (0.0f, 1.0f, normalisedValue);
+        const auto mappedValue = parameter.valueRange.convertFrom0to1 (clippedNormalised);
+
+        auto sample = std::make_unique<juce::DynamicObject>();
+        sample->setProperty ("normalized_value", clippedNormalised);
+        sample->setProperty ("value", mappedValue);
+        sample->setProperty ("text", parameter.valueToString (mappedValue));
+        samples.add (juce::var (sample.release()));
+    }
+
+    capabilities.add ("current_value_text");
+    capabilities.add ("value_to_string_samples");
+
+    if (parameter.getLabel().isNotEmpty())
+        capabilities.add ("unit_label");
+    else
+        issues.add ("empty_label");
+
+    if (parameter.getCurrentValueAsString().isEmpty())
+        issues.add ("empty_current_text");
+
+    probe->setProperty ("samples", juce::var (samples));
+    probe->setProperty ("capabilities", juce::var (capabilities));
+    probe->setProperty ("issues", juce::var (issues));
+    return juce::var (probe.release());
+}
+
+juce::Array<juce::var> buildTrackLevelParameterDescriptors (te::Plugin& plugin, const juce::String& templateRole)
+{
+    // Track-level built-in descriptor face (M3-TRACK-PARAM-DESCRIPTOR-1).
+    // Row shape mirrors VitPluginGrabber::buildParameterDescriptors field for
+    // field; membership mirrors the resolve-addressable face probed by
+    // M3-ENVELOPE-TRACK-SOURCE-1 — exactly volume and pan resolve on the
+    // Volume & Pan plugin, so nothing else may be listed.
+    juce::Array<juce::var> parameters;
+
+    for (const auto& canonicalId : { juce::String ("volume"), juce::String ("pan") })
+    {
+        auto param = resolvePluginParameterByID (plugin, canonicalId);
+        if (param == nullptr)
+            continue;
+
+        const auto rawParamId = param->paramID;
+        const auto rawName = param->paramName.isNotEmpty() ? param->paramName : rawParamId;
+        const auto normalizedRole = VitPluginTemplateRegistry::inferNormalizedRole (rawName, templateRole);
+        const auto displayGroup = VitPluginTemplateRegistry::inferDisplayGroup (normalizedRole, templateRole);
+        const auto controlRelevance = VitPluginTemplateRegistry::inferControlRelevance (rawName, normalizedRole);
+        const auto valueRange = param->getValueRange();
+
+        auto row = std::make_unique<juce::DynamicObject>();
+        row->setProperty ("id", rawParamId);
+        row->setProperty ("param_id", rawParamId);
+        row->setProperty ("raw_param_id", rawParamId);
+        row->setProperty ("raw_param_name", rawName);
+        row->setProperty ("name", rawName);
+        row->setProperty ("value", param->getCurrentValue());
+        row->setProperty ("normalized_value", param->getCurrentNormalisedValue());
+        row->setProperty ("value_text", param->getCurrentValueAsString());
+        row->setProperty ("min", valueRange.getStart());
+        row->setProperty ("max", valueRange.getEnd());
+        row->setProperty ("is_discrete", param->isDiscrete());
+        row->setProperty ("num_steps", param->isDiscrete() ? param->getNumberOfStates() : 0);
+        row->setProperty ("is_boolean", param->isBoolean());
+        row->setProperty ("normalized_role", normalizedRole);
+        row->setProperty ("display_group", displayGroup);
+        row->setProperty ("host_controllable", true);
+        row->setProperty ("control_relevance", controlRelevance);
+        row->setProperty ("control_priority", VitPluginTemplateRegistry::controlPriorityForRelevance (controlRelevance));
+        row->setProperty ("alias", rawName);
+        row->setProperty ("supports_automation", true);
+        row->setProperty ("source", "builtin_plugin_parameter");
+        row->setProperty ("display_probe", buildTrackLevelParameterDisplayProbe (*param));
+        parameters.add (juce::var (row.release()));
+    }
+
+    return parameters;
+}
+
+
 te::AudioTrack* findAudioTrackByIndex (te::Edit& edit, int trackIndex)
 {
     if (trackIndex <= 0)
@@ -3251,7 +3347,52 @@ juce::String PluginRackControlService::handleGetPluginParameters (const juce::Dy
 
     auto* ext = dynamic_cast<te::ExternalPlugin*> (plugin);
     if (ext == nullptr)
-        return makeErrorReply ("Plugin parameters are only available for external plugins");
+    {
+        // Track-level built-in descriptor face (M3-TRACK-PARAM-DESCRIPTOR-1,
+        // B-case ruling 2026-10-27): the Volume & Pan plugin (type=volume,
+        // mounted on every track per the M3-ENVELOPE-TRACK-SOURCE-1 probe)
+        // discloses its resolve-addressable parameters — exactly volume/pan —
+        // with the same row schema as external plugin rows. Other built-ins
+        // keep the external-only boundary (their params are not on the
+        // descriptor face).
+        if (plugin->getPluginType() != "volume")
+            return makeErrorReply ("Plugin parameters are only available for external plugins");
+
+        const auto storedTrackTemplateRole = plugin->state.getProperty ("vit_template_role").toString().trim().toLowerCase();
+        const auto trackTemplateRole = storedTrackTemplateRole.isNotEmpty() ? storedTrackTemplateRole
+                                                                           : VitPluginTemplateRegistry::inferTemplateRole (*plugin);
+        auto parametersArray = buildTrackLevelParameterDescriptors (*plugin, trackTemplateRole);
+        appendBindingTargetPropertiesToParameterDescriptors (parametersArray, *plugin);
+        const auto trackSignatureHash = parameterSurfaceSignature (parametersArray);
+        appendEnvelopePointCountsToParameterDescriptors (parametersArray, *plugin);
+        const auto trackRecommendedGroups = VitPluginGrabber::buildRecommendedGroups (parametersArray);
+        const auto trackQuickControls = VitPluginGrabber::buildQuickControls (parametersArray, trackTemplateRole);
+
+        juce::Array<juce::var> bindingTargets;
+        for (const auto& parameter : parametersArray)
+            if (auto* parameterObject = parameter.getDynamicObject())
+                bindingTargets.add (parameterObject->getProperty ("binding_target"));
+
+        juce::Array<juce::var> capabilityTags;
+        capabilityTags.add ("get_param");
+        if (! trackQuickControls.isEmpty())
+            capabilityTags.add ("quick_controls");
+
+        auto trackResponse = std::make_unique<juce::DynamicObject>();
+        trackResponse->setProperty ("status", "ok");
+        trackResponse->setProperty ("track_id", trackID);
+        trackResponse->setProperty ("plugin_id", pluginID);
+        trackResponse->setProperty ("plugin_item_id", pluginID);
+        trackResponse->setProperty ("template_role", trackTemplateRole);
+        trackResponse->setProperty ("supports_param_grabber", true);
+        trackResponse->setProperty ("current_param_signature_hash", trackSignatureHash);
+        trackResponse->setProperty ("binding_targets", juce::var (bindingTargets));
+        trackResponse->setProperty ("recommended_groups", juce::var (trackRecommendedGroups));
+        trackResponse->setProperty ("quick_controls", juce::var (trackQuickControls));
+        trackResponse->setProperty ("capability_manifest", juce::var (capabilityTags));
+        trackResponse->setProperty ("parameters", juce::var (parametersArray));
+        return juce::JSON::toString (juce::var (trackResponse.release()));
+    }
 
     if (! ensureExternalPluginInstanceReady (*edit, *ext, "get_plugin_parameters", kPluginOpenUiReadyTimeoutMs))
         return makeErrorReply ("Plugin parameters are only available for instantiated external plugins: "

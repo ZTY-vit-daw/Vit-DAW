@@ -565,6 +565,144 @@ def probe_track_sources(sock: zmq.Socket, project_path: Path, probe_tracks: int,
     return summary
 
 
+def descriptor_row_by_id(reply: dict[str, Any], param_id: str) -> dict[str, Any] | None:
+    rows = reply.get("parameters")
+    if not isinstance(rows, list):
+        return None
+    for row in rows:
+        if isinstance(row, dict) and str(row.get("id") or "").strip().lower() == param_id.lower():
+            return row
+    return None
+
+
+def probe_track_param_descriptors(sock: zmq.Socket, project_path: Path, descriptor_tracks: int, command_timeout_ms: int) -> dict[str, Any]:
+    """M3-TRACK-PARAM-DESCRIPTOR-1 probe body: track-level descriptor face lifecycle.
+
+    Legs: fresh tracks -> get_plugin_parameters on every track volume plugin
+    must reply ok with exactly the volume/pan rows (resolve-addressable mirror;
+    master/trim/mute/gain/Level Meter must NOT be listed), full row schema
+    (id/name/value_text/min/max/envelope_point_count/display_probe) with all
+    counts 0 -> set_points three points on track#0 volume + track#1 pan ->
+    descriptor counts follow (3), other rows and sibling tracks stay 0 ->
+    clear_region -> all counts back to 0.
+    """
+    summary: dict[str, Any] = {
+        "status": "running",
+        "mode": "track_param_descriptor_probe",
+        "project_path": str(project_path),
+        "descriptor_tracks": descriptor_tracks,
+        "descriptor_replies": [],
+    }
+    checks = 0
+
+    def checked(condition: bool, label: str, detail: str = "") -> None:
+        nonlocal checks
+        checks += 1
+        require(condition, f"[descriptor-leg] {label}: {detail}")
+
+    require_ok("new_project", send_command(sock, {"cmd": "new_project", "command_timeout_ms": command_timeout_ms}))
+    require_ok(
+        "save_as_project",
+        send_command(sock, {"cmd": "save_as_project", "file_path": str(project_path), "command_timeout_ms": command_timeout_ms}),
+    )
+
+    track_ids: list[str] = []
+    for index in range(descriptor_tracks):
+        reply = require_ok(f"add_audio_track #{index + 1}", send_command(sock, {"cmd": "add_audio_track"}))
+        track_id = str(reply.get("track_id") or "").strip()
+        require(track_id, f"add_audio_track #{index + 1} did not return track_id: {reply}")
+        track_ids.append(track_id)
+
+    state = require_ok("get_project_state", send_command(sock, {"cmd": "get_project_state"}))
+    volume_plugin_ids: list[str] = []
+    for index, track_id in enumerate(track_ids):
+        plugins = find_track_plugins(state, track_id)
+        volume_rows = [p for p in plugins if is_volume_plugin_row(p)]
+        require(bool(volume_rows), f"track {track_id} (index {index}) has no volume plugin row: {plugins}")
+        volume_plugin_ids.append(plugin_row_id(volume_rows[0]))
+
+    # Phase 1 (baseline): ok reply + exactly volume/pan rows + schema + counts 0.
+    for index, track_id in enumerate(track_ids):
+        reply = send_command(sock, {"cmd": "get_plugin_parameters", "track_id": track_id, "plugin_id": volume_plugin_ids[index]})
+        summary["descriptor_replies"].append(
+            {"phase": "baseline", "track_index": index, "track_id": track_id, "plugin_id": volume_plugin_ids[index], "reply_verbatim": reply}
+        )
+        checked(not is_error_reply(reply), f"track#{index} descriptor face must reply ok (B-case contract change)", str(reply)[:300])
+        rows = reply.get("parameters")
+        checked(isinstance(rows, list), f"track#{index} parameters must be a list", str(rows)[:200])
+        ids = sorted(str(r.get("id") or "") for r in rows if isinstance(r, dict))
+        checked(ids == ["pan", "volume"],
+                f"track#{index} rows must be exactly volume/pan (resolve mirror; no master/trim/mute/gain rows)", str(ids))
+        for expected_id, want_range in (("volume", (0.0, 1.0)), ("pan", (-1.0, 1.0))):
+            row = descriptor_row_by_id(reply, expected_id)
+            require(row is not None, f"track#{index} row {expected_id} missing after id check: {ids}")
+            checked(str(row.get("name") or "").strip() != "", f"track#{index} {expected_id} row name must be non-empty", str(row))
+            checked(str(row.get("value_text") or "").strip() != "",
+                    f"track#{index} {expected_id} value_text must be non-empty (unit disclosure via dB/pan text)", str(row))
+            checked(isinstance(row.get("min"), (int, float)) and isinstance(row.get("max"), (int, float)),
+                    f"track#{index} {expected_id} row must carry numeric min/max", str(row))
+            checked(approx(float(row["min"]), want_range[0]) and approx(float(row["max"]), want_range[1]),
+                    f"track#{index} {expected_id} value range must mirror the 196-anchored engine range {want_range}", str(row))
+            checked("envelope_point_count" in row and int(row["envelope_point_count"]) == 0,
+                    f"track#{index} {expected_id} envelope_point_count must be present and 0 on a fresh track", str(row))
+            checked(isinstance(row.get("display_probe"), dict),
+                    f"track#{index} {expected_id} display_probe must be present (same row schema as external rows)", str(row)[:200])
+
+    # Phase 2 (lifecycle): three points on track#0 volume + track#1 pan.
+    plan: list[tuple[int, str]] = [(0, "volume")] + ([(1, "pan")] if descriptor_tracks > 1 else [])
+    for track_index, param_id in plan:
+        points = probe_initial_points(param_id)
+        reply = send_command(
+            sock,
+            {"cmd": "automation.set_points", "plugin_id": volume_plugin_ids[track_index], "param_id": param_id,
+             "points": points, "command_timeout_ms": command_timeout_ms},
+        )
+        summary["descriptor_replies"].append({"phase": "set_points", "track_index": track_index, "param_id": param_id, "reply_verbatim": reply})
+        require_ok(f"set_points track#{track_index} {param_id}", reply)
+
+    for track_index, track_id in enumerate(track_ids):
+        reply = send_command(sock, {"cmd": "get_plugin_parameters", "track_id": track_id, "plugin_id": volume_plugin_ids[track_index]})
+        summary["descriptor_replies"].append({"phase": "after_set", "track_index": track_index, "reply_verbatim": reply})
+        require(not is_error_reply(reply), f"descriptor requery failed for track#{track_index}: {reply}")
+        volume_row = descriptor_row_by_id(reply, "volume")
+        pan_row = descriptor_row_by_id(reply, "pan")
+        require(volume_row is not None and pan_row is not None, f"descriptor rows lost after set_points on track#{track_index}: {reply}")
+        expected_volume = 3 if (track_index, "volume") in {p for p in plan} else 0
+        expected_pan = 3 if (track_index, "pan") in {p for p in plan} else 0
+        checked(int(volume_row["envelope_point_count"]) == expected_volume,
+                f"track#{track_index} volume envelope_point_count must be {expected_volume} (same-row lifecycle follow)", str(volume_row))
+        checked(int(pan_row["envelope_point_count"]) == expected_pan,
+                f"track#{track_index} pan envelope_point_count must be {expected_pan} (cross-track isolation)", str(pan_row))
+        for param_id, expected in (("volume", expected_volume), ("pan", expected_pan)):
+            curve = send_command(sock, {"cmd": "automation.get_curve", "plugin_id": volume_plugin_ids[track_index], "param_id": param_id})
+            checked(not is_error_reply(curve) and int(curve.get("point_count", -1)) == expected,
+                    f"track#{track_index} {param_id} get_curve point_count must match the descriptor count ({expected})", str(curve)[:200])
+
+    # Phase 3 (clear): back to all-zero through clear_region.
+    for track_index, param_id in plan:
+        reply = send_command(
+            sock,
+            {"cmd": "automation.clear_region", "plugin_id": volume_plugin_ids[track_index], "param_id": param_id,
+             "region": {"start": 0.0, "end": 5.0}, "command_timeout_ms": command_timeout_ms},
+        )
+        summary["descriptor_replies"].append({"phase": "clear_region", "track_index": track_index, "param_id": param_id, "reply_verbatim": reply})
+        require_ok(f"clear_region track#{track_index} {param_id}", reply)
+
+    for track_index, track_id in enumerate(track_ids):
+        reply = send_command(sock, {"cmd": "get_plugin_parameters", "track_id": track_id, "plugin_id": volume_plugin_ids[track_index]})
+        summary["descriptor_replies"].append({"phase": "after_clear", "track_index": track_index, "track_id": track_id, "reply_verbatim": reply})
+        require(not is_error_reply(reply), f"descriptor requery failed after clear for track#{track_index}: {reply}")
+        for param_id in ("volume", "pan"):
+            row = descriptor_row_by_id(reply, param_id)
+            require(row is not None, f"{param_id} row missing after clear on track#{track_index}: {reply}")
+            checked(int(row["envelope_point_count"]) == 0,
+                    f"track#{track_index} {param_id} envelope_point_count must return to 0 after clear_region", str(row))
+
+    summary["check_count"] = checks
+    summary["status"] = "ok"
+    return summary
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="tcp://127.0.0.1:5555")
@@ -576,6 +714,10 @@ def main() -> int:
                              "track-level parameter family; 0 keeps the M3-KERNEL-1 assertion legs")
     parser.add_argument("--probe-params", default=",".join(DEFAULT_PROBE_PARAMS),
                         help="comma-separated candidate param_id list for probe mode")
+    parser.add_argument("--probe-descriptor-tracks", type=int, default=0,
+                        help="M3-TRACK-PARAM-DESCRIPTOR-1 probe mode: add N audio tracks and run the "
+                             "track-level descriptor face lifecycle (volume/pan rows + envelope_point_count); "
+                             "0 keeps the M3-KERNEL-1 assertion legs")
     args = parser.parse_args()
 
     if args.probe_tracks > 0:
@@ -584,6 +726,10 @@ def main() -> int:
 
     if args.project_path:
         project_path = Path(args.project_path).resolve()
+    elif args.probe_descriptor_tracks > 0:
+        temp_dir = Path(tempfile.gettempdir()) / "vit_daw_track_param_descriptor_probe"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        project_path = temp_dir / f"track_param_descriptor_probe_{int(time.time())}.vit"
     elif args.probe_tracks > 0:
         temp_dir = Path(tempfile.gettempdir()) / "vit_daw_track_source_probe"
         temp_dir.mkdir(parents=True, exist_ok=True)
@@ -602,6 +748,26 @@ def main() -> int:
 
     ctx = zmq.Context.instance()
     sock = wait_for_kernel(ctx, args.url, args.timeout_ms)
+
+    if args.probe_descriptor_tracks > 0:
+        label = "track param descriptor probe"
+        try:
+            summary = probe_track_param_descriptors(sock, project_path, args.probe_descriptor_tracks, command_timeout_ms)
+            print("track param descriptor probe: PASS")
+            print(f"  - check_count: {summary['check_count']}")
+            return 0
+        except Exception as exc:  # noqa: BLE001 - top-level probe failure reporting.
+            summary = {
+                "status": "failed",
+                "mode": "track_param_descriptor_probe",
+                "project_path": str(project_path),
+                "error": str(exc),
+            }
+            print(f"track param descriptor probe: FAIL: {exc}", file=sys.stderr)
+            return 1
+        finally:
+            sock.close(0)
+            write_summary_output(args, summary)
 
     if args.probe_tracks > 0:
         label = "track source probe"
