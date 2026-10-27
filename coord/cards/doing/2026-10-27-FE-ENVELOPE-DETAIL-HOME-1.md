@@ -35,3 +35,5 @@
 - 特写窗视图切换机制与 activate_view 勘察假设不符（结构漂移）→锚点上交；
 - 撤下全局清单与特写窗内可切换不可兼得、需概念级 registry 改动→形态两案上交；
 - window_manager 复用键/聚焦链与 ⤢ 直达行为冲突（如已开窗不聚焦/ctx 不刷新）→上交取证。
+
+- 领取：2026-10-27 12:12 +0800 / origin/main=2fa99bd34908b06cc4eb53ca94f521d70ba5782d / owner=GLM-5.3 PC 执行流（ZCode 会话）@Windows PC / 实现分支 port/fe-envelope-detail-home-1（前端仓）/ 实现worktree D:/Godot/vit-daw-frontend-envdetail1（基线 a81e0a5）/ 协调worktree D:/Vit_DAW_wt_envdetail1_coord
