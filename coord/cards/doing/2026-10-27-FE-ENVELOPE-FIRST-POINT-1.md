@@ -30,3 +30,7 @@
 
 - 首点 region 语义与 C1 契约（automation_client.gd）/内核 set_points 区域校验冲突→锚点上交；
 - 空态手势与既有 scrub 带/吸附开关命中面冲突超预期→上交。
+
+- 领取：（2026-10-27 12:1x +0800 / origin/main=46400263c45a06c08d7a4ba66b78a566f2f79bd5 / ZCode GLM-5.3 PC 执行会话（ZCode，199 卡会话）/ 分支=port/fe-envelope-first-point-1（前端仓 worktree D:/Godot/project/vit-daw-frontend-firstpt1，领取基线 main=a81e0a5）+ 协调 worktree D:/Vit_DAW_wt_firstpt1_coord（coord/fe-envelope-first-point-1-claim）/ 领取提交=本提交。领取核对：卡在 todo+派发已确认（手测节发现链）+依赖=无；doing=GEN-SUNO-WEB-DESIGN-1（Mac 侧 coord/runs 域）+198 FE-ENVELOPE-LANE-TOGGLE-1（前端仓 track_scene 两文件域，与本卡 envelope_closeup_canvas.gd+独立探针新文件域不相交，卡面并行注记亲核）；真栈腿启栈前按 §2.2 另行登记并错峰用户手测节（资源记录最新释放 195@2026-10-26 23:10））
+- 回执：（待回填）
+- 验收：（待主管裁定）
