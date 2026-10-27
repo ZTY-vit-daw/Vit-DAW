@@ -50,7 +50,17 @@
 
 ## 验收
 
-（待主管裁决：blocked 处置——扩域授权单点修复 project_repository.gd 后重放真栈探针收口，或另开 repo 修复卡+本卡部分验收）
+（待主管验收：续作扩域面+重放已全绿收口，见下方续作回执）
+
+## 续作回执（扩域面+重放，2026-10-27 22:0x 收口）
+
+- **状态：done（执行侧自验完成）——扩域修复+两消费面红绿+真栈 R1b 重放连续两轮全绿；交主管验收**
+- **扩域修复（d611b21，前端仓 port/fe-autolane-prodchain-fix-1 已推远端）**：`project_repository.gd` 并源=**解析器兜底+纯增键**（裁决两案取最小面）——`apply_kernel_project_state` 轨行 plugins 全量留存新快照键 `plugins_by_track`（既有键零破坏）+`get_volume_pan_plugin_item_id_for_track` rack 候选后追加该键候选（同一过滤；legacy 路径保持）。**既有消费方零破坏亲证**：rack 宏测试 PASS（rack 投影断言面）+离线 K1（racked 形态 rack_nodes 仍=rack.nodes 恰 VST）。
+- **两消费面红绿（离线 K 段）**：修复前红=K2 并源解析空/K3 无新键/K6 车道轨级插件 id 空/K7 无默认音量车道（`prodchain_k_red.log` exit 1）；修复后绿=`probe_autolane_prodchain` **65/65**（+K14-K16 声相门红绿：空解析=零派发 no-op 形态 vs 解析达=set_plugin_param{value=0.625} 派发）。
+- **全家离线回归 23 件零回退**（rebuild 73/edit 63 与 203 收据同数；verdict 形态三件与首腿逐字节一致或仅运行时实例 id 差异）。
+- **真栈 R1b 重放（主管裁决验收面）**：§2.2 登记 c13a7f78（21:55）+17s 即时复核+三纪律+188 守卫+VIT_PROJECT_XML 隔离亲证（287956e7→c6105261）；kernel=**205 首腿自建 8440636F 只读复用**（扩域零内核改动亲核）；**R1 34/34 + R2 34/34 连续两轮 exit 0（零修正轮）**——racked 轨三组在场（轨道恰 volume/pan+发送占位+插件组实载 VST 实参）+默认音量车道生产链落定（真实 bus 描述符回执）+建点恰一笔+内核 get_curve 读回逐点一致+**W5-W6 声相推子 IPC 写读对照**（生产路径 `_header_send_pan_ipc`→并源解析→`set_plugin_param`→内核 pan 行 normalized_value=0.625 读回一致；修复前=静默 no-op）。
+- 工件：续作 run=`coord/runs/FE-AUTOLANE-PRODCHAIN-FIX-1/prodchain_20261027_2155/`（**分支 port/fe-autolane-prodchain-fix-1-stack @ 55c07e66**，RESULTS.md+R1/R2 日志+离线回归 27 件含红绿三件+rack 宏测试+隔离副本）；首腿 run=`prodchain_20261027_2050/`（@326dcd9e 不覆盖）；栈登记 c13a7f78–释放 869ce03a（21:59 拆栈全零）。
+- 端测边界（承首腿+扩域面）：弹层真窗口落点/推子拖动手感留用户手测节；声相写读=数值面断言（生产方法直调驱动，真实拖动手感留手测）。
 
 ## 主管裁决（2026-10-27 晚——扩域授权，卡回 todo 续作）
 
