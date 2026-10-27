@@ -35,8 +35,18 @@
 
 ## 领取
 
-- 2026-10-27 19:22 / origin/main=8791405c / owner=GLM-5.3 PC 执行会话（ZCode，本卡会话，PC 机）/ 前端仓分支 port/fe-autolane-prodchain-fix-1@基线 main=f52b78f / worktree D:/Godot/project/vit-daw-frontend-autofix1 / 主仓协调分支 coord/fe-autolane-prodchain-fix-1-claim（worktree D:/Vit_DAW_wt_autofix1_coord）/ 领取提交=本提交
+- 2026-10-27 19:22 / origin/main=8791405c / owner=GLM-5.3 PC 执行会话（ZCode，本卡会话，PC 机）/ 前端仓分支 port/fe-autolane-prodchain-fix-1@基线 main=f52b78f / worktree D:/Godot/project/vit-daw-frontend-autofix1 / 主仓协调分支 coord/fe-autolane-prodchain-fix-1-claim（worktree D:/Vit_DAW_wt_autofix1_coord）/ 领取提交=397176ea
 
 ## 回执
 
-（待完成回填）
+- **状态：blocked——停止条件①命中，锚点上交主管裁决（2026-10-27 21:2x）**
+- 实现：前端仓 `port/fe-autolane-prodchain-fix-1` @ **8295ca4**（已推远端；ed64f0f 实现+8295ca4 探针加固/诊断件）。①懒创建即推轨道 id（`get_track_envelope_lane()` 慢路径 false→true）+②弹层 canvas→屏幕坐标（选择器/曲率预设两处 embed 两态取实时鼠标，对齐 timeline_dock_adapter 先例；headless 守卫保持）+add_lane 轨道优先分组（生产链探针发现的注入盲区分歧）+get_kernel_track_id 读回面。
+- 离线：新探针 `probe_autolane_prodchain` **47/47**（真行装配+真 ProjectRepository 生产写入路径+禁注入三组+懒创建时序+弹层定位断言）；**基线负对照红绿证据**（f52b78f 懒重建容器 id=空 vs 修复=行当前 id）；全家回归 **23 件全绿零回退**（rebuild 73/edit 63 与 203 收据同数）；注入边界标注 8 件（不删）。
+- 真栈：§2.2 登记 76619335（20:49）+12s 即时复核+三纪律+VIT_PROJECT_XML 隔离亲证（287956e7→072ac158）；ps1 最小腿 exit 0；`stack_probe_autolane_prodchain` **R1b 17/20（核心面全绿）**：A5 懒创建即推 id **修复面真栈实证**（修复前恒空=用户手测根因）+A2 生产绑定 registry 落册+**S2 目录从真 repo 无注入到达**；3 红=同一根因（下述阻塞）。
+- **停止条件①命中（锚点上交）**：racked 轨（rack_add_node 装载 VST 后）内核轨行 rack 字典**独占** `rack_nodes` 快照→轨级 Volume & Pan 插件行被排除→`get_volume_pan_plugin_item_id_for_track` 恒空（plugins 兜底=死路：tracks_out 无 plugins 键）；消费面①车道轨道组+默认音量车道（用户「无音量/声相组」第二层根因，与缺陷①复合）②轨道头声相推子 IPC 静默 no-op。**修复点 `vit_dock/core/project_repository.gd`（apply_kernel_project_state rack 分支+get_volume_pan_plugin_item_id_for_track 兜底）=卡面明令不触域**→按 AGENTS §11 锚点上交；最小复现件 `tools/stack_diag_205_rackshape.gd/.tscn`（真栈 30 行留证）。真栈验收「三组在场+默认音量车道→建点→读回」链在 racked 轨被阻塞，两轮全绿需主管裁决（扩域单点修复或另开卡）后重放探针（R1b 形态就绪）。
+- 工件：run=`coord/runs/FE-AUTOLANE-PRODCHAIN-FIX-1/prodchain_20261027_2050/`（**分支 port/fe-autolane-prodchain-fix-1-stack @ 326dcd9e**，RESULTS.md+R1/R1b/diag 日志+离线回归 26 件+隔离副本）；栈登记 76619335–释放 d7c8d2d8（21:21 拆栈全零）。
+- 端测边界：弹层真窗口落点未过自动化断言（headless 无窗口面；policy 单测+鼠标源集成断言=卡面等价断言面），留用户手测节；渲染面/手感面同留手测。
+
+## 验收
+
+（待主管裁决：blocked 处置——扩域授权单点修复 project_repository.gd 后重放真栈探针收口，或另开 repo 修复卡+本卡部分验收）
