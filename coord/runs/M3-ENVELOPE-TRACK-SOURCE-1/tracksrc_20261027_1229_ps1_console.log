@@ -1,0 +1,63 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261027_122942\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1229\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_etsrc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_etsrc1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_etsrc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_etsrc1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_envp1\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=3272 workdir=D:\Vit_DAW_wt_envp1\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_etsrc1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=3272
+ok: ZMQ SUB listening: 5556 pid=3272
+
+== Project state invoke
+project.state status=ok error=
+
+== automation curve smoke (M3-KERNEL-1)
+automation curve smoke: PASS
+  - new_project
+  - save_as_project
+  - add_audio_track
+  - volume_plugin_discovered
+  - automation.get_curve.empty
+  - automation.set_points.fail_closed
+  - automation.set_points.write3
+  - automation.get_curve.readback3
+  - automation.clear_region
+  - vsp.automation.set_points.no_cas
+  - vsp.automation.set_points.cas_rejected
+  - automation.get_curve.after_cas_rejection
+  - vsp.automation.clear_region.cleanup
+summary written: D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1229\automation_curve_summary.json
+ok: automation curve smoke passed (kernel command face; summary: D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1229\automation_curve_summary.json)
+
+== track source probe (M3-ENVELOPE-TRACK-SOURCE-1)
+python.exe : track source probe: FAIL: 'list' object has no attribute 'get'
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_etsrc1\scripts\dev_agent_smoke.ps1:8364 ×Ö·û: 5
++     & python $trackSourceScript --url ("tcp://127.0.0.1:" + $ZmqReqPo ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (track source pr...attribute 'get':String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

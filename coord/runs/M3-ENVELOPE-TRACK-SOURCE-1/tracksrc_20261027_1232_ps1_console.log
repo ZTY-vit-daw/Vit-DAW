@@ -1,0 +1,94 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261027_123249\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1232\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_etsrc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_etsrc1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_etsrc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_etsrc1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_envp1\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=16256 workdir=D:\Vit_DAW_wt_envp1\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_etsrc1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=16256
+ok: ZMQ SUB listening: 5556 pid=16256
+
+== Project state invoke
+project.state status=ok error=
+
+== automation curve smoke (M3-KERNEL-1)
+automation curve smoke: PASS
+  - new_project
+  - save_as_project
+  - add_audio_track
+  - volume_plugin_discovered
+  - automation.get_curve.empty
+  - automation.set_points.fail_closed
+  - automation.set_points.write3
+  - automation.get_curve.readback3
+  - automation.clear_region
+  - vsp.automation.set_points.no_cas
+  - vsp.automation.set_points.cas_rejected
+  - automation.get_curve.after_cas_rejection
+  - vsp.automation.clear_region.cleanup
+summary written: D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1232\automation_curve_summary.json
+ok: automation curve smoke passed (kernel command face; summary: D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1232\automation_curve_summary.json)
+
+== track source probe (M3-ENVELOPE-TRACK-SOURCE-1)
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='volume': addressable=OK readback_match=True
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='pan': addressable=OK readback_match=True
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='master volume': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='master pan': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='trim': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='mute': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='gain': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='volume': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='pan': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='master volume': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='master pan': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='trim': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='mute': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='gain': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='volume': addressable=OK readback_match=True
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='pan': addressable=OK readback_match=True
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='master volume': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='master pan': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='trim': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='mute': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='gain': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='volume': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='pan': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='master volume': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='master pan': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='trim': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='mute': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='gain': addressable=n/a
+track source probe: PASS
+  - volume_anchor_rows: 2
+  - volume_full_cycles: 2
+  - volume_crosschecks: 2
+  - expected_anchor_rows: 2
+summary written: D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1232\track_source_probe_summary.json
+ok: track source probe passed (kernel command face; summary: D:\Vit_DAW_wt_etsrc1\coord\runs\M3-ENVELOPE-TRACK-SOURCE-1\tracksrc_20261027_1232\track_source_probe_summary.json)
+
+== Summary
+ok: dev agent smoke completed
