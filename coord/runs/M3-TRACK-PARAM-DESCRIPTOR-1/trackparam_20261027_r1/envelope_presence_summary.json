@@ -1,0 +1,62 @@
+{
+  "status": "ok",
+  "url": "tcp://127.0.0.1:5555",
+  "project_path": "D:\\Vit_DAW_wt_tpdc1\\coord\\runs\\M3-TRACK-PARAM-DESCRIPTOR-1\\trackparam_20261027_r1\\envelope_presence_project.vit",
+  "checks": [
+    "new_project",
+    "save_as_project",
+    "plugin_search:ValhallaSupermassive",
+    "add_audio_track",
+    "rack_add_node",
+    "baseline.envelope_point_count.all_zero",
+    "baseline.snapshot_stability",
+    "automation.set_points.write3_flat",
+    "envelope_point_count.target_is_3",
+    "existing_fields.zero_change.diff_level",
+    "envelope_point_count.after_clear_zero",
+    "after_clear.matches_baseline"
+  ],
+  "plugin": {
+    "query": "Supermassive",
+    "name": "ValhallaSupermassive",
+    "identifier": "VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5",
+    "path": "C:\\Program Files\\Common Files\\VST3\\ValhallaSupermassive.vst3"
+  },
+  "track_id": "1007",
+  "plugin_id": "1013",
+  "envelope_counts": {
+    "dry level": 0,
+    "wet level": 0,
+    "48": 0,
+    "49": 0,
+    "50": 0,
+    "51": 0,
+    "52": 0,
+    "53": 0,
+    "54": 0,
+    "55": 0,
+    "56": 0,
+    "57": 0,
+    "1567": 0,
+    "1568": 0,
+    "1569": 0,
+    "1570": 0,
+    "1571": 0,
+    "1572": 0,
+    "1573": 0,
+    "1574": 0,
+    "18": 0
+  },
+  "target_param": "dry level",
+  "target_value": 0.0,
+  "disclosed_curve_driven_drift": {
+    "1013": {
+      "dry level": {
+        "envelope_point_count": {
+          "before": 0,
+          "after": 3
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,61 @@
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='master volume': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='master pan': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='trim': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='mute': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='gain': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='volume': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='pan': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='master volume': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='master pan': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='trim': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='mute': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='gain': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='volume': addressable=OK readback_match=True
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='pan': addressable=OK readback_match=True
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='master volume': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='master pan': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='trim': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='mute': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='gain': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='volume': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='pan': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='master volume': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='master pan': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='trim': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='mute': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='gain': addressable=n/a
+track source probe: PASS
+  - volume_anchor_rows: 2
+  - volume_full_cycles: 2
+  - volume_crosschecks: 2
+  - expected_anchor_rows: 2
+summary written: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r1\track_source_probe_summary.json
+ok: track source probe passed (kernel command face; summary: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r1\track_source_probe_summary.json)
+
+== track param descriptor smoke (M3-TRACK-PARAM-DESCRIPTOR-1)
+track param descriptor probe: PASS
+  - check_count: 42
+summary written: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r1\track_param_descriptor_summary.json
+ok: track param descriptor smoke passed (kernel command face; summary: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r1\track_param_descriptor_summary.json)
+
+== envelope presence smoke (M3-ENVELOPE-PRESENCE-1)
+  disclosed curve-driven drift on target row: {"dry level": {"envelope_point_count": {"before": 0, "after": 3}}}
+envelope presence smoke: PASS
+  - new_project
+  - save_as_project
+  - plugin_search:ValhallaSupermassive
+  - add_audio_track
+  - rack_add_node
+  - baseline.envelope_point_count.all_zero
+  - baseline.snapshot_stability
+  - automation.set_points.write3_flat
+  - envelope_point_count.target_is_3
+  - existing_fields.zero_change.diff_level
+  - envelope_point_count.after_clear_zero
+  - after_clear.matches_baseline
+summary written: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r1\envelope_presence_summary.json
+ok: envelope presence smoke passed (kernel command face; summary: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r1\envelope_presence_summary.json)
+
+== Summary
+ok: dev agent smoke completed
+R1_PS1_EXIT=0

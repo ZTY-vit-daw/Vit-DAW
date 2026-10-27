@@ -1,0 +1,100 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261027_151033\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_tpdc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_tpdc1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_tpdc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_tpdc1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_tpdc1\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=14940 workdir=D:\Vit_DAW_wt_tpdc1\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_tpdc1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=14940
+ok: ZMQ SUB listening: 5556 pid=14940
+
+== Project state invoke
+project.state status=ok error=
+
+== track source probe (M3-ENVELOPE-TRACK-SOURCE-1)
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='volume': addressable=OK readback_match=True
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='pan': addressable=OK readback_match=True
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='master volume': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='master pan': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='trim': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='mute': addressable=n/a
+[probe] track#0 Volume & Pan Plugin/volume plugin=1008 param='gain': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='volume': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='pan': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='master volume': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='master pan': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='trim': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='mute': addressable=n/a
+[probe] track#0 Level Meter/level plugin=1009 param='gain': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='volume': addressable=OK readback_match=True
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='pan': addressable=OK readback_match=True
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='master volume': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='master pan': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='trim': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='mute': addressable=n/a
+[probe] track#1 Volume & Pan Plugin/volume plugin=1011 param='gain': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='volume': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='pan': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='master volume': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='master pan': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='trim': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='mute': addressable=n/a
+[probe] track#1 Level Meter/level plugin=1012 param='gain': addressable=n/a
+track source probe: PASS
+  - volume_anchor_rows: 2
+  - volume_full_cycles: 2
+  - volume_crosschecks: 2
+  - expected_anchor_rows: 2
+summary written: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\track_source_probe_summary.json
+ok: track source probe passed (kernel command face; summary: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\track_source_probe_summary.json)
+
+== track param descriptor smoke (M3-TRACK-PARAM-DESCRIPTOR-1)
+track param descriptor probe: PASS
+  - check_count: 42
+summary written: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\track_param_descriptor_summary.json
+ok: track param descriptor smoke passed (kernel command face; summary: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\track_param_descriptor_summary.json)
+
+== envelope presence smoke (M3-ENVELOPE-PRESENCE-1)
+  disclosed curve-driven drift on target row: {"dry level": {"envelope_point_count": {"before": 0, "after": 3}}}
+envelope presence smoke: PASS
+  - new_project
+  - save_as_project
+  - plugin_search:ValhallaSupermassive
+  - add_audio_track
+  - rack_add_node
+  - baseline.envelope_point_count.all_zero
+  - baseline.snapshot_stability
+  - automation.set_points.write3_flat
+  - envelope_point_count.target_is_3
+  - existing_fields.zero_change.diff_level
+  - envelope_point_count.after_clear_zero
+  - after_clear.matches_baseline
+summary written: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\envelope_presence_summary.json
+ok: envelope presence smoke passed (kernel command face; summary: D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\envelope_presence_summary.json)
+
+== Summary
+ok: dev agent smoke completed

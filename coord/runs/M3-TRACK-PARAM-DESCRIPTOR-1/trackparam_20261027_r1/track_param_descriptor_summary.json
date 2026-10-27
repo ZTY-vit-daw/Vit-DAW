@@ -1,0 +1,1431 @@
+{
+  "status": "ok",
+  "mode": "track_param_descriptor_probe",
+  "project_path": "D:\\Vit_DAW_wt_tpdc1\\coord\\runs\\M3-TRACK-PARAM-DESCRIPTOR-1\\trackparam_20261027_r1\\track_param_descriptor_project.vit",
+  "descriptor_tracks": 2,
+  "descriptor_replies": [
+    {
+      "phase": "baseline",
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_id": "1008",
+      "reply_verbatim": {
+        "status": "ok",
+        "track_id": "1007",
+        "plugin_id": "1008",
+        "plugin_item_id": "1008",
+        "template_role": "other",
+        "supports_param_grabber": true,
+        "current_param_signature_hash": "probe_1760f468aa3779e2",
+        "binding_targets": [
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1008",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "volume",
+            "param_name": "Volume",
+            "normalized_role": "common_gain",
+            "alias": "Volume"
+          },
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1008",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "pan",
+            "param_name": "Pan",
+            "normalized_role": "common_pan",
+            "alias": "Pan"
+          }
+        ],
+        "recommended_groups": [
+          {
+            "name": "Mix",
+            "parameter_ids": [
+              "volume",
+              "pan"
+            ]
+          }
+        ],
+        "quick_controls": [
+          {
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "label": "Volume",
+            "widget": "slider",
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.740818202495575
+          },
+          {
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "label": "Pan",
+            "widget": "knob",
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.0
+          }
+        ],
+        "capability_manifest": [
+          "get_param",
+          "quick_controls"
+        ],
+        "parameters": [
+          {
+            "id": "volume",
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "raw_param_name": "Volume",
+            "name": "Volume",
+            "value": 0.740818202495575,
+            "normalized_value": 0.740818202495575,
+            "value_text": "+0.00 dB",
+            "min": 0.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Volume",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "+0.00 dB",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": 0.0,
+                  "text": "-100.00 dB"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": 0.25,
+                  "text": "-21.72 dB"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.5,
+                  "text": "-7.86 dB"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.75,
+                  "text": "+0.25 dB"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+6.00 dB"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1008",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "volume",
+              "param_name": "Volume",
+              "normalized_role": "common_gain",
+              "alias": "Volume"
+            },
+            "envelope_point_count": 0
+          },
+          {
+            "id": "pan",
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "raw_param_name": "Pan",
+            "name": "Pan",
+            "value": 0.0,
+            "normalized_value": 0.5,
+            "value_text": "Centre",
+            "min": -1.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Pan",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "Centre",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": -1.0,
+                  "text": "-1.000 Left"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": -0.5,
+                  "text": "-0.500 Left"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.0,
+                  "text": "Centre"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.5,
+                  "text": "+0.500 Right"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+1.000 Right"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1008",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "pan",
+              "param_name": "Pan",
+              "normalized_role": "common_pan",
+              "alias": "Pan"
+            },
+            "envelope_point_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "phase": "baseline",
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_id": "1011",
+      "reply_verbatim": {
+        "status": "ok",
+        "track_id": "1010",
+        "plugin_id": "1011",
+        "plugin_item_id": "1011",
+        "template_role": "other",
+        "supports_param_grabber": true,
+        "current_param_signature_hash": "probe_1760f468aa3779e2",
+        "binding_targets": [
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1011",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "volume",
+            "param_name": "Volume",
+            "normalized_role": "common_gain",
+            "alias": "Volume"
+          },
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1011",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "pan",
+            "param_name": "Pan",
+            "normalized_role": "common_pan",
+            "alias": "Pan"
+          }
+        ],
+        "recommended_groups": [
+          {
+            "name": "Mix",
+            "parameter_ids": [
+              "volume",
+              "pan"
+            ]
+          }
+        ],
+        "quick_controls": [
+          {
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "label": "Volume",
+            "widget": "slider",
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.740818202495575
+          },
+          {
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "label": "Pan",
+            "widget": "knob",
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.0
+          }
+        ],
+        "capability_manifest": [
+          "get_param",
+          "quick_controls"
+        ],
+        "parameters": [
+          {
+            "id": "volume",
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "raw_param_name": "Volume",
+            "name": "Volume",
+            "value": 0.740818202495575,
+            "normalized_value": 0.740818202495575,
+            "value_text": "+0.00 dB",
+            "min": 0.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Volume",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "+0.00 dB",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": 0.0,
+                  "text": "-100.00 dB"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": 0.25,
+                  "text": "-21.72 dB"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.5,
+                  "text": "-7.86 dB"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.75,
+                  "text": "+0.25 dB"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+6.00 dB"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1011",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "volume",
+              "param_name": "Volume",
+              "normalized_role": "common_gain",
+              "alias": "Volume"
+            },
+            "envelope_point_count": 0
+          },
+          {
+            "id": "pan",
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "raw_param_name": "Pan",
+            "name": "Pan",
+            "value": 0.0,
+            "normalized_value": 0.5,
+            "value_text": "Centre",
+            "min": -1.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Pan",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "Centre",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": -1.0,
+                  "text": "-1.000 Left"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": -0.5,
+                  "text": "-0.500 Left"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.0,
+                  "text": "Centre"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.5,
+                  "text": "+0.500 Right"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+1.000 Right"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1011",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "pan",
+              "param_name": "Pan",
+              "normalized_role": "common_pan",
+              "alias": "Pan"
+            },
+            "envelope_point_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "phase": "set_points",
+      "track_index": 0,
+      "param_id": "volume",
+      "reply_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "mode": "full",
+        "written": 3,
+        "point_count": 3,
+        "time_base": "time"
+      }
+    },
+    {
+      "phase": "set_points",
+      "track_index": 1,
+      "param_id": "pan",
+      "reply_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "mode": "full",
+        "written": 3,
+        "point_count": 3,
+        "time_base": "time"
+      }
+    },
+    {
+      "phase": "after_set",
+      "track_index": 0,
+      "reply_verbatim": {
+        "status": "ok",
+        "track_id": "1007",
+        "plugin_id": "1008",
+        "plugin_item_id": "1008",
+        "template_role": "other",
+        "supports_param_grabber": true,
+        "current_param_signature_hash": "probe_1760f468aa3779e2",
+        "binding_targets": [
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1008",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "volume",
+            "param_name": "Volume",
+            "normalized_role": "common_gain",
+            "alias": "Volume"
+          },
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1008",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "pan",
+            "param_name": "Pan",
+            "normalized_role": "common_pan",
+            "alias": "Pan"
+          }
+        ],
+        "recommended_groups": [
+          {
+            "name": "Mix",
+            "parameter_ids": [
+              "volume",
+              "pan"
+            ]
+          }
+        ],
+        "quick_controls": [
+          {
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "label": "Volume",
+            "widget": "slider",
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.740818202495575
+          },
+          {
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "label": "Pan",
+            "widget": "knob",
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.0
+          }
+        ],
+        "capability_manifest": [
+          "get_param",
+          "quick_controls"
+        ],
+        "parameters": [
+          {
+            "id": "volume",
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "raw_param_name": "Volume",
+            "name": "Volume",
+            "value": 0.740818202495575,
+            "normalized_value": 0.740818202495575,
+            "value_text": "+0.00 dB",
+            "min": 0.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Volume",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "+0.00 dB",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": 0.0,
+                  "text": "-100.00 dB"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": 0.25,
+                  "text": "-21.72 dB"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.5,
+                  "text": "-7.86 dB"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.75,
+                  "text": "+0.25 dB"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+6.00 dB"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1008",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "volume",
+              "param_name": "Volume",
+              "normalized_role": "common_gain",
+              "alias": "Volume"
+            },
+            "envelope_point_count": 3
+          },
+          {
+            "id": "pan",
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "raw_param_name": "Pan",
+            "name": "Pan",
+            "value": 0.0,
+            "normalized_value": 0.5,
+            "value_text": "Centre",
+            "min": -1.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Pan",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "Centre",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": -1.0,
+                  "text": "-1.000 Left"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": -0.5,
+                  "text": "-0.500 Left"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.0,
+                  "text": "Centre"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.5,
+                  "text": "+0.500 Right"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+1.000 Right"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1008",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "pan",
+              "param_name": "Pan",
+              "normalized_role": "common_pan",
+              "alias": "Pan"
+            },
+            "envelope_point_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "phase": "after_set",
+      "track_index": 1,
+      "reply_verbatim": {
+        "status": "ok",
+        "track_id": "1010",
+        "plugin_id": "1011",
+        "plugin_item_id": "1011",
+        "template_role": "other",
+        "supports_param_grabber": true,
+        "current_param_signature_hash": "probe_1760f468aa3779e2",
+        "binding_targets": [
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1011",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "volume",
+            "param_name": "Volume",
+            "normalized_role": "common_gain",
+            "alias": "Volume"
+          },
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1011",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "pan",
+            "param_name": "Pan",
+            "normalized_role": "common_pan",
+            "alias": "Pan"
+          }
+        ],
+        "recommended_groups": [
+          {
+            "name": "Mix",
+            "parameter_ids": [
+              "volume",
+              "pan"
+            ]
+          }
+        ],
+        "quick_controls": [
+          {
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "label": "Volume",
+            "widget": "slider",
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.740818202495575
+          },
+          {
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "label": "Pan",
+            "widget": "knob",
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.0
+          }
+        ],
+        "capability_manifest": [
+          "get_param",
+          "quick_controls"
+        ],
+        "parameters": [
+          {
+            "id": "volume",
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "raw_param_name": "Volume",
+            "name": "Volume",
+            "value": 0.740818202495575,
+            "normalized_value": 0.740818202495575,
+            "value_text": "+0.00 dB",
+            "min": 0.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Volume",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "+0.00 dB",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": 0.0,
+                  "text": "-100.00 dB"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": 0.25,
+                  "text": "-21.72 dB"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.5,
+                  "text": "-7.86 dB"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.75,
+                  "text": "+0.25 dB"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+6.00 dB"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1011",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "volume",
+              "param_name": "Volume",
+              "normalized_role": "common_gain",
+              "alias": "Volume"
+            },
+            "envelope_point_count": 0
+          },
+          {
+            "id": "pan",
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "raw_param_name": "Pan",
+            "name": "Pan",
+            "value": 0.0,
+            "normalized_value": 0.5,
+            "value_text": "Centre",
+            "min": -1.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Pan",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "Centre",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": -1.0,
+                  "text": "-1.000 Left"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": -0.5,
+                  "text": "-0.500 Left"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.0,
+                  "text": "Centre"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.5,
+                  "text": "+0.500 Right"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+1.000 Right"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1011",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "pan",
+              "param_name": "Pan",
+              "normalized_role": "common_pan",
+              "alias": "Pan"
+            },
+            "envelope_point_count": 3
+          }
+        ]
+      }
+    },
+    {
+      "phase": "clear_region",
+      "track_index": 0,
+      "param_id": "volume",
+      "reply_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "region": {
+          "start": 0.0,
+          "end": 5.0
+        },
+        "removed_points": 3,
+        "point_count": 0
+      }
+    },
+    {
+      "phase": "clear_region",
+      "track_index": 1,
+      "param_id": "pan",
+      "reply_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "region": {
+          "start": 0.0,
+          "end": 5.0
+        },
+        "removed_points": 3,
+        "point_count": 0
+      }
+    },
+    {
+      "phase": "after_clear",
+      "track_index": 0,
+      "track_id": "1007",
+      "reply_verbatim": {
+        "status": "ok",
+        "track_id": "1007",
+        "plugin_id": "1008",
+        "plugin_item_id": "1008",
+        "template_role": "other",
+        "supports_param_grabber": true,
+        "current_param_signature_hash": "probe_1760f468aa3779e2",
+        "binding_targets": [
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1008",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "volume",
+            "param_name": "Volume",
+            "normalized_role": "common_gain",
+            "alias": "Volume"
+          },
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1008",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "pan",
+            "param_name": "Pan",
+            "normalized_role": "common_pan",
+            "alias": "Pan"
+          }
+        ],
+        "recommended_groups": [
+          {
+            "name": "Mix",
+            "parameter_ids": [
+              "volume",
+              "pan"
+            ]
+          }
+        ],
+        "quick_controls": [
+          {
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "label": "Volume",
+            "widget": "slider",
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.740818202495575
+          },
+          {
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "label": "Pan",
+            "widget": "knob",
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.0
+          }
+        ],
+        "capability_manifest": [
+          "get_param",
+          "quick_controls"
+        ],
+        "parameters": [
+          {
+            "id": "volume",
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "raw_param_name": "Volume",
+            "name": "Volume",
+            "value": 0.740818202495575,
+            "normalized_value": 0.740818202495575,
+            "value_text": "+0.00 dB",
+            "min": 0.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Volume",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "+0.00 dB",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": 0.0,
+                  "text": "-100.00 dB"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": 0.25,
+                  "text": "-21.72 dB"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.5,
+                  "text": "-7.86 dB"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.75,
+                  "text": "+0.25 dB"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+6.00 dB"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1008",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "volume",
+              "param_name": "Volume",
+              "normalized_role": "common_gain",
+              "alias": "Volume"
+            },
+            "envelope_point_count": 0
+          },
+          {
+            "id": "pan",
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "raw_param_name": "Pan",
+            "name": "Pan",
+            "value": 0.0,
+            "normalized_value": 0.5,
+            "value_text": "Centre",
+            "min": -1.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Pan",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "Centre",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": -1.0,
+                  "text": "-1.000 Left"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": -0.5,
+                  "text": "-0.500 Left"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.0,
+                  "text": "Centre"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.5,
+                  "text": "+0.500 Right"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+1.000 Right"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1008",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "pan",
+              "param_name": "Pan",
+              "normalized_role": "common_pan",
+              "alias": "Pan"
+            },
+            "envelope_point_count": 0
+          }
+        ]
+      }
+    },
+    {
+      "phase": "after_clear",
+      "track_index": 1,
+      "track_id": "1010",
+      "reply_verbatim": {
+        "status": "ok",
+        "track_id": "1010",
+        "plugin_id": "1011",
+        "plugin_item_id": "1011",
+        "template_role": "other",
+        "supports_param_grabber": true,
+        "current_param_signature_hash": "probe_1760f468aa3779e2",
+        "binding_targets": [
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1011",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "volume",
+            "param_name": "Volume",
+            "normalized_role": "common_gain",
+            "alias": "Volume"
+          },
+          {
+            "target_kind": "plugin_param",
+            "plugin_id": "1011",
+            "plugin_name": "Volume & Pan Plugin",
+            "plugin_type": "volume",
+            "template_role": "",
+            "param_id": "pan",
+            "param_name": "Pan",
+            "normalized_role": "common_pan",
+            "alias": "Pan"
+          }
+        ],
+        "recommended_groups": [
+          {
+            "name": "Mix",
+            "parameter_ids": [
+              "volume",
+              "pan"
+            ]
+          }
+        ],
+        "quick_controls": [
+          {
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "label": "Volume",
+            "widget": "slider",
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.740818202495575
+          },
+          {
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "label": "Pan",
+            "widget": "knob",
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "value": 0.0
+          }
+        ],
+        "capability_manifest": [
+          "get_param",
+          "quick_controls"
+        ],
+        "parameters": [
+          {
+            "id": "volume",
+            "param_id": "volume",
+            "raw_param_id": "volume",
+            "raw_param_name": "Volume",
+            "name": "Volume",
+            "value": 0.740818202495575,
+            "normalized_value": 0.740818202495575,
+            "value_text": "+0.00 dB",
+            "min": 0.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_gain",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Volume",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "+0.00 dB",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": 0.0,
+                  "text": "-100.00 dB"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": 0.25,
+                  "text": "-21.72 dB"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.5,
+                  "text": "-7.86 dB"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.75,
+                  "text": "+0.25 dB"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+6.00 dB"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1011",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "volume",
+              "param_name": "Volume",
+              "normalized_role": "common_gain",
+              "alias": "Volume"
+            },
+            "envelope_point_count": 0
+          },
+          {
+            "id": "pan",
+            "param_id": "pan",
+            "raw_param_id": "pan",
+            "raw_param_name": "Pan",
+            "name": "Pan",
+            "value": 0.0,
+            "normalized_value": 0.5,
+            "value_text": "Centre",
+            "min": -1.0,
+            "max": 1.0,
+            "is_discrete": false,
+            "num_steps": 0,
+            "is_boolean": false,
+            "normalized_role": "common_pan",
+            "display_group": "Mix",
+            "host_controllable": true,
+            "control_relevance": "musical_control",
+            "control_priority": 100,
+            "alias": "Pan",
+            "supports_automation": true,
+            "source": "builtin_plugin_parameter",
+            "display_probe": {
+              "mode": "read_only_value_to_string",
+              "current_text": "Centre",
+              "label": "",
+              "samples": [
+                {
+                  "normalized_value": 0.0,
+                  "value": -1.0,
+                  "text": "-1.000 Left"
+                },
+                {
+                  "normalized_value": 0.25,
+                  "value": -0.5,
+                  "text": "-0.500 Left"
+                },
+                {
+                  "normalized_value": 0.5,
+                  "value": 0.0,
+                  "text": "Centre"
+                },
+                {
+                  "normalized_value": 0.75,
+                  "value": 0.5,
+                  "text": "+0.500 Right"
+                },
+                {
+                  "normalized_value": 1.0,
+                  "value": 1.0,
+                  "text": "+1.000 Right"
+                }
+              ],
+              "capabilities": [
+                "current_value_text",
+                "value_to_string_samples"
+              ],
+              "issues": [
+                "empty_label"
+              ]
+            },
+            "binding_target": {
+              "target_kind": "plugin_param",
+              "plugin_id": "1011",
+              "plugin_name": "Volume & Pan Plugin",
+              "plugin_type": "volume",
+              "template_role": "",
+              "param_id": "pan",
+              "param_name": "Pan",
+              "normalized_role": "common_pan",
+              "alias": "Pan"
+            },
+            "envelope_point_count": 0
+          }
+        ]
+      }
+    }
+  ],
+  "check_count": 42
+}
