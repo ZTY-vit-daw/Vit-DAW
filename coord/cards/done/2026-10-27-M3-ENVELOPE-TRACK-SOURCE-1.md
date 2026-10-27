@@ -40,3 +40,11 @@
 - 分支：port/m3-envelope-track-source-1（实现，自领取后 main 建立）
 - worktree：D:/Vit_DAW_wt_etsrc1（领取核对基线：git rev-parse HEAD=46400263、status 仅本卡 R 一行）
 - 领取提交：本提交（coord/m3-envelope-track-source-1-claim → main）
+
+## 回执
+
+- 实现 commit：port/m3-envelope-track-source-1 @ **cafbc11f**（scripts/automation_curve_smoke.py 探测模式增量+dev_agent_smoke.ps1 -TrackSourceProbe 腿；默认冒测路径零改动，同栈 190 腿 13 checks 全绿即回归证据；VitApp/ agent/ webui/ 前端仓零改动）
+- 真栈 run：**coord/runs/M3-ENVELOPE-TRACK-SOURCE-1/tracksrc_20261027_1232 ps1 exit 0**（登记 83adfd32/释放 8ae4ea2b；内核=190 二进制只读复用 sha 85B4E8DF；VIT_PROJECT_XML=run 副本 90AFB63C 隔离亲证；占用期即时复核/无 already listening/登记先于启动三纪律在卷）
+- 探测结论：**volume/pan 双参数轨级全周期可用**（双轨×逐参 空披露→set_points 三点→逐点回读一致→跨轨 plugin_id 隔离→clear_region→回空；pan 本卡新实证）；master volume/master pan/trim/mute/gain 与 Level Meter 全参数不可寻址（"Parameter not found for param_id: X" 逐字）；descriptor 面 error 与 189 逐字一致（190 内核文案未变）
+- 两案对比+端测边界+工件清单：RESULTS.md（run 目录内）；执行侧意见倾向 A（零内核改动），裁定权归主管
+- 停止条件：未触发（锚点相符/set_points 轨级零 error）
