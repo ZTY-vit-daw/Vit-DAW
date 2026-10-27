@@ -48,3 +48,4 @@
 - 探测结论：**volume/pan 双参数轨级全周期可用**（双轨×逐参 空披露→set_points 三点→逐点回读一致→跨轨 plugin_id 隔离→clear_region→回空；pan 本卡新实证）；master volume/master pan/trim/mute/gain 与 Level Meter 全参数不可寻址（"Parameter not found for param_id: X" 逐字）；descriptor 面 error 与 189 逐字一致（190 内核文案未变）
 - 两案对比+端测边界+工件清单：RESULTS.md（run 目录内）；执行侧意见倾向 A（零内核改动），裁定权归主管
 - 停止条件：未触发（锚点相符/set_points 轨级零 error）
+- 验收：**整卡 pass**（GLM 主管决策流 2026-10-27；rulings/2026-10-27-M3-ENVELOPE-TRACK-SOURCE-1-pass.md；合入 fa94eb8f。A/B 择一挂起随 F2 用户裁定，主管预备意见=A 先行）

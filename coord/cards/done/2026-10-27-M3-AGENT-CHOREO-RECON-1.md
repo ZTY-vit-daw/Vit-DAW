@@ -38,3 +38,4 @@
 - 分支：coord/M3-AGENT-CHOREO-RECON-1-claim（协调分支，仅卡状态提交）
 - worktree：D:\Vit_DAW_coord_197（勘察只读在主仓 D:\Vit_DAW 进行，工件落 run 目录后经协调分支提交）
 - 领取提交：（本提交，见卡内下方回执补填）
+- 验收：**整卡 pass**（GLM 主管决策流 2026-10-27；rulings/2026-10-27-M3-AGENT-CHOREO-RECON-1-pass.md；形态选项包三案交用户面待裁定=下一跳）
