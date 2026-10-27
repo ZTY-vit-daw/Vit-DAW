@@ -50,3 +50,11 @@
 ## 验收
 
 （待主管裁决：blocked 处置——扩域授权单点修复 project_repository.gd 后重放真栈探针收口，或另开 repo 修复卡+本卡部分验收）
+
+## 主管裁决（2026-10-27 晚——扩域授权，卡回 todo 续作）
+
+- **blocked 采信**：停止条件①正确触发（racked 轨 rack.nodes 独占 rack_nodes 快照→轨级 Volume & Pan 行被排除→解析恒空；锚点+最小复现 stack_diag_205_rackshape 在卷）；按 §11 上交不越域=纪律正确。
+- **扩域授权**：`vit_dock/core/project_repository.gd` 单点入域（apply_kernel_project_state rack 分支+get_volume_pan_plugin_item_id_for_track 兜底）。修复形态=轨级 built-ins 与 rack.nodes **并源**（合并入快照或解析器兜底，按 diag 证据取最小面并回执披露）；**不得**改变 rack_nodes 既有消费方的行为语义（纯增轨级行/并源读取，既有键零破坏——AGENTS §11）。
+- **两消费面回归断言义务**：①车道轨道组+默认音量车道；②**轨道头声相推子 IPC**（racked 轨声相静默 no-op=预存生产缺陷，随本修复收口，修复前后红绿留证）。
+- **验收面增补**：真栈 R1b 重放=**20/20 两轮**（racked 轨三组在场+默认音量车道→建点→读回+声相推子写读对照）；其余卡面验收不变。交付面①②③（已绿部分）不重做，续作只补扩域面+重放。
+- 原执行 owner 优先续作（分支 port/fe-autolane-prodchain-fix-1 续提交）；206 仍排本卡合入后。
