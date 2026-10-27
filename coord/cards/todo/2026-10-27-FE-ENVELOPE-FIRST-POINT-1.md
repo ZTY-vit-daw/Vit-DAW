@@ -20,7 +20,7 @@
 
 ## 文件域
 
-`vit_dock/views/envelope_closeup_canvas.gd`+探针扩展（194/195 探针加断言或新探针文件）。**不触** envelope_dock_adapter/registry/dock_root/车道/app/rack。越域即停。
+`vit_dock/views/envelope_closeup_canvas.gd`+**独立探针新文件**（194/195 既有探针文件**零改动**——回归以只读复跑验证；与 200 的 194 探针 R/O 段迁移面解除冲突，发卡侧 2026-10-27 补注）。**不触** envelope_dock_adapter/registry/dock_root/车道/app/rack。越域即停。
 
 ## 验收标准
 
