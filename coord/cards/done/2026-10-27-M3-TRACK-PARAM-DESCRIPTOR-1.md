@@ -28,3 +28,14 @@
 ## 验收标准
 
 内核构建 exit 0+冒测两轮全绿+消费方回归清单全绿+工件入 coord/runs/M3-TRACK-PARAM-DESCRIPTOR-1/（§9 契约）+端测边界声明。
+
+## 回执
+
+- 实现 commit：**port/m3-track-param-descriptor-1** @ e9a49fd0（内核+冒测扩展，3 文件 +359/-2，diff 亲读）；工件 commit 同分支 f6933ed4（分支已推远端）。
+- 内核构建：exit 0（worktree 自建 VitApp.exe 31.7MB，VIT_TRACKTION_ENGINE_DIR=主检出只读；仅引擎侧既有 C4819 警告）。
+- 真栈冒测：**连续两轮全绿**（R1 15:07+R2 15:11，ps1 exit 0 ×2）——201 新腿（`-TrackParamDescriptorSmoke`，断言体=automation_curve_smoke.py `--probe-descriptor-tracks 2`，**42/42 checks×2**：恰 volume/pan 两行+schema 全字段+值域 0..1/-1..1+count 0→3→0+跨轨隔离+同源对照）+196 面回归（TrackSourceProbe anchor 2/2×2）+190 面回归（EnvelopePresenceSmoke 含**外部插件行 diff 级零改动**×2）。R2 首次尝试=188 守卫活触发拦停（R1 内核残留；非产品轮，归属亲核后手拆，console 留证）。
+- 消费方盘点：九面全绿（agent 工具面/观察/PCA/grabber、前端 rack 层、车道层、190/196/189/192 冒测面）——**零旧 error 语义硬依赖**；196 脚本条件断言自然兼容（真栈回归实证）；agent/ 前端仓零改。清单见 RESULTS.md §二。
+- 工件：coord/runs/M3-TRACK-PARAM-DESCRIPTOR-1/{trackparam_20261027_r1,trackparam_20261027_r2}/+RESULTS.md（§9 契约：完整命令/退出码/run 时 HEAD 与二进制哈希锚/隔离面/守卫轮留证）。
+- 端测边界声明：覆盖=内核 ZMQ 命令面真栈（两轮）+agent 最小腿；**不覆盖**=webui 渲染面/用户旅程（E2E-WEBUI-1/JOURNEY-1 既有边界）+Godot 前端腿（202 域，本卡前端零改口径下静态盘点替代）+agent LLM 面（LLM=0 轮）。
+- 真栈登记/释放：d71315ff/ebc2981e（coord/m3-track-param-descriptor-1-stack→main）；三纪律+VIT_PROJECT_XML 隔离亲证见 RESULTS.md §四。
+
