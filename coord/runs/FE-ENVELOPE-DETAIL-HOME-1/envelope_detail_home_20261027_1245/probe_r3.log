@@ -1,0 +1,305 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_envelope_detail_home.tscn time=2026-10-27T12:49:14 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup plugin_search (fallback=false)
+[stack-probe] PASS setup rack_add_node loads external plugin
+[stack-probe] PASS setup descriptors warm (get_plugin_parameters rows ready)
+[stack-probe] PASS setup target param picked
+[stack-probe] W0: instantiating VitDockRoot.tscn (full dock tree, headless)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:244)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:366)
+       [8] _send_setup (res://tools/stack_probe_envelope_detail_home.gd:131)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:248)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:366)
+       [7] _send_setup (res://tools/stack_probe_envelope_detail_home.gd:131)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:251)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:366)
+       [8] _send_setup (res://tools/stack_probe_envelope_detail_home.gd:131)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:244)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:366)
+       [8] _send_setup (res://tools/stack_probe_envelope_detail_home.gd:131)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:248)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:366)
+       [7] _send_setup (res://tools/stack_probe_envelope_detail_home.gd:131)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:251)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1610)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1411)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1383)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:366)
+       [8] _send_setup (res://tools/stack_probe_envelope_detail_home.gd:131)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+[stack-probe] PASS W0 dock root instantiated and settled
+[stack-probe] PASS W0 project repo synced rack node from kernel
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:244)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:248)
+       [1] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [2] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:251)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+[stack-probe] PASS W1 track detail window opened (reuse key track:1049)
+[stack-probe] PASS W1 detail window view_type=detail
+[stack-probe] PASS W1 detail adapter in real assembly tree
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:244)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [4] vit_open_envelope_detail (res://vit_dock/scenes/vit_dock_root.gd:4727)
+       [5] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:395)
+       [6] _wait_frames (res://tools/stack_probe_envelope_detail_home.gd:166)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:248)
+       [1] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [2] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [3] vit_open_envelope_detail (res://vit_dock/scenes/vit_dock_root.gd:4727)
+       [4] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:395)
+       [5] _wait_frames (res://tools/stack_probe_envelope_detail_home.gd:166)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:251)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [4] vit_open_envelope_detail (res://vit_dock/scenes/vit_dock_root.gd:4727)
+       [5] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:395)
+       [6] _wait_frames (res://tools/stack_probe_envelope_detail_home.gd:166)
+[stack-probe] PASS W2 envelope entry reuses same window (single frame)
+[stack-probe] PASS W2 frame switched to envelope view
+[stack-probe] PASS W2 envelope adapter in real assembly tree (closeup home)
+[stack-probe] PASS W2 window switch surface contains Detail+Envelope
+[stack-probe] PASS W3 catalog source (repo live)
+[stack-probe] PASS W3 ctx preselect lands (plugin+param selected)
+[stack-probe] PASS W3 canvas mounted in detail window envelope view
+[stack-probe] PASS W3 external set_points three points ok
+[stack-probe] PASS W3 closeup presents external write (auto re-pull via bus)
+[stack-probe] PASS W3 kernel get_curve cross-check point-by-point
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:244)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [4] vit_open_track_detail (res://vit_dock/scenes/vit_dock_root.gd:4704)
+       [5] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:444)
+       [6] _kernel_curve_points (res://tools/stack_probe_envelope_detail_home.gd:203)
+       [7] _automation_await (res://tools/stack_probe_envelope_detail_home.gd:152)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:248)
+       [1] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [2] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [3] vit_open_track_detail (res://vit_dock/scenes/vit_dock_root.gd:4704)
+       [4] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:444)
+       [5] _kernel_curve_points (res://tools/stack_probe_envelope_detail_home.gd:203)
+       [6] _automation_await (res://tools/stack_probe_envelope_detail_home.gd:152)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:251)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [4] vit_open_track_detail (res://vit_dock/scenes/vit_dock_root.gd:4704)
+       [5] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:444)
+       [6] _kernel_curve_points (res://tools/stack_probe_envelope_detail_home.gd:203)
+       [7] _automation_await (res://tools/stack_probe_envelope_detail_home.gd:152)
+[stack-probe] PASS W4 back to detail view (simulating 3D waveform page)
+[stack-probe] PASS W4 timeline_dock_adapter present in real dock tree
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:244)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [4] vit_open_envelope_detail (res://vit_dock/scenes/vit_dock_root.gd:4727)
+       [5] _on_lane_request_open_envelope_closeup (res://vit_dock/views/timeline_dock_adapter.gd:3053)
+       [6] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:452)
+       [7] _wait_frames (res://tools/stack_probe_envelope_detail_home.gd:166)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:248)
+       [1] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [2] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [3] vit_open_envelope_detail (res://vit_dock/scenes/vit_dock_root.gd:4727)
+       [4] _on_lane_request_open_envelope_closeup (res://vit_dock/views/timeline_dock_adapter.gd:3053)
+       [5] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:452)
+       [6] _wait_frames (res://tools/stack_probe_envelope_detail_home.gd:166)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:263)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:251)
+       [2] activate_view (res://vit_dock/scenes/viewport_frame.gd:140)
+       [3] _open_or_focus_detail_window (res://vit_dock/scenes/vit_dock_root.gd:4809)
+       [4] vit_open_envelope_detail (res://vit_dock/scenes/vit_dock_root.gd:4727)
+       [5] _on_lane_request_open_envelope_closeup (res://vit_dock/views/timeline_dock_adapter.gd:3053)
+       [6] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:452)
+       [7] _wait_frames (res://tools/stack_probe_envelope_detail_home.gd:166)
+[stack-probe] PASS W4 lane zoom forwarding lands on detail window envelope
+[stack-probe] PASS W4 lane zoom delivers preselect (plugin+param selected on fresh assembly)
+[stack-probe] PASS W5 stage snapshot spawnable excludes envelope (list integrity)
+[stack-probe] PASS W5 launcher buttons across dock tree carry no Envelope
+WARNING: Vit-Dock: vit_open_envelope_in_stage_slot 已停用（F1=A：包络主场=轨道特写窗）— 请走 vit_open_envelope_detail（track=1049 plugin=1055 param=dry level）
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] vit_open_envelope_in_stage_slot (res://vit_dock/scenes/vit_dock_root.gd:4929)
+       [1] _run_suite (res://tools/stack_probe_envelope_detail_home.gd:490)
+       [2] _wait_frames (res://tools/stack_probe_envelope_detail_home.gd:166)
+[stack-probe] PASS W6 degraded entry zero stage spawn (stage views unchanged, no envelope)
+[stack-probe] PASS W6 degraded entry keeps single detail window
+[stack-probe] PASS cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":30,"failures":[],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_envelope_detail_home.tscn","time":"2026-10-27T12:49:14"},"status":"pass"}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
