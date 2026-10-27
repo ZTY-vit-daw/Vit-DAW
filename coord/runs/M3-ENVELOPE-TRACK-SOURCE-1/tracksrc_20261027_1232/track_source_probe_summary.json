@@ -1,0 +1,813 @@
+{
+  "status": "ok",
+  "mode": "track_source_probe",
+  "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit_daw_track_source_probe\\track_source_probe_1793075575.vit",
+  "probe_tracks": 2,
+  "probe_params": [
+    "volume",
+    "pan",
+    "master volume",
+    "master pan",
+    "trim",
+    "mute",
+    "gain"
+  ],
+  "tracks": [
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugins": [
+        {
+          "id": "1011",
+          "item_id": "1011",
+          "plugin_item_id": "1011",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1012",
+          "item_id": "1012",
+          "plugin_item_id": "1012",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "plugin_parameter_descriptor_probes": [
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_id": "1008",
+      "reply_verbatim": {
+        "status": "error",
+        "message": "Plugin parameters are only available for external plugins"
+      },
+      "is_error": true,
+      "error_verbatim": "Plugin parameters are only available for external plugins"
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_id": "1011",
+      "reply_verbatim": {
+        "status": "error",
+        "message": "Plugin parameters are only available for external plugins"
+      },
+      "is_error": true,
+      "error_verbatim": "Plugin parameters are only available for external plugins"
+    }
+  ],
+  "probe_rows": [
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1008",
+      "param_id": "volume",
+      "addressable": true,
+      "anchor_volume": true,
+      "get_curve_empty_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "set_points_first_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "mode": "full",
+        "written": 3,
+        "point_count": 3,
+        "time_base": "time"
+      },
+      "get_curve_readback_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 3,
+        "points": [
+          {
+            "t": 0.0,
+            "v": 0.800000011920929,
+            "c": 0.0
+          },
+          {
+            "t": 1.5,
+            "v": 0.5,
+            "c": 0.25
+          },
+          {
+            "t": 3.0,
+            "v": 0.200000002980232,
+            "c": 0.0
+          }
+        ]
+      },
+      "readback_match": true,
+      "crosscheck_sibling_get_curve_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "crosscheck_sibling_empty": true,
+      "clear_region_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "region": {
+          "start": 0.0,
+          "end": 5.0
+        },
+        "removed_points": 3,
+        "point_count": 0
+      },
+      "get_curve_after_clear_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "empty_after_clear": true
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1008",
+      "param_id": "pan",
+      "addressable": true,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "set_points_first_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "pan",
+        "mode": "full",
+        "written": 3,
+        "point_count": 3,
+        "time_base": "time"
+      },
+      "get_curve_readback_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 3,
+        "points": [
+          {
+            "t": 0.0,
+            "v": -0.400000005960464,
+            "c": 0.0
+          },
+          {
+            "t": 1.5,
+            "v": 0.0,
+            "c": 0.25
+          },
+          {
+            "t": 3.0,
+            "v": 0.400000005960464,
+            "c": 0.0
+          }
+        ]
+      },
+      "readback_match": true,
+      "crosscheck_sibling_get_curve_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "crosscheck_sibling_empty": true,
+      "clear_region_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "pan",
+        "region": {
+          "start": 0.0,
+          "end": 5.0
+        },
+        "removed_points": 3,
+        "point_count": 0
+      },
+      "get_curve_after_clear_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "empty_after_clear": true
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1008",
+      "param_id": "master volume",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master volume"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master volume"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1008",
+      "param_id": "master pan",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master pan"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master pan"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1008",
+      "param_id": "trim",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: trim"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: trim"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1008",
+      "param_id": "mute",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: mute"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: mute"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1008",
+      "param_id": "gain",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: gain"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: gain"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1009",
+      "param_id": "volume",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: volume"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: volume"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1009",
+      "param_id": "pan",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: pan"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: pan"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1009",
+      "param_id": "master volume",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master volume"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master volume"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1009",
+      "param_id": "master pan",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master pan"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master pan"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1009",
+      "param_id": "trim",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: trim"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: trim"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1009",
+      "param_id": "mute",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: mute"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: mute"
+      ]
+    },
+    {
+      "track_index": 0,
+      "track_id": "1007",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1009",
+      "param_id": "gain",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: gain"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: gain"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1011",
+      "param_id": "volume",
+      "addressable": true,
+      "anchor_volume": true,
+      "get_curve_empty_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "set_points_first_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "volume",
+        "mode": "full",
+        "written": 3,
+        "point_count": 3,
+        "time_base": "time"
+      },
+      "get_curve_readback_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 3,
+        "points": [
+          {
+            "t": 0.0,
+            "v": 0.800000011920929,
+            "c": 0.0
+          },
+          {
+            "t": 1.5,
+            "v": 0.5,
+            "c": 0.25
+          },
+          {
+            "t": 3.0,
+            "v": 0.200000002980232,
+            "c": 0.0
+          }
+        ]
+      },
+      "readback_match": true,
+      "crosscheck_sibling_get_curve_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "crosscheck_sibling_empty": true,
+      "clear_region_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "volume",
+        "region": {
+          "start": 0.0,
+          "end": 5.0
+        },
+        "removed_points": 3,
+        "point_count": 0
+      },
+      "get_curve_after_clear_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "volume",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "empty_after_clear": true
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1011",
+      "param_id": "pan",
+      "addressable": true,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "set_points_first_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "mode": "full",
+        "written": 3,
+        "point_count": 3,
+        "time_base": "time"
+      },
+      "get_curve_readback_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 3,
+        "points": [
+          {
+            "t": 0.0,
+            "v": -0.400000005960464,
+            "c": 0.0
+          },
+          {
+            "t": 1.5,
+            "v": 0.0,
+            "c": 0.25
+          },
+          {
+            "t": 3.0,
+            "v": 0.400000005960464,
+            "c": 0.0
+          }
+        ]
+      },
+      "readback_match": true,
+      "crosscheck_sibling_get_curve_verbatim": {
+        "status": "ok",
+        "plugin_id": "1008",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "crosscheck_sibling_empty": true,
+      "clear_region_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "region": {
+          "start": 0.0,
+          "end": 5.0
+        },
+        "removed_points": 3,
+        "point_count": 0
+      },
+      "get_curve_after_clear_verbatim": {
+        "status": "ok",
+        "plugin_id": "1011",
+        "param_id": "pan",
+        "time_base": "time",
+        "bypass": false,
+        "point_count": 0,
+        "points": []
+      },
+      "empty_after_clear": true
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1011",
+      "param_id": "master volume",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master volume"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master volume"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1011",
+      "param_id": "master pan",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master pan"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master pan"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1011",
+      "param_id": "trim",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: trim"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: trim"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1011",
+      "param_id": "mute",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: mute"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: mute"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Volume & Pan Plugin/volume",
+      "plugin_id": "1011",
+      "param_id": "gain",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: gain"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: gain"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1012",
+      "param_id": "volume",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: volume"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: volume"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1012",
+      "param_id": "pan",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: pan"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: pan"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1012",
+      "param_id": "master volume",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master volume"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master volume"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1012",
+      "param_id": "master pan",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: master pan"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: master pan"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1012",
+      "param_id": "trim",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: trim"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: trim"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1012",
+      "param_id": "mute",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: mute"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: mute"
+      ]
+    },
+    {
+      "track_index": 1,
+      "track_id": "1010",
+      "plugin_kind": "Level Meter/level",
+      "plugin_id": "1012",
+      "param_id": "gain",
+      "addressable": false,
+      "anchor_volume": false,
+      "get_curve_empty_verbatim": {
+        "status": "error",
+        "message": "Parameter not found for param_id: gain"
+      },
+      "errors_verbatim": [
+        "Parameter not found for param_id: gain"
+      ]
+    }
+  ],
+  "anchor_assertions": {
+    "volume_anchor_rows": 2,
+    "volume_full_cycles": 2,
+    "volume_crosschecks": 2,
+    "expected_anchor_rows": 2
+  }
+}

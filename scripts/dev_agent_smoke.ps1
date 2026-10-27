@@ -30,6 +30,20 @@ param(
     # ref.diff identity+content 边界）。
     [switch]$RefQuerySmoke,
     [switch]$AutomationCurveSmoke,
+    # M3-ENVELOPE-TRACK-SOURCE-1 (196): track-level parameter family
+    # addressing probe leg (assertion body in scripts/automation_curve_smoke.py
+    # --probe-tracks mode; kernel ZMQ command face direct -- same shape as the
+    # M3-KERNEL-1 legs above). Legs: add_track x2 -> per track plugin row x
+    # candidate param_id: automation.get_curve empty disclosure (verbatim) ->
+    # set_points three points (one value-range retry parsed from the verbatim
+    # rejection) -> readback point-by-point -> cross-track plugin_id isolation
+    # -> clear_region -> back to empty. Hard assertions anchor only the
+    # 189-proven volume param; other candidates are recorded verbatim
+    # (unaddressable = legitimate probe outcome). get_plugin_parameters is
+    # re-disclosed verbatim per track volume plugin (descriptor face is
+    # external-plugins-only, so envelope_point_count cannot cover track
+    # params). Leg only needs the kernel stack after -StartKernel.
+    [switch]$TrackSourceProbe,
     # M3-ENVELOPE-PRESENCE-1 (190): envelope_point_count descriptor column
     # leg over the live kernel (assertion body in
     # scripts/envelope_presence_smoke.py, kernel ZMQ command face direct --
@@ -1208,7 +1222,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -8320,6 +8334,43 @@ if ($AutomationCurveSmoke) {
         throw ("automation curve smoke passed but summary artifact missing: " + $automationSummaryPath)
     }
     Write-Ok ("automation curve smoke passed (kernel command face; summary: " + $automationSummaryPath + ")")
+}
+
+if ($TrackSourceProbe) {
+    Write-Step "track source probe (M3-ENVELOPE-TRACK-SOURCE-1)"
+    # 轨级参数包络在场性数据源探测腿：断言体在
+    # scripts/automation_curve_smoke.py 的 --probe-tracks 模式（内核 ZMQ
+    # 命令面直连——与上方 M3-KERNEL-1 腿同形态）。腿：add_track×2 →
+    # 逐轨插件行×候选参数：get_curve 空披露（逐字）→ set_points 三点
+    # （越界时按逐字拒绝披露的值域重试一次）→ 逐点回读 → 跨轨
+    # plugin_id 隔离检查 → clear_region → 回读空。硬断言只锚 189 已证
+    # 的 volume 参数；其余候选逐字记录（不可寻址=合法探测结果）。
+    # get_plugin_parameters 对轨级 volume 插件逐字重披露（描述符面仅
+    # 外部插件）。腿只需内核栈在 -StartKernel 后可用；不依赖 agent
+    # HTTP 面。
+    $trackSourceScript = Join-Path $RepoRoot "scripts\automation_curve_smoke.py"
+    if (-not (Test-Path -LiteralPath $trackSourceScript)) {
+        throw ("track source probe script missing: " + $trackSourceScript)
+    }
+    $trackSourceArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($trackSourceArtifactsDir)) {
+        $trackSourceArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\track_source_probe_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $trackSourceArtifactsDir)) {
+        New-Item -ItemType Directory -Path $trackSourceArtifactsDir -Force | Out-Null
+    }
+    $trackSourceSummaryPath = Join-Path $trackSourceArtifactsDir "track_source_probe_summary.json"
+    $trackSourceConsolePath = Join-Path $trackSourceArtifactsDir "track_source_probe_console.txt"
+    & python $trackSourceScript --url ("tcp://127.0.0.1:" + $ZmqReqPort) --output $trackSourceSummaryPath --probe-tracks 2 --probe-params "volume,pan,master volume,master pan,trim,mute,gain" > $trackSourceConsolePath 2>&1
+    $trackSourceExit = $LASTEXITCODE
+    Get-Content -LiteralPath $trackSourceConsolePath | ForEach-Object { Write-Host $_ }
+    if ($trackSourceExit -ne 0) {
+        throw ("track source probe failed with exit code $trackSourceExit (console: " + $trackSourceConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $trackSourceSummaryPath)) {
+        throw ("track source probe passed but summary artifact missing: " + $trackSourceSummaryPath)
+    }
+    Write-Ok ("track source probe passed (kernel command face; summary: " + $trackSourceSummaryPath + ")")
 }
 
 if ($EnvelopePresenceSmoke) {
