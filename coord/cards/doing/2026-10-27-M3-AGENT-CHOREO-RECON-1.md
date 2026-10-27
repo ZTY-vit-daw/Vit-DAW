@@ -29,3 +29,12 @@
 
 - goalrunner/intent/context_manifest 锚点与卡面引用族大面积不符（结构已重构）→锚点清单上交；
 - FREESTATE-REGION-IMPL-1-STOP 工件缺失/不可读→如实记录，复用评估降级为「无法评估」，不虚构。
+
+## 领取
+
+- 时间：2026-10-27 12:12（PC 本地）
+- origin/main hash：2fa99bd3（领取基线，fast-forward 无冲突）
+- owner：GLM-5.3（ZCode PC 执行会话）；机器=PC（Windows）
+- 分支：coord/M3-AGENT-CHOREO-RECON-1-claim（协调分支，仅卡状态提交）
+- worktree：D:\Vit_DAW_coord_197（勘察只读在主仓 D:\Vit_DAW 进行，工件落 run 目录后经协调分支提交）
+- 领取提交：（本提交，见卡内下方回执补填）
