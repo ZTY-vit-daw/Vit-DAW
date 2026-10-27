@@ -31,5 +31,8 @@
 - 198 控件替换点结构漂移→锚点上交。
 
 - 领取：（2026-10-27 15:24 +0800 / origin/main=1546d9c348e05c2d76a6dca6aa129b9076ea2230 / GLM-5.3 L2 PC 执行侧 ZCode 会话（本卡会话，用户口令指定开工）/ 实现分支=port/fe-autolane-rebuild-1（前端仓 D:\Godot\project\vit-daw-frontend 独立 worktree，基线 main=a0bc0c4）+ 协调 worktree D:\Vit_DAW-coord-fe-autolane1（分支 coord/fe-autolane-rebuild-1-claim）/ 领取提交=本提交。领取时核对：卡在 todo+派发已确认（2026-10-27 用户裁定链）；依赖 201（M3-TRACK-PARAM-DESCRIPTOR-1）已合入（origin/main=1546d9c3 accept 提交，202 解锁）；doing 唯一卡 GEN-SUNO-WEB-DESIGN-1 文件域=coord/runs/GEN-SUNO-WEB-DESIGN-1/** 零冲突；真栈腿按 §2.2 登记+错峰（与手测节/其他真栈卡错峰，卡面并行条款））
-- 回执：（待完成回填）
+- 回执：（**执行侧自验完成 2026-10-27 17:00 前后，交主管验收**。实现=前端仓 `port/fe-autolane-rebuild-1` @ **b2f52fd**（已推远端；cebc2e8 实现+16a7d5c 栈探针+b2f52fd R1 缺陷修复）；工件=主仓 `port/fe-autolane-rebuild-1-stack`（run=**coord/runs/FE-AUTOLANE-REBUILD-1/autolane_20261027_1650/**，RESULTS.md 回执）。
+  **离线探针全绿 10 件 473 检 exit 0**：新 probe_autolane_rebuild **73/73**（开关/叠车道/选择器分组与 ●N/默认音量车道/空车道建点/收起零残留/195 几何迁移对照）+迁移四件 lane_ui 36/lane_auto 25/lane_toggle 27/closeup 81（摘车道⤢段）+既有六件零回退（curve 55/first_point 41/detail_home 52/badge 33/datachan 50+lane 系列）。**旧车道断言面处置清单逐条非弱化**=RESULTS.md §三（废置项全部有 2026-10-27 用户裁定链依据+替代守卫：三态/在场性/粘性→防复活守卫 E1-E3；⤢→窗侧入口 detail_home R 段在位）。
+  **真栈腿两轮全绿**：§2.2 登记 541a5543→ps1 最小腿 exit 0（188 守卫+PREFLIGHT_CLEAN）→stack_probe_autolane_rebuild **23/23×2 连续两轮**（R1 16:39+R2 16:40）：装载 VST（真发现）→真行装配展开→默认音量车道生产链落定→轨道组恰 volume/pan 两行（201 实面）→声相车道在场→空车道建点恰一笔+回显门+**内核 get_curve 读回一致**→●N 新鲜度实内核 count。R1 首试 22/23=L4 产品缺陷（自写回执 WRITE 分支早退致 ●N 重拉不触发）→修复 b2f52fd+F7b 回归断言→双轮全绿（缺陷轮留证 run 目录）。隔离三面亲证（run 副本内核写入/stack worktree git 干净/主检出零触碰）；拆栈 16:43 复核全零；释放记录随本批推送。
+  **端测边界声明**：渲染面（叠车道布局/波形叠加观感/弹层观感）未过浏览器级 DOM 断言（E2E-WEBUI-1 未就位）；手感面（按下即建即拖/开关操作）留用户手测（裁定链：实施后用户手测节点终验）；探针断言到内部状态+几何采样值+内核读回一致。停止条件三支均未触发（201 轨级行已到前端消费链实证 L2；多车道叠加走 189 C 案叠加条零行高冲突；198 槽位结构稳定替换实证）。）
 - 验收：（裁定文件 / 验收 commit）
