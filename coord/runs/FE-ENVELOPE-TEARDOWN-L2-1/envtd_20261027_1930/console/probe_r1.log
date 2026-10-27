@@ -1,0 +1,64 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_envelope_teardown.tscn time=2026-10-27T18:49:19 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS T0a registry runtime has no envelope descriptor
+[stack-probe] PASS T0b registry runtime spawnable excludes envelope (six production views kept)
+[stack-probe] PASS T0c dock root scene instantiates (headless, not in tree)
+[stack-probe] PASS T0d dock root has no vit_open_envelope_detail method
+[stack-probe] PASS T0e dock root has no vit_open_envelope_in_stage_slot method
+[stack-probe] PASS S0 setup clear_project
+[stack-probe] PASS S0a two probe tracks created (source+fx)
+[stack-probe] PASS S0b track.send.connect ok
+[stack-probe] PASS S0c track.send.set_amount ok (send level command face)
+[stack-probe] PASS S0d source track plugin rows enumerated verbatim (196 disclosure face)
+[stack-probe] PASS S0e send plugin discovered in get_project_state pluginList
+[stack-probe] PASS S0f get_plugin_parameters on send plugin recorded verbatim (built-in non-volume face expected to refuse)
+[stack-probe] PASS S0g automation.get_curve candidate family probed verbatim (5 candidates)
+[stack-probe] PASS S0h addressable branch: set_points+readback roundtrip
+[stack-probe] PASS E1 setup clear_project
+[stack-probe] PASS E1a add_track
+[stack-probe] PASS E1b track volume plugin discovered (196 face)
+[stack-probe] PASS E1c plugin_search (fallback=false)
+[stack-probe] PASS E1d rack_add_node loads external VST
+[stack-probe] PASS E1e VST descriptors warm
+[stack-probe] PASS E1f container mounted in real row assembly
+[stack-probe] PASS E1g two-state toggle present in real row assembly
+[stack-probe] PASS E1h toggle on expands container
+[stack-probe] PASS E1i default volume lane binding settled via production chain
+[stack-probe] PASS E1j default volume lane discloses EMPTY via production get_curve chain
+[stack-probe] PASS E2a track group = exactly volume/pan (201 live mirror)
+[stack-probe] PASS E2b send group = exactly one disabled placeholder (204 disclosure face)
+[stack-probe] PASS E2c plugin group = loaded VST live params (190/201/202 face end-to-end)
+[stack-probe] PASS E3a volume lane press-create enters drag (EMPTY→first point)
+[stack-probe] PASS E3b volume gesture zero writes
+[stack-probe] PASS E3c volume release commits exactly one point (恰一笔+echo gate)
+[stack-probe] PASS E3d volume kernel get_curve readback identical (t,v,c)
+[stack-probe] PASS E4a selector pan item found in track group (production selector face)
+[stack-probe] PASS E4b pan lane bound via selector item + EMPTY
+[stack-probe] PASS E4c pan release commits exactly one point (恰一笔+echo gate)
+[stack-probe] PASS E4d pan kernel get_curve readback identical
+[stack-probe] PASS E5a selector plugin-group item found (dry level anchor / first param)
+[stack-probe] PASS E5b plugin param lane bound via selector item + EMPTY
+[stack-probe] PASS E5c plugin param release commits exactly one point (恰一笔+echo gate)
+[stack-probe] PASS E5d plugin param kernel get_curve readback identical (190 face end-to-end)
+[stack-probe] PASS E6a Ctrl+Z kernel undo transaction replied (production key chain)
+[stack-probe] PASS E6b undo reverts last draw: plugin param lane back to EMPTY + kernel get_curve empty
+[stack-probe] PASS E6c volume/pan lanes keep their 1-point curves after undo (LIFO single revert)
+[stack-probe] PASS cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":44,"failures":[],"send_addressability":{"addressable":true,"automation_face":{"gain":"error | Parameter not found for param_id: gain","level":"error | Parameter not found for param_id: level","send amount":"error | Parameter not found for param_id: send amount","send level":"ok | points=0","send_level":"error | Parameter not found for param_id: send_level"},"candidates":["send level","send_level","send amount","gain","level"],"connect_ok":true,"descriptor_face":"error: Plugin parameters are only available for external plugins","fx_track_id":"1038","send_plugin_id":"1043","send_plugin_row":{"enabled":true,"id":"1043","item_id":"1043","name":"S:Track 8","plugin_item_id":"1043","type":"auxsend"},"set_amount_ok":true,"source_plugin_rows":[{"enabled":true,"id":"1043","item_id":"1043","name":"S:Track 8","plugin_item_id":"1043","type":"auxsend"},{"enabled":true,"id":"1044","item_id":"1044","name":"R:Track 8 Ret","plugin_item_id":"1044","type":"auxreturn"},{"enabled":true,"id":"1036","item_id":"1036","name":"Volume & Pan Plugin","plugin_item_id":"1036","type":"volume"},{"enabled":true,"id":"1037","item_id":"1037","name":"Level Meter","plugin_item_id":"1037","type":"level"}],"source_track_id":"1035"},"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_envelope_teardown.tscn","time":"2026-10-27T18:49:19"},"status":"pass"}
