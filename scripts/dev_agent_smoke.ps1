@@ -44,6 +44,18 @@ param(
     # external-plugins-only, so envelope_point_count cannot cover track
     # params). Leg only needs the kernel stack after -StartKernel.
     [switch]$TrackSourceProbe,
+    # M3-TRACK-PARAM-DESCRIPTOR-1 (201): track-level descriptor face leg
+    # (assertion body in scripts/automation_curve_smoke.py
+    # --probe-descriptor-tracks mode; kernel ZMQ command face direct --
+    # same shape as the legs above). Legs: fresh tracks ->
+    # get_plugin_parameters on every track volume plugin replies ok with
+    # exactly the volume/pan rows (resolve-addressable mirror; no
+    # master/trim/mute/gain rows) + full row schema (id/name/value_text/
+    # min/max/display_probe) + envelope_point_count 0 -> set_points three
+    # points (track#0 volume + track#1 pan) -> counts follow (3) with
+    # cross-track isolation -> clear_region -> counts back to 0. Leg only
+    # needs the kernel stack after -StartKernel.
+    [switch]$TrackParamDescriptorSmoke,
     # M3-ENVELOPE-PRESENCE-1 (190): envelope_point_count descriptor column
     # leg over the live kernel (assertion body in
     # scripts/envelope_presence_smoke.py, kernel ZMQ command face direct --
@@ -1222,7 +1234,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -8371,6 +8383,44 @@ if ($TrackSourceProbe) {
         throw ("track source probe passed but summary artifact missing: " + $trackSourceSummaryPath)
     }
     Write-Ok ("track source probe passed (kernel command face; summary: " + $trackSourceSummaryPath + ")")
+}
+
+if ($TrackParamDescriptorSmoke) {
+    Write-Step "track param descriptor smoke (M3-TRACK-PARAM-DESCRIPTOR-1)"
+    # 轨级描述符面冒测腿：断言体在 scripts/automation_curve_smoke.py 的
+    # --probe-descriptor-tracks 模式（内核 ZMQ 命令面直连——与上方
+    # TrackSourceProbe 腿同形态）。腿：add_track×2 → 每轨 volume 插件
+    # get_plugin_parameters 恰回 volume/pan 两行（resolve 可寻址面镜像）+
+    # 行 schema（id/name/value_text/min/max/display_probe）+
+    # envelope_point_count 全零 → set_points 三点（track#0 volume +
+    # track#1 pan）→ 描述符 count 跟随（3）+跨轨隔离 → clear_region →
+    # 全零回基线。腿只需内核栈在 -StartKernel 后可用；不依赖 agent
+    # HTTP 面。外部插件行 diff 级零改动由 -EnvelopePresenceSmoke（190
+    # 腿）单独覆盖，两者同批跑。
+    $trackDescriptorScript = Join-Path $RepoRoot "scripts\automation_curve_smoke.py"
+    if (-not (Test-Path -LiteralPath $trackDescriptorScript)) {
+        throw ("track param descriptor script missing: " + $trackDescriptorScript)
+    }
+    $trackDescriptorArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($trackDescriptorArtifactsDir)) {
+        $trackDescriptorArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\track_param_descriptor_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $trackDescriptorArtifactsDir)) {
+        New-Item -ItemType Directory -Path $trackDescriptorArtifactsDir -Force | Out-Null
+    }
+    $trackDescriptorSummaryPath = Join-Path $trackDescriptorArtifactsDir "track_param_descriptor_summary.json"
+    $trackDescriptorConsolePath = Join-Path $trackDescriptorArtifactsDir "track_param_descriptor_console.txt"
+    $trackDescriptorProjectPath = Join-Path $trackDescriptorArtifactsDir "track_param_descriptor_project.vit"
+    & python $trackDescriptorScript --url ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $trackDescriptorProjectPath --output $trackDescriptorSummaryPath --probe-descriptor-tracks 2 > $trackDescriptorConsolePath 2>&1
+    $trackDescriptorExit = $LASTEXITCODE
+    Get-Content -LiteralPath $trackDescriptorConsolePath | ForEach-Object { Write-Host $_ }
+    if ($trackDescriptorExit -ne 0) {
+        throw ("track param descriptor smoke failed with exit code $trackDescriptorExit (console: " + $trackDescriptorConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $trackDescriptorSummaryPath)) {
+        throw ("track param descriptor smoke passed but summary artifact missing: " + $trackDescriptorSummaryPath)
+    }
+    Write-Ok ("track param descriptor smoke passed (kernel command face; summary: " + $trackDescriptorSummaryPath + ")")
 }
 
 if ($EnvelopePresenceSmoke) {

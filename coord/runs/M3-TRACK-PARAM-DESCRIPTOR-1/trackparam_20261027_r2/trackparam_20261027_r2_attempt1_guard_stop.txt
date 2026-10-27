@@ -1,0 +1,29 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261027_150918\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_tpdc1\coord\runs\M3-TRACK-PARAM-DESCRIPTOR-1\trackparam_20261027_r2\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_tpdc1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_tpdc1\agent\bin\VitAgent.dev-smoke.exe
+warn: stopping existing agent pid=9248
+ok: installed agent bin: D:\Vit_DAW_wt_tpdc1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_tpdc1\agent\vitagent.exe
+
+== Start kernel
+port 5555 is already listening but pid 29836 is not a process this run started (kernel start step). Silent reuse of a f
+oreign stack is forbidden: SMOKE-STACK-GUARD-1 / PROTOCOL.md section 2.2 amendment 2 (187x185 same-minute double-stack 
+incident). Check the ownership ledger coord/resources/PC-RUNTIME-STACK.md and confirm the stack owner before proceeding
+; to deliberately attach to a foreign stack (forensics/takeover), re-run with -AllowForeignStack.
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_tpdc1\scripts\dev_agent_smoke.ps1:365 ×Ö·û: 5
++     throw (
++     ~~~~~~~
+    + CategoryInfo          : OperationStopped: (port 5555 is al...owForeignStack.:String) [], RuntimeException
+    + FullyQualifiedErrorId : port 5555 is already listening but pid 29836 is not a process this run started (kernel s 
+   tart step). Silent reuse of a foreign stack is forbidden: SMOKE-STACK-GUARD-1 / PROTOCOL.md section 2.2 amendment   
+  2 (187x185 same-minute double-stack incident). Check the ownership ledger coord/resources/PC-RUNTIME-STACK.md and    
+ confirm the stack owner before proceeding; to deliberately attach to a foreign stack (forensics/takeover), re-run     
+with -AllowForeignStack.
+ 
+R2_PS1_EXIT=0
