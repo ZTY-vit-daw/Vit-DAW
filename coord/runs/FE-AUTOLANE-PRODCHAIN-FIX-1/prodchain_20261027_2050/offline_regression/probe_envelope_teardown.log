@@ -1,0 +1,70 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-ENVELOPE-TEARDOWN-L2-1 teardown suite start
+[probe] PASS A1 registry VIEW_DESCRIPTORS has no envelope key
+[probe] PASS A2 get_view_descriptor(envelope) returns empty
+[probe] PASS A3 spawnable list excludes envelope
+[probe] PASS A4 in-register views intact (six production views kept)
+[probe] PASS B1 dock_root source readable
+[probe] PASS B2 vit_open_envelope_detail removed from dock_root
+[probe] PASS B3 vit_open_envelope_in_stage_slot stub removed from dock_root
+[probe] PASS B4 window view options call present (mechanism kept for waveform/frequency views)
+[probe] PASS B5 window view options list is exactly ["detail"] (no envelope)
+[probe] PASS B6 no view_type parameterization left (200 envelope parameterization reverted)
+[probe] PASS C1 timeline adapter source readable
+[probe] PASS C2 recursive closeup binder removed
+[probe] PASS C3 closeup request handler removed
+[probe] PASS C4 request_open_envelope_closeup signal face removed
+[probe] PASS D vit_dock retired file absent: res://vit_dock/views/envelope_dock_adapter.gd
+[probe] PASS D vit_dock retired file absent: res://vit_dock/views/envelope_dock_adapter.gd.uid
+[probe] PASS D vit_dock retired file absent: res://vit_dock/views/envelope_dock_adapter.tscn
+[probe] PASS D vit_dock retired file absent: res://vit_dock/views/envelope_closeup_canvas.gd
+[probe] PASS D vit_dock retired file absent: res://vit_dock/views/envelope_closeup_canvas.gd.uid
+[probe] PASS D probe retired file absent: res://tools/probe_envelope_closeup.gd
+[probe] PASS D probe retired file absent: res://tools/probe_envelope_curve.gd
+[probe] PASS D probe retired file absent: res://tools/probe_envelope_detail_home.gd
+[probe] PASS D probe retired file absent: res://tools/probe_envelope_first_point.gd
+[probe] PASS D probe retired file absent: res://tools/probe_plugin_envelope_badge.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_closeup.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_closeup.tscn
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_curve.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_curve.tscn
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_detail_home.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_detail_home.tscn
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_first_point.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_first_point.tscn
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_lane.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_lane.tscn
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_lane_auto.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_envelope_lane_auto.tscn
+[probe] PASS D probe retired file absent: res://tools/stack_probe_plugin_envelope_badge.gd
+[probe] PASS D probe retired file absent: res://tools/stack_probe_plugin_envelope_badge.tscn
+[probe] PASS E1 tree-wide zero residual references (7 forbidden tokens scanned)
+[probe] PASS E2 scan traversed production tree (registry file seen)
+[probe] PASS F1 rack source zero badge factory/refresh references
+[probe] PASS F2 display rules zero badge pure function
+[probe] PASS F3 probe rack subclass compiles
+SCRIPT ERROR: Invalid call. Nonexistent function 'track_send_list' in base 'Nil'.
+   at: _request_send_topology_refresh (res://app/rack/Vit_Graph_Rack.gd:2639)
+   GDScript backtrace (most recent call first):
+       [0] _request_send_topology_refresh (res://app/rack/Vit_Graph_Rack.gd:2639)
+SCRIPT ERROR: Invalid call. Nonexistent function 'list_track_plugin_states' in base 'Nil'.
+   at: _request_send_route_plugin_snapshot (res://app/rack/Vit_Graph_Rack.gd:2658)
+   GDScript backtrace (most recent call first):
+       [0] _request_send_route_plugin_snapshot (res://app/rack/Vit_Graph_Rack.gd:2658)
+[probe] PASS F4 assembled plugin cards carry no envelope badge row
+[probe] PASS section A completed
+[probe] PASS section B completed
+[probe] PASS section C completed
+[probe] PASS section D completed
+[probe] PASS section E completed
+[probe] PASS section F completed
+[probe] PROBE PASS (checks_total=50)

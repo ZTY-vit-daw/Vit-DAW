@@ -1,0 +1,34 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-PRODCHAIN-FIX-1 prodchain suite start
+[probe] PASS R1 production write path applied (apply_kernel_project_state)
+[probe] PASS R2 repo registered in project_repository group (production lookup face)
+[probe] PASS R3 rack_nodes snapshot keyed by track id (2 entries)
+[probe] PASS R4 track volume plugin id resolved from snapshot (volume type)
+[probe] PASS A1 wrapper present in real row assembly
+[probe] PASS A2 lane container mounted by row assembly
+SCRIPT ERROR: Invalid call. Nonexistent function 'get_kernel_track_id (via call)' in base 'Control (track_envelope_lane_2d.gd)'.
+   at: _assert_lazy_id_after_bind (res://tools/probe_autolane_prodchain.gd:226)
+   GDScript backtrace (most recent call first):
+       [0] _assert_lazy_id_after_bind (res://tools/probe_autolane_prodchain.gd:226)
+SCRIPT ERROR: Cannot call method 'call' on a null value.
+   at: _run (res://tools/probe_autolane_prodchain.gd:178)
+   GDScript backtrace (most recent call first):
+       [0] _run (res://tools/probe_autolane_prodchain.gd:178)
+       [1] _assert_lazy_id_after_bind (res://tools/probe_autolane_prodchain.gd:226)
+ERROR: Error calling from signal 'command_timed_out' to callable: 'Control(track_envelope_lane_2d.gd)::_on_command_timed_out_bus': Method expected 1 argument(s), but called with 2.
+   at: emit_signalp (core/object/object.cpp:1406)
+   GDScript backtrace (most recent call first):
+       [0] _on_soft_timeout (res://app/kernel/autoloads/vit_ipc_client.gd:202)
+ERROR: VitIpcClient: hard timeout; dropping active request ipc_1 cmd=get_wave_input_devices
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _on_hard_timeout (res://app/kernel/autoloads/vit_ipc_client.gd:223)

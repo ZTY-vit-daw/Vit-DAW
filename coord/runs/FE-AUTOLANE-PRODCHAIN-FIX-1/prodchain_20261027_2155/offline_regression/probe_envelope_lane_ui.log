@@ -1,0 +1,52 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-REBUILD-1 lane UI suite (189 lineage migrated) start
+[probe] PASS setup wrapper present + sized
+[probe] PASS A1 ensure returns waveform lane
+[probe] PASS A2 envelope container mounted by factory branch
+[probe] PASS A3 factory idempotent (same instance)
+[probe] PASS A4 waveform lane instance unchanged
+[probe] PASS A5 waveform lane view mode untouched
+[probe] PASS A6 container collapsed by default
+[probe] PASS A7 closed container hit empty
+[probe] PASS A8 closed container mouse filter IGNORE
+[probe] PASS A9 zero requests while collapsed
+[probe] PASS A10 expanded bottom stack geometry (＋bar 22 + strip 96×N)
+[probe] PASS A11 expanded hit covers lane body (envelope_lane vocabulary)
+[probe] PASS C1 select_parameter routed via row API
+[probe] PASS C2 selection state
+[probe] PASS D1 get_curve wire (payload 寻址两键+cmd/command 补齐)
+[probe] PASS B0 curve pending before reply
+[probe] PASS B2 curve loaded
+[probe] PASS B3 display readback point count
+[probe] PASS B4 display readback point-by-point (t,v,c)
+[probe] PASS B1 value scale from descriptor (gain min/max)
+[probe] PASS B5 t→x linear in seconds window
+[probe] PASS C4 switch param selection
+[probe] PASS D2 get_curve wire after switch
+[probe] PASS C5 switch resets to pending
+[probe] PASS C6 pan curve presented
+[probe] PASS B7 value scale follows descriptor (pan -1..1)
+[probe] PASS C8 out-of-catalog plugin rejected
+[probe] PASS E1 catalog without repo injection stays listed (send placeholder minimum)
+[probe] PASS E2 select on empty catalog rejected
+[probe] PASS E3 empty curve disclosed as EMPTY (建点入口态)
+[probe] PASS E4 kernel error verbatim passthrough
+[probe] PASS E5 beats non-empty curve rejected with disclosure
+[probe] PASS E6 queue failure fail-closed
+[probe] PASS section A completed
+[probe] PASS section BC completed
+[probe] PASS section E completed
+[probe] PROBE PASS (checks_total=36)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)

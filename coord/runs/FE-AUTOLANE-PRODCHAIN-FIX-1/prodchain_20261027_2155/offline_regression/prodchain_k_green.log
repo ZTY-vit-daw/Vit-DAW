@@ -1,0 +1,81 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-PRODCHAIN-FIX-1 prodchain suite start
+[probe] PASS R1 production write path applied (apply_kernel_project_state)
+[probe] PASS R2 repo registered in project_repository group (production lookup face)
+[probe] PASS R3 rack_nodes snapshot keyed by track id (2 entries)
+[probe] PASS R4 track volume plugin id resolved from snapshot (volume type)
+[probe] PASS A1 wrapper present in real row assembly
+[probe] PASS A2 lane container mounted by row assembly
+[probe] PASS A3 production bind pushes kernel id to container (198 patch path)
+[probe] PASS A4 lazy re-creation returns a fresh container instance
+[probe] PASS A5 lazy re-creation pushes row's current track id (205 fix face; pre-fix = empty)
+[probe] PASS A6 recreated container starts collapsed with zero lanes
+[probe] PASS A7 recreated container has empty catalog until refresh (no stale carry-over)
+[probe] PASS S0 toggle button present (production expand entry)
+[probe] PASS S1 toggle on expands container
+[probe] PASS S2 catalog arrived from real repo (rack members by track id)
+[probe] PASS S3 track volume plugin id resolved via repo face (no injection)
+[probe] PASS S4 default volume lane created (pending binding)
+[probe] PASS S5 default lane targets track volume (pending)
+[probe] PASS S6 descriptor requests issued for repo catalog sources
+[probe] PASS S7 default lane binding settled via production descriptor chain
+[probe] PASS S8 default lane label = 轨道·音量
+[probe] PASS S9 group order track→send→plugin from production chain
+[probe] PASS S10 track group = exactly volume/pan (repo-sourced)
+[probe] PASS S11 send group = exactly one disabled placeholder
+[probe] PASS S12 plugin group carries actually-loaded VST params (repo-sourced)
+[probe] PASS S13 unified selection binds VST param from production items
+[probe] PASS S14 curve loaded on selected VST lane
+[probe] PASS P1 policy: embedded → viewport mouse coordinates
+[probe] PASS P2 policy: non-embedded → OS screen mouse (production config embed=false)
+[probe] PASS P3 live position follows mouse source per embed flag (precedent-aligned)
+[probe] PASS P4 selector button present on expanded strip
+[probe] PASS P4b canvas anchor is off-origin (check non-vacuous)
+[probe] PASS P4c popup position source ≠ canvas anchor (defect ② regression face)
+[probe] PASS P5 headless guard: selector menu built but not popped
+[probe] PASS P6 headless guard: curve preset hit registers without popup
+[probe] PASS W0 repo snapshot grown via production write path
+[probe] PASS W1 rack receipt re-reads catalog from real repo (grown to 3)
+[probe] PASS W2 descriptor request issued for newly loaded repo member
+[probe] PASS K0 racked form applied via production write path
+[probe] PASS K1 rack branch semantics preserved (rack_nodes = rack.nodes only, zero break)
+[probe] PASS K2 parallel-source resolution reaches track volume plugin on racked track (205 expansion fix face; pre-fix = empty)
+[probe] PASS K3 plugins_by_track additive key preserves track built-ins
+[probe] PASS K4 lazy re-creation pushes id on racked track (205 face)
+[probe] PASS K5 racked track catalog from repo = rack members (plugin group face)
+[probe] PASS K6 track volume plugin id resolved on racked track via repo face (consumer face ①; pre-fix = empty)
+[probe] PASS K7 default volume lane created on racked track (pre-fix = none)
+[probe] PASS K8 default lane targets track volume pending
+[probe] PASS K9 default lane settled (轨道·音量) on racked track
+[probe] PASS K10 three groups present on racked track (track/send/plugin)
+[probe] PASS K11 track group = exactly volume/pan on racked track (user symptom face; pre-fix = absent)
+[probe] PASS K12 send placeholder intact
+[probe] PASS K13 plugin group = rack members params
+[probe] PASS K14 pan IPC gate resolves volume plugin id on racked track (consumer face ②; pre-fix = empty = silent no-op)
+[probe] PASS K15 empty-resolution pan write = silent no-op (pre-fix form: zero dispatch)
+[probe] FAIL K16 resolved pan write dispatches set_plugin_param (post-fix form) | ["", { "cmd": "set_plugin_param", "plugin_id": "3004", "param_id": "pan", "value": 0.625 }]
+[probe] PASS E1 lazy re-creation pushes id on second row too (205 face)
+[probe] PASS E2 repo-present but track-absent = selector only send placeholder (fail-closed)
+[probe] PASS E3 no default lane without track volume source
+[probe] PASS E4 selection rejected on empty production catalog
+[probe] PASS section R completed
+[probe] PASS section A completed
+[probe] PASS section S completed
+[probe] PASS section P completed
+[probe] PASS section W completed
+[probe] PASS section K completed
+[probe] PASS section E completed
+[probe] PROBE FAIL (checks_total=65 failed=1)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 2 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
