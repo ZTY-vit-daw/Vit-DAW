@@ -27,3 +27,7 @@
 
 - 发送量寻址探测发现需内核扩面→证据上交另裁（不在本卡扩内核）；
 - 拆除发现 vit_dock 之外残留引用（结构漂移）→锚点上交。
+
+## 领取
+
+- 2026-10-27 17:57 +0800 / origin/main=39acec166d8df5752f6942ab75aef46fa38001f4 / owner=GLM-5.3 L2 PC 执行侧 ZCode 会话（ZCode，本卡会话，用户口令指定领取）/ 分支=port/fe-envelope-teardown-l2-1（前端仓 worktree D:/Godot/project/vit-daw-frontend-envtd1，基线=前端 main 479d01c）+ 主仓协调 worktree D:/Vit_DAW_wt_envtd1_coord（coord/envtd1-claim）/ 领取提交=本提交。领取时核对：卡在 todo+派发已确认（用户裁定链）、依赖 203 已验收合入（主仓 39acec16 accept+前端 479d01c merge 双亲核）、doing 仅 GEN-SUNO-WEB-DESIGN-1（coord/runs/ 设计卡零生产代码，文件域零冲突）、真栈空闲（最新释放=203@17:46 亲读）。
