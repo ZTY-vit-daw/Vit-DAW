@@ -39,3 +39,4 @@
 - 端测边界声明：覆盖=内核 ZMQ 命令面真栈（两轮）+agent 最小腿；**不覆盖**=webui 渲染面/用户旅程（E2E-WEBUI-1/JOURNEY-1 既有边界）+Godot 前端腿（202 域，本卡前端零改口径下静态盘点替代）+agent LLM 面（LLM=0 轮）。
 - 真栈登记/释放：d71315ff/ebc2981e（coord/m3-track-param-descriptor-1-stack→main）；三纪律+VIT_PROJECT_XML 隔离亲证见 RESULTS.md §四。
 
+- 验收：**整卡 pass**（GLM 主管决策流 2026-10-27；rulings/2026-10-27-M3-TRACK-PARAM-DESCRIPTOR-1-pass.md；合入见 merge 提交。202 依赖解锁）
