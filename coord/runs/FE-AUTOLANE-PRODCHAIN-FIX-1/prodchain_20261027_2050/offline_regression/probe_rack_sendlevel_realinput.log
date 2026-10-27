@@ -1,0 +1,27 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-SEND-LEVEL-CLICK-FIX-1 send-level real-event suite start
+[probe] PASS realinput unified icon rendered
+[probe] PASS realinput expanded SendOut card present
+[probe] PASS lvl178 adjust entry on SendOut card
+[probe] PASS lvl182 layout settled (button rect non-degenerate)
+[probe] PASS lvl182 real-event click reaches button rect center
+[probe] PASS lvl178 popup opens on click
+[probe] PASS lvl182 popup rect fully on-screen
+[probe] PASS lvl178 popup spin initial value from topology
+[probe] PASS lvl182 spin grab focus holds after popup
+[probe] PASS lvl182 spin up-arrow real click steps value +0.5
+[probe] PASS lvl178 spin change sends set_amount payload
+[probe] PASS lvl178 payload source/fx/amount
+[probe] PASS lvl182 close popup hides overlay
+[probe] PASS lvl178 dangling route zero payload
+[probe] PASS lvl182 dangling route keeps popup closed
+[probe] PROBE PASS (checks_total=15)

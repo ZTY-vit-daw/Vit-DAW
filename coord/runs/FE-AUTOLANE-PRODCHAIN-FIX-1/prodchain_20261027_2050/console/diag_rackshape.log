@@ -1,0 +1,40 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[diag] clear=ok
+[diag] track_id=1052 reply_keys=["status", "message", "track_id", "track_name", "request_id"]
+[diag] tracks_count=15
+[diag] track=1002 name=Arranger plugins=[]
+[diag] track=1003 name=Chord plugins=[]
+[diag] track=1004 name=Marker plugins=[]
+[diag] track=1005 name=Tempo plugins=[]
+[diag] track=1006 name=Master plugins=[]
+[diag] track=1007 name=bass plugins=["Volume & Pan Plugin/volume/id=1008", "Level Meter/level/id=1009"]
+[diag] track=1012 name=drums plugins=["Volume & Pan Plugin/volume/id=1013", "Level Meter/level/id=1014"]
+[diag] track=1017 name=guitar plugins=["Volume & Pan Plugin/volume/id=1018", "Level Meter/level/id=1019"]
+[diag] track=1022 name=other plugins=["Volume & Pan Plugin/volume/id=1023", "Level Meter/level/id=1024"]
+[diag] track=1027 name=piano plugins=["Volume & Pan Plugin/volume/id=1028", "Level Meter/level/id=1029"]
+[diag] track=1032 name=vocals plugins=["Volume & Pan Plugin/volume/id=1033", "Level Meter/level/id=1034"]
+[diag] track=1035 name=Track 7 plugins=["New Rack/rack/id=1040", "Volume & Pan Plugin/volume/id=1036", "Level Meter/level/id=1037"]
+[diag] track=1042 name=Track 8 plugins=["Volume & Pan Plugin/volume/id=1043", "Level Meter/level/id=1044"]
+[diag] track=1045 name=Track 9 plugins=["New Rack/rack/id=1050", "Volume & Pan Plugin/volume/id=1046", "Level Meter/level/id=1047"]
+[diag] track=1052 name=Track 10 plugins=["Volume & Pan Plugin/volume/id=1053", "Level Meter/level/id=1054"]
+[diag] applied=true rack_keys=["1007", "1012", "1017", "1022", "1027", "1032", "1035", "1042", "1045", "1052"]
+[diag] rack[1007]=["1008:volume:Volume & Pan Plugin", "1009:level:Level Meter"]
+[diag] rack[1012]=["1013:volume:Volume & Pan Plugin", "1014:level:Level Meter"]
+[diag] rack[1017]=["1018:volume:Volume & Pan Plugin", "1019:level:Level Meter"]
+[diag] rack[1022]=["1023:volume:Volume & Pan Plugin", "1024:level:Level Meter"]
+[diag] rack[1027]=["1028:volume:Volume & Pan Plugin", "1029:level:Level Meter"]
+[diag] rack[1032]=["1033:volume:Volume & Pan Plugin", "1034:level:Level Meter"]
+[diag] rack[1035]=["1041:vst:ValhallaSupermassive"]
+[diag] rack[1042]=["1043:volume:Volume & Pan Plugin", "1044:level:Level Meter"]
+[diag] rack[1045]=["1051:vst:ValhallaSupermassive"]
+[diag] rack[1052]=["1053:volume:Volume & Pan Plugin", "1054:level:Level Meter"]
+[diag] resolved_volume_plugin_id=1053

@@ -1,0 +1,40 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_autolane_prodchain.tscn time=2026-10-27T21:17:56 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track
+[stack-probe] PASS setup plugin_search (fallback=false)
+[stack-probe] PASS setup rack_add_node loads external VST
+[stack-probe] PASS setup VST descriptors warm
+[stack-probe] PASS R1 production write path applied (apply_kernel_project_state with real kernel reply)
+[stack-probe] PASS R2 repo rack_nodes keyed by track id incl. loaded VST (snapshot form)
+[stack-probe] FAIL R3 repo resolves track volume plugin id from snapshot | 
+[stack-probe] PASS A1 container mounted in real row assembly
+[stack-probe] PASS A2 production bind registers scene→kernel mapping in registry autoload
+[stack-probe] PASS A3 production bind pushes kernel id to container (198 patch path)
+[stack-probe] PASS A4 lazy re-creation returns a fresh container instance
+[stack-probe] PASS A5 lazy re-creation pushes row's current track id (205 fix face; pre-fix = empty)
+[stack-probe] PASS S0 two-state toggle present in real row assembly
+[stack-probe] PASS S1 toggle on expands container (production entry)
+[stack-probe] PASS S2 catalog arrived from real repo (production read chain)
+[stack-probe] PASS S3 track volume plugin id resolved via repo face (no injection)
+[stack-probe] FAIL S4 default volume lane binding settled via production descriptor chain (real bus) | [0, {  }]
+[stack-probe] FAIL S4b blocked face: no default lane without repo volume plugin id (anchor handed over) | ["", "see stack_diag_205_rackshape for shape evidence"]
+[stack-probe] PASS cleanup clear_project (blocked path)
+[stack-probe] SUMMARY_JSON {"checks_failed":3,"checks_total":20,"failures":["R3 repo resolves track volume plugin id from snapshot | ","S4 default volume lane binding settled via production descriptor chain (real bus) | [0, {  }]","S4b blocked face: no default lane without repo volume plugin id (anchor handed over) | [\"\", \"see stack_diag_205_rackshape for shape evidence\"]"],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_autolane_prodchain.tscn","time":"2026-10-27T21:17:56"},"status":"fail"}
