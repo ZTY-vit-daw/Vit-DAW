@@ -31,3 +31,12 @@
 
 - 轨级参数寻址与 189/M3-RECON 锚点不符（内核已重构）→锚点上交；
 - set_points 对轨级参数回 error（189 L2 前提失效）→如实留证，本卡转 B 案证据卡上交，**不擅自改内核**。
+
+## 领取
+
+- 时间：2026-10-27 早窗
+- origin/main hash：46400263c45a06c08d7a4ba66b78a566f2f79bd5（领取核对时两次基线前移 2fa99bd3→c1c6a63c→46400263，均为他卡状态提交，按 §2.1.3 重放后核对无人领取）
+- owner：PC 执行会话（GLM-5.3，ZCode，196 卡会话）
+- 分支：port/m3-envelope-track-source-1（实现，自领取后 main 建立）
+- worktree：D:/Vit_DAW_wt_etsrc1（领取核对基线：git rev-parse HEAD=46400263、status 仅本卡 R 一行）
+- 领取提交：本提交（coord/m3-envelope-track-source-1-claim → main）
