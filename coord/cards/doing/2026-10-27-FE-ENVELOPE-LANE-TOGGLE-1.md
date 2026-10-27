@@ -33,3 +33,7 @@
 - 轨道头控件挂载点与 FE-GUI 系列结构漂移（锚点不符）→锚点上交；
 - 默认 auto 在多轨工程引发扫描性能问题（卡顿/超帧）→取证上交，默认档可退 manual 待用户裁定；
 - 三态控件与轨道头既有让路链/命中路由冲突超预期→上交。
+
+- 领取：（2026-10-27 12:12 +0800 / origin/main=2fa99bd34908b06cc4eb53ca94f521d70ba5782d / ZCode GLM-5.3 PC 执行会话（ZCode，198 卡会话）/ 分支=port/fe-envelope-lane-toggle-1（前端仓 worktree D:/Godot/project/vit-daw-frontend-lanetoggle1，领取基线 main=a81e0a5）+ 协调 worktree D:/Vit_DAW_wt_lanetoggle1_coord（coord/lanetoggle1-claim）/ 领取提交=本提交。领取核对：卡在 todo+派发已确认+依赖 191/192/194/195 已合入；doing 仅 GEN-SUNO-WEB-DESIGN-1（域=coord/runs/GEN-SUNO-WEB-DESIGN-1/** Mac 侧零生产代码，与本卡不相交）；真栈空闲（最新释放 195@2026-10-26 23:10；本腿启栈前按 §2.2 另行登记并错峰用户手测节））
+- 回执：（待回填）
+- 验收：（待主管裁定）
