@@ -30,3 +30,5 @@
 - 高度信号消费方（行池/列表容器）不支持运行时按行动态变更（结构假设失效）→锚点上交；
 - 车道区超高处理需形态裁定（滚动 vs 上限调整）→两案上交；
 - 新几何下 TimelineViewMapping/仲裁器命中面冲突超预期→上交。
+
+- 领取：（2026-10-28 10:15 +0800 / origin/main=2d9d801c38a7e8dc9df46d42e737929c60c0da64 / ZCode GLM-5.3 PC 执行会话（ZCode，206 卡会话）/ 分支=port/fe-autolane-layout-grow-1（前端仓 worktree D:/Godot/project/vit-daw-frontend-lgrow1，领取基线 main=9f65dad）+ 协调 worktree D:/Vit_DAW_wt_lgrow1_coord（coord/lgrow1-claim）/ 领取提交=本提交。领取核对：fetch 后卡仍在 todo+派发已确认+依赖 205 已合入（7b95b1b4 accept、前端 9f65dad=origin/main 亲核）；doing 仅 GEN-SUNO-WEB-DESIGN-1（域不相交）；真栈空闲（2026-10-27 gate 记录；启栈前按 §2.2 另行登记+≤60s 即时复核，并错峰用户手测节））
