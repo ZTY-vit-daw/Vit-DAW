@@ -51,3 +51,13 @@
 - worktree：D:/Godot/project/vit-daw-frontend-vspdelta1
 - 前端领取基线：main 4891bae（已核 origin/main = 4891baef4267f6eb0bc11ef9a28b324a030ee410）
 - 领取提交：8ef8cc6f（已推 main 并核对远端卡面 owner，正式领取）
+
+## 回执（2026-10-28 20:4x，执行侧自验完成，交主管验收）
+
+- 实现 commit（前端 port/fe-lane-catalog-vspdelta-guard-1，已推）：**0018e50**（修复+探针两件）+**db1692a**（真栈探针三轮迭代定稿）；4 文件 +795/-23。
+- 修复落点：`project_store.gd _apply_vsp_delta_reply` cursor 更新后加 `_project_state_tracks_schema_ok` 守卫——delta 应用后轨行缺数组型 plugins 列→判非 ok→refresh 主体零改动自然回落 legacy 全量自愈；严格版判定（非空轨集任一缺列即触发，覆盖混合态）；空轨集豁免；cursor 前进不回退；一次性 fail-loud+`get_vsp_delta_schema_guard_count()` 探针面。**首载入口零改动**（勘察否定简装前提+守卫 ops 空分支自愈兜底[离线 G6 亲证]）。
+- 勘察三项定案：①首载=start_page open_project IPC→dock 主场景→store 首载 legacy 全量**带轨行 plugins**（绿窗正常）；②40 次 get_project_state=ProjectStore legacy 分支累计（发送点唯一 project_client.gd:58；delta-ok 短路轮次不发）；③内核 delta 轨行 op=remove/add（value=紧凑轨行恒无 plugins）/replace（value=buildTrackCore 无 plugins）——前端 replace/in-place-add merge 保留不剥列，**append 形态（新轨 add/remove+add 同轨/id 不匹配）驻留剥列**+ops 空也 ok 的短路叠加=断供根因，真栈 DIAG P4c/P6 坐实。
+- 真栈：run=coord/runs/FE-LANE-CATALOG-VSPDELTA-GUARD-1/vspdelta_20261028_1（工件随 **port/fe-lane-catalog-vspdelta-guard-1-stack@e18916e8** 入库，RESULTS.md 七项披露）。**DIAG 复现轮 23/23 缺陷签名全绿 exit 0**（基线 4891bae detached worktree；P2b 首载绿→P4c 新轨 vp 恒空跨 delta 覆盖点=用户症状时序面复现→P6 驻留不自愈）；**正式轮 25/25×2 连续两轮 exit 0**（时序面+装配面+修复面全绿）。栈登记 46dcae9c/释放全记录见 PC-RUNTIME-STACK（三纪律亲证；首跑 PS5.1 GBK 吞行尾致参数丢失事故留痕，188 守卫拦截+亲核处置，无外会话污染）。
+- 离线：probe_vsp_delta_schema_guard **30/30 PASS**（-s 模式）；全家回归 **24/24 首轮全绿 exit 0**（worktree --import 后，无缓存态事故）。
+- 端测边界声明：本腿=agent HTTP/ZMQ 面+Godot headless 生产树断言，**不含 webui 渲染面与用户旅程面**；卡面目标③手测闭环（用户重验双向场景）待用户手测节执行——真栈 P4/P5 已覆盖双向自动等价（先展开再装载/先装载再展开）。
+- 停止条件三项均未触发（首载链与假设相符；守卫与 resync/cursor 语义无冲突[离线 G7 亲证 cursor 不回退]；40 次溯源未发现依赖剥列形态的消费方）。
