@@ -1,0 +1,89 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-EDIT-1 autolane edit suite start
+WARNING: VitTelemetryManager: bind 4444 failed: 2
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://app/kernel/autoloads/telemetry_manager.gd:168)
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:283)
+       [2] _bind_volume_lane (res://tools/probe_autolane_edit.gd:132)
+       [3] _run (res://tools/probe_autolane_edit.gd:151)
+       [4] _process (res://tools/probe_autolane_edit.gd:70)
+[probe] PASS setup volume strip bound
+[probe] PASS setup curve loaded
+[probe] PASS G1 press on point enters point drag
+[probe] PASS G2 drag motion updates working copy, zero writes during gesture
+[probe] PASS G3a shift locks t (v only; t = press snapshot)
+[probe] PASS G3b ctrl locks v (t only; v = press snapshot)
+[probe] PASS G4 release commits exactly one set_points
+[probe] PASS G4a region = [prev anchor, next anchor + eps]
+[probe] PASS G4b region points = 3 (idempotent rebuild incl. anchors)
+[probe] PASS G4c c passthrough preserved (0.25)
+[probe] PASS G5 write ok + echo re-pull aligns (loaded, no mismatch)
+[probe] PASS G6a press on polyline creates new point into drag
+[probe] PASS G6b release commits add (region rebuild carries new point + anchors)
+[probe] PASS G7 zero-displacement release writes nothing
+[probe] PASS G7a focus retained after zero-displacement click
+[probe] PASS G8 delete focused point rebuilds region via set_points (anchors only)
+[probe] PASS G9a delete-to-single-point issues clear_region
+[probe] PASS G9b clear region = [0, tail pad] no next anchor
+[probe] PASS G9c after clear echo empty curve → EMPTY state
+[probe] PASS G10 delete without focus writes nothing
+[probe] PASS G11a press on single-point extension line adds second point
+[probe] PASS G11b release commits extension add (region carries both points)
+[probe] PASS W1a moved point committed once
+[probe] PASS W1b echo mismatch disclosed (kind=echo_mismatch)
+[probe] PASS W1c presentation aligned to kernel after mismatch
+[probe] PASS W2 write error rolls back to baseline (loaded) with verbatim disclosure
+[probe] PASS W3 queue failure rolls back with disclosure
+[probe] PASS W4 write timeout rolls back with timeout disclosure
+[probe] PASS W5a external curve reply during drag deferred (presentation unchanged)
+[probe] PASS W5b zero-displacement release merges deferred refresh (re-pull, no write)
+[probe] PASS W5c merged refresh aligned to external kernel state
+[probe] PASS K1 handle position = sampled curve value at segment mid t
+[probe] PASS K2a press on handle enters curve drag
+[probe] PASS K2b vertical drag maps c continuously (up = c decrease)
+[probe] PASS K2c curve release commits exactly one set_points with new c
+[probe] PASS K3 right-click on handle hits preset surface
+[probe] PASS K4a preset fast_in applies c=-1
+[probe] PASS K4b preset smooth_s keeps sign of negative c (-0.5)
+[probe] PASS K4c same-value preset idempotent (zero write)
+[probe] PASS K4d preset linear applies c=0
+[probe] PASS K4e preset fast_out applies c=+1
+[probe] PASS K4f preset menu items = four entries
+[probe] PASS S1 snapping default off
+[probe] PASS S2 toggle rects flip T/V on
+[probe] PASS S3 time snap rounds t to grid step
+[probe] PASS S4 value snap rounds v to unit 1/8 grid
+[probe] PASS S5 set_snapping API face
+[probe] PASS U1 Ctrl+Z queues kernel undo transaction (rid env_lane_undo)
+[probe] PASS U1a history state pending
+[probe] PASS U2a undo ok triggers curve re-pull
+[probe] PASS U2b lane presentation aligned to kernel readback after undo
+[probe] PASS U2c history error cleared after ok
+[probe] PASS U3 undo rejected discloses verbatim on requesting strip
+[probe] PASS U4 Ctrl+Z during drag ignored (no hijack)
+[probe] PASS U5a Ctrl+Y queues kernel redo transaction
+[probe] PASS U5b redo ok re-pulls and aligns to kernel readback
+[probe] PASS U6 collapsed lane does not hijack Ctrl+Z
+[probe] PASS U7 undo ok refreshes ●N descriptors
+[probe] PASS section G completed
+[probe] PASS section W completed
+[probe] PASS section K completed
+[probe] PASS section S completed
+[probe] PASS section U completed
+[probe] PROBE PASS (checks_total=63)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

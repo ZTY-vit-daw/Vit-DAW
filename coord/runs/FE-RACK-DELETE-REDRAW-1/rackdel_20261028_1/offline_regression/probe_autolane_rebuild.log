@@ -1,0 +1,110 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-REBUILD-1 autolane rebuild suite start
+WARNING: VitTelemetryManager: bind 4444 failed: 2
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://app/kernel/autoloads/telemetry_manager.gd:168)
+[probe] PASS setup wrapper present + sized
+[probe] PASS setup lane instance via row API
+[probe] PASS A1 two-state toggle present at MSR row (198 slot)
+[probe] PASS A2 toggle slot before engine level label (198 slot preserved)
+[probe] PASS A3 default collapsed (not pressed)
+[probe] PASS A4 lane hidden by default
+[probe] PASS A5 closed lane hit empty
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:283)
+       [2] set_envelope_lane_open (res://app/tracks/track_scene/Track_Row_Controller.gd:1196)
+       [3] _on_envelope_toggle_toggled (res://app/tracks/track_scene/Track_Row_Controller.gd:1040)
+       [4] _assert_switch_and_stack (res://tools/probe_autolane_rebuild.gd:196)
+       [5] _run (res://tools/probe_autolane_rebuild.gd:166)
+[probe] PASS A6 switch on expands container
+[probe] PASS A7 default = one volume lane (pending binding)
+[probe] PASS A8 default lane targets track volume (pending binding)
+[probe] PASS A9 waveform lane instance unchanged
+[probe] PASS A10 default lane binding settled after descriptor reply
+[probe] PASS A11 lane label = 组名·参数名
+[probe] PASS A12 range label follows descriptor unit (dB)
+[probe] PASS S1 add entry appends lane
+[probe] PASS S2 container = in-row layout flow below waveform (206 b+a)
+[probe] PASS S3 lane close removes strip
+[probe] PASS S4 container shrinks back (row height follows)
+[probe] PASS A13 switch off zero residue
+[probe] PASS A13b row height falls back to base on collapse
+[probe] PASS A14 re-expand restores lane list (memory retained, no rebuild)
+[probe] PASS A14b row height grows again on re-expand
+[probe] PASS P1 catalog inject issues descriptor requests per plugin
+[probe] PASS P2 group order track→send→plugin
+[probe] PASS P3 track group = exactly volume/pan (201 mirror)
+[probe] PASS P4 ●N marker on count>0 (pan ●2)
+[probe] PASS P5 no marker on count=0 (volume)
+[probe] PASS P6 send group placeholder disabled (204)
+[probe] PASS P7 plugin group = catalog actual params
+[probe] PASS P8 plugin param ●N + count_seen (mix ●3)
+[probe] PASS P9 missing count key = no marker + count_seen=false disclosure
+[probe] PASS P10 unified selection binds plugin param
+[probe] PASS P11 lane label = 组名·参数名 (plugin group)
+[probe] PASS P12 descriptor scale applied (mix 0..1)
+[probe] PASS P13 out-of-catalog plugin rejected
+[probe] PASS P14 menu group headers (轨道/发送/插件)
+[probe] PASS P15 send placeholder disabled in menu
+[probe] PASS C1 curve request issued on selection (rid namespace)
+[probe] PASS C2 curve loaded
+[probe] PASS C3 display readback point-by-point (t,v,c)
+[probe] PASS C4 pan value scale -1..1 from descriptor
+[probe] PASS C5 pan label 声相
+[probe] PASS C6 t→x linear in seconds window
+[probe] PASS F0 empty curve disclosed as EMPTY
+[probe] PASS F1 press on EMPTY creates first point (press-create)
+[probe] PASS F2 drag updates point, zero writes during gesture
+[probe] PASS F3 release commits exactly one set_points
+[probe] PASS F4 region = no-anchor branch [0, tail pad]
+[probe] PASS F5 payload addresses (vp1, volume) with single point
+[probe] PASS F6 point v clamped to descriptor range (0..1)
+[probe] PASS F7 write ok triggers echo re-pull (get_curve)
+[probe] PASS F7b own write receipt re-pulls descriptors (●N freshness)
+[probe] PASS F8 echo gate: kernel readback matches committed (loaded, no mismatch)
+[probe] PASS F9 second first-point gesture queued
+[probe] PASS F10 write error rolls back to EMPTY with verbatim disclosure
+[probe] PASS G1 lane segment_curve_value matches independent reference (195 migration)
+[probe] PASS G2 c=0 degenerates to linear (189 polyline zero change)
+[probe] PASS E0 (precondition) selector items present
+[probe] PASS E1 kernel error verbatim passthrough
+[probe] PASS E2 beats non-empty curve rejected with disclosure
+[probe] PASS E3 queue failure fail-closed (curve)
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:283)
+       [2] _assert_fail_closed (res://tools/probe_autolane_rebuild.gd:660)
+       [3] _run (res://tools/probe_autolane_rebuild.gd:171)
+       [4] _assert_first_point (res://tools/probe_autolane_rebuild.gd:515)
+[probe] PASS E4 empty catalog = no default lane, selector only send placeholder
+[probe] PASS E5 select on empty catalog rejected
+[probe] PASS E6 container readback idle on zero lanes
+[probe] PASS W1 automation write receipt re-pulls descriptor counts (●N freshness)
+[probe] PASS W2 rack topology receipt refresh is a no-op without repo (injected catalog kept)
+[probe] PASS W3 collapsed container issues zero requests
+[probe] PASS section A completed
+[probe] PASS section S completed
+[probe] PASS section P completed
+[probe] PASS section C completed
+[probe] PASS section F completed
+[probe] PASS section G completed
+[probe] PASS section E completed
+[probe] PASS section W completed
+[probe] PROBE PASS (checks_total=75)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
