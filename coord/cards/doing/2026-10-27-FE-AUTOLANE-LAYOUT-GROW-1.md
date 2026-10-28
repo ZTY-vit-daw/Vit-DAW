@@ -65,3 +65,5 @@
 - **探针义务增补**：①双形态断言=<阈值直接行路径+虚拟池路径（虚拟池形态允许经产品现役 env `VIT_GUI_VIRTUAL_TRACK_LIST_THRESHOLD` 降档构造（:248-255 亲核），属产品机制非注入；断言须同时覆盖默认阈值语义零破坏）；②按行覆盖生效断言（单行展开→仅该行高度变化，他行基线不动）；③其余按卡面目标 5（205 起口径：真栈腿禁注入+生产链断言）。
 - **锚点亲核记录**：信号入口忽略 scene_track_id（:1605-1616）/记录高度全局派生（:536-540）/几何重建输出（:542-553）/局部改高复位（:1557-1590）/阈值 24（:24-25）/行侧 emit 两源（Track_Row_Controller.gd :3922/:3925-3930）/签名机制（router :798-808/:1128）——上交证据全部属实，停止条件①触发正当，零代码改动零栈占用合规。
 - 卡流转：blocked→todo，owner 不变（同会话续作）；前端 worktree 已清（主管亲核不存在），续作重 build worktree port/fe-autolane-layout-grow-1，领取基线不变（9f65dad）。
+
+- 领取（续作）：（2026-10-28 11:0x +0800 / origin/main=26740b7f（主管扩域裁定提交）/ owner 不变=ZCode GLM-5.3 PC 执行会话（206 卡会话，裁定「owner 不变，同会话续作」）/ 分支=port/fe-autolane-layout-grow-1 重建（worktree D:/Godot/project/vit-daw-frontend-lgrow1，领取基线仍 9f65dad）+ 协调 worktree D:/Vit_DAW_wt_lgrow1_coord（coord/lgrow1-claim）/ 领取提交=本提交。领取核对：卡在 todo（裁定流转 blocked→todo）+扩域裁定已下（26740b7f 亲读全文）+依赖 205 已合入；doing 仅 GEN-SUNO-WEB-DESIGN-1（域不相交）；真栈腿启栈前按 §2.2 登记+≤60s 复核+错峰手测节）
