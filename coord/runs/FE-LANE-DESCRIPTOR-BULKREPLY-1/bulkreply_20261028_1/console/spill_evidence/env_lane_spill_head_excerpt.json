@@ -1,0 +1,15 @@
+{
+  "status": "ok",
+  "track_id": "1042",
+  "plugin_id": "1048",
+  "plugin_item_id": "1048",
+  "template_role": "other",
+  "supports_param_grabber": true,
+  "current_param_signature_hash": "probe_5c0ed40e4095f31f",
+  "binding_targets": [
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1048",
+      "plugin_name": "Pro-Q 3",
+      "plugin_type": "vst",
+      "template_ro

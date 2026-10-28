@@ -1,0 +1,50 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-REBUILD-1 two-state toggle suite (198 lineage migrated) start
+[probe] PASS setup lane mounted
+[probe] PASS M1 two-state toggle present in real row assembly (MSR row)
+[probe] PASS M2 toggle_mode on (two-state)
+[probe] PASS M3 not a MenuButton (三态下拉形态拆除)
+[probe] PASS M4 slot before engine level label (198 槽位沿用)
+[probe] PASS M5 legacy three-state control name absent (重写作废实证)
+[probe] PASS M6 toggle visible in tree (standard row chrome)
+[probe] PASS D1 default collapsed via row API
+[probe] PASS D2 default collapsed via lane API
+[probe] PASS D3 control not pressed by default
+[probe] PASS D4 zero requests after mount+track bind (无扫描面)
+[probe] PASS D5 three-state row API absent (档位形态作废)
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:283)
+       [2] set_envelope_lane_open (res://app/tracks/track_scene/Track_Row_Controller.gd:1196)
+       [3] _on_envelope_toggle_toggled (res://app/tracks/track_scene/Track_Row_Controller.gd:1040)
+       [4] _assert_toggle_flow (res://tools/probe_envelope_lane_toggle.gd:182)
+       [5] _run (res://tools/probe_envelope_lane_toggle.gd:134)
+[probe] PASS T1 press expands container
+[probe] PASS T2 expanded = one default volume lane (pending binding)
+[probe] PASS T3 press again collapses (zero residue)
+[probe] PASS T4 re-expand restores lane list (memory retained)
+[probe] PASS S1 lane-side collapse follows control (signal face)
+[probe] PASS S2 lane-side expand follows control
+[probe] PASS S3 envelope_lane_expanded_changed emitted per real change
+[probe] PASS S4 same-state re-entry emits nothing
+[probe] PASS R1 collapsed: automation/rack receipts issue zero requests
+[probe] PASS R2 collapsed stays collapsed (no auto behavior)
+[probe] PASS section M completed
+[probe] PASS section D completed
+[probe] PASS section T completed
+[probe] PASS section S completed
+[probe] PASS section R completed
+[probe] PROBE PASS (checks_total=27)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
