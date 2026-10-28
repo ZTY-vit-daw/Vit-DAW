@@ -1,0 +1,130 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-LAYOUT-GROW-1 layout grow suite start
+WARNING: res://app/tracks/track_scene/track_row.tscn:3 - ext_resource, invalid UID: uid://dycscw7ifsifn - using text path instead: res://app/tracks/track_scene/Track_Row_Controller.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+WARNING: res://app/tracks/track_scene/track_row.tscn:4 - ext_resource, invalid UID: uid://ctbhfk7n2noc6 - using text path instead: res://app/tracks/track_scene/right_3d_wrapper.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+WARNING: res://app/tracks/track_scene/track_row.tscn:5 - ext_resource, invalid UID: uid://bjy2gbb4htept - using text path instead: res://app/tracks/track_scene/time_ruler.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+WARNING: res://app/tracks/track_scene/track_row.tscn:6 - ext_resource, invalid UID: uid://b6pem5vrlb2ay - using text path instead: res://assets/ui-textures/frosted-warm.png
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+ERROR: Unable to open file: res://.godot/imported/frosted-warm.png-723662ab636bfb3aea9dc0f85751544f.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+ERROR: Failed loading resource: res://.godot/imported/frosted-warm.png-723662ab636bfb3aea9dc0f85751544f.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+ERROR: Failed loading resource: res://assets/ui-textures/frosted-warm.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+ERROR: res://app/tracks/track_scene/track_row.tscn:179 - Parse Error: [ext_resource] referenced non-existent resource at: res://assets/ui-textures/frosted-warm.png.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:87)
+       [1] _run (res://tools/probe_autolane_layout_grow.gd:214)
+       [2] _initialize (res://tools/probe_autolane_layout_grow.gd:47)
+ERROR: Unable to open file: res://.godot/imported/piano-roll-midi.png-9bb6e264298fd75f9512ed47d2994210.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+ERROR: Failed loading resource: res://.godot/imported/piano-roll-midi.png-9bb6e264298fd75f9512ed47d2994210.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/piano-roll-midi.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/piano-roll-midi.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+ERROR: Unable to open file: res://.godot/imported/view-3d.png-39893822c25f28a0572a0b9b3d72716a.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+ERROR: Failed loading resource: res://.godot/imported/view-3d.png-39893822c25f28a0572a0b9b3d72716a.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-2/view-3d.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-2/view-3d.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+[probe] PASS D1 two direct rows assembled
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:283)
+       [2] set_envelope_lane_open (res://app/tracks/track_scene/Track_Row_Controller.gd:1196)
+       [3] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:105)
+[probe] PASS D2 expand 1 lane grows row A only (U+118)
+[probe] PASS D3 three lanes full expand (N=3 ≤ budget 316)
+[probe] PASS D4 lane container is row child (in-row layout flow, overlay abolished)
+[probe] PASS D5 lane area below waveform (no overlay on wave zone)
+[probe] PASS D6 header spacer follows split (x axis aligned with waveform)
+[probe] PASS D7 overflow N=4 clamps lane area to budget with internal scroll
+[probe] PASS D8 collapse falls back to base U
+[probe] PASS D9 programmatic height sets U; re-expand clamps into U-derived budget
+[probe] PASS D10 rebind resets lane to collapsed default (202 semantics, row height falls)
+[probe] PASS section D completed
+[probe] PROBE PASS (checks_total=11)

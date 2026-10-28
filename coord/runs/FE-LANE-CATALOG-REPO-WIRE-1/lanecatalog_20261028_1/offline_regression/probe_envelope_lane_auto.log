@@ -1,0 +1,46 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-REBUILD-1 descriptor consumption suite (192 lineage migrated) start
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:283)
+       [2] _run (res://tools/probe_envelope_lane_auto.gd:131)
+       [3] _process (res://tools/probe_envelope_lane_auto.gd:63)
+[probe] PASS A1 per-source descriptor requests issued (rid namespace env_lane_params_*)
+[probe] PASS A2 sources pending before replies
+[probe] PASS A3 loaded state after ok reply
+[probe] PASS A4 count field seen disclosure
+[probe] PASS A5 error state + verbatim message
+[probe] PASS A6 timeout marks source error (no silent pending)
+[probe] PASS A7 empty rows disclosed as empty state
+[probe] PASS B1 count>0 → ●N marker with exact count
+[probe] PASS B2 count=0 → no marker
+[probe] PASS B3 missing count key → no marker + count_seen=false disclosure
+[probe] PASS B4 field absence disclosed per source
+[probe] PASS B5 non-numeric count → no marker (fail-closed)
+[probe] PASS C1 automation write receipt re-pulls all listed sources
+[probe] PASS C2 counts refresh in selector after re-pull (volume 0→7, pan 4→0)
+[probe] PASS C3 clear_region/apply_region_edit receipts also re-pull
+[probe] PASS D1 failing source absent from items, healthy sources listed (no silent wipe)
+[probe] PASS D2 error state disclosed verbatim per source
+[probe] PASS E1 presence evidence does NOT auto-expand (在场性驱动已废)
+[probe] PASS E2 three-state mode API absent (三态随 198 形态作废)
+[probe] PASS E3 all-zero counts do NOT auto-collapse (expanded persistent)
+[probe] PASS section A completed
+[probe] PASS section B completed
+[probe] PASS section C completed
+[probe] PASS section D completed
+[probe] PASS section E completed
+[probe] PROBE PASS (checks_total=25)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

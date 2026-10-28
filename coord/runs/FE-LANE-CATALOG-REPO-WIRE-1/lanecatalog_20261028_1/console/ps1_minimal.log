@@ -1,0 +1,40 @@
+PREFLIGHT_CLEAN 19:06:48
+VIT_PROJECT_XML=D:\Vit_DAW_wt_207stack\coord\runs\FE-LANE-CATALOG-REPO-WIRE-1\lanecatalog_20261028_1\project\default_project.xml
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261028_190651\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_207stack
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_207stack\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_207stack\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_207stack\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_lgrow1_stack\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=2340 workdir=D:\Vit_DAW_wt_lgrow1_stack\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_207stack\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=2340
+ok: ZMQ SUB listening: 5556 pid=2340
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed

@@ -1,0 +1,139 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-SEND-LEVEL-CLICK-FIX-1 send-level real-event suite start
+ERROR: Unable to open file: res://.godot/imported/input-node.png-aebdc00122796c4b25f31ffe37da4b0f.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Failed loading resource: res://.godot/imported/input-node.png-aebdc00122796c4b25f31ffe37da4b0f.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/input-node.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/input-node.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Unable to open file: res://.godot/imported/plugin-effect.png-5236a7720ff8b207dda9d53d3a823c38.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Failed loading resource: res://.godot/imported/plugin-effect.png-5236a7720ff8b207dda9d53d3a823c38.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/plugin-effect.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/plugin-effect.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Unable to open file: res://.godot/imported/output-node.png-d50378799a53a7294c7a47a1af2a6924.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Failed loading resource: res://.godot/imported/output-node.png-d50378799a53a7294c7a47a1af2a6924.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/output-node.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/output-node.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run (res://tools/probe_rack_sendlevel_realinput.gd:128)
+[probe] PASS realinput unified icon rendered
+[probe] PASS realinput expanded SendOut card present
+[probe] PASS lvl178 adjust entry on SendOut card
+[probe] PASS lvl182 layout settled (button rect non-degenerate)
+[probe] PASS lvl182 real-event click reaches button rect center
+[probe] PASS lvl178 popup opens on click
+[probe] PASS lvl182 popup rect fully on-screen
+[probe] PASS lvl178 popup spin initial value from topology
+[probe] PASS lvl182 spin grab focus holds after popup
+[probe] PASS lvl182 spin up-arrow real click steps value +0.5
+[probe] PASS lvl178 spin change sends set_amount payload
+[probe] PASS lvl178 payload source/fx/amount
+[probe] PASS lvl182 close popup hides overlay
+[probe] PASS lvl178 dangling route zero payload
+[probe] PASS lvl182 dangling route keeps popup closed
+[probe] PROBE PASS (checks_total=15)

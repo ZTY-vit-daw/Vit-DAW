@@ -1,0 +1,1325 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-GUI-SHRINK-IMPL-1 Phase A suite start (168 revision)
+[probe] PASS retired file absent: res://vit_dock/core/viewport_split_tree_builder.gd  |  exists=false
+[probe] PASS retired file absent: res://vit_dock/scenes/viewport_title_bar.gd  |  exists=false
+[probe] PASS retired file absent: res://vit_dock/scenes/ViewportTitleBar.tscn  |  exists=false
+[probe] PASS data layer retained: res://vit_dock/core/workspace_layout_manager.gd  |  exists=true
+[probe] PASS data layer retained: res://vit_dock/core/workspace_preset_repository.gd  |  exists=true
+[probe] PASS header gd: preset_selected retired
+[probe] PASS header gd: new_window_requested retired
+[probe] PASS header gd: FILE_NEW_WINDOW retired
+[probe] PASS header gd: set_presets retired
+[probe] PASS header tscn: PresetTabs node retired
+[probe] PASS header tscn: BtnNewWindow node retired
+[probe] PASS header gd: save_requested signal retained
+[probe] PASS header gd: file/edit menu retained
+[probe] PASS frame gd: ViewportTitleBar retired
+[probe] PASS frame gd: split_requested retired
+[probe] PASS frame gd: popout retired
+[probe] PASS frame gd: close_requested retired
+[probe] PASS frame gd: drag overlay retired
+[probe] PASS frame gd: activated retained
+[probe] PASS frame gd: launcher retained
+[probe] PASS frame tscn: title bar instance retired
+[probe] PASS frame tscn: drag overlay node retired
+[probe] PASS frame tscn: content host retained
+[probe] PASS root gd: split tree builder preload retired
+[probe] PASS root gd: layout manager preload retired
+[probe] PASS root gd: preset repository preload retired
+[probe] PASS root gd: set_presets call retired
+[probe] PASS root gd: preset/new-window handlers retired
+[probe] PASS root gd: rebuild_tree call retired
+[probe] PASS root gd: fixed slot builder present
+[probe] PASS root gd: stage slot ids present
+[probe] PASS root gd: window_manager retained (detail/piano-roll windows)
+[probe] PASS root gd: chat toggle wiring retained
+[probe] PASS root gd: two-slot HSplit restore present (168 裁定 A 能力)
+[probe] PASS root gd: split ratio persistence present (168)
+[probe] PASS master pin: adapter TRACK_MASTER_NODE_NAME const
+[probe] PASS master pin: adapter nonvirtual move_child(master_row, 0)
+[probe] PASS master pin: router _ensure_virtual_master_row present
+[probe] PASS master pin: router base_index repin
+[probe] PASS mixboard pin: default prefix param
+[probe] PASS mixboard pin: _<msec> id construction
+[probe] phase2: instantiating res://vit_dock/scenes/VitDockRoot.tscn
+ERROR: Unable to open file: res://.godot/imported/export-mix.png-1e6f3ca2136bace7a443e903c121e548.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:144)
+ERROR: Failed loading resource: res://.godot/imported/export-mix.png-1e6f3ca2136bace7a443e903c121e548.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:144)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/export-mix.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:144)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/export-mix.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:144)
+ERROR: Unable to open file: res://.godot/imported/add-folder.png-8078aec2a3fd96a411c4fa2803b87027.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _install_stems_import_button (res://app/shell/top_transport_bar.gd:725)
+       [3] _ready (res://app/shell/top_transport_bar.gd:149)
+ERROR: Failed loading resource: res://.godot/imported/add-folder.png-8078aec2a3fd96a411c4fa2803b87027.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _install_stems_import_button (res://app/shell/top_transport_bar.gd:725)
+       [3] _ready (res://app/shell/top_transport_bar.gd:149)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-2/add-folder.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _install_stems_import_button (res://app/shell/top_transport_bar.gd:725)
+       [3] _ready (res://app/shell/top_transport_bar.gd:149)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-2/add-folder.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _install_stems_import_button (res://app/shell/top_transport_bar.gd:725)
+       [3] _ready (res://app/shell/top_transport_bar.gd:149)
+ERROR: Unable to open file: res://.godot/imported/ai-assistant.png-b720dfbd39303e060942a03a3113973e.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:163)
+ERROR: Failed loading resource: res://.godot/imported/ai-assistant.png-b720dfbd39303e060942a03a3113973e.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:163)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/ai-assistant.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:163)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/ai-assistant.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/shell/top_transport_bar.gd:163)
+ERROR: Unable to open file: res://.godot/imported/return-to-zero.png-bc170d40e0ac7ee81c80e5c9022c49be.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:300)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://.godot/imported/return-to-zero.png-bc170d40e0ac7ee81c80e5c9022c49be.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:300)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/return-to-zero.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:300)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/return-to-zero.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:300)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Unable to open file: res://.godot/imported/stop.png-37d7ba4e93f70ac407e3cbc19fc786a6.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:301)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://.godot/imported/stop.png-37d7ba4e93f70ac407e3cbc19fc786a6.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:301)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/stop.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:301)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/stop.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:301)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Unable to open file: res://.godot/imported/play.png-458825a6ae7723def7018c0c027c2efc.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:302)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://.godot/imported/play.png-458825a6ae7723def7018c0c027c2efc.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:302)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/play.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:302)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/play.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:302)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Unable to open file: res://.godot/imported/record.png-4de42741f73d7b36bdcddb086a9f08f3.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:303)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://.godot/imported/record.png-4de42741f73d7b36bdcddb086a9f08f3.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:303)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/record.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:303)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/record.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:303)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Unable to open file: res://.godot/imported/loop.png-58f61d2595205fb7adfc191d41ead854.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:304)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://.godot/imported/loop.png-58f61d2595205fb7adfc191d41ead854.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:304)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/loop.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:304)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/loop.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:304)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Unable to open file: res://.godot/imported/stop-return-to-start.png-3a649d73f919a914378c029cfbadf8c9.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:306)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://.godot/imported/stop-return-to-start.png-3a649d73f919a914378c029cfbadf8c9.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:306)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/stop-return-to-start.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:306)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/stop-return-to-start.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:306)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Unable to open file: res://.godot/imported/graph-node-rack.png-7dee05b128e8ab0257ac4c16885a4f28.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:307)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://.godot/imported/graph-node-rack.png-7dee05b128e8ab0257ac4c16885a4f28.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:307)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/graph-node-rack.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:307)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/graph-node-rack.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_transport_asset_icons (res://app/shell/top_transport_bar.gd:307)
+       [3] _apply_transport_button_metrics (res://app/shell/top_transport_bar.gd:293)
+       [4] _on_transport_bar_resized (res://app/shell/top_transport_bar.gd:279)
+WARNING: res://app/tracks/track_scene/track_row.tscn:3 - ext_resource, invalid UID: uid://dycscw7ifsifn - using text path instead: res://app/tracks/track_scene/Track_Row_Controller.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: res://app/tracks/track_scene/track_row.tscn:4 - ext_resource, invalid UID: uid://ctbhfk7n2noc6 - using text path instead: res://app/tracks/track_scene/right_3d_wrapper.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: res://app/tracks/track_scene/track_row.tscn:5 - ext_resource, invalid UID: uid://bjy2gbb4htept - using text path instead: res://app/tracks/track_scene/time_ruler.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: res://app/tracks/track_scene/track_row.tscn:6 - ext_resource, invalid UID: uid://b6pem5vrlb2ay - using text path instead: res://assets/ui-textures/frosted-warm.png
+   at: load (scene/resources/resource_format_text.cpp:500)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/frosted-warm.png-723662ab636bfb3aea9dc0f85751544f.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/frosted-warm.png-723662ab636bfb3aea9dc0f85751544f.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-textures/frosted-warm.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: res://app/tracks/track_scene/track_row.tscn:179 - Parse Error: [ext_resource] referenced non-existent resource at: res://assets/ui-textures/frosted-warm.png.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:233)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/smart-select.png-ac1765ea4c2767f851f5c8a58b8e978e.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:54)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/smart-select.png-ac1765ea4c2767f851f5c8a58b8e978e.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:54)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/smart-select.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:54)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/smart-select.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:54)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/scissors-cut-split.png-99cae2c0f9074ccfb2373c364f564dab.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:55)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/scissors-cut-split.png-99cae2c0f9074ccfb2373c364f564dab.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:55)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/scissors-cut-split.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:55)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/scissors-cut-split.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:55)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/brush-draw-edit.png-a7e23f5bb4af90bb5a6773061d21c970.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:56)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/brush-draw-edit.png-a7e23f5bb4af90bb5a6773061d21c970.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:56)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/brush-draw-edit.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:56)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/brush-draw-edit.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:56)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/time-waveform-view.png-2b234134ab552bf99ff7774641e35c44.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:57)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/time-waveform-view.png-2b234134ab552bf99ff7774641e35c44.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:57)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-2/time-waveform-view.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:57)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-2/time-waveform-view.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _apply_tool_asset_icons (res://app/shell/left_tool_zone.gd:57)
+       [3] _ready (res://app/shell/left_tool_zone.gd:26)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/add-track.png-e7e29dc6f0280c46232b8cbfb6a094e6.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1721)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/add-track.png-e7e29dc6f0280c46232b8cbfb6a094e6.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1721)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/add-track.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1721)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/add-track.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1721)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/remove-track.png-33c6966afff8acd0f2c5ae9dd639004c.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1729)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/remove-track.png-33c6966afff8acd0f2c5ae9dd639004c.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1729)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/remove-track.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1729)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/remove-track.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _connect_toolbar (res://vit_dock/views/timeline_dock_adapter.gd:1729)
+       [3] _ready (res://vit_dock/views/timeline_dock_adapter.gd:376)
+       [4] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [5] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [6] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [7] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [8] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [9] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/piano-roll-midi.png-9bb6e264298fd75f9512ed47d2994210.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [4] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [5] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [6] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [7] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [8] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [9] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [10] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [11] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [12] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/piano-roll-midi.png-9bb6e264298fd75f9512ed47d2994210.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [4] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [5] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [6] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [7] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [8] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [9] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [10] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [11] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [12] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/piano-roll-midi.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [4] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [5] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [6] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [7] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [8] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [9] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [10] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [11] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [12] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/piano-roll-midi.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [4] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [5] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [6] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [7] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [8] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [9] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [10] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [11] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [12] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/view-3d.png-39893822c25f28a0572a0b9b3d72716a.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [5] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [6] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [7] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [8] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [9] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [10] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [11] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [12] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [13] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://.godot/imported/view-3d.png-39893822c25f28a0572a0b9b3d72716a.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [5] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [6] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [7] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [8] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [9] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [10] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [11] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [12] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [13] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-2/view-3d.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [5] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [6] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [7] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [8] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [9] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [10] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [11] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [12] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [13] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-2/view-3d.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2989)
+       [5] _get_or_create_track_row (res://vit_dock/views/timeline_dock_adapter.gd:2962)
+       [6] _refresh_from_project_repository (res://vit_dock/views/timeline_dock_adapter.gd:2714)
+       [7] _ready (res://vit_dock/views/timeline_dock_adapter.gd:382)
+       [8] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [9] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [10] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [11] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [12] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [13] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+ERROR: Unable to open file: res://.godot/imported/time-waveform-view.png-2b234134ab552bf99ff7774641e35c44.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:996)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+ERROR: Failed loading resource: res://.godot/imported/time-waveform-view.png-2b234134ab552bf99ff7774641e35c44.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:996)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-2/time-waveform-view.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:996)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-2/time-waveform-view.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:996)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+ERROR: Unable to open file: res://.godot/imported/plugin-effect.png-5236a7720ff8b207dda9d53d3a823c38.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:998)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+ERROR: Failed loading resource: res://.godot/imported/plugin-effect.png-5236a7720ff8b207dda9d53d3a823c38.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:998)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/plugin-effect.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:998)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/plugin-effect.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _ensure_library_icons (res://app/browser/left_library_dock.gd:998)
+       [2] _ready (res://app/browser/left_library_dock.gd:77)
+       [3] _mount_edge_panels (res://vit_dock/scenes/vit_dock_root.gd:2168)
+       [4] _ready (res://vit_dock/scenes/vit_dock_root.gd:236)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+ERROR: Unable to open file: res://.godot/imported/input-node.png-aebdc00122796c4b25f31ffe37da4b0f.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+ERROR: Failed loading resource: res://.godot/imported/input-node.png-aebdc00122796c4b25f31ffe37da4b0f.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/input-node.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/input-node.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+ERROR: Unable to open file: res://.godot/imported/output-node.png-d50378799a53a7294c7a47a1af2a6924.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+ERROR: Failed loading resource: res://.godot/imported/output-node.png-d50378799a53a7294c7a47a1af2a6924.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/output-node.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/output-node.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _reload_graph_rack (res://vit_dock/views/graph_rack_dock_adapter.gd:866)
+       [6] _on_project_loaded (res://vit_dock/views/graph_rack_dock_adapter.gd:884)
+       [7] _apply_kernel_project_reply_and_emit (res://vit_dock/scenes/vit_dock_root.gd:1170)
+       [8] _refresh_project_repository_from_kernel (res://vit_dock/scenes/vit_dock_root.gd:1105)
+       [9] refresh_project_state (res://app/state/stores/project_store.gd:39)
+       [10] _refresh_project_state_from_legacy (res://app/state/stores/project_store.gd:49)
+       [11] get_project_state (res://app/kernel/clients/project_client.gd:58)
+       [12] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [13] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [14] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+[probe] PASS slot host reachable  |  DynamicSplitTreeRoot:<Control#68618815230>
+[probe] PASS StageSlotGrid present  |  count=1
+[probe] PASS stage slots = 2  |  count=2
+[probe] PASS slot order ids = timeline,rack  |  ["vp_timeline_main", "vp_rack_main"]
+[probe] PASS slot order views = timeline,graph_rack  |  ["timeline", "graph_rack"]
+[probe] PASS two-slot frames stretch ratio 1.0 (占比权威=split_offset, 168)  |  1.0/1.0
+[probe] PASS slot1 timeline adapter bound  |  res://vit_dock/views/timeline_dock_adapter.gd
+[probe] PASS slot2 rack adapter bound  |  res://vit_dock/views/graph_rack_dock_adapter.gd
+[probe] PASS two-slot grid = draggable HSplitContainer (168 恢复能力, 非分割树回潮)  |  HSplitContainer
+[probe] PASS split grabber live (not collapsed)  |  collapsed=false
+[probe] PASS split offset applied toward timeline side (0.58 折算)  |  offset=51 width=642.0
+[probe] PASS tree zero ViewportTitleBar  |  count=0
+[probe] PASS tree zero DragFeedbackOverlay  |  count=0
+[probe] PASS launcher present but hidden (slots full)  |  count=2 visible=false
+[probe] PASS AppHeaderShell present  |  AppHeaderShell:<PanelContainer#65615693302>
+[probe] PASS header zero PresetTabs/BtnNewWindow  |  count=0
+[probe] PASS FileMenu present
+[probe] PASS File menu has no New Window item  |  items=6
+[probe] PASS File menu still offers Save
+[probe] PASS TopTransportBar present  |  TopTransportBar:<PanelContainer#66639103624>
+[probe] PASS transport chat_toggle_requested signal alive
+[probe] PASS transport chat toggle wired to root
+[probe] PASS root external webui chat entries alive
+[probe] PASS VitNoteLayer mounted (mount invariant)  |  count=1
+[probe] PASS master functional: real router in dock tree  |  count=1
+[probe] PASS master functional: row created  |  Track_Master:<VBoxContainer#110696073576>
+[probe] PASS master functional: named Track_Master  |  Track_Master
+[probe] PASS master functional: first track row (at insert base index)  |  index=0 base=0
+[probe] PASS master functional: content layer right after master  |  master=0 layer=1
+[probe] PASS mixboard pin: schema intact  |  mixboard_feature_request.v1
+[probe] PASS mixboard pin: request_id = mixboard_<msec>  |  mixboard_4771
+[probe] PASS mixboard pin: blocked without clip source (honest branch)  |  clip_source_required_for_current_feature_bakers
+[probe] PASS mixboard pin: custom prefix family same construction  |  mixboard_l2_render_probe_5187
+[probe] PASS mutate: two-slot HSplit reachable
+[probe] PASS mutate: stage wide enough for drag target (>=900px)  |  width=1617.0
+[probe] PASS mutate: default ratio 0.58 geometry (偏好盘已清)  |  left=933.0 right=676.0 geo=0.580
+[probe] PASS mutate: split_offset stays at dragged value (delta)  |  offset=259 expect=259
+[probe] PASS mutate: split_offset change effective (left slot follows)  |  offset=259 left_w=1063.0 right_w=546.0 geo=0.661
+[probe] PASS mutate: debounce persisted JSON write→read back 0.66  |  json={ 	"schema_version": 1, 	"stage_split_ratio": 0.66017316017316 }
+[probe] PASS mutate: ratio kept on window resize (children follow)  |  left=640.0 right=329.0 geo=0.660
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_phase (res://tools/probe_fe_gui_shrink_phase_a.gd:203)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_a.gd:216)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_phase (res://tools/probe_fe_gui_shrink_phase_a.gd:203)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_a.gd:216)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_phase (res://tools/probe_fe_gui_shrink_phase_a.gd:203)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_a.gd:216)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_phase (res://tools/probe_fe_gui_shrink_phase_a.gd:203)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_a.gd:216)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_phase (res://tools/probe_fe_gui_shrink_phase_a.gd:203)
+       [7] _wait_frames (res://tools/probe_fe_gui_shrink_phase_a.gd:216)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_phase (res://tools/probe_fe_gui_shrink_phase_a.gd:203)
+       [8] _wait_frames (res://tools/probe_fe_gui_shrink_phase_a.gd:216)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+[probe] PASS restart: grid = HSplitContainer  |  HSplitContainer
+[probe] PASS restart: persisted ratio 0.66 restored via split_offset (delta 语义)  |  offset=208 expect_delta=208 width=1297.0
+[probe] PASS restart: stage slots still = 2  |  count=2
+[probe] PASS restart: slot order ids = timeline,rack  |  ["vp_timeline_main", "vp_rack_main"]
+[probe] PASS restart: children follow persisted ratio  |  left=852.0 right=437.0 geo=0.661
+[probe] PASS restart: tree zero ViewportTitleBar  |  count=0
+[probe] ---- probe verdict ----
+[probe] checks=87 failed=0 setup_failed=false
+[probe] PROBE PASS
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
