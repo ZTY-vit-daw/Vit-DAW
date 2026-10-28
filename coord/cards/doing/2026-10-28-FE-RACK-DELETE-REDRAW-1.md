@@ -31,3 +31,19 @@
 
 - Phase 3.1「主控重绘」设计的既有触发方（主控层）已存在但被其他条件短路→上交锚点；
 - 修复须动 agent/内核→上交。
+
+## 领取
+
+- 时间：2026-10-28 22:38；origin/main hash：186070e7
+- owner：ZCode GLM-5.3 PC 执行会话（212 卡会话）
+- 分支：port/fe-rack-delete-redraw-1（前端仓 D:/Godot/project/vit-daw-frontend，基线=main 84396f1）
+- worktree：D:/Godot/project/vit-daw-frontend-wt-fe-rack-delete-redraw-1
+- 领取提交：本提交（doing 移动+回填，coord/ only）
+
+## 回执
+
+（待回填）
+
+## 验收
+
+（待主管裁定）
