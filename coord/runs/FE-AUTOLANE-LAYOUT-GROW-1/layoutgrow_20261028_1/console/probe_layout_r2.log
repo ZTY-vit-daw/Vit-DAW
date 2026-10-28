@@ -1,0 +1,67 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_autolane_layout_grow.tscn time=2026-10-28T13:04:57 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] PASS setup clear_project
+[stack-probe] PASS setup add_track x3
+[stack-probe] PASS setup project state records from real kernel (filtered to added tracks)
+[stack-probe] PASS setup production repo write path applied
+[stack-probe] PASS V0 product env threshold=2 virtualizes 3 tracks
+[stack-probe] PASS V1 virtual pool active with 3 tracks (env downshift)
+[stack-probe] PASS V2 pool rows bound and reachable
+[stack-probe] PASS V3a row A expanded; default volume lane settled via production chain
+[stack-probe] PASS V3b per-row override: only row A grows (others stay baseline)
+[stack-probe] PASS L1 lane container in-row below waveform (no overlay on real stack)
+[stack-probe] PASS V4 independent overrides: row B grows (2 lanes), row A keeps 1-lane height
+[stack-probe] PASS V5 legacy global zoom intact; overridden rows keep overrides
+[stack-probe] PASS V6 collapse clears override; row A falls back to global height
+SCRIPT ERROR: Trying to cast a freed object.
+   at: _acquire_virtual_row (res://app/timeline/timeline_track_list_drop_router.gd:1260)
+   GDScript backtrace (most recent call first):
+       [0] _acquire_virtual_row (res://app/timeline/timeline_track_list_drop_router.gd:1260)
+       [1] _apply_virtual_row_mutation_item (res://app/timeline/timeline_track_list_drop_router.gd:1482)
+       [2] _flush_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1422)
+SCRIPT ERROR: Trying to cast a freed object.
+   at: _finalize_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1524)
+   GDScript backtrace (most recent call first):
+       [0] _finalize_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1524)
+       [1] _flush_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1469)
+SCRIPT ERROR: Trying to cast a freed object.
+   at: _finalize_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1524)
+   GDScript backtrace (most recent call first):
+       [0] _finalize_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1524)
+       [1] _flush_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1371)
+SCRIPT ERROR: Trying to cast a freed object.
+   at: _cancel_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1282)
+   GDScript backtrace (most recent call first):
+       [0] _cancel_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1282)
+       [1] _refresh_virtual_visible_rows (res://app/timeline/timeline_track_list_drop_router.gd:1149)
+       [2] apply_virtual_kernel_project_state (res://app/timeline/timeline_track_list_drop_router.gd:483)
+       [3] _run_suite (res://tools/stack_probe_autolane_layout_grow.gd:330)
+SCRIPT ERROR: Trying to cast a freed object.
+   at: _cancel_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1282)
+   GDScript backtrace (most recent call first):
+       [0] _cancel_virtual_row_mutation_queue (res://app/timeline/timeline_track_list_drop_router.gd:1282)
+       [1] _queue_virtual_row_mutations (res://app/timeline/timeline_track_list_drop_router.gd:1298)
+       [2] _refresh_virtual_visible_rows (res://app/timeline/timeline_track_list_drop_router.gd:1193)
+       [3] apply_virtual_kernel_project_state (res://app/timeline/timeline_track_list_drop_router.gd:483)
+       [4] _run_suite (res://tools/stack_probe_autolane_layout_grow.gd:330)
+[stack-probe] FAIL V7 record removal drops override with record (re-applied track at global) | 454.0
+[stack-probe] PASS V8 default threshold semantics untouched (env cleared)
+[stack-probe] PASS cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":1,"checks_total":16,"failures":["V7 record removal drops override with record (re-applied track at global) | 454.0"],"stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_autolane_layout_grow.tscn","time":"2026-10-28T13:04:57"},"status":"fail"}
