@@ -1,0 +1,165 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-SEND-LEVEL-FADER-1 send-level fader suite start
+[probe] PASS fader183 taper unit 0.0 -> -96 dB
+[probe] PASS fader183 taper unit 0.25 -> -30 dB (split point)
+[probe] PASS fader183 taper unit 1.0 -> +6 dB
+[probe] PASS fader183 taper roundtrip -6.0 dB
+[probe] PASS fader183 taper piecewise continuous at split
+[probe] PASS fader183 commit quantize -5.3 -> -5.5
+[probe] PASS fader183 commit quantize -5.2 -> -5.0
+[probe] PASS fader183 commit clamp below min -> -96
+ERROR: Unable to open file: res://.godot/imported/input-node.png-aebdc00122796c4b25f31ffe37da4b0f.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Failed loading resource: res://.godot/imported/input-node.png-aebdc00122796c4b25f31ffe37da4b0f.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/input-node.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/input-node.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4470)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Unable to open file: res://.godot/imported/plugin-effect.png-5236a7720ff8b207dda9d53d3a823c38.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Failed loading resource: res://.godot/imported/plugin-effect.png-5236a7720ff8b207dda9d53d3a823c38.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/plugin-effect.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/plugin-effect.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_plugin_body (res://app/rack/rack_node_card_factory.gd:90)
+       [3] _add_plugin_graph_node (res://app/rack/Vit_Graph_Rack.gd:7079)
+       [4] _spawn_plugin_node_from_entry (res://app/rack/Vit_Graph_Rack.gd:1931)
+       [5] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4483)
+       [6] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Unable to open file: res://.godot/imported/output-node.png-d50378799a53a7294c7a47a1af2a6924.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Failed loading resource: res://.godot/imported/output-node.png-d50378799a53a7294c7a47a1af2a6924.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-3/output-node.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-3/output-node.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] _new_icon (res://app/rack/rack_node_card_factory.gd:133)
+       [2] create_bus_anchor_content (res://app/rack/rack_node_card_factory.gd:24)
+       [3] _add_rack_bus_anchor_node (res://app/rack/Vit_Graph_Rack.gd:6539)
+       [4] load_nodes (res://app/rack/Vit_Graph_Rack.gd:4489)
+       [5] _run_rack_fader_suite (res://tools/probe_rack_sendlevel_fader.gd:145)
+[probe] PASS fader183 unified icon rendered
+[probe] PASS fader183 expanded SendOut card present
+[probe] PASS fader183 fader on SendOut card
+[probe] PASS fader183 fader value label present
+[probe] PASS fader183 adjust button kept (dual entry)
+[probe] PASS fader183 fader initial unit maps -6.0 dB
+[probe] PASS fader183 fader value label initial text
+[probe] PASS fader183 sidechain card builds without fader
+[probe] PASS fader183 layout settled (fader rect non-degenerate)
+[probe] PASS fader183 real press reaches fader
+[probe] PASS fader183 mid-drag topology receipt does not yank fader
+[probe] PASS fader183 zero set_amount during drag
+[probe] PASS fader183 mid-drag value label echoes preview
+[probe] PASS fader183 mid-drag card amount label echoes preview
+[probe] PASS fader183 real release ends drag
+[probe] PASS fader183 release commits exactly one set_amount
+[probe] PASS fader183 commit payload source/fx/amount quantized
+[probe] PASS fader183 readback converges fader unit
+[probe] PASS fader183 readback refreshes value label
+[probe] PASS fader183 dangling route zero payload on release
+[probe] PASS fader183 popup dual-entry still opens on click
+[probe] PASS fader183 strip slot spinbox kept (167 unchanged)
+[probe] PASS fader183 strip slot fader present
+[probe] PASS fader183 strip slot fader initial unit
+[probe] PASS fader183 strip zero set_amount during drag
+[probe] PASS fader183 strip release commits exactly one set_amount
+[probe] PASS fader183 strip commit payload source/fx/amount quantized
+[probe] PROBE PASS (checks_total=35)
+WARNING: 1 RID of type "CanvasItem" was leaked.
+   at: _free_rids (servers/rendering/renderer_canvas_cull.cpp:2690)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)

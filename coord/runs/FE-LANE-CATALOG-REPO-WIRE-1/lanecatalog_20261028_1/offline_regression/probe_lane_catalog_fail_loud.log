@@ -1,0 +1,126 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+WARNING: res://app/tracks/track_scene/track_row.tscn:3 - ext_resource, invalid UID: uid://dycscw7ifsifn - using text path instead: res://app/tracks/track_scene/Track_Row_Controller.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+SCRIPT ERROR: Compile Error: Identifier not found: VitDebugFlags
+   at: GDScript::reload (res://app/clips/midi/midi_clip_container.gd:123)
+ERROR: Failed to load script "res://app/clips/midi/midi_clip_container.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+WARNING: res://app/tracks/track_scene/track_row.tscn:4 - ext_resource, invalid UID: uid://ctbhfk7n2noc6 - using text path instead: res://app/tracks/track_scene/right_3d_wrapper.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+SCRIPT ERROR: Compile Error: Identifier not found: VitTelemetryManager
+   at: GDScript::reload (res://app/tracks/track_scene/right_3d_wrapper.gd:499)
+ERROR: Failed to load script "res://app/tracks/track_scene/right_3d_wrapper.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+WARNING: res://app/tracks/track_scene/track_row.tscn:5 - ext_resource, invalid UID: uid://bjy2gbb4htept - using text path instead: res://app/tracks/track_scene/time_ruler.gd
+   at: load (scene/resources/resource_format_text.cpp:500)
+SCRIPT ERROR: Compile Error: Identifier not found: VitDebugFlags
+   at: GDScript::reload (res://app/tracks/track_scene/time_ruler.gd:385)
+ERROR: Failed to load script "res://app/tracks/track_scene/time_ruler.gd" with error "Compilation failed".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+WARNING: res://app/tracks/track_scene/track_row.tscn:6 - ext_resource, invalid UID: uid://b6pem5vrlb2ay - using text path instead: res://assets/ui-textures/frosted-warm.png
+   at: load (scene/resources/resource_format_text.cpp:500)
+ERROR: Unable to open file: res://.godot/imported/frosted-warm.png-723662ab636bfb3aea9dc0f85751544f.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+ERROR: Failed loading resource: res://.godot/imported/frosted-warm.png-723662ab636bfb3aea9dc0f85751544f.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+ERROR: Failed loading resource: res://assets/ui-textures/frosted-warm.png.
+   at: _load (core/io/resource_loader.cpp:343)
+ERROR: res://app/tracks/track_scene/track_row.tscn:179 - Parse Error: [ext_resource] referenced non-existent resource at: res://assets/ui-textures/frosted-warm.png.
+   at: _printerr (scene/resources/resource_format_text.cpp:40)
+[probe] PASS F1a preface: no project_repository group node in -s mode (precondition)
+ERROR: In Object of type 'Control': Attempt to connect nonexistent signal 'time_seeked' to callable 'Control::_on_3d_seek'.
+   at: connect (core/object/object.cpp:1638)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:48)
+ERROR: Unable to open file: res://.godot/imported/piano-roll-midi.png-9bb6e264298fd75f9512ed47d2994210.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+ERROR: Failed loading resource: res://.godot/imported/piano-roll-midi.png-9bb6e264298fd75f9512ed47d2994210.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-1/piano-roll-midi.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-1/piano-roll-midi.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:296)
+       [3] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+ERROR: Unable to open file: res://.godot/imported/view-3d.png-39893822c25f28a0572a0b9b3d72716a.ctex.
+   at: _load_data (scene/resources/compressed_texture.cpp:42)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+ERROR: Failed loading resource: res://.godot/imported/view-3d.png-39893822c25f28a0572a0b9b3d72716a.ctex.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+ERROR: Failed loading resource: res://assets/ui-icons-batch-2/view-3d.png.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:92)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+WARNING: VitUIAssets: failed to load icon texture resource res://assets/ui-icons-batch-2/view-3d.png
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] icon_texture (res://app/ui/vit_ui_assets.gd:94)
+       [1] apply_icon_button (res://app/ui/vit_ui_assets.gd:175)
+       [2] _ensure_track_detail_button (res://app/tracks/track_scene/Track_Row_Controller.gd:1003)
+       [3] _ready (res://app/tracks/track_scene/Track_Row_Controller.gd:322)
+       [4] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:49)
+[probe] PASS F1b lane container mounted in real row assembly
+[probe] PASS F1c fail-loud counter getter present (pre-fix absent)
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] _run_suite (res://tools/probe_lane_catalog_fail_loud.gd:58)
+[probe] PASS F1d first refresh without repo leaves one-shot trace (push_warning fired once)
+[probe] PASS F1e repeated refresh does not re-warn (one-shot, no log spam)
+[probe] PASS F1f catalog stays untouched when repo missing (注入面不因开合被清语义保持)
+[probe] PASS F2a full-state feed applies (unit fixture)
+[probe] PASS F2b plugins_by_track preserved on full feed
+[probe] PASS F2c vp id resolvable from plugins_by_track (unracked-otherwise fixture)
+[probe] PASS F2d transport-only increment applies
+[probe] PASS F2e transport-only does not clear rack_nodes (no full re-feed side effect)
+[probe] PASS F2f transport-only does not clear plugins_by_track
+[probe] PASS F2g transport-only updates transport_state only
+[probe] PASS F2h vp id still resolvable after transport-only (catalog supply unaffected)
+[probe] PASS F3a dock root source readable
+[probe] PASS F3b VSP schema guard present (_vsp_snapshot_tracks_have_plugins)
+[probe] PASS F3c guard wired into VSP feed path (fallback to legacy full-state)
+[probe] PASS F3d lane fail-loud marker present in lane source
+[probe] SUMMARY_JSON {"checks_failed":0,"checks_total":18,"failures":[],"status":"pass"}
