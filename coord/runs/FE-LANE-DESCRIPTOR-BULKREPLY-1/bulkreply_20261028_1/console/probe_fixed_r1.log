@@ -1,0 +1,171 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_lane_descriptor_bulkreply.tscn time=2026-10-28T22:11:35 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] mode=FIXED(修复断言) spill_dir=D:/Vit_DAW_wt_209stack/VitApp/Workspace/Logs/BridgeReplies
+[stack-probe] PASS P0 setup clear_project
+[stack-probe] PASS P0 setup probe track created
+[stack-probe] PASS P0 discovery finds real FabFilter Pro-Q 3
+[stack-probe] PASS P0 rack_add_node loads Pro-Q 3 on A
+[stack-probe] PASS P0 warm get_plugin_parameters ok
+[stack-probe] PASS P0 volume face: param rows >= 300 (real Pro-Q 3 giant descriptor)
+[stack-probe] PASS P0 volume face: reply exceeded 32KB UDP direct limit (spill+envelope channel exercised)
+[stack-probe] PASS P1a production main scene loads (VitDockRoot.tscn)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_lane_descriptor_bulkreply.gd:292)
+       [8] _send_setup (res://tools/stack_probe_lane_descriptor_bulkreply.gd:134)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_lane_descriptor_bulkreply.gd:292)
+       [7] _send_setup (res://tools/stack_probe_lane_descriptor_bulkreply.gd:134)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_lane_descriptor_bulkreply.gd:292)
+       [8] _send_setup (res://tools/stack_probe_lane_descriptor_bulkreply.gd:134)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_lane_descriptor_bulkreply.gd:292)
+       [8] _send_setup (res://tools/stack_probe_lane_descriptor_bulkreply.gd:134)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_lane_descriptor_bulkreply.gd:292)
+       [7] _send_setup (res://tools/stack_probe_lane_descriptor_bulkreply.gd:134)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_lane_descriptor_bulkreply.gd:292)
+       [8] _send_setup (res://tools/stack_probe_lane_descriptor_bulkreply.gd:134)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+[stack-probe] PASS P1b production assembly: project_data_manager/project_repository/project_event_hub group nodes present
+[stack-probe] PASS P1c assembly face: repo/hub are descendants of production dock root (not probe-created)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+[stack-probe] PASS P2 production feed chain delivers kernel project state to repo (dock deferred snapshot, no probe feed)
+[stack-probe] PASS P3a container mounted in real row assembly
+[stack-probe] PASS P3b production bind pushes kernel id to container
+[stack-probe] PASS P3c two-state toggle present in real row assembly
+[stack-probe] PASS P3d toggle on expands container (production entry)
+[stack-probe] PASS P3e opened lane catalog contains Pro-Q 3 from production repo chain
+[stack-probe] PASS P4a lane descriptor reaches loaded via production no-wait chain (volume face closure)
+[stack-probe] PASS P4b descriptor rows >= 300 (volume face: giant param set delivered through UDP-limit-exceeding reply)
+[stack-probe] PASS P4c selector plugin group offers >= 300 selectable params (user symptom closure)
+[stack-probe] INFO P4d spill files for pid: before=0 after=1 (bridge-side volume evidence; -1=spill dir not provided)
+[stack-probe] PASS P4d bridge-side spill evidence available (env_lane_params spill file exists or dir disclosed)
+[stack-probe] PASS P4e descriptor state stays loaded after 2s settle window (retry convergence face)
+[stack-probe] PASS P5a track volume plugin id resolvable (III-A rebuilt kernel 190/201 face)
+[stack-probe] PASS P5b track group = exactly pan/volume (default lane supply, new-kernel joint face)
+[stack-probe] PASS P5c default volume lane settled via production descriptor chain
+[stack-probe] PASS P5d descriptor re-loads across catalog re-pull triggers (idempotent re-request, timing face carried over)
+[stack-probe] PASS P6 cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":26,"failures":[],"mode":"fixed","stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_lane_descriptor_bulkreply.tscn","time":"2026-10-28T22:11:35"},"status":"pass"}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)
