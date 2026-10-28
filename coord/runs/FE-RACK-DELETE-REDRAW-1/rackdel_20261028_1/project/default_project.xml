@@ -1,0 +1,511 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EDIT appVersion="Unknown" projectID="0/a696bc" creationTime="0" modifiedBy="VitHeadlessServer"
+      vit_project_uuid="vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb" lastSignificantChange="1a18350014f">
+  <TRANSPORT endToEnd="1" position="0.0"/>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
+  </TEMPOSEQUENCE>
+  <VIDEO/>
+  <CLICKTRACK level="0.6000000238418579"/>
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="0.6376281516">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS>
+    <RACK id="1038" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1039" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1041" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1041" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1041" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1041" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1041" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1041" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1041" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1045" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1046" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1048" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1048" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1048" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1048" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1048" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1048" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1048" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1052" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1053" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1055" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1055" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1055" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1055" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1055" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1055" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1055" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1059" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1060" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1062" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1062" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1062" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1062" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1062" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1062" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1062" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1066" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1067" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1069" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1069" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1069" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1069" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1069" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1069" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1069" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1073" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1074" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1076" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1076" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1076" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1076" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1076" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1076" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1076" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1080" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1081" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.550000011920929" y="0.449999988079071" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1084" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="1084" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1084" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1084" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1088" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1089" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.550000011920929" y="0.449999988079071" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1092" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+    </RACK>
+    <RACK id="1097" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1098" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.550000011920929" y="0.449999988079071" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1101" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+    </RACK>
+    <RACK id="1106" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1107" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.550000011920929" y="0.449999988079071" plugin_identifier="VST3-ValhallaSupermassive-5cffe1ee-7e8fe5d5"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="7e8fe5d5" uid="77982743" filename="C:\Program Files\Common Files\VST3\ValhallaSupermassive.vst3"
+                name="ValhallaSupermassive" manufacturer="Valhalla DSP, LLC"
+                id="1110" enabled="1" remapOnTempoChange="1" process="1" state="1038.VMjLgT.A...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XSNz3hUMczXWEjKt3hYt3hKt.kKt3hKt3BS5gEcyQjKtfjYsYTR5AkaA4hKtfjch0TQwHlKT4hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKBgkYUMTRSgTPG4hKtXWdOMCLFElYXcUV30zUZUGMV8DZDk1R1gjPHsFMwfUcQYkVzMlUOgFUEUkQvHjSncSZOYlcoU0Y2YjVmcmQgcVSUMlcUwlXyUTLhk2ZrM1ZAIjXxUkLY8FMrU0ZIIiXugCaggCRR0Dctj1R1gjPHYWRWkUdUYzXNUjUgsFLogDQUwVVmU0QgoWRBgTSqYDY3fjPLQGUogjYPQUVxUjUjM0ZsEVZvjFR1MCZLACRBgDQUYTXmsVaSUWTWkENHIDSzgzPNAiXSwjdHMkSy.0PNEiXCwDMXkFRlAEUYIWQVQVYvnmX3fjPLQGUogjYPQUVxUjUjcUQrIlcvjFR1MiPLglK3AkbUYEV3ASZHc2LBwDZtfVTqUkQYgVQwfUbvjFR1MiTMglKBE0ZzDiXuE0UjgCRBwDctjFRlIVUZoVTGoENHIESz4RZHYlc5ElLMQ0X5ASZHY2LBwDZtHjTuMlQZMTUGMFNHIESz4RZHYld5ElZIUEV5UkUOglKosDdhkGSyvzPMcmKS4TdtjVS4wzTMoGRBgTS3XTVDUkQho2YV8DZtj1RvfjPH0DNFk0ZvjFR1MiPLoGQo0TLXkVSwH1TNYmYC0TdtLESn4BZTsVSWkEdYcUVpUzTOglKosjcHIDRRUULhsVRsM1ZQwFS3fjPLQmKogjYHUUV4UEahESUFkUd5kFR1MiPLglKnQ0ZMcUV3k0UYoVTS8DZtj1R1gjPHM2ZFQFS3DCVwASZHYGRBgDLqESUuEkQi4FLogzLHMDSn4hTi81YTk0aiYjV5ASZHoGSS0DZ2f1St3hKt3hKt3hKt3hKJUELPUTPqI1aYcEV5UkQQcVTWgkKDAkKBs1QhcVSxHlKDAkKC4BTG4hKt3hKt3hKt3FUUMTUDQEdqw1XmE0UYQTQFM1YAwyKIMzasA2atUlaz4COuX0TTMCTrU2Yo41TzEFck4C."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+    </RACK>
+  </RACKS>
+  <MASTERPLUGINS/>
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293b" name="Input 1"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293c" name="Input 2"/>
+    <INPUTDEVICE deviceID="midiin_4b684aa" name="SG Device I/O"/>
+    <INPUTDEVICE deviceID="midiin_1683015f" name="StudioRack"/>
+  </INPUTDEVICES>
+  <TRACKCOMPS/>
+  <SCENES/>
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60"/>
+  </PITCHSEQUENCE>
+  <VIT_AUDIO_SETTINGS migration_state="stored" defaulted_origin="new_project" schema_version="vit_project_audio_settings.v1"
+                      sample_rate_hz="44100" record_file_type="WAV/BWF" record_bit_depth="16"
+                      pcm_format="int16" internal_processing_format="unknown" import_sample_rate_policy="ask"
+                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
+                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="44100"
+                      render_default_bit_depth="16" render_default_file_type="WAV"
+                      dither_policy="unknown"/>
+  <ARRANGERTRACK name="Arranger" id="1002"/>
+  <CHORDTRACK name="Chord" id="1003"/>
+  <MARKERTRACK id="1004" name="Marker"/>
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS/>
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS/>
+  </MASTERTRACK>
+  <TRACK id="1007" name="bass" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1012" name="drums" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1013" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1014" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1017" name="guitar" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1018" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1019" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1022" name="other" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1023" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1024" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1027" name="piano" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1028" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1029" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1032" name="vocals" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <PLUGIN type="volume" id="1033" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1034" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1035">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1038" id="1040" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1036" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1037" enabled="1"/>
+  </TRACK>
+  <TRACK id="1042">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1045" id="1047" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1043" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1044" enabled="1"/>
+  </TRACK>
+  <TRACK id="1049">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1052" id="1054" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1050" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1051" enabled="1"/>
+  </TRACK>
+  <TRACK id="1056">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1059" id="1061" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1057" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1058" enabled="1"/>
+  </TRACK>
+  <TRACK id="1063">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1066" id="1068" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1064" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1065" enabled="1"/>
+  </TRACK>
+  <TRACK id="1070">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1073" id="1075" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1071" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1072" enabled="1"/>
+  </TRACK>
+  <TRACK id="1077">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1080" id="1082" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1078" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1079" enabled="1"/>
+  </TRACK>
+  <TRACK id="1085">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1088" id="1090" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1086" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1087" enabled="1"/>
+  </TRACK>
+  <TRACK id="1094">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1097" id="1099" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1095" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1096" enabled="1"/>
+  </TRACK>
+  <TRACK id="1103">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1106" id="1108" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1104" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1105" enabled="1"/>
+  </TRACK>
+</EDIT>

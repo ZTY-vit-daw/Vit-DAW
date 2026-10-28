@@ -1,0 +1,176 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] !!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+[stack-probe] !!! 任何模式（含所谓「干跑」/headless/只读腿）都走生产传输链：
+[stack-probe] !!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+[stack-probe] !!! 执行前必须完成 PC-RUNTIME-STACK §2.2 占用登记并成功推 main 后再启动：
+[stack-probe] !!!   D:/Vit_DAW/coord/resources/PC-RUNTIME-STACK.md
+[stack-probe] !!! 未登记先跑=污染他人在飞栈（134/139/161/166 四起干跑误判同族事故）
+[stack-probe] STACK_TOUCH_WARNING scene=stack_probe_rack_delete_redraw.tscn time=2026-10-28T23:53:34 transport=VitIpcClient_UDP_4445->agent->kernel registration=PC-RUNTIME-STACK_s2.2 REQUIRED_BEFORE_ANY_RUN_incl_dry_run
+[stack-probe] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[stack-probe] mode=DIAG(缺陷复现轮,pre-fix baseline)
+[stack-probe] PASS P0 setup clear_project
+[stack-probe] PASS P0 setup probe track created
+[stack-probe] PASS P0 setup plugin_search (fallback=false)
+[stack-probe] PASS P0 setup rack_add_node loads external VST#1
+[stack-probe] PASS P1a production main scene loads (VitDockRoot.tscn)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_redraw.gd:426)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_redraw.gd:159)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_rack_delete_redraw.gd:426)
+       [7] _send_setup (res://tools/stack_probe_rack_delete_redraw.gd:159)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_redraw.gd:426)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_redraw.gd:159)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_redraw.gd:426)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_redraw.gd:159)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+[VitTrackSyncDiag] graph_rack_adapter._reload_graph_rack waiting track vp=
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_rack_delete_redraw.gd:426)
+       [7] _send_setup (res://tools/stack_probe_rack_delete_redraw.gd:159)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1632)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1433)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1405)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_redraw.gd:426)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_redraw.gd:159)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:383)
+[stack-probe] PASS P1b production assembly: pdm/repo/hub group nodes present
+[stack-probe] PASS P1c assembly face: repo/hub are descendants of production dock root (not probe-created)
+[stack-probe] TELEMETRY P1d rack adapters=[{"adapter_path":"/root/StackProbeRackDeleteRedraw/VitDockRoot212Probe/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/StageSlotGrid/@PanelContainer@267/VBox/ContentHost/Stack/ViewInstanceHost/GraphRackDockAdapter","canvas_ids":[],"rack_child_count":7,"rack_path":"/root/StackProbeRackDeleteRedraw/VitDockRoot212Probe/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/StageSlotGrid/@PanelContainer@267/VBox/ContentHost/Stack/ViewInstanceHost/GraphRackDockAdapter/Layout/MainSplit/RightPane/GraphHost/VitDockGraphRack","rack_present":true,"viewport_id":"vp_rack_main"}]
+[stack-probe] PASS P1d production stage chain yields live GraphRackDockAdapter rack (VitDockGraphRack, non-empty viewport) in dock subtree
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+[VitTrackSyncDiag] dock_root.apply_project_state tracks=11 clips_total=0 focus_track= focus_track_clips=0
+[VitTrackSyncDiag] graph_rack_adapter._reload_graph_rack vp=vp_rack_main kernel_track=1007 scene_track=Track_Root_1007 nodes=2
+[VitTrackSyncDiag] rack.load_nodes track=1007 plugins=2 placeholders=0 clip_ids=[]
+[VitTrackSyncDiag] rack.sync.begin gen=1 server=0 current=0 pending_add=0 pending_remove=0
+[VitTrackSyncDiag] rack.sync.end gen=1 cleared_add=0 cleared_remove=0
+[stack-probe] PASS P2a repo rack_nodes contains VST#1 (kernel→repo feed)
+[VitTrackSyncDiag] rack.load_nodes track=1007 plugins=2 placeholders=0 clip_ids=[]
+[VitTrackSyncDiag] dock_root.apply_project_state tracks=11 clips_total=0 focus_track= focus_track_clips=0
+[VitTrackSyncDiag] graph_rack_adapter._reload_graph_rack vp=vp_rack_main kernel_track=1007 scene_track=Track_Root_1007 nodes=2
+[VitTrackSyncDiag] rack.load_nodes track=1007 plugins=2 placeholders=0 clip_ids=[]
+[VitTrackSyncDiag] rack.sync.begin gen=3 server=0 current=0 pending_add=0 pending_remove=0
+[VitTrackSyncDiag] rack.sync.end gen=3 cleared_add=0 cleared_remove=0
+[stack-probe] TELEMETRY P2b rack=/root/StackProbeRackDeleteRedraw/VitDockRoot212Probe/TopLevelShell/MainBody/ContentStack/WorkspaceShell/WorkspaceRoot/DynamicSplitTreeRoot/StageSlotGrid/@PanelContainer@267/VBox/ContentHost/Stack/ViewInstanceHost/GraphRackDockAdapter/Layout/MainSplit/RightPane/GraphHost/VitDockGraphRack children=10 detail=[{"graph_node":false,"name":"_connection_layer","plugin_meta":""},{"graph_node":false,"name":"@PopupMenu@225","plugin_meta":""},{"graph_node":false,"name":"RackContextMenuPanel","plugin_meta":""},{"graph_node":false,"name":"RackPluginSearchPopup","plugin_meta":""},{"graph_node":false,"name":"@AcceptDialog@259","plugin_meta":""},{"graph_node":false,"name":"RackZoomControls","plugin_meta":""},{"graph_node":false,"name":"@Timer@266","plugin_meta":""},{"graph_node":false,"name":"RackLayerChips","plugin_meta":""},{"graph_node":true,"name":"VitRackBus_in_4043112","plugin_meta":""},{"graph_node":true,"name":"VitRackBus_out_4044206","plugin_meta":""}]
+[stack-probe] TELEMETRY P2b-repo rack_nodes rows=[{"id":"1069","keys":"[\"node_id\", \"plugin_item_id\", \"item_id\", \"id\", \"plugin_id\", \"name\", \"plugin_name\", \"type\", \"enabled\", \"x\", \"y\", \"zone_id\", \"clip_scope\", \"template_role\", \"audio_reachable_from_rack_input\", \"vit_orphan_bypass_candidate\", \"supports_param_grabber\", \"plugin_path\", \"path\", \"plugin_format\", \"format\", \"plugin_load_state\", \"plugin_instance_ready\", \"shared_by_clip_ids\", \"source_clip_id\", \"line_color_hint\", \"is_scope_hidden\", \"vit_effective_in_output_path\", \"params\"]","name":"ValhallaSupermassive","plugin_item_id":"1069","type":"vst"}]
+[stack-probe] TELEMETRY P2b-rack last_merged_bound_plugins=[{"id":"1008","name":"Volume & Pan Plugin","type":"volume"},{"id":"1009","name":"Level Meter","type":"level"}] sig=Track_Root_1007#1007#0:1008|1008|Volume 
+[VitTrackSyncDiag] graph_rack_adapter._reload_graph_rack vp=vp_rack_main kernel_track=1007 scene_track=Track_Root_1007 nodes=2
+[VitTrackSyncDiag] rack.load_nodes track=1007 plugins=2 placeholders=0 clip_ids=[]
+[VitTrackSyncDiag] rack.sync.begin gen=4 server=0 current=0 pending_add=0 pending_remove=0
+[VitTrackSyncDiag] rack.sync.end gen=4 cleared_add=0 cleared_remove=0
+[stack-probe] TELEMETRY P2b-after-manual-reload canvas_ids=[]
+[stack-probe] FAIL P2b canvas plugin nodes contain VST#1 (adapter reload face) | ids=[]
+[stack-probe] FAIL P2 baseline dual-side | baseline broken before delete leg; repo=true canvas=false
+[stack-probe] SUMMARY_JSON {"checks_failed":2,"checks_total":11,"failures":["P2b canvas plugin nodes contain VST#1 (adapter reload face) | ids=[]","P2 baseline dual-side | baseline broken before delete leg; repo=true canvas=false"],"mode":"diag","stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"stack_probe_rack_delete_redraw.tscn","time":"2026-10-28T23:53:34"},"status":"fail","telemetry":{"delete_receipts":[],"dispatch_route":"","gesture_dispatched":false,"project_loaded_at_msec":[3805,4053],"project_loaded_count":2}}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)

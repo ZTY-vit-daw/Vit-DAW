@@ -1,0 +1,150 @@
+2026-10-28T23:44:56 [INFO] VspHub started listen=127.0.0.1:8787 kernel_req=tcp://127.0.0.1:5555 kernel_sub=tcp://127.0.0.1:5556 telemetry=true
+2026-10-28T23:44:56 [INFO] VspHub HTTP listening on http://127.0.0.1:8787
+2026-10-28T23:44:56 [INFO] VSP telemetry relay started: tcp://127.0.0.1:5556 -> vsp.hub.websocket
+2026-10-28T23:44:58 [INFO] VSP session registered role=agent client_id=vit.agent.transport_publisher session_id=sess_kernel_1793202298236_401973757 transport=vsp.hub.http
+2026-10-28T23:44:58 [INFO] VSP session registered role=agent client_id=vit.agent.realtime_publisher session_id=sess_kernel_1793202298241_814197096 transport=vsp.hub.http
+2026-10-28T23:44:58 [INFO] VSP session registered role=agent client_id=vit.agent.official session_id=sess_kernel_1793202298459_973443627 transport=vsp.hub.http
+2026-10-28T23:45:46 [INFO] VSP stream connected id=stream_1793202346959444900_1925 remote=127.0.0.1:51006
+2026-10-28T23:45:46 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793202346972_96440836 transport=vsp.hub.websocket
+2026-10-28T23:45:50 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793202350404_868903382 transport=vsp.hub.http
+2026-10-28T23:45:50 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202350405_953093243 transport=vsp.hub.http
+2026-10-28T23:45:50 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793202350437_1009241551 transport=vsp.hub.http
+2026-10-28T23:45:50 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202350459_557017450 transport=vsp.hub.http
+2026-10-28T23:48:09 [INFO] VSP stream connected id=stream_1793202489754292800_8726 remote=127.0.0.1:49599
+2026-10-28T23:48:09 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793202489765_1051838614 transport=vsp.hub.websocket
+2026-10-28T23:48:12 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793202492321_855054174 transport=vsp.hub.http
+2026-10-28T23:48:12 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793202492651_44022192 transport=vsp.hub.http
+2026-10-28T23:48:12 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202492652_1008199790 transport=vsp.hub.http
+2026-10-28T23:48:12 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202492698_488214224 transport=vsp.hub.http
+2026-10-28T23:50:21 [INFO] VSP stream connected id=stream_1793202621896276500_15069 remote=127.0.0.1:60432
+2026-10-28T23:50:21 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793202621911_380524411 transport=vsp.hub.websocket
+2026-10-28T23:50:24 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793202624689_898766139 transport=vsp.hub.http
+2026-10-28T23:50:25 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202625096_556109932 transport=vsp.hub.http
+2026-10-28T23:50:25 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793202625099_938257363 transport=vsp.hub.http
+2026-10-28T23:50:45 [INFO] VSP session registered role=agent client_id=vit.agent.transport_publisher session_id=sess_kernel_1793202645781_606973941 transport=vsp.hub.http
+2026-10-28T23:52:28 [INFO] VSP stream connected id=stream_1793202748601676600_21210 remote=127.0.0.1:59185
+2026-10-28T23:52:28 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793202748614_808525176 transport=vsp.hub.websocket
+2026-10-28T23:52:31 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793202751364_251295734 transport=vsp.hub.http
+2026-10-28T23:52:31 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202751807_852444020 transport=vsp.hub.http
+2026-10-28T23:52:31 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793202751808_541960141 transport=vsp.hub.http
+2026-10-28T23:53:34 [INFO] VSP stream connected id=stream_1793202814082157200_24946 remote=127.0.0.1:62284
+2026-10-28T23:53:34 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793202814094_108312668 transport=vsp.hub.websocket
+2026-10-28T23:53:36 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793202816857_931237064 transport=vsp.hub.http
+2026-10-28T23:53:37 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793202817424_72668570 transport=vsp.hub.http
+2026-10-28T23:53:37 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202817424_531869164 transport=vsp.hub.http
+2026-10-28T23:53:37 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793202817472_535875780 transport=vsp.hub.http
+2026-10-28T23:55:14 [INFO] VSP stream connected id=stream_1793202914559018400_30243 remote=127.0.0.1:62892
+2026-10-28T23:55:14 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793202914568_813710982 transport=vsp.hub.websocket
+2026-10-29T00:09:37 [INFO] VSP stream connected id=stream_1793203777043304000_115151 remote=127.0.0.1:51090
+2026-10-29T00:09:37 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793203777061_1069981523 transport=vsp.hub.websocket
+2026-10-29T00:09:39 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793203779786_863868644 transport=vsp.hub.http
+2026-10-29T00:09:40 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793203780314_349887873 transport=vsp.hub.http
+2026-10-29T00:09:40 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793203780315_369030772 transport=vsp.hub.http
+2026-10-29T00:09:40 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793203780364_308248371 transport=vsp.hub.http
+2026-10-29T00:10:38 [INFO] VSP stream connected id=stream_1793203838332471600_121926 remote=127.0.0.1:58818
+2026-10-29T00:10:38 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793203838346_156206706 transport=vsp.hub.websocket
+2026-10-29T00:10:41 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793203841082_1020706621 transport=vsp.hub.http
+2026-10-29T00:10:41 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793203841674_142767859 transport=vsp.hub.http
+2026-10-29T00:10:41 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793203841675_518055576 transport=vsp.hub.http
+2026-10-29T00:15:46 [INFO] VSP stream connected id=stream_1793204146576649800_152638 remote=127.0.0.1:64437
+2026-10-29T00:15:46 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204146590_573714720 transport=vsp.hub.websocket
+2026-10-29T00:15:49 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204149320_39691352 transport=vsp.hub.http
+2026-10-29T00:15:49 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204149909_506478528 transport=vsp.hub.http
+2026-10-29T00:15:49 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204149910_1065808666 transport=vsp.hub.http
+2026-10-29T00:15:49 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204149957_476175262 transport=vsp.hub.http
+2026-10-29T00:15:55 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204155081_800897524 transport=vsp.hub.http
+2026-10-29T00:19:43 [INFO] VSP stream connected id=stream_1793204383305971300_176396 remote=127.0.0.1:50530
+2026-10-29T00:19:43 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204383321_185887636 transport=vsp.hub.websocket
+2026-10-29T00:19:46 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204386018_459544025 transport=vsp.hub.http
+2026-10-29T00:19:46 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204386624_14798893 transport=vsp.hub.http
+2026-10-29T00:19:46 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204386625_940695782 transport=vsp.hub.http
+2026-10-29T00:19:46 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204386698_1063046132 transport=vsp.hub.http
+2026-10-29T00:19:51 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204391797_761222119 transport=vsp.hub.http
+2026-10-29T00:20:11 [INFO] VSP stream connected id=stream_1793204411616932800_179650 remote=127.0.0.1:60771
+2026-10-29T00:20:11 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204411635_643390783 transport=vsp.hub.websocket
+2026-10-29T00:20:14 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204414356_775345642 transport=vsp.hub.http
+2026-10-29T00:20:15 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204415049_610184568 transport=vsp.hub.http
+2026-10-29T00:20:15 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204415050_771996127 transport=vsp.hub.http
+2026-10-29T00:20:15 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204415098_168258148 transport=vsp.hub.http
+2026-10-29T00:20:20 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204420435_731189493 transport=vsp.hub.http
+2026-10-29T00:20:52 [INFO] VSP stream connected id=stream_1793204452281186800_184136 remote=127.0.0.1:51936
+2026-10-29T00:21:56 [INFO] VSP stream connected id=stream_1793204516736311000_190472 remote=127.0.0.1:57431
+2026-10-29T00:21:56 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204516757_619625829 transport=vsp.hub.websocket
+2026-10-29T00:21:58 [INFO] VSP stream connected id=stream_1793204518132262400_190620 remote=127.0.0.1:57434
+2026-10-29T00:21:58 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204518136_670524030 transport=vsp.hub.websocket
+2026-10-29T00:21:59 [INFO] VSP stream connected id=stream_1793204519064262400_190721 remote=127.0.0.1:57439
+2026-10-29T00:21:59 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204519581_122820808 transport=vsp.hub.websocket
+2026-10-29T00:22:00 [INFO] VSP stream connected id=stream_1793204520692718300_190897 remote=127.0.0.1:57443
+2026-10-29T00:22:01 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204521246_797171509 transport=vsp.hub.websocket
+2026-10-29T00:22:02 [INFO] VSP stream connected id=stream_1793204522110291300_191050 remote=127.0.0.1:57447
+2026-10-29T00:22:02 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204522221_58983572 transport=vsp.hub.websocket
+2026-10-29T00:22:02 [INFO] VSP stream connected id=stream_1793204522778287700_191117 remote=127.0.0.1:57449
+2026-10-29T00:22:02 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204522906_333261487 transport=vsp.hub.websocket
+2026-10-29T00:22:03 [INFO] VSP stream connected id=stream_1793204523534494200_191200 remote=127.0.0.1:57452
+2026-10-29T00:22:04 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204524150_1010858198 transport=vsp.hub.websocket
+2026-10-29T00:22:04 [INFO] VSP stream connected id=stream_1793204524838340800_191340 remote=127.0.0.1:57456
+2026-10-29T00:22:05 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204525443_904867585 transport=vsp.hub.websocket
+2026-10-29T00:22:06 [INFO] VSP stream connected id=stream_1793204526141194500_191479 remote=127.0.0.1:57460
+2026-10-29T00:22:06 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204526660_314032299 transport=vsp.hub.websocket
+2026-10-29T00:22:09 [INFO] VSP stream connected id=stream_1793204529733487100_191841 remote=127.0.0.1:57464
+2026-10-29T00:22:09 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204529738_36972724 transport=vsp.hub.websocket
+2026-10-29T00:22:09 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204529743_605167433 transport=vsp.hub.http
+2026-10-29T00:22:10 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204530363_1004181447 transport=vsp.hub.http
+2026-10-29T00:22:10 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204530364_213967667 transport=vsp.hub.http
+2026-10-29T00:22:10 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204530427_652993540 transport=vsp.hub.http
+2026-10-29T00:22:13 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204533495_1014742897 transport=vsp.hub.http
+2026-10-29T00:22:14 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204534075_993980072 transport=vsp.hub.http
+2026-10-29T00:22:17 [INFO] VSP stream connected id=stream_1793204537680007600_192881 remote=127.0.0.1:57528
+2026-10-29T00:22:17 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204537685_132043469 transport=vsp.hub.websocket
+2026-10-29T00:22:17 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204537690_748813103 transport=vsp.hub.http
+2026-10-29T00:22:18 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204538321_923883658 transport=vsp.hub.http
+2026-10-29T00:22:18 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204538321_22768706 transport=vsp.hub.http
+2026-10-29T00:22:18 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204538396_521032280 transport=vsp.hub.http
+2026-10-29T00:22:29 [INFO] VSP stream connected id=stream_1793204549714945800_194567 remote=127.0.0.1:57595
+2026-10-29T00:22:29 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204549721_171613032 transport=vsp.hub.websocket
+2026-10-29T00:22:29 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204549726_124496570 transport=vsp.hub.http
+2026-10-29T00:22:30 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204550406_1045248936 transport=vsp.hub.http
+2026-10-29T00:22:30 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204550406_78503737 transport=vsp.hub.http
+2026-10-29T00:22:30 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204550457_861104445 transport=vsp.hub.http
+2026-10-29T00:22:44 [INFO] VSP stream connected id=stream_1793204564404631700_196789 remote=127.0.0.1:57724
+2026-10-29T00:22:45 [INFO] VSP stream connected id=stream_1793204565033813700_196852 remote=127.0.0.1:65079
+2026-10-29T00:22:45 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204565496_608114718 transport=vsp.hub.websocket
+2026-10-29T00:22:46 [INFO] VSP stream connected id=stream_1793204566849164500_197040 remote=127.0.0.1:65082
+2026-10-29T00:22:46 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204566876_243644212 transport=vsp.hub.websocket
+2026-10-29T00:22:48 [INFO] VSP stream connected id=stream_1793204568068767100_197165 remote=127.0.0.1:65086
+2026-10-29T00:22:48 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204568219_207363763 transport=vsp.hub.websocket
+2026-10-29T00:22:48 [INFO] VSP stream connected id=stream_1793204568788681400_197237 remote=127.0.0.1:65088
+2026-10-29T00:22:49 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204569249_1013797235 transport=vsp.hub.websocket
+2026-10-29T00:22:50 [INFO] VSP stream connected id=stream_1793204570105079600_197378 remote=127.0.0.1:65091
+2026-10-29T00:22:50 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204570526_557901997 transport=vsp.hub.websocket
+2026-10-29T00:22:52 [INFO] VSP stream connected id=stream_1793204572478444500_197616 remote=127.0.0.1:65094
+2026-10-29T00:22:53 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204573317_702401333 transport=vsp.hub.websocket
+2026-10-29T00:22:54 [INFO] VSP stream connected id=stream_1793204574308768100_197801 remote=127.0.0.1:65096
+2026-10-29T00:22:54 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204574877_579819842 transport=vsp.hub.websocket
+2026-10-29T00:22:57 [INFO] VSP stream connected id=stream_1793204577657229600_198132 remote=127.0.0.1:65099
+2026-10-29T00:22:57 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204577661_602456212 transport=vsp.hub.websocket
+2026-10-29T00:22:57 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204577817_1065130829 transport=vsp.hub.http
+2026-10-29T00:23:00 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204580214_279041561 transport=vsp.hub.http
+2026-10-29T00:23:00 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204580214_675601725 transport=vsp.hub.http
+2026-10-29T00:23:00 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204580857_369347366 transport=vsp.hub.http
+2026-10-29T00:23:01 [INFO] VSP stream connected id=stream_1793204581836248600_198649 remote=127.0.0.1:65140
+2026-10-29T00:23:02 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204582095_1064617675 transport=vsp.hub.websocket
+2026-10-29T00:23:03 [INFO] VSP stream connected id=stream_1793204583036932200_198776 remote=127.0.0.1:65147
+2026-10-29T00:23:05 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204585236_284011792 transport=vsp.hub.websocket
+2026-10-29T00:23:05 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204585392_958500241 transport=vsp.hub.http
+2026-10-29T00:23:05 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204585393_134662024 transport=vsp.hub.http
+2026-10-29T00:23:05 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204585545_1055634939 transport=vsp.hub.http
+2026-10-29T00:23:05 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204585666_161648005 transport=vsp.hub.http
+2026-10-29T00:23:05 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204585676_470526900 transport=vsp.hub.http
+2026-10-29T00:23:08 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204588046_259852372 transport=vsp.hub.http
+2026-10-29T00:23:08 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204588678_904541482 transport=vsp.hub.http
+2026-10-29T00:23:12 [INFO] VSP stream connected id=stream_1793204592043306900_199867 remote=127.0.0.1:65202
+2026-10-29T00:23:12 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204592048_46061574 transport=vsp.hub.websocket
+2026-10-29T00:23:12 [INFO] VSP session registered role=gui client_id=godot.gui.project_repository session_id=sess_kernel_1793204592055_909523041 transport=vsp.hub.http
+2026-10-29T00:23:12 [INFO] VSP session registered role=gui client_id=godot.gui session_id=sess_kernel_1793204592675_1010437463 transport=vsp.hub.http
+2026-10-29T00:23:12 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204592675_640827499 transport=vsp.hub.http
+2026-10-29T00:23:12 [INFO] VSP session registered role=gui client_id=godot.gui.asset_adapter session_id=sess_kernel_1793204592728_188450767 transport=vsp.hub.http
+2026-10-29T00:23:13 [INFO] VSP stream connected id=stream_1793204593823661500_200104 remote=127.0.0.1:65230
+2026-10-29T00:23:13 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204593905_1007122671 transport=vsp.hub.websocket
+2026-10-29T00:23:14 [INFO] VSP stream connected id=stream_1793204594541341700_200179 remote=127.0.0.1:65235
+2026-10-29T00:23:14 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1793204594590_337433600 transport=vsp.hub.websocket
