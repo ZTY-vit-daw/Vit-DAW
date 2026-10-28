@@ -1,0 +1,50 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!! 警告（PROBE-DRYRUN-WARNING-1）：干跑=必触栈——本探针没有不触栈的模式
+!!! 任何模式（含 DIAG/只读腿）都走生产传输链：
+!!!   VitIpcClient UDP（指令 4445/遥测 4444）→ agent bridge → 内核 ZMQ
+!!! 跑前必须 PC-RUNTIME-STACK §2.2 登记推 main（started_at=2026-10-28T23:07:24）
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+[PASS] setup add_track | 1041
+[PASS] setup track volume plugin discovered | 1042
+[PASS] P0a production dock adapter mounted (timeline_dock_adapter.tscn) | adapter=StackProbeLaneClickAdapter:<Control#74021078619> track_list=TrackList:<VBoxContainer#74809607825>
+[PASS] P0b arbitrator+mapping assembled in production TrackList | arb=TimelineInputArbitrator:<Control#77628180189> mapping=TimelineViewMapping:<Node#77611402972>
+[PASS] P0c production track row created via adapter path | Track_Root_1041:<VBoxContainer#81604380258>
+[PASS] P0d envelope lane container in row | TrackEnvelopeLane2D:<Control#87962945656>
+[PASS] P0e two-state toggle present | Btn_Envelope_Lane_Toggle:<Button#89338677443>
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:370)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:283)
+       [2] set_envelope_lane_open (res://app/tracks/track_scene/Track_Row_Controller.gd:1196)
+       [3] _on_envelope_toggle_toggled (res://app/tracks/track_scene/Track_Row_Controller.gd:1040)
+       [4] _run_suite (res://tools/stack_probe_lane_point_click_pipeline.gd:348)
+       [5] _settle_frames (res://tools/stack_probe_lane_point_click_pipeline.gd:267)
+[PASS] P0f toggle on expands container | true
+[PASS] P0g default volume lane binding settled | { "group": "track", "plugin_id": "1042", "param_id": "volume", "pending": false }
+[PASS] P0h default volume lane EMPTY via production get_curve UDP chain | empty
+[PASS] P0i strip real geometry in inline lane layout (nonzero) | rect=[P: (315.0, 332.0), S: (2237.0, 96.0)]
+[PASS] P0j strip rect inside adapter host rect | adapter=[P: (0.0, 0.0), S: (2560.0, 1400.0)] strip=[P: (315.0, 332.0), S: (2237.0, 96.0)]
+[DIAG] P1z0 row/stack geometry forensics | row_rect=[P: (0.0, 76.0), S: (2560.0, 358.0)] fast_row_at_gp=Track_Root_1041:<VBoxContainer#81604380258> gp=(955.0, 407.5) strip_parent(stack)=[P: (315.0, 308.0), S: (2237.0, 120.0)]
+[FAIL] P1a mapping resolves envelope_lane at strip canvas center | kind=none gp=(955.0, 407.5)
+[DIAG] P1b arbitrator intercept state at strip canvas (baseline forensics) | should_accept=false mouse_filter=2 (STOP=0/IGNORE=2) gp=(955.0, 407.5)
+SCRIPT ERROR: Invalid call. Nonexistent function 'gui_get_hovering_control' in base 'Window'.
+   at: _run_suite (res://tools/stack_probe_lane_point_click_pipeline.gd:399)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://tools/stack_probe_lane_point_click_pipeline.gd:399)
+       [1] _settle_frames (res://tools/stack_probe_lane_point_click_pipeline.gd:267)
+[FAIL] watchdog | timeout after 420.0 sec
+---- probe summary: total=14 failed=2 ----
+[FAIL-DETAIL] P1a mapping resolves envelope_lane at strip canvas center | kind=none gp=(955.0, 407.5)
+[FAIL-DETAIL] watchdog | timeout after 420.0 sec

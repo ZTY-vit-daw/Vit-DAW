@@ -1,0 +1,27 @@
+probe_autolane_edit exit=0 
+probe_autolane_layout_grow exit=0 
+probe_autolane_prodchain exit=0 
+probe_autolane_rebuild exit=0 
+probe_automation_datachan exit=0 
+probe_envelope_lane_auto exit=0 
+probe_envelope_lane_toggle exit=0 
+probe_envelope_lane_ui exit=0 
+probe_envelope_teardown exit=0 
+probe_fe_gui_shrink_phase_a exit=0 
+probe_fe_gui_shrink_phase_b exit=0 
+probe_fe_gui_shrink_phase_c exit=0 
+probe_file_reply_volume_face_scene exit=1 
+probe_fx_wet_chain_badge exit=0 
+probe_lane_catalog_fail_loud exit=0 [probe] SUMMARY_JSON {"checks_failed":0,"checks_total":18,"failures":[],"status":"pass"}
+probe_rack_plugin_search_popup exit=0 
+probe_rack_sendlevel_fader exit=0 
+probe_rack_sendlevel_realinput exit=0 
+probe_rack_sendroute_macro exit=0 
+probe_start_feed_view exit=0 [probe] PROBE PASS (checks_total=244 failed=0 setup_failed=false)
+probe_vitnote_circle_state exit=0 
+probe_vitnote_container exit=0 
+probe_vitnote_face_resolve exit=0 
+probe_vitnote_input exit=0 
+probe_vitnote_notestream exit=0 
+probe_vitnote_panel_summary exit=0 
+probe_vsp_delta_schema_guard exit=0 [probe] SUMMARY_JSON {"checks_failed":0,"checks_total":30,"failures":[],"status":"pass"}
