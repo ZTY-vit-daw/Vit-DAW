@@ -40,3 +40,14 @@
 - 首载链结构与假设不符（project_state 首载即剥列但另有正规修复设计）→上交锚点；
 - delta 守卫与既有 resync 语义冲突（cursor 机制被破坏）→上交两案；
 - 40 次调用溯源发现其他消费方依赖 delta 剥列形态→上交。
+
+## 领取
+
+- 领取时间：2026-10-28 19:55 +0800
+- origin/main hash：f28682cd0c6549401a16da7811d944d251f61a6e
+- 执行 owner：GLM-5.3 / PC / ZCode 执行会话（本会话）
+- 派发确认：用户 2026-10-28 19:55 前后在本会话直接下达领取指令（手测节当场折卡，用户触发即确认）
+- 执行分支：port/fe-lane-catalog-vspdelta-guard-1
+- worktree：D:/Godot/project/vit-daw-frontend-vspdelta1
+- 前端领取基线：main 4891bae（已核 origin/main = 4891baef4267f6eb0bc11ef9a28b324a030ee410）
+- 领取提交：待推送后回填
