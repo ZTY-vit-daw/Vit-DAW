@@ -50,4 +50,4 @@
 - 执行分支：port/fe-lane-catalog-vspdelta-guard-1
 - worktree：D:/Godot/project/vit-daw-frontend-vspdelta1
 - 前端领取基线：main 4891bae（已核 origin/main = 4891baef4267f6eb0bc11ef9a28b324a030ee410）
-- 领取提交：待推送后回填
+- 领取提交：8ef8cc6f（已推 main 并核对远端卡面 owner，正式领取）
