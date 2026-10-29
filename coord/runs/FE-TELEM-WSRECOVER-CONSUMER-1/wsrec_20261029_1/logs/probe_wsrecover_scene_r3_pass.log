@@ -1,0 +1,29 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] PASS P0 production autoloads assembled (adapter/manager/perf real instances)
+[probe] PASS W1a adapter signal bound to manager production handler (exactly one connection)
+[VitPerf] long_frame frame_ms=147.37 fps=1.0 nodes=32 objects=1542 draw_calls=0 primitives=0 vram_mb=0.0 texture_mb=0.0 buffer_mb=0.0 counters={"telemetry.hub_stale_refresh_scheduled":1,"telemetry.project_refresh_scheduled":1}
+[probe] PASS W2a stale edge: perf hub_stale_refresh_scheduled +1
+[probe] PASS W2b stale edge: project refresh scheduled +1
+[probe] PASS W2c stale edge: debounced host re-pull exactly once via production entry method
+[probe] PASS W3a recovered edge: perf hub_recovered_refresh_scheduled +1
+[probe] PASS W3b recovered edge: project refresh scheduled +1
+[probe] PASS W3c recovered edge: debounced host re-pull exactly once after outage window
+[probe] PASS W4a non-consumed statuses: zero refresh scheduled
+[probe] PASS W4b non-consumed statuses: zero edge counters
+[probe] PASS W4c non-consumed statuses: zero host re-pull (one-shot edge, not polling)
+[probe] PASS W5a stale+recovered same-frame: single debounced dispatch
+[probe] PASS W5b stale+recovered same-frame: both edges counted (coalesced, not dropped)
+[probe] PASS W6a manager source readable
+[probe] PASS W6b recovered-edge counter present in manager source
+[probe] PASS W6c recovered-edge schedule branch present (same form as stale edge)
+[probe] PASS W6d card marker present in manager source
+[probe] SUMMARY_JSON {"checks_failed":0,"checks_total":17,"failures":[],"status":"pass"}
