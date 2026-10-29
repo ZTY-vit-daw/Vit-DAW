@@ -1,0 +1,51 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261029_224716\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW\coord\runs\M3-C4-AUTO-INTENT-1\automation_intent_chain_20261029_r2\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_m3c4ai1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_m3c4ai1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_m3c4ai1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_m3c4ai1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=17944 workdir=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_m3c4ai1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=17944
+ok: ZMQ SUB listening: 5556 pid=17944
+
+== Project state invoke
+project.state status=ok error=
+
+== automation intent chain smoke (M3-C4-AUTO-INTENT-1)
+ok: automation intent chain project isolation: VIT_PROJECT_XML=D:\Vit_DAW\coord\runs\M3-C4-AUTO-INTENT-1\automation_intent_chain_20261029_r2\default_project.xml
+[ok] setup: {"ride_track_id": "1010", "ride_volume_plugin_id": "1011"}
+[ok] leg_a_positive_chain: {"confirmation_card_fields": ["curve", "end_value", "region_end", "region_start", "shape", "start_value"], "written": 2, "decision_record_id": "mixdec_choreo_session_automation_choreo_f755002591bb8003", "c4_state": "in_progress", "kernel_points": [{"t": 0.0, "v": 0.300000011920929, "c": 0.0}, {"t": 30.0, "v": 0.600000023841858, "c": 0.0}]}
+[ok] leg_b_readback_entry: {"point_count": 2, "matches_written": true}
+[ok] leg_c_static_boundary: {"workflow": null, "curve_points": 2}
+[ok] leg_d_region_clarification: {"stop_reason": "automation_choreo_clarify_region", "curve_points": 2}
+[ok] leg_e_space_boundary: {"stop_reason": "automation_category_boundary_no_plugin", "curve_points": 2}
+[ok] leg_f_mix_report_c4: {"c4_state": "in_progress"}
+[PASS] automation intent chain smoke: all legs green
+ok: automation intent chain smoke passed (agent chat face; summary: D:\Vit_DAW\coord\runs\M3-C4-AUTO-INTENT-1\automation_intent_chain_20261029_r2\automation_intent_chain_summary.json)
+
+== Summary
+ok: dev agent smoke completed

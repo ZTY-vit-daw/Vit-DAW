@@ -1,0 +1,67 @@
+{
+  "scenario": "M3-C4-AUTO-INTENT-1 natural-language automation intent chain",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "project_path": "D:\\Vit_DAW\\coord\\runs\\M3-C4-AUTO-INTENT-1\\automation_intent_chain_20261029_r2\\automation_intent_chain_project.vit",
+  "llm_participation": "none (deterministic vocabulary routing takes over before any model turn)",
+  "started_at": "2026-10-29T14:47:22.513805+00:00",
+  "legs": [
+    "setup",
+    "leg_a_positive_chain",
+    "leg_b_readback_entry",
+    "leg_c_static_boundary",
+    "leg_d_region_clarification",
+    "leg_e_space_boundary",
+    "leg_f_mix_report_c4"
+  ],
+  "setup": {
+    "ride_track_id": "1010",
+    "ride_volume_plugin_id": "1011"
+  },
+  "leg_a_positive_chain": {
+    "confirmation_card_fields": [
+      "curve",
+      "end_value",
+      "region_end",
+      "region_start",
+      "shape",
+      "start_value"
+    ],
+    "written": 2,
+    "decision_record_id": "mixdec_choreo_session_automation_choreo_f755002591bb8003",
+    "c4_state": "in_progress",
+    "kernel_points": [
+      {
+        "t": 0.0,
+        "v": 0.300000011920929,
+        "c": 0.0
+      },
+      {
+        "t": 30.0,
+        "v": 0.600000023841858,
+        "c": 0.0
+      }
+    ]
+  },
+  "leg_b_readback_entry": {
+    "point_count": 2,
+    "matches_written": true
+  },
+  "leg_c_static_boundary": {
+    "workflow": null,
+    "curve_points": 2
+  },
+  "leg_d_region_clarification": {
+    "stop_reason": "automation_choreo_clarify_region",
+    "curve_points": 2
+  },
+  "leg_e_space_boundary": {
+    "stop_reason": "automation_category_boundary_no_plugin",
+    "curve_points": 2
+  },
+  "leg_f_mix_report_c4": {
+    "c4_state": "in_progress"
+  },
+  "status": "PASS",
+  "finished_at": "2026-10-29T14:47:59.764556+00:00"
+}

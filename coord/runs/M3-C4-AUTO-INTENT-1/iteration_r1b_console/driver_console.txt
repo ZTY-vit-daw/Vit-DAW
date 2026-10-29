@@ -1,0 +1,60 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261029_223805\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW\coord\runs\M3-C4-AUTO-INTENT-1\automation_intent_chain_20261029_r1b\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_m3c4ai1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_m3c4ai1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_m3c4ai1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_m3c4ai1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=35632 workdir=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_m3c4ai1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=35632
+ok: ZMQ SUB listening: 5556 pid=35632
+
+== Project state invoke
+project.state status=ok error=
+
+== automation intent chain smoke (M3-C4-AUTO-INTENT-1)
+ok: automation intent chain project isolation: VIT_PROJECT_XML=D:\Vit_DAW\coord\runs\M3-C4-AUTO-INTENT-1\automation_intent_chain_20261029_r1b\default_project.xml
+python.exe : [FAIL] LEG A confirm stop_reason = 'automation_choreo_confirmation_held': {"conversation_id": "automation_
+intent_smoke_main", "task_id": "task_d490b0c31bffb593", "goal_id": "goal_36e28dd6eed00248", "run_id": "run_79ceb7f38412
+24d5", "original_intent": "0 �?30 秒，让这条轨的存在感慢慢强起�?, "reply": "我还没有写入。待�
+�认的方案是：对 Track 1010 的「Volume & Pan Plugin · volume」参数写一�?电平�?包络：区�?0.0s-30.
+0s，渐入（0.30 �?0.60，曲�?0.00）。确认请回「确认写入」或「需要」；要改请直接说改成�
+�么（例如「改�?0.4 �?0.9」）；取消回「取消」�?, "agent_mode": "default", "needs_confirmation": true,
+ "workflow": "section_automation_choreo", "workflow_data": {"mutation_performed": false}, "goal_status": "waiting_confi
+rmation", "goal_summary": "0 �?30 秒，让这条轨的存在感慢慢强起�?, "stop_reason": "automation_choreo_con
+firmation_held", "project_history": {"active_branch": "main", "active_node_id": "n_20261029T143812_aebc61ec", "active_w
+orktree": "", "available": true, "branches": {"main": "c_20261029T143811_a9a82441"}, "commit_count": 3, "conversation_m
+essages": [{"content": "我准备这样写这条包络：对 Track 1010 的「Volume & Pan Plugin · volume」参数写
+一�?电平�?包络：区�?0.0s-30.0s，渐入（0.30 �?0.60，曲�?0.00）。方案里的形状、幅度、区�
+�都可以改；确认后我会写入并逐点读回验证，写完汇报混音进展�?, "logical_message_id": "n_2026
+1029T143811_49ad0567", "message_kind": "proposal", "node_id": "n_20261029T143811_49ad0567", "role": "assistant"}, {"con
+t
+����λ�� D:\Vit_DAW_wt_m3c4ai1\scripts\dev_agent_smoke.ps1:8580 �ַ�: 5
++     & python $autoIntentScript --agent-http $AgentHttp --kernel-zmq ( ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([FAIL] LEG A co...stant"}, {"cont:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
