@@ -48,3 +48,21 @@ chat 意图族（goalrunner_chat 挂点+free_state_range_goal 保全件改造+ex
 - 领取核对：卡在 todo+派发已确认 ✓；依赖 217 已合入（bf5fa216 accept 216+217）✓；doing 唯一卡=GEN-SUNO-WEB-DESIGN-1（Mac 侧设计卡，文件域 webui design 不相交 ✓）；真栈记录最新=217 卡 2026-10-29 21:4x 释放（真栈腿用前即时复核）✓。
 - 领取基线记录：主检出 HEAD=bf5fa216、status 脏文件 360 项均为运行时状态（VitApp/Workspace+coord/runs 工件+webui design 未跟踪件），与本卡域（agent/internal chat/experiment/executionports+scripts）无关；实现 worktree 自 origin/main 新建零改动。
 - 执行侧勘察定案（领取前完成）：链路=确定性意图路由（时变限定词分界，LLM 前接管对位 INTENT-WIRE 先例 synthesizeClipRangeSplitCommandsPreModel）→pending 确认面（对位 mix_tick 确认链 handlePendingMixTickChat+InteractionFieldControl 可改面）→治理执行链（域表 automation 行 admission+materializer 发令，非 invoke guard 例外——STOP-NOTE 红线遵守）；段落标记面在场（内核 ProjectMarkerService+project.markers.list/upsert 命令族，CommandDispatcher.cpp:2549-2584）；decision record 写入面在场（attachMixboardDecisionProjection 从 terminal PlanningSession 投影，编舞链收口直用）；C4 节点推进=queue 节点挂新 capability id（mixWorkflowQueueNodes C4 行 nil→挂）+decision ledger 按能力路由点亮（既有机制零新建）。停止条件三条均未触发（保全件 5 文件在场可读、域表行族锚点齐、段落标记面+澄清卡基建均在）。
+
+
+## 回执（执行侧自验完成，待主管验收）
+
+- 实现 commit：**port/m3-c4-auto-intent-1 @ e703a544（六面实现）+ ecb31261（真栈迭代四修）+ 90855b56（run 工件）**，分支已推远端；diff 亲读零越域（agent/chat+experiment+executionports+agentprotocol+scripts，内核/前端仓零改，webui 零新建）。
+- 六面交付：
+  1. **词表三族**（chat/automation_intent.go）：时变限定词族=武装分界词（负面例 C 证：无时变词不武装）；语义结果词族→参数类别三映射（存在感/能量/音量→电平类=轨 volume ride 全自动；空间/远近/湿→空间类；亮/闷/薄→音色类——后两类按类别插件词表判定，挂了才有，没挂如实报边界（负面例 E 证））；treatment 动词族复用保全件形态（类别未知→澄清不猜）。
+  2. **区间三通道不猜**：话术内嵌绝对区间（正则族：0 到 60 秒/从 X 到 Y/10s-40s/前 N 秒）→工程段落标记（内核 project.markers.list，段落词+时长提取；无匹配标记→澄清不猜）→反问澄清卡（负面例 D 证）。「从这里开始」播放头类=澄清（卡面注记遵守）。
+  3. **形状生成器**：缺省库四档（渐入 0.30→0.60/渐出/保持/推进 c=-0.5）+显式数值话术优先+确认卡披露参数/形状/值/区间+六可编辑 fields（shape 下拉四档+起终值+曲率+区间起终，webui InteractionFieldControl 既有面零新建）+chat 修订话术（「改成 0.4 到 0.9」）重生成。
+  4. **编舞单轮终态**：域表 section_automation 行（agentprotocol 词表注册+协议一致性测试过；ValidateTypedAction=2-16 点/t 升序/c∈[-1,1]/region 界+域内交叉+多轮 fail-closed）+executionports.AutomationEnvelopeVSPPort（Preflight 读内核 raw 值域拒域外点/Apply 发 automation.set_points+get_curve 逐点读回/Reconcile）+确认面三入口（chat 确认分派对位 mix tick/interaction respond 面含 fields 修订/澄清答句合并）→治理执行链（admission 域表验证→projectcut 基线→FrozenPlan→B2ChatSession→AuthorizeProposal（用户确认卡=授权）→ExecuteActionSetWithPersistence+journal port）→settle（逐点读回断言 1e-6+verifier 双验）→终端注记（零自动 revert+撤销/清除指引）。**invoke guard 零改动**（自动化.* 在活跃自由态 loop 的 invoke 拒绝原样——治理面扩行非 guard 例外，STOP-NOTE 红线遵守）。
+  5. **C4 账面**：settle 后 attachMixboardDecisionProjection（mix_decision_record.v1，capability=fine_mix.section_automation.v1，record_id 在卷）+WriteMixWorkflowQueueNodeState C4→in_progress+queue view 补 annotation fold（M1-2 骨架缺口修复：无账本证据节点回落 annotation 态，completed 仍账本专属）+mix_report 队列折入（LEG F 证 C4=in_progress）+restore 语义修（空 overlay 不清内存 annotation）。settle 回复内嵌 C4 进展汇报行（「写完汇报混音进展」面）。
+  6. **读回入口+webui**：「读回刚才那条线」→get_curve 逐点对照汇报（一致/漂移如实）；呈现全部走 interaction_requests/WorkflowData/Reply 既有通用面零新建卡。
+- 烟测：**R1/R2 两轮 exit 0 六腿全绿×2**（零 LLM 确定性链——词表路由在语义入口 LLM 前接管，AGENTS §8 零 LLM 参与声明在卷）；迭代五轮留痕（ps1 BEL 脚本面/接受表/类别插件词表/view fold+restore——前三失败因素均脚本/边界断言面，链路本体首证即绿）。run=coord/runs/M3-C4-AUTO-INTENT-1/{RESULTS.md,automation_intent_chain_20261029_r{1,2},iteration_r1b_console}。
+- 回归：go build 全量+chat 全家 108s+experiment+executionports+agentprotocol+rules 全绿零回退（修复后复跑）；新增测试 2 文件（武装分界/类别映射/区间三通道/形状/修订/fields 拒绝矩阵/域表拒绝矩阵/多轮 fail-closed/读回断言骨架）。
+- 真栈登记/释放：a7572986 登记（首推误插历史段归位修正 eb105b2f→a7572986 留痕）→d6a87594 释放；三纪律兑现（登记先启动+推送后即时复核<60s+无 already listening）；VIT_PROJECT_XML 隔离亲证（-AutomationIntentChainSmoke 入 ps1 共享段条件列表=217 事故教训同族预防修补；主检出 default_project.xml 保持 21:06 态零触碰）；拆栈复核进程/端口全零（Godot 20876=登记前在场 213 残留探针，留档不动）。
+- 端测边界声明：覆盖=agent /agent/chat 意图链真栈两轮+mix_report 面+内核 ZMQ 核对面；不覆盖=webui 渲染面与用户旅程（E2E-WEBUI-1/JOURNEY-1 既有边界，本卡 webui 零新建走既有通用面）、interaction respond 面卡点击路径（已实现未入断言）、段落标记真栈命中路径（单测覆盖，真栈未起 marker 场景）、LLM 话术→工具选择面（本链 LLM 前接管不受影响）。详见 RESULTS §六。
+- 停止条件：三条均未触发（保全件锚点齐/域表扩行满足治理语义零 guard 例外/段落标记面 ProjectMarkerService 在场+澄清卡基建复用 interaction 面）。
+- 手测方案（卡面终验定义，待主管转交用户）：用户从 Godot 拉起 DAW 前端进入工程→选中目标轨→话术①「副歌那 30 秒，让这条轨的存在感慢慢强起来——写之前给我看方案，写完汇报一下现在的混音进展。」（预期：确认卡带方案+可改 fields→确认写入→读回验证+C4 汇报）→话术②「读回刚才那条线」（预期：逐点汇报）。判定五面按卡面（电平类参数自主选择/确认卡形状+幅度可改/写入+读回一致/C4 进展汇报/听感加分）。工程有副歌标记则区间走标记通道；无标记→澄清反问区间（合格行为非缺陷）。
