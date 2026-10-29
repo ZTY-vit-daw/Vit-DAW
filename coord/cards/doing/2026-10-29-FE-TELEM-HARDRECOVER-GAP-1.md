@@ -22,3 +22,10 @@
 ## 停止条件
 
 - 硬重连沿语义勘察发现设计意图即如此（如硬重连自带全量重订阅回拉）→上交证据零修复裁定。
+
+## 领取
+
+- 时间：2026-10-29 晚；owner=GLM-5.3 Flash（ZCode PC 量产执行会话，L1 档，机器=PC）
+- 基线：主仓 origin/main `635c0592`；前端仓 origin/main=本地=`4219618`（含 213/215），工作树 tracked diff 空（仅未跟踪运行时目录，不涉文件域）
+- 分支：`port/fe-telem-hardrecover-1`；worktree：`D:/Godot/project/vit-daw-frontend-hardrec1`
+- 领取提交=本 mv 提交（同步共享 main 后开始实现）
