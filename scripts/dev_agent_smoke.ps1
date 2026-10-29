@@ -94,6 +94,12 @@ param(
     # 拒绝回执在卷+曲线零写入）。腿需 agent HTTP 面在栈（-StartKernel
     # -RestartAgent 后可用；不启 UI）。
     [switch]$AutomationAgentChainSmoke,
+    # M3-C4-AUTO-INTENT-1：自然话术段落自动化意图链烟测（词表三族路由+
+    # 确认卡+域表治理写入+读回 settle+C4 账面；断言体在
+    # scripts/automation_intent_chain_smoke.py，agent /agent/chat 面+内核
+    # ZMQ setup 面；零 LLM 参与的确定性链）。腿需 agent HTTP 面在栈
+    # （-StartKernel -RestartAgent 后可用；不启 UI）。
+    [switch]$AutomationIntentChainSmoke,
     # KERNEL-SENDROUTE-IMPL-1：send/return 轨间路由命令面烟测（设计件
     # MIX-SENDRETURN-DESIGN-1 §5 场景 1 的端侧版；断言体在
     # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连）。腿：
@@ -1246,7 +1252,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -8541,6 +8547,46 @@ if ($AutomationAgentChainSmoke) {
         throw ("automation agent chain smoke passed but summary artifact missing: " + $autoChainSummaryPath)
     }
     Write-Ok ("automation agent chain smoke passed (agent invoke face; summary: " + $autoChainSummaryPath + ")")
+}
+
+if ($AutomationIntentChainSmoke) {
+    Write-Step "automation intent chain smoke (M3-C4-AUTO-INTENT-1)"
+    $autoIntentScript = Join-Path $RepoRoot "scripts\automation_intent_chain_smoke.py"
+    if (-not (Test-Path -LiteralPath $autoIntentScript)) {
+        throw ("automation intent chain smoke script missing: " + $autoIntentScript)
+    }
+    $autoIntentArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($autoIntentArtifactsDir)) {
+        $autoIntentArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\automation_intent_chain_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $autoIntentArtifactsDir)) {
+        New-Item -ItemType Directory -Path $autoIntentArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($AutomationIntentChainSmoke is in
+    # its condition list): the setup leg's kernel-side new_project rewrites
+    # the workspace default project, so VIT_PROJECT_XML must point at a
+    # git-clean run-dir copy (217 incident lesson, third same-family fix).
+    $autoIntentPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($autoIntentPriorProjectXml)) {
+        Write-Ok ("automation intent chain project isolation: VIT_PROJECT_XML=" + $autoIntentPriorProjectXml)
+    }
+    else {
+        throw "automation intent chain smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $autoIntentSummaryPath = Join-Path $autoIntentArtifactsDir "automation_intent_chain_summary.json"
+    $autoIntentConsolePath = Join-Path $autoIntentArtifactsDir "automation_intent_chain_console.txt"
+    $autoIntentProjectPath = Join-Path $autoIntentArtifactsDir "automation_intent_chain_project.vit"
+    & python $autoIntentScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $autoIntentProjectPath --output $autoIntentSummaryPath > $autoIntentConsolePath 2>&1
+    $autoIntentExit = $LASTEXITCODE
+    Get-Content -LiteralPath $autoIntentConsolePath | ForEach-Object { Write-Host $_ }
+    if ($autoIntentExit -ne 0) {
+        throw ("automation intent chain smoke failed with exit code $autoIntentExit (console: " + $autoIntentConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $autoIntentSummaryPath)) {
+        throw ("automation intent chain smoke passed but summary artifact missing: " + $autoIntentSummaryPath)
+    }
+    Write-Ok ("automation intent chain smoke passed (agent chat face; summary: " + $autoIntentSummaryPath + ")")
 }
 
 if ($PcaReverbPromotionSmoke) {

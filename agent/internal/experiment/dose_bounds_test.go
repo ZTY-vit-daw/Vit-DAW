@@ -1,6 +1,7 @@
 package experiment
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -68,6 +69,18 @@ func TestD1S1PanDoseBoundsHoldAudibleCeilingEndpoints(t *testing.T) {
 // can restate a stale ceiling in prose while the validators move on.
 func TestD1S1DoseWordingDerivesFromCeilingConstants(t *testing.T) {
 	for _, spec := range D1S1DomainSpecs() {
+		if spec.ActionDomain == SectionAutomationActionDomain {
+			// The envelope row's dose axis is the point count, not a dB move;
+			// its hint and wording must carry the same constants.
+			if !strings.Contains(spec.PromptParameterHint, "2-16 points") {
+				t.Fatalf("section_automation hint lost the constant-derived point bound: %q", spec.PromptParameterHint)
+			}
+			err := spec.ValidateDoseBounds("diagnostic", map[string]any{"point_count": float64(D1S1AutomationMaxPoints + 1)})
+			if err == nil || !strings.Contains(err.Error(), fmt.Sprintf("%d-%d", D1S1AutomationMinPoints, D1S1AutomationMaxPoints)) {
+				t.Fatalf("section_automation error wording lost the constant-derived bound: %v", err)
+			}
+			continue
+		}
 		if spec.AdmissionValueKey == "decay_pct" {
 			if !strings.Contains(spec.PromptParameterHint, D1S1ReverbDecayDoseHintFragment()) {
 				t.Fatalf("reverb hint lost the constant-derived bound: %q", spec.PromptParameterHint)

@@ -117,6 +117,8 @@ type Server struct {
 	conversationGoals                  map[string]string
 	conversationMemory                 map[string]agentloop.ExecutionMemory
 	pendingMixTicks                    map[string]agentloop.PendingMixTickCandidate
+	pendingAutomationChoreos           map[string]*automationChoreoCandidate
+	lastAutomationChoreos              map[string]automationChoreoCandidate
 	mixTickAuditions                   map[string]*mixTickAuditionRecord
 	semanticDynamicAuditions           map[string]*semanticDynamicAuditionRecord
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
@@ -572,6 +574,8 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		conversationGoals:                map[string]string{},
 		conversationMemory:               map[string]agentloop.ExecutionMemory{},
 		pendingMixTicks:                  map[string]agentloop.PendingMixTickCandidate{},
+		pendingAutomationChoreos:         map[string]*automationChoreoCandidate{},
+		lastAutomationChoreos:            map[string]automationChoreoCandidate{},
 		mixTickAuditions:                 map[string]*mixTickAuditionRecord{},
 		semanticDynamicAuditions:         map[string]*semanticDynamicAuditionRecord{},
 		pendingTreatments:                map[string]agentloop.MixTreatmentPending{},
@@ -2854,6 +2858,35 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// M3-C4-AUTO-INTENT-1: the section-automation choreography chain takes over
+	// deterministically before any LLM turn (INTENT-WIRE pre-model takeover
+	// precedent): time-varying phrases with a semantic-result word or a
+	// treatment verb arm here; everything else falls through untouched. The
+	// readback entry ("读回刚才那条线") answers from the last executed
+	// choreography without arming.
+	if resp, handled := s.handleAutomationChoreoReadback(r.Context(), conversationID, ChatRequest{
+		ConversationID: conversationID,
+		Message:        req.Message,
+		Context:        chatContext,
+		Attachments:    req.Attachments,
+		ArtifactRefs:   req.ArtifactRefs,
+	}, agentMode); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
+	if resp, handled := s.handleAutomationChoreoChat(r.Context(), conversationID, ChatRequest{
+		ConversationID: conversationID,
+		Message:        req.Message,
+		Context:        chatContext,
+		Attachments:    req.Attachments,
+		ArtifactRefs:   req.ArtifactRefs,
+	}, agentMode); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
+
 	if messagePlainMixApproval(req.Message) && !s.hasPendingConfirmationForChat(conversationID, chatContext) &&
 		!s.hasActiveFreeStateReasoningLoop(conversationID) {
 		resp := ChatResponse{
@@ -4599,6 +4632,78 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 	if strings.EqualFold(interaction.Source, "c2_loaded_plugin_selection") || strings.EqualFold(interaction.Type, "c2_loaded_plugin_selection") {
 		resp := s.continueC2LoadedPluginSelectionInteraction(r.Context(), interaction, decision)
 		s.attachInteractionRequests(&resp)
+		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+		writeJSON(w, http.StatusOK, resp)
+		return
+	}
+	isAutomationChoreoInteraction := strings.EqualFold(interaction.Kind, "automation_choreo_confirmation") || strings.EqualFold(interaction.Type, "automation_choreo_confirmation") || strings.EqualFold(interaction.Workflow, "section_automation_choreo")
+	if isAutomationChoreoInteraction {
+		// M3-C4-AUTO-INTENT-1: the section-automation confirmation card's
+		// answer surface. Approve/submit executes the governed write (the
+		// payload's editable fields merge into the plan first); cancel retires
+		// the pending candidate without touching the project.
+		s.completePendingInteractionContinuation(interaction)
+		conversationID := interaction.ConversationID
+		goalID, runID := interaction.GoalID, interaction.RunID
+		if candidate, candidateOK := s.automationChoreoForConversation(conversationID); candidateOK {
+			if strings.EqualFold(decision, "cancel") {
+				s.expireAutomationChoreo(conversationID)
+				resp := ChatResponse{
+					ConversationID: conversationID, GoalID: goalID, RunID: runID,
+					Reply:    "已取消这条段落包络方案，工程没有被修改。",
+					Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
+					GoalStatus: string(agentruntime.StatusCancelled),
+				}
+				s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+				writeJSON(w, http.StatusOK, resp)
+				return
+			}
+			if len(candidate.Clarify) > 0 {
+				// A clarification card's submit is an answer (a region or a
+				// category word), never an executable plan: re-enter the
+				// resolve pass with the answered text merged into the phrase.
+				answer := cleanContextText(mapValue(req.Payload["fields"])["clarify_region"])
+				if answer == "" {
+					answer = cleanContextText(mapValue(req.Payload["fields"])["clarify_category"])
+				}
+				if answer == "" {
+					answer = cleanContextText(mapValue(req.Payload["fields"])["clarify_track"])
+				}
+				if answer == "" {
+					answer = cleanContextText(mapValue(req.Payload["fields"])["clarify_param"])
+				}
+				s.expireAutomationChoreo(conversationID)
+				resp := ChatResponse{
+					ConversationID: conversationID, GoalID: goalID, RunID: runID,
+					Reply:    "请把补充信息直接发在对话里（例如「0 到 30 秒」），我会带着原话术重新解析。",
+					Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
+					GoalStatus: string(agentruntime.StatusWaitingContinue),
+				}
+				if answer != "" {
+					merged := candidate.UserText + " " + answer
+					if resolved, handled := s.handleAutomationChoreoEntry(r.Context(), conversationID, ChatRequest{
+						ConversationID: conversationID, Message: merged, Context: interaction.RequestContext,
+					}, agentModeDefault); handled {
+						resp = resolved
+					}
+				}
+				s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+				writeJSON(w, http.StatusOK, resp)
+				return
+			}
+			carried := *candidate
+			s.expireAutomationChoreo(conversationID)
+			fieldEdits := mapValue(req.Payload["fields"])
+			resp := s.executeAutomationChoreo(r.Context(), conversationID, agentModeDefault, carried, fieldEdits)
+			s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
+			writeJSON(w, http.StatusOK, resp)
+			return
+		}
+		resp := ChatResponse{
+			ConversationID: conversationID, GoalID: goalID, RunID: runID,
+			Reply: "这个段落包络确认已处理或已过期。", Workflow: interaction.Workflow,
+			WorkflowData: interaction.Payload, GoalStatus: string(agentruntime.StatusCompleted),
+		}
 		s.finalizeInteractionChatResponse(r.Context(), &resp, interaction, decision)
 		writeJSON(w, http.StatusOK, resp)
 		return
@@ -7629,7 +7734,15 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.durableContinuations = nonNilMap(state.DurableContinuations)
 	s.capabilityRoutes = restoreCapabilityRoutes(state.CapabilityRoutes)
 	s.processorSelections = nonNilMap(state.ProcessorSelections)
-	s.mixWorkflowQueueNodes = restoreMixWorkflowQueueAnnotations(state.MixWorkflowQueueNodes)
+	if restored := restoreMixWorkflowQueueAnnotations(state.MixWorkflowQueueNodes); len(restored) > 0 || state.MixWorkflowQueueNodes != nil {
+		// A persisted annotation overlay replaces the in-memory one; a record
+		// carrying no overlay (pre-M1-2 projects, or a workspace whose state
+		// was never persisted) leaves the in-memory annotations alive — the
+		// write-back face owns them until a real persisted state exists
+		// (M3-C4-AUTO-INTENT-1: per-turn activation must not wipe an
+		// annotation written this session under an unpersisted workspace).
+		s.mixWorkflowQueueNodes = restored
+	}
 	s.conversationGoals = nonNilMap(state.ConversationGoals)
 	if s.durableContinuations == nil {
 		s.durableContinuations = map[string]DurableContinuation{}

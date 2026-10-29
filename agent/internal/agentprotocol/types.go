@@ -26,6 +26,7 @@ const (
 	ImprovementActionDomainReverb               = "reverb"
 	ImprovementActionDomainDelay                = "delay"
 	ImprovementActionDomainPlugin               = "plugin"
+	ImprovementActionDomainSectionAutomation   = "section_automation"
 )
 
 // improvementActionDomainVocabulary is the single enumeration of the
@@ -50,6 +51,7 @@ var improvementActionDomainVocabulary = []string{
 	ImprovementActionDomainReverb,
 	ImprovementActionDomainDelay,
 	ImprovementActionDomainPlugin,
+	ImprovementActionDomainSectionAutomation,
 }
 
 var improvementActionDomainSet = func() map[string]struct{} {
