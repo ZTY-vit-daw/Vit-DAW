@@ -8551,13 +8551,13 @@ if ($AutomationAgentChainSmoke) {
 
 if ($AutomationIntentChainSmoke) {
     Write-Step "automation intent chain smoke (M3-C4-AUTO-INTENT-1)"
-    $autoIntentScript = Join-Path $RepoRoot "scriptsutomation_intent_chain_smoke.py"
+    $autoIntentScript = Join-Path $RepoRoot "scripts\automation_intent_chain_smoke.py"
     if (-not (Test-Path -LiteralPath $autoIntentScript)) {
         throw ("automation intent chain smoke script missing: " + $autoIntentScript)
     }
     $autoIntentArtifactsDir = $RunArtifactsDir
     if ([string]::IsNullOrWhiteSpace($autoIntentArtifactsDir)) {
-        $autoIntentArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smokeutomation_intent_chain_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+        $autoIntentArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\automation_intent_chain_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
     }
     if (-not (Test-Path -LiteralPath $autoIntentArtifactsDir)) {
         New-Item -ItemType Directory -Path $autoIntentArtifactsDir -Force | Out-Null

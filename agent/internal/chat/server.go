@@ -4650,7 +4650,7 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 				s.expireAutomationChoreo(conversationID)
 				resp := ChatResponse{
 					ConversationID: conversationID, GoalID: goalID, RunID: runID,
-					Reply: "已取消这条段落包络方案，工程没有被修改。",
+					Reply:    "已取消这条段落包络方案，工程没有被修改。",
 					Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
 					GoalStatus: string(agentruntime.StatusCancelled),
 				}
@@ -4675,8 +4675,8 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 				s.expireAutomationChoreo(conversationID)
 				resp := ChatResponse{
 					ConversationID: conversationID, GoalID: goalID, RunID: runID,
-					Reply:      "请把补充信息直接发在对话里（例如「0 到 30 秒」），我会带着原话术重新解析。",
-					Workflow:   automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
+					Reply:    "请把补充信息直接发在对话里（例如「0 到 30 秒」），我会带着原话术重新解析。",
+					Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
 					GoalStatus: string(agentruntime.StatusWaitingContinue),
 				}
 				if answer != "" {
@@ -7734,7 +7734,15 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.durableContinuations = nonNilMap(state.DurableContinuations)
 	s.capabilityRoutes = restoreCapabilityRoutes(state.CapabilityRoutes)
 	s.processorSelections = nonNilMap(state.ProcessorSelections)
-	s.mixWorkflowQueueNodes = restoreMixWorkflowQueueAnnotations(state.MixWorkflowQueueNodes)
+	if restored := restoreMixWorkflowQueueAnnotations(state.MixWorkflowQueueNodes); len(restored) > 0 || state.MixWorkflowQueueNodes != nil {
+		// A persisted annotation overlay replaces the in-memory one; a record
+		// carrying no overlay (pre-M1-2 projects, or a workspace whose state
+		// was never persisted) leaves the in-memory annotations alive — the
+		// write-back face owns them until a real persisted state exists
+		// (M3-C4-AUTO-INTENT-1: per-turn activation must not wipe an
+		// annotation written this session under an unpersisted workspace).
+		s.mixWorkflowQueueNodes = restored
+	}
 	s.conversationGoals = nonNilMap(state.ConversationGoals)
 	if s.durableContinuations == nil {
 		s.durableContinuations = map[string]DurableContinuation{}

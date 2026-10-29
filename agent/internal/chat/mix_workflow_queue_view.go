@@ -332,9 +332,19 @@ func (s *Server) BuildMixWorkflowQueueView(ctx context.Context) MixWorkflowQueue
 	timeline := s.mixWorkflowQueueTimeline(decisions, conclusions, &view.Sources)
 	states, basis := foldMixWorkflowQueueTimeline(timeline, &view.Sources)
 
+	annotations := s.currentMixWorkflowQueueAnnotations()
 	view.Nodes = make([]MixWorkflowQueueNodeView, 0, len(mixWorkflowQueueNodes))
 	for _, def := range mixWorkflowQueueNodes {
 		state := states[def.ID]
+		if state == "" {
+			// No ledger evidence for this node: the annotation (write-back)
+			// overlay is the honest display fallback — an in_progress/hold/
+			// skip/defer annotation shows as-is, never inventing completion
+			// evidence (completed stays ledger-derived only).
+			if annotation, ok := annotations[def.ID]; ok && strings.TrimSpace(annotation.State) != "" {
+				state = annotation.State
+			}
+		}
 		if state == "" {
 			state = MixWorkflowNodeNotStarted
 		}
@@ -350,6 +360,24 @@ func (s *Server) BuildMixWorkflowQueueView(ctx context.Context) MixWorkflowQueue
 		view.Nodes = append(view.Nodes, node)
 	}
 	return view
+}
+
+// currentMixWorkflowQueueAnnotations snapshots the in-memory annotation
+// overlay (M1-2 write-back face) for read-only view folding.
+func (s *Server) currentMixWorkflowQueueAnnotations() map[string]MixWorkflowQueueNodeAnnotation {
+	if s == nil {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if len(s.mixWorkflowQueueNodes) == 0 {
+		return nil
+	}
+	out := make(map[string]MixWorkflowQueueNodeAnnotation, len(s.mixWorkflowQueueNodes))
+	for id, annotation := range s.mixWorkflowQueueNodes {
+		out[id] = annotation
+	}
+	return out
 }
 
 // WriteMixWorkflowQueueNodeState is the annotation (write-back) face: one

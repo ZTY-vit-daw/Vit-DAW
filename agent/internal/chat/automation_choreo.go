@@ -319,6 +319,35 @@ func (s *Server) automationTrackPluginNames(ctx context.Context, trackID string)
 	return nil
 }
 
+// automationCategoryPluginNames filters the track plugin rows down to the
+// category-relevant effect plugins: the space class needs a reverb/delay
+// style processor and the tone class an EQ/filter — the track built-ins
+// (volume & pan, level meter) are not effect targets for either, so a
+// track carrying only built-ins still reports the honest no-plugin
+// boundary (nothing fabricated).
+func automationCategoryPluginNames(names []string, category string) []string {
+	var needles []string
+	switch category {
+	case automationCategorySpace:
+		needles = []string{"reverb", "verb", "space", "delay", "echo", "supermassive", "ambience", "hall", "room"}
+	case automationCategoryTone:
+		needles = []string{"eq", "filter", "tone", "shelf", "boost", "exciter", "q3"}
+	default:
+		return nil
+	}
+	out := []string{}
+	for _, name := range names {
+		lower := strings.ToLower(name)
+		for _, needle := range needles {
+			if strings.Contains(lower, needle) {
+				out = append(out, name)
+				break
+			}
+		}
+	}
+	return out
+}
+
 // ---- Entry: deterministic pre-model takeover ----
 
 // handleAutomationChoreoChat is the deterministic intent router: a
@@ -369,7 +398,7 @@ func (s *Server) handleAutomationChoreoChat(ctx context.Context, conversationID 
 		pluginID, pluginName, paramID = resolvedPlugin, resolvedName, resolvedParam
 	default:
 		// Space/tone honest boundary: 挂了才有，没挂如实报边界不虚写。
-		names := s.automationTrackPluginNames(ctx, trackID)
+		names := automationCategoryPluginNames(s.automationTrackPluginNames(ctx, trackID), intent.Category)
 		if len(names) == 0 {
 			categoryWord := map[string]string{automationCategorySpace: "空间", automationCategoryTone: "音色"}[intent.Category]
 			return ChatResponse{
@@ -608,7 +637,7 @@ func (s *Server) handlePendingAutomationChoreoChat(ctx context.Context, conversa
 			StopReason: "automation_choreo_cancelled", Workflow: automationChoreoWorkflow,
 			WorkflowData: map[string]any{"mutation_performed": false},
 		}, true
-	case confirmation.Kind == actionworkflow.DecisionAccept || messageNaturalMixTickApproval(message) || messageExplicitMixTickApply(message):
+	case confirmation.Kind == actionworkflow.DecisionAccept || messageNaturalMixTickApproval(message) || messageExplicitMixTickApply(message) || automationChoreoExplicitApply(message):
 		s.expireAutomationChoreo(conversationID)
 		return s.executeAutomationChoreo(ctx, conversationID, mode, *candidate, map[string]any{}), true
 	default:
@@ -621,6 +650,22 @@ func (s *Server) handlePendingAutomationChoreoChat(ctx context.Context, conversa
 			Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
 		}, true
 	}
+}
+
+// automationChoreoExplicitApply is the choreography confirmation’s own
+// accepted wording (CONFIRM-CHAT-1 lesson: the ask’s own verbs must be in
+// the accept table — the card tells the user to answer it verbatim, so
+// that exact phrase is a mechanical accept).
+func automationChoreoExplicitApply(message string) bool {
+	text := strings.ToLower(strings.TrimSpace(message))
+	if text == "" {
+		return false
+	}
+	switch text {
+	case "确认写入", "写入", "开始写入", "写", "确认写", "写吧", "写入吧", "按这个写", "就按这个写":
+		return true
+	}
+	return textHasAny(text, "确认写入", "开始写入", "写入吧", "按这个写", "就按这个写", "write it", "confirm write")
 }
 
 // handleAutomationChoreoEntry re-runs the resolve pass after a clarification
@@ -643,7 +688,7 @@ func (s *Server) handleAutomationChoreoEntry(ctx context.Context, conversationID
 	}
 	pluginID, pluginName, paramID := "", "", ""
 	if intent.Category != automationCategoryLevel {
-		names := s.automationTrackPluginNames(ctx, trackID)
+		names := automationCategoryPluginNames(s.automationTrackPluginNames(ctx, trackID), intent.Category)
 		if len(names) == 0 {
 			categoryWord := map[string]string{automationCategorySpace: "空间", automationCategoryTone: "音色"}[intent.Category]
 			return ChatResponse{
