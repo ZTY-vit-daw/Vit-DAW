@@ -34,3 +34,9 @@
 - B 定位结果为引擎层裁剪特性非脚本可修→上交两案；
 - C 拖柄须动行布局结构（Track_Row/行 VBox）→上交扩域裁定；
 - A 与超高滚动联动出现预算冲突（budget 公式失效）→上交。
+
+## 领取
+
+- 领取：2026-10-29 早窗 / origin/main=bbdb9b8d / owner=GLM-5.3 ZCode PC 执行会话（本会话，L2）/ 分支=port/fe-lane-view-tuning-1 / worktree=D:/Godot/project/vit-daw-frontend-lanetune1 / 领取基线=前端 main 37dc4b6 亲核（origin/main 同点）
+- 领取时前端仓基线记录：`git rev-parse HEAD`=37dc4b6da735f1e32fef3d091c8553195f5596c7；`git status --short`=零 tracked 改动（仅用户测试工程未跟踪目录 .vit_agent/.vit_derived/8.1test 等）；`git diff --stat`=空
+- 回执：（待填）
