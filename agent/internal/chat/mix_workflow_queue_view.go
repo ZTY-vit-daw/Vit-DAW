@@ -72,9 +72,11 @@ type mixWorkflowNodeDef struct {
 
 // mixWorkflowQueueNodes is the fixed v0 node catalog. Capability IDs are the
 // capability families each node owns; ledger records and routed free-state
-// conclusions map onto nodes through them. Nodes without capability IDs (C4/
-// C5/D/E/F1) have no runtime yet — they stay not_started until real work
-// lands (card: 本卡不做能力补齐, the view renders real state only).
+// conclusions map onto nodes through them. C4 (段落自动化) is owned by the
+// M3-C4-AUTO-INTENT-1 section-automation choreography (decision ledger
+// records under fine_mix.section_automation.v1 light it up); nodes without
+// capability IDs (C5/D/E/F1) have no runtime yet — they stay not_started
+// until real work lands (the view renders real state only).
 var mixWorkflowQueueNodes = []mixWorkflowNodeDef{
 	{"A1", "project_prep", "工程准备", "工程接收与整理", []string{"project_prep.import_intake.v0"}},
 	{"A2", "project_prep", "工程准备", "技术完整性检查", []string{"project_prep.technical_integrity.v0"}},
@@ -88,7 +90,7 @@ var mixWorkflowQueueNodes = []mixWorkflowNodeDef{
 	{"C1", "fine_mix", "细混处理", "频段清理", []string{"fine_mix.frequency_cleanup.v0", "fine_mix.frequency_cleanup.v1"}},
 	{"C2", "fine_mix", "细混处理", "动态控制", []string{"fine_mix.dynamic_control.v0", "fine_mix.dynamic_control.v1"}},
 	{"C3", "fine_mix", "细混处理", "空间与深度", []string{"fine_mix.space_depth.v0"}},
-	{"C4", "fine_mix", "细混处理", "段落自动化", nil},
+	{"C4", "fine_mix", "细混处理", "段落自动化", []string{automationChoreoCapabilityID}},
 	{"C5", "fine_mix", "细混处理", "总线处理", nil},
 	{"D1", "pre_master", "母带前检查", "全局响度与峰值", nil},
 	{"D2", "pre_master", "母带前检查", "翻译检查", nil},

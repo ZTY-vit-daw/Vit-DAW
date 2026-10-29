@@ -665,6 +665,64 @@ var d1s1Domains = []D1S1DomainSpec{
 		AdmissionValueKey: "delta_pan",
 		AppliedReplyText:  "FAM3-S1 轨道声像参数已应用并回读验证。动作后新证据已单独记录；声学实质性、目标响应与人工判定仍待完成。",
 	},
+	{
+		// section_automation writes one parameter automation envelope (a point
+		// array payload over a time region) — M3-C4-AUTO-INTENT-1. Unlike every
+		// other row its typed action carries a point array, not one bounded
+		// scalar: the row's own validators bound the structural envelope
+		// (2..16 points, t ascending, c within [-1,1], optional region with
+		// every point inside it and a bounded span), while the parameter value
+		// range stays port-side — the kernel's per-parameter valueRange is read
+		// by the execution port's preflight, which rejects out-of-range points
+		// fail-closed before any write. TargetSemantics "envelope_points" keeps
+		// the D2-2 cumulative-dose machine fail-closed on this row (the
+		// envelope is a single-round choreography by design).
+		ActionDomain: agentprotocol.ImprovementActionDomainSectionAutomation,
+		ActionKind:   AutomationEnvelopeWriteKind,
+		PromptParameterHint: `parameter_bounds={"plugin_id":<string>,"param_id":<string>,"points":[{"t":<seconds>=0,"v":<within the parameter value range>,"c":<optional -1..1>}...2-16 points],"region":{"start":<seconds>,"end":<seconds>}}`,
+		ValidateTypedAction: func(a Admission) error {
+			if strings.TrimSpace(mapString(a.TypedAction, "plugin_id")) == "" {
+				return fmt.Errorf("D1-S1 section_automation plugin_id is required")
+			}
+			if strings.TrimSpace(mapString(a.TypedAction, "param_id")) == "" {
+				return fmt.Errorf("D1-S1 section_automation param_id is required")
+			}
+			points, err := ParseAutomationEnvelopePoints(a.TypedAction)
+			if err != nil {
+				return err
+			}
+			region, regionErr := ParseAutomationEnvelopeRegion(a.TypedAction)
+			if regionErr != nil {
+				return regionErr
+			}
+			return AutomationEnvelopePointsWithinRegion(points, region)
+		},
+		ValidateDoseBounds: func(scope string, bounds map[string]any) error {
+			count, ok := mapNumber(bounds, "point_count")
+			if !ok || count < D1S1AutomationMinPoints || count > D1S1AutomationMaxPoints {
+				return fmt.Errorf("D1-S1 %s point_count must be within %d-%d", scope, D1S1AutomationMinPoints, D1S1AutomationMaxPoints)
+			}
+			return nil
+		},
+		ActionIDSuffix:            "_automation",
+		CapabilityID:              "fine_mix.section_automation.v1",
+		ContractVersions:          []string{"free_state:d1_s1", "action:automation_envelope_write"},
+		TargetFingerprintTemplate: "track:{track}:automation:{param}:pending",
+		BeforeFingerprintTemplate: "track:{track}:automation:{param}:pending",
+		ObservationViewIDs:        []string{"mix.multitrack_relationship"},
+		Journal: D1S1JournalShape{
+			Summary:      "M3-C4 section automation envelope write",
+			Tool:         "automation.set_points",
+			CommandLabel: "automation.set_points",
+			Fields: []D1S1JournalField{
+				{Arg: "plugin_id", CommandKey: "plugin_id"},
+				{Arg: "param_id", CommandKey: "param_id"},
+			},
+		},
+		WriteBinding:     D1S1WriteBinding{Channels: 1},
+		TargetSemantics:  "envelope_points",
+		AppliedReplyText: "M3-C4 段落包络已写入并逐点读回验证。曲线留存未自动回退；声学实质性仍待听感判定。",
+	},
 }
 
 // D1S1AdmittedDomains lists the action domains admitted by the bounded
