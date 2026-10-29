@@ -41,3 +41,10 @@ chat 意图族（goalrunner_chat 挂点+free_state_range_goal 保全件改造+ex
 - 保全件/域表锚点与勘察记录大面积漂移→锚点清单上交；
 - 域表扩行无法满足治理面语义（须 guard 例外才能发令）→停止上交两案（红线不越）；
 - 段落标记面勘察发现工程格式无段落概念且澄清卡基建缺失→缺口上交，澄清通道降级为话术强制内嵌区间如实声明。
+
+## 领取（2026-10-29 晚）
+
+- 2026-10-29 晚 / origin/main=bf5fa216（领取前即时 fetch 复核=217 验收合入态）/ owner=ZCode GLM-5.3 PC 执行会话（218 卡会话）/ 分支 port/m3-c4-auto-intent-1 / worktree D:/Vit_DAW_wt_m3c4ai1（自 origin/main 干净新建）/ 领取提交=coord/m3-c4-auto-intent-1-claim（本提交）。
+- 领取核对：卡在 todo+派发已确认 ✓；依赖 217 已合入（bf5fa216 accept 216+217）✓；doing 唯一卡=GEN-SUNO-WEB-DESIGN-1（Mac 侧设计卡，文件域 webui design 不相交 ✓）；真栈记录最新=217 卡 2026-10-29 21:4x 释放（真栈腿用前即时复核）✓。
+- 领取基线记录：主检出 HEAD=bf5fa216、status 脏文件 360 项均为运行时状态（VitApp/Workspace+coord/runs 工件+webui design 未跟踪件），与本卡域（agent/internal chat/experiment/executionports+scripts）无关；实现 worktree 自 origin/main 新建零改动。
+- 执行侧勘察定案（领取前完成）：链路=确定性意图路由（时变限定词分界，LLM 前接管对位 INTENT-WIRE 先例 synthesizeClipRangeSplitCommandsPreModel）→pending 确认面（对位 mix_tick 确认链 handlePendingMixTickChat+InteractionFieldControl 可改面）→治理执行链（域表 automation 行 admission+materializer 发令，非 invoke guard 例外——STOP-NOTE 红线遵守）；段落标记面在场（内核 ProjectMarkerService+project.markers.list/upsert 命令族，CommandDispatcher.cpp:2549-2584）；decision record 写入面在场（attachMixboardDecisionProjection 从 terminal PlanningSession 投影，编舞链收口直用）；C4 节点推进=queue 节点挂新 capability id（mixWorkflowQueueNodes C4 行 nil→挂）+decision ledger 按能力路由点亮（既有机制零新建）。停止条件三条均未触发（保全件 5 文件在场可读、域表行族锚点齐、段落标记面+澄清卡基建均在）。
