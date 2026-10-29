@@ -1,0 +1,89 @@
+{
+  "scenario": "M3-C4-AUTO-DISCLOSE-1 agent-side automation chain",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "project_path": "D:\\Vit_DAW_wt_m3c4ad1\\coord\\runs\\M3-C4-AUTO-DISCLOSE-1\\automation_agent_chain_20261029_r2\\automation_agent_chain_project.vit",
+  "started_at": "2026-10-29T13:20:52.442303+00:00",
+  "legs": [
+    "setup",
+    "leg_a_external_plugin_param_chain",
+    "leg_b_track_volume_ride_chain",
+    "leg_c_undo",
+    "leg_d_fail_closed_out_of_range"
+  ],
+  "setup": {
+    "plugin": "ValhallaSupermassive",
+    "external_plugin_id": "1016",
+    "fx_track_id": "1007",
+    "ride_track_id": "1010",
+    "ride_volume_plugin_id": "1011"
+  },
+  "leg_a_external_plugin_param_chain": {
+    "param_id": "dry level",
+    "raw_value_range_kernel_face": [
+      0.0,
+      1.0
+    ],
+    "agent_projection_param_count": 21,
+    "agent_projection_param_ids_sample": [
+      "1567",
+      "1568",
+      "1569",
+      "1570",
+      "1571",
+      "1572",
+      "1573",
+      "1574"
+    ],
+    "checks": [
+      "agent_invoke_get_plugin_parameters_rows_visible",
+      "value_range_read_via_kernel_face_get_plugin_parameters",
+      "unconfirmed_set_points_needs_confirmation_zero_write",
+      "confirmed_set_points_written_3",
+      "get_curve_readback_pointwise_match",
+      "descriptor_envelope_count_follows_3",
+      "clear_region_removed_3_curve_and_descriptor_zero"
+    ]
+  },
+  "leg_b_track_volume_ride_chain": {
+    "plugin_id": "1011",
+    "value_range": [
+      0.0,
+      1.0
+    ],
+    "checks": [
+      "volume_pan_rows_exactly",
+      "volume_range_0_1",
+      "ride_set_points_written_3",
+      "get_curve_readback_pointwise_match",
+      "descriptor_envelope_count_follows_3",
+      "clear_region_removed_3_curve_and_descriptor_zero"
+    ]
+  },
+  "leg_c_undo": {
+    "undo_result": {
+      "status": "ok",
+      "message": "Undo executed"
+    },
+    "checks": [
+      "set_points_3_before_undo",
+      "project_undo_ok",
+      "get_curve_zero_after_undo"
+    ]
+  },
+  "leg_d_fail_closed_out_of_range": {
+    "rejection_receipt_verbatim": {
+      "status": "kernel_error",
+      "error": "automation.set_points point #1 has v outside the parameter value range [0, 1]",
+      "command_name": "automation.set_points",
+      "risk_level": "undoable"
+    },
+    "checks": [
+      "whole_command_rejected",
+      "rejection_receipt_in_artifact",
+      "curve_unchanged_zero_write"
+    ]
+  },
+  "status": "ok",
+  "finished_at": "2026-10-29T13:20:54.017913+00:00"
+}
