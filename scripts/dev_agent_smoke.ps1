@@ -82,6 +82,18 @@ param(
     # （含 Pro-R 与新晋件）+ plugin.semantic_search 候选源含新晋件 + 零静默丢件。
     # 腿需 agent HTTP 面在栈（-StartKernel -RestartAgent 后可用；不启 UI）。
     [switch]$PcaReverbPromotionSmoke,
+    # M3-C4-AUTO-DISCLOSE-1 (217)：agent 侧 automation 全链首证腿（断言体在
+    # scripts/automation_agent_chain_smoke.py，agent /agent/invoke HTTP 面+
+    # 内核 ZMQ setup 面——sendroute_agent_smoke.py 同形栈）。setup（内核
+    # ZMQ，190/196 装载先例 rack_add_node 不碰 PCA 门控）：隔离工程+双轨+
+    # 外部插件装载；断言腿全走 /agent/invoke：A 外部插件参数链（读值域→
+    # 未确认 needs_confirmation 挂起零写入→确认写三点→get_curve 逐点读回→
+    # 描述符 count 跟随→clear_region 归零）；B 轨级 volume ride 链（恰
+    # volume/pan 两行+值域 [0,1]（201 镜像）+同链写读清）；C undo 腿
+    # （set_points→project.undo→读回归零）；D 负面例（值域外点整令拒绝+
+    # 拒绝回执在卷+曲线零写入）。腿需 agent HTTP 面在栈（-StartKernel
+    # -RestartAgent 后可用；不启 UI）。
+    [switch]$AutomationAgentChainSmoke,
     # KERNEL-SENDROUTE-IMPL-1：send/return 轨间路由命令面烟测（设计件
     # MIX-SENDRETURN-DESIGN-1 §5 场景 1 的端侧版；断言体在
     # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连）。腿：
@@ -1234,7 +1246,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -8488,6 +8500,47 @@ if ($SetTempoPersistSmoke) {
         throw ("settempo persist smoke passed but summary artifact missing: " + $settempoSummaryPath)
     }
     Write-Ok ("settempo persist smoke passed (kernel command face; summary: " + $settempoSummaryPath + ")")
+}
+
+if ($AutomationAgentChainSmoke) {
+    Write-Step "automation agent chain smoke (M3-C4-AUTO-DISCLOSE-1)"
+    $autoChainScript = Join-Path $RepoRoot "scripts\automation_agent_chain_smoke.py"
+    if (-not (Test-Path -LiteralPath $autoChainScript)) {
+        throw ("automation agent chain smoke script missing: " + $autoChainScript)
+    }
+    $autoChainArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($autoChainArtifactsDir)) {
+        $autoChainArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\automation_agent_chain_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $autoChainArtifactsDir)) {
+        New-Item -ItemType Directory -Path $autoChainArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($AutomationAgentChainSmoke is in
+    # its condition list): this leg's kernel-side new_project rewrites the
+    # workspace default project it booted with, so VIT_PROJECT_XML points at
+    # a git-clean run-dir copy and the deployed default_project.xml stays
+    # untouched. A caller-provided VIT_PROJECT_XML always wins.
+    $autoChainPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($autoChainPriorProjectXml)) {
+        Write-Ok ("automation agent chain project isolation: VIT_PROJECT_XML=" + $autoChainPriorProjectXml)
+    }
+    else {
+        throw "automation agent chain smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $autoChainSummaryPath = Join-Path $autoChainArtifactsDir "automation_agent_chain_summary.json"
+    $autoChainConsolePath = Join-Path $autoChainArtifactsDir "automation_agent_chain_console.txt"
+    $autoChainProjectPath = Join-Path $autoChainArtifactsDir "automation_agent_chain_project.vit"
+    & python $autoChainScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $autoChainProjectPath --output $autoChainSummaryPath > $autoChainConsolePath 2>&1
+    $autoChainExit = $LASTEXITCODE
+    Get-Content -LiteralPath $autoChainConsolePath | ForEach-Object { Write-Host $_ }
+    if ($autoChainExit -ne 0) {
+        throw ("automation agent chain smoke failed with exit code $autoChainExit (console: " + $autoChainConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $autoChainSummaryPath)) {
+        throw ("automation agent chain smoke passed but summary artifact missing: " + $autoChainSummaryPath)
+    }
+    Write-Ok ("automation agent chain smoke passed (agent invoke face; summary: " + $autoChainSummaryPath + ")")
 }
 
 if ($PcaReverbPromotionSmoke) {

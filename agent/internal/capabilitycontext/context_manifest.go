@@ -212,7 +212,7 @@ func StaticMixStaticBalanceContextManifest() ContextManifest {
 			{ID: "headroom_db", Aliases: []string{"effective_static_peak_dbfs"}, Semantic: "typed MOM effective static peak", EvidenceKind: "MOM static-level projection", Usage: "headroom gate"},
 		},
 		FollowUpTools: []string{"project.state", "mix.observe", "mix.read", "mix.derive", "mix.propose_tick", "mix.apply_tick", "mix.rollback_tick"},
-		Excluded:      []string{"clip gain", "plugins", "pan", "automation", "raw waveform arrays", "spectrogram tiles", "full TOM tree", "direct track.volume"},
+		Excluded:      []string{"clip gain", "plugins", "pan", "raw waveform arrays", "spectrogram tiles", "full TOM tree", "direct track.volume"},
 		Guidance: []string{
 			"Run deterministic B2 readiness before solving; capability history is not a prerequisite.",
 			"Use B2-specific MOM relationship, role, effective L1, fader, and technical-baseline readiness; do not reuse MOM's generic L3-aware action gate as a hard block.",
@@ -220,6 +220,7 @@ func StaticMixStaticBalanceContextManifest() ContextManifest {
 			"Mix Style changes bounded weights only and cannot bypass evidence or execution safety gates.",
 			"Analyze every project track, then disclose only compact summaries and examples to the LLM.",
 			"The LLM selects one solver candidate ID; the Action Compiler preserves its complete unique track_gain_adjust list, each within +/-2 dB.",
+			"Time-varying volume rides are not static fader ticks: reach them through automation.set_points / automation.get_curve / automation.clear_region on the track's built-in Volume & Pan plugin volume parameter, reading the value range with get_plugin_parameters first; B2 static balance itself stays one multi-track static fader plan.",
 			"After confirmation, verify target faders through project.state and refresh MOM through one full-project mix.observe.",
 		},
 	})
@@ -254,13 +255,14 @@ func StaticMixPanLayoutContextManifest() ContextManifest {
 			{ID: "parent_track_id", Aliases: []string{"parent_track_id", "parent_folder_track_id"}, Semantic: "routing/group parent", EvidenceKind: "routing", Usage: "double-pan and topology guard"},
 		},
 		FollowUpTools: []string{"project.state", "mix.observe", "mix.read", "mix.derive", "mix.apply_pan_layout_batch", "mix.rollback_tick"},
-		Excluded:      []string{"track fader", "clip gain", "plugins", "stereo width mutation", "automation", "raw waveform arrays", "full TOM tree", "direct primitive track.pan"},
+		Excluded:      []string{"track fader", "clip gain", "plugins", "stereo width mutation", "raw waveform arrays", "full TOM tree", "direct primitive track.pan"},
 		Guidance: []string{
 			"Run deterministic B3 readiness before solving; B1/B2 history is not a prerequisite.",
 			"Analyze every project track, but leave unknown-role or stereo-risk tracks unchanged instead of truncating analysis.",
 			"Center placement is a weighted prior, not a universal instrument law.",
 			"The LLM selects an existing candidate_plan_id and never generates track IDs or pan values.",
 			"B3 v1 changes track pan only; stereo width and mono compatibility are constraints and observations.",
+			"Time-varying pan movement is not a pan layout change: reach it through automation.set_points / automation.get_curve / automation.clear_region on the track's built-in Volume & Pan plugin pan parameter, reading the value range with get_plugin_parameters first; B3 v1 static pan layout itself applies one static pan batch only.",
 			"After confirmation, verify every target through project.state and refresh MOM through full-project mix.observe.",
 		},
 	})
@@ -298,13 +300,14 @@ func StaticMixLowEndRelationContextManifest() ContextManifest {
 			{ID: "bass_unit_energy", Aliases: []string{"bass_unit_energy"}, Semantic: "normalized bass-band energy", EvidenceKind: "MOM_band", Usage: "low-end dominance evidence", Primary: true},
 		},
 		FollowUpTools: []string{"mix.observe", "mix.read", "mix.derive"},
-		Excluded:      []string{"clip gain", "plugins", "stereo width", "automation", "raw waveform arrays"},
+		Excluded:      []string{"clip gain", "plugins", "stereo width", "raw waveform arrays"},
 		Guidance: []string{
 			"Evaluate B4 from current project and MOM evidence; B1, B2, or B3 history is not a prerequisite.",
 			"B4 v0 produces analysis and observations only; no pending action or execution is created.",
 			"Low-end identification is based on MOM band energy occupancy, not assumed role names.",
 			"Masking conflicts are detected by MOM band_conflict_candidates narrowed to sub/bass bands.",
 			"Suggested remediation directions (EQ, fader, pan) belong to their responsible execution capabilities; B4 does not execute them.",
+			"Time-varying low-end treatment deferred here is executable through the automation.* tool surface (automation.set_points / automation.get_curve / automation.clear_region) on track-level volume or plugin parameters; B4 v0 still observes and defers only, it never writes automation.",
 		},
 	})
 }
@@ -333,13 +336,14 @@ func FineMixFrequencyCleanupContextManifest() ContextManifest {
 			{ID: "frequency_bands", Aliases: []string{"bands"}, Semantic: "six-region normalized frequency evidence", EvidenceKind: "MOM", Usage: "C1 diagnosis", Primary: true},
 		},
 		FollowUpTools: []string{"project.state", "mix.observe", "mix.read", "mix.derive"},
-		Excluded:      []string{"dynamic EQ parameters", "compression parameters", "space processing", "automation", "vendor parameter rules", "raw waveform arrays", "observer duplication"},
+		Excluded:      []string{"dynamic EQ parameters", "compression parameters", "space processing", "vendor parameter rules", "raw waveform arrays", "observer duplication"},
 		Guidance: []string{
 			"Evaluate C1 diagnosis and planning from current full-project frequency evidence; B1-B4 history is not a prerequisite.",
 			"Classify every project track explicitly as static_eq, a C2/C3/C4 deferral, arrangement_or_source, or no_change.",
 			"Energy overlap is a diagnostic candidate, not proof of psychoacoustic masking.",
 			"Diagnosis may use source_file_pre_fx evidence, but mutation requires target-scoped same-tap post-FX L2 evidence selected after classification.",
 			"Only static_eq items may enter the shared generic static-EQ execution path.",
+			"Tracks deferred for time-varying treatment are served by the automation.* tool surface (automation.set_points / automation.get_curve / automation.clear_region) on plugin parameters or the track's built-in Volume & Pan volume/pan parameters after reading value ranges with get_plugin_parameters; C1 itself never writes automation.",
 			"C1 must reuse existing EQ qualification, topology, materialization, preimage, execution, rollback and recovery.",
 		},
 	})
