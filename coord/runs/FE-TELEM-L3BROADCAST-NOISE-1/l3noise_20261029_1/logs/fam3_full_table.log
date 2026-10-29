@@ -1,0 +1,31 @@
+PASS probe_autolane_edit
+PASS probe_autolane_layout_grow
+PASS probe_autolane_prodchain
+PASS probe_autolane_rebuild
+PASS probe_automation_datachan
+PASS probe_envelope_lane_auto
+PASS probe_envelope_lane_toggle
+PASS probe_envelope_lane_ui
+PASS probe_envelope_teardown
+PASS probe_fe_gui_shrink_phase_a
+PASS probe_fe_gui_shrink_phase_b
+PASS probe_fe_gui_shrink_phase_c
+PASS probe_fx_wet_chain_badge
+PASS probe_lane_catalog_fail_loud
+PASS probe_rack_plugin_search_popup
+PASS probe_rack_sendlevel_fader
+PASS probe_rack_sendlevel_realinput
+PASS probe_rack_sendroute_macro
+PASS probe_start_feed_view
+PASS probe_vitnote_circle_state
+PASS probe_vitnote_container
+PASS probe_vitnote_face_resolve
+PASS probe_vitnote_input
+PASS probe_vitnote_notestream
+PASS probe_vitnote_panel_summary
+PASS probe_vsp_delta_schema_guard
+=== scene items ===
+telem_l3noise EXIT=0
+telem_wsrecover EXIT=1
+file_reply_face EXIT=0
+=== TOTAL3: PASS=26 FAIL=0 ===
