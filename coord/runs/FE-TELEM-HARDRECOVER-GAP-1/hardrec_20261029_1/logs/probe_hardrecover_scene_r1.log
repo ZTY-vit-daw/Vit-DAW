@@ -1,0 +1,34 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] PASS P0 production autoloads assembled (adapter/manager/perf real instances)
+[probe] FAIL H1a hard-threshold run emits stale edge consumed by production manager (+1) | before=0 after=0
+[probe] PASS H1b hard-threshold branch clears _ws_stale_latched (gap root cause face)
+[probe] FAIL H1c armed survives hard clear (recover pending not discharged by hard disconnect) | armed=false
+[VitPerf] long_frame frame_ms=145.21 fps=1.0 nodes=32 objects=1542 draw_calls=0 primitives=0 vram_mb=0.0 texture_mb=0.0 buffer_mb=0.0 counters={}
+[probe] FAIL H1d stale edge debounced re-pull exactly once via production entry method | calls=0 delta=0
+[probe] FAIL H1e stale edge scheduled project refresh +1 | before=0 after=0
+[probe] PASS H2a armed discharged by open edge (one-shot latch)
+[probe] FAIL H2b reconnect-open edge emits recovered consumed by manager (+1) | before=0 after=0
+[probe] FAIL H2c outage-window residual re-pull exactly once (gap closed) | calls=0 delta=0
+[probe] FAIL H2d recovered edge scheduled project refresh +1 | before=0 after=0
+[probe] PASS H3a disarmed open edge: zero recovered emission (non-polling one-shot)
+[probe] PASS H3b disarmed open edge: zero host re-pull
+[probe] FAIL H4a soft stale latches and arms pending recover | latched=false armed=false
+[probe] FAIL H4b soft recovery edge emits recovered (213 regression, +1) | before=0 after=0
+[probe] PASS H4c soft recovery discharges armed and clears latch
+[probe] FAIL H4d soft stale edge counted (+1, unchanged 213 form) | before=0 after=0
+[probe] FAIL H4e soft window re-pull exactly once | calls=0 delta=0
+[probe] PASS H5a adapter source readable
+[probe] PASS H5b armed pending-recover marker present in adapter source
+[probe] PASS H5c open-edge gated recovered emission present (_handle_ws_opened)
+[probe] PASS H5d card marker present in adapter source
+[probe] PASS H5e manager 213 recovered branch present (reuse face, zero consumer change)
+[probe] SUMMARY_JSON {"checks_failed":11,"checks_total":22,"failures":["H1a hard-threshold run emits stale edge consumed by production manager (+1) | before=0 after=0","H1c armed survives hard clear (recover pending not discharged by hard disconnect) | armed=false","H1d stale edge debounced re-pull exactly once via production entry method | calls=0 delta=0","H1e stale edge scheduled project refresh +1 | before=0 after=0","H2b reconnect-open edge emits recovered consumed by manager (+1) | before=0 after=0","H2c outage-window residual re-pull exactly once (gap closed) | calls=0 delta=0","H2d recovered edge scheduled project refresh +1 | before=0 after=0","H4a soft stale latches and arms pending recover | latched=false armed=false","H4b soft recovery edge emits recovered (213 regression, +1) | before=0 after=0","H4d soft stale edge counted (+1, unchanged 213 form) | before=0 after=0","H4e soft window re-pull exactly once | calls=0 delta=0"],"status":"fail"}

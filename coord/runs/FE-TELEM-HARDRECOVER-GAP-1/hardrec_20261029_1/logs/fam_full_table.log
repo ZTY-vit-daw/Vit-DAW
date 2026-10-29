@@ -1,0 +1,30 @@
+probe_autolane_edit EXIT=0
+probe_autolane_layout_grow EXIT=0
+probe_autolane_prodchain EXIT=0
+probe_autolane_rebuild EXIT=0
+probe_automation_datachan EXIT=0
+probe_envelope_lane_auto EXIT=0
+probe_envelope_lane_toggle EXIT=0
+probe_envelope_lane_ui EXIT=0
+probe_envelope_teardown EXIT=0
+probe_fe_gui_shrink_phase_a EXIT=0
+probe_fe_gui_shrink_phase_b EXIT=0
+probe_fe_gui_shrink_phase_c EXIT=0
+probe_fx_wet_chain_badge EXIT=0
+probe_lane_catalog_fail_loud EXIT=0
+probe_pipeline_selftest EXIT=1
+probe_rack_plugin_search_popup EXIT=0
+probe_rack_sendlevel_fader EXIT=0
+probe_rack_sendlevel_realinput EXIT=0
+probe_rack_sendroute_macro EXIT=0
+probe_start_feed_view EXIT=0
+probe_vitnote_circle_state EXIT=0
+probe_vitnote_container EXIT=0
+probe_vitnote_face_resolve EXIT=0
+probe_vitnote_input EXIT=0
+probe_vitnote_notestream EXIT=0
+probe_vitnote_panel_summary EXIT=0
+probe_vsp_delta_schema_guard EXIT=0
+=== scene items ===
+file_reply_face EXIT=0
+=== SUMMARY: -s items EXIT=0 count=26/27 (pipeline_selftest EXIT=1 is taskkill artifact after 15min hang — environment interruption, see RESULTS §5) ===

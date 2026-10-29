@@ -1,0 +1,55 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] PASS G1a guard method present on store (pre-fix absent)
+[probe] PASS G1b all rows carry array plugins -> schema ok
+[probe] PASS G1c mixed state (one stripped row) -> schema NOT ok (strict, catches append residue)
+[probe] PASS G1d all rows stripped (compact residue) -> schema NOT ok
+[probe] PASS G1e empty track set -> exempt (no row to strip)
+[probe] PASS G1f tracks non-array -> exempt (other faces own that shape)
+[probe] PASS G2a first refresh goes legacy full feed (project_state empty)
+[probe] PASS G2b first feed carries array plugins rows
+[probe] PASS G2c empty-ops delta returns ok (short-circuit semantics kept, stale not re-fetched)
+[probe] PASS G2d after empty-ops delta: tracks plugins rows still present
+[probe] PASS G2e short-circuit does NOT re-issue get_project_state
+[probe] PASS G2f schema guard count stays 0 on healthy path
+WARNING: FE-LANE-CATALOG-VSPDELTA-GUARD-1: VSP delta applied but project_state tracks lack array-typed plugins rows; falling back to legacy get_project_state full feed (one-time warn)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_vsp_delta_reply (res://app/state/stores/project_store.gd:185)
+       [1] _refresh_project_state_from_vsp_delta (res://app/state/stores/project_store.gd:65)
+       [2] refresh_project_state (res://app/state/stores/project_store.gd:34)
+       [3] _run_suite (res://tools/probe_vsp_delta_schema_guard.gd:186)
+[probe] PASS G3a guard rejects stripped-residue delta then legacy full feed returns ok
+[probe] PASS G3b legacy fallback re-issued get_project_state
+[probe] PASS G3c after fallback: new track T3 present with array plugins (self-healed)
+[probe] PASS G3d schema guard count incremented
+[probe] PASS G3e guard cursor not regressed (vsp_revision advanced to delta revision)
+[probe] PASS G4a remove+add stripped pair: final reply ok via legacy fallback
+[probe] PASS G4b tracks fully self-healed (all plugins rows present)
+[probe] PASS G4c guard count reflects second trigger
+[probe] PASS G5a replace op (core value) applies via delta path
+[probe] PASS G5b merge semantics preserve array plugins on replace (no guard trigger)
+[probe] PASS G5c no legacy fallback issued for in-place replace
+[probe] PASS G5d guard count unchanged on healthy replace
+WARNING: FE-LANE-CATALOG-VSPDELTA-GUARD-1: VSP delta applied but project_state tracks lack array-typed plugins rows; falling back to legacy get_project_state full feed (one-time warn)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_vsp_delta_reply (res://app/state/stores/project_store.gd:185)
+       [1] _refresh_project_state_from_vsp_delta (res://app/state/stores/project_store.gd:65)
+       [2] refresh_project_state (res://app/state/stores/project_store.gd:34)
+       [3] _run_suite (res://tools/probe_vsp_delta_schema_guard.gd:238)
+[probe] PASS G6a stripped-residue project_state + empty-ops delta: guard triggers legacy full feed
+[probe] PASS G6b guard counted (first-refresh repair, card goal 2 backstop)
+[probe] PASS G7a store source readable
+[probe] PASS G7b one-shot warn branch present (count == 1 gate)
+[probe] PASS G7c card marker present in store source
+[probe] PASS G7d fallback contract: refresh_project_state keeps delta-ok short-circuit shape (legacy branch after non-ok delta)
+[probe] SUMMARY_JSON {"checks_failed":0,"checks_total":30,"failures":[],"status":"pass"}
