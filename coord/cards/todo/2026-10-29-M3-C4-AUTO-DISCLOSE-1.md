@@ -1,0 +1,43 @@
+# M3-C4-AUTO-DISCLOSE-1：automation 披露解锁+路由指引+agent 全链真栈首证（A-F C4 直达底座=形态案三第一段）
+
+- 发卡：GLM 主管决策流 / 2026-10-29 晚（依据=用户指示按 agent_action_workflow §6.1 C4+§6.3 要求实现包络自动化；197 勘察案三推荐（两段混排）用户拍板；锚点全取 197 RECON §三）
+- 派发确认：已确认（用户 2026-10-29 晚指示"按 A-F 混音能力环节要求实现包络线自动化控制"+索手测方案）
+- 验收负责人：GLM 主管决策流
+- 池序 217；目标仓库=**主仓 D:\Vit_DAW agent/ 域**；**P1** / 0.5 天 / 依赖=无（内核面 201/190 已合入真栈验证 ✓；catalog 三工具在位 ✓）；L2 / PC 执行会话
+- 并行与资源：真栈腿 §2.2 登记（190/196 模式扩展）；与 216 卡文件域不相交可并行
+
+## 背景（A-F 权威要求，docs/agent_action_workflow_v1_master_plan.md）
+
+- §6.1 C4=段落自动化（verse/chorus/bridge 音量 ride/能量/空间变化）；A-F 非线性调用（直达请求合法形态）。
+- §6.3=线性包络线/automation 读写是 DAW 缺口清单项，补齐原则：最小可用 capability+typed executor/capability contract（禁 raw command 旁路——catalog 工具面已合规）+补齐后重跑 workflow smoke。
+- 本卡=直达底座（显式包络/音量 ride 请求可达）；段落编舞（时变话术→范围 goal 单轮终态+mix_decision_record+workflow 节点）为第二段卡，**本卡合入后另拆**。
+
+## 已核事实（发卡侧，全取 197 勘察+亲核）
+
+1. catalog 三工具在位：automation.get_curve（:862-882）/set_points（:884-924，RiskUndoable+MutatesProject+SupportsUndo+RequiresConfirmation+RefreshAfter 全旗，fail-closed 整令拒绝）/clear_region（:926-955）；harness pre-journal validateAutomationWrite（harness.go:1079-1089）。
+2. 披露锁两处：context_manifest.go 四处 Excluded 含 automation（:215/:257/:301/:336，197 核对零漂移）；server 路由指引零 automation 行（server.go:6198-6212，对位 :6203 clip.fade 行式样）。
+3. 普通回合 AllowedTools 无 automation 过滤（goalrunner_chat.go:4171-4192）——解锁即可达；自由态 loop 活跃时收窄（:4137-4145）维持不动。
+4. 轨级寻址已具备：每轨恒挂 Volume & Pan 内置插件（type=volume），201 已放行 volume/pan 参数行进 get_plugin_parameters（envelope_point_count 同源）——**音量 ride=轨级 volume 参数 set_points，201 真栈已验内核链（三点写→count=3→clear→回 0 双轨隔离）**。
+5. agent 侧全链真栈零证据（M3-KERNEL-1 回执自认 authority 面不在其腿内）——本卡补。
+
+## 目标
+
+1. **披露解锁**：context_manifest 四处摘 automation 词+各视图 Guidance 补 automation 指引行（披露契约变更=显式行为；manifest 既有单测随改）。
+2. **路由指引**：server 路由段补 automation 行——含轨级 volume/pan 寻址指引（音量 ride 形态）+与 clip.fade 的淡出分界一行；对位既有行式样。
+3. **真栈首证腿**（190/196 模式扩展冒测脚本，两轮口径）：话术驱动 /agent/invoke → get_plugin_parameters 读值域 → set_points 写（RiskConfirm 确认面）→ get_curve 读回点数/值一致 → clear_region 清除 → count 归零；**必含轨级 volume ride 腿**（外部插件参数腿+轨级腿各一）；undo 腿（SupportsUndo 回滚+读回）。
+4. **负面例腿**：值域外点（fail-closed 整令拒绝+拒绝回执）。
+5. 既有全家回归零回退（manifest 消费面+capabilitycontext 测试）。
+
+## 探针义务
+
+§5.1 装配面（生产装配形态探针）；时序面按适用；真栈腿=完整命令+退出码+run 工件入 coord/runs/M3-C4-AUTO-DISCLOSE-1/。
+
+## 文件域
+
+`agent/internal/capabilitycontext/context_manifest.go`+路由指引所在文件（勘察锚 server.go :6198 段，执行侧核对包位）+`scripts/` 冒测扩展+探针。**内核/前端仓零改**。越域即停。
+
+## 停止条件
+
+- 四处 Excluded 或路由段锚点与勘察记录大面积不符（结构漂移）→锚点清单上交；
+- /agent/invoke authority 面发现 catalog 外必经环节（如确认面缺装配）→证据上交两案；
+- 轨级 volume ride 腿遇 201 描述符面行为不符（寻址失败/值域缺失）→如实记录上交（内核域外不修）。
