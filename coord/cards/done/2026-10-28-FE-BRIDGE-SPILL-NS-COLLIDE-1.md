@@ -40,3 +40,8 @@
 - 验收命令与退出码（worktree agent/ 下）：`go build ./...` exit 0；`go test ./... -count=1` 三轮均 96 包全 ok、零 FAIL；新增 5 测试 `-v` 逐条 PASS：TestSpillFileStampHasRealNanosecondSegment / TestSpillControlReplySameSecondRequestsGetDistinctFiles / TestSpillTelemetryPacketSameSecondLabelsGetDistinctFiles / TestWriteSpillFileExclusiveSuffixesOnCollision（`_1` 序号+首文件不覆写）/ TestWriteSpillFileExclusiveGivesUpAfterBoundedCollisions（耗尽报错）
 - 端测覆盖边界声明（AGENTS §5）：本卡卡面明示「离线可验、不占真栈」——以上为离线证据（单测+行为断言），未跑真实栈烟测；spill 属 agent UDP 溢出降级留痕链，无 GUI/渲染/用户旅程面
 - 领取提交：158dc22a（claim todo→doing，仅 coord/ 变更直推 main）
+
+## 主管验收（2026-10-29 晚）
+
+- pass 并入 main：diff 亲读（生产面）+工件/退出码亲核+探针结果复核；214 含用户手测观感通过（12:11 同版，终值=128 默认）；213/215 合并面共存验证=两场景探针在合并后 main 各 17/17+15/15 exit 0（主管亲跑）；210 离线证据接受（卡面明示离线可验）。
+- 上交项处置见主仓 accept 提交（213 硬重连缺口折 P3 卡待确认；214 四项观察级知悉；215 领取时序 slip 记档+主管侧折卡未提交失误一并记档）。
