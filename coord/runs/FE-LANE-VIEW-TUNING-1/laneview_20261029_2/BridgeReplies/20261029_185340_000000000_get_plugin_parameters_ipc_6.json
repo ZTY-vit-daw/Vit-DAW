@@ -1,0 +1,2019 @@
+{
+  "status": "ok",
+  "track_id": "1047",
+  "plugin_id": "1053",
+  "plugin_item_id": "1053",
+  "template_role": "other",
+  "supports_param_grabber": true,
+  "current_param_signature_hash": "probe_6ec27bfdac1f69f",
+  "binding_targets": [
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "dry level",
+      "param_name": "Dry Level",
+      "normalized_role": "common_mix",
+      "alias": "Dry Level"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "wet level",
+      "param_name": "Wet Level",
+      "normalized_role": "common_mix",
+      "alias": "Wet Level"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "48",
+      "param_name": "Mix",
+      "normalized_role": "common_mix",
+      "alias": "Mix"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "49",
+      "param_name": "DelaySync",
+      "normalized_role": "other",
+      "alias": "DelaySync"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "50",
+      "param_name": "DelayNote",
+      "normalized_role": "other",
+      "alias": "DelayNote"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "51",
+      "param_name": "Delay_Ms",
+      "normalized_role": "other",
+      "alias": "Delay_Ms"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "52",
+      "param_name": "DelayWarp",
+      "normalized_role": "other",
+      "alias": "DelayWarp"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "53",
+      "param_name": "Clear",
+      "normalized_role": "other",
+      "alias": "Clear"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "54",
+      "param_name": "Feedback",
+      "normalized_role": "mod_feedback",
+      "alias": "Feedback"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "55",
+      "param_name": "Density",
+      "normalized_role": "other",
+      "alias": "Density"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "56",
+      "param_name": "Width",
+      "normalized_role": "common_width",
+      "alias": "Width"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "57",
+      "param_name": "LowCut",
+      "normalized_role": "other",
+      "alias": "LowCut"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1567",
+      "param_name": "HighCut",
+      "normalized_role": "other",
+      "alias": "HighCut"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1568",
+      "param_name": "ModRate",
+      "normalized_role": "mod_rate",
+      "alias": "ModRate"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1569",
+      "param_name": "ModDepth",
+      "normalized_role": "mod_depth",
+      "alias": "ModDepth"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1570",
+      "param_name": "Mode",
+      "normalized_role": "other",
+      "alias": "Mode"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1571",
+      "param_name": "Reserved1",
+      "normalized_role": "other",
+      "alias": "Reserved1"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1572",
+      "param_name": "Reserved2",
+      "normalized_role": "other",
+      "alias": "Reserved2"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1573",
+      "param_name": "Reserved3",
+      "normalized_role": "other",
+      "alias": "Reserved3"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "1574",
+      "param_name": "Reserved4",
+      "normalized_role": "other",
+      "alias": "Reserved4"
+    },
+    {
+      "target_kind": "plugin_param",
+      "plugin_id": "1053",
+      "plugin_name": "ValhallaSupermassive",
+      "plugin_type": "vst",
+      "template_role": "",
+      "param_id": "18",
+      "param_name": "Bypass",
+      "normalized_role": "common_bypass",
+      "alias": "Bypass"
+    }
+  ],
+  "recommended_groups": [
+    {
+      "name": "Mix",
+      "parameter_ids": [
+        "dry level",
+        "wet level",
+        "48",
+        "56"
+      ]
+    },
+    {
+      "name": "Modulation",
+      "parameter_ids": [
+        "54",
+        "1568",
+        "1569"
+      ]
+    },
+    {
+      "name": "Utility",
+      "parameter_ids": [
+        "18"
+      ]
+    },
+    {
+      "name": "Other",
+      "parameter_ids": [
+        "49",
+        "50",
+        "51",
+        "52",
+        "53",
+        "55",
+        "57",
+        "1567",
+        "1570",
+        "1571",
+        "1572",
+        "1573",
+        "1574"
+      ]
+    }
+  ],
+  "quick_controls": [
+    {
+      "param_id": "dry level",
+      "raw_param_id": "dry level",
+      "label": "Dry Level",
+      "widget": "slider",
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 0.0
+    },
+    {
+      "param_id": "56",
+      "raw_param_id": "56",
+      "label": "Width",
+      "widget": "slider",
+      "normalized_role": "common_width",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 1.0
+    },
+    {
+      "param_id": "18",
+      "raw_param_id": "18",
+      "label": "Bypass",
+      "widget": "toggle",
+      "normalized_role": "common_bypass",
+      "display_group": "Utility",
+      "host_controllable": true,
+      "control_relevance": "utility_control",
+      "control_priority": 75,
+      "value": 0.0
+    },
+    {
+      "param_id": "1568",
+      "raw_param_id": "1568",
+      "label": "ModRate",
+      "widget": "slider",
+      "normalized_role": "mod_rate",
+      "display_group": "Modulation",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 0.273834109306335
+    },
+    {
+      "param_id": "1569",
+      "raw_param_id": "1569",
+      "label": "ModDepth",
+      "widget": "slider",
+      "normalized_role": "mod_depth",
+      "display_group": "Modulation",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 0.5
+    },
+    {
+      "param_id": "wet level",
+      "raw_param_id": "wet level",
+      "label": "Wet Level",
+      "widget": "slider",
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 1.0
+    },
+    {
+      "param_id": "48",
+      "raw_param_id": "48",
+      "label": "Mix",
+      "widget": "slider",
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 0.5
+    },
+    {
+      "param_id": "54",
+      "raw_param_id": "54",
+      "label": "Feedback",
+      "widget": "slider",
+      "normalized_role": "mod_feedback",
+      "display_group": "Modulation",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "value": 0.5
+    }
+  ],
+  "control_shell": {
+    "template_role": "other",
+    "default_tabs": [
+      "Parameters",
+      "Search",
+      "Recommended"
+    ],
+    "advanced_tabs": [
+      "Template",
+      "Link",
+      "History",
+      "Macro",
+      "Freeze",
+      "Bypass"
+    ],
+    "recommended_groups": [
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "48",
+          "56"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameter_ids": [
+          "54",
+          "1568",
+          "1569"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "18"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "49",
+          "50",
+          "51",
+          "52",
+          "53",
+          "55",
+          "57",
+          "1567",
+          "1570",
+          "1571",
+          "1572",
+          "1573",
+          "1574"
+        ]
+      }
+    ],
+    "supports_param_grabber": true
+  },
+  "capability_manifest": [
+    "open_ui",
+    "get_param",
+    "template_shell",
+    "quick_controls"
+  ],
+  "parameters": [
+    {
+      "id": "dry level",
+      "param_id": "dry level",
+      "raw_param_id": "dry level",
+      "raw_param_name": "Dry Level",
+      "name": "Dry Level",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "-INF dB",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "Dry Level",
+      "supports_automation": true,
+      "source": "tracktion_wrapper",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-INF dB",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "wet level",
+      "param_id": "wet level",
+      "raw_param_id": "wet level",
+      "raw_param_name": "Wet Level",
+      "name": "Wet Level",
+      "value": 1.0,
+      "normalized_value": 1.0,
+      "value_text": "+0.0 dB",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "Wet Level",
+      "supports_automation": true,
+      "source": "tracktion_wrapper",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "+0.0 dB",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "48",
+      "param_id": "48",
+      "raw_param_id": "48",
+      "raw_param_name": "Mix",
+      "name": "Mix",
+      "value": 0.5,
+      "normalized_value": 0.5,
+      "value_text": "50.0 %",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "common_mix",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "Mix",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "50.0 %",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "50.0 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "48",
+        "param_name": "Mix",
+        "normalized_role": "common_mix",
+        "alias": "Mix"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "49",
+      "param_id": "49",
+      "raw_param_id": "49",
+      "raw_param_name": "DelaySync",
+      "name": "DelaySync",
+      "value": 0.25,
+      "normalized_value": 0.25,
+      "value_text": "Msec",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "DelaySync",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Msec",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "Msec"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Msec"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Msec"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Msec"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "Msec"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "49",
+        "param_name": "DelaySync",
+        "normalized_role": "other",
+        "alias": "DelaySync"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "50",
+      "param_id": "50",
+      "raw_param_id": "50",
+      "raw_param_name": "DelayNote",
+      "name": "DelayNote",
+      "value": 0.28571429848671,
+      "normalized_value": 0.28571429848671,
+      "value_text": "1/16",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "DelayNote",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1/16",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "1/16"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "1/16"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1/16"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1/16"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "1/16"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "50",
+        "param_name": "DelayNote",
+        "normalized_role": "other",
+        "alias": "DelayNote"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "51",
+      "param_id": "51",
+      "raw_param_id": "51",
+      "raw_param_name": "Delay_Ms",
+      "name": "Delay_Ms",
+      "value": 0.5,
+      "normalized_value": 0.5,
+      "value_text": "300.0 ms",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "Delay_Ms",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "300.0 ms",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "300.0 ms"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "300.0 ms"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "300.0 ms"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "300.0 ms"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "300.0 ms"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "51",
+        "param_name": "Delay_Ms",
+        "normalized_role": "other",
+        "alias": "Delay_Ms"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "52",
+      "param_id": "52",
+      "raw_param_id": "52",
+      "raw_param_name": "DelayWarp",
+      "name": "DelayWarp",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "0.0 %",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "DelayWarp",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0 %",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "0.0 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "52",
+        "param_name": "DelayWarp",
+        "normalized_role": "other",
+        "alias": "DelayWarp"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "53",
+      "param_id": "53",
+      "raw_param_id": "53",
+      "raw_param_name": "Clear",
+      "name": "Clear",
+      "value": 1.0,
+      "normalized_value": 1.0,
+      "value_text": "Cleared",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "Clear",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Cleared",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "Cleared"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Cleared"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Cleared"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Cleared"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "Cleared"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "53",
+        "param_name": "Clear",
+        "normalized_role": "other",
+        "alias": "Clear"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "54",
+      "param_id": "54",
+      "raw_param_id": "54",
+      "raw_param_name": "Feedback",
+      "name": "Feedback",
+      "value": 0.5,
+      "normalized_value": 0.5,
+      "value_text": "50.0 %",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "mod_feedback",
+      "display_group": "Modulation",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "Feedback",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "50.0 %",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "50.0 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "54",
+        "param_name": "Feedback",
+        "normalized_role": "mod_feedback",
+        "alias": "Feedback"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "55",
+      "param_id": "55",
+      "raw_param_id": "55",
+      "raw_param_name": "Density",
+      "name": "Density",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "0.0 %",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "Density",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0 %",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "0.0 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "55",
+        "param_name": "Density",
+        "normalized_role": "other",
+        "alias": "Density"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "56",
+      "param_id": "56",
+      "raw_param_id": "56",
+      "raw_param_name": "Width",
+      "name": "Width",
+      "value": 1.0,
+      "normalized_value": 1.0,
+      "value_text": "100.0 %",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "common_width",
+      "display_group": "Mix",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "Width",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100.0 %",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "100.0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "100.0 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "100.0 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "100.0 %"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "100.0 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "56",
+        "param_name": "Width",
+        "normalized_role": "common_width",
+        "alias": "Width"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "57",
+      "param_id": "57",
+      "raw_param_id": "57",
+      "raw_param_name": "LowCut",
+      "name": "LowCut",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "10 Hz",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "LowCut",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "10 Hz",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "10 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "10 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "10 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "10 Hz"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "10 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "57",
+        "param_name": "LowCut",
+        "normalized_role": "other",
+        "alias": "LowCut"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1567",
+      "param_id": "1567",
+      "raw_param_id": "1567",
+      "raw_param_name": "HighCut",
+      "name": "HighCut",
+      "value": 1.0,
+      "normalized_value": 1.0,
+      "value_text": "20000 Hz",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "HighCut",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "20000 Hz",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "20000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "20000 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "20000 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "20000 Hz"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "20000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1567",
+        "param_name": "HighCut",
+        "normalized_role": "other",
+        "alias": "HighCut"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1568",
+      "param_id": "1568",
+      "raw_param_id": "1568",
+      "raw_param_name": "ModRate",
+      "name": "ModRate",
+      "value": 0.273834109306335,
+      "normalized_value": 0.273834109306335,
+      "value_text": "0.50 Hz",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "mod_rate",
+      "display_group": "Modulation",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "ModRate",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.50 Hz",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.50 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.50 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.50 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.50 Hz"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "0.50 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1568",
+        "param_name": "ModRate",
+        "normalized_role": "mod_rate",
+        "alias": "ModRate"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1569",
+      "param_id": "1569",
+      "raw_param_id": "1569",
+      "raw_param_name": "ModDepth",
+      "name": "ModDepth",
+      "value": 0.5,
+      "normalized_value": 0.5,
+      "value_text": "50.0 %",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "mod_depth",
+      "display_group": "Modulation",
+      "host_controllable": true,
+      "control_relevance": "musical_control",
+      "control_priority": 100,
+      "alias": "ModDepth",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "50.0 %",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "50.0 %"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "50.0 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1569",
+        "param_name": "ModDepth",
+        "normalized_role": "mod_depth",
+        "alias": "ModDepth"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1570",
+      "param_id": "1570",
+      "raw_param_id": "1570",
+      "raw_param_name": "Mode",
+      "name": "Mode",
+      "value": 0.04166666790843,
+      "normalized_value": 0.04166666790843,
+      "value_text": "Gemini",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "mode_control",
+      "control_priority": 65,
+      "alias": "Mode",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Gemini",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "Gemini"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Gemini"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Gemini"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Gemini"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "Gemini"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1570",
+        "param_name": "Mode",
+        "normalized_role": "other",
+        "alias": "Mode"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1571",
+      "param_id": "1571",
+      "raw_param_id": "1571",
+      "raw_param_name": "Reserved1",
+      "name": "Reserved1",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "0.0",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "Reserved1",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "0.0"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1571",
+        "param_name": "Reserved1",
+        "normalized_role": "other",
+        "alias": "Reserved1"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1572",
+      "param_id": "1572",
+      "raw_param_id": "1572",
+      "raw_param_name": "Reserved2",
+      "name": "Reserved2",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "0.0 %",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "Reserved2",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0 %",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.0 %"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "0.0 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1572",
+        "param_name": "Reserved2",
+        "normalized_role": "other",
+        "alias": "Reserved2"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1573",
+      "param_id": "1573",
+      "raw_param_id": "1573",
+      "raw_param_name": "Reserved3",
+      "name": "Reserved3",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "0.0",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "Reserved3",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "0.0"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1573",
+        "param_name": "Reserved3",
+        "normalized_role": "other",
+        "alias": "Reserved3"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "1574",
+      "param_id": "1574",
+      "raw_param_id": "1574",
+      "raw_param_name": "Reserved4",
+      "name": "Reserved4",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "0.0",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": false,
+      "num_steps": 0,
+      "is_boolean": false,
+      "normalized_role": "other",
+      "display_group": "Other",
+      "host_controllable": true,
+      "control_relevance": "unknown_control",
+      "control_priority": 40,
+      "alias": "Reserved4",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0",
+        "label": "",
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.0"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "0.0"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1574",
+        "param_name": "Reserved4",
+        "normalized_role": "other",
+        "alias": "Reserved4"
+      },
+      "envelope_point_count": 0
+    },
+    {
+      "id": "18",
+      "param_id": "18",
+      "raw_param_id": "18",
+      "raw_param_name": "Bypass",
+      "name": "Bypass",
+      "value": 0.0,
+      "normalized_value": 0.0,
+      "value_text": "Off",
+      "min": 0.0,
+      "max": 1.0,
+      "is_discrete": true,
+      "num_steps": 2,
+      "is_boolean": false,
+      "normalized_role": "common_bypass",
+      "display_group": "Utility",
+      "host_controllable": true,
+      "control_relevance": "utility_control",
+      "control_priority": 75,
+      "alias": "Bypass",
+      "supports_automation": true,
+      "source": "hosted_plugin_parameter",
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Off",
+        "label": "",
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0.0,
+            "label": "Off"
+          },
+          {
+            "index": 1,
+            "value": 1.0,
+            "label": "On"
+          }
+        ],
+        "all_labels": [],
+        "samples": [
+          {
+            "normalized_value": 0.0,
+            "value": 0.0,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "On"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "On"
+          },
+          {
+            "normalized_value": 1.0,
+            "value": 1.0,
+            "text": "On"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "binding_target": {
+        "target_kind": "plugin_param",
+        "plugin_id": "1053",
+        "plugin_name": "ValhallaSupermassive",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      "envelope_point_count": 0
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+WARNING: VitTelemetryManager: bind 4444 failed: 2
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://app/kernel/autoloads/telemetry_manager.gd:168)
+STACK_TOUCH_WARNING stack_probe_lane_view_tuning scene=/root/StackProbeLaneViewTuning ts=2026-10-29T10:19:27
+[PASS] setup add_track | 1094
+[PASS] setup track volume plugin discovered | 1095
+[PASS] P0a production dock adapter mounted (timeline_dock_adapter.tscn) | adapter=StackProbeLaneViewAdapter:<Control#74339845716> track_list=TrackList:<VBoxContainer#75128374930>
+[PASS] P0b arbitrator+mapping assembled in production TrackList | arb=TimelineInputArbitrator:<Control#77946947294> mapping=TimelineViewMapping:<Node#77930170077>
+[PASS] P0c production track row created via adapter path | Track_Root_1094:<VBoxContainer#81956702021>
+[PASS] P0d envelope lane container in row | TrackEnvelopeLane2D:<Control#88315267192>
+[PASS] P0e two-state toggle present | Btn_Envelope_Lane_Toggle:<Button#89690998979>
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:395)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:298)
+       [2] set_envelope_lane_open (res://app/tracks/track_scene/Track_Row_Controller.gd:1196)
+       [3] _on_envelope_toggle_toggled (res://app/tracks/track_scene/Track_Row_Controller.gd:1040)
+       [4] _run_suite (res://tools/stack_probe_lane_view_tuning.gd:360)
+       [5] _settle_frames (res://tools/stack_probe_lane_view_tuning.gd:239)
+[PASS] P0f toggle on expands container | true
+[PASS] P0g default volume lane binding settled | { "group": "track", "plugin_id": "1095", "param_id": "volume", "pending": false }
+[PASS] P0h default volume lane EMPTY via production get_curve UDP chain | empty
+[PASS] P0i strip rendered height == effective height (candidate-1 geometry) | rect=[P: (315.0, 332.0), S: (2245.0, 112.0)] effective=112.0 source={ "value": 112.0, "source": "env", "env_raw": "112", "default": 128.0, "min": 48.0, "max": 256.0 }
+[PASS] P0j height handle present in strip header (BaseButton, production tree) | Btn_Envelope_Lane_Height:<Button#94019520843>
+[PASS] P0k no overflow scroll at N=1 default height (add-bar constant calibrated, candidate-2 fix) | [136.0, 136.0]
+[PASS] P1a external write 3 points (0/50/100%) settles via production curve pull | [true, "{ \"min\": 0.0, \"max\": 1.0, \"assumed\": false }", "[{ \"t\": 4.0, \"v\": 0.0, \"c\": 0.0 }, { \"t\": 8.0, \"v\": 0.5, \"c\": 0.0 }, { \"t\": 12.0, \"v\": 1.0, \"c\": 0.0 }]", "[{ \"t\": 4.0, \"v\": 0.0, \"c\": 0.0 }, { \"t\": 8.0, \"v\": 0.5, \"c\": 0.0 }, { \"t\": 12.0, \"v\": 1.0, \"c\": 0.0 }]"]
+[PASS] P1b curve renders at mapped pixel position for 0/50/100% (render measurement, tol=5px)
+[PASS] P1c content rect global measured (candidate evidence) | content_global=[P: (322.0, 367.0), S: (2231.0, 70.0)] strip=[P: (315.0, 332.0), S: (2245.0, 112.0)]
+[PASS] P2a pipeline press on polyline segment starts add-point drag | { "pending": false, "error": { "kind": "", "message": "" }, "dragging": true }
+[PASS] P2b pipeline release commits 4th point (kernel identical) | [{ "t": 4.0, "v": 0.0, "c": 0.0 }, { "t": 6.80000019073486, "v": 0.1785714328289, "c": 0.0 }, { "t": 8.0, "v": 0.5, "c": 0.0 }, { "t": 12.0, "v": 1.0, "c": 0.0 }]
+[PASS] P2c mapping consistency: created v == y→value at release point | created_v=0.1786 expected=0.1786 err=0.0000
+[PASS] P2d created point renders at release pixel position (render measurement) | release_y=424.5 rendered_y=424.0
+[PASS] P3a overlay gateway yields at height handle (BaseButton interactive path) | [P: (465.0, 333.0), S: (22.0, 31.0)]
+[PASS] P3b pipeline press on handle starts height drag | true
+[PASS] P3c handle drag +36px grows session height (pipeline) | [112.0, 148.0, "{ \"value\": 148.0, \"source\": \"session\", \"env_raw\": \"112\", \"default\": 128.0, \"min\": 48.0, \"max\": 256.0 }"]
+[PASS] P3d both strips unified at new height | [148.0, 148.0, 148.0]
+[PASS] P3e lane area = min(22+2h, budget) (budget linkage follows real height) | [316.0, 320.0, 316.0]
+[PASS] P3f internal scroll engages when wanted > budget (scroll < stack) | [316.0, 320.0]
+[PASS] P3g zero kernel automation writes during handle drag | 0
+[PASS] P4a overlay gateway still yields at canvas (211 face at new height) | (1697.4, 382.9)
+[PASS] P4b pipeline press on canvas starts point drag (regression) | { "pending": false, "error": { "kind": "", "message": "" }, "dragging": true }
+[PASS] P4c canvas point commits (kernel 5 points) | 5
+[PASS] cleanup clear_project | ok
+---- probe summary: total=31 failed=0 ----

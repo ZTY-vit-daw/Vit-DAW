@@ -1,0 +1,46 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-LANE-VIEW-TUNING-1 lane view tuning suite start
+[probe] PASS H1 env parse pure function (default/override/clamp/garbage)
+[probe] PASS H2 default strip height 128 (96→128 reset)
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:395)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:298)
+       [2] _run (res://tools/probe_lane_view_tuning.gd:127)
+[probe] PASS H3 expanded 2 lanes area = 22+2*128 (effective height)
+[probe] PASS H3b strip min height = effective 128
+[probe] PASS H4 env override 112 honored on fresh container
+[probe] PASS H4b env clamp to max 256
+[probe] PASS H5 session set applies 160 to all strips (multi-lane unified)
+[probe] PASS H5b lane area follows session height (22+2*160)
+[probe] PASS H5c source disclosure session
+[probe] PASS H5d session clamp bounds
+[probe] PASS H6 budget clamp: area=min(22+2*128, 200) when row budget=200
+[probe] PASS H6b budget restored: area back to 22+2*128
+[probe] PASS H7 session value not persisted (fresh container back to default)
+[probe] PASS M1 content rect on 128 strip (top=35 height=86)
+[probe] PASS M2 point_to_local/y_to_value roundtrip 0/50/100% (map identity)
+[probe] PASS M3 value anchors: 100%→content top, 0%→content bottom
+[probe] PASS M4 header zone not canvas (y<26 guard)
+[probe] PASS G1 height handle present in strip header (BaseButton)
+[probe] PASS G2 handle rect non-empty inside strip
+[probe] PASS G3 canvas hit_test empty at handle (gesture territory untouched)
+[probe] PASS G4 handle drag +32px grows session height (multi-lane unified)
+[probe] PASS G4b both strips resized to new session height
+[probe] PASS G5 handle drag -16px shrinks session height
+[probe] PASS section H completed
+[probe] PASS section M completed
+[probe] PASS section G completed
+[probe] PROBE PASS (checks_total=26)
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

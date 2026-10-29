@@ -1,0 +1,8 @@
+FAILED(1): tools/probe_lane_catalog_fail_loud.gd => 
+FAILED(1): tools/probe_vitnote_input.gd => 
+FAILED(1): tools/probe_vitnote_notestream.gd => 
+FAILED(1): tools/probe_vsp_delta_schema_guard.gd => 
+SCENE file_reply:
+[probe] PROBE PASS (checks_total=7)
+PASS_COUNT=23
+FAILED_LIST= tools/probe_lane_catalog_fail_loud.gd tools/probe_vitnote_input.gd tools/probe_vitnote_notestream.gd tools/probe_vsp_delta_schema_guard.gd

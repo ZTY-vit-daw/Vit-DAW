@@ -1,0 +1,30 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] FE-AUTOLANE-LAYOUT-GROW-1 layout grow suite start
+[probe] PASS D1 two direct rows assembled
+WARNING: Vit-DAW: 车道参数目录断供——场景树无 project_repository 节点（生产装配面缺口；目录保持现值）。[FE-LANE-CATALOG-REPO-WIRE-1]
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] refresh_plugin_catalog (res://app/tracks/track_scene/track_envelope_lane_2d.gd:395)
+       [1] set_envelope_lane_open (res://app/tracks/track_scene/track_envelope_lane_2d.gd:298)
+       [2] set_envelope_lane_open (res://app/tracks/track_scene/Track_Row_Controller.gd:1196)
+       [3] _assert_direct_rows (res://tools/probe_autolane_layout_grow.gd:116)
+[probe] PASS D2 expand 1 lane grows row A only (U+22+h)
+[probe] PASS D3 three lanes area = min(22+3h, budget 316) (128 → clamp)
+[probe] PASS D4 lane container is row child (in-row layout flow, overlay abolished)
+[probe] PASS D5 lane area below waveform (no overlay on wave zone)
+[probe] PASS D6 header spacer follows split (x axis aligned with waveform)
+[probe] PASS D7 overflow N=4 clamps lane area to budget with internal scroll
+[probe] PASS D8 collapse falls back to base U
+[probe] PASS D9 programmatic height sets U; re-expand clamps into U-derived budget
+[probe] PASS D10 rebind resets lane to collapsed default (202 semantics, row height falls)
+[probe] PASS section D completed
+[probe] PROBE PASS (checks_total=11)

@@ -1,0 +1,5 @@
+# 真栈族既有件复跑（栈在位时执行，stdout 随会话记录；本文件=结果留证）
+# 2026-10-29 10:18 前端 worktree lanetune1@port/fe-lane-view-tuning-1（含 128/24 期望更新）
+[stack-probe] stack_probe_autolane_edit.tscn      SUMMARY_JSON {"checks_failed":0,"checks_total":30,"status":"pass"} exit=0
+[stack-probe] stack_probe_autolane_rebuild.tscn   SUMMARY_JSON {"checks_failed":0,"checks_total":23,"status":"pass"} exit=0
+[stack-probe] stack_probe_autolane_layout_grow.tscn SUMMARY_JSON {"checks_failed":0,"checks_total":16,"status":"pass"} exit=0
