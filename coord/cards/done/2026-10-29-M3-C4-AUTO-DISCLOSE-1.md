@@ -61,3 +61,8 @@
 - 工件：coord/runs/M3-C4-AUTO-DISCLOSE-1/{RESULTS.md,automation_agent_chain_20261029_r1/,automation_agent_chain_20261029_r2/}（§9 契约：完整命令/退出码/时间戳/迭代留痕/事故记档/端测边界；console+summary+隔离 marker 入库，运行时工程文件剔除）@ port/m3-c4-auto-disclose-1。
 - 真栈登记/释放：aab65181 登记（三纪律：登记先启动+推送后 21:01 即时复核净空<60s；vsphub 不需要）→释放记录同批本提交；拆栈复核 VitApp/VitAgent/VspHub/Godot=0、TCP 5555/5556/7878/8787 listen=0。
 - 端测边界声明：覆盖=agent /agent/invoke 真栈全链两轮+内核 setup/值域/描述符面；不覆盖=webui 渲染/用户旅程（E2E-WEBUI-1/JOURNEY-1 既有边界）+LLM 话术→工具选择面（归 218 烟测）+Godot 即时感知（197 已记既有边界）。
+
+## 主管验收（2026-10-29 深夜）
+
+- pass 并入 main：diff 亲读（216=armed 生命周期+软硬两路径闭合消费侧零改；217=四处摘词+Guidance+双源路由行）+工件/退出码亲核；216 合并面探针在合并后前端 main 亲跑 24/24 exit 0；217 真栈 R1/R2 五腿全绿×2（确认前零写入/逐点读回/undo/值域外整令拒绝回执）。
+- 217 §四事故处置：default_project.xml 覆写态=保留现状（new_project 默认工程），用户真实工程文件不受影响，12:11 手测态不可恢复待用户确认是否需工程源重导；ps1 隔离段漏腿=第三次同类（183/185/217），改进候选「隔离默认化」记风险位。
