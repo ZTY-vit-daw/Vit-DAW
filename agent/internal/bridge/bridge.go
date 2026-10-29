@@ -200,6 +200,44 @@ func (b *Bridge) controlReplyPayload(request map[string]any, reply string) ([]by
 	return b.spillControlReply(request, out)
 }
 
+const maxSpillFilenameAttempts = 100
+
+// spillFileStamp renders local time as 20060102_150405_<9-digit nanoseconds>;
+// the nanosecond segment must come from Nanosecond() — a "0" run inside a Go
+// layout is a literal, not a fractional-second token (needs ".000..." after
+// the seconds field), which is what pinned every spill stamp to ..._000000000.
+func spillFileStamp(t time.Time) string {
+	return fmt.Sprintf("%s_%09d", t.Format("20060102_150405"), t.Nanosecond())
+}
+
+// writeSpillFileExclusive creates <dir>/<filename> without ever overwriting:
+// on an existing target it retries with _1, _2, ... appended before .json.
+func writeSpillFileExclusive(dir, filename string, data []byte) (string, error) {
+	base := strings.TrimSuffix(filename, ".json")
+	var path string
+	for attempt := 0; attempt < maxSpillFilenameAttempts; attempt++ {
+		name := base
+		if attempt > 0 {
+			name = fmt.Sprintf("%s_%d", base, attempt)
+		}
+		path = filepath.Join(dir, name+".json")
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o644)
+		if err != nil {
+			if os.IsExist(err) {
+				continue
+			}
+			return path, err
+		}
+		_, writeErr := f.Write(data)
+		closeErr := f.Close()
+		if writeErr != nil {
+			return path, writeErr
+		}
+		return path, closeErr
+	}
+	return path, fmt.Errorf("spill file %s: no free name after %d collisions", filename, maxSpillFilenameAttempts)
+}
+
 func (b *Bridge) spillControlReply(request map[string]any, reply []byte) ([]byte, bool, error) {
 	dir := strings.TrimSpace(b.cfg.FileReplyDir)
 	if dir == "" {
@@ -211,11 +249,11 @@ func (b *Bridge) spillControlReply(request map[string]any, reply []byte) ([]byte
 	requestID := strings.TrimSpace(fmt.Sprint(request["request_id"]))
 	command := commandName(request)
 	filename := fmt.Sprintf("%s_%s_%s.json",
-		time.Now().Format("20060102_150405_000000000"),
+		spillFileStamp(time.Now()),
 		sanitizeFileComponent(command, "command"),
 		sanitizeFileComponent(requestID, "request"))
-	path := filepath.Join(dir, filename)
-	if err := os.WriteFile(path, reply, 0o644); err != nil {
+	path, err := writeSpillFileExclusive(dir, filename, reply)
+	if err != nil {
 		return reply, false, err
 	}
 	envelope := map[string]any{
@@ -382,10 +420,10 @@ func (b *Bridge) spillTelemetryPacket(packet []byte) ([]byte, bool, error) {
 	meta := parseObject(string(packet))
 	label := telemetryPacketLabel(meta)
 	filename := fmt.Sprintf("%s_telemetry_%s.json",
-		time.Now().Format("20060102_150405_000000000"),
+		spillFileStamp(time.Now()),
 		sanitizeFileComponent(label, "event"))
-	path := filepath.Join(dir, filename)
-	if err := os.WriteFile(path, packet, 0o644); err != nil {
+	path, err := writeSpillFileExclusive(dir, filename, packet)
+	if err != nil {
 		return packet, false, err
 	}
 	envelope := map[string]any{
