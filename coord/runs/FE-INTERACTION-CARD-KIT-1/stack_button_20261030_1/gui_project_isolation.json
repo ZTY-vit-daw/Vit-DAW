@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD e5ae6cee0a2d63ba875bc214d898505603eedf98:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-10-30T21:02:24.3688328+08:00",
+    "marker_path":  "D:\\Vit_DAW_wt_ick1\\coord\\runs\\FE-INTERACTION-CARD-KIT-1\\stack_button_20261030_1\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_ick1\\coord\\runs\\FE-INTERACTION-CARD-KIT-1\\stack_button_20261030_1\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}

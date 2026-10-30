@@ -68,7 +68,7 @@ DECLARED_FIELD_TYPES = {
 }
 
 
-def post_json(base_url: str, path: str, payload: Dict[str Any], timeout: float) -> Dict[str Any]:
+def post_json(base_url: str, path: str, payload: Dict[str, Any], timeout: float) -> Dict[str, Any]:
     request = urllib.request.Request(
         base_url.rstrip("/") + path,
         data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
@@ -89,7 +89,7 @@ def post_json(base_url: str, path: str, payload: Dict[str Any], timeout: float) 
         raise RuntimeError(f"{path} returned HTTP {exc.code}: {body[:800]}") from exc
 
 
-def chat(base_url: str, conversation: str, message: str, context: Dict[str Any]) -> Dict[str Any]:
+def chat(base_url: str, conversation: str, message: str, context: Dict[str, Any]) -> Dict[str, Any]:
     return post_json(base_url, "/agent/chat", {
         "conversation_id": conversation,
         "message": message,
@@ -97,7 +97,7 @@ def chat(base_url: str, conversation: str, message: str, context: Dict[str Any])
     }, CHAT_TIMEOUT_SEC)
 
 
-def respond(base_url: str, interaction_id: str, action_id: str, fields: Dict[str, str]) -> Dict[str Any]:
+def respond(base_url: str, interaction_id: str, action_id: str, fields: Dict[str, str]) -> Dict[str, Any]:
     return post_json(base_url, "/agent/interaction/respond", {
         "interaction_id": interaction_id,
         "action_id": action_id,
@@ -162,7 +162,7 @@ def approx(actual: Any, expected: float, tolerance: float = 1e-6) -> bool:
         return False
 
 
-def find_track_volume_plugin(state: Dict[str Any], track_id: str) -> Optional[str]:
+def find_track_volume_plugin(state: Dict[str, Any], track_id: str) -> Optional[str]:
     """196/217 precedent: the track's built-in Volume & Pan plugin row."""
     tracks = state.get("tracks") if isinstance(state.get("tracks"), list) else []
     for raw_track in tracks:
@@ -187,7 +187,7 @@ def find_track_volume_plugin(state: Dict[str Any], track_id: str) -> Optional[st
     return None
 
 
-def kernel_curve(kernel_zmq: str, plugin_id: str, param_id: str) -> Dict[str Any]:
+def kernel_curve(kernel_zmq: str, plugin_id: str, param_id: str) -> Dict[str, Any]:
     reply = zmq_command(kernel_zmq, {"cmd": "automation.get_curve", "plugin_id": plugin_id, "param_id": param_id, "command_timeout_ms": 60000})
     require(str(reply.get("status", "")).lower() in {"ok", "success"},
             f"kernel automation.get_curve failed: {json.dumps(reply, ensure_ascii=False)[:500]}")
@@ -201,12 +201,17 @@ def kernel_points(kernel_zmq: str, plugin_id: str, param_id: str) -> List[Dict[s
 
 
 def wait_vite_server(log_path: Path, timeout_s: float) -> str:
-    """Parse the Local: URL out of the vite dev log (strictPort=false may bump)."""
+    """Parse the Local: URL out of the vite dev log (strictPort=false may bump).
+
+    The banner line carries ANSI color codes between "Local:" and the URL, so
+    strip them before matching.
+    """
     deadline = time.time() + timeout_s
-    pattern = re.compile(r"Local:\s+(https?://\S+?)(/app/)?\s*$", re.IGNORECASE | re.MULTILINE)
+    ansi_re = re.compile(r"\x1b\[[0-9;]*m")
+    pattern = re.compile(r"Local:\s*(https?://\S+?)(?:/app/)?\s*$", re.IGNORECASE | re.MULTILINE)
     while time.time() < deadline:
         try:
-            text = log_path.read_text(encoding="utf-8", errors="replace")
+            text = ansi_re.sub("", log_path.read_text(encoding="utf-8", errors="replace"))
             match = pattern.search(text)
             if match:
                 return match.group(1).rstrip("/")
@@ -478,7 +483,12 @@ def main() -> None:
         raise
     finally:
         if vite_process is not None:
-            vite_process.terminate()
+            # Popen.terminate kills only the npm.cmd shim on Windows; the node
+            # child keeps port 5178. Take the whole process tree down instead.
+            subprocess.run(
+                ["taskkill", "/PID", str(vite_process.pid), "/T", "/F"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False,
+            )
             try:
                 vite_process.wait(timeout=10)
             except subprocess.TimeoutExpired:
