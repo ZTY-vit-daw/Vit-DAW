@@ -1,3 +1,4 @@
+#include "TrackPluginDisclosure.h"
 #include "VspKernelReference.h"
 
 #include <cstdint>
@@ -661,6 +662,17 @@ juce::Array<juce::var> normaliseTrackArray (const juce::var& tracksVar, bool use
         // (edit-level RACKS state) advance the revision like direct-slot
         // writes already do.
         copyPropertyIfPresent (*track, *row, "plugin_param_digest");
+
+        // M3-TRACK-PLUGIN-DISCLOSE-1 (2026-10-31): release the track-level
+        // plugin chain into the compact face as a minimal id/name/type
+        // disclosure so observation consumers can see built-ins like Volume
+        // & Pan as plugin identities, not just their volume_db/pan numbers
+        // and the param digest hash. Parameters and enabled state stay on
+        // the full serialisation face; legacy tracks without a plugins array
+        // disclose an empty array (stable schema, §11).
+        const auto pluginDisclosure = compactTrackPluginDisclosure (track->getProperty ("plugins"));
+        row->setProperty ("plugins", juce::var (pluginDisclosure));
+        row->setProperty ("plugin_count", pluginDisclosure.size());
 
         const auto rack = normaliseRackState (track->getProperty ("rack"));
         if (rack.getDynamicObject() != nullptr)
