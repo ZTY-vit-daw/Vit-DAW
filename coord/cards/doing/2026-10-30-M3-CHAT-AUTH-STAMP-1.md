@@ -32,4 +32,6 @@
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈与 224 错峰登记 PC-RUNTIME-STACK.md）
+- 2026-10-30 21:1x / origin/main=3036783d（代码基线=bc7ee6a2 同树，`agent/internal/chat/`+`scripts/` 对 bc7ee6a2 零 diff 亲核）/ owner=ZCode GLM-5.3 PC 执行会话（223 卡会话）/ 分支 port/m3-chat-auth-stamp-1 @ worktree D:/Vit_DAW_wt_223impl / 领取提交=coord claim-223→main
+- 领取基线 status：worktree 干净（tracked 零改动）；主检出 M=VitApp/Workspace xml 两件+coord/runs 日志（非本卡域，零触碰）
+- 文件域核对：224（FE-INTERACTION-CARD-KIT-1）域=automation_choreo.go 确认函数族+webui/src——本卡域 turn_control.go+turn_control_test.go+新增测试文件+scripts 与其零相交；勘察定案=stamp 点=既有 server.go:2573 调用位（语义重写在 turn_control.go 内，server.go 零改动）；真栈与 224 错峰（占用前查 PC-RUNTIME-STACK.md 并登记）
