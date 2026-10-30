@@ -956,13 +956,31 @@ func messageLoopFreeStateOutputIssue(state *runState, out messageLoopOutput) str
 			return "diagnostic-only observation window is closed after a usable non-structural CCB observation; do not call another tool and return your own terminal free_state_diagnostic.v1 conclusion now (use unresolved with limitations when the available evidence is insufficient)"
 		}
 		if out.Final || len(out.ToolCalls) == 0 {
-			return "needs_observation must be non-final and call ccb.observation_catalog or ccb.observation_request"
+			return "needs_observation must be non-final and call at least one admitted tool: ccb.observation_catalog / ccb.observation_request, or the automation surface (plugin.get_parameters, automation.get_curve, automation.set_points, automation.clear_region)"
 		}
 		requestCalls := make([]planner.ToolCall, 0, len(out.ToolCalls))
 		requestFingerprints := map[string]bool{}
+		automationMutations := 0
 		for _, call := range out.ToolCalls {
 			if !messageLoopIsCCBObservationTool(call) {
-				return "needs_observation may call only CCB observation catalog/request tools in the free-state loop"
+				// M3-LLM-GATE-OPEN-1（闸 1 开放）：needs_observation 轮放行决策轮
+				// automation 准入面——读工具（plugin.get_parameters /
+				// automation.get_curve）与写工具（automation.set_points /
+				// clear_region，经 harness 治理门）合法；ccb 专属 view-set/
+				// target/指纹检查只对 ccb 调用执行。诊断专用轮不开放。
+				if diagnosticOnly {
+					return "diagnostic-only free-state turns may not call the automation surface; use CCB observation tools only and end with your diagnostic conclusion"
+				}
+				if !messageLoopIsFreeStateAutomationSurfaceCall(call) {
+					return "needs_observation may call only CCB observation catalog/request tools or the admitted automation surface (plugin.get_parameters, automation.get_curve, automation.set_points, automation.clear_region) in the free-state loop"
+				}
+				if messageLoopIsFreeStateAutomationMutationName(normalizedActionName(call, executorpkg.Result{})) {
+					automationMutations++
+					if automationMutations > 1 {
+						return "needs_observation may contain at most one automation mutation call (automation.set_points / automation.clear_region) per turn; every mutation separately passes the runtime governance gate"
+					}
+				}
+				continue
 			}
 			if messageLoopIsCCBObservationCatalogName(normalizedActionName(call, executorpkg.Result{})) && messageLoopFreeStateCatalogAlreadyObserved(state) {
 				return "ccb.observation_catalog already returned a successful catalog in this loop; request a cataloged observation view or return the concrete evidence boundary"

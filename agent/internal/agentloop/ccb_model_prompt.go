@@ -166,23 +166,45 @@ func capabilityBoundaryRemediationPromptRule() string {
 
 func messageLoopNeutralFamilyAllowedTools(tools []string) []string {
 	out := make([]string, 0, len(tools))
+	seen := make(map[string]bool, len(tools))
 	for _, tool := range tools {
 		tool = strings.TrimSpace(tool)
 		if tool == "ccb.observation_catalog" || tool == "ccb.observation_request" {
-			out = append(out, tool)
+			if !seen[tool] {
+				seen[tool] = true
+				out = append(out, tool)
+			}
+			continue
+		}
+		// M3-LLM-GATE-OPEN-1：决策轮 automation 准入面进 Allowed tools 显示
+		// （准入本体=admitFreeStateDecisionRoundToolSurface 并入的规范名；
+		// 别名归一去重，目录行只出规范名一次）。
+		if messageLoopIsFreeStateAutomationSurfaceName(tool) {
+			if canonical := freeStateAutomationSurfaceCanonicalName(tool); !seen[canonical] {
+				seen[canonical] = true
+				out = append(out, canonical)
+			}
 		}
 	}
 	return out
 }
 
 func messageLoopNeutralFamilyCatalog(tools []string) string {
-	rows := make([]string, 0, 2)
+	rows := make([]string, 0, 6)
 	for _, tool := range messageLoopNeutralFamilyAllowedTools(tools) {
 		switch tool {
 		case "ccb.observation_catalog":
 			rows = append(rows, "- ccb.observation_catalog: discover available neutral observation views")
 		case "ccb.observation_request":
 			rows = append(rows, "- ccb.observation_request: request only the exact view_ids and, for track views, explicit visible target_ref selected by the model")
+		case "plugin.get_parameters":
+			rows = append(rows, "- plugin.get_parameters: read one plug-in's parameter surface (parameter ids and value ranges); read it before writing any automation point value")
+		case "automation.get_curve":
+			rows = append(rows, "- automation.get_curve: read one plug-in parameter's automation points [{t seconds, v, c}], bypass flag and point_count; use it for readback after a write")
+		case "automation.set_points":
+			rows = append(rows, "- automation.set_points: replace a plug-in parameter's automation points; args plugin_id, param_id, points [{t seconds >=0, v inside the read value range, c -1..1 optional}], optional region {start,end seconds}; it is a mutation that always passes the runtime governance gate (user confirmation card, or direct execution under an explicit full-access grant) before any write; at most one such mutation call per turn")
+		case "automation.clear_region":
+			rows = append(rows, "- automation.clear_region: remove a plug-in parameter's automation points inside a time region; args plugin_id, param_id, region {start,end seconds}; same governance gate and one-per-turn mutation limit as automation.set_points")
 		}
 	}
 	return strings.Join(rows, "\n")
@@ -662,8 +684,8 @@ Rules:
 - During processor_selection, choose a treatment family only from the observations you explicitly requested and the returned evidence. Choose a processor family yourself only after that evidence supports a material next treatment. Do not use lexical family rules, vendor/product priors, loaded-instance labels, plug-in names, topology, parameter identifiers, or prefilled coverage axes.
 - L3 improvement proposals are different from deterministic engineering actions. When the evidence plausibly relates to a user-stated listening goal but cannot prove an objective defect, return needs_experiment with improvement_proposal.v1. Do not force a unique processor family or claim that the existing mix is wrong.
 - The local governed router, PCA eligibility gate, typed controller, confirmation, transaction, readback, rollback, and verification remain execution authority. You return only a semantic_processor_intent.v1 family, open intent, and evidence-supported required coverage; deterministic code validates them and never fills missing values.
-- Do not output a plug-in name, vendor, product, path, plug-in parameter ID, control mapping, topology, or plug-in parameter value. Do not call any mutation, plug-in loading, or typed control tool in this phase.
-- For needs_observation, request only the views you judge necessary and call exactly those CCB observation tools. Do not copy a catalog default.
+- Do not output a plug-in name, vendor, product, path, control mapping, topology, or any plug-in parameter ID or value you have not resolved from returned evidence (a disclosed observation or plugin.get_parameters). The automation surface is admitted in this phase: plugin.get_parameters and automation.get_curve are read-only; automation.set_points and automation.clear_region are mutations that always pass the runtime governance gate (a user confirmation card, or direct execution only under an explicit full-access grant) before any write, with at most one such mutation per turn. Do not call any other mutation, plug-in loading, or typed control tool in this phase.
+- For needs_observation, request only the views you judge necessary and call exactly those CCB observation tools for them; automation-surface calls may ride the same turn and carry no view_ids. Do not copy a catalog default.
 - When revisiting the same target/view set, include priority_reason="contradiction" and a genuinely new unresolved_questions entry, or set declared_contradiction=true only when the prior receipt is stale/partial. A changed project revision is admitted automatically. These fields explain evidence freshness; they never override a rejected exact view-set.
 - A catalog-only discovery turn uses ccb.observation_catalog with requested_view_ids=[] because no view set is executed yet. A ccb.observation_request turn must use a non-empty requested_view_ids that exactly matches args.view_ids.
 - A track.* view observes one track, not the whole project. Its view_id MUST be copied verbatim from the CCB catalog (for example, "track.band_dynamics"); never prefix or namespace it with a track ID such as "track:1012::track.band_dynamics". Choose its target yourself from track IDs and names already disclosed by project.structure or another model-visible project view, and send args.target_ref={"kind":"track","id":"<that exact visible id>","label":"<visible name>"}. Do not invent a target. If no track identity is visible yet, request a project view that discloses it. A request combining mix.* and track.* views uses the same explicit track as its focus while retaining full-project relationship scope.

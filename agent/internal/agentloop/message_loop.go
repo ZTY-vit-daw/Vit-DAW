@@ -136,6 +136,7 @@ func (l *MessageLoop) buildStartState(r *Runner, in Input) *runState {
 		state.input.TaskID = goal.Task.TaskID
 		state.input.OriginalIntent = goal.Task.OriginalIntent
 	}
+	admitFreeStateDecisionRoundToolSurface(&state)
 	return &state
 }
 
@@ -211,6 +212,7 @@ func (l *MessageLoop) Continue(ctx context.Context, cont Continuation) Result {
 		continuationBudget:  baseBudget,
 		startedAt:           r.now(),
 	}
+	admitFreeStateDecisionRoundToolSurface(&state)
 	return l.loop(ctx, r, &state)
 }
 
@@ -282,6 +284,7 @@ func (l *MessageLoop) ResumeAfterConfirmation(ctx context.Context, cont Continua
 		continuationBudget:  baseBudget,
 		startedAt:           r.now(),
 	}
+	admitFreeStateDecisionRoundToolSurface(&state)
 	if cont.PendingToolCall == nil {
 		return r.fail(&state, fmt.Errorf("confirmation continuation is missing pending tool call"))
 	}
@@ -677,6 +680,12 @@ func (l *MessageLoop) executeMessageLoopToolCalls(ctx context.Context, r *Runner
 			continue
 		}
 		state.pendingToolQueue = remaining
+		if messageLoopFreeStateActive(state) && messageLoopIsFreeStateAutomationSurfaceCall(call) {
+			// 闸 2 配合（M3-LLM-GATE-OPEN-1）：诉求命中即预留轮次——观察 slice
+			// 语义不动，首次执行 automation 面调用时一次性 +4 turn headroom
+			// （仅 free-state 决策轮；普通 chat 族轮预算不变）。
+			noteFreeStateAutomationEngagement(state)
+		}
 		toolStarted := time.Now()
 		stopped, result := r.executeTool(ctx, state, call, false, remaining)
 		l.logTiming("message_loop.tool", toolStarted, "goal=%s tool=%s confirmed=false stopped=%t status=%s", state.goal.GoalID, call.Tool, stopped, result.Status)
@@ -5410,7 +5419,18 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 		return ""
 	}
 	if messageLoopFreeStateActive(state) && messageLoopFreeStateMutationTool(call) {
-		return "active free-state reasoning may request only read-only CCB observations; typed apply, generic parameter writes, plugin loading, and other mutation tools are forbidden"
+		// M3-LLM-GATE-OPEN-1（闸 1 开放）：骨架禁令从「mutation 一刀切禁」改为
+		// 「mutation 必经治理门」。决策轮 automation 准入面的写工具
+		// （automation.set_points / automation.clear_region）不再就地弹回——
+		// 落到下方通用检查链（read-only barrier/工具策略）后至 harness 治理门
+		// （RequiresConfirmation：manual=确认卡；显式完全权限=直执，223 stamp
+		// 形态）。面外 mutation 与诊断专用轮仍就地弹回。
+		if messageLoopFreeStateDiagnosticOnly(state) {
+			return "diagnostic-only free-state turns may not call any mutation tool"
+		}
+		if !messageLoopIsFreeStateAutomationSurfaceCall(call) {
+			return "active free-state reasoning may request only read-only CCB observations or the admitted automation surface; typed apply, generic parameter writes, plugin loading, and other mutation tools are forbidden"
+		}
 	}
 	if messageLoopFreeStateActive(state) && messageLoopIsCCBObservationRequestName(normalizedActionName(call, executorpkg.Result{})) {
 		if issue := messageLoopFreeStateRejectedViewSetIssue(state, messageLoopStringList(call.Args["view_ids"]), messageLoopCCBTargetFromCall(call)); issue != "" {

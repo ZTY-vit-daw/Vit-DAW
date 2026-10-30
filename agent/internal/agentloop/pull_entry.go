@@ -221,6 +221,7 @@ func (s *pullSession) resumeContinue(cont Continuation) error {
 	}
 	if len(cont.AllowedTools) > 0 {
 		s.state.input.AllowedTools = append([]string(nil), cont.AllowedTools...)
+		admitFreeStateDecisionRoundToolSurface(s.state)
 	}
 	if len(cont.PendingToolQueue) > 0 {
 		s.state.pendingToolQueue = append([]planner.ToolCall(nil), cont.PendingToolQueue...)

@@ -390,9 +390,13 @@ type runState struct {
 	consecutiveErrors    int
 	modelProtocolRepairs int
 	modelProtocolFailure bool
-	budget               Budget
-	continuationBudget   Budget
-	startedAt            time.Time
+	// freeStateAutomationHeadroomGiven 标记闸 2 的一次性 slice headroom 已发
+	// （M3-LLM-GATE-OPEN-1：automation 面首次执行 +4 turn，见
+	// noteFreeStateAutomationEngagement）。
+	freeStateAutomationHeadroomGiven bool
+	budget                           Budget
+	continuationBudget               Budget
+	startedAt                        time.Time
 }
 
 func (r *Runner) loop(ctx context.Context, state *runState) Result {
