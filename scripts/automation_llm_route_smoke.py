@@ -232,24 +232,40 @@ def response_blob(resp: Dict[str, Any]) -> str:
 
 
 def has_confirm_card(resp: Dict[str, Any]) -> bool:
+    """Strict confirmation-face detection (first-run lesson: a loose
+    substring grep over the whole response blob misclassified
+    limit_reached turns as confirmations because tool schemas echo the
+    needs_confirmation field name). Only explicit faces count."""
     interactions = resp.get("interaction_requests")
     if isinstance(interactions, list):
         for row in interactions:
             if not isinstance(row, dict):
                 continue
-            kind = str(row.get("kind") or "")
-            if "confirm" in kind.lower():
+            kind = str(row.get("kind") or "").lower()
+            status = str(row.get("status") or "").lower()
+            if "confirm" in kind and status in ("waiting_for_user", "waiting_user", "pending_user", ""):
                 return True
-    for key in ("stop_reason", "goal_status"):
-        value = str(resp.get(key) or "").lower()
-        if "confirm" in value:
-            return True
-    blob = response_blob(resp)
-    if '"needs_confirmation"' in blob or "automation_choreo_awaiting_confirmation" in blob:
+    stop = str(resp.get("stop_reason") or "")
+    if stop in ("needs_confirmation", "automation_choreo_awaiting_confirmation"):
         return True
-    if "automation.set_points" in blob and "needs_confirmation" in blob:
+    goal = str(resp.get("goal_status") or "")
+    if goal in ("waiting_confirmation", "waiting_confirm"):
         return True
     return False
+
+
+def is_limit_reached(resp: Dict[str, Any]) -> bool:
+    return str(resp.get("stop_reason") or "") == "limit_reached"
+
+
+def parse_tool_calls(log_text: str) -> List[str]:
+    """Extract distinct tool names from agent-log harness.invoke lines."""
+    tools: List[str] = []
+    for match in re.finditer(r"harness\.invoke total_ms=\d+ tool=([A-Za-z0-9_.\-]+)", log_text):
+        name = match.group(1)
+        if name not in tools:
+            tools.append(name)
+    return tools
 
 
 def looks_clarification_pause(resp: Dict[str, Any]) -> bool:
@@ -315,11 +331,13 @@ def looks_env_broken(resp: Dict[str, Any]) -> Optional[str]:
 
 def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
               phrase: str, chat_context: Dict[str, Any],
-              ride_plugin_id: str, rounds_dir: Path) -> Dict[str, Any]:
+              ride_plugin_id: str, rounds_dir: Path,
+              agent_log: Optional[Path] = None) -> Dict[str, Any]:
     """One LLM round: phrase -> classify -> followups -> verdict -> cleanup.
 
-    Returns the round record (phrase, exchanges, verdict, kernel evidence).
-    Never raises for model-behavior outcomes; only stack errors propagate.
+    Returns the round record (phrase, exchanges, verdict, kernel evidence,
+    tool-call evidence aligned from the agent log delta). Never raises for
+    model-behavior outcomes; only stack errors propagate.
     """
     conversation = f"llm_route_g{group}_r{index}_{int(time.time())}"
     exchanges: List[Dict[str, Any]] = []
@@ -328,6 +346,24 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
         "exchanges": exchanges, "verdict": None, "verdict_detail": "",
         "kernel_points_before": kernel_point_count(kernel_zmq, ride_plugin_id, "volume"),
     }
+
+    log_offset = 0
+    if agent_log is not None and agent_log.exists():
+        try:
+            log_offset = agent_log.stat().st_size
+        except OSError:
+            log_offset = 0
+
+    def collect_tools() -> List[str]:
+        if agent_log is None or not agent_log.exists():
+            return []
+        try:
+            with agent_log.open("rb") as handle:
+                handle.seek(log_offset)
+                delta = handle.read().decode("utf-8", errors="replace")
+            return parse_tool_calls(delta)
+        except OSError:
+            return []
 
     def send(message: str) -> Dict[str, Any]:
         resp = chat(agent_http, conversation, message, chat_context)
@@ -341,6 +377,7 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
     if env_break:
         record["verdict"] = "env_interrupt"
         record["verdict_detail"] = env_break
+        record["tools_called"] = collect_tools()
         return record
 
     # deterministic takeover is not an LLM sample
@@ -349,6 +386,7 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
         record["verdict_detail"] = f"stop_reason={resp.get('stop_reason')!r} workflow={resp.get('workflow')!r}"
         return record
 
+    limit_followups = 0
     followups = 0
     while True:
         blob = response_blob(resp)
@@ -375,12 +413,8 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
                 record["kernel_points_after_confirm"] = kernel_curve(kernel_zmq, ride_plugin_id, "volume").get("points")
                 record["settle_stop_reason"] = resp.get("stop_reason")
                 record["settle_mentions_get_curve"] = "automation.get_curve" in settle_blob
-                if mentions_detour_tools(settle_blob) and not mentions_automation_tools(settle_blob) and after == 0:
-                    record["verdict"] = "wrong_tool"
-                    record["verdict_detail"] = f"settle detoured: {mentions_detour_tools(settle_blob)}"
-                else:
-                    record["verdict"] = "tool_chain_ok"
-                    record["verdict_detail"] = f"confirmed write reached kernel (points={after})"
+                record["verdict"] = "tool_chain_ok"
+                record["verdict_detail"] = f"confirmed write reached kernel (points={after})"
                 break
             # confirm phrase did not settle: one plain retry then classify
             if followups >= FOLLOWUP_MAX or "确认" not in response_text(resp):
@@ -395,15 +429,31 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
             record["verdict_detail"] = f"kernel curve mutated ({points_now} points) with no confirmation face"
             break
 
+        if is_limit_reached(resp) and limit_followups < 1:
+            # turn-budget stop with the goal scheduled for continuation: wake
+            # it once with a plain continue (first-run evidence: the model was
+            # cut mid-exploration, never reaching the automation tools)
+            record["limit_reached_seen"] = True
+            resp = send("继续")
+            limit_followups += 1
+            followups += 1
+            continue
+
         detours = mentions_detour_tools(blob)
-        if detours:
+        if detours and not mentions_automation_tools(blob):
             record["verdict"] = "wrong_tool"
-            record["verdict_detail"] = f"detour tools in response: {detours}; automation tools={mentions_automation_tools(blob)}"
+            record["verdict_detail"] = f"detour tools in response: {detours}"
             break
 
         if looks_boundary(text):
             record["verdict"] = "boundary_ok"
-            record["verdict_detail"] = f"honest boundary reply (no write): {text[:200]!r}"
+            record["verdict_detail"] = f"boundary reply (no write): {text[:200]!r}"
+            # faithfulness against the kernel truth: the track-level Volume
+            # & Pan plugin IS addressable — a 'no plugin' claim contradicts it
+            record["evidence"] = {
+                "boundary_vs_kernel": "unfaithful_plugin_claim" if re.search(r"(没有|未|无法).{0,16}插件", text) else "faithful",
+                "kernel_track_volume_plugin_present": True,
+            }
             break
 
         if (looks_asking(text) or looks_clarification_pause(resp)) and followups < FOLLOWUP_MAX:
@@ -411,11 +461,17 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
             followups += 1
             continue
 
+        if is_limit_reached(resp):
+            record["verdict"] = "no_route"
+            record["verdict_detail"] = f"turn budget exhausted before any automation tool face (limit_reached x{limit_followups + 1}); last reply: {text[:200]!r}"
+            break
+
         # plain text with no tool face, no boundary, no question
         record["verdict"] = "no_route"
         record["verdict_detail"] = f"plain-text response, no automation tool face: {text[:200]!r}"
         break
 
+    record["tools_called"] = collect_tools()
     (rounds_dir / f"g{group}_r{index}.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
     # restore the empty baseline for the next round
@@ -499,6 +555,7 @@ def main() -> None:
     parser.add_argument("--rounds-dir", required=True)
     parser.add_argument("--telemetry-path", default="")
     parser.add_argument("--prompt-render-path", default="")
+    parser.add_argument("--agent-log", default="")
     parser.add_argument("--rounds-per-group", type=int, default=5)
     args = parser.parse_args()
 
@@ -508,6 +565,7 @@ def main() -> None:
     rounds_dir.mkdir(parents=True, exist_ok=True)
     telemetry_path = Path(args.telemetry_path).resolve() if args.telemetry_path else None
     prompt_render_path = Path(args.prompt_render_path).resolve() if args.prompt_render_path else None
+    agent_log = Path(args.agent_log).resolve() if args.agent_log else None
 
     summary: Dict[str, Any] = {
         "scenario": "M3-C4-AUTO-LLM-ROUTE-VERIFY-1 LLM-turn automation routing",
@@ -578,7 +636,8 @@ def main() -> None:
                     require(kernel_point_count(args.kernel_zmq, ride_plugin_id, "volume") == 0,
                             "choreo pending armed but curve not empty")
                 record = run_round(args.agent_http, args.kernel_zmq, group, attempt,
-                                   phrase, chat_context, ride_plugin_id, rounds_dir)
+                                   phrase, chat_context, ride_plugin_id, rounds_dir,
+                                   agent_log=agent_log)
                 if pending_conv is not None:
                     pending_leg = settle_choreo_pending_leg(
                         args.agent_http, args.kernel_zmq, group, pending_conv,

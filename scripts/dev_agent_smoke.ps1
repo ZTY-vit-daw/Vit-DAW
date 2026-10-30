@@ -8651,7 +8651,7 @@ if ($AutomationLLMRouteSmoke) {
     $llmRouteSummaryPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_summary.json"
     $llmRouteConsolePath = Join-Path $llmRouteArtifactsDir "automation_llm_route_console.txt"
     $llmRouteProjectPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_project.vit"
-    & python $llmRouteScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $llmRouteProjectPath --output $llmRouteSummaryPath --rounds-dir $llmRouteRoundsDir --telemetry-path $env:VIT_AGENT_LLM_TELEMETRY_PATH --prompt-render-path $env:VIT_AGENT_PROMPT_RENDER_PATH > $llmRouteConsolePath 2>&1
+    & python $llmRouteScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $llmRouteProjectPath --output $llmRouteSummaryPath --rounds-dir $llmRouteRoundsDir --telemetry-path $env:VIT_AGENT_LLM_TELEMETRY_PATH --prompt-render-path $env:VIT_AGENT_PROMPT_RENDER_PATH --agent-log $AgentLog > $llmRouteConsolePath 2>&1
     $llmRouteExit = $LASTEXITCODE
     Get-Content -LiteralPath $llmRouteConsolePath | ForEach-Object { Write-Host $_ }
     if (-not (Test-Path -LiteralPath $llmRouteSummaryPath)) {
