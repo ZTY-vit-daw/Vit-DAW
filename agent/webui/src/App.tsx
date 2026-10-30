@@ -125,6 +125,7 @@ import {
   resolvedInteractionIdsFromEvents,
   stampConsumedInteractionActions
 } from "./interactionGuard";
+import { DeclarativeInteractionCard, declarativeCardFromAction } from "./interactionCardKit";
 import { SessionFlowSidebar } from "./SessionFlowSidebar";
 import {
   classifyHistoryScopeChange,
@@ -3463,7 +3464,7 @@ type ProjectResultABView = {
   deltaSummary: string;
 };
 
-function ActionCard(props: ActionCardProps) {
+export function ActionCard(props: ActionCardProps) {
   if (isCapabilityProposalInteraction(props.action)) {
     return <CapabilityProposalCard {...props} />;
   }
@@ -3484,6 +3485,20 @@ function ActionCard(props: ActionCardProps) {
         respondingActionID={props.respondingActionID}
         onMacroValuePreview={props.onMacroValuePreview}
         onMacroValueCommit={props.onMacroValueCommit}
+      />
+    );
+  }
+  // 通用声明式交互卡（FE-INTERACTION-CARD-KIT-1）：payload 携带 interaction_
+  // card.v1 契约的卡按声明渲染（字段控件+动作按钮），不再逐卡加分支。仅
+  // 声明了 card 契约的卡走此路——既有特制卡分支零改动。
+  const declarativeCard = declarativeCardFromAction(props.action);
+  if (declarativeCard) {
+    return (
+      <DeclarativeInteractionCard
+        action={props.action}
+        card={declarativeCard}
+        respondingActionID={props.respondingActionID}
+        onInteractionAction={props.onInteractionAction}
       />
     );
   }

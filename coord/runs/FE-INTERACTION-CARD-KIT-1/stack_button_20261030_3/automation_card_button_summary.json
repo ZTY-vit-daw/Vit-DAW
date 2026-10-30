@@ -1,0 +1,76 @@
+{
+  "scenario": "FE-INTERACTION-CARD-KIT-1 declarative card button-click chain",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "project_path": "D:\\Vit_DAW_wt_ick1\\coord\\runs\\FE-INTERACTION-CARD-KIT-1\\stack_button_20261030_3\\automation_card_button_project.vit",
+  "llm_participation": "none (deterministic vocabulary routing takes over before any model turn)",
+  "started_at": "2026-10-30T13:07:03.602792+00:00",
+  "legs": [
+    "setup",
+    "leg_b1_browser_button_click",
+    "leg_r2_phrasing_control_round",
+    "leg_r3_cancel_zero_write"
+  ],
+  "setup": {
+    "track1": "1007",
+    "track1_volume_plugin": "1008"
+  },
+  "leg_b1_browser_button_click": {
+    "dom": {
+      "schema": "interaction_card.v1",
+      "fields": {
+        "shape": "select",
+        "start_value": "number",
+        "end_value": "number",
+        "curve": "range",
+        "region_start": "number",
+        "region_end": "number"
+      },
+      "buttons": {
+        "approve": "确认写入",
+        "cancel": "取消"
+      },
+      "edited_values": {
+        "curve": "-0.25",
+        "end_value": "0.80",
+        "start_value": "0.20"
+      }
+    },
+    "kernel_points": [
+      {
+        "t": 0.0,
+        "v": 0.200000002980232,
+        "c": -0.25
+      },
+      {
+        "t": 24.0,
+        "v": 0.800000011920929,
+        "c": -0.25
+      }
+    ],
+    "shots": "D:\\Vit_DAW_wt_ick1\\coord\\runs\\FE-INTERACTION-CARD-KIT-1\\stack_button_20261030_3\\card_button_shots"
+  },
+  "leg_r2_phrasing_control_round": {
+    "card_schema": "interaction_card.v1",
+    "written": 2,
+    "kernel_points": [
+      {
+        "t": 45.0,
+        "v": 0.300000011920929,
+        "c": 0.0
+      },
+      {
+        "t": 60.0,
+        "v": 0.600000023841858,
+        "c": 0.0
+      }
+    ]
+  },
+  "leg_r3_cancel_zero_write": {
+    "interaction_id": "interaction_57f00fd57ae5cc71",
+    "goal_status": "cancelled",
+    "curve_points_after_cancel": 2
+  },
+  "status": "pass",
+  "finished_at": "2026-10-30T13:07:19.525290+00:00"
+}

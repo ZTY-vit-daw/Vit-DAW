@@ -1,0 +1,11 @@
+{
+  "conversation_id": "cv_dom_1",
+  "agent_mode": "default",
+  "goal_id": "goal_dom_1",
+  "run_id": "run_dom_1",
+  "reply": "已写入并逐点读回验证通过：轨道 1 的音量包络 0.0s → 30.0s 三点写入完成。",
+  "goal_status": "completed",
+  "stop_reason": "automation_choreo_written_verified",
+  "workflow": "section_automation_choreo",
+  "workflow_data": { "mutation_performed": true, "written_points": 3, "readback": "ok" }
+}

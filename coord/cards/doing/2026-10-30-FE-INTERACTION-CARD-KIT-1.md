@@ -32,4 +32,11 @@ webui vitest（组件级）+浏览器级 DOM 断言（Playwright 体系，B2/RAC
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈与 223 错峰登记）
+- 时间：2026-10-30 晚
+- owner：ZCode GLM-5.3 PC 执行会话（224 卡会话）
+- 分支 / worktree：`port/fe-interaction-card-kit-1` @ `D:/Vit_DAW_wt_ick1`
+- 领取基线：worktree HEAD=`bc7ee6a2`（=发卡提交；本地 main 领先 origin/main `52148fe5` 6 个主管提交，随本领取提交一并 fast-forward 推送）；worktree status 干净、diff --stat 空
+- 主检出既存改动核对：`VitApp/Workspace/*`（运行时状态）+`coord/runs/UX-AB-AUDITION-IMPL-1/*`+卡移动三项——均在本卡文件域（automation_choreo.go 函数族+webui/src+测试探针）之外，不触碰
+- 文件域核对：doing 池仅 GEN-SUNO-WEB-DESIGN-1（设计卡，无冲突）；223/225 均在 todo 未领取——本卡先行领取符合「先于 225」约束
+- 真栈错峰：与 223（M3-CHAT-AUTH-STAMP-1）错峰，届时按 §2.2 登记 PC-RUNTIME-STACK.md（当前记录最新=221 卡 2026-10-30 20:0x 释放）
+- 领取提交：（推送后回填）

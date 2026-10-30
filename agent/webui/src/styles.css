@@ -1855,6 +1855,38 @@ h3 {
   background: #f8fafc;
 }
 
+/* 通用声明式交互卡（FE-INTERACTION-CARD-KIT-1）：danger 动作钮与
+   number/range 字段控件的行内布局。 */
+.action-button.danger {
+  border-color: #ef4444;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.action-card.declarative .declarative-input,
+.action-card.declarative .declarative-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.action-card.declarative .declarative-input input,
+.action-card.declarative .declarative-range input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.action-card.declarative .declarative-range output {
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.action-card.declarative .declarative-unit {
+  color: var(--ink-soft, #64748b);
+  font-size: 11px;
+}
+
 .action-button:disabled {
   cursor: default;
   opacity: 0.68;

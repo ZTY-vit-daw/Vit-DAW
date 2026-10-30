@@ -719,6 +719,7 @@ func (s *Server) automationChoreoConfirmationResponse(conversationID, mode strin
 			"region_start_s": candidate.RegionStart, "region_end_s": candidate.RegionEnd,
 			"shape": candidate.Shape.Name, "points": candidate.Points,
 			"display": map[string]any{"title": "段落包络待确认", "summary": automationChoreoHumanSummary(candidate)},
+			"card": automationChoreoDeclarativeCard(candidate),
 		},
 	}
 	s.storePendingInteraction(request, request.Payload)
@@ -754,6 +755,52 @@ func automationChoreoPointsSummary(points []map[string]any) string {
 		parts = append(parts, fmt.Sprintf("(%.1fs, %.2f)", point["t"], point["v"]))
 	}
 	return strings.Join(parts, " → ")
+}
+
+// automationChoreoDeclarativeCard builds the generic interaction-card contract
+// (interaction_card.v1) the webui renders without per-card branches: fields
+// declare their own control type and bounds; actions declare their own ids and
+// styles. min/max are declared only where the server-side edit validation
+// actually enforces them — curve is clamped to [-1,1], regions to ≥0 with the
+// span cap, and the level category's raw range [0,1] is kernel-verified
+// (201/217). Space/tone plugin params keep plugin-specific ranges out of the
+// bounds and in the description instead, so the declared contract never
+// promises a limit the write path does not enforce. Field ids match
+// automationChoreoApplyFieldEdits keys; action ids match the interaction
+// responder's approve/cancel decisions.
+func automationChoreoDeclarativeCard(candidate automationChoreoCandidate) map[string]any {
+	options := make([]map[string]any, 0, 4)
+	for _, entry := range automationShapeLibrary() {
+		options = append(options, map[string]any{"value": entry["id"], "label": entry["label"]})
+	}
+	valueField := func(id, label string, value float64) map[string]any {
+		field := map[string]any{
+			"id": id, "type": "number", "label": label,
+			"value": fmt.Sprintf("%.2f", value), "description": "电平类为音量 raw 值 [0,1]",
+		}
+		if candidate.Category == automationCategoryLevel {
+			field["min"], field["max"], field["step"] = 0.0, 1.0, 0.01
+		}
+		return field
+	}
+	return map[string]any{
+		"schema": "interaction_card.v1",
+		"title":  "段落包络写入方案（确认后执行）",
+		"fields": []map[string]any{
+			{"id": "shape", "type": "select", "label": "形状", "value": candidate.Shape.Name, "options": options, "description": "渐入/渐出/保持/推进缺省形状库"},
+			valueField("start_value", "起点值", candidate.Shape.StartValue),
+			valueField("end_value", "终点值", candidate.Shape.EndValue),
+			{"id": "curve", "type": "range", "label": "曲率 c", "value": fmt.Sprintf("%.2f", candidate.Shape.Curve),
+				"min": -1.0, "max": 1.0, "step": 0.05, "description": "[-1,1]"},
+			{"id": "region_start", "type": "number", "label": "区间起点", "value": fmt.Sprintf("%.1f", candidate.RegionStart), "min": 0.0, "unit": "s"},
+			{"id": "region_end", "type": "number", "label": "区间终点", "value": fmt.Sprintf("%.1f", candidate.RegionEnd), "min": 0.0, "unit": "s",
+				"description": fmt.Sprintf("跨度上限 %.0f 秒", automationChoreoMaxRegionSpanS)},
+		},
+		"actions": []map[string]any{
+			{"action_id": "approve", "label": "确认写入", "style": "primary"},
+			{"action_id": "cancel", "label": "取消", "style": "secondary"},
+		},
+	}
 }
 
 // ---- Pending-face confirmation routing ----

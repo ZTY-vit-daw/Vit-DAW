@@ -1,0 +1,81 @@
+{
+  "conversation_id": "cv_dom_1",
+  "agent_mode": "default",
+  "goal_id": "goal_dom_1",
+  "run_id": "run_dom_1",
+  "reply": "我准备这样写这条包络：把 轨道 1 的音量在 0.0s → 30.0s 内 渐出（0.60 → 0.30）。方案里的形状、幅度、区间都可以改；确认后我会写入并逐点读回验证，写完汇报混音进展。",
+  "goal_status": "waiting_confirmation",
+  "stop_reason": "automation_choreo_awaiting_confirmation",
+  "workflow": "section_automation_choreo",
+  "workflow_data": {
+    "mutation_performed": false,
+    "candidate_id": "automation_choreo_domt1",
+    "category": "level",
+    "region_start_s": 0,
+    "region_end_s": 30,
+    "shape": "fade_out",
+    "plugin_id": "",
+    "param_id": "volume",
+    "track_id": "track-1"
+  },
+  "interaction_requests": [
+    {
+      "id": "interaction_choreo_dom1",
+      "kind": "automation_choreo_confirmation",
+      "type": "automation_choreo_confirmation",
+      "workflow": "section_automation_choreo",
+      "stage": "pending_confirmation",
+      "conversation_id": "cv_dom_1",
+      "goal_id": "goal_dom_1",
+      "run_id": "run_dom_1",
+      "title": "段落包络写入方案（确认后执行）",
+      "body": "把 轨道 1 的音量在 0.0s → 30.0s 内 渐出（0.60 → 0.30）。确认前不会修改工程；形状、幅度和区间都可以在下面改。",
+      "status": "waiting",
+      "review_items": [
+        { "id": "target", "title": "目标参数", "body": "轨道 1：音量（电平类）", "status": "info" },
+        { "id": "region", "title": "区间", "body": "0.0s → 30.0s", "status": "info" },
+        { "id": "shape", "title": "形状", "body": "渐出（0.60 → 0.30）", "status": "info" },
+        { "id": "points", "title": "写入点", "body": "(0.0s, 0.60) → (15.0s, 0.45) → (30.0s, 0.30)", "status": "info" }
+      ],
+      "fields": [
+        { "id": "shape", "label": "形状", "kind": "choice", "value": "fade_out", "options": [ { "id": "fade_in", "label": "渐入（0.30 → 0.60）" }, { "id": "fade_out", "label": "渐出（0.60 → 0.30）" }, { "id": "hold", "label": "保持（0.55 → 0.55）" }, { "id": "push", "label": "推进（0.25 → 0.80，快起）" } ], "description": "渐入/渐出/保持/推进缺省形状库" },
+        { "id": "start_value", "label": "起点值", "kind": "text", "value": "0.60", "description": "电平类为音量 raw 值 [0,1]" },
+        { "id": "end_value", "label": "终点值", "kind": "text", "value": "0.30" },
+        { "id": "curve", "label": "曲率 c", "kind": "text", "value": "0.00", "description": "[-1,1]" },
+        { "id": "region_start", "label": "区间起点（秒）", "kind": "text", "value": "0.0" },
+        { "id": "region_end", "label": "区间终点（秒）", "kind": "text", "value": "30.0" }
+      ],
+      "actions": [
+        { "id": "approve", "label": "确认写入", "style": "primary", "recommended": true },
+        { "id": "cancel", "label": "取消", "style": "secondary" }
+      ],
+      "payload": {
+        "candidate_id": "automation_choreo_domt1",
+        "track_id": "track-1",
+        "plugin_id": "",
+        "param_id": "volume",
+        "category": "level",
+        "region_start_s": 0,
+        "region_end_s": 30,
+        "shape": "fade_out",
+        "display": { "title": "段落包络待确认", "summary": "把 轨道 1 的音量在 0.0s → 30.0s 内 渐出（0.60 → 0.30）" },
+        "card": {
+          "schema": "interaction_card.v1",
+          "title": "段落包络写入方案（确认后执行）",
+          "fields": [
+            { "id": "shape", "type": "select", "label": "形状", "value": "fade_out", "options": [ { "value": "fade_in", "label": "渐入（0.30 → 0.60）" }, { "value": "fade_out", "label": "渐出（0.60 → 0.30）" }, { "value": "hold", "label": "保持（0.55 → 0.55）" }, { "value": "push", "label": "推进（0.25 → 0.80，快起）" } ], "description": "渐入/渐出/保持/推进缺省形状库" },
+            { "id": "start_value", "type": "number", "label": "起点值", "value": "0.60", "min": 0, "max": 1, "step": 0.01, "description": "电平类为音量 raw 值 [0,1]" },
+            { "id": "end_value", "type": "number", "label": "终点值", "value": "0.30", "min": 0, "max": 1, "step": 0.01 },
+            { "id": "curve", "type": "range", "label": "曲率 c", "value": "0.00", "min": -1, "max": 1, "step": 0.05, "description": "[-1,1]" },
+            { "id": "region_start", "type": "number", "label": "区间起点", "value": "0.0", "min": 0, "unit": "s" },
+            { "id": "region_end", "type": "number", "label": "区间终点", "value": "30.0", "min": 0, "unit": "s", "description": "跨度上限 300 秒" }
+          ],
+          "actions": [
+            { "action_id": "approve", "label": "确认写入", "style": "primary" },
+            { "action_id": "cancel", "label": "取消", "style": "secondary" }
+          ]
+        }
+      }
+    }
+  ]
+}
