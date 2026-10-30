@@ -47,3 +47,9 @@
   - 按 AGENTS §11 越域即停（修复在 history/workspace 层）。
 - 端测覆盖边界声明：webui 渲染面未改（零 webui 文件）；manual 确认卡/伪造负例/重启后 span 采纳面真栈腿因 after 相早退未执行——单测面已钉，真栈覆盖边界如实声明。
 - 上交三选：①扩域/另开修复卡（建议与 219 面5 窗口族合并：runtime state 跨干净重启携带）；②本卡按「stamp 交付+边界声明」验收合入；③返工并入修复卡。附开放问题：切换后 save 工程是否携带 authority 跨重启（未测）。
+
+## 验收（主管裁定 2026-10-30 深夜，GLM 主管决策流）
+
+- **stamp 面整卡 pass**：bindChatAuthorityMode 重写亲读（validate+stamp 只读 server 状态+伪造 body 409 红线负例坐实=**额外堵了 body 授权漏洞**）；真栈 phase-1 两轮全绿（完全权限裸话术直执+自治标记+治理 settle+逐点读回+persisted=true）；五探针+chat 全包全绿。前提修正落档接受（卡面「无 stamp」与 HEAD 不符——bind 自 08-19 在场；真缺口=写面授权漏洞；用户 10-30 晚症状疑为旧二进制）。合入 main=39076e2e。
+- **重启腿红=出域真缺陷定案，转出为独立卡 226**（AUTH-RESTORE-CARRY-1，域 working_session.go+server.go 恢复链）：RecoverWorkingSession 仅 pending-work 恢复+新 session 从 canonical 播种，authority_mode 跨干净重启永不携带——**10-29 用户事故真身**（219 面 5「三丢失窗口」勘察结论被部分推翻：非窗口不可裁决，是恢复链从不播种）。执行侧 §11 越域即停正确。
+- 223 处置：stamp 面 done 收口；blocked 解除条件=226 完成后重启腿随 226 验收（本卡不再回 doing）。

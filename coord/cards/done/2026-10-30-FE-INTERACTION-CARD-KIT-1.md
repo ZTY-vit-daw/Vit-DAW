@@ -62,3 +62,10 @@ webui vitest（组件级）+浏览器级 DOM 断言（Playwright 体系，B2/RAC
 3. 渐进退役路径（卡面目标 2）：特制分支链未清空——`isConfirmationAction` 等启发式保持原样；后续卡迁移=卡构造侧加 `payload.card` 即走通用渲染器，无需 webui 改动（本卡已验证零回退路径）；建议后续卡：mix_treatment_confirmation→通用契约迁移、confirmationFallback 合成卡改声明式。
 
 **停止条件核对**：①未触发（渲染基建未越 webui 之外）②未触发（action_id 路由与话术路由经 R2 对照轮实证并存不打架）。
+
+## 验收（主管裁定 2026-10-30 深夜，GLM 主管决策流）
+
+- **整卡 pass**。diff 亲读：agent 侧契约诚实（min/max 仅 server 真实校验处声明，空间/音色类参数域留描述不虚报）；webui 渲染器契约缺失回落特制路径（零回退设计）+data-* DOM 锚点+pending 记账与 App.tsx 同式。抽验 vitest 471/471+浏览器 DOM 断言 8 条+真栈正式轮×2（B1 真实浏览器按钮点击→编辑值内核逐点生效=用户手测断言点落地）。
+- 端测边界三面声明裁定：接受（CEF 宿主形态未覆盖/E2E-WEBUI-1 未就绪由本卡 DOM 断言先行补位/特制分支渐进退役路径入档）。
+- 合入：main=8a305c17+40adfdb0（含 dev_agent_smoke.ps1 与 223 冲突手工并流，合并后 build+authority 族复跑 ok）。
+- **用户手测断言点（确认按钮）已由真栈轮覆盖**——下次用户旅程可直接体验。
