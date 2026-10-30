@@ -56,3 +56,9 @@
 （待主管裁定）
 
 - 验收：（**主管整卡 pass 2026-10-28 深夜，GLM 主管决策流；零修复裁定接受**）——①对称锚点主管亲证（vit_dock_root.gd 回执处理器 delete_plugin 在册→vit_refresh_project_from_kernel，「回拉不对称候选」不成立记档）；②双向量证据链接受（r8 手势全链+r9 外部删除，现行基线三层触发）；③SUMMARY 亲读终轮 0 败×2+离线 26/26+零生产改动亲核；④上交三件处置：ⓐ[等待用户:手测重验]=收口动作（**重验须分双方式：选中节点按 Delete 键 / 用户原先惯用的删除入口各试一次并回报**——探针向量=KEY_DELETE+agent 命令，用户原操作方式若非此两向量且无效则折精准卡）；ⓑwebsocket_recovered 无消费者缺口=**折 P2 小卡 213**（app/kernel/autoloads/ 域，173 同形态一处沿消费+防抖回拉）；ⓒ自动绑首轨披露接受（重验指引含机架绑轨一致性核对）。合入：前端 main=37dc4b6（探针 merge）；工件=主仓 merge。
+
+## 收口手测记录（2026-10-30 晚，追加）
+
+- **用户手测重验失败**：删除后画布节点残留（双方式同症状；用户重删得 "Plugin not found"=内核已删、纯 GUI 回拉断）。跨两轮会话稳定复现（两份前端日志同 guard 告警）。
+- 主管现场取证闭环（只读零栈操作）：断点=回拉第三跳 legacy get_project_state 未发出（UDP 串行队列竞争主候选），与探针双向量结论不矛盾——探针 headless 无 envelope lane 轮询竞争窗口。证据链见 [repro_20261030_user_gui/REPORT.md](../../runs/FE-RACK-DELETE-REDRAW-1/repro_20261030_user_gui/REPORT.md)。
+- **本卡收口挂起**：勘察结论（现行基线三层触发在册）维持有效；用户形态可用性由修复卡 [2026-10-30-FE-RACK-DELETE-GUI-REFRESH-1（池序 221）](../todo/2026-10-30-FE-RACK-DELETE-GUI-REFRESH-1.md) 承接，修复+回归通过后本卡随 221 用户重验收口。
