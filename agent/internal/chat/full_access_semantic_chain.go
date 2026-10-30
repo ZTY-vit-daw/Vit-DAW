@@ -53,6 +53,53 @@ func fullAccessSemanticChainContext(requestContext map[string]any) bool {
 	return explicitFullAccessRequestContext(requestContext) && boolValue(requestContext["semantic_plugin_recommendation_selection"])
 }
 
+// fullAccessChoreoConfirmationContext gates the section-choreography
+// confirmation fork (M3-C4-AUTO-CLARIFY-UX-1 face 4): the same explicit pair
+// every other bridge reads (authority_mode=full_project_access +
+// authority_mode_explicit — a bare mode string is never a grant). No chain key
+// is required here because the choreo confirmation card has exactly one
+// issuer (handleAutomationChoreoChat / its clarify re-entry); the
+// clarification asks stay user-faced under full access — they gather
+// information, they are not interventions.
+func fullAccessChoreoConfirmationContext(requestContext map[string]any) bool {
+	return explicitFullAccessRequestContext(requestContext)
+}
+
+// automationChoreoFullAccessExecution replaces the parked choreography
+// confirmation card with the immediate execution a user confirm would have
+// performed: the same executeAutomationChoreo governed leg (domain-table
+// admission, frozen plan, orchestration authorize/execute, per-point readback
+// settle), only the WHO-answers-the-card decision forks. Same-family markers
+// as the plugin bridges; a pending user stop is honored before the mutating
+// leg (FS-STOP-APPLY-1 Part A: this chain runs after the message loop
+// returned, outside the runner's checkpoints).
+func (s *Server) automationChoreoFullAccessExecution(ctx context.Context, conversationID, mode string, candidate automationChoreoCandidate) ChatResponse {
+	goalID, runID := candidate.GoalID, candidate.RunID
+	if strings.TrimSpace(goalID) != "" && s.goalStopPending(goalID) {
+		return fullAccessStopPendingSkippedResponse(conversationID, goalID, runID, automationChoreoWorkflow, "choreo_confirmation")
+	}
+	s.expireAutomationChoreo(conversationID)
+	resp := s.executeAutomationChoreo(ctx, conversationID, mode, candidate, map[string]any{})
+	resp.WorkflowData = mergeContext(resp.WorkflowData, map[string]any{
+		"authority_mode": authorityModeFull, "full_access_auto_authorized": true,
+		"confirmation_bypassed": "full_project_access", "interaction_card_issued": false,
+	})
+	resp.NeedsConfirmation = false
+	resp.InteractionRequests = nil
+	// Family convention (pluginGrabberLoadFullAccessResponse): the autonomous
+	// execution notice rides only the settled-success reply; a blocked leg's
+	// reply already states what failed, and no marker claims a mutation that
+	// did not happen.
+	if boolValue(resp.WorkflowData["mutation_performed"]) {
+		resp.Reply = "完全访问权限下编舞写入已自主执行（无确认卡）。\n" + resp.Reply
+	}
+	if s.logger != nil {
+		s.logger.Info("[automation.choreo] full access auto-authorized conversation=%s goal=%s run=%s mutation=%t",
+			conversationID, goalID, runID, boolValue(resp.WorkflowData["mutation_performed"]))
+	}
+	return resp
+}
+
 // fullAccessStopPendingSkippedResponse is the honest skip for a chain leg whose
 // user stop arrived mid-chain: already-applied work keeps its bounded
 // reversible semantics, but no new intervention fires after the stop.

@@ -191,14 +191,23 @@ func (s *Server) handleAuthorityMode(w http.ResponseWriter, r *http.Request) {
 		workspaceReady := s.activeWorkspaceUUID != ""
 		s.mu.Unlock()
 		persistErr := s.persistCurrentProjectWorkspaceChecked()
+		// M3-C4-AUTO-CLARIFY-UX-1 face 5 (2026-10-29 incident: a webui full-access
+		// switch the next agent start never restored). The persist no-ops
+		// silently while no project workspace is active (persistActiveProjectWorkspaceLocked
+		// returns nil), so a 200 ok used to be returned for a switch that only
+		// ever lived in memory and died with the process. The response now
+		// discloses durability and the loss window is loud in the log.
+		persisted := workspaceReady && persistErr == nil
 		if s.logger != nil {
 			if persistErr != nil {
 				s.logger.Warn("[authority] switch accepted mode=%s workspace_ready=%t persist_failed error=%v (kept in memory; restore preserves it, next persist writes it)", mode, workspaceReady, persistErr)
+			} else if !workspaceReady {
+				s.logger.Warn("[authority] switch accepted mode=%s workspace_ready=false NOT persisted (no active project workspace; a restart loses this selection — re-set it after opening the project)", mode)
 			} else {
 				s.logger.Info("[authority] switch accepted mode=%s workspace_ready=%t", mode, workspaceReady)
 			}
 		}
-		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "authority_mode": mode})
+		writeJSON(w, http.StatusOK, map[string]any{"status": "ok", "authority_mode": mode, "persisted": persisted, "workspace_ready": workspaceReady})
 	default:
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET or POST required"})
 	}

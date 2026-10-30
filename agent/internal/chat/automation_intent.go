@@ -142,13 +142,18 @@ const (
 // automationRegionIntent is the region-resolution outcome of one phrase: one
 // of the three channels (utterance-embedded absolute window, project section
 // marker, or a clarification ask). L4 audio-inferred sections are out of
-// scope by card: no guessing.
+// scope by card: no guessing. BareSpanSeconds carries a bare single-ended
+// span ("30 秒" with no 前/到/section word) found on the clarification
+// channel: the clarify ask offers it as a confirmable candidate (start at 0)
+// instead of dropping the number — the user's explicit acceptance, never a
+// default (M3-C4-AUTO-CLARIFY-UX-1 faces 1+3).
 type automationRegionIntent struct {
-	Start, End     float64
-	Source         string
-	SectionName    string
-	SectionSeconds float64
-	ClarifyReason  string
+	Start, End      float64
+	Source          string
+	SectionName     string
+	SectionSeconds  float64
+	BareSpanSeconds float64
+	ClarifyReason   string
 }
 
 var (
@@ -234,6 +239,14 @@ func parseAutomationRegionIntent(text string) automationRegionIntent {
 			}
 		}
 		return region
+	}
+	// No window and no section word. A bare "N 秒" is still information: it
+	// rides along to the clarification channel as a confirmable candidate
+	// (never a default — the card asks, the user accepts or corrects).
+	if match := automationNumberRe.FindStringSubmatch(lower); len(match) == 2 {
+		if seconds, err := strconv.ParseFloat(match[1], 64); err == nil && seconds > 0 && seconds <= automationSectionWordMaxSeconds {
+			region.BareSpanSeconds = seconds
+		}
 	}
 	region.ClarifyReason = "no_region_no_marker"
 	return region

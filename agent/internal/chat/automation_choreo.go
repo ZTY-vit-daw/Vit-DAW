@@ -420,17 +420,28 @@ func (s *Server) handleAutomationChoreoChat(ctx context.Context, conversationID 
 
 	// Region: three channels, no guessing.
 	region := parseAutomationRegionIntent(message)
+	choreoTarget := automationChoreoTarget{TrackID: trackID, TrackLabel: trackLabel, PluginID: pluginID, PluginName: pluginName, ParamID: paramID}
 	switch region.Source {
 	case automationRegionSourceAbsolute:
 		// window resolved inline
 	case automationRegionSourceMarker:
 		start, end, markerOK := s.automationMarkerRegion(ctx, region.SectionName, region.SectionSeconds)
 		if !markerOK {
+			// Face 1: a span the user already said ("副歌那 30 秒") is offered
+			// back as a confirmable candidate instead of being dropped.
+			if region.SectionSeconds > 0 {
+				return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, region.SectionName, region.SectionSeconds), true
+			}
 			return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
 				fmt.Sprintf("话术里的「%s」在工程段落标记里没有找到对应区间（不猜测段落位置）。请直接说绝对区间，例如「0 到 30 秒」，或先在工程里打上段落标记。", region.SectionName), "region"), true
 		}
 		region.Start, region.End, region.Source = start, end, automationRegionSourceMarker
 	default:
+		// Face 3: a bare "N 秒" carries a confirmable candidate ("是从 0 开始
+		// 的 N 秒吗？"), never a silent default.
+		if region.BareSpanSeconds > 0 {
+			return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, "", region.BareSpanSeconds), true
+		}
 		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
 			"这段变化从哪一秒到哪一秒？请给出区间（例如「0 到 30 秒」），或指名工程里已有的段落标记（如「副歌」）。", "region"), true
 	}
@@ -467,6 +478,9 @@ func (s *Server) handleAutomationChoreoChat(ctx context.Context, conversationID 
 		RegionEnd:   region.End,
 		Points:      automationBuildPoints(shape, region.Start, region.End),
 	}
+	if fullAccessChoreoConfirmationContext(req.Context) {
+		return s.automationChoreoFullAccessExecution(ctx, conversationID, mode, *candidate), true
+	}
 	s.storeAutomationChoreoCandidate(conversationID, candidate)
 	return s.automationChoreoConfirmationResponse(conversationID, mode, *candidate), true
 }
@@ -485,6 +499,12 @@ func (s *Server) automationChoreoClarifyResponse(conversationID, mode, goalID, r
 		Clarify:   map[string]any{"kind": kind, "question": question, "intent_time_varying": true},
 	}
 	s.storeAutomationChoreoCandidate(conversationID, candidate)
+	return s.automationChoreoClarifyChatResponse(conversationID, mode, goalID, runID, intent, question, kind)
+}
+
+// automationChoreoClarifyChatResponse renders the clarify card body shared by
+// the plain ask and the span-candidate ask.
+func (s *Server) automationChoreoClarifyChatResponse(conversationID, mode, goalID, runID string, intent automationIntent, question, kind string) ChatResponse {
 	resp := ChatResponse{
 		ConversationID: conversationID, AgentMode: mode, GoalID: goalID, RunID: runID,
 		Reply:      question,
@@ -507,6 +527,159 @@ func (s *Server) automationChoreoClarifyResponse(conversationID, mode, goalID, r
 		s.logger.Info("[automation.choreo] clarify conversation=%s kind=%s", conversationID, kind)
 	}
 	return resp
+}
+
+// automationChoreoTarget carries the resolved write target across the clarify
+// hand-off (track + level plugin): a span-candidate adoption rebuilds the
+// proposal from the stored context without re-resolving against the kernel.
+type automationChoreoTarget struct {
+	TrackID, TrackLabel         string
+	PluginID, PluginName, ParamID string
+}
+
+// automationChoreoClarifySpanCandidateResponse offers a confirmable fallback
+// region instead of dropping the span the user already said
+// (M3-C4-AUTO-CLARIFY-UX-1 faces 1+3): "副歌那 30 秒" with the project marker
+// missing, or a bare "30 秒" with no window at all. The candidate rides the
+// full resolved target context, so an affirmative answer adopts region
+// 0..span without re-running the marker channel that just failed here.
+// 不猜原则不破：系统只提供候选；采纳必须来自用户的显式肯定回复，永不默认。
+func (s *Server) automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message string, intent automationIntent, target automationChoreoTarget, sectionName string, spanSeconds float64) ChatResponse {
+	question := fmt.Sprintf("是从 0 开始的 %.0f 秒吗？回「可以」采纳候选区间；或直接给完整区间（例如「0 到 30 秒」）。", spanSeconds)
+	if strings.TrimSpace(sectionName) != "" {
+		question = fmt.Sprintf("「%s」在工程段落标记里没有找到对应区间（不猜测段落位置）。用开头 %.0f 秒可以吗？回「可以」采纳候选区间；或直接给绝对区间（例如「0 到 30 秒」）。", sectionName, spanSeconds)
+	}
+	candidate := &automationChoreoCandidate{
+		ID:         "automation_choreo_" + randomID(),
+		CreatedAt:  time.Now().UTC(),
+		Status:     "pending_confirmation",
+		GoalID:     goalID,
+		RunID:      runID,
+		UserText:   message,
+		TrackID:    target.TrackID,
+		TrackLabel: target.TrackLabel,
+		Category:   intent.Category,
+		PluginID:   target.PluginID,
+		PluginName: target.PluginName,
+		ParamID:    target.ParamID,
+		Clarify: map[string]any{"kind": "region_span_candidate", "question": question, "intent_time_varying": true,
+			"span_seconds": spanSeconds, "section_name": sectionName},
+	}
+	s.storeAutomationChoreoCandidate(conversationID, candidate)
+	return s.automationChoreoClarifyChatResponse(conversationID, mode, goalID, runID, intent, question, "region_span_candidate")
+}
+
+// automationChoreoAffirmAnswer reports whether the message is a bare
+// affirmative/confirmation word with no content of its own
+// (M3-C4-AUTO-CLARIFY-UX-1 face 2: 「确认写入」「写入」「可以吗」... while a
+// clarification is pending). Deliberately tight — a length cap rejects whole
+// sentences so a real region/category answer always reaches the merge path.
+func automationChoreoAffirmAnswer(message string) bool {
+	text := strings.ToLower(strings.TrimSpace(message))
+	if text == "" || len([]rune(text)) > 8 {
+		return false
+	}
+	switch text {
+	case "可以", "可以吧", "可以吗", "好的", "好", "好吧", "行", "行吧", "同意", "采纳",
+		"确认", "确认写入", "写入", "写", "就这个", "用这个", "就这样", "嗯", "嗯嗯",
+		"ok", "okay", "yes":
+		return true
+	}
+	return textHasAny(text, "确认写入", "开始写入")
+}
+
+// automationChoreoCandidateAffirm is the explicit-acceptance family that may
+// adopt an offered span candidate (face 1). The candidate question tells the
+// user to answer 「可以」 verbatim, so that exact phrase is a mechanical accept
+// (CONFIRM-CHAT-1 lesson: the ask's own verbs are the accept table).
+// Interrogative 「可以吗」 is a question, not an acceptance — it never adopts.
+func automationChoreoCandidateAffirm(message string) bool {
+	text := strings.ToLower(strings.TrimSpace(message))
+	if text == "" || len([]rune(text)) > 8 {
+		return false
+	}
+	switch text {
+	case "可以", "可以吧", "可以呀", "好的", "好", "好吧", "行", "行吧", "同意", "采纳",
+		"确认", "确认采纳", "确认写入", "写入", "写", "开始写入", "就这个", "用这个",
+		"就按这个", "就这样", "嗯", "嗯嗯", "ok", "okay", "yes":
+		return true
+	}
+	return textHasAny(text, "确认写入", "开始写入", "采纳这个", "就按这个")
+}
+
+// automationChoreoClarifyAffirmGuidance answers an affirmative word received
+// while a clarification is still pending: no plan exists yet, so a
+// confirmation word has nothing to confirm — say what is actually awaited
+// instead of replaying the ask verbatim (2026-10-29 hand-test: 「确认写入」
+// replayed the region question word for word and felt like dead input). The
+// pending clarification stays alive; the user can still answer it properly.
+func (s *Server) automationChoreoClarifyAffirmGuidance(conversationID, mode string, candidate automationChoreoCandidate) ChatResponse {
+	kind := firstStringFromMap(candidate.Clarify, "kind")
+	guidance := ""
+	switch kind {
+	case "region":
+		guidance = "还在等时间区间，尚未生成写入方案——例如「0 到 30 秒」，或指名工程段落（如「副歌」）。确认类回复要等方案卡出来后才生效。"
+	case "category":
+		guidance = "还在等参数类别，尚未生成写入方案——回「电平」「空间」或「音色」。确认类回复要等方案卡出来后才生效。"
+	case "param":
+		guidance = "还在等具体插件与参数，尚未生成写入方案——请指名参数（例如挂了混响可以写 wet）。确认类回复要等方案卡出来后才生效。"
+	default:
+		guidance = "还在等目标轨道，尚未生成写入方案——请指名轨道（或先在 DAW 里选中它）。确认类回复要等方案卡出来后才生效。"
+	}
+	goalID, runID := candidate.GoalID, candidate.RunID
+	if s.logger != nil {
+		s.logger.Info("[automation.choreo] clarify affirm guidance conversation=%s kind=%s", conversationID, kind)
+	}
+	return ChatResponse{
+		ConversationID: conversationID, AgentMode: mode, GoalID: goalID, RunID: runID,
+		Reply:      guidance,
+		GoalStatus: string(agentruntime.StatusWaitingContinue),
+		StopReason: "automation_choreo_clarify_affirm_guidance",
+		Workflow:   automationChoreoWorkflow,
+		WorkflowData: map[string]any{
+			"mutation_performed": false, "clarify_kind": kind, "affirm_guidance": true,
+			"time_varying_intent": true,
+		},
+	}
+}
+
+// automationChoreoAdoptSpanCandidate turns an accepted span candidate into
+// the confirmation proposal: region 0..span over the stored target context
+// (M3-C4-AUTO-CLARIFY-UX-1 face 1). The user's affirmative is the explicit
+// acceptance the 不猜 principle requires — nothing is adopted by default, and
+// the proposal still waits on the confirmation card before any write.
+func (s *Server) automationChoreoAdoptSpanCandidate(ctx context.Context, conversationID string, req ChatRequest, mode string, clarified automationChoreoCandidate, span float64) (ChatResponse, bool) {
+	goalID, runID := clarified.GoalID, clarified.RunID
+	if strings.TrimSpace(goalID) == "" || strings.TrimSpace(runID) == "" {
+		goalID, runID = goalIDsFromContext(req.Context)
+	}
+	s.expireAutomationChoreo(conversationID)
+	if span > automationChoreoMaxRegionSpanS {
+		return ChatResponse{
+			ConversationID: conversationID, AgentMode: mode, GoalID: goalID, RunID: runID,
+			Reply:      fmt.Sprintf("候选区间 %.0f 秒超出单条包络 %.0f 秒上限，没有采纳；请给一个更短的绝对区间（例如「0 到 30 秒」）。", span, automationChoreoMaxRegionSpanS),
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "automation_region_span_overflow",
+			Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
+		}, true
+	}
+	intent := parseAutomationIntent(clarified.UserText)
+	shape := automationDefaultShape(intent.DirectionUp)
+	if startValue, endValue, ok := parseAutomationExplicitValues(clarified.UserText); ok {
+		shape = automationShape{Name: "explicit", Label: "按话术数值", StartValue: startValue, EndValue: endValue, Curve: 0}
+	}
+	candidate := &automationChoreoCandidate{
+		ID: "automation_choreo_" + randomID(), CreatedAt: time.Now().UTC(), Status: "pending_confirmation",
+		GoalID: goalID, RunID: runID, UserText: clarified.UserText,
+		TrackID: clarified.TrackID, TrackLabel: clarified.TrackLabel,
+		Category: clarified.Category, PluginID: clarified.PluginID, PluginName: clarified.PluginName, ParamID: clarified.ParamID,
+		Shape: shape, RegionStart: 0, RegionEnd: span,
+		Points: automationBuildPoints(shape, 0, span),
+	}
+	if fullAccessChoreoConfirmationContext(req.Context) {
+		return s.automationChoreoFullAccessExecution(ctx, conversationID, mode, *candidate), true
+	}
+	s.storeAutomationChoreoCandidate(conversationID, candidate)
+	return s.automationChoreoConfirmationResponse(conversationID, mode, *candidate), true
 }
 
 // automationChoreoConfirmationResponse renders the answerable confirmation
@@ -601,6 +774,27 @@ func (s *Server) handlePendingAutomationChoreoChat(ctx context.Context, conversa
 	// Clarification answers: the stored intent context plus the user's new
 	// region/category wording re-runs the resolve pass.
 	if len(candidate.Clarify) > 0 {
+		clarifyKind := firstStringFromMap(candidate.Clarify, "kind")
+		// Face 2: an affirmative/confirmation word with no content of its own
+		// gets the differentiated guidance (what is still awaited, no plan
+		// exists yet) instead of a verbatim replay of the ask. The pending
+		// clarification stays alive.
+		if clarifyKind != "region_span_candidate" && automationChoreoAffirmAnswer(message) {
+			return s.automationChoreoClarifyAffirmGuidance(conversationID, mode, *candidate), true
+		}
+		// Face 1: the offered span candidate is adopted only by the user's
+		// explicit acceptance; an embedded absolute region still wins and
+		// falls through to the merge path.
+		if clarifyKind == "region_span_candidate" {
+			if parseAutomationRegionIntent(message).Source != automationRegionSourceAbsolute && automationChoreoCandidateAffirm(message) {
+				if span, ok := automationChoreoNumber(candidate.Clarify["span_seconds"]); ok && span > 0 {
+					return s.automationChoreoAdoptSpanCandidate(ctx, conversationID, req, mode, *candidate, span)
+				}
+			}
+			// A non-adopting answer to a span candidate re-enters the resolve
+			// pass with the merged wording (absolute region, different section,
+			// or a rejection of the candidate in words).
+		}
 		merged := candidate.UserText + " " + message
 		if !automationIntentArmed(merged) {
 			// The answer alone may carry the missing piece; keep the pending
@@ -712,18 +906,33 @@ func (s *Server) handleAutomationChoreoEntry(ctx context.Context, conversationID
 	}
 	pluginID, pluginName, paramID = resolvedPlugin, resolvedName, resolvedParam
 	region := parseAutomationRegionIntent(message)
+	choreoTarget := automationChoreoTarget{TrackID: trackID, TrackLabel: trackLabel, PluginID: pluginID, PluginName: pluginName, ParamID: paramID}
 	switch region.Source {
 	case automationRegionSourceAbsolute:
 	case automationRegionSourceMarker:
 		start, end, markerOK := s.automationMarkerRegion(ctx, region.SectionName, region.SectionSeconds)
 		if !markerOK {
+			if region.SectionSeconds > 0 {
+				return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, region.SectionName, region.SectionSeconds), true
+			}
 			return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
 				fmt.Sprintf("「%s」在工程段落标记里没有找到对应区间（不猜测段落位置）。请直接说绝对区间，例如「0 到 30 秒」。", region.SectionName), "region"), true
 		}
 		region.Start, region.End, region.Source = start, end, automationRegionSourceMarker
 	default:
+		if region.BareSpanSeconds > 0 {
+			return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, "", region.BareSpanSeconds), true
+		}
 		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
 			"这段变化从哪一秒到哪一秒？请给出区间（例如「0 到 30 秒」），或指名工程里已有的段落标记。", "region"), true
+	}
+	if region.End-region.Start > automationChoreoMaxRegionSpanS {
+		return ChatResponse{
+			ConversationID: conversationID, AgentMode: mode, GoalID: goalID, RunID: runID,
+			Reply:      fmt.Sprintf("区间 %.0fs-%.0fs 超出单条包络 %.0f 秒上限，请缩小区间或拆成多段。", region.Start, region.End, automationChoreoMaxRegionSpanS),
+			GoalStatus: string(agentruntime.StatusCompleted), StopReason: "automation_region_span_overflow",
+			Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false},
+		}, true
 	}
 	shape := automationDefaultShape(intent.DirectionUp)
 	if startValue, endValue, ok := parseAutomationExplicitValues(message); ok {
@@ -735,6 +944,9 @@ func (s *Server) handleAutomationChoreoEntry(ctx context.Context, conversationID
 		Category: intent.Category, PluginID: pluginID, PluginName: pluginName, ParamID: paramID,
 		Shape: shape, RegionStart: region.Start, RegionEnd: region.End,
 		Points: automationBuildPoints(shape, region.Start, region.End),
+	}
+	if fullAccessChoreoConfirmationContext(req.Context) {
+		return s.automationChoreoFullAccessExecution(ctx, conversationID, mode, *candidate), true
 	}
 	s.storeAutomationChoreoCandidate(conversationID, candidate)
 	return s.automationChoreoConfirmationResponse(conversationID, mode, *candidate), true
