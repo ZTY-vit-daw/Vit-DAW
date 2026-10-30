@@ -43,3 +43,14 @@
 - 分支 / worktree：port/m3-c4-auto-llm-route-verify-1 @ D:/Vit_DAW_wt_m3c4lr1（基线 61a25d33）
 - 领取时主检出既有 diff（非本卡，零触碰）：VitApp/Workspace/{Settings.xml,default_project.xml} M + coord/runs/UX-AB-AUDITION-IMPL-1/* M + 大量 coord/runs 未跟踪工件（gate 61a25d33 态）
 - 错峰核对：doing 仅 GEN-SUNO（Mac 设计卡无栈腿）；219 仍在 todo 未领取；栈记录最新=218@2026-10-29 23:5x 释放
+
+## 回执
+
+- 执行侧自验完成：2026-10-30 晚窗；验证执行完成形态（非 pass/fail 生产门）
+- commit：port/m3-c4-auto-llm-route-verify-1 @ 61e4d072（脚本 01caf02a+迭代修复 77ecb37b+工件 61e4d072；主仓 main 侧=领取 dc64a4ab+占用登记 4dd7b6b1+释放 8f09bafb）
+- run：coord/runs/M3-C4-AUTO-LLM-ROUTE-VERIFY-1/{RESULTS.md, llmroute_20261030_1（迭代轮留证）, llmroute_20261030_2（定案轮）}（随 port 分支入库；运行时工程文件剔除）
+- **结论一句话：停止条件 2 命中——217 automation 路由指引在变体话术的 LLM 装配分支（message_loop_neutral_family_selection）未插入，模型从未收到指引；组 1 三连 no_route 止损，组 2/3 剩余轮次未消耗；锚点上交属部署缺陷，非模型路由能力结论。**
+- 逐轮话术/模型行为/工具遥测/分类：RESULTS §一§三+rounds/*.json 完整回执原文；LLM 真实计费 25 调用/261,771 in/18,042 out tokens（deepseek-flash=用户真实引擎）
+- 折卡建议（RESULTS §四）：①修复卡=neutral 装配分支补 automation 指引（render 逐行证据可回指）②同锚点族=观察面剥轨级插件披露（207 同族）③turn 预算面；修复后重验卡可直接复用本卡断言体 v2
+- 端测边界声明：覆盖=chat 面真实 LLM 轮次+render 逐 turn 装配取证+agent log 工具流+内核 setup/曲线面；不覆盖=指引在场前提下的模型路由行为（部署缺陷前置未达）/set_points 确认链（未触发）/choreo pending 互不干扰（未达）/组 2/3 话术/webui 渲染面（既有边界）
+- 零生产改动默认形态兑现：全部改动=scripts/ 两文件
