@@ -100,6 +100,19 @@ param(
     # ZMQ setup 面；零 LLM 参与的确定性链）。腿需 agent HTTP 面在栈
     # （-StartKernel -RestartAgent 后可用；不启 UI）。
     [switch]$AutomationIntentChainSmoke,
+    # M3-C4-AUTO-LLM-ROUTE-VERIFY-1: LLM-turn automation routing verification.
+    # Vocabulary-MISSING variant phrases x real LLM chat turns (billed user
+    # engine config): does the 217 system-prompt guidance steer the model to
+    # the automation tool chain (get_plugin_parameters -> set_points behind
+    # the RiskConfirm chain -> get_curve readback), or an honest boundary
+    # reply, without fabricated writes or detours. Assertion body lives in
+    # scripts/automation_llm_route_smoke.py (agent /agent/chat face + kernel
+    # ZMQ setup/curve face). Card matrix: 3 groups x 5 rounds, hard cap 15
+    # LLM rounds, stop-loss 3 consecutive same-type failures per group; this
+    # leg is a VERIFICATION leg (exit 0 = verification executed; model defects
+    # fold to follow-up cards, zero production change). Needs the agent HTTP
+    # face on the stack (-StartKernel -RestartAgent; no UI).
+    [switch]$AutomationLLMRouteSmoke,
     # KERNEL-SENDROUTE-IMPL-1：send/return 轨间路由命令面烟测（设计件
     # MIX-SENDRETURN-DESIGN-1 §5 场景 1 的端侧版；断言体在
     # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连）。腿：
@@ -1252,7 +1265,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationLLMRouteSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1294,6 +1307,23 @@ if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -o
         $GuiLegProjectIsolation | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath $GuiLegProjectIsolation["marker_path"] -Encoding UTF8
         Write-Ok ("GUI leg project isolation: VIT_PROJECT_XML=" + $GuiLegProjectCopy + " (git-clean run-dir copy; deployed default_project.xml stays untouched)")
     }
+}
+
+# M3-C4-AUTO-LLM-ROUTE-VERIFY-1: per-run LLM telemetry + prompt-render capture
+# must be set BEFORE the agent process starts (it inherits this environment);
+# same pattern as the harness_ab legs (aba174 precedent). Set only for this
+# leg so other legs keep their default telemetry behavior.
+if ($AutomationLLMRouteSmoke -and -not $ScenarioMode) {
+    $LlmRouteTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($LlmRouteTelemetryRoot)) {
+        $LlmRouteTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\automation_llm_route_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $LlmRouteTelemetryRoot -Force | Out-Null
+    $LlmRouteLogsDir = Join-Path $LlmRouteTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $LlmRouteLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $LlmRouteLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $LlmRouteLogsDir "agent_prompt_render.jsonl")
+    Write-Ok ("automation LLM route telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -8587,6 +8617,60 @@ if ($AutomationIntentChainSmoke) {
         throw ("automation intent chain smoke passed but summary artifact missing: " + $autoIntentSummaryPath)
     }
     Write-Ok ("automation intent chain smoke passed (agent chat face; summary: " + $autoIntentSummaryPath + ")")
+}
+
+if ($AutomationLLMRouteSmoke) {
+    Write-Step "automation LLM route verification (M3-C4-AUTO-LLM-ROUTE-VERIFY-1)"
+    $llmRouteScript = Join-Path $RepoRoot "scripts\automation_llm_route_smoke.py"
+    if (-not (Test-Path -LiteralPath $llmRouteScript)) {
+        throw ("automation LLM route verification script missing: " + $llmRouteScript)
+    }
+    $llmRouteArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($llmRouteArtifactsDir)) {
+        $llmRouteArtifactsDir = $env:VIT_AGENT_LLM_TELEMETRY_PATH
+        if (-not [string]::IsNullOrWhiteSpace($llmRouteArtifactsDir)) {
+            $llmRouteArtifactsDir = Split-Path -Parent $llmRouteArtifactsDir
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($llmRouteArtifactsDir)) {
+        throw "automation LLM route verification requires the run artifacts dir (telemetry env block sets it before agent start)"
+    }
+    # Project isolation for this leg was set before any process start by the
+    # shared GUI-leg isolation block above ($AutomationLLMRouteSmoke is in its
+    # condition list): the setup leg's kernel-side new_project rewrites the
+    # workspace default project, so VIT_PROJECT_XML must point at a git-clean
+    # run-dir copy (217 incident lesson, same family as 218).
+    $llmRoutePriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($llmRoutePriorProjectXml)) {
+        Write-Ok ("automation LLM route project isolation: VIT_PROJECT_XML=" + $llmRoutePriorProjectXml)
+    }
+    else {
+        throw "automation LLM route verification requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $llmRouteRoundsDir = Join-Path $llmRouteArtifactsDir "rounds"
+    $llmRouteSummaryPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_summary.json"
+    $llmRouteConsolePath = Join-Path $llmRouteArtifactsDir "automation_llm_route_console.txt"
+    $llmRouteProjectPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_project.vit"
+    & python $llmRouteScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $llmRouteProjectPath --output $llmRouteSummaryPath --rounds-dir $llmRouteRoundsDir --telemetry-path $env:VIT_AGENT_LLM_TELEMETRY_PATH --prompt-render-path $env:VIT_AGENT_PROMPT_RENDER_PATH > $llmRouteConsolePath 2>&1
+    $llmRouteExit = $LASTEXITCODE
+    Get-Content -LiteralPath $llmRouteConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $llmRouteSummaryPath)) {
+        throw ("automation LLM route verification produced no summary artifact (exit code " + $llmRouteExit + "; console: " + $llmRouteConsolePath + ")")
+    }
+    if ($llmRouteExit -eq 0) {
+        Write-Ok ("automation LLM route verification executed to completion (model-behavior findings in summary: " + $llmRouteSummaryPath + ")")
+    }
+    elseif ($llmRouteExit -eq 2) {
+        Write-WarnLine ("automation LLM route verification hit stop condition 2 (system-prompt guidance not rendered on the chat face; deployment defect anchor): " + $llmRouteSummaryPath)
+        throw ("automation LLM route verification stop condition 2 (guidance missing) - see " + $llmRouteSummaryPath)
+    }
+    elseif ($llmRouteExit -eq 3) {
+        Write-WarnLine ("automation LLM route verification hit stop condition 1 (LLM/stack environment interrupt; raw evidence on disk): " + $llmRouteSummaryPath)
+        throw ("automation LLM route verification stop condition 1 (env interrupt) - see " + $llmRouteSummaryPath)
+    }
+    else {
+        throw ("automation LLM route verification failed with exit code $llmRouteExit (console: " + $llmRouteConsolePath + ")")
+    }
 }
 
 if ($PcaReverbPromotionSmoke) {
