@@ -174,6 +174,81 @@ func TestProjectStructureViewKeepsTrackIdentityFromTypedRows(t *testing.T) {
 	}
 }
 
+// M3-TRACK-PLUGIN-DISCLOSE-1: the structure view releases the track-level
+// plugin chain (mixboard plugin_chain_summary) so the free-state model can
+// see track plugins — including built-ins like Volume & Pan — with their
+// plugin_id. The full-face plugins payload (parameters included) stays
+// behind the whitelist.
+func TestProjectStructureViewDisclosesTrackPluginChainSummary(t *testing.T) {
+	read := testFreeStateReadResult()
+	items := read["items"].(map[string]any)
+	items["project.tracks.summary"] = map[string]any{
+		"status": "ready", "track_count": 1, "active_track_count": 1,
+		"tracks": []any{map[string]any{
+			"track_id": "1007", "name": "Vocal", "role_guess": "vocal", "active_state": "active",
+			"plugin_count": 2,
+			"plugin_chain_summary": []any{
+				map[string]any{"slot": 1, "plugin_id": "2001", "name": "Volume & Pan", "type": "volume", "enabled": true, "role_guess": "utility", "source_kind": "shadow"},
+				map[string]any{"slot": 2, "plugin_id": "p-7", "name": "Pro-Q 3", "type": "vst3", "enabled": true, "role_guess": "eq", "source_kind": "shadow"},
+			},
+			"plugins": []any{map[string]any{"plugin_id": "2001", "params": map[string]any{"gain": 1.5}}},
+		}},
+	}
+	bundle := AssembleFreeStateObservation(FreeStateObservationRequest{ViewIDs: []string{"project.structure"}}, read)
+	view := anyMap(bundle.Views["project.structure"])
+	facts := anyMap(view["facts"])
+	tracks := rowsValue(anyMap(facts["project.tracks.summary"])["tracks"])
+	if len(tracks) != 1 {
+		t.Fatalf("structure view tracks = %#v", facts)
+	}
+	track := tracks[0]
+	if count, ok := track["plugin_count"].(int); !ok || count != 2 {
+		t.Fatalf("plugin_count not disclosed: %#v", track)
+	}
+	chain := rowsValue(track["plugin_chain_summary"])
+	if len(chain) != 2 {
+		t.Fatalf("plugin_chain_summary not disclosed: %#v", track)
+	}
+	if stringValue(anyMap(chain[0])["plugin_id"]) != "2001" || stringValue(anyMap(chain[0])["name"]) != "Volume & Pan" {
+		t.Fatalf("track-level Volume & Pan entry missing plugin identity: %#v", chain[0])
+	}
+	if stringValue(anyMap(chain[1])["plugin_id"]) != "p-7" || stringValue(anyMap(chain[1])["type"]) != "vst3" {
+		t.Fatalf("second plugin entry lost identity: %#v", chain[1])
+	}
+	data, _ := json.Marshal(tracks)
+	if strings.Contains(string(data), "\"plugins\"") || strings.Contains(string(data), "\"params\"") || strings.Contains(string(data), "1.5") {
+		t.Fatalf("full-face plugin payload leaked through the whitelist: %s", data)
+	}
+}
+
+// M3-TRACK-PLUGIN-DISCLOSE-1 §11: legacy track rows without any plugin
+// fields pass the whitelist unchanged — no phantom keys, no error, readiness
+// not upgraded or degraded by the disclosure.
+func TestProjectStructureViewPluginDisclosureKeepsLegacyTracksStable(t *testing.T) {
+	read := testFreeStateReadResult()
+	items := read["items"].(map[string]any)
+	items["project.tracks.summary"] = map[string]any{
+		"status": "ready", "track_count": 1, "active_track_count": 1,
+		"tracks": []any{map[string]any{"track_id": "1012", "track_name": "Drums", "role_guess": "drums", "active_state": "active"}},
+	}
+	bundle := AssembleFreeStateObservation(FreeStateObservationRequest{ViewIDs: []string{"project.structure"}}, read)
+	if bundle.Status == "failed" || bundle.Status == "rejected" || len(bundle.Omissions) != 0 {
+		t.Fatalf("legacy track row degraded the bundle: %+v", bundle)
+	}
+	view := anyMap(bundle.Views["project.structure"])
+	facts := anyMap(view["facts"])
+	tracks := rowsValue(anyMap(facts["project.tracks.summary"])["tracks"])
+	if len(tracks) != 1 {
+		t.Fatalf("legacy track row was dropped: %#v", facts)
+	}
+	if _, exists := tracks[0]["plugin_count"]; exists {
+		t.Fatalf("legacy track row gained a phantom plugin_count: %#v", tracks[0])
+	}
+	if _, exists := tracks[0]["plugin_chain_summary"]; exists {
+		t.Fatalf("legacy track row gained a phantom plugin_chain_summary: %#v", tracks[0])
+	}
+}
+
 func TestProjectStructureViewKeepsTopologyReadyWhenTechnicalProjectionIsPartial(t *testing.T) {
 	read := testFreeStateReadResult()
 	items := read["items"].(map[string]any)

@@ -135,6 +135,23 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_recommended_config_flags)
     add_test(NAME VitPluginListHygieneTests COMMAND VitPluginListHygieneTests)
 
+    # M3-TRACK-PLUGIN-DISCLOSE-1: compact-face track-level plugin disclosure —
+    # minimal id/name/type compaction, §11 legacy schema stability (missing
+    # plugins => empty array) and JSON wire round trip. JUCE-only: var/JSON,
+    # no tracktion linkage.
+    juce_add_console_app(VitTrackPluginDisclosureTests PRODUCT_NAME "VitTrackPluginDisclosureTests")
+    juce_generate_juce_header(VitTrackPluginDisclosureTests)
+    target_sources(VitTrackPluginDisclosureTests PRIVATE
+        TrackPluginDisclosureTests.cpp
+        ../Source/Service/TrackPluginDisclosure.h)
+    target_compile_features(VitTrackPluginDisclosureTests PRIVATE cxx_std_20)
+    target_include_directories(VitTrackPluginDisclosureTests PRIVATE ../Source)
+    target_compile_definitions(VitTrackPluginDisclosureTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries(VitTrackPluginDisclosureTests PRIVATE
+        juce::juce_core
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitTrackPluginDisclosureTests COMMAND VitTrackPluginDisclosureTests)
+
     # L2-2-SEG-1: segmentation primitives v1 — deterministic replay, structural
     # onset/novelty contents, and explicit not_evaluable states. JUCE-only
     # linkage (L3AcousticAnalyzer + AudioFeatureTypes), no tracktion.
