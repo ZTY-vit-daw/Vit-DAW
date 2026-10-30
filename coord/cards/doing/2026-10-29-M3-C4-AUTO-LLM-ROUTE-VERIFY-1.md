@@ -34,3 +34,12 @@
 
 - LLM 面栈不可用（API 额度/环境）→环境中断如实记录，不折功能结论；
 - 发现 chat 面根本未装配 system prompt embed（217 指引未生效形态）→锚点上交，属部署缺陷非模型行为。
+
+## 领取
+
+- 时间：2026-10-30 早窗
+- origin/main：61a25d33（领取前 fetch 亲核，本地=远端）
+- owner：ZCode GLM-5.3 PC 执行会话（220 卡会话）
+- 分支 / worktree：port/m3-c4-auto-llm-route-verify-1 @ D:/Vit_DAW_wt_m3c4lr1（基线 61a25d33）
+- 领取时主检出既有 diff（非本卡，零触碰）：VitApp/Workspace/{Settings.xml,default_project.xml} M + coord/runs/UX-AB-AUDITION-IMPL-1/* M + 大量 coord/runs 未跟踪工件（gate 61a25d33 态）
+- 错峰核对：doing 仅 GEN-SUNO（Mac 设计卡无栈腿）；219 仍在 todo 未领取；栈记录最新=218@2026-10-29 23:5x 释放
