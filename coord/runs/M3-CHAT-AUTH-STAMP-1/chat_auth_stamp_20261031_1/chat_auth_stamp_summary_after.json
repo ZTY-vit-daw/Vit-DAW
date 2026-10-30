@@ -1,0 +1,13 @@
+{
+  "scenario": "M3-CHAT-AUTH-STAMP-1 chat-chain authority stamp",
+  "phase": "after",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "project_path": "D:\\Vit_DAW_wt_223impl\\coord\\runs\\M3-CHAT-AUTH-STAMP-1\\chat_auth_stamp_20261031_1\\chat_auth_stamp_project.vit",
+  "llm_participation": "none (deterministic vocabulary routing; authority faces are control-plane HTTP)",
+  "started_at": "2026-10-30T12:42:44.860029+00:00",
+  "legs": [],
+  "status": "FAIL",
+  "error": "authority after agent restart = 'manual_confirmation', want full_project_access (durable restore leg)",
+  "finished_at": "2026-10-30T12:42:44.942932+00:00"
+}

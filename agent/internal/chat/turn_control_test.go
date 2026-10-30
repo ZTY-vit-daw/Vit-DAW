@@ -28,9 +28,20 @@ func gapTestAdmission(mode experiment.AuthorityMode) experiment.Admission {
 
 func TestAuthorityModeIsExplicitAndImmutableForActiveTurn(t *testing.T) {
 	s := New(nil, shadow.New(nil), nil)
+	// M3-CHAT-AUTH-STAMP-1: the mode is granted through the control plane; the
+	// chat binding only restates the server's own state.
+	if resp := authorityPostForTest(s, authorityModeFull); resp.Code != http.StatusOK {
+		t.Fatalf("switch status=%d body=%s", resp.Code, resp.Body.String())
+	}
 	bound, err := s.bindChatAuthorityMode(authorityModeFull, map[string]any{"conversation_id": "chat-authority"})
 	if err != nil || firstStringFromMap(bound, "authority_mode") != authorityModeFull || !boolValue(bound["authority_mode_explicit"]) {
 		t.Fatalf("bound=%+v err=%v", bound, err)
+	}
+	// Silent caller gets the server state stamped (same source as
+	// stampInvokeAuthorityMode), not a caller-granted mode.
+	stamped, err := s.bindChatAuthorityMode("", map[string]any{"conversation_id": "chat-authority"})
+	if err != nil || firstStringFromMap(stamped, "authority_mode") != authorityModeFull || !boolValue(stamped["authority_mode_explicit"]) {
+		t.Fatalf("stamped=%+v err=%v", stamped, err)
 	}
 	turn, err := experiment.NewTurn(experiment.Identity{ConversationID: "chat-authority"}, "test", gapTestAdmission(experiment.AuthorityFull), time.Now().UTC())
 	if err != nil {
@@ -126,6 +137,11 @@ func TestStopPreventsNewExperimentActivityAndPreservesCheckpointOnRuntimeRestore
 
 func TestFullAccessRequestFlowsIntoExperimentAdmission(t *testing.T) {
 	s := New(nil, shadow.New(nil), nil)
+	// M3-CHAT-AUTH-STAMP-1: full access comes from the control plane; the chat
+	// binding then restates it onto the context.
+	if resp := authorityPostForTest(s, authorityModeFull); resp.Code != http.StatusOK {
+		t.Fatalf("switch status=%d body=%s", resp.Code, resp.Body.String())
+	}
 	ctx, err := s.bindChatAuthorityMode(authorityModeFull, map[string]any{"conversation_id": "chat-flow"})
 	if err != nil {
 		t.Fatal(err)
@@ -201,7 +217,9 @@ func TestAuthoritySwitchBeforeWorkspaceIdentitySurvivesRestore(t *testing.T) {
 
 // AUTHORITY-LOST-1 第二命中面：切换已写入内存、persist 尚未落盘的竞态窗口内，
 // continuation scheduler 的磁盘重放（reloadActiveRuntimeState）不得把显式
-// 切换翻回磁盘旧值。bind 写内存与 POST 同源，覆盖 bind 翻转面。
+// 切换翻回磁盘旧值。M3-CHAT-AUTH-STAMP-1 起 chat 绑定不再写 server 状态
+// （request body 不得构成授权），本窗口由 /agent/authority 切换自身的内存
+// 效应（mode+显式闩）代表——与 POST 路径同一写入面。
 func TestAuthoritySwitchHoldsAcrossSchedulerDiskReload(t *testing.T) {
 	projectPath := filepath.Join(t.TempDir(), "Reload.vit")
 	if err := os.WriteFile(projectPath, []byte("stable"), 0o644); err != nil {
@@ -212,9 +230,10 @@ func TestAuthoritySwitchHoldsAcrossSchedulerDiskReload(t *testing.T) {
 	s := New(nil, project, nil)
 	s.activateCurrentProjectWorkspace(context.Background())
 	s.persistCurrentProjectWorkspace() // 磁盘停留 manual（切换前的权威形态）
-	if _, err := s.bindChatAuthorityMode(authorityModeFull, map[string]any{"conversation_id": "chat-reload"}); err != nil {
-		t.Fatal(err)
-	}
+	s.mu.Lock()
+	s.authorityMode = authorityModeFull // 切换的内存效应，persist 未跟上的窗口
+	s.authorityModeExplicit = true
+	s.mu.Unlock()
 	if err := s.reloadActiveRuntimeState(); err != nil {
 		t.Fatal(err)
 	}
