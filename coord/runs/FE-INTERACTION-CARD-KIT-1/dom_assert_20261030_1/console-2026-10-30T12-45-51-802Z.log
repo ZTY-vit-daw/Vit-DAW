@@ -1,0 +1,7 @@
+[    1415ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=069732f1:20100
+[    1427ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:164
+[   20554ms] [ERROR] Failed to load resource: net::ERR_NO_BUFFER_SPACE @ http://127.0.0.1:5178/agent/downloads/watch:0
+[   58924ms] [ERROR] Failed to load resource: net::ERR_NO_BUFFER_SPACE @ http://127.0.0.1:5178/agent/downloads/watch:0
+[  107614ms] [ERROR] Failed to load resource: net::ERR_NO_BUFFER_SPACE @ http://127.0.0.1:5178/agent/downloads/watch:0
+[  127770ms] [ERROR] Failed to load resource: net::ERR_NO_BUFFER_SPACE @ http://127.0.0.1:5178/agent/downloads/watch:0
+[  162212ms] [ERROR] Failed to load resource: net::ERR_NO_BUFFER_SPACE @ http://127.0.0.1:5178/agent/downloads/watch:0
