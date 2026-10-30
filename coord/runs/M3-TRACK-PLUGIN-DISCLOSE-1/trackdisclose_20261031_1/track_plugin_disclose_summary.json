@@ -1,0 +1,35 @@
+{
+  "card": "M3-TRACK-PLUGIN-DISCLOSE-1",
+  "started_at": "2026-10-30T14:29:55.803262+00:00",
+  "legs": {
+    "kernel_vsp_snapshot": {
+      "status": "pass",
+      "visible_tracks": 6,
+      "tracks_with_volume_plugin": 6,
+      "sample_track_id": "1007",
+      "sample_entry": {
+        "id": "1008",
+        "name": "Volume & Pan Plugin",
+        "type": "volume"
+      }
+    },
+    "agent_project_state_tracks": 6,
+    "agent_ccb_structure_view": {
+      "status": "pass",
+      "view_track_rows": 6,
+      "rows_with_chain": 6,
+      "sample_volume_entry": {
+        "enabled": true,
+        "name": "Volume & Pan Plugin",
+        "plugin_id": "1033",
+        "role_guess": "utility",
+        "slot": 1,
+        "source_kind": "shadow",
+        "type": "volume"
+      },
+      "disclosure_bytes": 14660
+    }
+  },
+  "status": "pass",
+  "finished_at": "2026-10-30T14:29:58.818949+00:00"
+}
