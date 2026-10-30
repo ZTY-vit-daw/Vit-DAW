@@ -40,3 +40,13 @@
 ## 定位升级（2026-10-30 晚，判断权归属裁定后）
 
 本卡升级为**前置卡**：neutral 指引=LLM 判断层地基，225（澄清上移 LLM）硬依赖本卡完成。优先级维持 P1，领取排序前移（223 后即可）。
+
+## 回执（执行侧自验完成，待主管验收）
+
+- 实现 commit：**port/m3-llm-neutral-embed-1 @ de476086**（修复四文件）+ dd9b2d11/f4c8f82f（run 工件+运行时派生态剔除）；工件=coord/runs/M3-LLM-NEUTRAL-EMBED-1/{RESULTS.md,llmroute2_20261030_1}。
+- **面 1（修复）兑现**：`neutralFamilySystemSections` 两形态（bundle 主路径 L1 域后插入+回落骨架段后追加）挂 `message_loop_neutral_family_automation_route` Section；文本=chat 族 `chat.discipline.plugins_mixing` 段内指引行逐字同源同文 694B 零改写（同源由锁定测试执法：chat 段变更即红）；CacheKey 自治 `neutral-family-automation-route:v1`；插入点勘察定案=agentloop 装配组装层（ruleset embed/carriers 均越卡面文件域，agentloop 为卡面授权候选位）；**chat/server.go 零改动**=确认话术分支（message_loop_system）零回退自然形态+零回退断言测试在包。
+- **面 2（重验）执行+停止条件 2 定案**：220 断言体 v2 原口径（scripts/ 零改动）；ps1 exit 0 COMPLETED（**220 的 GUIDANCE_MISSING exit 2 消失**）；render 7/7 亲证指引行在场（system 14,772→15,468B）；组 1 三连同型 no_route 止损合规（组 2/3 未消耗）；计费 10 调用/106,073in/6,619out（+23,936 cache read）。
+- **停止条件 2 上交（卡面原文命中）**：指引在场仍三连 no_route——非 prompt 问题，是**通道结构面**（三道闸）：①free-state 决策轮 allowed tools=ccb.* only+骨架规则禁 mutation，指引与骨架同场冲突，模型合法动作集无 automation；②turn 预算（观察探索耗尽 MaxTurns 8/slice→waiting_continue，220 §四.3 预警实测复现）；③settle 面无 LLM 轮（goal 终态=no_pending_mix_tick_candidate 确定性文本，含指引+catalog 的 message_loop_system 轮从未被变体话术触达）。设计讨论四案（A 词表扩面/B semantic_entry 分类轮增 automation 分流/C free-state 终态 automation 边界形态/D settle 面补 LLM 轮）见 RESULTS §三——**225（澄清上移 LLM）的依赖面=本锚点族**。
+- **次生评估面定案（越域另拆卡）**：「模型视角轨无插件」断点=内核 VSP 紧凑面 `VitApp/Source/Service/VspKernelReference.cpp:603` `normaliseTrackArray` 白名单不含 `plugins`/`plugin_count`（轨级 Volume&Pan 非 rack 节点，紧凑态仅 volume_db/pan+plugin_param_digest 哈希；内核完整面 TrackService.cpp:120 createTrackState 有数据）；agent 侧消费链已备（mixboard project_package.go:163 已读 plugins）+放行点锚点（free_state_observation.go:997 六字段白名单）。按卡面「需动内核→另拆卡，不阻塞」执行。
+- 端测边界声明：覆盖=真实栈 LLM 轮次（10 调用真实计费）+render 逐 turn 取证+agent log 工具流+内核 ZMQ 面基线；**不覆盖**=通道可达前提下的模型路由行为（三道闸前置未达）/set_points 确认链/choreo pending 腿/组 2-3/webui 渲染面。
+- 纪律核对：真栈占用登记 c80e33e7/释放同批入库（21:43 登记→21:46 拆栈全零复核）；主检出工程文件零触碰（mtime 亲证）；运行时工程+派生态剔除（218 先例）；§12 领取基线在卡面；无 stop 未披露项。
