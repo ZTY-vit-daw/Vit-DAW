@@ -45,3 +45,12 @@
 - 插桩（纯观测，VIT_221_IPC_DIAG=1 门控）：vit_ipc_client.gd（queued/sent/reply/soft/hard timeout/await_done/orphan print+get_diag_221_counters 计数器）；project_store.gd（legacy_enter/legacy_return）；vit_dock_root.gd（dock_refresh 链各跳+dock_refresh_STOP 静默点）；track_envelope_lane_2d.gd（descriptor_request）
 - 窗口探针：tools/stack_probe_rack_delete_gui_refresh.tscn（212 同族骨架+W 竞争窗口腿+D 插桩读回腿；VIT_PROBE_221_DIAG=1 复现轮）
 - 离线自检：probe_vsp_delta_schema_guard 30/30、probe_lane_catalog_fail_loud 18/18、probe_file_reply_volume_face 7/7、probe_221_diag_selfcheck 10/10，全 exit 0
+
+## 回执（2026-10-30 20:0x，执行侧自验完成待主管验收）
+
+- run=coord/runs/FE-RACK-DELETE-GUI-REFRESH-1/gui_refresh_20261030_1（RESULTS.md 含定案证据链+修复锚点+上交三条）
+- **定案**：主候选（UDP 串行队列竞争）**代码+数据双推翻**——软/硬超时定时器只在请求发出时 arm（`_arm_request_timers` 于 `_process_queue` 内），排队请求无 timer 不会被软超时丢弃；真栈窗口轮密集采样 119 点 soft/hard_timeout=0、丢弃=0、max_wait 281ms。**真 root cause=VSP delta-ok 短路吞 rack 域删除**：node_remove 不在 project.timeline scope → 删除后回拉 delta ops 空 → delta-ok 短路返回 store 内存旧态（含已删插件）→ repo/画布重喂旧态滞留。r3 完整复现用户症状（Pro-Q 3 vst1=1055，删除 ok 后终态 repo/canvas=["1055"]）。用户取证形态=同症状另一路径（剥列驻留→208 守卫→legacy 未达内核→静默）。次生双复现：lane catalog 风暴（40ms 同 pid 5 连发）+已删插件 error 轮询（env_lane_params_1055）。
+- **修复三件套**（前端仓 worktree，未提交按卡面指令）：d=rack 命令族回拉 force_legacy（vit_dock_root.gd 回执处理器传 true+`_refresh_project_repository_from_kernel(force_legacy)`+store `refresh_project_state(force_legacy)`；修复后删除+28ms legacy ok 画布秒清）；b=回拉终败 push_warning（原静默 return）；c=lane `_request_descriptor_for(pid, force)` 结构面在飞+500ms 节流、count 新鲜度 force 放行（192 ●N 语义保留）。
+- **验证退出码**：窗口正式轮最终形态 29/29×2 连续 exit 0（probe_fixed_final_r1/r2）；212 双向量删除链回归 29/29×2 exit 0（regress_212_r1/r2）；离线族 208 守卫 30/30+207 18/18+lane 三族 25/27/36+file_reply 7/7+自检 10/10 全绿（lane_auto 首轮 2 红=节流误伤 C1/C3 由既有探针抓住→force 放行修正后全绿，如实留证）。
+- **上交三条**：①用户形态 legacy 传输面断链机制未完全定案（快回形态不可复现；d+b 已使其非唯一通道+可见，复发时 [VIT221] 插桩直接暴露断点层）——建议用户手测节重验删除旅程；②delta 通道对 rack 域盲=内核 VSP 面设计事实，扩 scope 属域外交主管裁定；③单在飞饿死窗口机制在无触发证据，留档不修。
+- 纪律：claim e9419676/登记 d8d16709/释放 435f2e16 均推共享 main；隔离三面亲证（run 副本承接写入/主检出 087B1AA0 零触碰/kernel C1E32DFE 零漂移）；拆栈复核全零；探针 4 新文件+生产 4 文件（160+/18-）全在卡面文件域。
