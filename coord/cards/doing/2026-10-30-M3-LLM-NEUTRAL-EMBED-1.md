@@ -29,7 +29,13 @@
 
 ## 领取
 
-（待执行侧领取：记录 HEAD/status/diff --stat；真栈腿与 221 用户手测错峰——220 栈占用协议承袭，PC-RUNTIME-STACK.md 登记）
+- 时间：2026-10-30 21:24
+- 领取基线：本地 main HEAD `80d4a22c`（origin/main 当时=`4a3a4746`，落后 4 个主管 223/224 收口提交，随领取提交 fast-forward 同步；依赖 732b5c35 亲核为 origin/main 祖先 ✓）
+- 领取时 HEAD/status/diff --stat：HEAD=80d4a22c；worktree 干净（主检出已有改动=VitApp/Workspace 运行时文件+UX-AB-AUDITION run 工件，与本卡文件域不相交）
+- owner：ZCode GLM-5.3 PC 执行会话（222 卡执行流）
+- 分支：`port/m3-llm-neutral-embed-1`；worktree：`D:\Vit_DAW_wt\m3-neutral-embed`
+- 真栈腿：错峰承袭，领取后核 PC-RUNTIME-STACK.md（224 已拆栈空闲）；占用前按 §2.2 登记
+- 领取提交：见 main 提交历史（仅含 coord/ 卡状态变更）
 
 ## 定位升级（2026-10-30 晚，判断权归属裁定后）
 
