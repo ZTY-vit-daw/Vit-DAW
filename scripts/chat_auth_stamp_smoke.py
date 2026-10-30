@@ -82,6 +82,33 @@ def authority_get(base_url: str) -> Dict[str, Any]:
     return body
 
 
+def wait_shadow_tracks(base_url: str, want_tracks: int, timeout_s: float = 60.0) -> None:
+    """Wait until the agent's shadow has bound the kernel's CURRENT project.
+
+    The workspace/authority state is per project identity: switching the
+    kernel project (new_project/save_as) re-binds the agent identity and the
+    explicit authority latch correctly drops on that switch (AUTHORITY-LOST-1
+    anti-leak; 219 face-5 window (iii)). Any authority write or assertion must
+    therefore happen only after the shadow reports the new project's track
+    count, or the switch lands on the previous identity's workspace and the
+    restart leg honestly comes back manual (round-1 finding).
+    """
+    deadline = time.time() + timeout_s
+    last: str = ""
+    while time.time() < deadline:
+        code, state = http_json("GET", base_url.rstrip("/") + "/agent/state", None, 10.0)
+        shadow = state.get("shadow") or {}
+        if code == 200 and shadow.get("initialized") is True:
+            count = shadow.get("track_count")
+            if isinstance(count, int) and count == want_tracks:
+                return
+            last = f"track_count={count!r}"
+        else:
+            last = f"shadow={json.dumps(shadow, ensure_ascii=False)[:120]}"
+        time.sleep(0.5)
+    raise RuntimeError(f"agent shadow never bound a project with {want_tracks} tracks: {last}")
+
+
 def authority_post(base_url: str, mode: str) -> Dict[str, Any]:
     code, body = http_json("POST", base_url.rstrip("/") + "/agent/authority", {"authority_mode": mode}, 30.0)
     if code != 200 or body.get("status") != "ok" or body.get("authority_mode") != mode:
@@ -285,6 +312,12 @@ def main() -> None:
             record("setup", {"tracks": dict(zip(("a", "b", "c"), track_ids)), "volume_plugins": plugins})
 
             # ---- switch full access through the control plane ----------------
+            # Only after the shadow has bound the run project identity (see
+            # wait_shadow_tracks): a switch that races the identity re-bind
+            # persists under the previous workspace and the restart leg comes
+            # back manual (round-1 finding, faithful to the per-workspace
+            # authority contract).
+            wait_shadow_tracks(args.agent_http, 3)
             switch = authority_post(args.agent_http, "full_project_access")
             require(switch.get("persisted") is True,
                     f"full-access switch not durable (workspace_ready={switch.get('workspace_ready')!r}) — "
@@ -311,6 +344,7 @@ def main() -> None:
             })
         else:
             # ---- phase after: the ps1 restarted the agent process ------------
+            wait_shadow_tracks(args.agent_http, 3)
             restored = authority_get(args.agent_http)
             require(restored.get("authority_mode") == "full_project_access",
                     f"authority after agent restart = {restored.get('authority_mode')!r}, want full_project_access "
