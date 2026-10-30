@@ -40,4 +40,9 @@
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记——228 若在跑真栈须错峰；§12 纪律照旧；LLM 轮次计费回执披露）
+- 2026-10-31 / owner=ZCode GLM-5.3 PC 执行会话（227 卡会话）/ 分支 port/m3-llm-gate-open-1 @ worktree D:/Vit_DAW_wt_227
+- **领取基线与共享 main 追平**：origin/main（tip=b42c93c7=228 领取提交）不含 222 实现合入（实现在主管本地未推分叉 d753565c=发卡基线）。本卡渲染面以 222 交付物（neutral_automation_route.go+指引段）为基座，处置=merge d753565c 进工作分支（ac602287，唯一冲突=222 done 卡取主管含验收裁定版）；领取提交推送后共享 main 即含 222 实现+227/228 卡面+本领取，主管下次推送=fast-forward。
+- 领取时 status：worktree tracked 零改动（merge 后亲核）；合并基线 go build ./... 全绿。主检出 D:/Vit_DAW 的既有 M 文件（VitApp/Workspace xml+coord/runs 日志）=登记前遗留，非本卡域零触碰。
+- 文件域核对：228 域=VspKernelReference.cpp+capabilitycontext/free_state_observation.go——本卡域=agentloop+ruleset 骨架 twin（embed resource+legacy 常量，卡面标的 1 授权的骨架改写物理载体）+测试+scripts，零相交。
+- 真栈错峰：当前栈空闲（登记面最新=222 于 10-30 21:46 释放，其后无占用；开发面无真栈需求）。重验腿等 228 合入后执行，天然错峰；若届时 228 在跑须再核登记面。
+- §12 纪律照旧；LLM 轮次计费回执披露（重验腿）。
