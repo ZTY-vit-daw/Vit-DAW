@@ -1,0 +1,922 @@
+{
+	"schema_version": "acoustic_package_status.v0",
+	"updated_at": "2026-10-30T11:12:15.3307922Z",
+	"packages": [
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "missing",
+			"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+			"clip_revision": "cliprev_55e903194b38f984",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_revision": "cliprev_55e903194b38f984",
+				"clip_start_seconds": 0,
+				"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "missing",
+					"features": {
+						"peak_rms_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z"
+						},
+						"time_energy": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "waveform_envelope_required_for_time_energy"
+						},
+						"waveform_envelope": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:35.6596347Z"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:35.6596347Z"
+				},
+				"l3_deep": {
+					"status": "missing",
+					"features": {
+						"band_energy_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z"
+						},
+						"loudness_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z"
+						},
+						"stereo_relation_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6596347Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6596347Z"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:35.6596347Z"
+				}
+			},
+			"updated_at": "2026-10-30T11:11:35.6596347Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-30T11:11:35.6596347Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-30T11:11:35.6596347Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "failed",
+			"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+			"track_id": "1010",
+			"clip_revision": "cliprev_fe555ccf4cc8a540",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_revision": "cliprev_fe555ccf4cc8a540",
+				"clip_start_seconds": 0,
+				"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+				"track_id": "1010"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "failed",
+					"features": {
+						"peak_rms_summary": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6601352Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"request_id": "fs_seed_llm_route_g1_r2_1793358692",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:35.6601352Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6601352Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"time_energy": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6601352Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-10-30T11:11:35.6601352Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"waveform_envelope": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6601352Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"analyzer_revision": "agent_lightweight_o1",
+								"clip_revision": "cliprev_fe555ccf4cc8a540",
+								"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+								"reason": "clip_source_required_for_current_feature_bakers",
+								"request_id": "fs_seed_llm_route_g1_r2_1793358692",
+								"status": "blocked",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:35.6601352Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6601352Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:49.7881925Z"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:49.7881925Z"
+				},
+				"l3_deep": {
+					"status": "missing",
+					"features": {
+						"band_energy_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "band_energy_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "band_energy_summary",
+								"reason": "band_energy_summary_not_yet_requested",
+								"request_id": "fs_seed_llm_route_g1_r2_1793358692",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "band_energy_summary_not_yet_requested"
+						},
+						"loudness_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "loudness_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "loudness_summary",
+								"reason": "loudness_summary_not_yet_requested",
+								"request_id": "fs_seed_llm_route_g1_r2_1793358692",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "loudness_summary_not_yet_requested"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:35.6601352Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"feature_type": "spectral_field",
+								"reason": "clip_source_required_for_current_feature_bakers",
+								"request_id": "fs_seed_llm_route_g1_r2_1793358692",
+								"status": "blocked",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:35.6601352Z"
+							},
+							"updated_at": "2026-10-30T11:11:35.6601352Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"stereo_relation_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7881925Z",
+								"reason": "stereo_relation_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "stereo_relation_summary",
+								"reason": "stereo_relation_summary_not_yet_requested",
+								"request_id": "fs_seed_llm_route_g1_r2_1793358692",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:11:49.7881925Z",
+							"reason": "stereo_relation_summary_not_yet_requested"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:49.7881925Z"
+				}
+			},
+			"updated_at": "2026-10-30T11:11:49.7881925Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-30T11:11:49.7881925Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-30T11:11:49.7891904Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "failed",
+			"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+			"clip_revision": "cliprev_55e903194b38f984",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_revision": "cliprev_55e903194b38f984",
+				"clip_start_seconds": 0,
+				"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "failed",
+					"features": {
+						"peak_rms_summary": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7896915Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"request_id": "mixboard_20261030T111149.789691500",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:49.7896915Z"
+							},
+							"updated_at": "2026-10-30T11:11:49.7896915Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"time_energy": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7896915Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-10-30T11:11:49.7896915Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"waveform_envelope": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7896915Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"reason": "clip_source_required_for_current_feature_bakers",
+								"request_id": "mixboard_20261030T111149.789691500",
+								"status": "blocked",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:49.7896915Z"
+							},
+							"updated_at": "2026-10-30T11:11:49.7896915Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:52.5406917Z"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:52.5406917Z"
+				},
+				"l3_deep": {
+					"status": "missing",
+					"features": {
+						"band_energy_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "band_energy_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "band_energy_summary",
+								"reason": "band_energy_summary_not_yet_requested",
+								"request_id": "mixboard_20261030T111149.789691500",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "band_energy_summary_not_yet_requested"
+						},
+						"loudness_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "loudness_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "loudness_summary",
+								"reason": "loudness_summary_not_yet_requested",
+								"request_id": "mixboard_20261030T111149.789691500",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "loudness_summary_not_yet_requested"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:49.7896915Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"feature_type": "spectral_field",
+								"reason": "clip_source_required_for_current_feature_bakers",
+								"request_id": "mixboard_20261030T111149.789691500",
+								"status": "blocked",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:49.7896915Z"
+							},
+							"updated_at": "2026-10-30T11:11:49.7896915Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"stereo_relation_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5406917Z",
+								"reason": "stereo_relation_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "stereo_relation_summary",
+								"reason": "stereo_relation_summary_not_yet_requested",
+								"request_id": "mixboard_20261030T111149.789691500",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:11:52.5406917Z",
+							"reason": "stereo_relation_summary_not_yet_requested"
+						}
+					},
+					"updated_at": "2026-10-30T11:11:52.5406917Z"
+				}
+			},
+			"updated_at": "2026-10-30T11:11:52.5406917Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-30T11:11:52.5406917Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-30T11:11:52.5413543Z"
+				}
+			]
+		},
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "failed",
+			"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+			"track_id": "1010",
+			"clip_revision": "cliprev_fe555ccf4cc8a540",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_revision": "cliprev_fe555ccf4cc8a540",
+				"clip_start_seconds": 0,
+				"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+				"track_id": "1010"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "failed",
+					"features": {
+						"peak_rms_summary": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5428585Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"request_id": "fs_seed_llm_route_g1_r3_1793358699",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:52.5428585Z"
+							},
+							"updated_at": "2026-10-30T11:11:52.5428585Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"time_energy": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5428585Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-10-30T11:11:52.5428585Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"waveform_envelope": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5428585Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"analyzer_revision": "agent_lightweight_o1",
+								"clip_revision": "cliprev_fe555ccf4cc8a540",
+								"project_id": "vitproj_3353fac8e4f542aa9ffb1bfbe4c55b29",
+								"reason": "clip_source_required_for_current_feature_bakers",
+								"request_id": "fs_seed_llm_route_g1_r3_1793358699",
+								"status": "blocked",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:52.5428585Z"
+							},
+							"updated_at": "2026-10-30T11:11:52.5428585Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						}
+					},
+					"updated_at": "2026-10-30T11:12:15.3297923Z"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-10-30T11:12:15.3297923Z"
+				},
+				"l3_deep": {
+					"status": "missing",
+					"features": {
+						"band_energy_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "band_energy_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "band_energy_summary",
+								"reason": "band_energy_summary_not_yet_requested",
+								"request_id": "fs_seed_llm_route_g1_r3_1793358699",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "band_energy_summary_not_yet_requested"
+						},
+						"loudness_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "loudness_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "loudness_summary",
+								"reason": "loudness_summary_not_yet_requested",
+								"request_id": "fs_seed_llm_route_g1_r3_1793358699",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "loudness_summary_not_yet_requested"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "failed",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:11:52.5428585Z",
+								"reason": "clip_source_required_for_current_feature_bakers"
+							},
+							"ref": {
+								"feature_type": "spectral_field",
+								"reason": "clip_source_required_for_current_feature_bakers",
+								"request_id": "fs_seed_llm_route_g1_r3_1793358699",
+								"status": "blocked",
+								"track_id": "1010",
+								"updated_at": "2026-10-30T11:11:52.5428585Z"
+							},
+							"updated_at": "2026-10-30T11:11:52.5428585Z",
+							"reason": "clip_source_required_for_current_feature_bakers"
+						},
+						"stereo_relation_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-30T11:12:15.3297923Z",
+								"reason": "stereo_relation_summary_not_yet_requested"
+							},
+							"ref": {
+								"feature_type": "stereo_relation_summary",
+								"reason": "stereo_relation_summary_not_yet_requested",
+								"request_id": "fs_seed_llm_route_g1_r3_1793358699",
+								"status": "missing",
+								"track_id": "1010"
+							},
+							"updated_at": "2026-10-30T11:12:15.3297923Z",
+							"reason": "stereo_relation_summary_not_yet_requested"
+						}
+					},
+					"updated_at": "2026-10-30T11:12:15.3297923Z"
+				}
+			},
+			"updated_at": "2026-10-30T11:12:15.3297923Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-30T11:12:15.3297923Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-30T11:12:15.3307922Z"
+				}
+			]
+		}
+	]
+}

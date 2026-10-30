@@ -1,0 +1,53 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261030_191120\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_m3c4lr1\coord\runs\M3-C4-AUTO-LLM-ROUTE-VERIFY-1\llmroute_20261030_2\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: automation LLM route telemetry capture: telemetry=D:\Vit_DAW_wt_m3c4lr1\coord\runs\M3-C4-AUTO-LLM-ROUTE-VERIFY-1\llmroute_20261030_2\logs\agent_llm_telemetry.jsonl prompt_render=D:\Vit_DAW_wt_m3c4lr1\coord\runs\M3-C4-AUTO-LLM-ROUTE-VERIFY-1\llmroute_20261030_2\logs\agent_prompt_render.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_m3c4lr1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_m3c4lr1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_m3c4lr1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_m3c4lr1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=2488 workdir=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_m3c4lr1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=2488
+ok: ZMQ SUB listening: 5556 pid=2488
+
+== Project state invoke
+project.state status=ok error=
+
+== automation LLM route verification (M3-C4-AUTO-LLM-ROUTE-VERIFY-1)
+ok: automation LLM route project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_m3c4lr1\coord\runs\M3-C4-AUTO-LLM-ROUTE-VERIFY-1\llmroute_20261030_2\default_project.xml
+[setup] ride track 1010 volume plugin 1011 (no external plugin, card group-2 premise)
+[group 1] {"phrase": "ËøôÊÆµËÆ©ÂÆÉË∂äÊù•Ë∂äÁ™ÅÂá∫‰∏ÄÁÇ?, "llm_samples": 3, "verdicts": ["no_route", "no_route", "no_route"], "successes": 0, "group_pass": false, "stop_loss": {"group": 1, "failure_type": "no_route", "consecutive": 3}, "lexicon_overflow": false, "choreo_pending_leg": null}
+[DONE] status=GUIDANCE_MISSING exit=2
+warn: automation LLM route verification hit stop condition 2 (system-prompt guidance not rendered on the chat face; deployment defect anchor): D:\Vit_DAW_wt_m3c4lr1\coord\runs\M3-C4-AUTO-LLM-ROUTE-VERIFY-1\llmroute_20261030_2\automation_llm_route_summary.json
+automation LLM route verification stop condition 2 (guidance missing) - see D:\Vit_DAW_wt_m3c4lr1\coord\runs\M3-C4-AUTO
+-LLM-ROUTE-VERIFY-1\llmroute_20261030_2\automation_llm_route_summary.json
+À˘‘⁄Œª÷√ D:\Vit_DAW_wt_m3c4lr1\scripts\dev_agent_smoke.ps1:8665 ◊÷∑˚: 9
++         throw ("automation LLM route verification stop condition 2 (g ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (automation LLM ...te_summary.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : automation LLM route verification stop condition 2 (guidance missing) - see D:\Vit_DAW_w 
+   t_m3c4lr1\coord\runs\M3-C4-AUTO-LLM-ROUTE-VERIFY-1\llmroute_20261030_2\automation_llm_route_summary.json
+ 
