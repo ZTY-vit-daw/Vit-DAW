@@ -3867,14 +3867,31 @@ func (l *MessageLoop) neutralFamilyAssemblyInput(state *runState, snapshotJSON s
 	}
 }
 
-// neutralFamilySystemSections 挂 bundle 层序段；L1 corrupt（embed 装载失败，
-// 理论不可达）回落单段骨架（内部再回落 legacy 模板），system 消息不缺席。
+// neutralFamilySystemSections 挂 bundle 层序段（M3-LLM-NEUTRAL-EMBED-1：
+// L1 域段之后追加 automation 路由指引段——220 停止条件 2 修复，同源同文
+// 见 neutral_automation_route.go）；L1 corrupt（embed 装载失败，理论不可达）
+// 回落单段骨架（内部再回落 legacy 模板）+ 同一指引段，system 消息不缺席。
 func neutralFamilySystemSections(bundle carriers.Bundle, state *runState) []promptruntime.Section {
+	route := neutralFamilyAutomationRouteSection()
 	if len(bundle.Sections) > 0 {
-		return bundle.Sections
+		// 指引段插在层序的 L1 域（ctx.layer.rules 及其子段）之后——纪律域
+		// 文本的层位语义，对齐 carriers semantic_topology_convention 先例；
+		// bundle 无 L1 域段时（异常形态）插在最前，fail-open 不缺席。
+		insertAt := 0
+		for index, section := range bundle.Sections {
+			if section.ID == carriers.LayerRules || strings.HasPrefix(section.ID, carriers.LayerRules+".") {
+				insertAt = index + 1
+			}
+		}
+		sections := make([]promptruntime.Section, 0, len(bundle.Sections)+1)
+		sections = append(sections, bundle.Sections[:insertAt]...)
+		sections = append(sections, route)
+		sections = append(sections, bundle.Sections[insertAt:]...)
+		return sections
 	}
 	return []promptruntime.Section{
 		promptruntime.TextSection(promptruntime.SectionStatic, "message_loop_neutral_family_selection", "", messageLoopNeutralFamilySystemSkeleton(state), true),
+		route,
 	}
 }
 
