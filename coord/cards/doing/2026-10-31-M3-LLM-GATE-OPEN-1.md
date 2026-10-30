@@ -46,3 +46,16 @@
 - 文件域核对：228 域=VspKernelReference.cpp+capabilitycontext/free_state_observation.go——本卡域=agentloop+ruleset 骨架 twin（embed resource+legacy 常量，卡面标的 1 授权的骨架改写物理载体）+测试+scripts，零相交。
 - 真栈错峰：当前栈空闲（登记面最新=222 于 10-30 21:46 释放，其后无占用；开发面无真栈需求）。重验腿等 228 合入后执行，天然错峰；若届时 228 在跑须再核登记面。
 - §12 纪律照旧；LLM 轮次计费回执披露（重验腿）。
+
+## 回执（2026-10-30 23:0x，开发面完成+重验腿执行+闸 2 深层锚点上交）
+
+- 实现 commit：port/m3-llm-gate-open-1 `4a439588`（闸 1 五点+闸 2 headroom）→ `0369fe75`（merge 228 port 分支=重验前置）→ `8c06c815`（真栈登记）→ 本批（工件+释放+回执），已推 origin。
+- **闸 1 开发面兑现**：五点（准入 union 四入口/显示过滤器+目录四行/needs_observation 校验放行+同轮单 mutation 限/执行守卫贯穿式——read-only barrier 等通用安全语义全保持/骨架 twin 治理门语义——字节级 parity 锁定在场）。chat 侧 ccb-only 授予不动；词表快道零触碰；诊断专用轮不开放。
+- **闸 2**：`noteFreeStateAutomationEngagement`（命中即 +4 turn，settle+4 先例）——重验腿证明**触发器过晚**（见下），agentloop 域内无更早合法触发面（意图预判=词表禁区）。
+- **闸 3 定案**：决策轮内全链可达（needs_confirmation 暂停=治理门→ResumeAfterConfirmation→写入→读回→终态），settle 面无需补轮；零裸写治理链单测端到端钉死（模型 set_points→executor 首见 Confirmed=false→确认恢复才 Confirmed=true）。
+- **测试**：本卡十面+agent 全量 96 包 ok+chat/harness/tools/ruleset/carriers/promptruntime 全绿；222 同源锁定测试未触仍绿。
+- **重验腿**（llmroute3_20261031_1，ps1 exit 0，220 断言体 v2 原口径未改，228 前置经 merge port 分支+kernel f9e3da0a 亲核只读复用）：**部署面亲证**——render 8/8 含六工具 Allowed tools 行+治理门骨架语义（system 15,468→17,045B），222 的指引/骨架同场冲突消除。**组 1 三连 no_route 止损（新形态）**：r1=1 模型轮即 limit_reached→「继续」→观察边界确定性 settle；r2/r3=前台 1 轮+自动续跑后台轮后「继续」被吞；工具面零 automation.*（模型未达执行相）。**根因锚点=`chat/audio_closure_controller.go:438-447` audioClosureMessageLoopBudget：closure 相位 slice MaxTurns 压 1-2+异步续跑泄流+观察边界 settle——闸 2 深层真身（222 的「MaxTurns 8/slice」描述在此修正），chat 域越界**。定性=停止条件 2 形态（接线需动 chat 核心编排→锚点上交扩域裁定）；**非**停止条件 3（非模型能力面：三前提之二 render 亲证在场，模型行为合规 catalog-first，从未获得写机会轮）；非闸 1 布线缺陷。本 run 一次到位无迭代轮（§8：同版本同断点三连同型不重跑）。
+- **LLM 计费披露**：11 调用 / 124,621 in / 11,639 out（+29,696 cache read），deepseek-flash，逐调用在 run/logs/agent_llm_telemetry.jsonl。
+- 端测覆盖边界：真栈覆盖=HTTP 面真实 LLM 轮次+render 取证+内核基线；不覆盖=轮结构修复后的组 1 通过形态/组 2-3/choreo pending 腿/set_points 确认链真栈端到端（单测级已验）/webui 渲染面。
+- 真栈占用：登记 8c06c815（22:43，先于启动，占用前全零亲核）/释放 22:50 同批；拆栈 pid 路径亲核+复核全零。工件：coord/runs/M3-LLM-GATE-OPEN-1/{RESULTS.md,llmroute3_20261031_1}。
+- **卡状态=doing 保留**：闸 1 面（主闸开放）已完成待验收；重验腿的「组 1 no_route 应消失」未达成——残差=闸 2 深层（chat 域轮结构），按停止条件上交，建议处置三选：①扩域裁定另开修复卡（closure 轮预算与 automation 诉求配合——候选方向在 RESULTS §四）；②本卡按「闸 1 交付+闸 2 锚点上交」验收合入，重验通过判定移后续卡；③返工。

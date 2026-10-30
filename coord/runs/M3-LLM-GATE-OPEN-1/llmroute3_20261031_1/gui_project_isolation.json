@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD 8c06c815dc499d5def1ff48cd0d89d9faa37676c:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-10-30T22:44:08.8127328+08:00",
+    "marker_path":  "D:\\Vit_DAW_wt_227\\coord\\runs\\M3-LLM-GATE-OPEN-1\\llmroute3_20261031_1\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_227\\coord\\runs\\M3-LLM-GATE-OPEN-1\\llmroute3_20261031_1\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}
