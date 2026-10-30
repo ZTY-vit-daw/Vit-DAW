@@ -136,6 +136,13 @@ param(
     # LLM participation). Needs the agent HTTP face on the stack
     # (-StartKernel -RestartAgent; no UI).
     [switch]$ChatAuthStampSmoke,
+    # M3-TRACK-PLUGIN-DISCLOSE-1（228）：观察面轨级插件披露真栈腿（断言体在
+    # scripts/track_plugin_disclose_smoke.py，内核 VSP 快照面+agent CCB
+    # project.structure 面；零 LLM 只读）。腿：内核紧凑快照轨行 plugins 数组
+    # 在场+Volume&Pan 条目 plugin_id 可见+条目仅 id/name/type 最小集；agent
+    # 视图轨行 plugin_chain_summary 披露+全量 plugins 面不泄漏（bounded
+    # disclosure 红线）。需要 -StartKernel -RestartAgent 在栈（不启 UI）。
+    [switch]$TrackPluginDiscloseSmoke,
     # KERNEL-SENDROUTE-IMPL-1：send/return 轨间路由命令面烟测（设计件
     # MIX-SENDRETURN-DESIGN-1 §5 场景 1 的端侧版；断言体在
     # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连）。腿：
@@ -1288,7 +1295,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -8810,6 +8817,45 @@ if ($ChatAuthStampSmoke) {
         throw ("chat auth stamp smoke phase 'after' passed but summary artifact missing")
     }
     Write-Ok ("chat auth stamp smoke passed (both phases; summaries: " + $authStampSummaryPath + " + " + $authStampSummaryPath.Replace(".json", "_after.json") + ")")
+}
+
+if ($TrackPluginDiscloseSmoke) {
+    Write-Step "track plugin disclose smoke (M3-TRACK-PLUGIN-DISCLOSE-1)"
+    $trackPluginDiscloseScript = Join-Path $RepoRoot "scripts\track_plugin_disclose_smoke.py"
+    if (-not (Test-Path -LiteralPath $trackPluginDiscloseScript)) {
+        throw ("track plugin disclose smoke script missing: " + $trackPluginDiscloseScript)
+    }
+    $trackPluginDiscloseArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($trackPluginDiscloseArtifactsDir)) {
+        $trackPluginDiscloseArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\track_plugin_disclose_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $trackPluginDiscloseArtifactsDir)) {
+        New-Item -ItemType Directory -Path $trackPluginDiscloseArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg comes from the shared GUI-leg isolation
+    # block above ($TrackPluginDiscloseSmoke is in its condition list): the
+    # read-only observation must not touch the deployed workspace default
+    # project (217-incident family; read-only leg, isolation is belt and
+    # braces).
+    $trackPluginDisclosePriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($trackPluginDisclosePriorProjectXml)) {
+        Write-Ok ("track plugin disclose project isolation: VIT_PROJECT_XML=" + $trackPluginDisclosePriorProjectXml)
+    }
+    else {
+        throw "track plugin disclose smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $trackPluginDiscloseSummaryPath = Join-Path $trackPluginDiscloseArtifactsDir "track_plugin_disclose_summary.json"
+    $trackPluginDiscloseConsolePath = Join-Path $trackPluginDiscloseArtifactsDir "track_plugin_disclose_console.txt"
+    & python $trackPluginDiscloseScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --output $trackPluginDiscloseSummaryPath > $trackPluginDiscloseConsolePath 2>&1
+    $trackPluginDiscloseExit = $LASTEXITCODE
+    Get-Content -LiteralPath $trackPluginDiscloseConsolePath | ForEach-Object { Write-Host $_ }
+    if ($trackPluginDiscloseExit -ne 0) {
+        throw ("track plugin disclose smoke failed with exit code $trackPluginDiscloseExit (console: " + $trackPluginDiscloseConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $trackPluginDiscloseSummaryPath)) {
+        throw "track plugin disclose smoke passed but summary artifact missing"
+    }
+    Write-Ok ("track plugin disclose smoke passed (summary: " + $trackPluginDiscloseSummaryPath + ")")
 }
 
 if ($PcaReverbPromotionSmoke) {

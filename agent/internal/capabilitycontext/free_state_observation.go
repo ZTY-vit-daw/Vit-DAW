@@ -1002,7 +1002,14 @@ func compactProjectTracksSummaryForStructure(row map[string]any) map[string]any 
 		if len(track) == 0 {
 			continue
 		}
-		compactTracks = append(compactTracks, selectFields(track, "track_id", "name", "track_name", "role_guess", "active_state", "source_status"))
+		// M3-TRACK-PLUGIN-DISCLOSE-1 (2026-10-31): release the track-level
+		// plugin chain into the structure view so the free-state model can
+		// see track plugins (including built-ins like Volume & Pan) and their
+		// plugin_id. plugin_chain_summary is the mixboard compaction — per
+		// entry slot/plugin_id/name/type/enabled/role_guess, no parameters —
+		// so the disclosure stays minimal on both sides of the kernel
+		// whitelist. A loose scalar plugin_id on the row stays excluded.
+		compactTracks = append(compactTracks, selectFields(track, "track_id", "name", "track_name", "role_guess", "active_state", "source_status", "plugin_count", "plugin_chain_summary"))
 	}
 	if len(compactTracks) > 0 {
 		out["tracks"] = compactTracks
