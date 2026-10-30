@@ -100,6 +100,15 @@ param(
     # ZMQ setup 面；零 LLM 参与的确定性链）。腿需 agent HTTP 面在栈
     # （-StartKernel -RestartAgent 后可用；不启 UI）。
     [switch]$AutomationIntentChainSmoke,
+    # FE-INTERACTION-CARD-KIT-1：声明式交互卡按钮点击链烟测（interaction_
+    # card.v1 契约渲染+按钮回传+治理写入生效；断言体在
+    # scripts/automation_card_button_smoke.py，agent /agent/chat+
+    # /agent/interaction/respond 面+内核 ZMQ 曲线核对面+真实浏览器（webui
+    # vite dev 代理到真实 agent HTTP 面，Edge channel headless）。B1 浏览器
+    # 按钮=主断言（编辑值随 action_id 回传并写入生效）+R2 话术「确认写入」
+    # 对照轮（并存）+R3 responder cancel 零写入。零 LLM 参与的确定性链。
+    # 腿需 agent HTTP 面在栈（-StartKernel -RestartAgent 后可用；不启 UI）。
+    [switch]$AutomationCardButtonSmoke,
     # M3-C4-AUTO-LLM-ROUTE-VERIFY-1: LLM-turn automation routing verification.
     # Vocabulary-MISSING variant phrases x real LLM chat turns (billed user
     # engine config): does the 217 system-prompt guidance steer the model to
@@ -1265,7 +1274,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationLLMRouteSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -8617,6 +8626,50 @@ if ($AutomationIntentChainSmoke) {
         throw ("automation intent chain smoke passed but summary artifact missing: " + $autoIntentSummaryPath)
     }
     Write-Ok ("automation intent chain smoke passed (agent chat face; summary: " + $autoIntentSummaryPath + ")")
+}
+
+if ($AutomationCardButtonSmoke) {
+    Write-Step "automation card button-click chain smoke (FE-INTERACTION-CARD-KIT-1)"
+    $cardButtonScript = Join-Path $RepoRoot "scripts\automation_card_button_smoke.py"
+    if (-not (Test-Path -LiteralPath $cardButtonScript)) {
+        throw ("automation card button smoke script missing: " + $cardButtonScript)
+    }
+    $cardButtonArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($cardButtonArtifactsDir)) {
+        $cardButtonArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\automation_card_button_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $cardButtonArtifactsDir)) {
+        New-Item -ItemType Directory -Path $cardButtonArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($AutomationCardButtonSmoke is in
+    # its condition list): the setup leg's kernel-side new_project rewrites
+    # the workspace default project, so VIT_PROJECT_XML must point at a
+    # git-clean run-dir copy (217 incident lesson, same-family fix).
+    $cardButtonPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($cardButtonPriorProjectXml)) {
+        Write-Ok ("automation card button project isolation: VIT_PROJECT_XML=" + $cardButtonPriorProjectXml)
+    }
+    else {
+        throw "automation card button smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $cardButtonWebuiDir = Join-Path $RepoRoot "agent\webui"
+    if (-not (Test-Path -LiteralPath (Join-Path $cardButtonWebuiDir "package.json"))) {
+        throw ("automation card button smoke webui dir missing package.json: " + $cardButtonWebuiDir)
+    }
+    $cardButtonSummaryPath = Join-Path $cardButtonArtifactsDir "automation_card_button_summary.json"
+    $cardButtonConsolePath = Join-Path $cardButtonArtifactsDir "automation_card_button_console.txt"
+    $cardButtonProjectPath = Join-Path $cardButtonArtifactsDir "automation_card_button_project.vit"
+    & python $cardButtonScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --webui-dir $cardButtonWebuiDir --project-path $cardButtonProjectPath --output $cardButtonSummaryPath > $cardButtonConsolePath 2>&1
+    $cardButtonExit = $LASTEXITCODE
+    Get-Content -LiteralPath $cardButtonConsolePath | ForEach-Object { Write-Host $_ }
+    if ($cardButtonExit -ne 0) {
+        throw ("automation card button smoke failed with exit code $cardButtonExit (console: " + $cardButtonConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $cardButtonSummaryPath)) {
+        throw ("automation card button smoke passed but summary artifact missing: " + $cardButtonSummaryPath)
+    }
+    Write-Ok ("automation card button smoke passed (browser button-click + phrasing control; summary: " + $cardButtonSummaryPath + ")")
 }
 
 if ($AutomationLLMRouteSmoke) {
