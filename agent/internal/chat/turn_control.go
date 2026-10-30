@@ -61,6 +61,23 @@ func (s *Server) authorityModeSnapshot() string {
 	return normalizeAuthorityModeOrDefault(s.authorityMode)
 }
 
+// bindChatAuthorityMode resolves the authority mode one chat turn runs under
+// and binds it onto the request context before any deterministic vocabulary
+// router sees the message (M3-CHAT-AUTH-STAMP-1).
+//
+// Same semantics and same source as the invoke path (validateInvokeAuthority +
+// stampInvokeAuthorityMode): the server's own authority state — set only
+// through the /agent/authority control — is the sole source of truth, and this
+// binding only reads it. A caller's assertion (the chat body field, then the
+// context keys) may only restate a mode the server already granted: a
+// full-access claim the user never selected through the authority control is
+// rejected here rather than downstream — a request body can never grant,
+// revoke, or change the server state. A caller that asserts no mode gets the
+// server's own state stamped onto the context (authorityModeSnapshot +
+// authority_mode_explicit, mirroring stampInvokeAuthorityMode), so the
+// deterministic chat chains (the section-choreography full-access bridge is
+// the first consumer) see the real authority state even when no transport
+// restates it.
 func (s *Server) bindChatAuthorityMode(requested string, ctx map[string]any) (map[string]any, error) {
 	if s == nil {
 		return ctx, nil
@@ -68,24 +85,20 @@ func (s *Server) bindChatAuthorityMode(requested string, ctx map[string]any) (ma
 	if strings.TrimSpace(requested) == "" {
 		requested = firstStringFromMap(ctx, "authority_mode", "permission_mode")
 	}
-	current := s.authorityModeSnapshot()
-	if strings.TrimSpace(requested) == "" {
-		requested = current
-	}
-	mode, err := normalizeAuthorityMode(requested)
-	if err != nil {
-		return ctx, err
-	}
-	if goal, blocked := s.authorityModeChangeBlocked(); blocked && mode != current {
-		return ctx, fmt.Errorf("authority mode is locked while goal %s is %s", goal.GoalID, goal.Status)
+	mode := s.authorityModeSnapshot()
+	if strings.TrimSpace(requested) != "" {
+		claimed, err := normalizeAuthorityMode(requested)
+		if err != nil {
+			return ctx, err
+		}
+		if claimed == authorityModeFull && mode != authorityModeFull {
+			return ctx, fmt.Errorf("full_project_access must be selected through the authority control before an agent turn runs in it")
+		}
+		mode = claimed
 	}
 	if loop, ok := s.freeStateLoop(firstStringFromMap(ctx, "conversation_id")); ok && freeStateLoopActive(loop) && loop.AuthorityMode != "" && experimentAuthorityMode(mode) != loop.AuthorityMode {
 		return ctx, fmt.Errorf("authority mode is immutable for the active Turn")
 	}
-	s.mu.Lock()
-	s.authorityMode = mode
-	s.authorityModeExplicit = true
-	s.mu.Unlock()
 	return mergeContext(ctx, map[string]any{"authority_mode": mode, "authority_mode_explicit": true}), nil
 }
 

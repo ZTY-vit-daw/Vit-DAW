@@ -113,6 +113,20 @@ param(
     # fold to follow-up cards, zero production change). Needs the agent HTTP
     # face on the stack (-StartKernel -RestartAgent; no UI).
     [switch]$AutomationLLMRouteSmoke,
+    # M3-CHAT-AUTH-STAMP-1 (223): chat-chain authority stamp smoke. Two-phase
+    # leg with a REAL agent process restart in between (orchestrated here):
+    # phase "before" switches full access through /agent/authority (durable
+    # persist asserted) and proves a bare choreography phrase (no
+    # authority_mode anywhere in the request) direct-executes with no
+    # confirmation card; phase "after" proves the durable restore still
+    # direct-executes (span-candidate adoption face), manual_confirmation
+    # restores the confirmation card with zero writes, and a forged
+    # authority_mode=full_project_access chat body is rejected (409) without
+    # touching the server state. Assertion body in
+    # scripts/chat_auth_stamp_smoke.py (agent HTTP + kernel ZMQ faces; zero
+    # LLM participation). Needs the agent HTTP face on the stack
+    # (-StartKernel -RestartAgent; no UI).
+    [switch]$ChatAuthStampSmoke,
     # KERNEL-SENDROUTE-IMPL-1：send/return 轨间路由命令面烟测（设计件
     # MIX-SENDRETURN-DESIGN-1 §5 场景 1 的端侧版；断言体在
     # scripts/sendroute_kernel_smoke.py，内核 ZMQ 命令面直连）。腿：
@@ -1265,7 +1279,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationLLMRouteSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -8671,6 +8685,78 @@ if ($AutomationLLMRouteSmoke) {
     else {
         throw ("automation LLM route verification failed with exit code $llmRouteExit (console: " + $llmRouteConsolePath + ")")
     }
+}
+
+if ($ChatAuthStampSmoke) {
+    Write-Step "chat-chain authority stamp smoke (M3-CHAT-AUTH-STAMP-1)"
+    $authStampScript = Join-Path $RepoRoot "scripts\chat_auth_stamp_smoke.py"
+    if (-not (Test-Path -LiteralPath $authStampScript)) {
+        throw ("chat auth stamp smoke script missing: " + $authStampScript)
+    }
+    $authStampArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($authStampArtifactsDir)) {
+        $authStampArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\chat_auth_stamp_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $authStampArtifactsDir)) {
+        New-Item -ItemType Directory -Path $authStampArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($ChatAuthStampSmoke is in its
+    # condition list): the setup leg's kernel-side new_project rewrites the
+    # workspace default project, so VIT_PROJECT_XML must point at a git-clean
+    # run-dir copy (217 incident lesson, same family as 218/220).
+    $authStampPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($authStampPriorProjectXml)) {
+        Write-Ok ("chat auth stamp project isolation: VIT_PROJECT_XML=" + $authStampPriorProjectXml)
+    }
+    else {
+        throw "chat auth stamp smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $authStampSummaryPath = Join-Path $authStampArtifactsDir "chat_auth_stamp_summary.json"
+    $authStampConsolePath = Join-Path $authStampArtifactsDir "chat_auth_stamp_console.txt"
+    $authStampProjectPath = Join-Path $authStampArtifactsDir "chat_auth_stamp_project.vit"
+
+    # ---- phase 1: switch full + bare-phrase direct execution ---------------
+    & python $authStampScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --phase before --project-path $authStampProjectPath --output $authStampSummaryPath > $authStampConsolePath 2>&1
+    $authStampPhase1Exit = $LASTEXITCODE
+    Get-Content -LiteralPath $authStampConsolePath | ForEach-Object { Write-Host $_ }
+    if ($authStampPhase1Exit -ne 0) {
+        throw ("chat auth stamp smoke phase 'before' failed with exit code $authStampPhase1Exit (console: " + $authStampConsolePath + ")")
+    }
+    Write-Ok "chat auth stamp phase 'before' passed (full-access direct execution, durable switch persisted)"
+
+    # ---- REAL agent restart between phases (the durable-restore leg) -------
+    # Preserve the phase-1 agent log before the restart reopens agent_last.log.
+    if (-not [string]::IsNullOrWhiteSpace($AgentLog) -and (Test-Path -LiteralPath $AgentLog)) {
+        Copy-Item -LiteralPath $AgentLog -Destination (Join-Path $authStampArtifactsDir "agent_phase_before.log") -Force
+    }
+    Stop-AgentForPaths -AgentPaths @($AgentExe) -TimeoutSeconds $WaitSeconds
+    $authStampListener = Get-TcpListener -Port $httpPort
+    if ($null -ne $authStampListener) {
+        throw ("chat auth stamp restart: agent port " + $httpPort + " still listening after stop; pid=" + $authStampListener.OwningProcess)
+    }
+    $authStampAgentArgs = @(
+        "-http", $AgentHttpAddr,
+        "-last-log-path", $AgentLog,
+        "-keep-last-log-lines", "800"
+    )
+    Start-Process -FilePath $AgentExe -ArgumentList $authStampAgentArgs -WorkingDirectory $AgentDir -WindowStyle Hidden | Out-Null
+    if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds $WaitSeconds)) {
+        throw "chat auth stamp restart: agent HTTP did not become ready at " + $AgentHttp
+    }
+    Write-Ok "chat auth stamp: agent restarted for the durable-restore leg"
+
+    # ---- phase 2: durable restore + span face + manual card + forged 409 ---
+    & python $authStampScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --phase after --project-path $authStampProjectPath --baseline-summary $authStampSummaryPath --output ($authStampSummaryPath.Replace(".json", "_after.json")) > ($authStampConsolePath.Replace(".txt", "_after.txt")) 2>&1
+    $authStampPhase2Exit = $LASTEXITCODE
+    Get-Content -LiteralPath ($authStampConsolePath.Replace(".txt", "_after.txt")) | ForEach-Object { Write-Host $_ }
+    if ($authStampPhase2Exit -ne 0) {
+        throw ("chat auth stamp smoke phase 'after' failed with exit code $authStampPhase2Exit (console: " + $authStampConsolePath.Replace(".txt", "_after.txt") + ")")
+    }
+    if (-not (Test-Path -LiteralPath ($authStampSummaryPath.Replace(".json", "_after.json")))) {
+        throw ("chat auth stamp smoke phase 'after' passed but summary artifact missing")
+    }
+    Write-Ok ("chat auth stamp smoke passed (both phases; summaries: " + $authStampSummaryPath + " + " + $authStampSummaryPath.Replace(".json", "_after.json") + ")")
 }
 
 if ($PcaReverbPromotionSmoke) {
