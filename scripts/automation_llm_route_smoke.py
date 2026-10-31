@@ -12,8 +12,16 @@ tools.
 Stack shape: same as automation_intent_chain_smoke.py (218) — kernel + agent
 berth via dev_agent_smoke.ps1 -StartKernel -RestartAgent, no UI, isolated
 project (VIT_PROJECT_XML). Setup uses the kernel ZMQ face (new project + two
-bare audio tracks with the built-in Volume & Pan plugin, NO external plugin
+audio tracks with the built-in Volume & Pan plugin, NO external plugin
 loaded — the card's group-2 premise "space category without a plugin track").
+Since card 230 (option A) each track carries a deterministic generated audio
+clip (see write_deterministic_stereo_wav) so the derived observation layer has
+real source evidence: the 229 root cause was that bare tracks left the
+acoustic package missing and the model correctly stopped at the FS evidence
+admission gate (capability_blocked) on every round. Setup verifies the three
+evidence links before any LLM round is spent — clip present in kernel state ->
+track-level CCB observation returns facts (bundle.views, not omissions) ->
+acoustic package status excerpted from .vit_derived into the rounds dir.
 Every round drives the real agent /agent/chat HTTP face with a REAL LLM turn
 (the user's ~/.vit/config.json engine; zero deterministic takeover expected
 because none of the three phrases arms the vocabulary gate — prechecked by
@@ -38,6 +46,12 @@ Round verdict vocabulary (card §8 failure classes):
                        recorded as invalid_sample and re-sampled within the
                        15-round LLM cap since it costs no LLM turn)
   no_route           - plain-text advice/question, tools never touched
+  capability_blocked - model honestly declared the FS evidence admission gate
+                       cannot be satisfied on the current observation
+                       evidence (no fabricated write, no detour); its own
+                       failure class since card 230 (option C) — 229
+                       mis-filed these declarations as no_route because the
+                       boundary lexicon never matched the declaration wording
   wrong_tool         - detoured through a non-automation mutation tool
   confirm_broken     - confirmation chain failed (write without confirmation,
                        or a pending confirmation that cannot be settled)
@@ -65,11 +79,14 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
+import struct
 import sys
 import time
 import urllib.error
 import urllib.request
+import wave
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -84,6 +101,20 @@ CHAT_TIMEOUT_SEC = 300.0          # one LLM turn with tool loops can be slow
 FOLLOWUP_MAX = 3                  # extra chat calls inside one round
 CONFIRM_PHRASE = "确认写入"
 REGION_FOLLOWUP = "0 到 30 秒"
+
+# Deterministic clip fixture (card 230 option A): self-contained, generated
+# into the run artifacts dir, never the repo sample projects (§10).
+CLIP_WAV_NAME = "automation_llm_route_clip.wav"
+CLIP_SAMPLE_RATE = 48000
+CLIP_DURATION_SECONDS = 6.0
+# Evidence-link polling window: the import bake (waveform envelope) and the
+# observation background fill are asynchronous; 229-grade fixtures settle in
+# seconds, the window only bounds the wait.
+ACOUSTIC_READY_TIMEOUT_SEC = 240.0
+ACOUSTIC_READY_POLL_INTERVAL_SEC = 5.0
+# Async-continuation receipt grace: after a queued-continuation reply the
+# free-state loop receipt may still be settling when the reply arrives.
+CAPABILITY_RECEIPT_GRACE_SEC = 15.0
 
 GROUP_PHRASES = {
     1: "这段让它越来越突出一点",
@@ -217,6 +248,95 @@ def kernel_clear_curve(kernel_zmq: str, plugin_id: str, param_id: str) -> None:
             f"kernel automation.clear_region failed: {json.dumps(reply, ensure_ascii=False)[:500]}")
 
 
+# ---- deterministic clip fixture (card 230 option A) --------------------------
+
+def write_deterministic_stereo_wav(path: Path) -> None:
+    """48 kHz / 16-bit stereo, fixed 6.0 s, no randomness: a 220 Hz base tone
+    plus a rising high band (1760 Hz left / 1320 Hz right) under a rising
+    envelope, so band-dynamics, level-trend and stereo observations all have
+    real content to read. Pure stdlib; the file lives in the run artifacts
+    dir only."""
+    n_frames = int(CLIP_SAMPLE_RATE * CLIP_DURATION_SECONDS)
+    frames = bytearray()
+    for i in range(n_frames):
+        t = i / CLIP_SAMPLE_RATE
+        envelope = 0.25 + 0.55 * (t / CLIP_DURATION_SECONDS)
+        left = envelope * (0.5 * math.sin(2 * math.pi * 220.0 * t) + 0.3 * math.sin(2 * math.pi * 1760.0 * t))
+        right = envelope * (0.45 * math.sin(2 * math.pi * 220.0 * t) + 0.35 * math.sin(2 * math.pi * 1320.0 * t))
+        frames += struct.pack("<hh",
+                              int(max(-1.0, min(1.0, left)) * 32000),
+                              int(max(-1.0, min(1.0, right)) * 32000))
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(2)
+        handle.setsampwidth(2)
+        handle.setframerate(CLIP_SAMPLE_RATE)
+        handle.writeframes(bytes(frames))
+
+
+def agent_invoke(base_url: str, tool: str, args: Dict[str, Any], timeout: float) -> Dict[str, Any]:
+    """Deterministic read-only agent tool call (no LLM turn): the same
+    /agent/invoke face the b4/CCB smokes use for fixtures."""
+    return post_json(base_url, "/agent/invoke", {
+        "tool": tool, "args": args,
+        "source": "automation_llm_route_smoke.setup", "confirmed": False,
+    }, timeout)
+
+
+def track_clip_count(state: Dict[str, Any], track_id: str) -> int:
+    tracks = state.get("tracks") if isinstance(state.get("tracks"), list) else []
+    for raw_track in tracks:
+        if not isinstance(raw_track, dict):
+            continue
+        candidate = str(raw_track.get("track_id") or raw_track.get("id") or raw_track.get("item_id") or "").strip()
+        if candidate != track_id:
+            continue
+        clips = raw_track.get("clips")
+        return len(clips) if isinstance(clips, list) else 0
+    return 0
+
+
+def request_track_observation_bundle(agent_http: str, track_id: str, timeout: float) -> Dict[str, Any]:
+    """Track-level CCB observation over the same face the model uses. Returns
+    the raw bundle map (status/bundle shape follows ccb_observation_bundle.v1;
+    /agent/invoke wraps the tool result under "result", as in the b4/CCB
+    smokes)."""
+    response = agent_invoke(agent_http, "ccb.observation_request", {
+        "request_id": f"setup-evidence-{int(time.time())}",
+        "view_ids": ["track.basic_energy"],
+        "target_kind": "track",
+        "target_id": track_id,
+        "max_disclosure_bytes": 8192,
+    }, timeout)
+    result = response.get("result") if isinstance(response.get("result"), dict) else response
+    bundle = result.get("bundle")
+    require(isinstance(bundle, dict), f"ccb.observation_request returned no bundle: {json.dumps(response, ensure_ascii=False)[:500]}")
+    return bundle
+
+
+def wait_track_observation_facts(agent_http: str, track_id: str,
+                                 timeout_sec: float = ACOUSTIC_READY_TIMEOUT_SEC) -> Dict[str, Any]:
+    """Evidence link 2+3: poll the track-level observation until it returns
+    facts (view present in bundle.views) instead of a source-evidence
+    omission. The first request may land while the import bake is still
+    running; each re-request re-reads the acoustic package read-first chain
+    and picks up the settled feature snapshot."""
+    deadline = time.time() + timeout_sec
+    attempts = 0
+    last_bundle: Dict[str, Any] = {}
+    while time.time() < deadline:
+        attempts += 1
+        last_bundle = request_track_observation_bundle(agent_http, track_id, 60.0)
+        views = last_bundle.get("views") if isinstance(last_bundle.get("views"), dict) else {}
+        if "track.basic_energy" in views:
+            return {"attempts": attempts, "bundle": last_bundle, "view": views["track.basic_energy"]}
+        time.sleep(ACOUSTIC_READY_POLL_INTERVAL_SEC)
+    omissions = last_bundle.get("omissions") if isinstance(last_bundle.get("omissions"), dict) else {}
+    require(False, "setup evidence link failed: track.basic_energy never returned facts "
+                   f"(attempts={attempts}, omissions={json.dumps(omissions, ensure_ascii=False)[:400]}) — "
+                   "clip present but observation still missing means an observation-pipeline defect "
+                   "(card 230 stop condition 2, escalate)")
+
+
 # ---- response classification ------------------------------------------------
 
 def response_text(resp: Dict[str, Any]) -> str:
@@ -302,6 +422,49 @@ def looks_boundary(text: str) -> bool:
                 or re.search(r"(插件|效果器).{0,16}(没有|未|不在|不存在)", text))
 
 
+def looks_capability_blocked(resp: Dict[str, Any], text: str) -> bool:
+    """Card 230 option C classification ruling: an honest capability_blocked
+    declaration (the model found the route but the FS evidence admission gate
+    cannot be satisfied on the current observation evidence) is its own
+    failure class. It is NOT no_route (the route was found) and NOT
+    boundary_ok (that lexicon covers plugin/space scope misses only — the
+    existing four failure classes and boundary semantics are untouched).
+    Structured signal first: the chat face reports stop_reason
+    capability_blocked directly (229 r1); declaration wording second — the
+    wording patterns come from the 229 r1/r3 receipts on disk."""
+    if str(resp.get("stop_reason") or "") == "capability_blocked":
+        return True
+    if re.search(r"能力边界|capability[_ \-]blocked", text, re.IGNORECASE):
+        return True
+    return bool(re.search(r"无法确认.{0,16}候选|观察(数据|证据).{0,12}(缺失|不可用)|需要先恢复.{0,16}(观察|电平|频段)", text))
+
+
+def runtime_state_capability_blocked(project_dir: Path, conversation: str) -> Optional[str]:
+    """Fallback structural signal for the async-continuation form (229 r2/r3):
+    the chat reply only says the task is queued while the continuation later
+    settles the final free-state decision into the project's agent runtime
+    state. Reads the loop receipt for this conversation; returns the receipt
+    summary when the final decision is capability_blocked."""
+    for candidate in project_dir.glob(".vit_history/**/agent_runtime_state.json"):
+        try:
+            data = json.loads(candidate.read_text(encoding="utf-8", errors="replace"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        loops = data.get("free_state_reasoning_loops")
+        if not isinstance(loops, dict):
+            continue
+        for key, entries in loops.items():
+            if not isinstance(entries, list) or conversation not in str(key):
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                decision = entry.get("latest_decision")
+                if isinstance(decision, dict) and str(decision.get("status", "")) == "capability_blocked":
+                    return str(decision.get("summary") or "")[:300]
+    return None
+
+
 def mentions_automation_tools(blob: str) -> bool:
     return ("automation.set_points" in blob or "automation_set_points" in blob
             or "automation.get_curve" in blob or "automation.get_plugin_parameters" in blob
@@ -332,7 +495,8 @@ def looks_env_broken(resp: Dict[str, Any]) -> Optional[str]:
 def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
               phrase: str, chat_context: Dict[str, Any],
               ride_plugin_id: str, rounds_dir: Path,
-              agent_log: Optional[Path] = None) -> Dict[str, Any]:
+              agent_log: Optional[Path] = None,
+              project_dir: Optional[Path] = None) -> Dict[str, Any]:
     """One LLM round: phrase -> classify -> followups -> verdict -> cleanup.
 
     Returns the round record (phrase, exchanges, verdict, kernel evidence,
@@ -456,12 +620,31 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
             }
             break
 
+        if looks_capability_blocked(resp, text):
+            record["verdict"] = "capability_blocked"
+            record["verdict_detail"] = (f"honest capability-blocked declaration "
+                                        f"(stop_reason={resp.get('stop_reason')!r}): {text[:200]!r}")
+            break
+
         if (looks_asking(text) or looks_clarification_pause(resp)) and followups < FOLLOWUP_MAX:
             resp = send(REGION_FOLLOWUP)
             followups += 1
             continue
 
         if is_limit_reached(resp):
+            # async-continuation form (229 r2/r3): the reply says the task is
+            # queued; the continuation settles the final free-state decision
+            # into the project's agent runtime state. Give the receipt one
+            # grace re-read before falling back to the plain no_route filing.
+            if project_dir is not None:
+                receipt = runtime_state_capability_blocked(project_dir, conversation)
+                if receipt is None:
+                    time.sleep(CAPABILITY_RECEIPT_GRACE_SEC)
+                    receipt = runtime_state_capability_blocked(project_dir, conversation)
+                if receipt is not None:
+                    record["verdict"] = "capability_blocked"
+                    record["verdict_detail"] = f"free-state loop receipt capability_blocked (async continuation): {receipt!r}"
+                    break
             record["verdict"] = "no_route"
             record["verdict_detail"] = f"turn budget exhausted before any automation tool face (limit_reached x{limit_followups + 1}); last reply: {text[:200]!r}"
             break
@@ -601,9 +784,52 @@ def main() -> None:
         require(bool(ride_plugin_id), "no built-in Volume & Pan plugin on the ride track")
         require(kernel_point_count(args.kernel_zmq, ride_plugin_id, "volume") == 0,
                 "setup baseline: the volume curve must start empty")
+
+        # ---- setup stage 2 (card 230 option A): deterministic clips --------
+        # 229 root cause: bare tracks left the acoustic package missing, so
+        # every derived observation lacked source evidence and the model
+        # correctly stopped at the FS evidence admission gate. Each track now
+        # carries the deterministic generated clip; the three evidence links
+        # below are verified BEFORE any LLM round is spent.
+        clip_wav = project_path.parent / CLIP_WAV_NAME
+        write_deterministic_stereo_wav(clip_wav)
+        for track_id in track_ids:
+            reply = zmq_command(args.kernel_zmq, {"cmd": "add_audio_clip", "track_id": track_id,
+                                                  "file_path": str(clip_wav), "start_time": 0.0,
+                                                  "command_timeout_ms": 60000})
+            require(str(reply.get("status", "")).lower() in {"ok", "success"},
+                    f"add_audio_clip failed for track {track_id}: {json.dumps(reply, ensure_ascii=False)[:500]}")
+        # evidence link 1: clips visible in the kernel project state
+        kernel_state = zmq_command(args.kernel_zmq, {"cmd": "get_project_state", "command_timeout_ms": 60000})
+        clip_counts = {tid: track_clip_count(kernel_state, tid) for tid in track_ids}
+        require(all(count >= 1 for count in clip_counts.values()),
+                f"deterministic clips not visible in kernel state: {clip_counts}")
+        # evidence links 2+3: track-level observation returns facts and the
+        # acoustic package status is no longer missing
+        observation = wait_track_observation_facts(args.agent_http, ride_track_id)
+        acoustic_excerpt: Dict[str, Any] = {"excerpted": False}
+        derived_candidates = sorted(project_path.parent.glob("**/acoustic_package_status.json"))
+        for derived_status_path in derived_candidates:
+            try:
+                derived_status = json.loads(derived_status_path.read_text(encoding="utf-8", errors="replace"))
+                (rounds_dir / "setup_acoustic_package_status.json").write_text(
+                    json.dumps(derived_status, ensure_ascii=False, indent=2), encoding="utf-8")
+                packages = derived_status.get("packages") if isinstance(derived_status.get("packages"), list) else []
+                acoustic_excerpt = {"excerpted": True, "path": str(derived_status_path),
+                                    "package_statuses": [str(p.get("status")) for p in packages if isinstance(p, dict)]}
+                break
+            except (OSError, json.JSONDecodeError) as exc:
+                acoustic_excerpt["error"] = str(exc)
         summary["setup"] = {"ride_track_id": ride_track_id, "ride_volume_plugin_id": ride_plugin_id,
-                            "external_plugins_loaded": 0}
+                            "external_plugins_loaded": 0,
+                            "clip_wav": str(clip_wav), "clip_duration_seconds": CLIP_DURATION_SECONDS,
+                            "clip_counts": clip_counts,
+                            "observation_ready_attempts": observation["attempts"],
+                            "observation_view_excerpt": json.dumps(observation["view"], ensure_ascii=False)[:400],
+                            "acoustic_package_status": acoustic_excerpt}
         print(f"[setup] ride track {ride_track_id} volume plugin {ride_plugin_id} (no external plugin, card group-2 premise)")
+        print(f"[setup] deterministic clips on both tracks (evidence: {clip_counts}, observation ready after "
+              f"{observation['attempts']} attempt(s), acoustic excerpt={acoustic_excerpt.get('package_statuses')})")
 
         chat_context = {"agent_mode": "chat", "selected_track_id": ride_track_id}
         stop_loss_hit: Optional[Dict[str, Any]] = None
@@ -637,7 +863,7 @@ def main() -> None:
                             "choreo pending armed but curve not empty")
                 record = run_round(args.agent_http, args.kernel_zmq, group, attempt,
                                    phrase, chat_context, ride_plugin_id, rounds_dir,
-                                   agent_log=agent_log)
+                                   agent_log=agent_log, project_dir=project_path.parent)
                 if pending_conv is not None:
                     pending_leg = settle_choreo_pending_leg(
                         args.agent_http, args.kernel_zmq, group, pending_conv,
@@ -665,7 +891,10 @@ def main() -> None:
                     break
 
                 # stop-loss: 3 consecutive same-type failures inside the group
-                failure_types = {"no_route", "wrong_tool", "confirm_broken", "write_fail"}
+                # (card 230: capability_blocked joins the stop-loss set — the
+                # honest declaration is a failure form for the group gate and
+                # repeated occurrences must not keep spending billed rounds)
+                failure_types = {"no_route", "capability_blocked", "wrong_tool", "confirm_broken", "write_fail"}
                 if record["verdict"] in failure_types:
                     consecutive_same_failure[record["verdict"]] = consecutive_same_failure.get(record["verdict"], 0) + 1
                     for other in list(consecutive_same_failure):

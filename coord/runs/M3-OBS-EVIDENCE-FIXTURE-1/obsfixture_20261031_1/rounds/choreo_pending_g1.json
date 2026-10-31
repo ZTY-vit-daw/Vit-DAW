@@ -1,0 +1,134 @@
+{
+  "group": 1,
+  "conversation": "choreo_pending_g1",
+  "interleaved_llm_round": {
+    "conversation": "llm_route_g1_r5_1793442475",
+    "verdict": "no_route"
+  },
+  "settle_response": {
+    "conversation_id": "choreo_pending_g1",
+    "task_id": "task_8876f18c90a8f883",
+    "goal_id": "goal_79ac9b362e18e5b7",
+    "run_id": "run_cffbefff84801f96",
+    "original_intent": "0 到 30 秒，让这条轨的存在感慢慢强起来",
+    "reply": "已写入：对 Track 1010 的「Volume & Pan Plugin · volume」参数写一条 电平类 包络：区间 0.0s-30.0s，渐入（0.30 → 0.60，曲率 0.00）（(0.0s, 0.30) → (30.0s, 0.60)）。\n逐点读回验证通过（容差 1e-06），共 2 点；曲线已留存，未自动回退——不满意可用撤销或让我清除这段区间。\n混音进展（C4 段落自动化）：已记入混音决策账（已应用并读回验证，能力 fine_mix.section_automation.v1），C4 节点已推进到进行中；后续自动化的进展会随队列视图更新。",
+    "agent_mode": "default",
+    "needs_confirmation": false,
+    "workflow": "section_automation_choreo",
+    "workflow_data": {
+      "candidate_id": "automation_choreo_2c8644af52010f72",
+      "capability_id": "fine_mix.section_automation.v1",
+      "mixboard_decision_board_ref": "mixboard-project:vitproj_8093b39d0f03442982ec97fce08d1841",
+      "mixboard_decision_current_status": "verified",
+      "mixboard_decision_record_id": "mixdec_choreo_session_automation_choreo_2c8644af52010f72",
+      "mixboard_decision_record_ref": "mixboard-decision:mixdec_choreo_session_automation_choreo_2c8644af52010f72",
+      "mixboard_decision_status": "recorded",
+      "mixboard_needs_review_count": 0,
+      "mutation_performed": true,
+      "param_id": "volume",
+      "plugin_id": "1011",
+      "points": [
+        {
+          "c": 0,
+          "t": 0,
+          "v": 0.3
+        },
+        {
+          "c": 0,
+          "t": 30,
+          "v": 0.6
+        }
+      ],
+      "readback_tolerance": 1e-06,
+      "region": {
+        "end": 30,
+        "start": 0
+      },
+      "settle": "structural",
+      "track_id": "1010",
+      "workflow_queue_c4": {
+        "evidence_refs": [
+          "automation_choreo:automation_choreo_2c8644af52010f72"
+        ],
+        "node_id": "C4",
+        "reason": "段落自动化包络写入并读回验证（volume，2 点）",
+        "state": "in_progress"
+      },
+      "written": 2
+    },
+    "goal_status": "completed",
+    "goal_summary": "0 到 30 秒，让这条轨的存在感慢慢强起来",
+    "stop_reason": "automation_choreo_settled",
+    "project_history": {
+      "active_branch": "main",
+      "active_node_id": "n_20261031T103032_861bc5ac",
+      "active_worktree": "",
+      "available": true,
+      "branches": {
+        "main": "c_20261031T103029_9a3b28a8"
+      },
+      "commit_count": 4,
+      "conversation_messages": [
+        {
+          "content": "确认写入",
+          "logical_message_id": "n_20261031T103025_accab1df",
+          "message_kind": "user",
+          "node_id": "n_20261031T103025_accab1df",
+          "role": "user"
+        },
+        {
+          "content": "已写入：对 Track 1010 的「Volume & Pan Plugin · volume」参数写一条 电平类 包络：区间 0.0s-30.0s，渐入（0.30 → 0.60，曲率 0.00）（(0.0s, 0.30) → (30.0s, 0.60)）。\n逐点读回验证通过（容差 1e-06），共 2 点；曲线已留存，未自动回退——不满意可用撤销或让我清除这段区间。\n混音进展（C4 段落自动化）：已记入混音决策账（已应用并读回验证，能力 fine_mix.section_automation.v1），C4 节点已推进到进行中；后续自动化的进展会随队列视图更新。",
+          "logical_message_id": "n_20261031T103032_861bc5ac",
+          "message_kind": "assistant",
+          "node_id": "n_20261031T103032_861bc5ac",
+          "role": "assistant"
+        }
+      ],
+      "detached": false,
+      "draft": false,
+      "head": "c_20261031T103029_9a3b28a8",
+      "initialized": true,
+      "project_label": "automation_llm_route_project",
+      "project_path": "D:\\Vit_DAW-wt-m3obs\\coord\\runs\\M3-OBS-EVIDENCE-FIXTURE-1\\obsfixture_20261031_1\\automation_llm_route_project.vit",
+      "project_uuid": "vitproj_8093b39d0f03442982ec97fce08d1841",
+      "refs": {
+        "refs/heads/main": "c_20261031T103029_9a3b28a8"
+      },
+      "root_project_path": "",
+      "unsaved": false,
+      "warnings": [],
+      "worktrees": [
+        {
+          "commit_id": "c_20261031T103029_9a3b28a8",
+          "created_at": "2026-10-31T10:30:32.1904627Z",
+          "is_root": true,
+          "label": "主工作树",
+          "name": "main",
+          "origin_commit_id": "c_20261031T103029_9a3b28a8",
+          "path": "D:\\Vit_DAW-wt-m3obs\\coord\\runs\\M3-OBS-EVIDENCE-FIXTURE-1\\obsfixture_20261031_1",
+          "project_file_path": "D:\\Vit_DAW-wt-m3obs\\coord\\runs\\M3-OBS-EVIDENCE-FIXTURE-1\\obsfixture_20261031_1\\automation_llm_route_project.vit",
+          "project_path": "D:\\Vit_DAW-wt-m3obs\\coord\\runs\\M3-OBS-EVIDENCE-FIXTURE-1\\obsfixture_20261031_1\\automation_llm_route_project.vit",
+          "root_project_path": "D:\\Vit_DAW-wt-m3obs\\coord\\runs\\M3-OBS-EVIDENCE-FIXTURE-1\\obsfixture_20261031_1\\automation_llm_route_project.vit"
+        }
+      ]
+    },
+    "lifecycle": "durable",
+    "persistence": "project_history",
+    "message_kind": "assistant",
+    "turn_id": "run_cffbefff84801f96",
+    "logical_message_id": "n_20261031T103032_861bc5ac"
+  },
+  "kernel_points": [
+    {
+      "t": 0.0,
+      "v": 0.300000011920929,
+      "c": 0.0
+    },
+    {
+      "t": 30.0,
+      "v": 0.600000023841858,
+      "c": 0.0
+    }
+  ],
+  "verdict": "pending_intact"
+}
