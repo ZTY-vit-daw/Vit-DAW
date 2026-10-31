@@ -1,0 +1,38 @@
+{
+  "scenario": "M3-CHAT-AUTH-STAMP-1 chat-chain authority stamp",
+  "phase": "before",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "project_path": "D:\\Vit_DAW_wt_authcarry1\\coord\\runs\\M3-AUTH-RESTORE-CARRY-1\\chat_auth_stamp_20261031_2\\chat_auth_stamp_project.vit",
+  "llm_participation": "none (deterministic vocabulary routing; authority faces are control-plane HTTP)",
+  "started_at": "2026-10-31T02:47:58.211722+00:00",
+  "legs": [
+    "setup",
+    "switch_full",
+    "full_direct"
+  ],
+  "baseline_authority": "manual_confirmation",
+  "setup": {
+    "tracks": {
+      "a": "1007",
+      "b": "1010",
+      "c": "1013"
+    },
+    "volume_plugins": {
+      "a": "1008",
+      "b": "1011",
+      "c": "1014"
+    }
+  },
+  "switch_full": {
+    "persisted": true,
+    "workspace_ready": true
+  },
+  "full_direct": {
+    "stop_reason": "automation_choreo_settled",
+    "written": 2,
+    "reply_head": "完全访问权限下编舞写入已自主执行（无确认卡）。\n已写入：对 Track 1007 的「Volume & Pan Plugin · volume」参数写一条 电平"
+  },
+  "status": "PASS",
+  "finished_at": "2026-10-31T02:48:05.224832+00:00"
+}

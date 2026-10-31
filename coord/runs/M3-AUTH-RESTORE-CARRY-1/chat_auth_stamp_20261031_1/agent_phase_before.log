@@ -1,0 +1,98 @@
+2026-10-31T10:42:05 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-10-31T10:42:05 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-31T10:42:05 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-31T10:42:05 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-31T10:42:05 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-31T10:42:05 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-31T10:42:05 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-31T10:42:05 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-31T10:42:05 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-31T10:42:05 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-31T10:42:05 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-31T10:42:05 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-10-31T10:42:05 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-31T10:42:06 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-31T10:42:06 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-31T10:42:06 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-31T10:42:06 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-10-31T10:42:07 [INFO] [media_refs] ms=0 conversation=dev_range_context_20261031_104206 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-31T10:42:07 [INFO] [chat.artifacts] conversation=dev_range_context_20261031_104206 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-10-31T10:42:07 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-31T10:42:07 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-10-31T10:42:07 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261031_104201\\agent_drafts\\draft_20261031T024206_b1a3a081\\Unsaved.vit" uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-31T10:42:07 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-10-31T10:42:07 [INFO] [timing] http.chat total_ms=592 conversation=dev_range_context_20261031_104206 message_len=20
+2026-10-31T10:42:08 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-31T10:42:08 [INFO] [timing] kernel.send_command ms=137 command=get_project_state tool=project.state confirmed=false err=false
+2026-10-31T10:42:08 [INFO] [timing] harness.invoke total_ms=144 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:vit_project_uuid"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:vit_project_parent_uuid"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:modifiedBy"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1010" action="property_changed:id"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1012" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1011" action="property_changed:remapOnTempoChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1013" action="property_changed:id"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1015" action="node_added"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1014" action="property_changed:remapOnTempoChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-10-31T10:42:08 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:09 [INFO] [shadow] initialized tracks=3 project_path="D:\\Vit_DAW_wt_authcarry1\\coord\\runs\\M3-AUTH-RESTORE-CARRY-1\\chat_auth_stamp_20261031_1\\chat_auth_stamp_project.vit" replayed_deltas=3
+2026-10-31T10:42:09 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-10-31T10:42:09 [INFO] [workspace] parent history recovery skipped parent=vitproj_44a84cfaa1844646ae812af24c8b7e87 target=vitproj_1349ee7b52834718b23db9b78b7c085f reason=parent project path not found for UUID vitproj_44a84cfaa1844646ae812af24c8b7e87
+2026-10-31T10:42:09 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_1349ee7b52834718b23db9b78b7c085f
+2026-10-31T10:42:09 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_authcarry1\\coord\\runs\\M3-AUTH-RESTORE-CARRY-1\\chat_auth_stamp_20261031_1\\chat_auth_stamp_project.vit" uuid=vitproj_1349ee7b52834718b23db9b78b7c085f recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-31T10:42:09 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-31T10:42:09 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_1349ee7b52834718b23db9b78b7c085f
+2026-10-31T10:42:11 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-31T10:42:11 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-31T10:42:14 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVE" action="node_added"
+2026-10-31T10:42:14 [DEBUG] [shadow] live delta uid="POINT" action="node_added"
+2026-10-31T10:42:14 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:14 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-10-31T10:42:15 [WARN] [shadow] delta seq gap #1 last=51 current=53
+2026-10-31T10:42:15 [DEBUG] [shadow] live delta uid="0/2113940" action="property_changed:lastSignificantChange"
+2026-10-31T10:42:15 [WARN] [telemetry] delta seq gap last=51 current=53
+2026-10-31T10:42:15 [INFO] [shadow] initialized tracks=3 project_path="D:\\Vit_DAW_wt_authcarry1\\coord\\runs\\M3-AUTH-RESTORE-CARRY-1\\chat_auth_stamp_20261031_1\\chat_auth_stamp_project.vit" replayed_deltas=3
+2026-10-31T10:42:15 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=4
+2026-10-31T10:42:17 [INFO] [automation.choreo] C4 node advanced conversation=chat_auth_stamp_full_direct node=C4 state=in_progress
+2026-10-31T10:42:17 [INFO] [automation.choreo] full access auto-authorized conversation=chat_auth_stamp_full_direct goal=goal_07d5da2d795d4017 run=run_9015d95ef2fc93bd mutation=true
+2026-10-31T10:42:17 [INFO] [media_refs] ms=0 conversation=chat_auth_stamp_full_direct user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-31T10:42:17 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_authcarry1\coord\runs\M3-AUTH-RESTORE-CARRY-1\chat_auth_stamp_20261031_1\chat_auth_stamp_project.vit revision=4
+2026-10-31T10:42:17 [INFO] [chat.artifacts] conversation=chat_auth_stamp_full_direct response_artifacts=0 request_artifacts=0 executed=0 reply_len=637
+2026-10-31T10:42:17 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_authcarry1\coord\runs\M3-AUTH-RESTORE-CARRY-1\chat_auth_stamp_20261031_1\chat_auth_stamp_project.vit revision=4 commit=c_20261031T024217_bed74b8f rebound=1 total_ms=18
+2026-10-31T10:42:17 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_1349ee7b52834718b23db9b78b7c085f
+2026-10-31T10:42:17 [INFO] [timing] http.chat total_ms=7396 conversation=chat_auth_stamp_full_direct message_len=54

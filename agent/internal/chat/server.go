@@ -7532,12 +7532,40 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 	} else if !os.IsNotExist(err) && s.logger != nil {
 		s.logger.Warn("[workspace] runtime state load failed project=%s uuid=%s error=%v", projectPath, projectUUID, err)
 	}
+	// M3-AUTH-RESTORE-CARRY-1 (10-29 incident, card 223 restart-leg root
+	// cause): a clean restart (no pending work) seeds this session from the
+	// canonical workspace, whose runtime state can lag the previous session's
+	// last persist — the user's authority selection silently reset to manual
+	// after restart. Adopt the newest value the runtime state chain persisted
+	// for THIS project identity (WriteAgentRuntimeState surfaces only; a
+	// request body is never a seeding source — a bare mode string never
+	// authorizes), so a restored full mode equals an explicit control switch.
+	authoritySeeded := false
+	if latest, ok := history.LatestPersistedAuthorityMode(projectPath, projectUUID); ok && latest != state.AuthorityMode {
+		state.AuthorityMode = latest
+		authoritySeeded = true
+	}
 	s.mu.Lock()
 	s.restoreProjectAgentRuntimeStateLocked(state)
 	s.activeWorkspacePath = projectPath
 	s.activeWorkspaceUUID = projectUUID
 	s.activeWorkspaceSessionID = session.SessionID
 	s.mu.Unlock()
+	if authoritySeeded {
+		// The seeded workspace's own state file still lacks (or lags) the
+		// adopted mode, and the continuation scheduler replays that file on
+		// every tick — without this write-back the replay would revert the
+		// restore within one tick. Persist through the normal path so disk and
+		// memory agree from here on; a failure keeps the in-memory restore and
+		// surfaces loudly (the next persist retries).
+		if persistErr := s.persistActiveProjectWorkspaceLocked(); persistErr != nil {
+			if s.logger != nil {
+				s.logger.Warn("[authority] clean-restart seed persist failed project=%s uuid=%s mode=%s error=%v", projectPath, projectUUID, normalizeAuthorityModeOrDefault(state.AuthorityMode), persistErr)
+			}
+		} else if s.logger != nil {
+			s.logger.Info("[authority] clean-restart seed adopted mode=%s project=%s uuid=%s", normalizeAuthorityModeOrDefault(state.AuthorityMode), projectPath, projectUUID)
+		}
+	}
 	// FIX-START-DRAFT-SIDE-EFFECT-1: publish the activated workspace as the
 	// read-side identity hint; autonomous history readers resolve to it instead
 	// of materializing a fresh default draft.

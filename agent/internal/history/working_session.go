@@ -469,6 +469,94 @@ func copyFileIfAbsent(src, dst string) (bool, error) {
 	return true, nil
 }
 
+// LatestPersistedAuthorityMode (M3-AUTH-RESTORE-CARRY-1) returns the newest
+// authority_mode the agent runtime state chain ever persisted for this project
+// identity: the canonical workspace state plus every working-session workspace
+// state under .sessions/<uuid>/ are all candidates, compared by saved_at
+// (file mtime as the fallback). A clean restart (no pending work) seeds the
+// next session from the canonical workspace, whose state can lag the previous
+// session's last persist — this read resolves that gap without reclassifying
+// the restart as pending-work recovery. The value comes only from durable
+// runtime state written through WriteAgentRuntimeState; a request body is
+// never a seeding source (a bare mode string never authorizes). Read-only;
+// ("", false) when no candidate file carries a mode.
+func LatestPersistedAuthorityMode(projectPath, projectUUID string) (string, bool) {
+	projectPath = BindProjectIdentity(projectPath, projectUUID)
+	projectUUID = safeName(strings.TrimSpace(projectUUID))
+	if projectPath == "" || projectUUID == "" {
+		return "", false
+	}
+	canonical, err := canonicalRepo(projectPath, projectUUID)
+	if err != nil {
+		return "", false
+	}
+	best := ""
+	var bestWhen time.Time
+	consider := func(path string) {
+		mode, when, ok := persistedAuthorityAt(path)
+		if !ok || (best != "" && !when.After(bestWhen)) {
+			return
+		}
+		best, bestWhen = mode, when
+	}
+	consider(filepath.Join(canonical.StateDir, agentRuntimeStateFile))
+	entries, err := os.ReadDir(workingSessionsRoot(canonical))
+	if err != nil {
+		return best, best != ""
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		sessionRoot := filepath.Join(workingSessionsRoot(canonical), entry.Name())
+		session, readErr := readWorkingSession(sessionRoot)
+		if readErr != nil || !sameProjectPath(session.ProjectPath, canonical.ProjectPath) {
+			continue
+		}
+		consider(filepath.Join(session.WorkspaceDir, "state", agentRuntimeStateFile))
+	}
+	return best, best != ""
+}
+
+// persistedAuthorityAt reads one candidate runtime state file for
+// LatestPersistedAuthorityMode: the mode is only a candidate when the file
+// names one, and the ordering timestamp falls back to the file mtime when the
+// record carries no saved_at.
+func persistedAuthorityAt(path string) (string, time.Time, bool) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "", time.Time{}, false
+	}
+	var row struct {
+		AuthorityMode string    `json:"authority_mode"`
+		SavedAt       time.Time `json:"saved_at"`
+	}
+	if json.Unmarshal(data, &row) != nil {
+		return "", time.Time{}, false
+	}
+	mode := strings.TrimSpace(row.AuthorityMode)
+	if mode == "" {
+		return "", time.Time{}, false
+	}
+	when := row.SavedAt
+	if when.IsZero() {
+		if info, infoErr := os.Stat(path); infoErr == nil {
+			when = info.ModTime()
+		}
+	}
+	return mode, when, true
+}
+
+// ResetProjectIdentityRegistryForTest clears the process-wide path->workspace
+// binding registry so a test can simulate a clean process restart: after the
+// reset, the next working-session call takes the same path a fresh agent
+// process would (registry empty, sessions on disk). Test-only helper.
+func ResetProjectIdentityRegistryForTest() {
+	projectIdentityRegistry.Lock()
+	projectIdentityRegistry.byPath = map[string]projectWorkspaceBinding{}
+	projectIdentityRegistry.Unlock()
+}
+
 func WorkingSessionID(projectPath string) string {
 	return boundProjectWorkspace(projectPath).SessionID
 }

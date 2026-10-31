@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD 4a94938eb1e1d911fdae2f5e1ab276e69b0e05cc:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-10-31T10:42:01.2748356+08:00",
+    "marker_path":  "D:\\Vit_DAW_wt_authcarry1\\coord\\runs\\M3-AUTH-RESTORE-CARRY-1\\chat_auth_stamp_20261031_1\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_authcarry1\\coord\\runs\\M3-AUTH-RESTORE-CARRY-1\\chat_auth_stamp_20261031_1\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}
