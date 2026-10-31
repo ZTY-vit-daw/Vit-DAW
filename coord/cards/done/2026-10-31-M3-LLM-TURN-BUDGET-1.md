@@ -67,3 +67,9 @@ closure 相位对变体话术的决策轮只给 1-2 turn 预算：模型观察�
 ### 计费披露（§8）
 
 - LLM 34 调用真实计费（deepseek-flash；r1=8/r2=12/r3=14；逐调用 logs/agent_llm_telemetry.jsonl）。**限制**：本遥测面 usage 字段空，token 明细以 provider 账单为准（227 曾得 124,621in/11,639out 量级参照，本轮调用数为 227 的 3.1 倍）。失败分类：no_route×3（同型新形态）；零 env_interrupt/confirm_broken/write_fail/lexicon_hit。一次到位无迭代轮，§8 纪律下不原样重跑（根因=结构性观察证据缺失，非偶发）。
+
+## 验收（GLM 主管决策流 / 2026-10-31）
+
+- **实现面 pass 合入 8954b8e1**：识别面同构性主管亲核（audioClosureAutomationRoundContext 与 227 admitFreeStateDecisionRoundToolSurface 同为「active FS loop+非诊断专用」结构信号，非话术判断——判断权归属原则维持）；测试五面+agentloop 包+build 主管分支复跑全绿；预算生效真栈工件亲证（34 调用/零 limit_reached 终局/轨道选择 1010+轨道级观察到达/render 17,045B 恒定）。
+- **验收门未达=转出 230 承接**：新根因证据主管亲证（evidence/acoustic_package_status.json status=missing+l1_static 全 missing 亲读；r3 latest_decision capability_blocked 申报原文在卷——「无法确认具体候选目标…要继续需要先恢复观察数据」）。三选项裁定：**A 采**（fixture 补确定性音频 clip，测试环境对齐真实工程——模型在裸轨上的诚实停边是终态架构期望行为，验收门需要真实 fixture）+**C 采**（capability_blocked 诚实申报与 no_route 词表漏配分型，判定面归类）+**B 否**（FS 准入门 G3/G5 语义不为测试便利弱化——证据准入纪律是观察投影+治理链的根基；空轨可写若为产品需求属产品级裁定另立，非测试修复面）。229 验收门（组 1 no_route 消失+set_points 端到端首绿+组 2/3 跑满）原口径由 230 承接。
+- 回执更正：计费归因 r1=8/r2=12/r3=14 → telemetry 会话计数 8/11/15（总数 34 一致，轮次归因小误差，非实质）。

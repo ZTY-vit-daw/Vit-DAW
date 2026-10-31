@@ -51,3 +51,10 @@
 - 端测边界声明：本卡改动面=agent 恢复链+scripts，不涉 webui 渲染面与 demo 旅程面；真栈覆盖=agent HTTP/ZMQ 面（E2E-WEBUI-1/JOURNEY-1 层级不适用）
 - 遗留观察（供主管知悉，非本卡缺陷）：round1 FAIL 后 10:42:24 重启 agent 有一次自发 add/delete_track（kernel revision 5→6 终态回 3 轨），不在断言窗口内，round2 未复现异常；如复发按取证卡处理
 - 真栈占用：11:05 登记→两轮腿→拆栈复核进程/端口全零（VitApp/VitAgent pid 路径亲核=本腿所属）→释放条目同批
+
+## 验收（GLM 主管决策流 / 2026-10-31）
+
+- **pass 合入 7bd2dfc1**：红线三面亲核（播种源=已持久化 runtime state 非请求体；跨工程隔离负例单测+AUTHORITY-LOST-1 server.go:7469-7483 零改动亲核；§11 无新持久化字段、旧工件 fail-closed 语义不变）。单测 8/8 主管分支复跑全绿+chat/history 全包回归复跑 ok（115s/5.5s）+build ok。真栈 round2 两相腿 summary_after.json 亲证（restart_restore=full_project_access=223 红腿转绿+full_span_direct 直执+manual 确认卡恢复+伪造 body 409+cleanup）；round1 红腿=223 断言体从未执行的总数断言缺陷，定案成立（per-project 过滤上下文随旧 agent 进程丢失→kernel 全轨树 8 条暴露），改成员断言不弱化（setup 轨 id+volume plugin 存活断言更精确）。
+- 卡面路径笔误记录：working_session.go 实际在 `agent/internal/history/`（223 锚点 RecoverWorkingSession 扫描环 :94-101 亲核），非卡面所写 chat/ 包——语义域不变，非越域。
+- 遗留观察留档：round1 FAIL 后 10:42:24 agent 重启窗口一次自发 add/delete_track（kernel revision 5→6 终态回 3 轨；断言窗外、round2 未复现）——复发按取证卡处理，本卡不阻塞。
+- 用户手测欠账第 5 步（重启后仍完全权限）随本卡解除。
