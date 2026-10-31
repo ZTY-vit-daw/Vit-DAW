@@ -9,6 +9,8 @@
 // and it never emits an approximate write (L5 is out of scope by design).
 package capabilityboundary
 
+import "strings"
+
 const SchemaVersion = "capability_boundary.v1"
 
 // Boundary classes carried on the Class field.
@@ -189,5 +191,46 @@ func NormalizeFamily(family string) string {
 		return "static_eq"
 	default:
 		return family
+	}
+}
+
+// FamilyFromImprovementActionDomain maps an improvement_proposal action_domain
+// (agentprotocol's frozen enumeration) onto the boundary family vocabulary
+// (M3-FS-GATE-EVIDENCE-WIRE-1 A2: a capability-blocked turn whose decision
+// carries only an improvement proposal — no SemanticProcessorIntent, no
+// ProcessorType — previously resolved family as "" and reported
+// family_unresolved even though the proposal's own domain names the family).
+// Plugin-owned domains map to their attestation family; the native parameter
+// domains map to their own non-plugin families (volume/pan): no PCA candidate,
+// native rack path, or certification runner exists for them, so the resolver
+// discloses those classes as honestly absent instead of reporting the family
+// itself as unresolved. Domains that name no single family (plugin,
+// section_automation) stay "" — an unresolved family stays fail-closed.
+func FamilyFromImprovementActionDomain(domain string) string {
+	switch strings.ToLower(strings.TrimSpace(domain)) {
+	case "track_gain", "clip_gain":
+		return "volume"
+	case "pan":
+		return "pan"
+	case "eq", "static_eq":
+		return "static_eq"
+	case "broadband_compression", "compressor":
+		return "broadband_compressor"
+	case "limiter":
+		return "limiter"
+	case "gate_expander":
+		return "gate_expander"
+	case "de_esser":
+		return "de_esser"
+	case "transient_shaper":
+		return "transient_shaper"
+	case "multiband_dynamics":
+		return "multiband_dynamics"
+	case "reverb":
+		return "reverb"
+	case "delay":
+		return "delay"
+	default:
+		return ""
 	}
 }

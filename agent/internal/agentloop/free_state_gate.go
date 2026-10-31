@@ -287,13 +287,37 @@ func gateG5(state *runState) bool {
 // messageLoopFreshTrackObservationTarget returns the track id of the freshest
 // usable track-targeted observation, or "" — the track whose candidate the
 // slice-boundary fold is about to select (FIX-GATE-FRESHNESS-1's lag
-// completion view over state.recentObservation, mirroring
+// completion view, mirroring
 // messageLoopFreeStateCandidateTargetObserved's usability semantics).
+//
+// M3-FS-GATE-EVIDENCE-WIRE-1 A1: the original fallback read only the live-loop
+// state.recentObservation, which the chat-side admission audit path never has
+// (AuditFreeStateNeedsExperimentGate builds a snapshot-only runState), so a
+// proposal following its target-level observation inside one slice read the
+// fallback as empty on that path and G6/G8 failed with the evidence actually
+// booked in the ledger (slicebudget_1 g1_r1: G1-G5+G7 pass, gap
+// no_selected_candidate/target_not_from_frontier_candidate, five usable
+// track-targeted receipts present). The live observation keeps precedence; a
+// missing one now falls back to the freshest usable track-targeted receipt in
+// the durable observation ledger — the same rows the fold consumes — keeping
+// the gate fail-closed when neither source holds a usable track observation.
 func messageLoopFreshTrackObservationTarget(state *runState) string {
-	if state == nil || state.recentObservation == nil {
+	if state == nil {
 		return ""
 	}
-	observation := state.recentObservation
+	if state.recentObservation != nil {
+		return messageLoopRecentObservationTrackTarget(state.recentObservation)
+	}
+	return messageLoopLedgerFreshTrackObservationTarget(state)
+}
+
+// messageLoopRecentObservationTrackTarget is the live-observation arm of
+// messageLoopFreshTrackObservationTarget: the CCB request name, a usable
+// status, and a track target_ref must all hold, else "".
+func messageLoopRecentObservationTrackTarget(observation *RecentObservation) string {
+	if observation == nil {
+		return ""
+	}
 	if !messageLoopIsCCBObservationRequestName(firstNonEmpty(observation.Tool, observation.CommandName)) {
 		return ""
 	}
@@ -306,6 +330,59 @@ func messageLoopFreshTrackObservationTarget(state *runState) string {
 		return ""
 	}
 	return strings.TrimSpace(messageLoopText(target["id"]))
+}
+
+// freeStateReceiptDeliveredAnyView reports whether at least one requested
+// view of the receipt actually reached the payload — the B13-A/B13-D delivery
+// fact, judged mechanically: a view marked with the disclosure-budget
+// omission marker was never disclosed, so a receipt whose every requested
+// view carries the marker delivered nothing (on any bundle status; a trim is
+// not a delivery). An empty requested_views set proves no delivery either.
+func freeStateReceiptDeliveredAnyView(row map[string]any) bool {
+	requested := messageLoopStringList(row["requested_views"])
+	if len(requested) == 0 {
+		return false
+	}
+	for _, viewID := range requested {
+		if !freeStateScanViewOmittedByDisclosureBudget(row, viewID) {
+			return true
+		}
+	}
+	return false
+}
+
+// messageLoopLedgerFreshTrackObservationTarget is the durable-ledger arm: the
+// track id of the freshest usable (ready|partial) track-targeted observation
+// receipt in free_state_reasoning_loop.observation_ledger.receipts, or "".
+// Recency is the receipt round first, then the freshness observed_at stamp —
+// the same newest-wins order the ledger's own latest-observation rebuild
+// applies. The B13-D delivery fact governs (a fully trimmed receipt binds no
+// target) and revision binding is deliberately not judged here: G7 owns the
+// revision contract for cited refs, exactly as the pre-existing
+// available_views arm of gateG6 already divisioned it.
+func messageLoopLedgerFreshTrackObservationTarget(state *runState) string {
+	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	bestTarget, bestKey := "", ""
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		if !freeStateReceiptUsable(row) || !freeStateReceiptDeliveredAnyView(row) {
+			continue
+		}
+		target := ledgerRowTrackTarget(row)
+		if target == "" {
+			continue
+		}
+		roundKey := "000000000"
+		if text := firstMapText(row, "round"); text != "" {
+			if number, err := strconv.ParseInt(text, 10, 64); err == nil {
+				roundKey = fmt.Sprintf("%09d", number)
+			}
+		}
+		key := roundKey + "|" + firstMapText(messageLoopMapValue(row["freshness"]), "observed_at")
+		if key > bestKey {
+			bestKey, bestTarget = key, target
+		}
+	}
+	return bestTarget
 }
 
 // gateG6 requires target-level usable evidence for the selected candidate.
@@ -350,6 +427,20 @@ func gateG6(state *runState) bool {
 		return true
 	}
 	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	// M3-FS-GATE-EVIDENCE-WIRE-1 A1: receipts carry the authoritative
+	// track-targeted target_ref on real CCB deliveries (slicebudget_1 g1_r1:
+	// every track-level receipt holds {kind:track,id}, while available_views
+	// rows keep the track identity only in their view key). G8's own
+	// target-level assertion already scans these rows; G6 must judge the same
+	// fact from the same rows or the two gates contradict each other on one
+	// receipt — the B13-A consistency rule, mirrored. The B13-D delivery fact
+	// governs here as everywhere: a receipt whose every requested view the
+	// disclosure budget trimmed delivered nothing and binds no target.
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		if freeStateReceiptUsable(row) && freeStateReceiptDeliveredAnyView(row) && allowedTracks[ledgerRowTrackTarget(row)] {
+			return true
+		}
+	}
 	for _, raw := range messageLoopMapValue(ledger["available_views"]) {
 		view := messageLoopMapValue(raw)
 		target := messageLoopMapValue(view["target_ref"])

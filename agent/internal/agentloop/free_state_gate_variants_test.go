@@ -41,15 +41,19 @@ func gateVariantNoRounds(ctx map[string]any) {
 
 // gateVariantNoProposalEvidenceBasis removes every G4 OR arm (FIX-F3-G4-SEMANTICS
 // 方案甲): no closed diagnostic dimension, no usable delivered scan receipt,
-// no target-level available view. Only then does the improvement-proposal G4
-// fail — the closed-dimension disjunct plus both spine-aligned alternates.
+// no target-level evidence. Only then does the improvement-proposal G4 fail —
+// the closed-dimension disjunct plus both spine-aligned alternates.
+// M3-FS-GATE-EVIDENCE-WIRE-1 A1: obs-target must be unusable too — with the
+// G6 ledger wiring the delivered track-target receipt legitimately holds up
+// G4's target-evidence arm, so leaving it ready kept that arm alive and the
+// variant stopped being "every OR arm missing".
 func gateVariantNoProposalEvidenceBasis(ctx map[string]any) {
 	loop := ctx["free_state_reasoning_loop"].(map[string]any)
 	delete(loop, "diagnostic_rounds")
 	ledger := loop["observation_ledger"].(map[string]any)
 	for _, row := range ledger["receipts"].([]any) {
 		receipt := row.(map[string]any)
-		if receipt["observation_id"] == "obs-mix" {
+		if receipt["observation_id"] == "obs-mix" || receipt["observation_id"] == "obs-target" {
 			receipt["status"] = "rejected"
 		}
 	}
@@ -76,6 +80,22 @@ func gateVariantNoFrontier(ctx map[string]any) {
 func gateVariantDanglingSelectedCandidate(ctx map[string]any) {
 	frontier := ctx["minimal_audio_closure"].(map[string]any)["hypothesis_frontier"].(map[string]any)
 	frontier["candidate_id"] = "candidate-missing"
+	// M3-FS-GATE-EVIDENCE-WIRE-1 A1: the target-level receipt must be unusable
+	// too — with the G6 ledger wiring a delivered track receipt legitimately
+	// establishes the candidate-to-be track set on the audit path (the
+	// FIX-GATE-FRESHNESS-1 semantics the live path already had), so a dangling
+	// selection alone no longer leaves G6 failing while target evidence sits
+	// delivered in the ledger. The variant isolates the dangling selection:
+	// no frontier coverage AND no delivered target evidence.
+	loop := ctx["free_state_reasoning_loop"].(map[string]any)
+	ledger := loop["observation_ledger"].(map[string]any)
+	for _, row := range ledger["receipts"].([]any) {
+		receipt := row.(map[string]any)
+		if receipt["observation_id"] == "obs-target" {
+			receipt["status"] = "rejected"
+		}
+	}
+	ledger["available_views"] = map[string]any{}
 }
 
 func gateVariantNoTargetEvidence(ctx map[string]any) {

@@ -145,9 +145,20 @@ func TestTIMING2GatePathDirectiveRowsFollowOwnGateState(t *testing.T) {
 
 	// Ledger advance: the mix scan receipt lands and the G3 row exits while
 	// the G6 row (still failing) stays — the rows exit independently.
+	// M3-FS-GATE-EVIDENCE-WIRE-1 A1: the target-level obs-target receipt must
+	// also be unusable here — with the G6 ledger wiring the delivered
+	// obs-target receipt (track 1007, view actually delivered) legitimately
+	// satisfies G6, so deleting only the catalog row no longer leaves G6
+	// failing. Rejecting the receipt too restores the intended shape: no
+	// delivered target evidence anywhere.
 	advanced := timing2WithoutMixScanReceipts(func(ctx map[string]any) {
 		ledger := messageLoopMapValue(messageLoopMapValue(ctx["free_state_reasoning_loop"])["observation_ledger"])
 		delete(messageLoopMapValue(ledger["available_views"]), "track:1007::track.timbre_frequency")
+		for _, row := range messageLoopMapRows(ledger["receipts"]) {
+			if messageLoopText(row["observation_id"]) == "obs-target" {
+				row["status"] = "rejected"
+			}
+		}
 	})
 	timing2AddMixScanReceipt(advanced)
 	directive = messageLoopFreeStateGatePathDirective(advanced)

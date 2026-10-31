@@ -60,20 +60,26 @@ func TestCapabilityBlockedBoundaryResponseCarriesRemediationPayload(t *testing.T
 	if !strings.Contains(joined, "G6_target_evidence") || !strings.Contains(joined, "G8_target_consistency") {
 		t.Fatalf("boundary blocked_by lost the R3 gate signature: %v", boundary.BlockedBy)
 	}
-	// The fixture's decision carries no processor family, so the payload must
-	// disclose family_unresolved instead of fabricating alternates.
-	familyUnresolved := false
+	// M3-FS-GATE-EVIDENCE-WIRE-1 A2: the fixture's decision carries a
+	// track_gain improvement proposal, so the family now resolves from the
+	// proposal's action domain (volume) instead of reporting
+	// family_unresolved. Volume is a native parameter family: no plugin
+	// alternates exist and none may be fabricated — the per-class absence
+	// disclosures replace the one root-cause family_unresolved.
+	if boundary.Family != "volume" {
+		t.Fatalf("boundary family = %q, want volume (from the proposal's action domain)", boundary.Family)
+	}
 	for _, reason := range boundary.UnavailableReasons {
 		if reason == capabilityboundary.ReasonFamilyUnresolved {
-			familyUnresolved = true
+			t.Fatalf("a proposal-bearing decision must not report family_unresolved: %v", boundary.UnavailableReasons)
 		}
 	}
-	if !familyUnresolved {
-		t.Fatalf("family-unresolved disclosure missing: %v", boundary.UnavailableReasons)
+	if !containsString(boundary.UnavailableReasons, capabilityboundary.ReasonNoSameFamilyCandidate) {
+		t.Fatalf("volume boundary must disclose the honestly absent same-family class: %v", boundary.UnavailableReasons)
 	}
 	for _, action := range boundary.NextActions {
 		if action.Kind == capabilityboundary.KindAlternateProcessor || action.Kind == capabilityboundary.KindNativeProcessor {
-			t.Fatalf("family-unresolved boundary must not offer substitution actions: %+v", action)
+			t.Fatalf("a no-candidate volume boundary must not offer substitution actions: %+v", action)
 		}
 	}
 	// The pre-existing receipt face stays intact alongside the new payload.
@@ -136,6 +142,42 @@ func TestCapabilityBlockedBoundaryResponseWithFamilyOffersGovernedOptions(t *tes
 	}
 	if !noCandidate {
 		t.Fatalf("no-candidate disclosure missing: %v", boundary.UnavailableReasons)
+	}
+}
+
+// The family_unresolved disclosure stays reserved for the decisions that
+// genuinely name no family: no semantic intent, no processor type, and no
+// improvement proposal (M3-FS-GATE-EVIDENCE-WIRE-1 A2 keeps the unresolved
+// verdict fail-closed — the proposal provenance only widens it).
+func TestCapabilityBlockedBoundaryWithoutAnyFamilySourceStaysUnresolved(t *testing.T) {
+	s := testContinuationServer()
+	now := time.Now().UTC()
+	loop := freeStateReasoningLoop{
+		SchemaVersion: freeStateReasoningLoopSchema, LoopID: "loop-cb-unresolved",
+		ConversationID: "conversation-cb-unresolved", GoalID: "goal-cb-unresolved", RunID: "run-cb-unresolved",
+		OriginalIntent: "处理一下这条轨", CreatedAt: now, UpdatedAt: now,
+		Status:    "blocked",
+		TargetRef: map[string]any{"kind": "track", "id": "1017", "track_id": "1017"},
+		LatestDecision: &agentloop.FreeStateDecision{
+			Status:  agentloop.FreeStateCapabilityBlocked,
+			Summary: "no resolvable control family in the decision",
+		},
+	}
+	s.storeFreeStateLoop(loop)
+	res := agentloop.Result{GoalID: loop.GoalID, RunID: loop.RunID, Status: agentruntime.StatusCompleted, Reply: "模型原文"}
+	resp, blocked := s.capabilityBlockedBoundaryResponse(loop.ConversationID, "default", res, loop)
+	if !blocked {
+		t.Fatal("model-terminal boundary was not detected")
+	}
+	boundary := boundaryFromWorkflowData(t, resp)
+	if boundary.Family != "" {
+		t.Fatalf("family must stay unresolved without any source, got %q", boundary.Family)
+	}
+	if !containsString(boundary.UnavailableReasons, capabilityboundary.ReasonFamilyUnresolved) {
+		t.Fatalf("family-unresolved disclosure missing: %v", boundary.UnavailableReasons)
+	}
+	if len(boundary.NextActions) != 0 {
+		t.Fatalf("an unresolved-family boundary must offer no actions: %+v", boundary.NextActions)
 	}
 }
 

@@ -169,6 +169,20 @@ func Apply(contract Contract, current Snapshot, request TransitionRequest, now t
 	if request.Reason == "" {
 		return Snapshot{}, fmt.Errorf("semantic transition reason is required")
 	}
+	// M3-FS-GATE-EVIDENCE-WIRE-1 B: same-type idempotent re-entry for the
+	// capability_blocked terminal. Upstream surfaces (goal settle retries,
+	// scheduler continuation re-delivery) may re-declare the identical blocked
+	// outcome; the transition table's from.Terminal() guard rejected that
+	// repeat as invalidTransition and the goal surfaced as failed even though
+	// the state already said exactly what the re-entry said. A
+	// capability_blocked -> capability_blocked settle is a no-op success: the
+	// snapshot returns unchanged (no new revision, no history record, no
+	// state move). Every other transition into or out of a terminal state —
+	// including a different terminal event from capability_blocked — keeps the
+	// invalidTransition refusal; only this one same-type pair is admitted.
+	if current.State == StateCapabilityBlocked && request.Event == EventCapabilityBlocked {
+		return cloneSnapshot(current), nil
+	}
 	nextState, err := transitionTarget(contract, current, request)
 	if err != nil {
 		return Snapshot{}, err

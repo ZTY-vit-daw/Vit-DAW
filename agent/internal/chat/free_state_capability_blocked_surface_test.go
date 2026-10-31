@@ -25,6 +25,16 @@ import (
 // pre-fold frontier holds a candidate without track coverage. The gate audit
 // must refuse exactly G6+G8 (the R3 receipt signature) with G7 evidence
 // resolution still passing.
+//
+// M3-FS-GATE-EVIDENCE-WIRE-1 A1: the fixture's ledger deliberately holds NO
+// usable track-targeted receipt — the pre-wire fixture (a track-202 receipt
+// with a full target_ref beside a track-202 proposal) was the exact
+// misrefusal shape the wire card fixed (slicebudget_1 g1_r1), and the wired
+// gate now correctly admits it. A genuine refusal needs the target evidence
+// to be genuinely absent, so the cited receipt stays project-level: G6 has no
+// track observation to establish, G8 has no frontier- nor observation-backed
+// target, and the R3 signature (G6+G8 failed, G7 passing) is a real
+// enforcement again.
 func gateRefusedFreeStateFixture(t *testing.T) (*Server, freeStateReasoningLoop, agentloop.Result) {
 	t.Helper()
 	s := testContinuationServer()
@@ -58,7 +68,7 @@ func gateRefusedFreeStateFixture(t *testing.T) (*Server, freeStateReasoningLoop,
 			"observation_ledger": map[string]any{
 				"receipts": []any{
 					map[string]any{"observation_id": "obs-scan-r3", "status": "ready", "project_revision": "3", "requested_views": []any{"mix.multitrack_relationship"}},
-					map[string]any{"observation_id": "obs-202-r3", "status": "ready", "project_revision": "3", "target_ref": map[string]any{"kind": "track", "id": "202"}},
+					map[string]any{"observation_id": "obs-202-r3", "status": "ready", "project_revision": "3"},
 				},
 			},
 		},

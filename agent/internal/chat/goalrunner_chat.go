@@ -2266,6 +2266,18 @@ func (s *Server) freeStateCapabilityBoundaryRemediation(ctx context.Context, rec
 		if processorType := strings.TrimSpace(loop.LatestDecision.ProcessorType); family == "" && processorType != "" {
 			family = processorAttestationFamily(processorType)
 		}
+		// M3-FS-GATE-EVIDENCE-WIRE-1 A2: third provenance — the improvement
+		// proposal's own action_domain. A proposal-only blocked turn (no
+		// semantic intent, no processor type — the volume-automation shape of
+		// slicebudget_1 g1_r1) otherwise left family "" and the boundary
+		// reported family_unresolved while the proposal itself named the
+		// domain. Native parameter domains (track_gain/clip_gain/pan) resolve
+		// to their non-plugin families; the resolver then discloses the absent
+		// remediation classes honestly (no PCA same/adjacent candidates)
+		// instead of the family being unresolved.
+		if family == "" && loop.LatestDecision.ImprovementProposal != nil {
+			family = capabilityboundary.FamilyFromImprovementActionDomain(loop.LatestDecision.ImprovementProposal.ActionDomain)
+		}
 	}
 	trackID := firstStringFromMap(loop.TargetRef, "track_id")
 	if strings.EqualFold(firstStringFromMap(loop.TargetRef, "kind"), "track") {
