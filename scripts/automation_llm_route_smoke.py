@@ -147,7 +147,20 @@ FOLLOWUP_MAX = 3                  # extra chat calls inside one round
 # in the improvement-proposal vocabulary — exactly the 233 wire2
 # confirm_broken breakage (drive sent x3, never settled).
 CONFIRM_PHRASE = "确认提案"         # improvement_proposal card button word
+MIX_TICK_CONFIRM_PHRASE = "确认执行"  # mix_tick card button word (its accept path is actionworkflow acceptText)
+GENERIC_CONFIRM_PHRASE = "确认"      # bare confirm passes every actionworkflow accept table (supervisor-verified)
 CHOREO_CONFIRM_PHRASE = "确认写入"  # choreo card button word (automation_choreo.go:713)
+# Card 234 survey finding (alignrun1 g1_r2, live): the confirmation chain
+# STACKS two card types — settling the improvement_proposal card with its own
+# button word advances to a second pending card, mix_tick_confirmation
+# (stop_reason improvement_proposal_native_tool_confirmation_required, button
+# 「确认执行」), whose vocabulary does not take 「确认提案」 (ambiguous hold).
+# Per the card's per-card-type clause the drive picks each pending card's own
+# face word; other confirmation faces get the bare universal word.
+CONFIRM_PHRASES = {
+    "improvement_proposal": CONFIRM_PHRASE,
+    "mix_tick": MIX_TICK_CONFIRM_PHRASE,
+}
 REGION_FOLLOWUP = "0 到 30 秒"
 
 # Deterministic clip fixture (card 230 option A): self-contained, generated
@@ -552,6 +565,42 @@ def improvement_proposal_face(resp: Dict[str, Any]) -> bool:
     return False
 
 
+def mix_tick_face(resp: Dict[str, Any]) -> bool:
+    """Strict mix_tick pending-card detection: the second card type the
+    confirmation chain stacks after the improvement_proposal card settles
+    (alignrun1 g1_r2 live finding — stop_reason carries mix_tick in both the
+    native-tool ask and the ambiguous hold; workflow/kind say mix_tick)."""
+    if "mix_tick" in str(resp.get("stop_reason") or ""):
+        return True
+    if str(resp.get("workflow") or "") == "mix_tick":
+        return True
+    interactions = resp.get("interaction_requests")
+    if isinstance(interactions, list):
+        for row in interactions:
+            if not isinstance(row, dict):
+                continue
+            combined = str(row.get("kind") or "") + "/" + str(row.get("type") or "")
+            if "mix_tick" in combined:
+                return True
+    return False
+
+
+def confirm_phrase_for(resp: Dict[str, Any], previous_face: Optional[str] = None) -> str:
+    """Card 234 per-card-type drive: pick the pending card's own button word.
+    previous_face carries the last seen card face through the async-settle
+    loop (the runtime-status poll carries no card kind, so the face is
+    tracked from the last chat reply that did)."""
+    if mix_tick_face(resp):
+        return MIX_TICK_CONFIRM_PHRASE
+    if improvement_proposal_face(resp):
+        return CONFIRM_PHRASE
+    if previous_face:
+        return CONFIRM_PHRASES.get(previous_face, GENERIC_CONFIRM_PHRASE)
+    if has_confirm_card(resp):
+        return GENERIC_CONFIRM_PHRASE
+    return GENERIC_CONFIRM_PHRASE
+
+
 def post_round_observation_probe(agent_http: str, track_id: str) -> Dict[str, Any]:
     """Convergence discriminator: after a round's verdict, one deterministic
     same-face observation request (zero LLM cost) on the ride track. View
@@ -739,6 +788,12 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
                                    "poll_interval_sec": TERMINAL_WAIT_POLL_INTERVAL_SEC,
                                    "polls": 0, "goal_id": resp.get("goal_id") or ""}
         target_goal_id = str(resp.get("goal_id") or "")
+        # card 234: card face carried across the async-settle loop — the
+        # runtime-status poll exposes no card kind, so remember the face of
+        # the last chat reply that did (the settling chain can stack
+        # improvement_proposal -> mix_tick).
+        pending_face = ("mix_tick" if mix_tick_face(resp)
+                        else "improvement_proposal" if improvement_proposal_face(resp) else None)
         deadline = time.time() + TERMINAL_WAIT_TIMEOUT_SEC
         while time.time() < deadline:
             record["terminal_wait"]["polls"] += 1
@@ -791,9 +846,13 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
                     record["verdict"] = "confirm_broken"
                     record["verdict_detail"] = "confirmation card reached after terminal wait but followup budget exhausted"
                     return True
-                confirm = send(CONFIRM_PHRASE)
+                confirm = send(confirm_phrase_for({}, previous_face=pending_face))
                 followups += 1
                 record["confirmations_driven"] = record.get("confirmations_driven", 0) + 1
+                latest_face = ("mix_tick" if mix_tick_face(confirm)
+                               else "improvement_proposal" if improvement_proposal_face(confirm) else None)
+                if latest_face:
+                    pending_face = latest_face
                 after = kernel_point_count(kernel_zmq, ride_plugin_id, "volume")
                 if after > 0:
                     record["kernel_points_after_confirm"] = kernel_curve(kernel_zmq, ride_plugin_id, "volume").get("points")
@@ -870,7 +929,9 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
                 record["verdict"] = "confirm_broken"
                 record["verdict_detail"] = "confirmation pending but followup budget exhausted"
                 break
-            resp = send(CONFIRM_PHRASE)
+            # card 234: drive the pending card's own face word (the chain can
+            # stack improvement_proposal -> mix_tick; see CONFIRM_PHRASES)
+            resp = send(confirm_phrase_for(resp))
             followups += 1
             after = kernel_point_count(kernel_zmq, ride_plugin_id, "volume")
             settle_blob = response_blob(resp)
