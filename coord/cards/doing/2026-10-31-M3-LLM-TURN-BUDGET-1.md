@@ -34,4 +34,10 @@ closure 相位对变体话术的决策轮只给 1-2 turn 预算：模型观察�
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记；§8 口径承 220 成文不得改；计费披露）
+- 时间：2026-10-31 10:27；origin/main=33568012（fetch 亲核=远端一致）
+- owner：ZCode GLM-5.3 PC 执行会话（229 卡会话，用户转交提示词指定领取）
+- 分支：port/m3-llm-turn-budget-1；worktree：D:/Vit_DAW-229（基于 origin/main 33568012 新建）
+- 领取基线：`git rev-parse HEAD`=33568012affd812383f15854fd9a406f5e694458；`git status --short`=空；`git diff --stat`=空（工作树干净，无领取前 diff）
+- 前提核对：227 已合入（a302d387 在 origin/main 线）✓；doing 仅 GEN-SUNO-WEB-DESIGN-1（零生产码，域不相交）✓；226（M3-AUTH-RESTORE-CARRY-1）领取时仍在 todo 未领取，无并行域冲突；并行警示已知悉——勘察若触及 server.go / working_session.go 即停上交错峰裁定
+- 真栈错峰：226 与本卡并行，真栈腿先到先登记（PC-RUNTIME-STACK.md fetch 重读置顶+进程/端口全零亲核+登记先于启动），未登记者长轮询等待（220 先例）
+- §8 口径：LLM 轮真实计费，回执披露调用数与 token；断言体 v2（automation_llm_route_smoke.py）原口径不改
