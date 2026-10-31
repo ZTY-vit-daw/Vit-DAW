@@ -30,4 +30,11 @@
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记 PC-RUNTIME-STACK.md）
+- 时间：2026-10-31（PC 执行会话领取）
+- origin/main：33568012affd812383f15854fd9a406f5e694458（=fetch 后核对一致）
+- 领取时 worktree 基线：`git rev-parse HEAD`=33568012；`git status --short`=空；`git diff --stat`=空（新建 worktree 干净）
+- owner：ZCode GLM-5.3 PC 执行会话（226 卡会话）/ PC (Windows)
+- 分支：port/m3-auth-restore-carry-1
+- worktree：D:/Vit_DAW_wt_authcarry1（实现）+ D:/Vit_DAW_wt_authcarry1_coord（协调）
+- 领取提交：coord/authcarry1-claim（push main 后回填 hash）
+- 真栈错峰：229（M3-LLM-TURN-BUDGET-1）并行中——真栈腿前 fetch 重读 PC-RUNTIME-STACK.md，先到先登记，未登记者长轮询等待释放
