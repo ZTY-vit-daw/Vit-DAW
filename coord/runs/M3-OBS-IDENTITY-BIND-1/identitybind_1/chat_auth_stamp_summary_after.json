@@ -1,0 +1,35 @@
+{
+  "scenario": "M3-CHAT-AUTH-STAMP-1 chat-chain authority stamp",
+  "phase": "after",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "project_path": "D:\\Vit_DAW_wt_231impl\\coord\\runs\\M3-OBS-IDENTITY-BIND-1\\identitybind_1\\chat_auth_stamp_project.vit",
+  "llm_participation": "none (deterministic vocabulary routing; authority faces are control-plane HTTP)",
+  "started_at": "2026-10-31T11:18:00.954035+00:00",
+  "legs": [
+    "restart_restore",
+    "full_span_direct",
+    "manual_card",
+    "forged_body",
+    "cleanup"
+  ],
+  "restart_restore": {
+    "authority_mode": "full_project_access"
+  },
+  "full_span_direct": {
+    "stop_reason": "automation_choreo_settled"
+  },
+  "manual_card": {
+    "goal_status": "waiting_confirmation",
+    "card_kind": "automation_choreo_confirmation"
+  },
+  "forged_body": {
+    "http": 409,
+    "error_code": "authority_mode_change_blocked"
+  },
+  "cleanup": {
+    "restored_authority": "manual_confirmation"
+  },
+  "status": "PASS",
+  "finished_at": "2026-10-31T11:18:09.618206+00:00"
+}
