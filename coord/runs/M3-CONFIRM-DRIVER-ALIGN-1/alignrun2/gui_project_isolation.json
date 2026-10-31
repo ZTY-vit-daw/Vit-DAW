@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD 65ecba633d28c5f14cc8e28c92acb230fd9907e9:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-10-31T23:22:48.3013884+08:00",
+    "marker_path":  "D:\\Vit_DAW_wt_234impl\\coord\\runs\\M3-CONFIRM-DRIVER-ALIGN-1\\alignrun2\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_234impl\\coord\\runs\\M3-CONFIRM-DRIVER-ALIGN-1\\alignrun2\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}

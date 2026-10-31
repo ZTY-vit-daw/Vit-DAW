@@ -1,0 +1,71 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261031_225321\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_234impl\coord\runs\M3-CONFIRM-DRIVER-ALIGN-1\alignrun1\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: automation LLM route telemetry capture: telemetry=D:\Vit_DAW_wt_234impl\coord\runs\M3-CONFIRM-DRIVER-ALIGN-1\alignrun1\logs\agent_llm_telemetry.jsonl prompt_render=D:\Vit_DAW_wt_234impl\coord\runs\M3-CONFIRM-DRIVER-ALIGN-1\alignrun1\logs\agent_prompt_render.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_234impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_234impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_234impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_234impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=38132 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_234impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=38132
+ok: ZMQ SUB listening: 5556 pid=38132
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== automation LLM route verification (M3-C4-AUTO-LLM-ROUTE-VERIFY-1)
+ok: automation LLM route project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_234impl\coord\runs\M3-CONFIRM-DRIVER-ALIGN-1\alignrun1\default_project.xml
+[setup] ride track 1010 volume plugin 1011 (no external plugin, card group-2 premise)
+[setup] deterministic clips on both tracks (evidence: {'1007': 1, '1010': 1}, observation ready after 1 attempt(s), acoustic excerpt=['partial', 'partial', 'partial'])
+[group 1] {"phrase": "杩欐璁╁畠瓒婃潵瓒婄獊鍑轰竴鐐?, "llm_samples": 5, "verdicts": ["no_route", "confirm_broken", "no_route", "no_route", "no_route"], "successes": 0, "group_pass": false, "stop_loss": {"group": 1, "failure_type": "no_route", "consecutive": 3}, "lexicon_overflow": false, "choreo_pending_leg": {"verdict": "pending_intact", "group": 1}}
+[DONE] status=COMPLETED exit=0
+ok: automation LLM route verification executed to completion (model-behavior findings in summary: D:\Vit_DAW_wt_234impl\coord\runs\M3-CONFIRM-DRIVER-ALIGN-1\alignrun1\automation_llm_route_summary.json)
+
+== Chat route smoke
+chat.stop_reason=improvement_proposal_confirmation_required
+chat.reply=我先根据当前轨道自身的频段分布给一个可听辨、可回退的小调整：这条轨的低频段能量明显偏重，而中高频（尤其 2 kHz 以上）几乎为空，整体听感容易偏闷、低频糊。建议先做一个小幅的低频削减来试探平衡，改完你直接 A/B 听是否更通透。
+
+如果你认可这个小步建议，需要我继续执行吗？
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Summary
+ok: dev agent smoke completed
