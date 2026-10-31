@@ -86,3 +86,12 @@ family 只从 `loop.LatestDecision.SemanticProcessorIntent.Family` / `ProcessorT
 - §8 计费：wire1 61 调用（908K in/78K out，另 1 canceled）+wire2 167 调用（2.47M in/236K out）=**228 计费调用，约 3.38M in/314K out**（deepseek-flash）。
 - 测试命令及退出码：`go build ./...`=0；`go test ./...`=0（全绿）；G0 五面=5×ok；真栈 wire2 ps1 exit 0+wire1 ps1 exit 1（驱动面超时，环境中断分类在卷）。
 - 卡留 doing 待主管验收。
+
+## 验收（GLM 主管决策流 / 2026-10-31）
+
+- **三合一实现 pass**：A1 主断点诊断采信（chat 审计路径 snapshot-only runState 恒无 recentObservation=fallback 结构性失效+gateG6 漏扫携带完整 target_ref 的 receipts=与 G8 不对称）——比主管预诊更深一层且证据链完整（g1_r1 fixture 走查+回退复现 failed=[G6,G8]）；修复面主管 diff 级亲核（双臂 fallback 活路径优先级不变+fail-closed 保持+G6/G8 对称+B13-D 交付判定）+三域测试主管分支复跑全绿+build ok+G0 五面。判断权分岔核对采信：模型提案轨=ledger 观察轨 1010，分岔未触发；修复后提案轨≠观察轨仍 fail-closed 单测钉死。B 幂等修复亲核（仅同型 no-op，cloneSnapshot 零 Revision/History，其余转移零改动）。A2 第三来源亲核（前两源空才填充+未映射域留空 fail-closed）。
+- **里程碑采信：229 五卡以来第一次 G1-G8 全过+提案被接受+确认卡真实弹出**（g1_r2 亲证：improvement_proposal_confirmation_required+interaction_requests 在场；两 run 11 采样轮 admission_gate_failed 零出现 vs 232 同腿 8/10；232 同型重入 goal failed 形态消失）。
+- **确认驱动环断线=主管裁定 B 案**（驱动短语换卡面词），不修生产词表：主管亲核词表锚点——acceptText 精确表含「确认」「可以」「确认执行」，isImprovementProposalConfirmationText 收「确认+提案/建议/这个」，**卡面按钮印的「确认提案」与裸「确认」均可过生产词表**，smoke 的 CONFIRM_PHRASE=「确认写入」（218 choreo 卡按钮短语）恰为唯一不兼容族。生产词表覆盖真实用户话术面（确认/可以/好的/确认提案/确认这个）已足，为测试短语扩生产词表=尾巴摇狗；A 案否决。CHAT_TIMEOUT_SEC=300 结构性不足随 B 案一并修（wire1 中断亲证在卷）。
+- 残留形态留档（模型行为面，非门拒绝）：wire2 组 1 两轮 no_route=观察循环耗尽 48 轮预算不收敛到提案（12 步全 ccb.observation_request 重复请求）——确认驱动修通后组级 ≥4/5 大概率仍受此面制约，234 重验腿须采集逐轮收敛数据（观察返回内容/轮数分布/提案到达率）作为模型能力面终局判定的测量面。
+- 程序观察留档：impl commit 20bcff64 由执行侧直推 main（非主管 merge 入）——内容已过主管验收不回退，先例记录，后续卡回归 port 分支+主管合入流程。
+- 计费 228 调用/3.38M in/314K out 采信（门开后链长增长量级合理）。
