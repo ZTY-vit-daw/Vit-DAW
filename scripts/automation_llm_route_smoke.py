@@ -52,6 +52,11 @@ Round verdict vocabulary (card §8 failure classes):
                        failure class since card 230 (option C) — 229
                        mis-filed these declarations as no_route because the
                        boundary lexicon never matched the declaration wording
+  in_progress_timeout - card 232: the bounded terminal-state wait window
+                       expired with the round still in progress (no
+                       confirmation card, no completion, no capability
+                       declaration) — filed honestly instead of forcing a
+                       no_route verdict onto a queued continuation
   wrong_tool         - detoured through a non-automation mutation tool
   confirm_broken     - confirmation chain failed (write without confirmation,
                        or a pending confirmation that cannot be settled)
@@ -115,6 +120,14 @@ ACOUSTIC_READY_POLL_INTERVAL_SEC = 5.0
 # Async-continuation receipt grace: after a queued-continuation reply the
 # free-state loop receipt may still be settling when the reply arrives.
 CAPABILITY_RECEIPT_GRACE_SEC = 15.0
+# Terminal-state wait window (card 232): progress/queued replies (limit_reached
+# continuation notice / automatic_continuation_already_scheduled) no longer
+# classify as no_route on sight. The async continuation settles the round
+# toward its natural stopping point (governance confirmation card / completion
+# report / capability declaration); the smoke polls the agent runtime status
+# inside this bounded window and dispatches on whichever terminal state lands.
+TERMINAL_WAIT_TIMEOUT_SEC = 900.0
+TERMINAL_WAIT_POLL_INTERVAL_SEC = 10.0
 
 GROUP_PHRASES = {
     1: "这段让它越来越突出一点",
@@ -378,6 +391,22 @@ def is_limit_reached(resp: Dict[str, Any]) -> bool:
     return str(resp.get("stop_reason") or "") == "limit_reached"
 
 
+def is_queued_continuation(resp: Dict[str, Any]) -> bool:
+    """Card 232: the scheduler-driven async continuation receipt — the round's
+    work is queued and settling toward its natural stopping point; this is a
+    progress signal, not a routing verdict."""
+    return str(resp.get("stop_reason") or "") == "automatic_continuation_already_scheduled"
+
+
+def get_runtime_status(base_url: str) -> Dict[str, Any]:
+    """Read-only GET of /agent/runtime/status (same whitelist-GET posture as
+    g_runtime_readonly_smoke.ps1): goal projection (status/stop_reason/
+    summary/error), continuations projection."""
+    request = urllib.request.Request(base_url.rstrip("/") + "/agent/runtime/status", method="GET")
+    with urllib.request.urlopen(request, timeout=10.0) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
 def parse_tool_calls(log_text: str) -> List[str]:
     """Extract distinct tool names from agent-log harness.invoke lines."""
     tools: List[str] = []
@@ -534,6 +563,113 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
         exchanges.append({"sent": message, "response": resp})
         return resp
 
+    def settle_from_terminal_wait() -> bool:
+        """Card 232 terminal-state wait fuse: the round hit a progress/queued
+        reply (limit_reached continuation notice / queued continuation), so
+        poll the agent runtime inside a bounded window and dispatch on the
+        first natural stopping point. Returns True when a verdict was reached;
+        False means the window expired (caller files in_progress_timeout)."""
+        nonlocal followups
+        record["terminal_wait"] = {"window_sec": TERMINAL_WAIT_TIMEOUT_SEC,
+                                   "poll_interval_sec": TERMINAL_WAIT_POLL_INTERVAL_SEC,
+                                   "polls": 0, "goal_id": resp.get("goal_id") or ""}
+        target_goal_id = str(resp.get("goal_id") or "")
+        deadline = time.time() + TERMINAL_WAIT_TIMEOUT_SEC
+        while time.time() < deadline:
+            record["terminal_wait"]["polls"] += 1
+            try:
+                status = get_runtime_status(agent_http)
+            except (OSError, ValueError) as exc:
+                record["terminal_wait"]["last_poll_error"] = str(exc)
+                time.sleep(TERMINAL_WAIT_POLL_INTERVAL_SEC)
+                continue
+            goal = status.get("goal") if isinstance(status.get("goal"), dict) else {}
+            goal_id = str(goal.get("goal_id") or "")
+            if target_goal_id and goal_id and goal_id != target_goal_id:
+                # the last active goal is not this round's goal (e.g. a pending
+                # choreo card from another conversation): keep waiting
+                record["terminal_wait"]["last_foreign_goal"] = goal_id
+                time.sleep(TERMINAL_WAIT_POLL_INTERVAL_SEC)
+                continue
+            gstatus = str(goal.get("status") or "")
+            gstop = str(goal.get("stop_reason") or "")
+            # An unconfirmed kernel write during the wait is a governance
+            # breach; a write after OUR confirmation drive is that
+            # confirmation settling asynchronously (success path below).
+            points_now = kernel_point_count(kernel_zmq, ride_plugin_id, "volume")
+            if points_now > 0:
+                if record.get("confirmations_driven", 0) > 0:
+                    record["kernel_points_after_confirm"] = kernel_curve(kernel_zmq, ride_plugin_id, "volume").get("points")
+                    record["verdict"] = "tool_chain_ok"
+                    record["verdict_detail"] = (f"confirmed write reached kernel via async continuation settle "
+                                                f"(points={points_now})")
+                    return True
+                record["verdict"] = "confirm_broken"
+                record["verdict_detail"] = "kernel curve mutated during the terminal-state wait with no confirmation face driven"
+                return True
+            if gstop == "capability_blocked":
+                record["verdict"] = "capability_blocked"
+                record["verdict_detail"] = (f"goal stop_reason capability_blocked (async continuation): "
+                                            f"{str(goal.get('summary') or '')[:200]!r}")
+                return True
+            if project_dir is not None:
+                receipt = runtime_state_capability_blocked(project_dir, conversation)
+                if receipt is not None:
+                    record["verdict"] = "capability_blocked"
+                    record["verdict_detail"] = f"free-state loop receipt capability_blocked (async continuation): {receipt!r}"
+                    return True
+            # Natural stopping point 1: the governance confirmation card is on
+            # the table — drive it, then verify the write and read the curve
+            # back point by point.
+            if gstatus in ("waiting_confirmation", "waiting_confirm"):
+                if followups >= FOLLOWUP_MAX:
+                    record["verdict"] = "confirm_broken"
+                    record["verdict_detail"] = "confirmation card reached after terminal wait but followup budget exhausted"
+                    return True
+                confirm = send(CONFIRM_PHRASE)
+                followups += 1
+                record["confirmations_driven"] = record.get("confirmations_driven", 0) + 1
+                after = kernel_point_count(kernel_zmq, ride_plugin_id, "volume")
+                if after > 0:
+                    record["kernel_points_after_confirm"] = kernel_curve(kernel_zmq, ride_plugin_id, "volume").get("points")
+                    record["settle_stop_reason"] = confirm.get("stop_reason")
+                    record["settle_mentions_get_curve"] = "automation.get_curve" in response_blob(confirm)
+                    record["verdict"] = "tool_chain_ok"
+                    record["verdict_detail"] = f"confirmed write reached kernel after terminal wait (points={after})"
+                    return True
+                # the confirm drive itself may queue (async settle): loop back
+                # and let the points/receipt checks above catch the landing
+                continue
+            # Natural stopping points 2/3: terminal goal status without our
+            # confirmation — classify faithfully, no fabrication.
+            if gstatus in ("completed", "failed", "cancelled", "stopped"):
+                record["terminal_wait"]["final_goal"] = {
+                    "status": gstatus, "stop_reason": gstop,
+                    "summary": str(goal.get("summary") or "")[:300],
+                    "error": str(goal.get("error") or "")[:300],
+                }
+                summary_text = str(goal.get("summary") or "")
+                if gstatus == "failed":
+                    err_break = looks_env_broken({"error": str(goal.get("error") or ""), "reply": summary_text})
+                    if err_break:
+                        record["verdict"] = "env_interrupt"
+                        record["verdict_detail"] = f"goal failed during continuation: {err_break}"
+                        return True
+                if looks_boundary(summary_text):
+                    record["verdict"] = "boundary_ok"
+                    record["verdict_detail"] = f"boundary reply via continuation settle: {summary_text[:200]!r}"
+                    return True
+                if looks_capability_blocked({"stop_reason": gstop}, summary_text):
+                    record["verdict"] = "capability_blocked"
+                    record["verdict_detail"] = f"capability declaration via continuation settle: {summary_text[:200]!r}"
+                    return True
+                record["verdict"] = "no_route"
+                record["verdict_detail"] = (f"continuation settled goal {gstatus} with no write, confirmation, or "
+                                            f"capability face (stop_reason={gstop!r}, summary={summary_text[:200]!r})")
+                return True
+            time.sleep(TERMINAL_WAIT_POLL_INTERVAL_SEC)
+        return False
+
     resp = send(phrase)
 
     # environment breakage check first (stop condition 1 evidence)
@@ -593,10 +729,12 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
             record["verdict_detail"] = f"kernel curve mutated ({points_now} points) with no confirmation face"
             break
 
-        if is_limit_reached(resp) and limit_followups < 1:
+        if (is_limit_reached(resp) or is_queued_continuation(resp)) and limit_followups < 1:
             # turn-budget stop with the goal scheduled for continuation: wake
             # it once with a plain continue (first-run evidence: the model was
-            # cut mid-exploration, never reaching the automation tools)
+            # cut mid-exploration, never reaching the automation tools). A
+            # queued-continuation receipt here lands on the terminal-state
+            # wait below (card 232) instead of a no_route filing.
             record["limit_reached_seen"] = True
             resp = send("继续")
             limit_followups += 1
@@ -631,22 +769,17 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
             followups += 1
             continue
 
-        if is_limit_reached(resp):
-            # async-continuation form (229 r2/r3): the reply says the task is
-            # queued; the continuation settles the final free-state decision
-            # into the project's agent runtime state. Give the receipt one
-            # grace re-read before falling back to the plain no_route filing.
-            if project_dir is not None:
-                receipt = runtime_state_capability_blocked(project_dir, conversation)
-                if receipt is None:
-                    time.sleep(CAPABILITY_RECEIPT_GRACE_SEC)
-                    receipt = runtime_state_capability_blocked(project_dir, conversation)
-                if receipt is not None:
-                    record["verdict"] = "capability_blocked"
-                    record["verdict_detail"] = f"free-state loop receipt capability_blocked (async continuation): {receipt!r}"
-                    break
-            record["verdict"] = "no_route"
-            record["verdict_detail"] = f"turn budget exhausted before any automation tool face (limit_reached x{limit_followups + 1}); last reply: {text[:200]!r}"
+        if is_limit_reached(resp) or is_queued_continuation(resp):
+            # Card 232 terminal-state wait fuse: a progress/queued reply means
+            # the async continuation is still settling this round toward its
+            # natural stopping point. Wait bounded, then dispatch on the
+            # terminal state instead of filing no_route on sight.
+            if settle_from_terminal_wait():
+                break
+            record["verdict"] = "in_progress_timeout"
+            record["verdict_detail"] = (f"terminal-state wait window ({TERMINAL_WAIT_TIMEOUT_SEC:.0f}s, "
+                                        f"{record['terminal_wait']['polls']} polls) expired with the round still "
+                                        f"in progress; last reply: {text[:200]!r}")
             break
 
         # plain text with no tool face, no boundary, no question
@@ -893,8 +1026,11 @@ def main() -> None:
                 # stop-loss: 3 consecutive same-type failures inside the group
                 # (card 230: capability_blocked joins the stop-loss set — the
                 # honest declaration is a failure form for the group gate and
-                # repeated occurrences must not keep spending billed rounds)
-                failure_types = {"no_route", "capability_blocked", "wrong_tool", "confirm_broken", "write_fail"}
+                # repeated occurrences must not keep spending billed rounds;
+                # card 232: in_progress_timeout likewise — three expired wait
+                # windows means the observation protocol is broken, not the
+                # model, and must stop burning billed rounds)
+                failure_types = {"no_route", "capability_blocked", "wrong_tool", "confirm_broken", "write_fail", "in_progress_timeout"}
                 if record["verdict"] in failure_types:
                     consecutive_same_failure[record["verdict"]] = consecutive_same_failure.get(record["verdict"], 0) + 1
                     for other in list(consecutive_same_failure):

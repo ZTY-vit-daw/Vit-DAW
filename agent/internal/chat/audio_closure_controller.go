@@ -451,9 +451,38 @@ func audioClosureAutomationRoundContext(context map[string]any) bool {
 	return true
 }
 
+// audioClosureAutomationRoundMaxTurns / audioClosureAutomationRoundMaxToolCalls
+// are the headroom floor an automation-capable free-state decision round's
+// slice budget opens to (232, user ruling 2026-10-31: the per-slice limit is a
+// relay baton, not a boundary — limit at the total, MaxClosureRounds stays the
+// fuse). Derivation from 231 telemetry:
+//
+//	chain length  = 8-10 tool calls per complete automation chain (catalog ->
+//	                observations x2-3 -> get_plugin_parameters -> set_points
+//	                (governance pause) -> ResumeAfterConfirmation -> get_curve
+//	                -> report)
+//	turn overhead = ~3 model turns per tool call on the fast engine family
+//	                (231: 9-10 turns completed 3 tools)
+//	chain turns   = 8-10 x 3 = 24-30 turns
+//	headroom      = x1.5 (ruling) = 36-45 -> 48 (upper bound plus
+//	                confirmation-drive and report slack)
+//	tool calls    = same ratio as the mode base (16/10 = 1.6): 48 x 1.6 =
+//	                76.8 -> 80
+//
+// The values are a floor, never a clamp: settle headroom already on the base
+// budget survives, and larger bases are never narrowed. Timeout is untouched —
+// the 3-minute slice relay and the async continuation (229 side 2) remain the
+// transport-level liveness mechanism, so one decision round still composes
+// from a few relay slices when the engine is slow; the wider turn budget only
+// stops limit_reached from firing before the chain's natural stopping point.
+const (
+	audioClosureAutomationRoundMaxTurns     = 48
+	audioClosureAutomationRoundMaxToolCalls = 80
+)
+
 func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any) agentloop.Budget {
 	// M3-LLM-TURN-BUDGET-1 (229): an automation-capable free-state decision
-	// round keeps the mode base budget instead of the closure candidate
+	// round keeps a decision-scale budget instead of the closure candidate
 	// clamp. The 1-2-turn clamp below was designed for the pure observation
 	// slice (one probe + one verdict); the automation chain structurally
 	// cannot fit it (227 re-verification: three consecutive no_route — the
@@ -463,12 +492,16 @@ func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any
 	//   source  = the same structural predicate as the 227 tool-surface
 	//             admission (active free-state loop, not diagnostic-only) —
 	//             tool surface and turn budget stay sourced identically;
-	//   ceiling = the mode base budget as-is (goal 10 turns / 16 calls), no
-	//             extra stacking; the settle +4 headroom
-	//             (agentLoopBudgetForContext) and the 227 execution-time +4
-	//             (noteFreeStateAutomationEngagement) each keep their own
-	//             triggers, and the MaxClosureRounds contract boundary is
-	//             untouched — a wider slice never extends closure lifetime;
+	//   ceiling = the headroom floor above (48 turns / 80 calls, 232): the
+	//             229 mode-base ceiling (goal 10 turns) proved structurally
+	//             short of the chain (231: 2-3 tool calls exhausted the slice
+	//             before any write turn existed; the queued continuations
+	//             outlived every observation window). Max semantics — the
+	//             settle +4 headroom (agentLoopBudgetForContext) and the 227
+	//             execution-time +4 (noteFreeStateAutomationEngagement) each
+	//             keep their own triggers, and the MaxClosureRounds contract
+	//             boundary is untouched — a wider slice never extends closure
+	//             lifetime;
 	//   decay   = narrow admission face only (free-state decision rounds;
 	//             diagnostic-only rounds and non-free-state closure rounds
 	//             keep the clamp below verbatim). The governance gate and
@@ -479,7 +512,14 @@ func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any
 	// free_state_reasoning_loop, so the resumed slice inherits the same
 	// budget semantics as the decision round — no bypass path (229 side 2).
 	if audioClosureAutomationRoundContext(context) {
-		return base
+		opened := base
+		if opened.MaxTurns < audioClosureAutomationRoundMaxTurns {
+			opened.MaxTurns = audioClosureAutomationRoundMaxTurns
+		}
+		if opened.MaxToolCalls < audioClosureAutomationRoundMaxToolCalls {
+			opened.MaxToolCalls = audioClosureAutomationRoundMaxToolCalls
+		}
+		return opened
 	}
 	// Candidate selection is the one closure phase that needs two adjacent
 	// model turns: request the bounded target observation, then decide from

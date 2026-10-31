@@ -1,0 +1,49 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261031_200427\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_232impl\coord\runs\M3-AUTOMATION-SLICE-BUDGET-OPEN-1\slicebudget_1\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: automation LLM route telemetry capture: telemetry=D:\Vit_DAW_wt_232impl\coord\runs\M3-AUTOMATION-SLICE-BUDGET-OPEN-1\slicebudget_1\logs\agent_llm_telemetry.jsonl prompt_render=D:\Vit_DAW_wt_232impl\coord\runs\M3-AUTOMATION-SLICE-BUDGET-OPEN-1\slicebudget_1\logs\agent_prompt_render.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_232impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_232impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_232impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_232impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=24460 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_232impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=24460
+ok: ZMQ SUB listening: 5556 pid=24460
+
+== Project state invoke
+project.state status=ok error=
+
+== automation LLM route verification (M3-C4-AUTO-LLM-ROUTE-VERIFY-1)
+ok: automation LLM route project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_232impl\coord\runs\M3-AUTOMATION-SLICE-BUDGET-OPEN-1\slicebudget_1\default_project.xml
+[setup] ride track 1010 volume plugin 1011 (no external plugin, card group-2 premise)
+[setup] deterministic clips on both tracks (evidence: {'1007': 1, '1010': 1}, observation ready after 1 attempt(s), acoustic excerpt=['partial', 'partial'])
+[group 1] {"phrase": "这段让它越来越突出一�?, "llm_samples": 5, "verdicts": ["capability_blocked", "no_route", "capability_blocked", "no_route", "no_route"], "successes": 0, "group_pass": false, "stop_loss": null, "lexicon_overflow": false, "choreo_pending_leg": {"verdict": "pending_intact", "group": 1}}
+[group 2] {"phrase": "帮我把空间铺开", "llm_samples": 3, "verdicts": ["capability_blocked", "capability_blocked", "capability_blocked"], "successes": 0, "group_pass": false, "stop_loss": {"group": 2, "failure_type": "capability_blocked", "consecutive": 3}, "lexicon_overflow": false, "choreo_pending_leg": null}
+[DONE] status=COMPLETED exit=0
+ok: automation LLM route verification executed to completion (model-behavior findings in summary: D:\Vit_DAW_wt_232impl\coord\runs\M3-AUTOMATION-SLICE-BUDGET-OPEN-1\slicebudget_1\automation_llm_route_summary.json)
+
+== Summary
+ok: dev agent smoke completed
