@@ -40,3 +40,23 @@
 - 领取时基线状态：实现 worktree 新建自 origin/main，`status --short` 干净、`diff --stat` 为空；主工作树存在他卡/运行工件未提交项（Settings.xml、default_project.xml、coord/runs/* 等非本卡文件域，不触碰）
 - 分支/worktree：`port/m3-obs-identity-bind-1` @ `D:/Vit_DAW_wt_231impl`（实现）；`coord/231-claim` @ `D:/Vit_DAW_wt_231coord`（本领取提交）
 - 派发确认依据：用户在 PC 执行会话直接派发本卡（池序 231），卡面"发卡即提交，领取按池序"；依赖 230 已合入（ab2bcde6 亲核）
+
+## 回执（2026-10-31，GLM PC 执行会话；卡留 doing 等主管验收）
+
+**实现 commit：9f8dbe07 @ port/m3-obs-identity-bind-1（已 push）**；真栈 run=coord/runs/M3-OBS-IDENTITY-BIND-1/identitybind_1（工件清单见 RESULTS.md）。
+
+### 链路进度（§7 分列一，全部兑现）
+
+1. **诊断定案+单一真相源裁定（目标 1）**：evidence/identity_mint_map.md——四 id 全部内核铸造（agent 零铸造点：boot 装载保留 default id；new_project/save_as 各 forceNew=合法 fork 语义）；断裂根因=agent 三消费面（store 绑定/bake 盖章/观察解析）各自滞后**无对账层**；version_project_* 传播通知由 Godot 前端发，raw ZMQ 生命周期零通知零跟随。裁定：**权威=内核 live edit UUID**，跟随=fork（parent==绑定 id→复用 ForkDerived+ForkAgentStore 再绑定事实）/switch（无关身份只激活）。
+2. **修复（目标 3，域内）**：`reconcileProjectIdentityForObservation` 挂 requestMixObservation 顶部（generic 态零内核交互保 read-first 契约；concrete 分歧先刷新后按 parent 判跟随；同 id 异路径再激活；unsaved 不物化 draft；fail-open）+ `ForkDerived` 补树级 RebindProjectTree（acoustic store/快照随行再绑定；manifest 头部 fail-open §11 兼容）。**安全面零触碰**（MergeStatus project_mismatch 防御/ingest 门/FS 准入门/预算语义未改）。单测 8 个全绿（fork 往返 l1 事实非 stale+levels 数值在 ref/switch 不搬运/stale-shadow 自愈/unsaved 跳过/aligned 零命令+ForkDerived 三契约）；§6 健康检查全绿（5 Go+webui 471+AB 冒测 exit 0）。
+3. **真栈验证（目标 2+3，ps1 exit 0，kernel f9e3da0a 零漂移）**：
+   - identity 收敛亲证：.vit_derived/.vit_agent 各仅一个 id（=save_as 落盘 id 19e078b8）；live 包 **l1 peak_rms=ready rms_dbfs=-11.889**（230 同事实曾 stale）；boot orphan 行如实标 stale（防御语义保留）；
+   - **模型面 levels 非 null 亲证**：r3 循环内 track.basic_energy.facts.levels=**rms -11.889/peak -4.188/ready**（rounds/g1_r3.json）；
+   - **旅程判定**：agent 重启旅程（chat_auth_stamp 双相+真重启）全绿**不暴露**；save_as 旅程（setup 即 raw-ZMQ save_as 形态）identity 单点收敛**不暴露**；诚实披露：本轮收敛由 chat 激活面时序有利完成，reconcile 对账对齐态零日志行——机制点火由单测覆盖，真栈验证终态。
+
+### 最终验收（§7 分列二，验收门未达→停止条件 3 承接上交）
+
+- **组 1 no_route 消失：未达**（[no_route×3] 三连止损）；**set_points 首绿：未达**（三轮 points 恒 0）；组 2/3 止损设计 skipped。
+- **失败形态锚点（新型，非 230 复现）**：每轮自由态循环完整运行（r3 含 basic_energy 观察）→ **limit_reached** → 转异步续跑；复问收 automatic_continuation_already_scheduled 排队文本→判 no_route。**停止条件 3 成立**：证据齐（identity 对账+模型面 levels ready 亲证）+ 三连 no_route → **模型能力/预算-异步续跑边界面上交主管，不再折卡**（候选决策面：排队文本归类/limit_reached 预算与同步采样窗口匹配/异步续跑完成度可观测性）。
+- §8 计费：**deepseek-flash 30 调用，418,295in/44,682out**；失败分类 no_route×3（全排队文本形态），零环境中断。
+- 真栈登记 7d43dbc9（全零亲核+即时复核）→ 拆栈 TEARDOWN_ALL_ZERO（VitAgent 13888/VitApp 27748 手拆，进程/端口全零）。
