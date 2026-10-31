@@ -1,0 +1,47 @@
+{
+  "source": "identity break map across one stack run (230 leg 2)",
+  "identity_map": {
+    "kernel_edit_state_at_import_bake": [
+      "vitproj_03a025215edc4c5e802a7c353879319e",
+      "vitproj_03a025215edc4c5e802a7c353879319e"
+    ],
+    "agent_observation_resolution_final_package": [
+      "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+    ],
+    "saved_project_file": "vitproj_8093b39d0f03442982ec97fce08d1841",
+    "isolation_default_project_at_agent_boot": "vitproj_43f8fefcf094436e97ffec88c287d624"
+  },
+  "l1_static_stale_detail": {
+    "status": "stale",
+    "peak_rms_summary": {
+      "status": "stale",
+      "reason": "project_mismatch",
+      "ref_facts_present": {
+        "crest_db": 7.701,
+        "headroom_db": 4.188,
+        "peak_dbfs": -4.188,
+        "rms_dbfs": -11.889
+      }
+    },
+    "note": "bake facts ARE on disk (rms/peak/segments) but stamped stale by project_mismatch — the observation identity resolution disagrees with the import-bake identity"
+  },
+  "observation_view_levels": "{\"facts\": {\"track.1010.fast.levels\": {\"crest_db\": null, \"headroom_db\": null, \"peak_abs\": null, \"peak_dbfs\": null, \"rms\": null, \"rms_dbfs\": null, \"status\": \"missing\"}, \"track.1010.static.identity\": {\"listen_scope\": {\"source\": {\"focus_ids\": [\"1010\"], \"mode\": \"selected_track_with_project_context\"}, \"time\": {\"mode\": \"full_song\", \"source\": \"default\"}}, \"mix_objects\": [{\"effect_scope\": \"track_rack\", \"id",
+  "group1_verdicts": [
+    "no_route",
+    "capability_blocked",
+    "no_route",
+    "no_route",
+    "no_route"
+  ],
+  "r2_capability_blocked_declaration": "本次有界改进提案未通过自由态准入门（目标证据/目标一致性 两项准入检查未过），任务在能力边界停止：没有执行任何实验或修改，也不会自动重试。",
+  "usage": {
+    "llm_calls": 56,
+    "models": {
+      "deepseek-flash": {
+        "calls": 56,
+        "input_tokens": 798418,
+        "output_tokens": 87721
+      }
+    }
+  }
+}
