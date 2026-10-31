@@ -1,0 +1,39 @@
+{
+  "source": "identity convergence map + acceptance-gate anchor (231 leg, run identitybind_1)",
+  "run": "coord/runs/M3-OBS-IDENTITY-BIND-1/identitybind_1 (port/m3-obs-identity-bind-1 @ 9f8dbe07; kernel wt_228 f9e3da0a read-only reuse, sha zero drift)",
+  "identity_map_this_run": {
+    "vit_derived_dirs": ["vitproj_19e078b8278a490a83615e73751e9703"],
+    "vit_agent_dirs": ["vitproj_19e078b8278a490a83615e73751e9703"],
+    "l3_ingest_stamp": "vitproj_19e078b8278a490a83615e73751e9703 (agent_last.log ingested L3 summary track 1010 clip 1016 status=ready)",
+    "acoustic_store_packages": [
+      {"project_id": "vitproj_19e078b8278a490a83615e73751e9703", "track": "1010", "status": "ready", "l1_peak_rms": "ready", "rms_dbfs": -11.889},
+      {"project_id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb (orphan: boot-default id)", "track": "1010", "status": "partial", "l1_peak_rms": "stale", "reason": "project_mismatch", "note": "boot-default-id orphan row inside the live store; defensive MergeStatus semantics intact, live-id Find hits the ready package"}
+    ],
+    "vs_230": "230 had FOUR split ids (bake 03a0 / read ce9e / file 8093 / boot 43f8) with fresh facts stale and levels null; this run converges on ONE live id with facts ready"
+  },
+  "model_surface_levels": {
+    "where": "rounds/g1_r3.json exchanges[0].response.workflow_data.free_state_reasoning_loop.latest_observation.summary.views['track.basic_energy'].facts.levels",
+    "rms_dbfs": -11.889,
+    "peak_dbfs": -4.188,
+    "status": "ready",
+    "note": "the exact values 230 reported as null — identity fix verified end-to-end at the model observation surface"
+  },
+  "acceptance_gate_outcome": {
+    "ps1_exit": 0,
+    "group1_verdicts": ["no_route", "no_route", "no_route"],
+    "stop_loss": "no_route x3 (llm_samples=3)",
+    "no_route_form": "async-continuation queueing text: every round's exchange-1 free-state loop ran (observations executed incl. track.basic_energy) then stop_reason=limit_reached -> task queued for automatic continuation; exchange-2 re-ping got stop_reason=automatic_continuation_already_scheduled, reply '任务已在自动续跑队列中；这条消息不会创建新任务或重复执行。' -> classified no_route (plain-text form)",
+    "set_points_chain": "never reached synchronously; kernel volume points stayed 0 across r1/r2/r3 (kernel_points_before all 0); async continuation did not write within the sampled window",
+    "groups_2_3": "skipped by 220 stop-loss design",
+    "stop_condition_3_invoked": "证据齐（identity 对账=单 id 收敛在卷 + 观察事实在场=模型循环内 levels ready 亲证）+ 组1 三连 no_route → 模型能力/预算-异步续跑边界面上交主管（不再逐层折卡）"
+  },
+  "journey_legs": {
+    "agent_restart_journey": "chat_auth_stamp smoke both phases PASS: raw new_project+save_as project shape + REAL agent restart between phases; durable restore full_project_access + full-span direct execution (stop_reason=automation_choreo_settled, written=2) green — restart journey does not break under the fix",
+    "save_as_journey": "automation setup itself is the raw-ZMQ new_project+save_as journey: post-save_as observation returned facts 1st attempt with levels ready (identity converged); GUI-notification save_as path (version_project_saved fork+rebind) untouched by diff and code-verified"
+  },
+  "usage": {
+    "llm_calls_billed": 30,
+    "models": {"deepseek-flash": {"calls": 30, "input_tokens": 418295, "output_tokens": 44682}},
+    "note": "auth-stamp leg uses deterministic execution (no billed LLM); telemetry copy at logs/agent_llm_telemetry.jsonl"
+  }
+}
