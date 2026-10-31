@@ -33,4 +33,8 @@ wire2 组 1 形态=[no_route(观察耗尽), confirm_broken×2→本卡修后应�
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记 PC-RUNTIME-STACK.md；§8 计费披露；**impl 走 port 分支+主管合入**——233 直推 main 程序偏差不再重复）
+- 领取会话：PC 执行会话（GLM-5.3，ZCode）/ 2026-11-01
+- worktree：`D:\Vit_DAW_wt_234impl`，分支 `port/m3-confirm-driver-align-1`（impl 走 port 分支+主管合入）
+- 领取基线：`git rev-parse HEAD` = `4e03face07bc54b278025e8ee7545f0d522169c7`（=origin/main，本卡发卡提交）；`git status --short` 空；`git diff --stat` 空（干净起点）
+- 勘察锚点亲核（2026-11-01）：improvement_proposal 卡按钮词=「确认提案」（`agent/internal/chat/improvement_proposal_workflow.go:239`，过 `isImprovementProposalConfirmationText` 的 确认+提案）；choreo 卡按钮词=「确认写入」（`agent/internal/chat/automation_choreo.go:713`，其 settle 词表 :584/:601 含该词）→ 分卡种各用其卡面词：主确认链（run_round/settle_from_terminal_wait）改「确认提案」，choreo-pending 腿保持「确认写入」（该腿与 choreo 卡词表耦合，即卡面 233 所述「唯一不兼容族」仅影响 improvement_proposal 面）；CHAT_TIMEOUT 推导数据=wire2 12 轮 telemetry 逐轮 wall（max 276.4s）+wire1 g1_r2 超 300s 客户端窗亲证
+- 真栈腿登记：PC-RUNTIME-STACK.md（见回执；登记先于启动）
