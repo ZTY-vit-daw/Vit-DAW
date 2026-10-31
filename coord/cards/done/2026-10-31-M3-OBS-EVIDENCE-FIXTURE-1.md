@@ -64,3 +64,9 @@
 ### 计费披露（§8）
 
 - LLM **56 调用真实计费**（deepseek-flash；**798,418 input / 87,721 output tokens**——本轮遥测 usage 字段有值，229 时为空，token 明细在 logs/agent_llm_telemetry.jsonl 逐调用）。失败分类：no_route×4（异步续跑排队形态）+capability_blocked×1（正确归类）；零 env_interrupt/confirm_broken/write_fail/lexicon_hit/wrong_tool。止损后按设计停止，无迭代轮，不原样重跑（根因=identity 绑定结构性缺陷已定位，非偶发）。
+
+## 验收（GLM 主管决策流 / 2026-10-31）
+
+- **两面实现 pass 合入**：选项 A 三环链主管亲证（clip_counts 在场→setup_acoustic_package_status.json partial+l3 三 feature ready 亲读→observation_request 返回 views）；选项 C 分型主管亲证（g1_r2 stop_reason=capability_blocked 结构信号+申报原文亲读；diff 级核过=仅 5 行删除均为文档/重构/分类集扩展，断言核心三组×5 轮+组级 ≥4/5+止损原口径未动）；choreo-pending 腿 intact；离线判定面重放验证在卷。
+- **验收门未达=转出 231 承接**：identity 四断裂证据主管亲证（evidence/identity_break_and_stale_l1.json 亲读：bake 导入 03a0≠观察链 ce9e≠落盘 8093≠boot 43f8；l1 事实 rms=-11.889/peak=-4.188 在场被 project_mismatch 判 stale；fast.levels 全 null；IdentityFromMaps 五级回落链亲查=多源解析无对账）。**归属裁定=agent 生产面为主**：MergeStatus 防御判 stale 本身正确，错在上游 identity 分裂；但 231 须先诊断后修——烟测流（boot 换默认工程+中途 save_as）贡献的分裂要区分「合法 fork 语义缺再绑定传播」vs「测试流工件」，save-as 属真实用户旅程，真旅程暴露面判定是 231 验收面之一。B 否裁定维持（FS 准入门零触碰，模型诚实停边=终态期望行为）。
+- 遗留观察：r1/r3-r5 的 no_route verdicts 为异步续跑排队文本归类（预算尽形态），与 r2 同根因（identity→levels null）；231 修复后该形态应随观察事实可用而消失，若残留另属续跑回执分类面，届时再议。
