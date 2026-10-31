@@ -1,11 +1,13 @@
 package chat
 
-// audio_closure_turn_budget_test.go — M3-LLM-TURN-BUDGET-1（229 面1/面2）：
-// closure 相位预算的意图感知分配测试面。
+// audio_closure_turn_budget_test.go — M3-LLM-TURN-BUDGET-1（229 面1/面2）+
+// M3-AUTOMATION-SLICE-BUDGET-OPEN-1（232）：closure 相位预算的意图感知分配
+// 测试面。
 //
-//   - 面1：automation 诉求决策轮（active free-state loop+非诊断专用）保留
-//     mode 基础预算（不落 1-2 turn 钳制）；诊断专用轮与非 free-state
-//     closure 轮的原观察 slice 语义零回退。
+//   - 面1：automation 诉求决策轮（active free-state loop+非诊断专用）预算
+//     放开至 232 余量下限（48 turns / 80 calls，floor 语义——不剥离既有
+//     headroom、不缩小更大 base）；诊断专用轮与非 free-state closure 轮的
+//     原观察 slice 语义零回退。
 //   - 面2：异步续跑片（scheduler durable continuation 的 context 形态）
 //     与决策轮同预算语义——同一预算函数、同一结构判定，无绕行路径。
 
@@ -27,21 +29,29 @@ func turnBudgetAutomationLoopContext() map[string]any {
 	return map[string]any{"free_state_reasoning_loop": freeStateLoopMap(loop)}
 }
 
-// 面1 主面：automation 诉求决策轮保留 mode 基础预算——MaxTurns 不落 1-2
-// 钳制、MaxToolCalls 保持 mode 面（12/16），预算跟工具面（227 准入面）同源。
-func TestAudioClosureBudgetAutomationRoundKeepsModeBase(t *testing.T) {
+// 面1 主面（232 更新）：automation 诉求决策轮片预算放开至余量下限——
+// MaxTurns/MaxToolCalls 不落 1-2 钳制、不落 mode 基础面（8-14），抬到 48/80
+// 余量下限（链长 24-30 轮 ×1.5 推导，见 audioClosureAutomationRoundMaxTurns
+// 注释），预算跟工具面（227 准入面）同源。
+func TestAudioClosureBudgetAutomationRoundOpensToHeadroomFloor(t *testing.T) {
 	base := agentloop.Budget{MaxTurns: 10, MaxToolCalls: 16}
 	got := audioClosureMessageLoopBudget(base, turnBudgetAutomationLoopContext())
-	if got.MaxTurns != 10 {
-		t.Fatalf("automation decision round must keep the mode base MaxTurns, got %d", got.MaxTurns)
+	if got.MaxTurns != audioClosureAutomationRoundMaxTurns {
+		t.Fatalf("automation decision round must open to the headroom-floor MaxTurns, got %d", got.MaxTurns)
 	}
-	if got.MaxToolCalls != 16 {
-		t.Fatalf("automation decision round must keep the mode base MaxToolCalls, got %d", got.MaxToolCalls)
+	if got.MaxToolCalls != audioClosureAutomationRoundMaxToolCalls {
+		t.Fatalf("automation decision round must open to the headroom-floor MaxToolCalls, got %d", got.MaxToolCalls)
 	}
-	// settle headroom（agentLoopBudgetForContext 已加的 +4）不被预算函数剥离。
+	// settle headroom（agentLoopBudgetForContext 已加的 +4）不被预算函数剥离：
+	// floor 语义取 max，14 仍抬到 48。
 	withSettle := agentloop.Budget{MaxTurns: 14, MaxToolCalls: 16}
-	if got := audioClosureMessageLoopBudget(withSettle, turnBudgetAutomationLoopContext()); got.MaxTurns != 14 {
-		t.Fatalf("settle headroom must survive the automation round budget, got %d", got.MaxTurns)
+	if got := audioClosureMessageLoopBudget(withSettle, turnBudgetAutomationLoopContext()); got.MaxTurns != audioClosureAutomationRoundMaxTurns {
+		t.Fatalf("settle headroom must survive the automation round budget floor, got %d", got.MaxTurns)
+	}
+	// floor 不是钳制：更大的 base（未来 mode 调整/更宽 headroom）不被缩小。
+	larger := agentloop.Budget{MaxTurns: 60, MaxToolCalls: 100}
+	if got := audioClosureMessageLoopBudget(larger, turnBudgetAutomationLoopContext()); got.MaxTurns != 60 || got.MaxToolCalls != 100 {
+		t.Fatalf("automation round floor must not narrow a larger base, got %d/%d", got.MaxTurns, got.MaxToolCalls)
 	}
 }
 
@@ -101,8 +111,9 @@ func TestAudioClosureBudgetLegacyObservationZeroRegression(t *testing.T) {
 	}
 }
 
-// 面2 主面：scheduler durable continuation 片的 context 形态（loop map 经
-// durable merge 携带）与决策轮同预算语义——异步续跑不是预算绕行路径。
+// 面2 主面（232 更新）：scheduler durable continuation 片的 context 形态
+// （loop map 经 durable merge 携带）与决策轮同预算语义——异步续跑不是预算
+// 绕行路径，同样抬到 48/80 余量下限。
 func TestAudioClosureBudgetContinuationSliceInheritsDecisionRoundBudget(t *testing.T) {
 	base := agentloop.Budget{MaxTurns: 10, MaxToolCalls: 16}
 	// durable 续跑片的 context 形态：续跑调度把 durable_continuation 等
@@ -111,10 +122,10 @@ func TestAudioClosureBudgetContinuationSliceInheritsDecisionRoundBudget(t *testi
 	continuation["durable_continuation"] = true
 	continuation["continuation_id"] = "cont_budget_1"
 	got := audioClosureMessageLoopBudget(base, continuation)
-	if got.MaxTurns != 10 {
-		t.Fatalf("continuation slice must inherit the decision-round budget, got MaxTurns=%d", got.MaxTurns)
+	if got.MaxTurns != audioClosureAutomationRoundMaxTurns {
+		t.Fatalf("continuation slice must inherit the decision-round headroom-floor budget, got MaxTurns=%d", got.MaxTurns)
 	}
-	if got.MaxToolCalls != 16 {
-		t.Fatalf("continuation slice must inherit the mode tool budget, got MaxToolCalls=%d", got.MaxToolCalls)
+	if got.MaxToolCalls != audioClosureAutomationRoundMaxToolCalls {
+		t.Fatalf("continuation slice must inherit the headroom-floor tool budget, got MaxToolCalls=%d", got.MaxToolCalls)
 	}
 }
