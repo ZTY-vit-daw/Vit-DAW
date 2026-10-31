@@ -425,7 +425,62 @@ func audioClosureGateAdmittedCandidates(candidates []audioclosure.Candidate) []a
 	return out
 }
 
+// audioClosureAutomationRoundContext reports whether this budget derivation
+// faces an automation-capable free-state decision round: the same structural
+// predicate the 227 tool-surface admission (agentloop
+// admitFreeStateDecisionRoundToolSurface) uses. M3-LLM-TURN-BUDGET-1 (229
+// side 1): the budget follows the tool surface — wherever the automation
+// surface is admitted, the turn budget must let the minimum write chain (read
+// parameter domain → governance gate → write → read back) actually run inside
+// the round. The detection is structural (active loop + not diagnostic-only),
+// never a phrase judgment (judgment-ownership ruling: deterministic layer
+// recognizes, the LLM judges).
+func audioClosureAutomationRoundContext(context map[string]any) bool {
+	if !freeStateLoopActiveContext(context) {
+		return false
+	}
+	if contextBool(context, "free_state_diagnostic_only") {
+		return false
+	}
+	loopRow := firstMapFromAny(context["free_state_reasoning_loop"])
+	for _, key := range []string{"diagnostic_only", "free_state_diagnostic_only"} {
+		if boolValue(loopRow[key]) {
+			return false
+		}
+	}
+	return true
+}
+
 func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any) agentloop.Budget {
+	// M3-LLM-TURN-BUDGET-1 (229): an automation-capable free-state decision
+	// round keeps the mode base budget instead of the closure candidate
+	// clamp. The 1-2-turn clamp below was designed for the pure observation
+	// slice (one probe + one verdict); the automation chain structurally
+	// cannot fit it (227 re-verification: three consecutive no_route — the
+	// model hit the limit on its first observation, the async continuation
+	// drained 1-2 turns per slice, and the observation boundary settled the
+	// goal before any write turn existed). Budget faces:
+	//   source  = the same structural predicate as the 227 tool-surface
+	//             admission (active free-state loop, not diagnostic-only) —
+	//             tool surface and turn budget stay sourced identically;
+	//   ceiling = the mode base budget as-is (goal 10 turns / 16 calls), no
+	//             extra stacking; the settle +4 headroom
+	//             (agentLoopBudgetForContext) and the 227 execution-time +4
+	//             (noteFreeStateAutomationEngagement) each keep their own
+	//             triggers, and the MaxClosureRounds contract boundary is
+	//             untouched — a wider slice never extends closure lifetime;
+	//   decay   = narrow admission face only (free-state decision rounds;
+	//             diagnostic-only rounds and non-free-state closure rounds
+	//             keep the clamp below verbatim). The governance gate and
+	//             one-mutation-per-round rate limit (227) do not relax with
+	//             the wider budget — a budget is not a write channel.
+	// Continuation slices (scheduler-driven or user "continue") re-derive
+	// through this same function on a context that carries the same
+	// free_state_reasoning_loop, so the resumed slice inherits the same
+	// budget semantics as the decision round — no bypass path (229 side 2).
+	if audioClosureAutomationRoundContext(context) {
+		return base
+	}
 	// Candidate selection is the one closure phase that needs two adjacent
 	// model turns: request the bounded target observation, then decide from
 	// the returned target evidence. Keeping both turns in the same request
