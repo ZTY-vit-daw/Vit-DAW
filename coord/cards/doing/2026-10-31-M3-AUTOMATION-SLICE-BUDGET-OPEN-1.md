@@ -34,4 +34,10 @@
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记 PC-RUNTIME-STACK.md；§8 计费披露）
+- 领取时间：2026-10-31；执行 owner：GLM-5.3 PC 执行会话（ZCode 池序 232 会话）；验收负责人：GLM 主管决策流（卡面既有）。
+- 领取基线 `origin/main` = `7bee7942`（= 本会话开始时主仓 HEAD；发卡提交本身）。
+- 领取时主工作树状态（权威输入，零丢弃）：`git status --short` 显示 6 个修改文件（VitApp/Workspace 运行时状态 2 + coord/runs/UX-AB-AUDITION-IMPL-1/aba174 run 工件 4）+ 未跟踪（.zcodeignore、agent/coord/、agent/webui/design/mondrian-route-* 设计件、coord/reports/3 份、coord/runs/ 多卡工件目录）——全部为其他卡 run 工件/运行时状态，与本卡文件域（agent/internal/chat 预算域 + scripts/automation_llm_route_smoke.py）零重叠；`git diff --stat` 仅上述 6 文件（4465+/4374-，Workspace.xml 运行时抖动为主）。
+- 执行分支 `port/m3-automation-slice-budget-open-1`，worktree `D:/Vit_DAW_wt_232impl`（基于 origin/main 7bee7942 新建）；协调 worktree `D:/Vit_DAW_wt_232coord`（分支 coord/232-claim）。
+- 文件域冲突核对：doing 池仅 2026-10-16-GEN-SUNO-WEB-DESIGN-1（文件域=coord/runs/GEN-SUNO-WEB-DESIGN-1/**，零生产代码），与本卡不相交。✓
+- 真栈腿：PC-RUNTIME-STACK.md 登记承诺（§2.2 全流程：fetch 重读置顶+进程/端口全零亲核+登记先于启动+登记后 60 秒内即时复核）。
+- §8 计费披露：见回执节（LLM 真实计费，重验腿全量披露）。
