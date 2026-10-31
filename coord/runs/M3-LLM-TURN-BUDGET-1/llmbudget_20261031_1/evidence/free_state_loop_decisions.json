@@ -1,0 +1,29 @@
+{
+ "source": "agent_runtime_state.json (free_state_reasoning_loops excerpt, pre-prune)",
+ "loops": {
+  "llm_route_g1_r2_1793415535": [
+   {
+    "status": "blocked",
+    "decision_phase": "processor_selection",
+    "original_intent": "这段让它越来越突出一点",
+    "receipts_count": 7,
+    "latest_decision": {
+     "status": "blocked",
+     "summary": "terminal turn produced no admissible final decision after one strengthened retry"
+    }
+   }
+  ],
+  "llm_route_g1_r3_1793415616": [
+   {
+    "status": "blocked",
+    "decision_phase": "processor_selection",
+    "original_intent": "这段让它越来越突出一点",
+    "receipts_count": 11,
+    "latest_decision": {
+     "status": "capability_blocked",
+     "summary": "针对当前选中的 Track 2（编号 1010）请求的轨道级观察没有给出可用于判断候选的事实：频段动态观察返回不可用（源证据缺失），电平观察的 levels 读取失败，多轨关系只返回部分结果（响度顺序、峰值顺序缺失）。因此既无法确认一个具体候选目标，也无法据此安全地写入一次可回退的“逐步更突出”试验。要继续，需要先恢复该轨道可用的电平或频段观察数据。"
+    }
+   }
+  ]
+ }
+}
