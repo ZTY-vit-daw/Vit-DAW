@@ -71,6 +71,26 @@ LLM turn then runs in a separate conversation; afterwards the pending card
 must still settle exactly like 218 LEG A (written==2, kernel fade-in points
 0.30 -> 0.60). Three embeddings = one per group.
 
+Card 234 (M3-CONFIRM-DRIVER-ALIGN-1, supervisor ruling B): the confirmation
+drive phrase is the card-face button word of the card being settled. The
+group rounds' confirmation card is the improvement_proposal card, whose
+primary button label is 「确认提案」 (improvement_proposal_workflow.go:239);
+the 218-era 「确认写入」 lives in the choreo settle vocabulary only and never
+routed on the improvement face — the 233 wire2 confirm_broken form. The
+choreo-pending leg keeps the choreo card's own button word 「确认写入」
+(automation_choreo.go:713). Production vocabularies unchanged (ruling A
+rejected). CHAT_TIMEOUT_SEC 300 -> 600 from measured turn lengths (see the
+constant's derivation note). New convergence measurement face (measurement
+only — verdict logic untouched): per round the script records turn-budget
+consumption (prompt-render turn records for the round's conversation), LLM
+call/token spend (telemetry rows by conversation id), observation-request
+count (agent-log delta), proposal arrival (strict improvement_proposal
+face), and a post-round deterministic same-face observation probe on the
+ride track: view facts present while the round still looped on observations
+= model-behavior face; repeated omissions = evidence face still lacking
+(anchor for the decision side). The probe is a same-face state read, not a
+replay of the model's own per-request returns (those are not logged).
+
 Exit codes (verification card, not a pass/fail production gate):
   0 - verification executed to completion (all planned rounds or stop-loss);
       model-behavior findings live in the summary artifact, defects fold to
@@ -102,9 +122,32 @@ except ImportError:
     print("pip install pyzmq", file=sys.stderr)
     sys.exit(1)
 
-CHAT_TIMEOUT_SEC = 300.0          # one LLM turn with tool loops can be slow
+# Card 234 derivation (written per the card): the single /agent/chat window
+# is sized from measured turn lengths. wire2 telemetry (12 LLM rounds) gives
+# a per-turn wall-clock max of 276.4s (g2_r2) while turns were still ending
+# inside the observation loop; wire1 g1_r2 already exceeded the old 300s
+# client window (telemetry tail err=context canceled = client timeout kill,
+# not a stack fault). With the confirmation chain actually routing (233 fix
+# + this card's phrase alignment), the settling turn additionally carries
+# proposal apply + kernel write + get_curve readback, and budget-exhausted
+# turns now continue through proposal generation instead of dying in the
+# loop — so the window must cover the observed max wall (~276s) plus the
+# confirm/write/readback tail and engine latency spikes (wire2 saw single
+# LLM calls up to 35.4s). 600s ≈ 2.2x observed max; genuinely hung calls
+# stay bounded by the client window itself (read timeout), so the raise
+# cannot mask a dead stack indefinitely.
+CHAT_TIMEOUT_SEC = 600.0
 FOLLOWUP_MAX = 3                  # extra chat calls inside one round
-CONFIRM_PHRASE = "确认写入"
+# Card 234 (supervisor ruling B): each card type is confirmed with its own
+# card-face button word — the user-visible form is the faithful drive form.
+# improvement_proposal card primary button: 「确认提案」
+# (improvement_proposal_workflow.go:239; passes isImprovementProposal-
+# ConfirmationText via 确认+提案, chat/server.go:4047). The 218-era phrase
+# 「确认写入」 is in the choreo vocabulary (automation_choreo.go:584) but not
+# in the improvement-proposal vocabulary — exactly the 233 wire2
+# confirm_broken breakage (drive sent x3, never settled).
+CONFIRM_PHRASE = "确认提案"         # improvement_proposal card button word
+CHOREO_CONFIRM_PHRASE = "确认写入"  # choreo card button word (automation_choreo.go:713)
 REGION_FOLLOWUP = "0 到 30 秒"
 
 # Deterministic clip fixture (card 230 option A): self-contained, generated
@@ -417,6 +460,121 @@ def parse_tool_calls(log_text: str) -> List[str]:
     return tools
 
 
+# ---- card 234 convergence measurement face (measure-only, no verdict logic) --
+
+def count_observation_requests(log_text: str) -> int:
+    """Observation requests inside one round's agent-log delta: the model
+    re-pulling the same views turn after turn is the loop form this card
+    measures."""
+    return len(re.findall(r"harness\.invoke total_ms=\d+ tool=ccb\.observation_request\b", log_text))
+
+
+def telemetry_for_conversation(telemetry_path: Optional[Path], conversation: str) -> Dict[str, Any]:
+    """LLM call count + token sums attributable to one round's conversation.
+    Conversation ids are unique per round, so a full-file scan filtered by id
+    stays exact even when async-continuation rows land after the reply."""
+    result: Dict[str, Any] = {"available": False}
+    if not telemetry_path or not telemetry_path.exists():
+        return result
+    calls = 0
+    input_tokens = 0
+    output_tokens = 0
+    try:
+        for line in telemetry_path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if str(row.get("conversation_id") or "") != conversation:
+                continue
+            calls += 1
+            usage = row.get("usage") or {}
+            input_tokens += int(usage.get("input_tokens") or 0)
+            output_tokens += int(usage.get("output_tokens") or 0)
+        result.update({"available": True, "llm_calls": calls,
+                       "input_tokens": input_tokens, "output_tokens": output_tokens})
+    except OSError as exc:
+        result["error"] = str(exc)
+    return result
+
+
+def turns_for_conversation(prompt_render_path: Optional[Path], conversation: str) -> Dict[str, Any]:
+    """Per-turn prompt-render records for one round's conversation: the
+    turn-record count and the highest turn number reached (turn-budget
+    consumption measurement; budget exhaustion shows up as limit_reached)."""
+    result: Dict[str, Any] = {"available": False}
+    if not prompt_render_path or not prompt_render_path.exists():
+        return result
+    turns: List[int] = []
+    try:
+        for line in prompt_render_path.read_text(encoding="utf-8", errors="replace").splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if str(row.get("conversation_id") or "") != conversation:
+                continue
+            try:
+                turns.append(int(row.get("turn")))
+            except (TypeError, ValueError):
+                continue
+        result.update({"available": True, "turn_records": len(turns),
+                       "max_turn": max(turns) if turns else 0})
+    except OSError as exc:
+        result["error"] = str(exc)
+    return result
+
+
+def improvement_proposal_face(resp: Dict[str, Any]) -> bool:
+    """Strict improvement_proposal arrival detection (same lesson as
+    has_confirm_card: no loose blob grep — schema echoes carry the field
+    names). Explicit faces only: stop_reason improvement_proposal_
+    confirmation_required, interaction kind/type improvement_proposal_
+    confirmation, or workflow=improvement_proposal."""
+    if str(resp.get("stop_reason") or "") == "improvement_proposal_confirmation_required":
+        return True
+    if str(resp.get("workflow") or "") == "improvement_proposal":
+        return True
+    interactions = resp.get("interaction_requests")
+    if isinstance(interactions, list):
+        for row in interactions:
+            if not isinstance(row, dict):
+                continue
+            combined = str(row.get("kind") or "") + "/" + str(row.get("type") or "")
+            if "improvement_proposal" in combined:
+                return True
+    return False
+
+
+def post_round_observation_probe(agent_http: str, track_id: str) -> Dict[str, Any]:
+    """Convergence discriminator: after a round's verdict, one deterministic
+    same-face observation request (zero LLM cost) on the ride track. View
+    facts present => the evidence face HAD facts, so a round the model spent
+    looping on observations is a model-behavior form; omissions/missing =>
+    the evidence face itself is still lacking (anchor for the decision side).
+    This is a same-face state read, not a replay of the model's own
+    per-request returns (those are not logged)."""
+    try:
+        bundle = request_track_observation_bundle(agent_http, track_id, 60.0)
+    except RuntimeError as exc:
+        return {"probe_ok": False, "error": str(exc)[:300]}
+    views = bundle.get("views") if isinstance(bundle.get("views"), dict) else {}
+    omissions = bundle.get("omissions") if isinstance(bundle.get("omissions"), dict) else {}
+    view = views.get("track.basic_energy")
+    return {
+        "probe_ok": True,
+        "view_present": view is not None,
+        "view_excerpt": json.dumps(view, ensure_ascii=False)[:400] if view is not None else "",
+        "omissions_excerpt": "" if view is not None else json.dumps(omissions, ensure_ascii=False)[:400],
+    }
+
+
 def looks_clarification_pause(resp: Dict[str, Any]) -> bool:
     """Agent-loop clarification pause (interaction_requests without a
     confirmation kind) is a structured ask, not plain advice."""
@@ -525,12 +683,16 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
               phrase: str, chat_context: Dict[str, Any],
               ride_plugin_id: str, rounds_dir: Path,
               agent_log: Optional[Path] = None,
-              project_dir: Optional[Path] = None) -> Dict[str, Any]:
+              project_dir: Optional[Path] = None,
+              ride_track_id: str = "",
+              telemetry_path: Optional[Path] = None,
+              prompt_render_path: Optional[Path] = None) -> Dict[str, Any]:
     """One LLM round: phrase -> classify -> followups -> verdict -> cleanup.
 
     Returns the round record (phrase, exchanges, verdict, kernel evidence,
-    tool-call evidence aligned from the agent log delta). Never raises for
-    model-behavior outcomes; only stack errors propagate.
+    tool-call evidence aligned from the agent log delta, card-234 convergence
+    measurements). Never raises for model-behavior outcomes; only stack
+    errors propagate.
     """
     conversation = f"llm_route_g{group}_r{index}_{int(time.time())}"
     exchanges: List[Dict[str, Any]] = []
@@ -538,6 +700,7 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
         "group": group, "round": index, "phrase": phrase, "conversation": conversation,
         "exchanges": exchanges, "verdict": None, "verdict_detail": "",
         "kernel_points_before": kernel_point_count(kernel_zmq, ride_plugin_id, "volume"),
+        "convergence": None,
     }
 
     log_offset = 0
@@ -547,16 +710,18 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
         except OSError:
             log_offset = 0
 
-    def collect_tools() -> List[str]:
+    def read_log_delta() -> str:
         if agent_log is None or not agent_log.exists():
-            return []
+            return ""
         try:
             with agent_log.open("rb") as handle:
                 handle.seek(log_offset)
-                delta = handle.read().decode("utf-8", errors="replace")
-            return parse_tool_calls(delta)
+                return handle.read().decode("utf-8", errors="replace")
         except OSError:
-            return []
+            return ""
+
+    def collect_tools() -> List[str]:
+        return parse_tool_calls(read_log_delta())
 
     def send(message: str) -> Dict[str, Any]:
         resp = chat(agent_http, conversation, message, chat_context)
@@ -787,7 +952,21 @@ def run_round(agent_http: str, kernel_zmq: str, group: int, index: int,
         record["verdict_detail"] = f"plain-text response, no automation tool face: {text[:200]!r}"
         break
 
-    record["tools_called"] = collect_tools()
+    log_delta = read_log_delta()
+    record["tools_called"] = parse_tool_calls(log_delta)
+    # card 234 convergence measurement face: per-round turn consumption,
+    # observation pressure, proposal arrival, and the evidence-face state
+    # after the round (measure-only; the verdict logic above is untouched).
+    record["convergence"] = {
+        "llm": telemetry_for_conversation(telemetry_path, conversation),
+        "turns": turns_for_conversation(prompt_render_path, conversation),
+        "observation_requests": count_observation_requests(log_delta),
+        "proposal_reached": any(improvement_proposal_face(row["response"]) for row in exchanges),
+        "limit_reached_seen": bool(record.get("limit_reached_seen")),
+    }
+    if ride_track_id:
+        record["convergence"]["post_round_observation_probe"] = post_round_observation_probe(
+            agent_http, ride_track_id)
     (rounds_dir / f"g{group}_r{index}.json").write_text(
         json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
     # restore the empty baseline for the next round
@@ -808,7 +987,10 @@ def settle_choreo_pending_leg(agent_http: str, kernel_zmq: str, group: int, conv
                                "conversation": llm_round_record.get("conversation"),
                                "verdict": llm_round_record.get("verdict"),
                            }}
-    settle = chat(agent_http, conversation, CONFIRM_PHRASE, chat_context)
+    # card 234: the choreo card settles with its own button word — its
+    # vocabulary (automation_choreo.go:584) is exactly where the old shared
+    # phrase lived, so this leg's drive is unchanged in substance.
+    settle = chat(agent_http, conversation, CHOREO_CONFIRM_PHRASE, chat_context)
     leg["settle_response"] = settle
     points = kernel_curve(kernel_zmq, ride_plugin_id, "volume").get("points") or []
     leg["kernel_points"] = points
@@ -996,7 +1178,10 @@ def main() -> None:
                             "choreo pending armed but curve not empty")
                 record = run_round(args.agent_http, args.kernel_zmq, group, attempt,
                                    phrase, chat_context, ride_plugin_id, rounds_dir,
-                                   agent_log=agent_log, project_dir=project_path.parent)
+                                   agent_log=agent_log, project_dir=project_path.parent,
+                                   ride_track_id=ride_track_id,
+                                   telemetry_path=telemetry_path,
+                                   prompt_render_path=prompt_render_path)
                 if pending_conv is not None:
                     pending_leg = settle_choreo_pending_leg(
                         args.agent_http, args.kernel_zmq, group, pending_conv,
@@ -1083,6 +1268,13 @@ def main() -> None:
             summary["prompt_guidance_rendered"] = check_prompt_guidance(prompt_render_path)
             if not summary["prompt_guidance_rendered"]:
                 exit_code = 2
+        # card 234: final-form distribution across all executed rounds
+        # (verdict vocabulary unchanged; this only aggregates what the
+        # rounds already classified)
+        verdict_distribution: Dict[str, int] = {}
+        for row in summary["rounds"]:
+            verdict_distribution[row["verdict"]] = verdict_distribution.get(row["verdict"], 0) + 1
+        summary["verdict_distribution"] = verdict_distribution
         summary["usage"] = aggregate_usage(telemetry_path)
         summary["status"] = "ENV_INTERRUPT" if exit_code == 3 else ("GUIDANCE_MISSING" if exit_code == 2 else "COMPLETED")
         summary["finished_at"] = datetime.now(timezone.utc).isoformat()
