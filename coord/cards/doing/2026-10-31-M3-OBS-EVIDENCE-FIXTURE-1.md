@@ -33,4 +33,10 @@
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记 PC-RUNTIME-STACK.md；§8 计费披露）
+- 时间：2026-10-31 18:12；origin/main=6bd5b804（fetch 亲核=远端一致，无新提交）
+- owner：ZCode GLM-5.3 PC 执行会话（230 卡会话，用户转交提示词指定领取）
+- 分支：port/m3-obs-evidence-fixture-1；worktree：D:/Vit_DAW-wt-m3obs（基于 origin/main 6bd5b804 新建）
+- 领取基线：`git rev-parse HEAD`=6bd5b804569f90c6ea3935cfe2a344463d73ec13；`git status --short`=空；`git diff --stat`=空（工作树干净，无领取前 diff）
+- 前提核对：229 已合入（8954b8e1 在 origin/main 线）✓；卡面标的与排除面不重考；文件域=scripts/automation_llm_route_smoke.py（setup 段+判定分类段）+run 目录素材+scripts 帮手
+- 真栈错峰：真栈腿前 PC-RUNTIME-STACK.md fetch 重读置顶+进程/端口全零亲核+登记先于启动（229 先例）
+- §8 口径：LLM 真实计费，回执披露调用数与 token；断言逻辑原口径不动（三组×5 轮、组级 ≥4/5、同型三连止损承 220）
