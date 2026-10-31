@@ -351,12 +351,31 @@ def main() -> None:
                     f"(durable restore leg)")
             record("restart_restore", {"authority_mode": restored.get("authority_mode")})
 
+            # M3-AUTH-RESTORE-CARRY-1 assertion-face fix: after an agent restart
+            # the kernel's get_project_state reports the full track tree — the
+            # isolation parent's default tracks rejoin the view once the fresh
+            # agent's VSP session replaces the previous per-project filtering
+            # context (first live run: 3 setup tracks + 5 parent tracks = 8).
+            # The before phase never observed a total count, so the restart leg
+            # asserts MEMBERSHIP by the deterministic setup track ids recorded
+            # in the before summary: the three ride tracks and their volume
+            # plugins must survive the restart. This leg never ran green under
+            # card 223 (round 1 failed on leg order, round 2 on restart_restore).
+            before_summary = {}
+            if args.baseline_summary and Path(args.baseline_summary).exists():
+                before_summary = json.loads(Path(args.baseline_summary).read_text(encoding="utf-8"))
+            setup = before_summary.get("setup") or {}
+            setup_tracks = {label: str((setup.get("tracks") or {}).get(label) or "").strip()
+                            for label in ("a", "b", "c")}
             kernel_state = zmq_command(args.kernel_zmq, {"cmd": "get_project_state", "command_timeout_ms": 60000})
             tracks_now = [str(row.get("track_id") or row.get("id") or row.get("item_id") or "").strip()
                           for row in (kernel_state.get("tracks") or []) if isinstance(row, dict)]
-            require(len(tracks_now) == 3, f"expected the 3 setup tracks after restart, got {len(tracks_now)}")
             plugins = {}
-            for label, track_id in zip(("a", "b", "c"), tracks_now):
+            for label in ("a", "b", "c"):
+                track_id = setup_tracks[label]
+                require(track_id, f"before summary lacks the setup track id for {label}")
+                require(track_id in tracks_now,
+                        f"setup track {label} ({track_id}) missing after restart: kernel reports {tracks_now}")
                 plugin_id = find_track_volume_plugin(kernel_state, track_id)
                 require(bool(plugin_id), f"track {label} lost its volume plugin after restart")
                 plugins[label] = plugin_id
@@ -365,13 +384,13 @@ def main() -> None:
             # ---- full_span_direct: clarify span candidate -> 可以 (bare) ------
             conv_b = "chat_auth_stamp_full_span"
             code, clarified = chat(args.agent_http, conv_b, "副歌那 25 秒，让这条轨的存在感慢慢强起来",
-                                   {"agent_mode": "chat", "selected_track_id": tracks_now[1]})
+                                   {"agent_mode": "chat", "selected_track_id": setup_tracks["b"]})
             require(code == 200, f"span clarify HTTP {code}: {json.dumps(clarified, ensure_ascii=False)[:600]}")
             require(clarified.get("stop_reason") == "automation_choreo_clarify_region_span_candidate",
                     f"span clarify stop_reason = {clarified.get('stop_reason')!r}")
             require(kernel_point_count(args.kernel_zmq, plugins["b"], "volume") == 0,
                     "span clarify must not write before adoption")
-            code, adopted = chat(args.agent_http, conv_b, "可以", {"agent_mode": "chat", "selected_track_id": tracks_now[1]})
+            code, adopted = chat(args.agent_http, conv_b, "可以", {"agent_mode": "chat", "selected_track_id": setup_tracks["b"]})
             require(code == 200, f"span adoption HTTP {code}: {json.dumps(adopted, ensure_ascii=False)[:600]}")
             require_no_card("full_span_direct", adopted)
             require_governed_settle("full_span_direct", adopted)
@@ -383,7 +402,7 @@ def main() -> None:
             require(authority_get(args.agent_http).get("authority_mode") == "manual_confirmation", "manual switch did not stick")
             conv_c = "chat_auth_stamp_manual"
             code, card_reply = chat(args.agent_http, conv_c, "0 到 35 秒，让这条轨的存在感慢慢强起来",
-                                    {"agent_mode": "chat", "selected_track_id": tracks_now[2]})
+                                    {"agent_mode": "chat", "selected_track_id": setup_tracks["c"]})
             require(code == 200, f"manual phrase HTTP {code}: {json.dumps(card_reply, ensure_ascii=False)[:600]}")
             require(card_reply.get("goal_status") == "waiting_confirmation",
                     f"manual goal_status = {card_reply.get('goal_status')!r}")
@@ -401,7 +420,7 @@ def main() -> None:
             # ---- forged_body: body-declared full access is never a grant ------
             conv_f = "chat_auth_stamp_forged"
             code, forged = chat(args.agent_http, conv_f, "0 到 5 秒，让这条轨的存在感慢慢强起来",
-                                {"agent_mode": "chat", "selected_track_id": tracks_now[2]},
+                                {"agent_mode": "chat", "selected_track_id": setup_tracks["c"]},
                                 authority_mode="full_project_access")
             require(code == 409, f"forged body full access: HTTP {code}, want 409: {json.dumps(forged, ensure_ascii=False)[:400]}")
             require(forged.get("status") == "error", f"forged body payload = {forged}")
@@ -412,7 +431,7 @@ def main() -> None:
             record("forged_body", {"http": code, "error_code": forged.get("error_code")})
 
             # ---- cleanup: cancel the pending card, restore baseline ----------
-            code, cancelled = chat(args.agent_http, conv_c, "取消", {"agent_mode": "chat", "selected_track_id": tracks_now[2]})
+            code, cancelled = chat(args.agent_http, conv_c, "取消", {"agent_mode": "chat", "selected_track_id": setup_tracks["c"]})
             require(code == 200, f"cancel HTTP {code}: {json.dumps(cancelled, ensure_ascii=False)[:400]}")
             require(cancelled.get("stop_reason") == "automation_choreo_cancelled",
                     f"cancel stop_reason = {cancelled.get('stop_reason')!r}")
