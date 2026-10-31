@@ -1,0 +1,58 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261031_213919\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_233impl\coord\runs\M3-FS-GATE-EVIDENCE-WIRE-1\wire1\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: automation LLM route telemetry capture: telemetry=D:\Vit_DAW_wt_233impl\coord\runs\M3-FS-GATE-EVIDENCE-WIRE-1\wire1\logs\agent_llm_telemetry.jsonl prompt_render=D:\Vit_DAW_wt_233impl\coord\runs\M3-FS-GATE-EVIDENCE-WIRE-1\wire1\logs\agent_prompt_render.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_233impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_233impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_233impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_233impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=3664 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_233impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=3664
+ok: ZMQ SUB listening: 5556 pid=3664
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== automation LLM route verification (M3-C4-AUTO-LLM-ROUTE-VERIFY-1)
+ok: automation LLM route project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_233impl\coord\runs\M3-FS-GATE-EVIDENCE-WIRE-1\wire1\default_project.xml
+python.exe : [FAIL] timed out
+所在位置 D:\Vit_DAW_wt_233impl\scripts\dev_agent_smoke.ps1:8728 字符: 5
++     & python $llmRouteScript --agent-http $AgentHttp --kernel-zmq ("t ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([FAIL] timed out:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

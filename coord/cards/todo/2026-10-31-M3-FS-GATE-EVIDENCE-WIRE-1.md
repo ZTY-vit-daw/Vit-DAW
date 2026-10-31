@@ -61,5 +61,28 @@ family 只从 `loop.LatestDecision.SemanticProcessorIntent.Family` / `ProcessorT
 
 `taskstate/state.go` `EventCapabilityBlocked` 分支对 `from.Terminal()` 一律 invalidTransition（StateCapabilityBlocked.Terminal()=true）→ 同型重复 settle 被拒 → goal failed。修复：Apply 对 `capability_blocked→capability_blocked` 同型重入提前返回幂等 no-op（成功、零新转移、Revision/History 不变）；其余转移表语义零改动。
 
-- 真栈错峰登记：待真栈腿前完成（PC-RUNTIME-STACK.md）
-- §8 计费披露：回执时汇总
+- 真栈错峰登记：已完成（PC-RUNTIME-STACK.md 占用→释放，拆栈 TEARDOWN_ALL_ZERO）
+- §8 计费披露：见回执节
+
+## 回执（执行侧自验，待主管验收）
+
+- 分支：`port/m3-fs-gate-evidence-wire-1`（领取 e5954e9b / 实现 20bcff64 / 栈登记 0b8faf2e / 回执+证据随后）；worktree `D:\Vit_DAW_wt_233impl`
+- run：`coord/runs/M3-FS-GATE-EVIDENCE-WIRE-1/{wire1,wire2}`（EVIDENCE.md 证据锚点在卷）
+
+### 链路进度（§7 分列）
+
+1. **A1 G6/G8 证据接线：完成+真栈生效亲证**。诊断成文（见领取节）：主断点=chat 审计路径 `AuditFreeStateNeedsExperimentGate` 构造 snapshot-only runState（recentObservation 恒 nil），FIX-GATE-FRESHNESS-1 fallback 在该路径结构性失效；次断点=gateG6 ledger 终检漏扫携带完整 target_ref 的 receipts（available_views 行反而不带 target_ref）。修复=双臂 fallback（活观察优先，缺省时 ledger 最新 usable+已交付 track 级 receipt）+gateG6 receipts 扫描（与 G8 assertion2 对称）+`freeStateReceiptDeliveredAnyView` 交付判定守两处新路径（B13-D 全裁 receipt 不绑目标，status 无关）。回退验证：还原修复后 g1_r1 fixture 测试精确复现 `failed=[G6_target_evidence, G8_target_consistency]`。真栈：两 run 11 采样轮 admission_gate_failed 零出现（232 同腿 8/10），组 1/组 2**首次走到 improvement_proposal 确认卡**（PendingCandidate/waiting_user，229 五卡以来第一次 G1-G8 全过+提案接受）。
+2. **A2 family 断线：完成**（单测层验证；本轮无 blocked 轮触发该面——门开后不再走到）。`capabilityboundary.FamilyFromImprovementActionDomain` 全词表映射+chat wiring 第三来源；三连锁 family_unresolved 收敛为真实 per-class 语义（volume 族=no_pca_admitted_same/adjacent 等）。
+3. **B taskstate 同型幂等重入：完成+真栈生效亲证**。232 的 `capability_blocked is not allowed from capability_blocked` goal failed 形态本轮零出现。
+4. 测试：go build 0+全仓 go test 全绿（含 chat 全量 173s）+G0 五面绿；新增三域测试（g1_r1 fixture 复现+audit 接缝+fail-closed 边界+词表全往返+幂等五例）；三处旧测试 fixture 修正=误拒时代构造对齐真拒场景（gateRefusedFreeStateFixture 的 track-202 receipt、TIMING2 advanced、M06 dangling/no_evidence_basis variant——断言意图零改动，附注释）。
+5. 判断权分岔核对（主管 amend）：g1_r1 模型提案轨 1010=ledger 最新 track 观察轨 1010，不存在「模型自主选轨 vs frontier 提名不一致」；修复后提案轨≠观察轨仍 fail-closed（单测钉死）。
+
+### 最终验收（第五承未达，按停止条件上交）
+
+- wire2 组 1：[no_route, confirm_broken, confirm_broken, capability_blocked, no_route] successes=0；组 2：[confirm_broken, no_route, ×3 confirm_broken] 止损三连；组 3 skipped。**no_route 消失未达**（残留两轮=观察循环耗尽 turn 预算的新形态，非门拒绝）；**set_points 端到端首绿未达**——断在**确认驱动环**：
+  - 机制（g1_r2 全链在卷）：确认卡弹出→驱动「确认写入」×3 全部落入 LLM 纯文本轮（tools=[]），从未路由到 `continueImprovementProposalInteraction` 的 settle。
+  - 锚点：`agent/internal/actionworkflow/types.go:255-263`（acceptText 词表无「确认写入/写入/开始写入」族）+`agent/internal/chat/server.go:4035-4050`（isImprovementProposalConfirmationText 需「确认」+「提案|建议|这个」）。对照：choreo 卡按钮印「确认写入」（automation_choreo.go:584 词表含它），improvement_proposal 卡按钮=「确认提案」；驱动脚本 CONFIRM_PHRASE 固定「确认写入」（218 choreo 时代短语）。A1 修复前该卡从未到达，此兼容性从未被测过。
+  - **两案上交（不在本卡文件域，不择案）**：A=生产侧 acceptText/isImprovementProposalConfirmationText 补「确认写入」族（越 actionworkflow+chat 路由域）；B=驱动侧 CONFIRM_PHRASE 换「确认提案」（越 scripts 红线域）。附注：确认链修通后单轮链更长，`CHAT_TIMEOUT_SEC=300`（脚本硬编码）可能结构性不足（wire1 即因此中断，见 EVIDENCE §C）。
+- §8 计费：wire1 61 调用（908K in/78K out，另 1 canceled）+wire2 167 调用（2.47M in/236K out）=**228 计费调用，约 3.38M in/314K out**（deepseek-flash）。
+- 测试命令及退出码：`go build ./...`=0；`go test ./...`=0（全绿）；G0 五面=5×ok；真栈 wire2 ps1 exit 0+wire1 ps1 exit 1（驱动面超时，环境中断分类在卷）。
+- 卡留 doing 待主管验收。
