@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"vit-daw-agent/internal/projectstore"
 )
 
 const (
@@ -104,15 +106,24 @@ func ForkDerived(sourcePath, sourceUUID, targetPath, targetUUID string) (string,
 	if err := copyDir(sourceDir, targetDir); err != nil {
 		return "", err
 	}
+	// M3-OBS-IDENTITY-BIND-1: the forked derived tree must follow the fork's
+	// new authority identity as a whole. Rebind every JSON/JSONL file in the
+	// copy — L3 feature log, acoustic package status, any persisted
+	// observation snapshot — from the source identity to the target identity,
+	// so facts baked under the pre-fork identity remain readable under the
+	// forked one instead of being stamped stale (project_mismatch).
+	if err := projectstore.RebindProjectTree(targetDir, sourcePath, sourceUUID, targetPath, targetUUID); err != nil {
+		return "", err
+	}
 	if err := RebindL3FeatureLogFile(filepath.Join(targetDir, L3FeatureLogFile), sourcePath, sourceUUID, targetPath, targetUUID); err != nil {
 		return "", err
 	}
 	manifest, _, err := LoadAnalysisManifest(sourcePath, sourceUUID)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return targetDir, nil
-		}
-		return "", err
+		// 无 manifest（IsNotExist）或旧形态 manifest（异 schema/异 id 的
+		// identity mismatch）都不阻塞 fork：树级再绑定已随行全部事实文件，
+		// manifest 头部重写尽力而为（§11：旧工件不得让 fork 不可用）。
+		return targetDir, nil
 	}
 	manifest.ProjectUUID = safeName(targetUUID)
 	manifest.ProjectPath = targetPath

@@ -71,6 +71,9 @@ type Harness struct {
 	projectStoreMu  sync.Mutex
 	projectStore    projectstore.Roots
 	journalOverride bool
+	// identityReconcileMu 串行化观察链 identity 对账（M3-OBS-IDENTITY-BIND-1）：
+	// 并发观察各自触发 fork/激活时避免重复刷新与重复 fork 竞态。
+	identityReconcileMu sync.Mutex
 	waveforms       map[string]*waveformFeatureCollector
 	spectrals       map[string]*spectralFeatureCollector
 	renderResults   map[string]RenderResult
@@ -3698,6 +3701,10 @@ func (h *Harness) requestMixObservation(ctx context.Context, cmd map[string]any)
 			}
 		}
 	}
+	// M3-OBS-IDENTITY-BIND-1：解析读取身份前先对齐 bake 侧持久化身份与内核
+	// live edit 身份（fork/switch 跟随，fail-open）——绕过 agent 生命周期面的
+	// 内核身份变化（raw ZMQ new_project/save_as）不再让新鲜事实被判 stale。
+	state = h.reconcileProjectIdentityForObservation(ctx, state)
 	state = projectStateWithPersistedAnalysisManifest(state)
 	cmd = mixObservationCommandWithLiveProjectIdentity(cmd, state)
 	explicitSourceIdentityArgs := map[string]any(nil)
