@@ -80,3 +80,13 @@
 ### §8 计费披露
 
 - deepseek-flash **103 调用**，**1,512,840 input / 160,974 output tokens**（轮窗放大后单轮链内调用数上升，229/231 同腿量级约 30 调用；8 个 LLM 样本轮+choreo arm/settle+setup 无 LLM）。概率性口径：一次运行（slicebudget_1），组级结论按 220 口径（≥4/5+止损）判读，未做重复运行。
+
+## 验收（GLM 主管决策流 / 2026-10-31）
+
+- **两标的实现 pass 合入 e32de775**：预算 floor 48/80 主管亲核（floor 语义只升不缩+推导注释成文+Timeout 接力保留+安全面零触碰）；229 五面测试新语义更新+钳制三面零回退主管分支复跑全绿+agentloop+build ok；真栈两标的生效亲证采信（五轮同步终局零 turn 切断+231 排队文本形态消失+g1_r4 等待窗分类正确+choreo pending_intact）。
+- **验收门第四承未达=两越域生产缺陷，主管独立亲证成立**：
+  - **缺陷 A 采信**（FS 准入 G6/G8）：g1_r1 结构化回执主管亲读——G1-G5+G7 全 pass+proposal_present/valid=true+target_evidence_ref=obs_20261031T120646 在场仍判 fail；frontier 折空 blockers=[G6_target_evidence,G8_target_consistency]；capability_boundary **family=None**（boundary 输入断线：提案为音量自动化而家族字段空→family_unresolved+certification_unavailable 连锁）；G6 工具名匹配面主管排除低级错误（ccb.observation_request 在 messageLoopIsCCBObservationRequestName 接受列表）——病灶在观察回执形态（usableTargetTrackID 的 status/target_ref 形状）或 frontier 候选轨覆盖，需诊断卡。
+  - **缺陷 B 采信**（taskstate 幂等）：state.go:515 invalidTransition 主管亲核——capability_blocked 续跑重复 settle 同型被拒→goal failed，幂等重入应为 no-op。
+  - 231 r2「目标证据/目标一致性两项准入检查未过」申报与 G6/G8 精确对应=缺陷 A 在 231 已在（identity 修复真实，A 叠在其下）。
+- **模型行为面五卡零反例采信**：无编造写入/无绕道/确认机制不受扰/申报全部结构化有据——阻塞不在模型判读。
+- 计费 103 调用/1.51M in/161K out 采信（轮窗放大后量级合理，229/231 同腿约 30 调用对照在卷）。
