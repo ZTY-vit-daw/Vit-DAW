@@ -35,4 +35,8 @@
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记 PC-RUNTIME-STACK.md；§8 计费披露）
+- 领取时间：2026-10-31 18:45（local）；执行 owner：GLM-5.3 PC 执行会话（ZCode，本会话）；机器：PC/Windows
+- 领取基线：`origin/main` = `ab2bcde6aa4251e325803148c5408a6ef4f3d96c`（fetch 后核对，与卡面 HEAD 一致）
+- 领取时基线状态：实现 worktree 新建自 origin/main，`status --short` 干净、`diff --stat` 为空；主工作树存在他卡/运行工件未提交项（Settings.xml、default_project.xml、coord/runs/* 等非本卡文件域，不触碰）
+- 分支/worktree：`port/m3-obs-identity-bind-1` @ `D:/Vit_DAW_wt_231impl`（实现）；`coord/231-claim` @ `D:/Vit_DAW_wt_231coord`（本领取提交）
+- 派发确认依据：用户在 PC 执行会话直接派发本卡（池序 231），卡面"发卡即提交，领取按池序"；依赖 230 已合入（ab2bcde6 亲核）
