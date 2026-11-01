@@ -11739,7 +11739,7 @@ func (h *Harness) resolvePluginID(ctx context.Context, spec tools.CommandSpec, c
 		case 0:
 			return "", fmt.Errorf("no visible plugin named %q", name)
 		default:
-			return "", fmt.Errorf("multiple visible plugins named %q; specify plugin_id", name)
+			return "", fmt.Errorf("multiple visible plugins named %q: %s; specify plugin_id", name, formatPluginCandidates(matches))
 		}
 	}
 	switch len(refs) {
@@ -11749,10 +11749,22 @@ func (h *Harness) resolvePluginID(ctx context.Context, spec tools.CommandSpec, c
 		return refs[0].ID, nil
 	default:
 		if spec.CommandName == "get_plugin_parameters" {
-			return "", fmt.Errorf("multiple visible plugins match; select one plugin or specify plugin_id")
+			return "", fmt.Errorf("multiple visible plugins match: %s; specify plugin_id or plugin_name", formatPluginCandidates(refs))
 		}
 	}
 	return "", nil
+}
+
+// formatPluginCandidates renders visible plugin refs as a machine-readable
+// candidate list for ambiguity errors, so the caller can recover by picking a
+// concrete id/name instead of guessing. Disclosure only — resolution semantics
+// stay fail-closed (M3-PLUGIN-RESOLVE-CANDIDATES-1).
+func formatPluginCandidates(refs []pluginRef) string {
+	parts := make([]string, 0, len(refs))
+	for _, ref := range refs {
+		parts = append(parts, ref.ID+" "+ref.Name)
+	}
+	return "[" + strings.Join(parts, ", ") + "]"
 }
 
 func (h *Harness) resolveMacroTargets(ctx context.Context, spec tools.CommandSpec, cmd map[string]any, requestContext map[string]any) error {

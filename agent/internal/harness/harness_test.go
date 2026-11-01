@@ -7278,6 +7278,98 @@ func TestVisiblePluginRefsIncludesRackNodes(t *testing.T) {
 	}
 }
 
+func shadowProjectWithPluginRows(rows ...map[string]any) *shadow.Project {
+	plugins := make([]any, 0, len(rows))
+	for _, row := range rows {
+		plugins = append(plugins, row)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status": "ok",
+		"tracks": []any{map[string]any{
+			"track_id":       "1010",
+			"track_name":     "Bass",
+			"track_type":     "hybrid",
+			"is_audio_track": true,
+			"plugins":        plugins,
+		}},
+	})
+	return project
+}
+
+// M3-PLUGIN-RESOLVE-CANDIDATES-1: ambiguity errors must disclose the full
+// candidate list (id+name) plus the recovery parameters, while resolution
+// semantics stay fail-closed — no guessing, no silent selection.
+func TestResolvePluginIDAmbiguityErrorsDiscloseCandidates(t *testing.T) {
+	h := New(nil, shadowProjectWithPluginRows(
+		map[string]any{"plugin_id": "1011", "name": "Volume & Pan Plugin"},
+		map[string]any{"plugin_id": "1012", "name": "Level Meter"},
+	), nil)
+	ctx := context.Background()
+
+	// Track-level bare ambiguity (235 blocker shape: two built-ins per track).
+	id, err := h.resolvePluginID(ctx, tools.CommandSpec{CommandName: "get_plugin_parameters"}, map[string]any{}, map[string]any{})
+	if err == nil || id != "" {
+		t.Fatalf("expected fail-closed ambiguity error, got id=%q err=%v", id, err)
+	}
+	for _, needle := range []string{
+		"multiple visible plugins match",
+		"[1011 Volume & Pan Plugin, 1012 Level Meter]",
+		"specify plugin_id or plugin_name",
+	} {
+		if !strings.Contains(err.Error(), needle) {
+			t.Fatalf("ambiguity error missing %q: %v", needle, err)
+		}
+	}
+
+	// Same-name ambiguity must disclose candidates the same way.
+	hDup := New(nil, shadowProjectWithPluginRows(
+		map[string]any{"plugin_id": "2011", "name": "Volume & Pan Plugin"},
+		map[string]any{"plugin_id": "2012", "name": "Volume & Pan Plugin"},
+	), nil)
+	id, err = hDup.resolvePluginID(ctx, tools.CommandSpec{CommandName: "get_plugin_parameters"}, map[string]any{"plugin_name": "volume & pan plugin"}, map[string]any{})
+	if err == nil || id != "" {
+		t.Fatalf("expected fail-closed named-ambiguity error, got id=%q err=%v", id, err)
+	}
+	for _, needle := range []string{
+		"multiple visible plugins named",
+		"[2011 Volume & Pan Plugin, 2012 Volume & Pan Plugin]",
+		"specify plugin_id",
+	} {
+		if !strings.Contains(err.Error(), needle) {
+			t.Fatalf("named-ambiguity error missing %q: %v", needle, err)
+		}
+	}
+}
+
+// M3-PLUGIN-RESOLVE-CANDIDATES-1: the three unambiguous resolution paths keep
+// their exact byte-level outcomes — disclosure changes errors only.
+func TestResolvePluginIDUnambiguousPathsUnchanged(t *testing.T) {
+	h := New(nil, shadowProjectWithPluginRows(
+		map[string]any{"plugin_id": "1011", "name": "Volume & Pan Plugin"},
+		map[string]any{"plugin_id": "1012", "name": "Level Meter"},
+	), nil)
+	ctx := context.Background()
+
+	id, err := h.resolvePluginID(ctx, tools.CommandSpec{CommandName: "get_plugin_parameters"}, map[string]any{"plugin_id": "1011"}, map[string]any{})
+	if err != nil || id != "1011" {
+		t.Fatalf("explicit plugin_id path: id=%q err=%v", id, err)
+	}
+
+	id, err = h.resolvePluginID(ctx, tools.CommandSpec{CommandName: "get_plugin_parameters"}, map[string]any{"plugin_name": "level meter"}, map[string]any{})
+	if err != nil || id != "1012" {
+		t.Fatalf("unique plugin_name path: id=%q err=%v", id, err)
+	}
+
+	hSingle := New(nil, shadowProjectWithPluginRows(
+		map[string]any{"plugin_id": "1011", "name": "Volume & Pan Plugin"},
+	), nil)
+	id, err = hSingle.resolvePluginID(ctx, tools.CommandSpec{CommandName: "get_plugin_parameters"}, map[string]any{}, map[string]any{})
+	if err != nil || id != "1011" {
+		t.Fatalf("single visible plugin path: id=%q err=%v", id, err)
+	}
+}
+
 func TestInvokeManualConfirmationAndExplicitFullProjectAccess(t *testing.T) {
 	root := t.TempDir()
 	path := filepath.Join(root, "authority.txt")
