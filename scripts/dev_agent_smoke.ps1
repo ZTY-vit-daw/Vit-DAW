@@ -1353,7 +1353,13 @@ if ($AutomationLLMRouteSmoke -and -not $ScenarioMode) {
     New-Item -ItemType Directory -Path $LlmRouteLogsDir -Force | Out-Null
     Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $LlmRouteLogsDir "agent_llm_telemetry.jsonl")
     Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $LlmRouteLogsDir "agent_prompt_render.jsonl")
-    Write-Ok ("automation LLM route telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
+    # M3-NEUTRAL-ACTION-PATH-1 (235): full payload capture (request messages +
+    # response body per call) gated on by pointing the env at this run's logs
+    # dir; the env block precedes agent start so the agent inherits it. The
+    # capture stays per-run (never a default path) and other legs are
+    # unaffected because the env is only set for this leg's runs.
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_PAYLOAD_CAPTURE" -Value $LlmRouteLogsDir
+    Write-Ok ("automation LLM route telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " payload_capture=" + $env:VIT_AGENT_LLM_PAYLOAD_CAPTURE)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -8725,7 +8731,7 @@ if ($AutomationLLMRouteSmoke) {
     $llmRouteSummaryPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_summary.json"
     $llmRouteConsolePath = Join-Path $llmRouteArtifactsDir "automation_llm_route_console.txt"
     $llmRouteProjectPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_project.vit"
-    & python $llmRouteScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $llmRouteProjectPath --output $llmRouteSummaryPath --rounds-dir $llmRouteRoundsDir --telemetry-path $env:VIT_AGENT_LLM_TELEMETRY_PATH --prompt-render-path $env:VIT_AGENT_PROMPT_RENDER_PATH --agent-log $AgentLog > $llmRouteConsolePath 2>&1
+    & python $llmRouteScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $llmRouteProjectPath --output $llmRouteSummaryPath --rounds-dir $llmRouteRoundsDir --telemetry-path $env:VIT_AGENT_LLM_TELEMETRY_PATH --prompt-render-path $env:VIT_AGENT_PROMPT_RENDER_PATH --payload-capture-path (Join-Path $LlmRouteLogsDir "agent_llm_payload_capture.jsonl") --agent-log $AgentLog > $llmRouteConsolePath 2>&1
     $llmRouteExit = $LASTEXITCODE
     Get-Content -LiteralPath $llmRouteConsolePath | ForEach-Object { Write-Host $_ }
     if (-not (Test-Path -LiteralPath $llmRouteSummaryPath)) {

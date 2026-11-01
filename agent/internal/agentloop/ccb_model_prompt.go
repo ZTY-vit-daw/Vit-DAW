@@ -58,6 +58,7 @@ func messageLoopNeutralFamilyTurnDirectives(state *runState) string {
 	if multiRound {
 		experimentBudget = messageLoopFreeStateEffectiveExperimentBudget(state)
 	}
+	prefix += freeStateTimeVaryingActionPathGuidance() + "\n"
 	prefix += freeStateImprovementProposalPromptShape(experimentBudget) + "\n"
 	prefix += freeStateD1AdmittedDomainRuleForBudget(experimentBudget) + "\n"
 	prefix += capabilityBoundaryRemediationPromptRule() + "\n"
@@ -95,6 +96,32 @@ func messageLoopNeutralFamilySystemSkeleton(state *runState) string {
 		allowed = strings.Join(messageLoopNeutralFamilyAllowedTools(state.input.AllowedTools), ", ")
 	}
 	return neutralFamilySkeletonFromRuleset(catalog, allowed)
+}
+
+// freeStateTimeVaryingActionPathGuidance is the M3-NEUTRAL-ACTION-PATH-1
+// (235) action-path teaching row. 234 supervisor forensics pinned the
+// mechanism: the neutral-family turn directives were 100% static-domain
+// teaching (improvement_proposal examples, D1-S1 domain table, pattern
+// recognition) while the only legal write path for a time-varying goal —
+// the direct automation surface admitted on the decision turn — had its
+// "when to take it" teaching nowhere in the directives layer the model
+// actually obeys. This row teaches path existence and semantic shape
+// discrimination only (which goal shapes are envelope-shaped vs
+// one-fixed-value goals); it deliberately carries no phrase→action mapping
+// (vocabulary-full-retirement ruling 2026-10-31: syntax belongs to
+// deterministic code, semantics to the model). Steering text only: no
+// validator, admission gate, or runtime criterion reads it.
+// Version discipline: v1 — wording changes require bumping
+// freeStateTimeVaryingActionPathVersion and the lock-test anchor set in
+// ccb_model_prompt_action_path_test.go, plus the smoke-side needle in
+// scripts/automation_llm_route_smoke.py (same-source sync).
+const freeStateTimeVaryingActionPathVersion = "neutral-family-time-varying-action-path:v1"
+
+func freeStateTimeVaryingActionPathGuidance() string {
+	return `Action Path Selection (time-varying goals vs static adjustments):
+- Decide the action path from the shape of the listening goal itself. A goal that one fixed parameter change would satisfy (raise or lower a level by an amount, move one eq band, shift one threshold) is a static adjustment: use needs_experiment with one improvement_proposal from the admitted static domains. A goal that asks a parameter to change gradually across a time range — riding a parameter up or down over time, fading in or out, becoming more or less prominent as the track plays — is time-varying: no single fixed value expresses it, so a static action_domain proposal is the wrong instrument for it.
+- For a time-varying goal, use the admitted automation tool chain on the decision turn: first observe to locate the target track and the parameter surface; then read the parameter value range with plugin.get_parameters; then call automation.set_points with points [{t seconds >= 0, v inside that range}] describing the envelope across the time range — it passes the runtime governance gate (user confirmation card) before any write; after the write, read back with automation.get_curve.
+- The discrimination is semantic, not phrase matching: judge from the goal's time shape, never from specific user wording.`
 }
 
 // freeStateImprovementProposalPromptShape renders the needs_experiment
