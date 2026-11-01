@@ -40,7 +40,11 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-01 下午 +0800 / origin/main=0af2d972afaf666b2a8aa16e5991c70b975dfbd8 / GLM-5.3 L1 PC 执行会话（ZCode sess_402fb247，用户转交口令领取）
+- impl worktree=D:/Vit_DAW_wt_236impl（分支 port/m3-plugin-resolve-candidates-1）；协调 worktree=D:/Vit_DAW_wt_236coord（分支 coord/236-claim）
+- 领取基线三件（impl worktree）：HEAD=0af2d972afaf666b2a8aa16e5991c70b975dfbd8；status --short=空；diff --stat=空
+- 领取前只读核对：卡在 todo 且派发确认（用户转交）；依赖 235 已在 main（0af2d972 即 235 dispatch commit）；doing 唯一卡 GEN-SUNO-WEB-DESIGN-1（Mac 勘察卡，[等待用户]）文件域零冲突；PC 栈记录无"占用中"+四端口 5555/5556/7878/8787 监听=0+VitApp/VitAgent/vsphub/Godot 进程=0
+- 栈登记：（真栈重验腿启动前登记，见回执）
 
 ## 回执
 
