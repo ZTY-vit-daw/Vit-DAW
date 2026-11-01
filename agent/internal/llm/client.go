@@ -138,12 +138,16 @@ func (c *Client) Complete(ctx context.Context, cfg config.EngineConfig, messages
 func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, llmReq Request) (response Response, err error) {
 	totalStart := time.Now()
 	endpoint := endpoint{}
+	// M3-NEUTRAL-ACTION-PATH-1: keep the last attempt's raw response body so
+	// the env-gated payload capture can dump it alongside the request.
+	var rawResponse []byte
 	defer func() {
 		response.Timings.TotalMs = elapsedMs(totalStart)
 		if response.RawKind == "" {
 			response.RawKind = endpoint.Kind
 		}
 		recordTelemetry(cfg, llmReq, response, err)
+		recordPayloadCapture(cfg, llmReq, response, err, rawResponse, endpoint.Kind)
 	}()
 
 	buildStart := time.Now()
@@ -217,6 +221,7 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 		}
 		data, readErr := io.ReadAll(resp.Body)
 		resp.Body.Close()
+		rawResponse = data
 		response.Timings.HTTPMs = elapsedMs(httpStart)
 		if readErr != nil {
 			lastErr = readErr
@@ -265,12 +270,16 @@ func (c *Client) CompleteImageUnderstanding(ctx context.Context, cfg config.Engi
 		Messages: []Message{{Role: "user", Content: visionReq.Prompt}},
 		Metadata: visionReq.Metadata,
 	}
+	// M3-NEUTRAL-ACTION-PATH-1: raw body for the env-gated payload capture
+	// (vision requests dump the synthesized prompt message + raw response).
+	var rawResponse []byte
 	defer func() {
 		response.Timings.TotalMs = elapsedMs(totalStart)
 		if response.RawKind == "" {
 			response.RawKind = endpoint.Kind
 		}
 		recordTelemetry(cfg, telemetryReq, response, err)
+		recordPayloadCapture(cfg, telemetryReq, response, err, rawResponse, endpoint.Kind)
 	}()
 
 	buildStart := time.Now()
@@ -333,6 +342,7 @@ func (c *Client) CompleteImageUnderstanding(ctx context.Context, cfg config.Engi
 	if err != nil {
 		return response, err
 	}
+	rawResponse = data
 	text, usage, err := parseLLMResponseData(data, resp.StatusCode, endpoint.Kind)
 	response.Usage = usage
 	if err != nil {

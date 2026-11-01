@@ -191,6 +191,19 @@ GROUP_PHRASES = {
     3: "30 秒之后动起来",
 }
 
+# Card 235 (M3-NEUTRAL-ACTION-PATH-1): machine-checkable fingerprint of the
+# time-varying action-path guidance that now rides the neutral-family
+# turn_directives layer. Same-source sync: the needle is the guidance's title
+# line from agent/internal/agentloop/ccb_model_prompt.go
+# (freeStateTimeVaryingActionPathGuidance, version
+# neutral-family-time-varying-action-path:v1); the Go lock test
+# (TestTimeVaryingActionPathGuidanceVersionLock) anchors the full phrase set
+# and turns red on wording drift — sync this needle when that test forces a
+# version bump. The payload-capture scan proves the guidance physically
+# reached the request messages the engine actually received (the 234
+# "received-payload reasoning gap" closure).
+TIME_VARYING_PATH_NEEDLE = "Action Path Selection (time-varying goals vs static adjustments)"
+
 # 218-verified vocabulary phrase used only by the choreo-pending legs.
 CHOREO_ARM_PHRASE = "0 到 30 秒，让这条轨的存在感慢慢强起来"
 
@@ -1090,6 +1103,44 @@ def aggregate_usage(telemetry_path: Optional[Path]) -> Dict[str, Any]:
             "llm_calls": calls, "models": models}
 
 
+def scan_payload_guidance(payload_capture_path: Optional[Path]) -> Dict[str, Any]:
+    """Card 235 measurement face: prove the time-varying action-path guidance
+    physically reached the request messages the engine received. The payload
+    capture (agent llm package, env VIT_AGENT_LLM_PAYLOAD_CAPTURE=<dir>, set
+    by the ps1 wrapper for this run) records every call's full request
+    messages; this scan counts rows whose request carries the guidance needle
+    (turn_directives ride the user message of the neutral-family assembly).
+    Measurement only — no verdict reads it."""
+    result: Dict[str, Any] = {
+        "payload_capture_path": str(payload_capture_path) if payload_capture_path else "",
+        "available": False,
+        "needle": TIME_VARYING_PATH_NEEDLE,
+        "rows": 0,
+        "rows_with_guidance": 0,
+    }
+    if not payload_capture_path or not payload_capture_path.exists():
+        return result
+    result["available"] = True
+    try:
+        text = payload_capture_path.read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        result["error"] = str(exc)
+        return result
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        result["rows"] += 1
+        messages = row.get("request", {}).get("messages") or []
+        if any(TIME_VARYING_PATH_NEEDLE in str(m.get("content") or "") for m in messages):
+            result["rows_with_guidance"] += 1
+    return result
+
+
 def check_prompt_guidance(prompt_render_path: Optional[Path]) -> bool:
     """Stop condition 2 anchor: the rendered chat system prompt must carry the
     217 automation routing guidance (both the legacy template and the embed
@@ -1114,6 +1165,7 @@ def main() -> None:
     parser.add_argument("--rounds-dir", required=True)
     parser.add_argument("--telemetry-path", default="")
     parser.add_argument("--prompt-render-path", default="")
+    parser.add_argument("--payload-capture-path", default="")
     parser.add_argument("--agent-log", default="")
     parser.add_argument("--rounds-per-group", type=int, default=5)
     args = parser.parse_args()
@@ -1124,6 +1176,7 @@ def main() -> None:
     rounds_dir.mkdir(parents=True, exist_ok=True)
     telemetry_path = Path(args.telemetry_path).resolve() if args.telemetry_path else None
     prompt_render_path = Path(args.prompt_render_path).resolve() if args.prompt_render_path else None
+    payload_capture_path = Path(args.payload_capture_path).resolve() if args.payload_capture_path else None
     agent_log = Path(args.agent_log).resolve() if args.agent_log else None
 
     summary: Dict[str, Any] = {
@@ -1337,6 +1390,10 @@ def main() -> None:
             verdict_distribution[row["verdict"]] = verdict_distribution.get(row["verdict"], 0) + 1
         summary["verdict_distribution"] = verdict_distribution
         summary["usage"] = aggregate_usage(telemetry_path)
+        # Card 235: payload-capture proof that the time-varying action-path
+        # guidance reached the engine's received request messages (measurement
+        # only; the receipt side cites it as the guidance-presence evidence).
+        summary["payload_guidance"] = scan_payload_guidance(payload_capture_path)
         summary["status"] = "ENV_INTERRUPT" if exit_code == 3 else ("GUIDANCE_MISSING" if exit_code == 2 else "COMPLETED")
         summary["finished_at"] = datetime.now(timezone.utc).isoformat()
     except Exception as exc:  # noqa: BLE001 - smoke failure reporting.
