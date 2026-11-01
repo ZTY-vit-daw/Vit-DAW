@@ -1141,6 +1141,44 @@ def scan_payload_guidance(payload_capture_path: Optional[Path]) -> Dict[str, Any
     return result
 
 
+def scan_payload_param_surface(payload_capture_path: Optional[Path]) -> Dict[str, Any]:
+    """Card 237 measurement face: prove the automation parameter surface
+    (automation_param_surface rows disclosed by plugin.get_parameters
+    receipts) physically reached the request messages the engine received.
+    Card 236 pinned the zero-disclosure breakpoint (ok receipt summary={}
+    with parameter_count never appearing); a nonzero rows_with_param_surface
+    here is the disclosure-present proof. Measurement only — no verdict
+    reads it."""
+    result: Dict[str, Any] = {
+        "payload_capture_path": str(payload_capture_path) if payload_capture_path else "",
+        "available": False,
+        "needle": "automation_param_surface",
+        "rows": 0,
+        "rows_with_param_surface": 0,
+    }
+    if not payload_capture_path or not payload_capture_path.exists():
+        return result
+    result["available"] = True
+    try:
+        text = payload_capture_path.read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        result["error"] = str(exc)
+        return result
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        result["rows"] += 1
+        messages = row.get("request", {}).get("messages") or []
+        if any("automation_param_surface" in str(m.get("content") or "") for m in messages):
+            result["rows_with_param_surface"] += 1
+    return result
+
+
 def check_prompt_guidance(prompt_render_path: Optional[Path]) -> bool:
     """Stop condition 2 anchor: the rendered chat system prompt must carry the
     217 automation routing guidance (both the legacy template and the embed
@@ -1394,6 +1432,9 @@ def main() -> None:
         # guidance reached the engine's received request messages (measurement
         # only; the receipt side cites it as the guidance-presence evidence).
         summary["payload_guidance"] = scan_payload_guidance(payload_capture_path)
+        # Card 237: payload-capture proof that the automation parameter surface
+        # reached the engine's received request messages (measurement only).
+        summary["payload_param_surface"] = scan_payload_param_surface(payload_capture_path)
         summary["status"] = "ENV_INTERRUPT" if exit_code == 3 else ("GUIDANCE_MISSING" if exit_code == 2 else "COMPLETED")
         summary["finished_at"] = datetime.now(timezone.utc).isoformat()
     except Exception as exc:  # noqa: BLE001 - smoke failure reporting.
