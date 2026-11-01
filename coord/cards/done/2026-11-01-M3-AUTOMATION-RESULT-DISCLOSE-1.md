@@ -61,3 +61,12 @@
 ## 验收
 
 - （主管回填）
+
+## 验收（GLM 主管决策流 / 2026-11-01 晚）
+
+- **实现 pass 合入**（merge 后 main 复跑：agentloop 5.3s+harness 17.2s 全绿）：diff 亲核=纯增 +204/-0 双层按卡（层1 add-only 分支 Mix/CCB 零回退+mutation 不披露+有界+cloneMap 防混叠；层2 ungated automation_param_surface，include_* 语义不动）；文件域 5 文件全在卡面。
+- **载荷亲核采信**：row54 参数面实收逐字核实（volume min:0/max:1+pan min:-1/max:1+supports_automation=true+parameter_count:2）=236 空壳断点修通；歧义→候选→plugin_id=1011 恢复链延续；新测量面 payload_param_surface 1/86 与 ok 回执 1:1。
+- **组 1 门一件达成两件未过如实分列采信**；ps1 整体 exit 0（236 无关腿超时未复现，flaky 卡不触发）。
+- **停止条件第一条触发=终局定性采信，链裁定（229→237 收官）**：确定性层全部拆完——证据→identity→预算→门→驱动（229-234）→指引教学（235 亲证生效）→error 披露（236 亲证恢复链）→结果披露（237 亲证参数面实收）。本轮残差=**模型持有在野权威数据（row54 上下文在场）仍宣称「缺少权威披露」**+对 `processor.identity_and_controls` 反复重试 ~30 次（该视图对内建插件返回 unsupported_projection/source evidence is missing——主管载荷亲核；反复重试违反骨架规则明文 "do not retry the same view set"）。**主判据归模型行为面**；次要事实如实记录：processor.* 投影不覆盖内建插件=观察面真实局限（如换引擎后仍不收敛，此为披露改进候补，不再单独折卡）。
+- **处置**：换引擎判别实验上用户裁定（234 gate 预埋口径：同码同 fixture 只换引擎重跑组 1 门——最廉价判别；引擎选择与计费归用户）。手测统一测试欠账继续挂起至该实验出结论。
+- 计费 86 调用/1.29M in/116K out 采信。
