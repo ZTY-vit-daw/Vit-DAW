@@ -122,6 +122,16 @@ param(
     # fold to follow-up cards, zero production change). Needs the agent HTTP
     # face on the stack (-StartKernel -RestartAgent; no UI).
     [switch]$AutomationLLMRouteSmoke,
+    # M3-ENGINE-SWAP-DISCRIM-1 (238): per-run engine injection for the LLM
+    # route leg. VIT_AGENT_LLM_MODEL is consumed natively by agent
+    # internal/config applyExplicitEnvOverrides (config.go), so injecting it
+    # here keeps BOTH the user-level config AND agent production code
+    # untouched. Scope: the env lives in this ps1 process only (never
+    # persisted) and is inherited by the agent process this run starts; the
+    # single agent process serves the whole run, so later legs in the same
+    # run also bill on the override engine (same-run scope, disclosed per
+    # card; 238 precheck adopted id deepseek-v4-pro).
+    [string]$LlmModelOverride = "",
     # M3-CHAT-AUTH-STAMP-1 (223): chat-chain authority stamp smoke. Two-phase
     # leg with a REAL agent process restart in between (orchestrated here):
     # phase "before" switches full access through /agent/authority (durable
@@ -1359,6 +1369,16 @@ if ($AutomationLLMRouteSmoke -and -not $ScenarioMode) {
     # capture stays per-run (never a default path) and other legs are
     # unaffected because the env is only set for this leg's runs.
     Set-Item -LiteralPath "env:VIT_AGENT_LLM_PAYLOAD_CAPTURE" -Value $LlmRouteLogsDir
+    # M3-ENGINE-SWAP-DISCRIM-1 (238): engine swap via env injection only
+    # (user-level config untouched; agent production code untouched — the env
+    # is read natively by config.go applyExplicitEnvOverrides). Same
+    # inheritance window as the telemetry envs above: set before the agent
+    # process starts, so the run's agent bills on the override engine for its
+    # whole lifetime. Never written to any config file; dies with this run.
+    if (-not [string]::IsNullOrWhiteSpace($LlmModelOverride)) {
+        Set-Item -LiteralPath "env:VIT_AGENT_LLM_MODEL" -Value $LlmModelOverride.Trim()
+        Write-Ok ("automation LLM route engine override: VIT_AGENT_LLM_MODEL=" + $env:VIT_AGENT_LLM_MODEL)
+    }
     Write-Ok ("automation LLM route telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " payload_capture=" + $env:VIT_AGENT_LLM_PAYLOAD_CAPTURE)
 }
 
