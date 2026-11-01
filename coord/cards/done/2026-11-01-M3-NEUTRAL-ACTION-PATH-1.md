@@ -45,9 +45,30 @@
 
 - 领取：2026-11-01 10:09 +0800 / origin/main=5c5ee2ea / owner=GLM-5.3 L2 PC 执行会话（ZCode，本会话）/ 分支 port/m3-neutral-action-path-1 / worktree D:/Vit_DAW_wt_235impl / 领取基线：worktree HEAD=5c5ee2ea、worktree status 干净（主检出存在他卡运行工件与设计稿改动，与本卡文件域不相交，已核对未动）/ 领取提交=（本提交）
 
-## 回执
+## 回执（2026-11-01 执行侧）
 
-- （执行侧回填）
+- 实现 commit：e9a51a06 @ port/m3-neutral-action-path-1（worktree D:/Vit_DAW_wt_235impl；工件 commit 同分支续加）；卡状态 commit=本提交。
+- 工件：coord/runs/M3-NEUTRAL-ACTION-PATH-1/alignrun1/（EVIDENCE.md 三件套证据包+载荷捕获 7.4M jsonl+render/telemetry+rounds+双 console；排除可再生 clip.wav）。
+
+### 链路进度（指引在场+载荷捕获可用——均达成）
+
+1. 教学段生产面落地：freeStateTimeVaryingActionPathGuidance（neutral-family-time-varying-action-path:v1）无条件进 messageLoopNeutralFamilyTurnDirectives（234 证据=模型实际服从显著层）；render turn_directives 字段自动可机检；纯 prompt+装配，Go 判定逻辑零改动；锚短语集锁定测试+词表红线自证（教学段零具体话术）+确认话术分支零回退测试。插入点勘察定案=directives 生成器（选项A；222 段 system 层保留原样未动——勘察证据支持单面即达显著层，双面无增量）。
+2. 载荷捕获落地：agent/internal/llm/payload_capture.go——VIT_AGENT_LLM_PAYLOAD_CAPTURE=<dir> 默认 off 无 fallback 路径（默认路径禁写负例测试）；CompleteRequest/CompleteImageUnderstanding 每调用 dump 全量 request messages+response text/raw body jsonl；smoke env 块+--payload-capture-path+needle 亲证判读（TIME_VARYING_PATH_NEEDLE 同源声明）接线。
+3. 单测：go test ./... 全绿（零 FAIL）+py_compile OK；锁定测试四件（跨形态在场/装配物理落 user directives 层/版本锚+红线自证/普通族零回退）+载荷捕获四件（默认禁写/explicit off/全载荷字节比对/失败调用记录）。
+4. 真栈腿（§5 门槛）：ps1 -AutomationLLMRouteSmoke（同 234 alignrun 同参：-StartKernel -RestartAgent -KernelExe wt_228 f9e3da0a 只读复用）→ **exit 0 COMPLETED**；栈登记 c4772899→释放 e3ab13be 全流程闭环，TEARDOWN_ALL_ZERO（VitAgent 28944/VitApp 39256 拆净，TCP 5555/5556/7878/8787/18787/5178+UDP 4444/4445=0）；kernel 运行前后零漂移。
+
+### 最终验收（组 1 判据三件分列——门未过+停止条件触发）
+
+- **no_route 消失：未达成**——组1 verdicts=[capability_blocked, no_route×3]，r2-r4 三连 no_route 止损（组2/3 skipped）；successes=0<4/5。
+- **set_points 包络形态首绿：未达成**——零 automation.set_points 调用。
+- **指引在场亲证：达成**——payload_guidance 102/108 行 request messages 含 needle（agent_llm_payload_capture.jsonl 全量在场，与 telemetry 1:1）。
+- **停止条件触发**：新指引实收亲证在场仍三连同型止损→按卡面，指引层定性推翻证据包上交（EVIDENCE.md），不开第三张指引卡，转主管裁定。
+- **新证据改变变量分布（供主管裁定，执行侧证据倾向已写入 EVIDENCE.md 分型节）**：payload 逐轮亲证教学生效——r1 8calls 干净路径（时变判别「随时间变化的自动化包络需求」+定位轨+拒猜+诚实申报）；r2-r4 均调 plugin.get_parameters({track_id:1010})（reason=「读取该轨内置音量插件的参数标识与取值范围，用于后续写渐强包络」=教学第二步完整执行，234 未有新行为）→卡点钉死=工具返回 multiple visible plugins match 歧义 error 不带候选清单（fixture 每轨双内建插件 1011 Volume&Pan+1012 Level Meter，kernel get_project_state 只读亲证；py setup 按 volume 参数过滤故 234 前置链未暴露）；模型无从选择→观察兜圈 limit_reached→轮内 capability_blocked（chat 结算面 stop_reason=''故 smoke 分型 no_route）。确定性工具面缺口先验吞掉换引擎判别信息量——修复选项在本卡文件域外（harness.go resolvePluginID），按 §11 上交不越域。
+
+### §8 计费披露
+
+- alignrun1：deepseek-flash 108 计费调用，1,631,513 in / 163,560 out（0 env_interrupt 0 canceled）；r1=8/r2=41/r3=32/r4=26 + 前置腿 1。
+- 收敛面：r2-r4 limit_reached_seen=true（232 片预算放开形态），probe view present 4/4（rms_dbfs=-11.889 与 231/234 一致）。
 
 ## 验收
 
