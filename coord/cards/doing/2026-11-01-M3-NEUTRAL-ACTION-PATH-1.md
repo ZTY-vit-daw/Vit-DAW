@@ -43,7 +43,7 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 领取：2026-11-01 10:09 +0800 / origin/main=5c5ee2ea / owner=GLM-5.3 L2 PC 执行会话（ZCode，本会话）/ 分支 port/m3-neutral-action-path-1 / worktree D:/Vit_DAW_wt_235impl / 领取基线：worktree HEAD=5c5ee2ea、worktree status 干净（主检出存在他卡运行工件与设计稿改动，与本卡文件域不相交，已核对未动）/ 领取提交=（本提交）
 
 ## 回执
 
