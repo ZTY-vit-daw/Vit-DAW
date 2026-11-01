@@ -38,7 +38,10 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-01 21:00 +0800 / origin/main=24374340 / owner=GLM-5.3 PC 执行会话（ZCode，L1，238 卡会话）/ 分支=port/m3-engine-swap-discrim-1 / worktree=D:\Vit_DAW_wt_238impl
+- 领取基线三件：HEAD=24374340（=origin/main；agent 生产代码=main HEAD 原样，24374340 相对 79443422 仅增本卡 todo 文件，被测代码内容与 79443422 一致）；impl worktree `git status --short` 空、`git diff --stat` 空（干净基线，无领取前 diff）
+- 主工作树 D:\Vit_DAW 既有未提交改动（VitApp Workspace/coord runs 工件等）与本卡文件域（scripts 两文件+coord/runs 本卡目录）不相交，不动
+- 真栈腿：实验前按 §2.2 登记 PC-RUNTIME-STACK.md（登记前复核+push 后 ≤60s 即时复核）
 
 ## 回执
 
