@@ -49,7 +49,14 @@
 
 ## 回执
 
-- （执行侧回填）
+- 实现：port/m3-automation-result-disclose-1 @ **978d5dc9**（+204/-0 纯增，5 文件全在卡面文件域：execution_memory.go 层1 分支+harness.go 层2 供数键+两个测试文件+smoke py 判读微扩）；工件 65b67cf4。
+- **链路进度（目标 1/2/3）：全达**——层2 harness out ungated `automation_param_surface`（≤32 行 param_id/label/min/max/unit/normalized_role/supports_automation，include_* 全量分页语义不动）；层1 `recentObservationForTool` 补 automation 读工具分支（get_parameters 带参数面+元数据，get_curve 带 points ≤16 采样+point_count，mutation 不披露，Mix/CCB 路径只增不改）；单测三层断言全绿（内建 Volume&Pan 双行值域/披露面+别名+有界/非 automation 工具仍 nil/Mix+CCB 零回退）+**全量 `go test ./internal/... -count=1` exit 0**。
+- **真实栈亲证（alignrun1）**：**row54 模型 request 实收 `automation_param_surface` 完整参数行**（volume `{min:0,max:1,supports_automation:true}`/pan `{min:-1,max:1}`）——236 钉死的"ok 回执 summary:{} 参数面零披露"断点**修通**；歧义→候选→plugin_id=1011 恢复链延续在场；新测量面 `payload_param_surface rows_with=1/86`（与 ok 回执 1:1）。
+- **最终验收（组1 门三件）：一件达成两件未过**——参数面可见亲证 ✓；no_route 消失 ✗（no_route×3 三连同型止损）；set_points 包络形态 ✗（三轮零调用）。ps1 整体 exit 0（场景腿 COMPLETED exit=0；**236 无关腿超时未复现**——不触发 flaky 卡建议）。
+- **停止条件第一条触发：纯模型残差证据包上交**（EVIDENCE.md 三件套：row54 实收载荷+三轮收敛数据+r3 逐调用链形态分型）——模型拿参数面后 response 判定"缺少权威披露"转 CCB 视图兜圈 ~30 次不收敛（指引 81/86 在场+工具面参数面实收=双全），断点后移至模型对在野证据采信/收敛行为，**转主管换引擎裁定，不再折披露卡**。
+- 栈登记/释放：占用 c90e64ec（登记前复核全零+push 后 ≤60s 即时复核全零）→释放 c90e64ec 后续提交（19:34–19:52，TEARDOWN_ALL_ZERO：VitAgent 4792/VitApp 26928 手停+PROCS=NONE+TCP 5555/5556/7878/8787/18787/5178=0+UDP 4444/4445=0）。
+- §8 计费披露：deepseek-flash 86 调用，1,291,342 in（含 cache）/116,112 out（真栈腿 LLM 面）。
+- run：`coord/runs/M3-AUTOMATION-RESULT-DISCLOSE-1/alignrun1/`（EVIDENCE.md+payload/telemetry/render 三 log+rounds g1_r1-r3+summary+双 console+ps1_exit=0；clip.wav 现有 *.wav 规则排除）。
 
 ## 验收
 
