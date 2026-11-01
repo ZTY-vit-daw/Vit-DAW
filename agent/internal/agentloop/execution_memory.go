@@ -749,6 +749,14 @@ func recentObservationForTool(call planner.ToolCall, result executorpkg.Result, 
 			summary = cloneMap(bundle)
 		}
 	}
+	if summary == nil {
+		// M3-AUTOMATION-RESULT-DISCLOSE-1: non-Mix observation tools previously
+		// collapsed to a nil summary here, so plugin.get_parameters success
+		// receipts disclosed nothing but {tool,command_name,status} to the
+		// session. The automation read tools get a compact disclosure surface;
+		// Mix/CCB paths above are untouched (add-only branch).
+		summary = automationObservationPromptSummary(firstNonEmpty(result.Tool, call.Tool, result.CommandName), result.Result)
+	}
 	return &RecentObservation{
 		ToolCallID:       firstNonEmpty(result.ToolCallID, call.ID),
 		Tool:             firstNonEmpty(result.Tool, call.Tool),
@@ -760,6 +768,51 @@ func recentObservationForTool(call planner.ToolCall, result executorpkg.Result, 
 		ProducedBindings: cloneExecutionBindings(bindings),
 		Verification:     cloneVerificationResult(&ver),
 	}
+}
+
+// automationParamSurfaceSummaryRowLimit and automationCurvePointSummaryRowLimit
+// bound the disclosure rows carried into the model-visible summary.
+const (
+	automationParamSurfaceSummaryRowLimit = 32
+	automationCurvePointSummaryRowLimit   = 16
+)
+
+// automationObservationPromptSummary assembles the compact disclosure summary
+// for the automation read tools (plugin.get_parameters / automation.get_curve).
+// Pure disclosure: keys are carried over as-is and rows are bounded; no
+// interpretation, validation, or pagination semantics. Mutation tools
+// (automation.set_points / automation.clear_region) are not disclosed here —
+// their receipts flow through the governance/confirmation surface.
+func automationObservationPromptSummary(name string, result map[string]any) map[string]any {
+	if len(result) == 0 || !messageLoopIsFreeStateAutomationSurfaceName(name) || messageLoopIsFreeStateAutomationMutationName(name) {
+		return nil
+	}
+	out := compactSelectedKeys(result, []string{
+		"status", "track_id", "plugin_id", "param_id", "time_base", "bypass", "point_count", "parameter_count",
+	})
+	if rows := messageLoopMapRows(result["automation_param_surface"]); len(rows) > 0 {
+		out["automation_param_surface"] = cloneBoundedMapRows(rows, automationParamSurfaceSummaryRowLimit)
+	}
+	if points := messageLoopMapRows(result["points"]); len(points) > 0 {
+		out["points"] = cloneBoundedMapRows(points, automationCurvePointSummaryRowLimit)
+	}
+	if len(out) == 0 {
+		return nil
+	}
+	return out
+}
+
+// cloneBoundedMapRows copies up to limit rows so the summary never aliases the
+// executor result map.
+func cloneBoundedMapRows(rows []map[string]any, limit int) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		out = append(out, cloneMap(rows[i]))
+	}
+	return out
 }
 
 func cloneExecutionMemory(in ExecutionMemory) ExecutionMemory {

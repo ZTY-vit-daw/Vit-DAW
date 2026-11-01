@@ -12916,6 +12916,45 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 			"total":  len(params),
 		}
 	}
+	// M3-AUTOMATION-RESULT-DISCLOSE-1: ungated compact parameter surface for
+	// the automation consumption face. The include_* gated full snapshot
+	// (pagination + display probes) keeps its semantics untouched; this key is
+	// always present and bounded so a caller that was never taught the
+	// include_* keys still reads the value ranges it needs before writing
+	// automation points. Existing consumers see one extra key only.
+	out["automation_param_surface"] = compactAutomationParamSurfaceRows(params, automationParamSurfaceRowLimit)
+	return out
+}
+
+// automationParamSurfaceRowLimit bounds automation_param_surface rows. The
+// built-in Volume & Pan face is exactly two rows; external plugin faces stay
+// in the tens. Rows beyond the limit are dropped in reply order.
+const automationParamSurfaceRowLimit = 32
+
+// compactAutomationParamSurfaceRows projects parameter rows onto the minimal
+// write-side decision surface: param_id, label, min/max range and role hints.
+func compactAutomationParamSurfaceRows(rows []map[string]any, limit int) []map[string]any {
+	if limit <= 0 || limit > len(rows) {
+		limit = len(rows)
+	}
+	out := make([]map[string]any, 0, limit)
+	for i := 0; i < limit; i++ {
+		row := rows[i]
+		paramID := firstString(row, "param_id", "id", "raw_param_id")
+		if strings.TrimSpace(paramID) == "" {
+			continue
+		}
+		compact := map[string]any{"param_id": paramID}
+		if label := firstNonEmpty(firstString(row, "label", "name"), firstString(row, "raw_param_name"), firstString(row, "alias")); label != "" {
+			compact["label"] = label
+		}
+		for _, key := range []string{"min", "max", "unit", "normalized_role", "supports_automation"} {
+			if value, ok := row[key]; ok && !isEmptyValue(value) {
+				compact[key] = value
+			}
+		}
+		out = append(out, compact)
+	}
 	return out
 }
 

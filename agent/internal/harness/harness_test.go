@@ -1656,6 +1656,77 @@ func TestPublicPluginParametersResultStripsRetiredRuntimeProfile(t *testing.T) {
 	}
 }
 
+// TestPublicPluginParametersResultIncludesUngatedAutomationParamSurface pins
+// M3-AUTOMATION-RESULT-DISCLOSE-1 layer 2: the automation consumption face
+// must see a compact parameter surface even without the include_* keys, with
+// the built-in Volume & Pan dual-parameter rows carrying their value ranges.
+func TestPublicPluginParametersResultIncludesUngatedAutomationParamSurface(t *testing.T) {
+	reply := map[string]any{
+		"status":    "ok",
+		"track_id":  "1010",
+		"plugin_id": "1011",
+		"parameters": []any{
+			map[string]any{
+				"id": "volume", "param_id": "volume", "raw_param_id": "volume",
+				"name": "Volume", "min": -80.0, "max": 6.0,
+				"normalized_role": "volume", "supports_automation": true, "host_controllable": true,
+			},
+			map[string]any{
+				"id": "pan", "param_id": "pan", "raw_param_id": "pan",
+				"name": "Pan", "min": -1.0, "max": 1.0,
+				"normalized_role": "pan", "supports_automation": true, "host_controllable": true,
+			},
+		},
+		"quick_controls":     []any{},
+		"recommended_groups": []any{},
+	}
+	out := publicPluginParametersResult(nil, reply)
+	rows := mapRowsFromAny(out["automation_param_surface"])
+	if len(rows) != 2 {
+		t.Fatalf("automation_param_surface rows = %+v", out["automation_param_surface"])
+	}
+	volume := rows[0]
+	if volume["param_id"] != "volume" || volume["label"] != "Volume" || volume["min"] != -80.0 || volume["max"] != 6.0 {
+		t.Fatalf("volume surface row = %+v", volume)
+	}
+	if volume["supports_automation"] != true {
+		t.Fatalf("volume surface row missing supports_automation: %+v", volume)
+	}
+	if rows[1]["param_id"] != "pan" || rows[1]["min"] != -1.0 || rows[1]["max"] != 1.0 {
+		t.Fatalf("pan surface row = %+v", rows[1])
+	}
+	// The gated full snapshot must stay gated: no include keys, no parameters.
+	if _, ok := out["parameters"]; ok {
+		t.Fatalf("ungated call leaked full parameters snapshot: %+v", out["parameters"])
+	}
+	// The include_parameters full semantics stay untouched alongside the new key.
+	gated := publicPluginParametersResult(map[string]any{"include_parameters": true}, reply)
+	if full := mapRowsFromAny(gated["parameters"]); len(full) != 2 {
+		t.Fatalf("include_parameters snapshot rows = %+v", gated["parameters"])
+	}
+	if surface := mapRowsFromAny(gated["automation_param_surface"]); len(surface) != 2 {
+		t.Fatalf("automation_param_surface missing alongside gated snapshot: %+v", gated["automation_param_surface"])
+	}
+}
+
+// TestPublicPluginParametersResultAutomationSurfaceIsBounded pins the row cap
+// so the ungated key cannot balloon the disclosure surface.
+func TestPublicPluginParametersResultAutomationSurfaceIsBounded(t *testing.T) {
+	params := make([]any, 0, 40)
+	for i := 0; i < 40; i++ {
+		params = append(params, map[string]any{"id": fmt.Sprintf("p%02d", i), "name": fmt.Sprintf("P%02d", i), "min": 0.0, "max": 1.0})
+	}
+	out := publicPluginParametersResult(nil, map[string]any{
+		"status": "ok", "parameters": params,
+	})
+	if rows := mapRowsFromAny(out["automation_param_surface"]); len(rows) != automationParamSurfaceRowLimit {
+		t.Fatalf("automation_param_surface rows = %d, want %d", len(rows), automationParamSurfaceRowLimit)
+	}
+	if out["parameter_count"] != 40 {
+		t.Fatalf("parameter_count = %+v, want the untruncated total", out["parameter_count"])
+	}
+}
+
 func TestPluginLoadToRackNormalizesArgs(t *testing.T) {
 	t.Setenv("VIT_PLUGIN_SEMANTICS_PATH", filepath.Join(t.TempDir(), "missing_plugin_semantics.json"))
 	h := New(nil, nil, nil)
