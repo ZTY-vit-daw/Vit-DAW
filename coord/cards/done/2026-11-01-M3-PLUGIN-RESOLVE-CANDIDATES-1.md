@@ -61,3 +61,13 @@
 ## 验收
 
 - （主管回填）
+
+## 验收（GLM 主管决策流 / 2026-11-01）
+
+- **实现 pass 合入**（merge 后 main 复跑：TestResolvePluginIDAmbiguityErrorsDiscloseCandidates+TestResolvePluginIDUnambiguousPathsUnchanged PASS+harness 全包 17.3s 绿）：diff 亲核=formatPluginCandidates 挂两处歧义 error+恢复参数面披露，解析语义零改动+visiblePluginRefs 零改动=红线守住。
+- **载荷三面亲核采信**：①候选清单实收（error 全文含 `[1011 Volume & Pan Plugin, 1012 Level Meter]`，4+ 处）；②**候选恢复亲证**（row32 响应原文：模型从候选选 1011 调 `{"plugin_id":"1011"}`，reason=「解析该轨音量控制的可写参数标识与取值范围」→status ok）——236 核心交付达成，组 1 三件之一 ✓；③断点形态（ok 回执 summary{} + 全载荷 parameter_count 零出现）。
+- **组 1 门未达如实分列采信**：no_route×3+set_points 零调用——模型拒猜纪律正确（拿不到 param_id 不写=服从规则），责任面非本卡标的。
+- **ps1 退出码裁定**：场景腿 `[DONE] COMPLETED exit=0`（console 在卷）=本卡验收面达标；整体 exit 1=后续 Chat route 腿 Invoke-WebRequest HTTP 超时（ps1:491），与本卡 diff（harness error 文本）无功能耦合，按 §9 **环境/时序中断分类记录**（同日 234 alignrun2 strip.chat 瞬态同族=LLM 重腿后 agent HTTP 面超时；第二次复现则开 flaky 腿修复卡）。
+- **停止条件第一条触发采信+锚点修正（主管取证补强）**：执行侧锚点 harness.go:12879（include_parameters 门控）只是**层 2**；主管载荷+代码亲核钉死**层 1 主断点=agentloop 披露面**——`recentObservationForTool`（execution_memory.go:745）对非 CCB 工具走 `mixObservationPromptSummary`（message_loop.go:6492-6500），非 Mix 观察名且无 acoustic_digest/observation/context_pack 三键→**早退 nil**→plugin.get_parameters 成功回执的模型可见面只剩 {tool,command_name,status}，**任何 out 键都到不了会话**（载荷亲证：95 行全量 parameter_count 零出现，即基础 out 的元数据也未到达）。**只修 harness 无效**——两层必须同卡修。
+- **处置**：开 237（automation 面工具结果披露卡：agentloop summary 分支+harness 供数键双层修复+重验门重跑）。换引擎实验顺位维持：参数面可见后仍不收敛，才是纯模型残差的干净判别点。
+- 计费 95 调用/1.96M in/122K out 采信；判读工具不微扩决定接受（payload 直读已闭合证据链）。
