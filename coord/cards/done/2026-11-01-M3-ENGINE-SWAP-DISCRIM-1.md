@@ -45,7 +45,16 @@
 
 ## 回执
 
-- （执行侧回填）
+- 实现/工件：port/m3-engine-swap-discrim-1 @ **2fa78247**（+28,325 行：ps1 +20 env 注入块（`-LlmModelOverride` 参数→`VIT_AGENT_LLM_MODEL`，设置点在 AutomationLLMRouteSmoke 腿 env 块=agent 启动前）+coord/runs/M3-ENGINE-SWAP-DISCRIM-1/ 全工件；**agent 生产代码零改动**、smoke py 零改动（telemetry model 字段+三测量面原生在场））。证据包 **EVIDENCE.md**（三面对照表+结论+计费）+ precheck/PRECHECK.md。
+- **红线三件全守**：agent 生产代码零改动（被测=main HEAD 24374340 原样构建，console 亲证）/用户 config 零触碰（defaultModel=deepseek-flash 只读亲核，引擎只经 env 注入）/先预检后真栈。
+- **链路进度（三面目标 1/2）：全达**——①预检腿：`/models` 亲证账号可用 id=`deepseek-flash`+`deepseek-v4-pro`，**`deepseek-v4` 非有效 id→按卡面采用 `deepseek-v4-pro`**（单调用探针 200/echo_model 回显亲证）；官方 pricing 抓取：v4-pro in 未命中 ¥3/M vs flash ¥1/M、out ¥6/M vs ¥2/M、cache ¥0.025/M vs ¥0.02/M（≈3×）。②实验腿：AutomationLLMRouteSmoke 场景腿 **COMPLETED exit=0**，引擎注入三面亲证（ps1 console env 行+telemetry/payload 逐行 `model=deepseek-v4-pro`+summary `usage.models`）；载荷捕获+needle（20/24）+param_surface 测量面全开；三同成立（同码/同 fixture/同栈 kernel f9e3da0a 复用）。
+- **最终判读（目标 3）：两支结论均不成立——引擎面超时环境中断主导，判别未获结论，上交主管**（非 A 非 B 的第三形态，卡面停止条件 2 超时类+条件 4 并发命中的如实分类路径）：
+  - 组1 [no_route×3] 三连同型止损，但**三轮 verdict_detail 逐字同型「本轮因 LLM 服务临时错误暂停」**——LLM 路腿 28 行=16 ok+**12 超时（43%）**；v4-pro OK 行延迟中位 **29.3s**/p90 44.4s（flash 7.4s/14.8s，91 行 0 超时）分布尾持续越线；**60s client timeout 硬编码 `agent/internal/llm/client.go:171` 无 env 覆盖**（改=改生产代码=本卡红线，未动）。
+  - **A 不成立**：无收敛/无提案/set_points 零调用；**B 不成立**：v4 从未到达 get_parameters ok（param_surface 实收 **0/24** vs flash 1/86 row54）——非"持有参数面仍无视"，是**推理链被超时截断**（payload 亲证：r3 行21 参数面意识出现→行22 即超时 RAW 空）；v4 有效调用内推理方向正确（意图=时变包络✓/Track 1010 锁定✓）——存在"档位可能足够但被栈截断"迹象（16 ok 样本太薄，不作为 B 支结论，EVIDENCE 有限观察节披露）。
+  - 上交主管三件：timeout 适配前置（代码卡：client timeout 对 reasoning 引擎不足，需 env override 或按模型配置）/适配后重跑预算 ≈¥0.93 上界不构成障碍/有限行为面观察支持"先适配再判别"而非"判 v4 无效"。
+- **ps1 整体 exit 1 如实分列**：失败腿=无关腿 Chat route smoke（ps1:501 Invoke-WebRequest 超时，其 2/2 LLM 调用全撞 60s timeout）——**卡面停止条件 4 命中**（env 注入造成非引擎面行为差异），判读只取 LLM 路腿（236 alignrun1 无关腿超时同族先例）；场景腿本体 COMPLETED exit=0（§5 门槛：场景腿+工件+栈流程全达，ps1 整体 exit 分列披露）。
+- **栈登记/释放全流程**：占用 eb4b30d6（登记前复核全零+push 后 ≤60s 即时复核全零 21:06:46；登记时间原误写 21:25→释放记录修正为 21:06，同 M1-3 先例）→释放 262ffe17（21:06–21:41，TEARDOWN_ALL_ZERO：VitAgent 40708/VitApp 27324 owner 手动停+PROCS=NONE+TCP 5555/5556/7878/8787/18787/5178=0+UDP 4444/4445=0 亲核）。
+- **§8 计费披露（v4-pro 对照 flash）**：计费行 19 ok=242,780 in/33,280 out（v4-pro 单价 3×）≈**¥0.93 上界**（对照 flash 同口径 ≈¥0.27）；**14 超时行客户端中止无 usage，服务端已发生 reasoning tokens 不可核实**（如实标注未计入估算）；单 run 存在性实验，组1 三连止损即止损未开第二 run。
 
 ## 验收
 
