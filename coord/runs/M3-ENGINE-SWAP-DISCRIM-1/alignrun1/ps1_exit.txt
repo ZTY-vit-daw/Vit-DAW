@@ -1,0 +1,2 @@
+PS1_EXIT=1
+leg_split: AutomationLLMRouteSmoke COMPLETED exit=0; overall exit 1 from unrelated Chat route smoke leg (dev_agent_smoke.ps1:501 Invoke-WebRequest timeout; v4-pro latency, stop-cond-4 per card: read judgment from LLM route leg only)
