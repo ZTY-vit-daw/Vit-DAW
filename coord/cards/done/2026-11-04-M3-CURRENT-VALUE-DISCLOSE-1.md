@@ -48,7 +48,15 @@
 
 ## 回执
 
-- （执行侧回填）
+- **实现**：port/m3-current-value-disclose-1 @ **13a57caf**（+工件 d42c23e0）：5 文件 +129/-3（harness.go 行键集追加+注释+新测试 / free_state_reasoning.go 册行携带+新测试 / harness_test.go 键集三态新测试 / pin_test 册行携带与原地刷新新测试 / automation_llm_route_smoke.py needle 微扩 rows_with_param_value+rows_with_pinned_value），文件域全守。96 包 go build/test exit 0（240/241 既有测试原语义全绿+新增 2 测）。
+- **链路进度（目标 1-3）：全达**——①harness 行 add-only：`compactAutomationParamSurfaceRows` 键列表追加 `value`/`value_text`（既有键 min/max/unit/normalized_role/supports_automation 字节不变仅追加；isEmptyValue 语义核验=数值 0 是真实值 fmt.Sprint(0)="0" 非空、空串 value_text 视为缺省不硬造；normalized_value 不在卡面键集不透传，单测锁定）。②册行携带：`freeStateAutomationSurfaceLedgerRow` params 构造加 value/value_text（与 min/max 同语义存在即拷；原地刷新语义天然覆盖值过期——mutation 后重读整行替换，单测断言刷新后 value=0.42 非 0）。③单测两件：harness `TestCompactAutomationParamSurfaceRowsCarriesCurrentValue`（新增键在场[含 value=0.0 边界]+既有七键全在+normalized_value 不泄漏+缺键行不硬造）+agentloop `TestFreeStateAutomationSurfaceLedgerRowCarriesCurrentValue`（册行携带+缺省不硬造+原地刷新携带新值）。
+- **最终验收（目标 4，disclose1 单轮 HEAD=13a57caf 唯一 diff=目标 1-4，flash 三面亲证 278/278×2，kernel F9E3DA0A 哈希重核一致，ps1 exit 0+COMPLETED 三组全跑满）：组 1 门未过（0/5：no_route×2+capability_blocked+no_route×2）——但「判定成功=组 1 绿或新真断点」第二形态成立**：
+  - **本卡命题三重亲证**：①compact 行 value 实测在场=0.740818202495575/value_text "+0.00 dB"（volume）与 value=0/"Centre"（pan，**数值零=真实值边界真栈出现**），rows_with_param_value=**26/26**，既有键全在=红线守住；②册行 value 实测同值，rows_with_pinned_value=**44/44**；③**value 被模型消费逐字对照**：g1_r3 申报原文「取值范围（0 到 1，**当前约 0.74**，曲线上没有任何自动化点）」↔实测 0.740818 吻合；g1_r2 更用当前值规划包络（「起点略低于当前音量」）。241「缺当前值」申报形态**消失**。
+  - **新真断点（供主管裁定，不自修不开卡）**：模型持有全部写前要素（范围+当前值+时间窗 0-6 秒+完整写入计划）但**停在 plain-text 征询确认**——r1「提交后会在确认卡里等你确认」/r2「写入前会弹出确认卡」/r5「你确认后即可试听」五样本统一形态，而 agent 面 `needs_confirmation=False`（无 pending candidate 形成）。断点候选=free-state 写入确认流接线/免确认直写指引缺格。**写入链路畅通由 choreo settle 腿亲证**（set_points 真实写入 Track 1010 volume 0-30s 渐入 0.30→0.60 两点逐点读回验证通过）——排除基础设施断点。次形态：g1_r3 capability_blocked 申报时间范围+轨道级声学证据缺口+回合预算耗尽（「本轮是最后一个回合，不能再发起新的观察」）；工具链走向持续（r3 automation.get_curve+13 样本全带 plugin.get_parameters）。
+  - 组 2 confirm_broken×3（plugin_selection_required=外部插件候选征询确认流测试面）+组 3 no_route×3 止损（「30 秒之后动起来」phrase 语义歧义形态「我没太明白你的意思」）——非本卡域如实记录。
+  - **§8 计费披露**：单 run **278 计费调用** deepseek-flash，in 4,019,085（cache_read 2,606,080）/out 461,552 ≈**¥4.94 上界**（cache 按全价上界计）。**超卡面 1-2 轮（¥1.5-3）预算如实披露**：组 1 形态混合（capability_blocked 打断 no_route 连击）未触发组内止损，脚本既定组间推进逻辑自动跑满三组，计费升至三组量级；无重跑单 run 收口。
+  - **栈登记/释放全流程**：占用 3ec76fe3（fetch 重读 main=9afc2155+亲核全零 00:17:50+push 后 00:18:29 ≤60s 即时复核全零+远端 owner 重读确认）→单轮→释放 41121a82（TEARDOWN_ALL_ZERO 01:17:55 亲核 PROCS=0+TCP/UDP 全零）。
+  - 工件：coord/runs/M3-CURRENT-VALUE-DISCLOSE-1/disclose1/（RECEIPT.md 判读全文+全套 26 文件随 port 分支入库）；prompt_render 9.1M 改名 agent_prompt_render_local_only.jsonl 留 worktree 不入库（241 先例）；.vit_derived/.vit_agent/.vit_history/clip.wav 已删（240 教训）。
 
 ## 验收
 
