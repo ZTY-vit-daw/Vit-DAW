@@ -61,3 +61,13 @@
 - 瑕疵留档（同 238 先例不重写历史）：工件 merge 混入 guardrun2/3 `.vit_derived/` 运行态目录（各 2 小文件，与 rounds/setup_acoustic_package_status.json 同源冗余）——不影响证据链，后续卡工件清单模板补「.vit_derived 排除」条目。
 - 两次修复（206b0169/9cc871d7）均为取证驱动且在目标 2 意图内（披露必须真实到达模型面），非越域。
 - **终局分叉兑现**：flash（用户裁定可用最强）+执法+披露三全在场（载荷亲证）组 1 仍 no_route 三连同型止损，形态已质变于 237（无限重试→被拦+boundary_ok 诚实边界申报首现+settled 停止）——剩余残差=持有 param_surface 载荷行仍不走向 set_points 工具链的纯模型行为面。三选（接更强引擎/架构重构/收线接受边界申报形态）转用户裁定，不开新卡。239 timeout 适配维持 P2：若用户选「接更强引擎」则 239 升前置（reasoning 引擎 60s 硬线先适配）。
+
+### 验收补记（2026-11-03 用户质疑驱动复审——「纯模型残差」定性推翻，改判披露持久性缺口）
+
+用户质询：模型宣称缺失的信息到底缺没缺？是提供了没用，还是格式/持久性问题？主管对 guardrun3 载荷逐轮对账（payload 106 行+summary 执行记录+源码三层），证据链：
+
+1. **模型读对了参数面且行动正确**：第 20 行推理原文亲证它读到 volume 0..1/pan -1..1；第 6 行它明确知道 set_points 需要 plugin_id 而「I don't have it yet」；第 8-11 行它尝试 track_id-only 与 plugin_type=volume 解析；第 12 行起从歧义报错（`multiple visible plugins match: [1011 Volume & Pan Plugin, 1012 Level Meter]`）学到 1011 并成功读到参数面。**它没有浪费轮次，没有不使用已提供数据。**
+2. **成功回执摘要不回显 plugin_id**（载荷第 20 行 recent_observation.summary={track_id,parameter_count,automation_param_surface}，无 plugin 身份归因；harness 层 publicPluginParametersResult 有 plugin_id 键、agentloop automationObservationPromptSummary 键表也有——到达摘要层的 result 该键为空，准确丢失层归修复卡勘察）。模型按反捏造红线（ccb_model_prompt.go:714）不认自己传入的 1011 为「returned evidence 解析出的标识」——回执只归因到 track 1010，未确认 1011↔该参数面。
+3. **持久性双缺（定性核心）**：`1011` 最后出现在第 72 行载荷、`automation_param_surface` 最后出现在第 73 行——**最终 33 轮决策里两者都被有界上下文/单槽 recent_observation 顶掉**（末轮 recent_observation=track.timbre_frequency CCB 观察）。模型最终申报「缺参数标识、缺可写区间」在其可见面内**字面为真**。
+4. **redirect note 与可见面脱节**：240 的 note（45 行在场）说「参数面若已在 recent observations 就直接用」——但 in-hand 判定走 state.executed 尾扫，与模型真实可见面（上下文）不一致；模型后续合理观察（定包络形状）反而加速顶掉参数面。
+5. **修正裁定**：237「持有权威数据仍宣称缺失」的「持有」实为时间窗持有——参数面与身份在其后观察轮中被逐出。**残差主因=我方披露持久性/归因缺口（回执不归因身份+单槽顶掉+note in-hand 判定面不一致），模型行为在规则内正确**（不捏造、申报边界、settled 停止）。原「纯模型行为面」定性撤销；终局三选暂缓，修复持久性缺口后重跑组 1 优先。教训入档：「模型持有数据」类断言的验收必须核**最终决策轮载荷**的持续在场，不能以任一轮在场为准。
