@@ -1,0 +1,296 @@
+package agentloop
+
+import (
+	"strings"
+	"testing"
+
+	"vit-daw-agent/internal/planner"
+)
+
+// M3-LOOP-UNAVAILABLE-VIEW-GUARD-1 tests: the mechanical guard that denies the
+// second request of the exact same view set + target after it returned no
+// usable view (the 237 residual shape: processor.* over built-in plugins), the
+// closed-template redirect disclosure on those receipts, and the zero-
+// regression boundary (usable/rejected/declared_contradiction semantics).
+
+func viewGuardLoopContext() map[string]any {
+	return map[string]any{
+		"schema_version":  "free_state_reasoning_loop.v1",
+		"status":          "observing",
+		"original_intent": "inspect plugin parameters",
+	}
+}
+
+func viewGuardUnavailableObservation() *RecentObservation {
+	return &RecentObservation{
+		ToolCallID: "ccb-unavailable", Tool: "ccb.observation_request", Status: "ok",
+		Summary: map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "insufficient", "observation_id": "obs-unavailable",
+			"requested_views":  []any{"processor.identity_and_controls"},
+			"omission_reasons": []any{"processor.identity_and_controls: source evidence is missing"},
+			"target_ref":       map[string]any{"kind": "track", "id": "1010"},
+			"audit_receipt":    map[string]any{"receipt_id": "ccbr-unavailable"},
+		},
+	}
+}
+
+func viewGuardTarget() map[string]any {
+	return map[string]any{"kind": "track", "id": "1010"}
+}
+
+// Interception 1/3: the second request of the same exact view set + target is
+// mechanically denied after the set returned unavailable evidence.
+func TestFreeStateUnavailableViewSetDeniedOnSecondSameSetRequest(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	recordFreeStateCCBObservation(state, viewGuardUnavailableObservation())
+
+	issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"processor.identity_and_controls"}, viewGuardTarget())
+	if issue == "" {
+		t.Fatal("same exact view set + target passed after an unavailable receipt")
+	}
+	if !strings.Contains(issue, "view_set_retry_denied") {
+		t.Fatalf("denial is not machine-readable: %q", issue)
+	}
+
+	// The ledger carries the unavailable verdict row once, with the retry
+	// policy and revision the guard needs.
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	rows := messageLoopMapRows(loop["unavailable_observation_requests"])
+	if len(rows) != 1 {
+		t.Fatalf("unavailable loop rows = %d, want 1: %#v", len(rows), loop)
+	}
+	if firstMapText(rows[0], "retry_policy") != "do_not_retry" || firstMapText(rows[0], "status") != "unavailable" {
+		t.Fatalf("unavailable row form wrong: %#v", rows[0])
+	}
+	ledger := messageLoopMapValue(loop["observation_ledger"])
+	if len(messageLoopMapRows(ledger["unavailable_view_sets"])) != 1 {
+		t.Fatalf("unavailable ledger rows wrong: %#v", ledger)
+	}
+
+	// Re-recording the same fingerprint does not duplicate rows.
+	recordFreeStateCCBObservation(state, viewGuardUnavailableObservation())
+	loop = messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	if len(messageLoopMapRows(loop["unavailable_observation_requests"])) != 1 {
+		t.Fatalf("unavailable rows duplicated: %#v", loop)
+	}
+}
+
+// Interception 2/3: a different view set, or the same views under a different
+// target, passes (exact_view_set semantics: the fingerprint differs).
+func TestFreeStateUnavailableViewSetGuardPassesDifferentSetOrTarget(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	recordFreeStateCCBObservation(state, viewGuardUnavailableObservation())
+
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"track.time_dynamics"}, viewGuardTarget()); issue != "" {
+		t.Fatalf("different view set was denied: %q", issue)
+	}
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"processor.identity_and_controls"}, map[string]any{"kind": "track", "id": "1011"}); issue != "" {
+		t.Fatalf("different target was denied: %q", issue)
+	}
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"processor.identity_and_controls", "track.time_dynamics"}, viewGuardTarget()); issue != "" {
+		t.Fatalf("superset view set was denied: %q", issue)
+	}
+}
+
+// Interception 3/3: a strictly newer project revision re-opens the exact view
+// set; an equal revision keeps the denial.
+func TestFreeStateUnavailableViewSetGuardPassesOnRevisionAdvance(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	observation := viewGuardUnavailableObservation()
+	observation.Summary["project_binding"] = map[string]any{"project_revision": "rev-7"}
+	recordFreeStateCCBObservation(state, observation)
+
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"processor.identity_and_controls"}, viewGuardTarget()); issue == "" {
+		t.Fatal("same-revision retry passed before the revision advanced")
+	}
+
+	state.input.Context["project_revision"] = "rev-8"
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"processor.identity_and_controls"}, viewGuardTarget()); issue != "" {
+		t.Fatalf("revision advance was denied: %q", issue)
+	}
+
+	state.input.Context["project_revision"] = "rev-7"
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"processor.identity_and_controls"}, viewGuardTarget()); issue == "" {
+		t.Fatal("equal revision passed; only a strictly newer revision re-opens the set")
+	}
+}
+
+// Denial receipt form: machine-readable tokens, the rule citation, and the
+// no-observation-round statement the card requires.
+func TestFreeStateUnavailableRetryIssueIsMachineReadable(t *testing.T) {
+	issue := freeStateUnavailableRetryIssue()
+	for _, needle := range []string{
+		"view_set_retry_denied",
+		"retry_policy=do_not_retry",
+		`rule="If a CCB observation returns rejected, unavailable, or deferred evidence for a requested view set, do not retry the same view set"`,
+		"observation_round_consumed=false",
+	} {
+		if !strings.Contains(issue, needle) {
+			t.Fatalf("denial receipt missing %q: %q", needle, issue)
+		}
+	}
+}
+
+// The denial reaches the model decision surface through the shared guard (the
+// same function the decision validation and the tool guard call).
+func TestFreeStateUnavailableViewSetDeniedThroughDecisionOutput(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	recordFreeStateCCBObservation(state, viewGuardUnavailableObservation())
+	state.recentObservation = &RecentObservation{Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-ready",
+		"requested_views": []any{"track.time_dynamics"}, "views": map[string]any{"track.time_dynamics": map[string]any{"status": "ready"}},
+	}}
+	decision := messageLoopOutput{FreeStateDecision: &FreeStateDecision{
+		SchemaVersion: FreeStateDecisionSchema, Status: FreeStateNeedsObservation, EvidenceStatus: "insufficient",
+		Summary: "retry", RequestedViewIDs: []string{"processor.identity_and_controls"},
+	}, ToolCalls: []planner.ToolCall{{Tool: "ccb.observation_request", Args: map[string]any{
+		"view_ids": []any{"processor.identity_and_controls"}, "target_kind": "track", "target_id": "1010",
+	}}}}
+	issue := messageLoopFreeStateOutputIssue(state, decision)
+	if !strings.Contains(issue, "view_set_retry_denied") {
+		t.Fatalf("denial did not reach the decision surface: %q", issue)
+	}
+}
+
+// Redirect disclosure: an unavailable processor.* receipt gains the closed-
+// template mechanism note; when the loop already carries an automation
+// parameter surface the note says so.
+func TestFreeStateUnavailableProcessorRedirectDisclosure(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	observation := viewGuardUnavailableObservation()
+	recordFreeStateCCBObservation(state, observation)
+
+	reasons := messageLoopStringList(observation.Summary["omission_reasons"])
+	if len(reasons) != 2 {
+		t.Fatalf("redirect note not appended: %#v", reasons)
+	}
+	if !strings.Contains(reasons[1], "processor.* CCB projections do not cover built-in track-level plugins") ||
+		!strings.Contains(reasons[1], "plugin.get_parameters") {
+		t.Fatalf("redirect note form wrong: %q", reasons[1])
+	}
+	if strings.Contains(reasons[1], "already present") {
+		t.Fatalf("presence marker without an automation surface in the loop: %q", reasons[1])
+	}
+	// The ledger row keeps the raw delivery reason, not the disclosure note.
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	row := messageLoopMapRows(loop["unavailable_observation_requests"])[0]
+	for _, reason := range messageLoopStringList(row["reasons"]) {
+		if strings.Contains(reason, "processor.* CCB projections") {
+			t.Fatalf("ledger row carries the disclosure note: %#v", row)
+		}
+	}
+
+	// With a successful plugin.get_parameters already in the loop, the note
+	// points at the in-hand surface.
+	state.executed = append(state.executed, map[string]any{
+		"tool": "plugin.get_parameters", "status": "ok", "result": map[string]any{"automation_param_surface": []any{map[string]any{"param_id": "volume"}}},
+	})
+	observation2 := viewGuardUnavailableObservation()
+	observation2.ToolCallID = "ccb-unavailable-2"
+	recordFreeStateCCBObservation(state, observation2)
+	reasons2 := messageLoopStringList(observation2.Summary["omission_reasons"])
+	if len(reasons2) != 2 || !strings.Contains(reasons2[1], "already present in this conversation's recent observations") {
+		t.Fatalf("presence note missing with an automation surface in the loop: %#v", reasons2)
+	}
+
+	// A failing plugin.get_parameters does not count as a present surface.
+	state.executed = append(state.executed, map[string]any{"tool": "plugin.get_parameters", "status": "error", "error": "boom"})
+	observation3 := viewGuardUnavailableObservation()
+	observation3.ToolCallID = "ccb-unavailable-3"
+	recordFreeStateCCBObservation(state, observation3)
+	reasons3 := messageLoopStringList(observation3.Summary["omission_reasons"])
+	// The most recent record failed, but an earlier success still satisfies
+	// presence: the loop carries at least one authoritative parameter surface.
+	if len(reasons3) != 2 || !strings.Contains(reasons3[1], "already present") {
+		t.Fatalf("presence scan should honor the earlier successful surface: %#v", reasons3)
+	}
+}
+
+// Redirect disclosure negatives: the note only attaches to unavailable
+// processor.* citations, never to usable receipts, non-processor omissions,
+// or disclosure-budget trims.
+func TestFreeStateUnavailableProcessorRedirectNegatives(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+
+	usable := &RecentObservation{ToolCallID: "ccb-ready", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-ready",
+		"requested_views": []any{"processor.identity_and_controls"},
+		"views":          map[string]any{"processor.identity_and_controls": map[string]any{"status": "partial"}},
+		"target_ref":     viewGuardTarget(),
+	}}
+	recordFreeStateCCBObservation(state, usable)
+	if reasons := messageLoopStringList(usable.Summary["omission_reasons"]); len(reasons) != 0 {
+		t.Fatalf("usable receipt gained a redirect note: %#v", reasons)
+	}
+
+	nonProcessor := &RecentObservation{ToolCallID: "ccb-track", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "insufficient",
+		"requested_views":  []any{"track.time_dynamics"},
+		"omission_reasons": []any{"track.time_dynamics: source evidence is missing"},
+		"target_ref":       viewGuardTarget(),
+	}}
+	recordFreeStateCCBObservation(state, nonProcessor)
+	for _, reason := range messageLoopStringList(nonProcessor.Summary["omission_reasons"]) {
+		if strings.Contains(reason, "processor.* CCB projections") {
+			t.Fatalf("non-processor omission gained a redirect note: %#v", nonProcessor.Summary["omission_reasons"])
+		}
+	}
+
+	budget := &RecentObservation{ToolCallID: "ccb-budget", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "partial",
+		"requested_views":  []any{"processor.identity_and_controls", "track.time_dynamics"},
+		"omission_reasons": []any{"processor.identity_and_controls: omitted by disclosure budget"},
+		"views":            map[string]any{"track.time_dynamics": map[string]any{"status": "ready"}},
+		"target_ref":       viewGuardTarget(),
+	}}
+	recordFreeStateCCBObservation(state, budget)
+	for _, reason := range messageLoopStringList(budget.Summary["omission_reasons"]) {
+		if strings.Contains(reason, "processor.* CCB projections") {
+			t.Fatalf("budget omission gained a redirect note: %#v", budget.Summary["omission_reasons"])
+		}
+	}
+}
+
+// Zero regression: the existing rejected-view-set semantics stay byte
+// identical, and the usable / declared_contradiction re-observation admission
+// is untouched by the unavailable guard.
+func TestFreeStateViewGuardZeroRegressionOnRejectedAndUsableSemantics(t *testing.T) {
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	rejected := &RecentObservation{
+		ToolCallID: "ccb-rejected", Tool: "ccb.observation_request", Status: "rejected",
+		Summary: map[string]any{
+			"schema_version": "ccb_observation_bundle.v1", "status": "rejected", "observation_id": "obs-rejected",
+			"requested_views":  []any{"mix.masking_relationship"},
+			"omission_reasons": []any{"deferred"},
+			"target_ref":       viewGuardTarget(),
+			"audit_receipt":    map[string]any{"receipt_id": "ccbr-rejected"},
+		},
+	}
+	recordFreeStateCCBObservation(state, rejected)
+	const rejectedIssue = "the requested CCB view set was already rejected; choose a different catalog view set or return blocked instead of retrying the same rejected/deferred views"
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state, []string{"mix.masking_relationship"}, viewGuardTarget()); issue != rejectedIssue {
+		t.Fatalf("rejected semantics changed: %q", issue)
+	}
+
+	// A usable receipt keeps its exact re-observation contract: repeat denied
+	// by the usable dedup, admitted under declared_contradiction when the prior
+	// evidence was partial (the admission contract requires stale/partial) —
+	// and the unavailable guard never fires for it.
+	state2 := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	usable := &RecentObservation{ToolCallID: "ccb-ready", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "partial", "observation_id": "obs-ready",
+		"requested_views": []string{"track.time_dynamics"}, "views": map[string]any{"track.time_dynamics": map[string]any{"status": "partial"}},
+		"target_ref":     viewGuardTarget(),
+	}}
+	recordFreeStateCCBObservation(state2, usable)
+	if issue := messageLoopFreeStateRejectedViewSetIssue(state2, []string{"track.time_dynamics"}, viewGuardTarget()); issue != "" {
+		t.Fatalf("usable receipt hit the rejected/unavailable guard: %q", issue)
+	}
+	if issue := messageLoopFreeStateAlreadyObservedIssue(state2, []string{"track.time_dynamics"}, viewGuardTarget()); issue == "" {
+		t.Fatal("usable dedup no longer denies an exact repeat")
+	}
+	contradiction := map[string]any{"declared_contradiction": true}
+	if issue := messageLoopFreeStateAlreadyObservedIssue(state2, []string{"track.time_dynamics"}, viewGuardTarget(), contradiction); issue != "" {
+		t.Fatalf("declared_contradiction admission broken: %q", issue)
+	}
+}
