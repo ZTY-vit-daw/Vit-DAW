@@ -73,4 +73,8 @@
 
 ## 验收
 
-- （主管回填）
+- **GLM 主管决策流 / 2026-11-04 晨 / 裁定：实现面 pass 合入（4ea33461）+「判定成功」第二形态（新真断点）成立采信，终局三选不触发。**
+- 主管亲核九件：①diff 全量 stat=文件域全守（8 文件 +605/-23）；②丢失层定案源码亲核=helpers.go:364 marker 列表含 "plugin"（中性族投影删 summary.plugin_id 实锤），restoreFreeStateAutomationAttribution 窄域豁免设计合理（归因是对模型自己工具调用的回应非预置引导）——**执行侧纠正主管 240 补记错误断言（result 键非空、丢失在投影层）成立，三重复现采信**；③本地复跑 build+agentloop 包测试 exit 0；④册行持久 22-74/82 行至决策轮（末 8 行=修复/settled 轮，回执已披露）；⑤册行被消费亲证=L68 模型回复逐字「我先读一下这条轨道音量参数的可写范围和当前值，好把'越来越突出'写成一段从当前音量平滑上行的音量曲线，而不是一次跳变」+终局申报只剩「还缺当前值」；⑥工具链亲证=rounds tools_called r1/r3 含 automation.get_curve；⑦新断点事实=内核源码主管亲核 PluginRackControlService.cpp:741-743 每参数行带 value/normalized_value/value_text，harness compactAutomationParamSurfaceRows 键集无 value（代码亲读）；⑧栈登记/释放全流程+验收时主管复核进程/端口全零；⑨工件卫生（.vit_derived 排除，240 教训落实）。
+- 一处回执表述瑕疵入档（不影响裁定）：「denial=0 行」不准确——事件级去重实为 **1 次早期 denial**（~第 9 轮，22 行载荷为历史回显），随后即转向 automation 面。实质成立：237=~30 次循环，241=1 次被拦即转向（护栏+册协同的预期形态）。
+- 已知边界采信：chat workflow_data 持久化面未搬运 automation_surfaces（与 240 unavailable_view_sets 同生命周期）；修复/settled 收尾轮不带 ledger 组装面（决策轮覆盖）。
+- **处置**：断点修复方向裁定采纳=harness 行 add-only +value/value_text+册行携带（同 241 持久性论证：当前值与范围同寿命）——开卡 242（M3-CURRENT-VALUE-DISCLOSE-1）。链 229→241 续行，模型已入工具链（get_curve 在手），距 set_points 一块拼图。
