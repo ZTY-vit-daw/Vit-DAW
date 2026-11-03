@@ -1801,7 +1801,87 @@ func messageLoopFreeStateRejectedViewSetIssue(state *runState, requested []strin
 			return "the requested CCB view set was already rejected; choose a different catalog view set or return blocked instead of retrying the same rejected/deferred views"
 		}
 	}
+	return messageLoopFreeStateUnavailableViewSetIssue(state, want)
+}
+
+// freeStateUnavailableViewSetRetryRule cites the prompt skeleton rule the
+// mechanical guard enforces (ccb_model_prompt.go): the model-visible prompt
+// already carries this text; the guard only lifts it from self-restraint to
+// machine enforcement.
+const freeStateUnavailableViewSetRetryRule = `If a CCB observation returns rejected, unavailable, or deferred evidence for a requested view set, do not retry the same view set`
+
+// messageLoopFreeStateUnavailableViewSetIssue is the M3-LOOP-UNAVAILABLE-
+// VIEW-GUARD-1 mechanical guard: the second request of the exact same view
+// set + target that already returned unavailable evidence (no usable view,
+// e.g. "insufficient" with processor.* omission reasons) is denied before
+// execution. Different view set or target has a different fingerprint and
+// passes; a strictly newer project revision re-opens the set; the denial is
+// returned pre-execution so no observation round is consumed (a denial is
+// not an observation).
+func messageLoopFreeStateUnavailableViewSetIssue(state *runState, want string) string {
+	if want == "" {
+		return ""
+	}
+	if state != nil && state.recentObservation != nil &&
+		messageLoopIsCCBObservationRequestName(firstNonEmpty(state.recentObservation.Tool, state.recentObservation.CommandName)) &&
+		freeStateObservationViewSetUnavailable(state.recentObservation) &&
+		messageLoopFreeStateRequestFingerprint(messageLoopStringList(state.recentObservation.Summary["requested_views"]), messageLoopMapValue(state.recentObservation.Summary["target_ref"])) == want &&
+		!freeStateUnavailableRetryRevisionAdmitted(state, map[string]any{
+			"project_revision": firstNonEmpty(firstMapText(state.recentObservation.Summary, "project_revision"), firstMapText(messageLoopMapValue(state.recentObservation.Summary["project_binding"]), "project_revision")),
+		}) {
+		return freeStateUnavailableRetryIssue(state, messageLoopStringList(state.recentObservation.Summary["requested_views"]))
+	}
+	ctx := messageLoopFreeStateContext(state)
+	rows := append(messageLoopMapRows(ctx["unavailable_observation_requests"]),
+		messageLoopMapRows(messageLoopMapValue(ctx["observation_ledger"])["unavailable_view_sets"])...)
+	for _, row := range rows {
+		if messageLoopFreeStateRequestFingerprint(messageLoopStringList(row["requested_views"]), messageLoopMapValue(row["target_ref"])) != want {
+			continue
+		}
+		if freeStateUnavailableRetryRevisionAdmitted(state, row) {
+			return ""
+		}
+		return freeStateUnavailableRetryIssue(state, messageLoopStringList(row["requested_views"]))
+	}
 	return ""
+}
+
+// freeStateUnavailableRetryIssue is the machine-readable denial the loop
+// returns to the model for a same-fingerprint retry. Stable tokens
+// (view_set_retry_denied / retry_policy / observation_round_consumed) are
+// needles for the route smoke payload measurement. When the denied set cites
+// a processor.* view the denial also carries the redirect disclosure (with
+// the in-hand marker when the loop already holds an automation parameter
+// surface), so enforcement and disclosure reach the model in one receipt.
+func freeStateUnavailableRetryIssue(state *runState, requested []string) string {
+	issue := "view_set_retry_denied: this exact CCB view set and target already returned unavailable evidence in this reasoning loop (status=unavailable; retry_policy=do_not_retry; rule=\"" + freeStateUnavailableViewSetRetryRule + "\"; observation_round_consumed=false) — request a different catalog view set or target, or proceed on the automation surface (plugin.get_parameters / automation.get_curve)"
+	for _, viewID := range messageLoopNormalizedViewIDs(requested) {
+		if strings.HasPrefix(viewID, "processor.") {
+			issue += "; redirect: " + freeStateCCBProcessorRedirectBaseNote
+			if freeStateAutomationParamSurfacePresent(state) {
+				issue += "; an automation parameter surface is already present in this conversation's recent observations — use it directly"
+			}
+			break
+		}
+	}
+	return issue
+}
+
+// freeStateUnavailableRetryRevisionAdmitted reports whether the current
+// context carries a strictly newer project revision than the row's verdict,
+// which re-opens the exact view set (exact_view_set semantics: revision
+// advance passes; equal/older/unorderable stays denied — nothing changed).
+func freeStateUnavailableRetryRevisionAdmitted(state *runState, row map[string]any) bool {
+	if state == nil {
+		return false
+	}
+	ctx := messageLoopFreeStateContext(state)
+	currentRevision := firstNonEmpty(
+		firstMapText(ctx, "project_revision"),
+		firstMapText(state.input.Context, "project_revision"),
+		firstMapText(messageLoopMapValue(state.input.Context["minimal_audio_closure"]), "project_revision"),
+	)
+	return freeStateRevisionStrictlyNewer(currentRevision, firstMapText(row, "project_revision"))
 }
 
 func messageLoopFreeStateAlreadyObservedIssue(state *runState, requested []string, target map[string]any, metadata ...map[string]any) string {
@@ -2106,7 +2186,106 @@ func recordFreeStateCCBObservation(state *runState, observation *RecentObservati
 		}
 		loop["rejected_observation_requests"] = rows
 	}
+	if unavailable := freeStateUnavailableLedgerEntry(observation); len(unavailable) > 0 {
+		rows := messageLoopMapRows(loop["unavailable_observation_requests"])
+		if !freeStateLedgerRowRecorded(rows, firstMapText(unavailable, "fingerprint"), "fingerprint") {
+			rows = append(rows, unavailable)
+		}
+		loop["unavailable_observation_requests"] = rows
+	}
 	state.input.Context["free_state_reasoning_loop"] = loop
+}
+
+// discloseCCBProcessorRedirectInBundle attaches the closed-template mechanism
+// note to a CCB receipt whose omission_reasons cite a requested processor.*
+// view as unavailable (guardrun2 forensics: the model routes around the
+// pure-unavailable shape by requesting mixed sets — usable views plus the
+// processor view — so the note must fire on the per-view citation, not only on
+// a fully-unavailable bundle). processor.* projections do not cover built-in
+// track-level plugins, and their authoritative parameter surface is the
+// automation face (plugin.get_parameters). The hook runs at the raw-bundle
+// layer (recentObservationForTool) so the note rides every model-visible face
+// of the receipt — the trace the context runtime model projection reads, the
+// executed record's ccb_observation_summary, and the recent observation clone.
+// Ledger rows filter the note back out (rawCCBDeliveryReasons); the mechanical
+// retry guard stays scoped to fully-unavailable exact sets (its red line is
+// unchanged — disclosure is additive, enforcement is not widened). 237's
+// residual: the model kept re-requesting processor views because nothing told
+// it where the authoritative parameter face actually lives
+// (M3-LOOP-UNAVAILABLE-VIEW-GUARD-1 goal 2; carries 237's "secondary fact").
+func discloseCCBProcessorRedirectInBundle(bundle map[string]any) {
+	if len(bundle) == 0 {
+		return
+	}
+	reasons := messageLoopStringList(freeStateObservationDeliveryReasons(bundle))
+	if len(reasons) == 0 {
+		return
+	}
+	var processorViews []string
+	for _, viewID := range messageLoopNormalizedViewIDs(messageLoopStringList(bundle["requested_views"])) {
+		if strings.HasPrefix(viewID, "processor.") {
+			processorViews = append(processorViews, viewID)
+		}
+	}
+	if len(processorViews) == 0 {
+		return
+	}
+	// The bundle emits per-omitted-view reasons in the "<view_id>: ..." shape.
+	// Only a projection-coverage unavailability cites the redirect — the
+	// omissions map marking the processor view unavailable, or a "source
+	// evidence is ..." reason. A disclosure-budget trim ("omitted by
+	// disclosure budget") is a different condition and stays untouched.
+	omissions := messageLoopMapValue(bundle["omissions"])
+	cited := false
+	for _, viewID := range processorViews {
+		switch strings.ToLower(strings.TrimSpace(fmt.Sprint(omissions[viewID]))) {
+		case "unavailable", "unsupported_projection", "missing", "deferred":
+			cited = true
+		}
+		for _, reason := range reasons {
+			if (strings.HasPrefix(reason, viewID+":") || strings.HasPrefix(reason, viewID+" ")) && strings.Contains(reason, "source evidence is") {
+				cited = true
+			}
+		}
+	}
+	if !cited {
+		return
+	}
+	for _, reason := range reasons {
+		if strings.HasPrefix(reason, "processor.* CCB projections") {
+			return // idempotent: the note is already on the receipt
+		}
+	}
+	bundle["omission_reasons"] = append(reasons, freeStateCCBProcessorRedirectBaseNote)
+}
+
+// freeStateCCBProcessorRedirectBaseNote is the closed template for the
+// mechanism disclosure on unavailable processor.* receipts. It must stay
+// verbatim-stable: the route smoke needles on its lead token.
+const freeStateCCBProcessorRedirectBaseNote = "processor.* CCB projections do not cover built-in track-level plugins; the authoritative parameter surface for a built-in track plugin is the automation face: call plugin.get_parameters (parameter rows param_id/label/min/max/default) — if a parameter surface already appears in this conversation's recent observations, use it directly instead of re-requesting processor.* CCB views"
+
+// freeStateAutomationParamSurfacePresent reports whether a successful
+// plugin.get_parameters receipt is already visible in this loop's recent
+// execution records (bounded tail scan).
+func freeStateAutomationParamSurfacePresent(state *runState) bool {
+	if state == nil {
+		return false
+	}
+	for index := len(state.executed) - 1; index >= 0 && index >= len(state.executed)-12; index-- {
+		record := messageLoopMapValue(state.executed[index])
+		if len(record) == 0 {
+			continue
+		}
+		switch strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"])))) {
+		case "plugin.get_parameters", "plugin_get_parameters", "get_plugin_parameters":
+		default:
+			continue
+		}
+		if messageLoopExecutionSucceeded(record) {
+			return true
+		}
+	}
+	return false
 }
 
 // syncFreeStateRuntimeAfterObservation keeps the in-flight MessageLoop
@@ -2233,6 +2412,14 @@ func mergeFreeStateObservationLedger(ledger map[string]any, observation *RecentO
 			ledger["rejected_view_set_count"] = freeStateLedgerCount(ledger["rejected_view_set_count"], len(rows)) + 1
 		}
 	}
+	if unavailable := freeStateUnavailableLedgerEntry(observation); len(unavailable) > 0 {
+		unavailable["round"] = round
+		rows := messageLoopMapRows(ledger["unavailable_view_sets"])
+		if !freeStateLedgerRowRecorded(rows, firstMapText(unavailable, "fingerprint"), "fingerprint") {
+			ledger["unavailable_view_sets"] = appendBoundedFreeStateRows(rows, unavailable)
+			ledger["unavailable_view_set_count"] = freeStateLedgerCount(ledger["unavailable_view_set_count"], len(rows)) + 1
+		}
+	}
 	if receipt := freeStateObservationLedgerReceipt(observation); len(receipt) > 0 {
 		receipt["round"] = round
 		rows := messageLoopMapRows(ledger["receipts"])
@@ -2326,6 +2513,89 @@ func freeStateRejectedLedgerEntry(observation *RecentObservation) map[string]any
 		"non_blocking_view_ids": firstNonNilValue(observation.Summary["non_blocking_view_ids"], audit["non_blocking_view_ids"]),
 		"target_ref":            target,
 	}, []string{"fingerprint", "requested_views", "status", "reasons", "receipt_id", "tool_call_id", "request_id", "observation_id", "retry_policy", "rejection_scope", "blocking_view_ids", "non_blocking_view_ids", "target_ref"})
+}
+
+// freeStateObservationViewSetUnavailable reports whether a CCB observation
+// receipt delivered no usable view for its requested exact view set: the
+// bundle-level status is neither ready/partial (usable — at least one view
+// was delivered, the usable dedup governs repeats) nor "rejected" (rejected
+// receipts keep their own ledger row). This is the 237 residual shape: a
+// processor.* view over a built-in track plugin returns "insufficient" with
+// omission_reasons ("source evidence is missing") and the loop previously
+// enforced nothing — the no-retry rule lived only in the prompt skeleton.
+func freeStateObservationViewSetUnavailable(observation *RecentObservation) bool {
+	if observation == nil || len(observation.Summary) == 0 {
+		return false
+	}
+	return ccbBundleViewSetUnavailable(observation.Summary)
+}
+
+// ccbBundleViewSetUnavailable is the map-level predicate shared by the ledger
+// entry builder and the disclosure hook: a CCB bundle whose requested view
+// set exists yet is neither usable (ready/partial) nor an explicit rejection.
+func ccbBundleViewSetUnavailable(bundle map[string]any) bool {
+	if len(bundle) == 0 {
+		return false
+	}
+	if strings.EqualFold(firstMapText(bundle, "status", "bundle_status"), "rejected") {
+		return false
+	}
+	if messageLoopFreeStateObservationStatusUsable(bundle) {
+		return false
+	}
+	return len(messageLoopNormalizedViewIDs(messageLoopStringList(bundle["requested_views"]))) > 0
+}
+
+// freeStateUnavailableLedgerEntry is the unavailable-family sibling of
+// freeStateRejectedLedgerEntry: it records the exact fingerprint whose view
+// set returned no usable view, so the pre-execution guard can mechanically
+// deny the second request of the same set + target (M3-LOOP-UNAVAILABLE-
+// VIEW-GUARD-1). project_revision rides the row so a strictly newer revision
+// re-opens the set (exact_view_set semantics: revision advance passes).
+func freeStateUnavailableLedgerEntry(observation *RecentObservation) map[string]any {
+	if !freeStateObservationViewSetUnavailable(observation) {
+		return nil
+	}
+	requested := messageLoopNormalizedViewIDs(messageLoopStringList(observation.Summary["requested_views"]))
+	target := compactFreeStateObservationTarget(observation.Summary)
+	fingerprint := messageLoopFreeStateRequestFingerprint(requested, target)
+	if fingerprint == "" {
+		return nil
+	}
+	audit := messageLoopMapValue(observation.Summary["audit_receipt"])
+	return compactSelectedKeys(map[string]any{
+		"fingerprint":      fingerprint,
+		"requested_views":  requested,
+		"status":           "unavailable",
+		"reasons":          rawCCBDeliveryReasons(observation.Summary, audit),
+		"receipt_id":       firstMapText(audit, "receipt_id"),
+		"tool_call_id":     observation.ToolCallID,
+		"request_id":       firstMapText(observation.Summary, "request_id"),
+		"observation_id":   firstMapText(observation.Summary, "observation_id"),
+		"retry_policy":     "do_not_retry",
+		"rejection_scope":  "exact_view_set",
+		"project_revision": firstNonEmpty(firstMapText(observation.Summary, "project_revision"), firstMapText(messageLoopMapValue(observation.Summary["project_binding"]), "project_revision")),
+		"target_ref":       target,
+	}, []string{"fingerprint", "requested_views", "status", "reasons", "receipt_id", "tool_call_id", "request_id", "observation_id", "retry_policy", "rejection_scope", "project_revision", "target_ref"})
+}
+
+// rawCCBDeliveryReasons returns the receipt's delivery reasons with the
+// processor redirect disclosure note filtered out: ledger rows keep raw
+// delivery facts only, never the disclosure enrichment that rides the bundle
+// for the model-visible faces.
+func rawCCBDeliveryReasons(summary, audit map[string]any) any {
+	reasons := messageLoopStringList(firstNonNilValue(summary["omission_reasons"], audit["rejection_reasons"]))
+	raw := make([]string, 0, len(reasons))
+	for _, reason := range reasons {
+		if strings.HasPrefix(reason, "processor.* CCB projections") {
+			continue
+		}
+		raw = append(raw, reason)
+	}
+	if len(raw) == 0 {
+		return firstNonNilValue(nil, audit["rejection_reasons"])
+	}
+	return raw
 }
 
 func freeStateObservationLedgerReceipt(observation *RecentObservation) map[string]any {

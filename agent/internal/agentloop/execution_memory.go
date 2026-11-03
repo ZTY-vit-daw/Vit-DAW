@@ -746,6 +746,14 @@ func recentObservationForTool(call planner.ToolCall, result executorpkg.Result, 
 	summary := mixObservationPromptSummary(result.Result)
 	if messageLoopIsCCBObservationRequestName(firstNonEmpty(result.Tool, call.Tool, result.CommandName)) {
 		if bundle := messageLoopMapValue(result.Result["bundle"]); len(bundle) > 0 {
+			// M3-LOOP-UNAVAILABLE-VIEW-GUARD-1: enrich the raw bundle's
+			// omission_reasons with the closed-template processor redirect BEFORE
+			// cloning. The trace event, the executed record and the context
+			// runtime model projection all hold this same bundle map reference,
+			// so the note reaches every model-visible face of the receipt; the
+			// ledger rows filter the note back out (they keep raw delivery
+			// reasons only).
+			discloseCCBProcessorRedirectInBundle(bundle)
 			summary = cloneMap(bundle)
 		}
 	}
