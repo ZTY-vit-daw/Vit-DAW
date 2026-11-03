@@ -40,7 +40,11 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-04 00:08 +0800 / origin/main=6b63fd90 / owner=GLM-5.3 PC 执行会话（ZCode，L1，242 卡会话，用户开场指定领取）/ 分支=port/m3-current-value-disclose-1 / worktree=D:\Vit_DAW_wt_242impl（协调 worktree=D:\Vit_DAW_wt_242claim，分支 coord/242-claim）
+- 领取基线三件：HEAD=6b63fd90；impl worktree `git status --short` 空、`git diff --stat` 空（干净基线，无领取前 diff）
+- 领取核对：卡在 todo（本地+远端 origin/main 一致）、派发已确认（用户在本会话开场指定卡 ID 与角色=口头确认开工，241 链内续卡）、依赖 241 已合入 main（4ea33461 ✓）；doing 唯一卡 GEN-SUNO-WEB-DESIGN-1 文件域=coord/runs 报告零生产代码，零冲突
+- 主工作树 D:\Vit_DAW 既有未提交改动（366 项，VitApp Workspace/coord runs 工件/webui design 等）与本卡文件域（harness.go/agentloop/automation_llm_route_smoke.py）grep 亲核零匹配，不动
+- 真栈腿：重跑前按 §2.2 登记 PC-RUNTIME-STACK.md（fetch 重读 main+进程/端口亲核全零后登记，push 后 ≤60s 即时复核）
 
 ## 回执
 
