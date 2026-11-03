@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	executorpkg "vit-daw-agent/internal/executor"
 	"vit-daw-agent/internal/planner"
 )
 
@@ -116,9 +117,12 @@ func TestFreeStateUnavailableViewSetGuardPassesOnRevisionAdvance(t *testing.T) {
 }
 
 // Denial receipt form: machine-readable tokens, the rule citation, and the
-// no-observation-round statement the card requires.
+// no-observation-round statement the card requires; a processor.* denial also
+// carries the redirect disclosure, with the in-hand marker when the loop
+// already holds an automation parameter surface.
 func TestFreeStateUnavailableRetryIssueIsMachineReadable(t *testing.T) {
-	issue := freeStateUnavailableRetryIssue()
+	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
+	issue := freeStateUnavailableRetryIssue(state, []string{"mix.masking_relationship"})
 	for _, needle := range []string{
 		"view_set_retry_denied",
 		"retry_policy=do_not_retry",
@@ -128,6 +132,26 @@ func TestFreeStateUnavailableRetryIssueIsMachineReadable(t *testing.T) {
 		if !strings.Contains(issue, needle) {
 			t.Fatalf("denial receipt missing %q: %q", needle, issue)
 		}
+	}
+	if strings.Contains(issue, "processor.* CCB projections") {
+		t.Fatalf("non-processor denial carries a redirect: %q", issue)
+	}
+
+	processorIssue := freeStateUnavailableRetryIssue(state, []string{"processor.identity_and_controls"})
+	if !strings.Contains(processorIssue, "redirect: processor.* CCB projections do not cover built-in track-level plugins") ||
+		!strings.Contains(processorIssue, "plugin.get_parameters") {
+		t.Fatalf("processor denial missing redirect disclosure: %q", processorIssue)
+	}
+	if strings.Contains(processorIssue, "already present in this conversation") {
+		t.Fatalf("in-hand marker without an automation surface: %q", processorIssue)
+	}
+
+	state.executed = append(state.executed, map[string]any{
+		"tool": "plugin.get_parameters", "status": "ok", "result": map[string]any{"automation_param_surface": []any{map[string]any{"param_id": "volume"}}},
+	})
+	withSurface := freeStateUnavailableRetryIssue(state, []string{"processor.identity_and_controls"})
+	if !strings.Contains(withSurface, "already present in this conversation's recent observations") {
+		t.Fatalf("in-hand marker missing with an automation surface: %q", withSurface)
 	}
 }
 
@@ -153,12 +177,19 @@ func TestFreeStateUnavailableViewSetDeniedThroughDecisionOutput(t *testing.T) {
 }
 
 // Redirect disclosure: an unavailable processor.* receipt gains the closed-
-// template mechanism note; when the loop already carries an automation
-// parameter surface the note says so.
+// template mechanism note at the raw-bundle layer (recentObservationForTool),
+// so every model-visible face of the receipt carries it; ledger rows keep the
+// raw delivery reasons only.
 func TestFreeStateUnavailableProcessorRedirectDisclosure(t *testing.T) {
 	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
-	observation := viewGuardUnavailableObservation()
-	recordFreeStateCCBObservation(state, observation)
+	bundle := map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "insufficient", "observation_id": "obs-unavailable",
+		"requested_views":  []any{"processor.identity_and_controls"},
+		"omission_reasons": []any{"processor.identity_and_controls: source evidence is missing"},
+		"target_ref":       viewGuardTarget(),
+	}
+	result := executorpkg.Result{ToolCallID: "ccb-unavailable", Tool: "ccb.observation_request", Status: "ok", Result: map[string]any{"bundle": bundle}}
+	observation := recentObservationForTool(planner.ToolCall{Tool: "ccb.observation_request"}, result, planner.VerificationResult{}, false, nil)
 
 	reasons := messageLoopStringList(observation.Summary["omission_reasons"])
 	if len(reasons) != 2 {
@@ -168,41 +199,31 @@ func TestFreeStateUnavailableProcessorRedirectDisclosure(t *testing.T) {
 		!strings.Contains(reasons[1], "plugin.get_parameters") {
 		t.Fatalf("redirect note form wrong: %q", reasons[1])
 	}
-	if strings.Contains(reasons[1], "already present") {
-		t.Fatalf("presence marker without an automation surface in the loop: %q", reasons[1])
+	if !strings.HasPrefix(reasons[1], "processor.* CCB projections") {
+		t.Fatalf("note lead token unstable: %q", reasons[1])
 	}
-	// The ledger row keeps the raw delivery reason, not the disclosure note.
+	// The raw bundle (trace / executed record / model projection faces hold
+	// this same map) carries the note too.
+	if bundleReasons := messageLoopStringList(bundle["omission_reasons"]); len(bundleReasons) != 2 {
+		t.Fatalf("raw bundle note missing: %#v", bundleReasons)
+	}
+	// Idempotent: a second pass does not duplicate the note.
+	discloseCCBProcessorRedirectInBundle(bundle)
+	if bundleReasons := messageLoopStringList(bundle["omission_reasons"]); len(bundleReasons) != 2 {
+		t.Fatalf("redirect note duplicated: %#v", bundleReasons)
+	}
+
+	// After the runner's record step, the ledger row keeps only the raw
+	// delivery reason — never the disclosure note.
+	recordFreeStateCCBObservation(state, observation)
 	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
-	row := messageLoopMapRows(loop["unavailable_observation_requests"])[0]
-	for _, reason := range messageLoopStringList(row["reasons"]) {
-		if strings.Contains(reason, "processor.* CCB projections") {
-			t.Fatalf("ledger row carries the disclosure note: %#v", row)
-		}
+	rows := messageLoopMapRows(loop["unavailable_observation_requests"])
+	if len(rows) != 1 {
+		t.Fatalf("unavailable rows = %d: %#v", len(rows), loop)
 	}
-
-	// With a successful plugin.get_parameters already in the loop, the note
-	// points at the in-hand surface.
-	state.executed = append(state.executed, map[string]any{
-		"tool": "plugin.get_parameters", "status": "ok", "result": map[string]any{"automation_param_surface": []any{map[string]any{"param_id": "volume"}}},
-	})
-	observation2 := viewGuardUnavailableObservation()
-	observation2.ToolCallID = "ccb-unavailable-2"
-	recordFreeStateCCBObservation(state, observation2)
-	reasons2 := messageLoopStringList(observation2.Summary["omission_reasons"])
-	if len(reasons2) != 2 || !strings.Contains(reasons2[1], "already present in this conversation's recent observations") {
-		t.Fatalf("presence note missing with an automation surface in the loop: %#v", reasons2)
-	}
-
-	// A failing plugin.get_parameters does not count as a present surface.
-	state.executed = append(state.executed, map[string]any{"tool": "plugin.get_parameters", "status": "error", "error": "boom"})
-	observation3 := viewGuardUnavailableObservation()
-	observation3.ToolCallID = "ccb-unavailable-3"
-	recordFreeStateCCBObservation(state, observation3)
-	reasons3 := messageLoopStringList(observation3.Summary["omission_reasons"])
-	// The most recent record failed, but an earlier success still satisfies
-	// presence: the loop carries at least one authoritative parameter surface.
-	if len(reasons3) != 2 || !strings.Contains(reasons3[1], "already present") {
-		t.Fatalf("presence scan should honor the earlier successful surface: %#v", reasons3)
+	rowReasons := messageLoopStringList(rows[0]["reasons"])
+	if len(rowReasons) != 1 || rowReasons[0] != "processor.identity_and_controls: source evidence is missing" {
+		t.Fatalf("ledger row reasons polluted by disclosure: %#v", rowReasons)
 	}
 }
 
@@ -210,43 +231,41 @@ func TestFreeStateUnavailableProcessorRedirectDisclosure(t *testing.T) {
 // processor.* citations, never to usable receipts, non-processor omissions,
 // or disclosure-budget trims.
 func TestFreeStateUnavailableProcessorRedirectNegatives(t *testing.T) {
-	state := &runState{input: Input{Context: map[string]any{"free_state_reasoning_loop": viewGuardLoopContext()}}}
-
-	usable := &RecentObservation{ToolCallID: "ccb-ready", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
-		"schema_version": "ccb_observation_bundle.v1", "status": "ready", "observation_id": "obs-ready",
+	usable := map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "ready",
 		"requested_views": []any{"processor.identity_and_controls"},
 		"views":          map[string]any{"processor.identity_and_controls": map[string]any{"status": "partial"}},
 		"target_ref":     viewGuardTarget(),
-	}}
-	recordFreeStateCCBObservation(state, usable)
-	if reasons := messageLoopStringList(usable.Summary["omission_reasons"]); len(reasons) != 0 {
+	}
+	discloseCCBProcessorRedirectInBundle(usable)
+	if reasons := messageLoopStringList(usable["omission_reasons"]); len(reasons) != 0 {
 		t.Fatalf("usable receipt gained a redirect note: %#v", reasons)
 	}
 
-	nonProcessor := &RecentObservation{ToolCallID: "ccb-track", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+	nonProcessor := map[string]any{
 		"schema_version": "ccb_observation_bundle.v1", "status": "insufficient",
 		"requested_views":  []any{"track.time_dynamics"},
 		"omission_reasons": []any{"track.time_dynamics: source evidence is missing"},
 		"target_ref":       viewGuardTarget(),
-	}}
-	recordFreeStateCCBObservation(state, nonProcessor)
-	for _, reason := range messageLoopStringList(nonProcessor.Summary["omission_reasons"]) {
+	}
+	discloseCCBProcessorRedirectInBundle(nonProcessor)
+	for _, reason := range messageLoopStringList(nonProcessor["omission_reasons"]) {
 		if strings.Contains(reason, "processor.* CCB projections") {
-			t.Fatalf("non-processor omission gained a redirect note: %#v", nonProcessor.Summary["omission_reasons"])
+			t.Fatalf("non-processor omission gained a redirect note: %#v", nonProcessor["omission_reasons"])
 		}
 	}
 
-	budget := &RecentObservation{ToolCallID: "ccb-budget", Tool: "ccb.observation_request", Status: "ok", Summary: map[string]any{
+	budget := map[string]any{
 		"schema_version": "ccb_observation_bundle.v1", "status": "partial",
 		"requested_views":  []any{"processor.identity_and_controls", "track.time_dynamics"},
 		"omission_reasons": []any{"processor.identity_and_controls: omitted by disclosure budget"},
 		"views":            map[string]any{"track.time_dynamics": map[string]any{"status": "ready"}},
 		"target_ref":       viewGuardTarget(),
-	}}
-	recordFreeStateCCBObservation(state, budget)
-	for _, reason := range messageLoopStringList(budget.Summary["omission_reasons"]) {
+	}
+	discloseCCBProcessorRedirectInBundle(budget)
+	for _, reason := range messageLoopStringList(budget["omission_reasons"]) {
 		if strings.Contains(reason, "processor.* CCB projections") {
-			t.Fatalf("budget omission gained a redirect note: %#v", budget.Summary["omission_reasons"])
+			t.Fatalf("budget omission gained a redirect note: %#v", budget["omission_reasons"])
 		}
 	}
 }
