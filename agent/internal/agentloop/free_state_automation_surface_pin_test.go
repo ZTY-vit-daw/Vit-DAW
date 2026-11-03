@@ -211,6 +211,53 @@ func TestFreeStateUnavailableRetryIssueCitesPinnedLedger(t *testing.T) {
 	}
 }
 
+// M3-CURRENT-VALUE-DISCLOSE-1: the pinned ledger row carries the current value
+// with the same lifetime as its range (the pinrun1 breakpoint: the model held
+// the range but not the write baseline for its ramp). Present when the compact
+// surface has it, absent when it does not, and refreshed in place by a
+// post-mutation re-read so the pin never cites a stale baseline.
+func TestFreeStateAutomationSurfaceLedgerRowCarriesCurrentValue(t *testing.T) {
+	state := pinSurfaceState()
+	observation := pinSurfaceObservation("1011", "1010")
+	observation.Summary["automation_param_surface"] = []map[string]any{
+		{"param_id": "volume", "label": "Volume", "min": 0, "max": 1, "value": 0.0, "value_text": "0.0"},
+		{"param_id": "pan", "label": "Pan", "min": -1, "max": 1},
+	}
+	recordFreeStateAutomationSurface(state, observation)
+
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	rows := messageLoopMapRows(loop["automation_surfaces"])
+	if len(rows) != 1 {
+		t.Fatalf("pinned rows = %d: %#v", len(rows), loop)
+	}
+	params := messageLoopMapRows(rows[0]["params"])
+	if len(params) != 2 {
+		t.Fatalf("params = %#v", params)
+	}
+	if params[0]["value"] != 0.0 || params[0]["value_text"] != "0.0" {
+		t.Fatalf("pinned row missing the current value: %#v", params[0])
+	}
+	if _, ok := params[1]["value"]; ok {
+		t.Fatalf("value fabricated on a value-less param row: %#v", params[1])
+	}
+	if _, ok := params[1]["value_text"]; ok {
+		t.Fatalf("value_text fabricated on a value-less param row: %#v", params[1])
+	}
+
+	refreshed := pinSurfaceObservation("1011", "1010")
+	refreshed.Summary["automation_param_surface"] = []map[string]any{
+		{"param_id": "volume", "label": "Volume", "min": 0, "max": 1, "value": 0.42, "value_text": "0.42"},
+	}
+	recordFreeStateAutomationSurface(state, refreshed)
+	rows = messageLoopMapRows(messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])["automation_surfaces"])
+	if len(rows) != 1 {
+		t.Fatalf("refresh appended instead of replacing in place: %#v", rows)
+	}
+	if refreshedParams := messageLoopMapRows(rows[0]["params"]); refreshedParams[0]["value"] != 0.42 {
+		t.Fatalf("refreshed row keeps a stale value: %#v", rows[0])
+	}
+}
+
 // The pinned rows ride the always-injected free-state ledger JSON so the pin
 // survives the recent_observation eviction between decision rounds.
 func TestFreeStateLedgerJSONCarriesAutomationSurfaces(t *testing.T) {

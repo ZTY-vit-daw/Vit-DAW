@@ -1709,6 +1709,52 @@ func TestPublicPluginParametersResultIncludesUngatedAutomationParamSurface(t *te
 	}
 }
 
+// M3-CURRENT-VALUE-DISCLOSE-1: the compact surface rows carry the kernel's
+// current value (value/value_text) add-only — the pinrun1 breakpoint was the
+// model holding the writable range without the write baseline (a smooth ramp
+// needs its starting value). Three faces pinned: the new keys survive when the
+// kernel row has them (a zero numeric value is a real value), every existing
+// key keeps its behavior, and a value-less kernel row never gets the keys
+// fabricated.
+func TestCompactAutomationParamSurfaceRowsCarriesCurrentValue(t *testing.T) {
+	rows := []map[string]any{
+		{
+			"param_id": "volume", "label": "Volume", "min": -80.0, "max": 6.0,
+			"unit": "dB", "normalized_role": "volume", "supports_automation": true,
+			"value": 0.0, "value_text": "0.0 dB", "normalized_value": 0.926,
+		},
+		{"param_id": "pan", "label": "Pan", "min": -1.0, "max": 1.0},
+	}
+	out := compactAutomationParamSurfaceRows(rows, automationParamSurfaceRowLimit)
+	if len(out) != 2 {
+		t.Fatalf("rows = %+v", out)
+	}
+	volume := out[0]
+	if volume["value"] != 0.0 {
+		t.Fatalf("zero numeric value must survive as a real value: %+v", volume)
+	}
+	if volume["value_text"] != "0.0 dB" {
+		t.Fatalf("value_text not carried: %+v", volume)
+	}
+	for _, key := range []string{"param_id", "label", "min", "max", "unit", "normalized_role", "supports_automation"} {
+		if _, ok := volume[key]; !ok {
+			t.Fatalf("existing key %q dropped (add-only contract broken): %+v", key, volume)
+		}
+	}
+	// The card pins value/value_text only; normalized_value stays out.
+	if _, leaked := volume["normalized_value"]; leaked {
+		t.Fatalf("normalized_value leaked beyond the pinned key set: %+v", volume)
+	}
+	// A kernel row without the value keys keeps them absent — never fabricated.
+	pan := out[1]
+	if _, ok := pan["value"]; ok {
+		t.Fatalf("value fabricated on a value-less row: %+v", pan)
+	}
+	if _, ok := pan["value_text"]; ok {
+		t.Fatalf("value_text fabricated on a value-less row: %+v", pan)
+	}
+}
+
 // TestPublicPluginParametersResultAutomationSurfaceIsBounded pins the row cap
 // so the ungated key cannot balloon the disclosure surface.
 func TestPublicPluginParametersResultAutomationSurfaceIsBounded(t *testing.T) {

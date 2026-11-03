@@ -2293,6 +2293,18 @@ func freeStateAutomationSurfaceLedgerRow(observation *RecentObservation) map[str
 		if _, ok := surfaceRow["max"]; ok {
 			param["max"] = surfaceRow["max"]
 		}
+		// M3-CURRENT-VALUE-DISCLOSE-1: the pinned row carries the current value
+		// with the same lifetime as its range (read-time present, decision-time
+		// present; the in-place fingerprint refresh already covers a value
+		// changed by a later mutation — a re-read replaces the row). Add-only
+		// key carry, same presence semantics as min/max: an absent kernel key
+		// stays absent, a zero numeric value is a real value.
+		if _, ok := surfaceRow["value"]; ok {
+			param["value"] = surfaceRow["value"]
+		}
+		if _, ok := surfaceRow["value_text"]; ok {
+			param["value_text"] = surfaceRow["value_text"]
+		}
 		params = append(params, param)
 	}
 	if len(params) == 0 {

@@ -12922,6 +12922,11 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 	// always present and bounded so a caller that was never taught the
 	// include_* keys still reads the value ranges it needs before writing
 	// automation points. Existing consumers see one extra key only.
+	// M3-CURRENT-VALUE-DISCLOSE-1: the rows also carry the current value
+	// (value/value_text) when the kernel row has it — the pinrun1 breakpoint
+	// was the model holding the writable range but not the write baseline
+	// (a smooth ramp needs its starting value). Add-only: absent keys stay
+	// absent, existing keys are untouched.
 	out["automation_param_surface"] = compactAutomationParamSurfaceRows(params, automationParamSurfaceRowLimit)
 	return out
 }
@@ -12932,7 +12937,10 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 const automationParamSurfaceRowLimit = 32
 
 // compactAutomationParamSurfaceRows projects parameter rows onto the minimal
-// write-side decision surface: param_id, label, min/max range and role hints.
+// write-side decision surface: param_id, label, min/max range and role hints,
+// plus the current value (value/value_text) when the kernel row carries it
+// (M3-CURRENT-VALUE-DISCLOSE-1 — the write-side baseline for ramps; a zero
+// numeric value is a real value, an empty value_text is treated as absent).
 func compactAutomationParamSurfaceRows(rows []map[string]any, limit int) []map[string]any {
 	if limit <= 0 || limit > len(rows) {
 		limit = len(rows)
@@ -12948,7 +12956,7 @@ func compactAutomationParamSurfaceRows(rows []map[string]any, limit int) []map[s
 		if label := firstNonEmpty(firstString(row, "label", "name"), firstString(row, "raw_param_name"), firstString(row, "alias")); label != "" {
 			compact["label"] = label
 		}
-		for _, key := range []string{"min", "max", "unit", "normalized_role", "supports_automation"} {
+		for _, key := range []string{"min", "max", "unit", "normalized_role", "supports_automation", "value", "value_text"} {
 			if value, ok := row[key]; ok && !isEmptyValue(value) {
 				compact[key] = value
 			}

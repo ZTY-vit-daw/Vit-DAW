@@ -1155,6 +1155,7 @@ def scan_payload_param_surface(payload_capture_path: Optional[Path]) -> Dict[str
         "needle": "automation_param_surface",
         "rows": 0,
         "rows_with_param_surface": 0,
+        "rows_with_param_value": 0,
     }
     if not payload_capture_path or not payload_capture_path.exists():
         return result
@@ -1174,8 +1175,14 @@ def scan_payload_param_surface(payload_capture_path: Optional[Path]) -> Dict[str
             continue
         result["rows"] += 1
         messages = row.get("request", {}).get("messages") or []
-        if any("automation_param_surface" in str(m.get("content") or "") for m in messages):
+        contents = [str(m.get("content") or "") for m in messages]
+        if any("automation_param_surface" in content for content in contents):
             result["rows_with_param_surface"] += 1
+            # M3-CURRENT-VALUE-DISCLOSE-1: the compact rows carry the kernel's
+            # current value; needle = the add-only value_text key (specific
+            # enough to never hit guidance prose). Measurement only.
+            if '"value_text"' in "\n".join(contents):
+                result["rows_with_param_value"] += 1
     return result
 
 
@@ -1196,6 +1203,7 @@ def scan_payload_automation_surfaces(payload_capture_path: Optional[Path]) -> Di
         "rows_with_automation_surfaces": 0,
         "rows_with_pinned_plugin_id": 0,
         "rows_with_attribution_receipt": 0,
+        "rows_with_pinned_value": 0,
     }
     if not payload_capture_path or not payload_capture_path.exists():
         return result
@@ -1220,6 +1228,11 @@ def scan_payload_automation_surfaces(payload_capture_path: Optional[Path]) -> Di
             result["rows_with_automation_surfaces"] += 1
             if "plugin_id" in joined:
                 result["rows_with_pinned_plugin_id"] += 1
+            # M3-CURRENT-VALUE-DISCLOSE-1: the pinned rows carry the current
+            # value alongside the range (the write baseline for ramps).
+            # '"value"' matches the exact JSON key (not normalized_value).
+            if '"value_text"' in joined and '"value"' in joined:
+                result["rows_with_pinned_value"] += 1
         # The 241 attribution face: a plugin.get_parameters ok receipt whose
         # summary carries the kernel-confirmed plugin_id (the neutral
         # projection restore keeps it on the model-visible summary).
