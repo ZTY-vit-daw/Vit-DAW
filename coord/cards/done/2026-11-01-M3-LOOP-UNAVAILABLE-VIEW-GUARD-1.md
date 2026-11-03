@@ -55,4 +55,9 @@
 
 ## 验收
 
-- （主管回填）
+- **GLM 主管决策流 / 2026-11-03 / 裁定：实现面 pass 合入（bdd4141e）+ 组 1 门未过成立，停止条件 2 触发，终局证据包采信，终局三选转用户裁定。**
+- 主管亲核六件：①diff 全量 stat=文件域全守（agentloop 三文件 +611 行纯 Go，scripts 未动[可选项]）；②护栏红线逐行读代码=指纹集+target/`freeStateRevisionStrictlyNewer` 严格前进放行（复用 free_state_gate.go:1297）/guard 前置 executeTool 零观察物化/rejected 语义同位尾接零侵入；③fix2 披露执法解耦红线维持窄域（note 逐视图引证触发，拦截纯不可用整集不动）；④本地复跑 build+agentloop 包测试 exit 0；⑤工件抽查全中（denial 21/5/5、guardrun3 note 45/106+redirect 5/5、telemetry 106/106 deepseek-flash、三轮 PS1_EXIT=0 COMPLETED、boundary_ok 引文逐字在卷、guardrun2/3 verdict no_route×3 亲读）；⑥栈登记/释放全流程+主管验收时进程/端口复核全零。
+- 两点入档观察（不影响通过）：①「三连同型」为 verdict 级同型，detail 存在族内变体（settled completed/failed、纯文本）——止损判据以 verdict 族为准成立，终局结论不依赖逐字同型；②计费 ¥6.3 超卡面 ¥1.5 档=三轮取证迭代诚实成本，披露合规，三轮 HEAD 两两不同非原样重跑。
+- 瑕疵留档（同 238 先例不重写历史）：工件 merge 混入 guardrun2/3 `.vit_derived/` 运行态目录（各 2 小文件，与 rounds/setup_acoustic_package_status.json 同源冗余）——不影响证据链，后续卡工件清单模板补「.vit_derived 排除」条目。
+- 两次修复（206b0169/9cc871d7）均为取证驱动且在目标 2 意图内（披露必须真实到达模型面），非越域。
+- **终局分叉兑现**：flash（用户裁定可用最强）+执法+披露三全在场（载荷亲证）组 1 仍 no_route 三连同型止损，形态已质变于 237（无限重试→被拦+boundary_ok 诚实边界申报首现+settled 停止）——剩余残差=持有 param_surface 载荷行仍不走向 set_points 工具链的纯模型行为面。三选（接更强引擎/架构重构/收线接受边界申报形态）转用户裁定，不开新卡。239 timeout 适配维持 P2：若用户选「接更强引擎」则 239 升前置（reasoning 引擎 60s 硬线先适配）。
