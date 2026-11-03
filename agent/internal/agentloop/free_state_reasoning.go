@@ -404,6 +404,15 @@ func messageLoopFreeStatePromptContext(state *runState) map[string]any {
 		// which candidates a multi-candidate family admits.
 		"plugin_candidate_disclosure",
 	})
+	// M3-AUTOMATION-SURFACE-PIN-1: pinned automation parameter surfaces ride
+	// the same always-injected ledger JSON so a successful plugin.get_parameters
+	// read survives the single-slot recent_observation eviction (240 forensics:
+	// plugin identity and ranges were last seen at rows 72/73 of 106 and the
+	// model's "missing identifier/range" claim was literally true). Rows are
+	// expiry-checked at read time so the JSON never cites a revision-stale pin.
+	if rows := freeStateAutomationSurfaceRowsForState(state); len(rows) > 0 {
+		out["automation_surfaces"] = cloneBoundedMapRows(rows, freeStateAutomationSurfaceLedgerLimit)
+	}
 	if target := messageLoopMapValue(source["target_ref"]); len(target) > 0 {
 		// Family selection has no need for a loaded-instance identity. Keep only
 		// the track binding needed to interpret the CCB observation scope.
@@ -1858,8 +1867,13 @@ func freeStateUnavailableRetryIssue(state *runState, requested []string) string 
 	for _, viewID := range messageLoopNormalizedViewIDs(requested) {
 		if strings.HasPrefix(viewID, "processor.") {
 			issue += "; redirect: " + freeStateCCBProcessorRedirectBaseNote
-			if freeStateAutomationParamSurfacePresent(state) {
-				issue += "; an automation parameter surface is already present in this conversation's recent observations — use it directly"
+			// M3-AUTOMATION-SURFACE-PIN-1: the in-hand citation reads the pinned
+			// automation_surfaces ledger (= the model's visible face) instead of the
+			// executed-tail scan, and cites the concrete plugin_id/param ranges so
+			// the receipt itself carries the attribution the 240 forensics found
+			// missing. The base note above stays byte-stable (needle red line).
+			if reference := freeStateAutomationSurfaceLedgerReference(state); reference != "" {
+				issue += "; " + reference
 			}
 			break
 		}
@@ -2196,6 +2210,176 @@ func recordFreeStateCCBObservation(state *runState, observation *RecentObservati
 	state.input.Context["free_state_reasoning_loop"] = loop
 }
 
+// freeStateAutomationSurfaceLedgerLimit bounds the automation_surfaces ledger
+// rows. The route fixture exercises one built-in surface per track; eight rows
+// cover the multi-track case while keeping the per-turn ledger JSON bounded
+// (same FIFO-eviction contract as the observation ledger rows).
+const freeStateAutomationSurfaceLedgerLimit = 8
+
+// recordFreeStateAutomationSurface pins a successful plugin.get_parameters
+// receipt into the free-state loop's durable automation_surfaces ledger
+// (M3-AUTOMATION-SURFACE-PIN-1). The 240 forensics showed the model reading
+// the parameter surface correctly and then losing it: recent_observation is a
+// single slot that later observations evict, so by the final decision rounds
+// the model's visible context no longer carried the plugin identity or the
+// parameter ranges and its "missing identifier/range" claim was literally
+// true. The ledger row rides the same always-injected free-state loop context
+// as the 240 unavailable_view_sets guard memory, so a pinned surface never
+// falls out of the model's visible face. Dual write follows the 240 pattern:
+// the loop-level rows (prompt ledger JSON + presence checks) and the
+// observation_ledger mirror survive together.
+func recordFreeStateAutomationSurface(state *runState, observation *RecentObservation) {
+	if state == nil {
+		return
+	}
+	row := freeStateAutomationSurfaceLedgerRow(observation)
+	if len(row) == 0 {
+		return
+	}
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	if len(loop) == 0 {
+		return
+	}
+	row["round"] = state.turnsUsed
+	row["project_revision"] = freeStateAutomationSurfaceProjectRevision(state)
+	rows := freeStateExpireAutomationSurfaceRows(messageLoopMapRows(loop["automation_surfaces"]), firstMapText(row, "project_revision"))
+	rows = mergeFreeStateAutomationSurfaceRow(rows, row)
+	if len(rows) > freeStateAutomationSurfaceLedgerLimit {
+		rows = rows[len(rows)-freeStateAutomationSurfaceLedgerLimit:]
+	}
+	loop["automation_surfaces"] = rows
+	ledger := messageLoopMapValue(loop["observation_ledger"])
+	if len(ledger) == 0 {
+		ledger = map[string]any{"schema_version": freeStateObservationLedgerSchema}
+	}
+	ledger["automation_surfaces"] = cloneBoundedMapRows(rows, freeStateAutomationSurfaceLedgerLimit)
+	loop["observation_ledger"] = ledger
+	state.input.Context["free_state_reasoning_loop"] = loop
+}
+
+// freeStateAutomationSurfaceLedgerRow projects a successful automation read
+// receipt onto the pinned ledger row. Only a plugin.get_parameters success
+// with a kernel-confirmed plugin_id and non-empty parameter rows pins; reads
+// without identity attribution would re-create the 240 defect (the model may
+// not trust an id it supplied itself under the no-fabrication rule).
+func freeStateAutomationSurfaceLedgerRow(observation *RecentObservation) map[string]any {
+	if observation == nil || len(observation.Summary) == 0 ||
+		!messageLoopIsFreeStateAutomationReadName(firstNonEmpty(observation.Tool, observation.CommandName)) ||
+		strings.ToLower(strings.TrimSpace(observation.Status)) != "ok" {
+		return nil
+	}
+	pluginID := firstMapText(observation.Summary, "plugin_id")
+	trackID := firstMapText(observation.Summary, "track_id")
+	if pluginID == "" || trackID == "" {
+		return nil
+	}
+	surfaceRows := messageLoopMapRows(observation.Summary["automation_param_surface"])
+	if len(surfaceRows) == 0 {
+		return nil
+	}
+	params := make([]map[string]any, 0, len(surfaceRows))
+	for _, surfaceRow := range surfaceRows {
+		paramID := firstMapText(surfaceRow, "param_id")
+		if paramID == "" {
+			continue
+		}
+		param := map[string]any{"param_id": paramID}
+		if label := firstMapText(surfaceRow, "label"); label != "" {
+			param["label"] = label
+		}
+		if _, ok := surfaceRow["min"]; ok {
+			param["min"] = surfaceRow["min"]
+		}
+		if _, ok := surfaceRow["max"]; ok {
+			param["max"] = surfaceRow["max"]
+		}
+		params = append(params, param)
+	}
+	if len(params) == 0 {
+		return nil
+	}
+	row := map[string]any{
+		"plugin_id": pluginID,
+		"track_id":  trackID,
+		"params":    params,
+	}
+	if pluginName := firstMapText(observation.Summary, "plugin_name"); pluginName != "" {
+		row["plugin_name"] = pluginName
+	}
+	return row
+}
+
+// mergeFreeStateAutomationSurfaceRow refreshes the row already pinned for the
+// same track_id+plugin_id fingerprint in place (the parameter surface may have
+// changed) or appends it. Fingerprint dedupe keeps one row per plugin per
+// track, matching the card's pin contract.
+func mergeFreeStateAutomationSurfaceRow(rows []map[string]any, row map[string]any) []map[string]any {
+	pluginID := firstMapText(row, "plugin_id")
+	trackID := firstMapText(row, "track_id")
+	for index, existing := range rows {
+		if firstMapText(existing, "plugin_id") == pluginID && firstMapText(existing, "track_id") == trackID {
+			rows[index] = row
+			return rows
+		}
+	}
+	return append(rows, row)
+}
+
+// freeStateExpireAutomationSurfaceRows drops rows whose project revision is
+// strictly older than the current one (freeStateRevisionStrictlyNewer — the
+// same 240 semantics that re-opens a denied view set). A pinned surface is
+// only valid for the revision it was read at; after any project mutation the
+// model must re-read rather than write points against a stale range. Equal or
+// unorderable revisions keep the row (an equal revision re-read is idempotent;
+// an unorderable revision stays fail-closed to pin).
+func freeStateExpireAutomationSurfaceRows(rows []map[string]any, currentRevision string) []map[string]any {
+	if currentRevision == "" {
+		return rows
+	}
+	kept := rows[:0]
+	for _, row := range rows {
+		if freeStateRevisionStrictlyNewer(currentRevision, firstMapText(row, "project_revision")) {
+			continue
+		}
+		kept = append(kept, row)
+	}
+	return kept
+}
+
+// freeStateAutomationSurfaceProjectRevision reads the loop's current project
+// revision from the same source family the 240 retry guard admits on
+// (project_binding, the free-state project change receipt, the context-level
+// revision, then the closure binding), so pin expiry and guard re-open never
+// disagree about which revision the loop is at.
+func freeStateAutomationSurfaceProjectRevision(state *runState) string {
+	if state == nil {
+		return ""
+	}
+	ctx := state.input.Context
+	return firstNonEmpty(
+		firstMapText(messageLoopMapValue(ctx["project_binding"]), "project_revision"),
+		firstMapText(messageLoopMapValue(messageLoopMapValue(ctx["free_state_project_change"])["to_project"]), "project_revision"),
+		firstMapText(messageLoopMapValue(ctx["latest_project_change"]), "project_revision"),
+		firstMapText(ctx, "project_revision"),
+		firstMapText(messageLoopMapValue(ctx["minimal_audio_closure"]), "project_revision"),
+	)
+}
+
+// freeStateAutomationSurfaceRowsForState returns the pinned rows that are
+// still valid at the loop's current revision (expiry is re-checked at read
+// time so a guard built between two records never cites a stale row).
+func freeStateAutomationSurfaceRowsForState(state *runState) []map[string]any {
+	if state == nil {
+		return nil
+	}
+	loop := messageLoopMapValue(state.input.Context["free_state_reasoning_loop"])
+	rows := messageLoopMapRows(loop["automation_surfaces"])
+	if len(rows) == 0 {
+		return nil
+	}
+	return freeStateExpireAutomationSurfaceRows(rows, freeStateAutomationSurfaceProjectRevision(state))
+}
+
 // discloseCCBProcessorRedirectInBundle attaches the closed-template mechanism
 // note to a CCB receipt whose omission_reasons cite a requested processor.*
 // view as unavailable (guardrun2 forensics: the model routes around the
@@ -2264,28 +2448,55 @@ func discloseCCBProcessorRedirectInBundle(bundle map[string]any) {
 // verbatim-stable: the route smoke needles on its lead token.
 const freeStateCCBProcessorRedirectBaseNote = "processor.* CCB projections do not cover built-in track-level plugins; the authoritative parameter surface for a built-in track plugin is the automation face: call plugin.get_parameters (parameter rows param_id/label/min/max/default) — if a parameter surface already appears in this conversation's recent observations, use it directly instead of re-requesting processor.* CCB views"
 
-// freeStateAutomationParamSurfacePresent reports whether a successful
-// plugin.get_parameters receipt is already visible in this loop's recent
-// execution records (bounded tail scan).
+// freeStateAutomationParamSurfacePresent reports whether a pinned automation
+// parameter surface row is currently valid in the loop's automation_surfaces
+// ledger. M3-AUTOMATION-SURFACE-PIN-1: the 240 executed-tail scan judged
+// "in hand" from a face the model does not see — recent_observation is a
+// single slot and later observations evict the surface, so the note's in-hand
+// claim could contradict the model's actual visible context. The pinned ledger
+// rides the always-injected loop context, so reading presence from it keeps
+// the disclosure and the model's visible face consistent.
 func freeStateAutomationParamSurfacePresent(state *runState) bool {
-	if state == nil {
-		return false
+	return len(freeStateAutomationSurfaceRowsForState(state)) > 0
+}
+
+// freeStateAutomationSurfaceLedgerReference renders the closed-template
+// citation of the pinned surfaces for the denial receipt. Stable lead token
+// ("automation_surfaces in hand:") is a route-smoke needle; the base redirect
+// note is never touched by this string (it is appended separately).
+func freeStateAutomationSurfaceLedgerReference(state *runState) string {
+	rows := freeStateAutomationSurfaceRowsForState(state)
+	if len(rows) == 0 {
+		return ""
 	}
-	for index := len(state.executed) - 1; index >= 0 && index >= len(state.executed)-12; index-- {
-		record := messageLoopMapValue(state.executed[index])
-		if len(record) == 0 {
-			continue
+	parts := make([]string, 0, len(rows))
+	for _, row := range rows {
+		pluginID := firstMapText(row, "plugin_id")
+		trackID := firstMapText(row, "track_id")
+		params := make([]string, 0, 8)
+		for _, param := range messageLoopMapRows(row["params"]) {
+			paramID := firstMapText(param, "param_id")
+			if paramID == "" {
+				continue
+			}
+			params = append(params, fmt.Sprintf("%s[%v..%v]", paramID, param["min"], param["max"]))
+			if len(params) >= 8 {
+				break
+			}
 		}
-		switch strings.ToLower(strings.TrimSpace(firstNonEmpty(messageLoopText(record["tool"]), messageLoopText(record["command_name"])))) {
-		case "plugin.get_parameters", "plugin_get_parameters", "get_plugin_parameters":
-		default:
-			continue
+		entry := "plugin_id=" + pluginID + " track_id=" + trackID
+		if pluginName := firstMapText(row, "plugin_name"); pluginName != "" {
+			entry += " (" + pluginName + ")"
 		}
-		if messageLoopExecutionSucceeded(record) {
-			return true
+		if revision := firstMapText(row, "project_revision"); revision != "" {
+			entry += " project_revision=" + revision
 		}
+		if len(params) > 0 {
+			entry += " params=" + strings.Join(params, ",")
+		}
+		parts = append(parts, entry)
 	}
-	return false
+	return "automation_surfaces in hand: " + strings.Join(parts, "; ") + " — use these pinned rows for automation.set_points"
 }
 
 // syncFreeStateRuntimeAfterObservation keeps the in-flight MessageLoop

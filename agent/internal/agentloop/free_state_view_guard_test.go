@@ -146,12 +146,21 @@ func TestFreeStateUnavailableRetryIssueIsMachineReadable(t *testing.T) {
 		t.Fatalf("in-hand marker without an automation surface: %q", processorIssue)
 	}
 
-	state.executed = append(state.executed, map[string]any{
-		"tool": "plugin.get_parameters", "status": "ok", "result": map[string]any{"automation_param_surface": []any{map[string]any{"param_id": "volume"}}},
-	})
+	// M3-AUTOMATION-SURFACE-PIN-1: the in-hand judgment reads the pinned
+	// automation_surfaces ledger (the model's visible face) instead of the
+	// executed-tail scan; the citation names the pinned identity and ranges.
+	state.input.Context["free_state_reasoning_loop"] = map[string]any{
+		"schema_version": "free_state_reasoning_loop.v1", "status": "observing",
+		"automation_surfaces": []map[string]any{{
+			"plugin_id": "1011", "track_id": "1010", "project_revision": "rev-5",
+			"params": []map[string]any{{"param_id": "volume", "min": 0, "max": 1}},
+		}},
+	}
+	state.input.Context["project_revision"] = "rev-5"
 	withSurface := freeStateUnavailableRetryIssue(state, []string{"processor.identity_and_controls"})
-	if !strings.Contains(withSurface, "already present in this conversation's recent observations") {
-		t.Fatalf("in-hand marker missing with an automation surface: %q", withSurface)
+	if !strings.Contains(withSurface, "automation_surfaces in hand: plugin_id=1011") ||
+		!strings.Contains(withSurface, "volume[0..1]") {
+		t.Fatalf("in-hand citation missing with a pinned surface: %q", withSurface)
 	}
 }
 

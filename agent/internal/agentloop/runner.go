@@ -588,6 +588,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		execRecord["verification"] = ver
 		state.recentObservation = recentObservationForTool(call, execResult, ver, false, nil)
 		recordFreeStateCCBObservation(state, state.recentObservation)
+		recordFreeStateAutomationSurface(state, state.recentObservation)
 		syncFreeStateRuntimeAfterObservation(state, state.recentObservation)
 		if strings.TrimSpace(call.PlanItemID) != "" {
 			state.planItems = markPlanItemStatus(state.planItems, call.PlanItemID, "pending", "waiting for formal user interaction")
@@ -608,6 +609,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 		execRecord["verification"] = ver
 		state.recentObservation = recentObservationForTool(call, execResult, ver, false, nil)
 		recordFreeStateCCBObservation(state, state.recentObservation)
+		recordFreeStateAutomationSurface(state, state.recentObservation)
 		syncFreeStateRuntimeAfterObservation(state, state.recentObservation)
 		if strings.TrimSpace(call.PlanItemID) != "" {
 			state.planItems = markPlanItemStatus(state.planItems, call.PlanItemID, "waiting_confirmation", planEvidenceText(ver))
@@ -635,6 +637,7 @@ func (r *Runner) executeTool(ctx context.Context, state *runState, call planner.
 	mutationBarrier := toolNeedsMutationBarrier(call, execResult)
 	state.recentObservation = recentObservationForTool(call, execResult, ver, mutationBarrier, producedBindings)
 	recordFreeStateCCBObservation(state, state.recentObservation)
+	recordFreeStateAutomationSurface(state, state.recentObservation)
 	syncFreeStateRuntimeAfterObservation(state, state.recentObservation)
 	if mutationBarrier && len(queued) > 0 {
 		state.pendingToolQueue = nil
