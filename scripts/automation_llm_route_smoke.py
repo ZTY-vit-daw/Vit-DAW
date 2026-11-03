@@ -1179,6 +1179,55 @@ def scan_payload_param_surface(payload_capture_path: Optional[Path]) -> Dict[str
     return result
 
 
+def scan_payload_automation_surfaces(payload_capture_path: Optional[Path]) -> Dict[str, Any]:
+    """Card 241 measurement face: prove the pinned automation_surfaces ledger
+    rows (the durable pin that survives the single-slot recent_observation
+    eviction) physically reached the request messages the engine received,
+    and that the pinned rows carry the plugin identity attribution. The 240
+    re-review pinned the eviction breakpoint (plugin identity last seen at
+    payload row 72 of 106); nonzero rows_with_automation_surfaces /
+    rows_with_pinned_plugin_id here is the pin-present proof. Measurement
+    only — no verdict reads it."""
+    result: Dict[str, Any] = {
+        "payload_capture_path": str(payload_capture_path) if payload_capture_path else "",
+        "available": False,
+        "needle": "automation_surfaces",
+        "rows": 0,
+        "rows_with_automation_surfaces": 0,
+        "rows_with_pinned_plugin_id": 0,
+        "rows_with_attribution_receipt": 0,
+    }
+    if not payload_capture_path or not payload_capture_path.exists():
+        return result
+    result["available"] = True
+    try:
+        text = payload_capture_path.read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        result["error"] = str(exc)
+        return result
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        result["rows"] += 1
+        contents = [str(m.get("content") or "") for m in (row.get("request", {}).get("messages") or [])]
+        joined = "\n".join(contents)
+        if any("automation_surfaces" in content for content in contents):
+            result["rows_with_automation_surfaces"] += 1
+            if "plugin_id" in joined:
+                result["rows_with_pinned_plugin_id"] += 1
+        # The 241 attribution face: a plugin.get_parameters ok receipt whose
+        # summary carries the kernel-confirmed plugin_id (the neutral
+        # projection restore keeps it on the model-visible summary).
+        if '"plugin.get_parameters"' in joined and '"plugin_id"' in joined:
+            result["rows_with_attribution_receipt"] += 1
+    return result
+
+
 def check_prompt_guidance(prompt_render_path: Optional[Path]) -> bool:
     """Stop condition 2 anchor: the rendered chat system prompt must carry the
     217 automation routing guidance (both the legacy template and the embed
@@ -1435,6 +1484,10 @@ def main() -> None:
         # Card 237: payload-capture proof that the automation parameter surface
         # reached the engine's received request messages (measurement only).
         summary["payload_param_surface"] = scan_payload_param_surface(payload_capture_path)
+        # Card 241: payload-capture proof that the pinned automation_surfaces
+        # ledger rows and the attributed receipt reached the engine's received
+        # request messages (measurement only).
+        summary["payload_automation_surfaces"] = scan_payload_automation_surfaces(payload_capture_path)
         summary["status"] = "ENV_INTERRUPT" if exit_code == 3 else ("GUIDANCE_MISSING" if exit_code == 2 else "COMPLETED")
         summary["finished_at"] = datetime.now(timezone.utc).isoformat()
     except Exception as exc:  # noqa: BLE001 - smoke failure reporting.

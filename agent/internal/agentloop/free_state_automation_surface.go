@@ -62,6 +62,19 @@ func messageLoopIsFreeStateAutomationSurfaceCall(call planner.ToolCall) bool {
 	return messageLoopIsFreeStateAutomationSurfaceName(normalizedActionName(call, executorpkg.Result{}))
 }
 
+// messageLoopIsFreeStateAutomationReadName 报告工具名是否属于 automation 准入面
+// 的参数面读工具（plugin.get_parameters 及其别名）。只有参数面成功回执会钉入
+// automation_surfaces 册（M3-AUTOMATION-SURFACE-PIN-1）：automation.get_curve 的
+// 结果是时间范围类事实，可经重观察取得，不入册（卡面诚实边界）。
+func messageLoopIsFreeStateAutomationReadName(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "plugin.get_parameters", "plugin_get_parameters", "get_plugin_parameters":
+		return true
+	default:
+		return false
+	}
+}
+
 // freeStateAutomationSurfaceCanonicalName 把准入面别名归一为规范名（显示面
 // 用：Allowed tools 行与目录行只出规范名）。
 func freeStateAutomationSurfaceCanonicalName(name string) string {

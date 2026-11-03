@@ -797,6 +797,10 @@ func automationObservationPromptSummary(name string, result map[string]any) map[
 	}
 	out := compactSelectedKeys(result, []string{
 		"status", "track_id", "plugin_id", "param_id", "time_base", "bypass", "point_count", "parameter_count",
+		// M3-AUTOMATION-SURFACE-PIN-1: plugin_name joins the pure key-carry list
+		// so a kernel reply that names the plugin attributes the receipt on the
+		// summary face too (add-only; absent key stays absent).
+		"plugin_name",
 	})
 	if rows := messageLoopMapRows(result["automation_param_surface"]); len(rows) > 0 {
 		out["automation_param_surface"] = cloneBoundedMapRows(rows, automationParamSurfaceSummaryRowLimit)

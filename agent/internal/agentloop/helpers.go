@@ -70,6 +70,17 @@ func (r *Runner) buildModelContextSnapshot(state *runState, full contextruntime.
 		if value, ok := messageLoopPreFamilyValue(recentObservationMap(state.recentObservation)).(map[string]any); ok {
 			neutralObservation = value
 		}
+		// M3-AUTOMATION-SURFACE-PIN-1: the pre-family filter deletes every key
+		// containing the "plugin" marker, which silently stripped the
+		// plugin_id attribution from successful plugin.get_parameters receipts
+		// (the 240 forensics' missing-attribution defect: the kernel reply,
+		// harness projection and summary key list all carry it; the neutral
+		// model projection dropped it). An automation read receipt answers a
+		// tool call the model itself issued in the needs_observation phase —
+		// its attribution is the answer, not pre-selection guidance — so the
+		// attribution keys are restored on the receipt's summary only. The
+		// Context/State/Trace pre-family anonymization is untouched.
+		restoreFreeStateAutomationAttribution(neutralObservation, state.recentObservation)
 		modelSnapshot = contextruntime.Build(contextruntime.Input{
 			GoalID:            state.goal.GoalID,
 			RunID:             state.goal.RunID,
@@ -95,6 +106,30 @@ func (r *Runner) buildModelContextSnapshot(state *runState, full contextruntime.
 func messageLoopFreeStateObservationLedger(state *runState) map[string]any {
 	loop := messageLoopFreeStateContext(state)
 	return cloneMap(messageLoopMapValue(loop["observation_ledger"]))
+}
+
+// restoreFreeStateAutomationAttribution copies the kernel-confirmed
+// attribution keys back onto a projected automation read receipt's summary.
+// The projection filter is content-blind (key markers), so it cannot tell a
+// family-selection leak from the receipt of a tool the model itself called;
+// this restore is scoped to exactly the automation read receipts whose
+// attribution the no-fabrication rule requires the model to see. Any other
+// shape (CCB bundles, mutations, non-automation tools) is left exactly as the
+// projection left it.
+func restoreFreeStateAutomationAttribution(projected map[string]any, observation *RecentObservation) {
+	if len(projected) == 0 || observation == nil || len(observation.Summary) == 0 ||
+		!messageLoopIsFreeStateAutomationReadName(firstNonEmpty(observation.Tool, observation.CommandName)) {
+		return
+	}
+	summary := messageLoopMapValue(projected["summary"])
+	if len(summary) == 0 {
+		return
+	}
+	for _, key := range []string{"plugin_id", "plugin_name", "plugin_item_id"} {
+		if value, ok := observation.Summary[key]; ok && !messageLoopEmptyValue(value) {
+			summary[key] = value
+		}
+	}
 }
 
 func messageLoopProjectChangeContext(state *runState) map[string]any {
