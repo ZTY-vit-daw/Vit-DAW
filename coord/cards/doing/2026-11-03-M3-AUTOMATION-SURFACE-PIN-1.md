@@ -45,6 +45,21 @@
 - 主工作树 D:\Vit_DAW 既有未提交改动（VitApp Workspace/coord runs 工件/webui design 等）与本卡文件域（agentloop/automation_llm_route_smoke.py）不相交（grep 亲核零匹配），不动
 - 真栈腿：重跑前按 §2.2 登记 PC-RUNTIME-STACK.md（fetch 重读 main+进程/端口亲核全零后登记，push 后 ≤60s 即时复核）
 
+### 勘察定案（实现前记入，卡面要求）
+
+**①plugin_id 丢失层=agentloop 模型投影层（helpers.go），非内核/VSP/harness/摘要层。** 证据链三层：
+- 静态全链透传：内核 VSP reply（guardrun3 executed 面亲证 result.plugin_id='1011'×5 处成功回执）→ harness `publicPluginParametersResult`（harness.go:12887 透传 reply["plugin_id"]）→ executor `resp.Result` 同 map 引用 → `automationObservationPromptSummary` 键表含 plugin_id（15de9627/f0d092fd/9cc871d7/HEAD 四点核验一致）→ contextruntime compactValue 不剥键。240 补记「到达摘要层的 result 该键为空」**不准确**——result 该键非空、summary 组装正确携带。
+- 动态复现三重 PASS：函数级/`recentObservationForTool` 全链级/guardrun3 真实 result fixture 级，plugin_id 均正确到达 summary。
+- **真丢点**：`messageLoopNeedsNeutralFamilyProjection`（helpers.go:131）= `messageLoopFreeStateActive`——free-state active 期**全程**走中性族投影（fail-safe 设计，非仅族选择前）；`buildModelContextSnapshot`（helpers.go:70）对 RecentObservation 过 `messageLoopPreFamilyValue` → `messageLoopPreFamilyMap` → `messageLoopPreFamilyForbiddenKey`（helpers.go:326）marker 列表含 `"plugin"`——**summary 顶层 plugin_id 键被删**。而 `automation_param_surface` 的值是 `[]map[string]any` 类型，`messageLoopPreFamilyValue` 的 switch 无此 case→default 原样保留（行内 param_id 幸存）——与 guardrun 载荷观测（param_id 在、plugin_id 不在）逐键吻合；executed 面不经该投影所以保留。复现测试钉死（TestAutomationAttributionSurvivesNeutralProjection 内嵌丢失层断言）。
+- **单边修**：`restoreFreeStateAutomationAttribution`（helpers.go，中性族分支挂点）——仅 automation 读回执（plugin.get_parameters 族）的 summary 归因键（plugin_id/plugin_name/plugin_item_id）拷回；Context/State/Trace 族前匿名化零改动。设计依据：needs_observation 轮模型已过 family 选择（M3-LLM-GATE-OPEN-1 放行该面），回执归因是对模型自己工具调用的回应，不是预置引导。
+- plugin_name 源定案：内核 get_plugin_parameters reply 无 plugin_name 键（PluginRackControlService.cpp:3381-3394 内建路径亲核；改内核超本卡文件域）——摘要键表加 plugin_name（add-only 纯键搬运，内核未来回带即自动到达），不硬造值。
+
+**②入册行淘汰与 revision 失效策略**：
+- 淘汰=FIFO 尾进头出（沿 `appendBoundedFreeStateRows` 同契约），上限 8（卡面）；同指纹（track_id+plugin_id）重复成功读取**原地刷新**该行（params/project_revision/round 更新，不追加）——参数面可能变化，刷新优于首见即冻结。
+- revision 失效=**严格前进出册**（`freeStateRevisionStrictlyNewer`，240 同语义对偶：guard 对 revision 前进放行重观察 ↔ 册对 revision 前进失效旧发现，行为闭环——模型 mutation 后必须重读，不写过期区间）。同 revision 不失效（幂等重读）；unorderable fail-closed 保留。revision 源=`freeStateAutomationSurfaceProjectRevision`（project_binding→free_state_project_change.to_project→latest_project_change→ctx project_revision→closure，与 240 guard `freeStateUnavailableRetryRevisionAdmitted` 同族源，判定永不分歧）。读时点复核失效（present/引用句构造时再清一遍）。
+- 模型到达面=**ledger JSON 常驻面**（`messageLoopFreeStatePromptContext` 键表加 automation_surfaces——「Free-state reasoning ledger JSON」每轮 user message 注入，240 EVIDENCE 实证 98/106 轮从不出局）；不动 contextruntime ProjectObservationLedger（unavailable_view_sets 同样不进该投影，零回退面最小+不越域）。双点=loop 顶层 `automation_surfaces`（prompt JSON+present 判定读此）+`observation_ledger.automation_surfaces` 镜像（240 双点对偶，无 CCB 观察时独立建 schema）。
+- note 引册：`freeStateAutomationParamSurfacePresent` 从 state.executed 尾扫改读册（=模型可见面，消除 240 补记③判定面脱节）；denial 的 in-hand 句升级闭模板引用 `automation_surfaces in hand: plugin_id=… track_id=… params=volume[0..1],pan[-1..1] … use these pinned rows for automation.set_points`；**base note 常量逐字节不动**（`; redirect: ` 前缀+全文，needle 红线）。
+
 ## 回执
 
 - （执行侧回填）
