@@ -40,7 +40,10 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-03 晚 +0800 / origin/main=c00b5201 / owner=GLM-5.3 PC 执行会话（ZCode，L1，241 卡会话）/ 分支=port/m3-automation-surface-pin-1 / worktree=D:\Vit_DAW_wt_241impl
+- 领取基线三件：HEAD=c00b5201；impl worktree `git status --short` 空、`git diff --stat` 空（干净基线，无领取前 diff）
+- 主工作树 D:\Vit_DAW 既有未提交改动（VitApp Workspace/coord runs 工件/webui design 等）与本卡文件域（agentloop/automation_llm_route_smoke.py）不相交（grep 亲核零匹配），不动
+- 真栈腿：重跑前按 §2.2 登记 PC-RUNTIME-STACK.md（fetch 重读 main+进程/端口亲核全零后登记，push 后 ≤60s 即时复核）
 
 ## 回执
 
