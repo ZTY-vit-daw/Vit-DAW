@@ -62,7 +62,14 @@
 
 ## 回执
 
-- （执行侧回填）
+- **实现**：port/m3-automation-surface-pin-1 @ **384fc14a**（+工件 e8625ea2）：agentloop 六文件+smoke py（8 文件 +605/-23 纯实现+测试，文件域全守：free_state_reasoning.go 入册段+free_state_automation_surface.go read matcher+execution_memory.go 键表+helpers.go 归因豁免+runner.go 三挂点+free_state_view_guard_test.go in-hand 断言同步+free_state_automation_surface_pin_test.go 新建 9 测+automation_llm_route_smoke.py needle 微扩）。三轮 go build/test ./... 96 包 exit 0。
+- **链路进度（目标 1-4）：全达**——①入册段：recordFreeStateAutomationSurface 双点写（loop 顶层+observation_ledger 镜像）{plugin_id,plugin_name?,track_id,params[param_id/label/min/max],project_revision,round}；指纹=track+plugin 原地刷新；FIFO≤8；strictlyNewer 出册（读时复核）；到达面=ledger JSON 常驻注入。②归因：丢失层定案=helpers.go:326 preFamily forbidden marker "plugin" 删 summary.plugin_id（free-state active 全程；内核/VSP/harness/摘要层全链透传无罪——executed 面亲证 result.plugin_id='1011'×5+复现三重 PASS+载荷逐键吻合[param_id 幸存=typed slice default 分支]）；修=restoreFreeStateAutomationAttribution 窄域豁免；摘要键表+plugin_name（add-only，内核现无此键不硬造——PluginRackControlService.cpp:3381 内建路径亲核）。③note 引册：present 改读册+denial 引用句闭模板；base note 逐字节不动（diff 亲证）。④单测 9 件+240 八测原语义绿（in-hand 断言按目标 3 授权同步）。
+- **最终验收（目标 5，pinrun1 单轮 HEAD=384fc14a 唯一 diff=目标 1-4，flash 三面亲证，kernel F9E3DA0A 零漂移，ps1 exit 0+COMPLETED）：组 1 门未过（no_route×3）——但「判定成功=组 1 绿或**新真断点**」第二形态成立**：①**册行被模型真实消费**——g1_r3 最终决策原文「只有参数范围信息，还缺当前值」（240 的「缺标识/缺区间」消失，标识+区间已入模）；②**模型走向 automation 工具链**——r1/r3 均调 automation.get_curve（240「不走向 set_points 工具链」形态消失），processor.* 同集重试零发生（denial=0 行）；③**断点钉死=写前基线缺格**——get_curve(volume) ok 但 point_count=0（无自动化点），模型要的当前值=静态参数值，内核 parameters 行携带 value/value_text（PluginRackControlService.cpp:741-743 亲核）但 harness compactAutomationParamSurfaceRows 投影只出 param_id/label/min/max/unit/normalized_role/supports_automation（**当前值被 harness 投影丢弃**，include_* 门控面有但骨架未教）。修复方向（harness 行 add-only +value/value_text，涉 237 键集红线）**供主管裁定，未开卡自修**。残差定性（240 预埋终局三选前提「模型不用册」）**不成立**——册被用了，终局三选不触发。
+- **载荷四件亲证**：册行 38/82 行（plugin_id=1011 实测值/track 1010/volume[0..1]/pan[-1..1]/rev-5，样本观察循环内常驻）；归因键 34/82 行（240 全程 0 行→丢失层修复真栈实证）；note 引册=guard 零触发的自然结果（无 denial 面；两态由单测锁定）；护栏零回退（240 八测绿+base note 零字节）。已知边界如实披露：chat workflow_data 持久化面未搬运 automation_surfaces（样本内有效/跨 exchange 重观察，与 240 unavailable_view_sets 同生命周期，非回归）；修复轮与 settled 收尾轮不带 ledger JSON 组装面。
+- **栈登记/释放全流程**：占用 801d2a26（fetch 重读 main=9c076715+亲核全零+push 后 ≤60s 即时复核全零）→单轮→释放 dfc0a36e（TEARDOWN_ALL_ZERO 23:46:42 亲核 PROCS=0+TCP/UDP 全零）。
+- **§8 计费披露**：单轮 77 计费调用 deepseek-flash，in 1,176,938/out 138,059 ≈**¥1.45 上界**（卡面 1-3 轮预算内，第一轮即收口，无重跑）。
+- 工件：coord/runs/M3-AUTOMATION-SURFACE-PIN-1/（pinrun1 全套+RECEIPT.md，随 port 分支入库）；prompt_render 2.9M 留 worktree（重复度高，240 先例）；.vit_derived/.vit_agent/.vit_history/clip.wav 排除（240 瑕疵教训）。
+
 
 ## 验收
 
