@@ -259,6 +259,7 @@ func TestFreeStateUnavailableProcessorRedirectNegatives(t *testing.T) {
 		"schema_version": "ccb_observation_bundle.v1", "status": "partial",
 		"requested_views":  []any{"processor.identity_and_controls", "track.time_dynamics"},
 		"omission_reasons": []any{"processor.identity_and_controls: omitted by disclosure budget"},
+		"omissions":        map[string]any{"processor.identity_and_controls": "budget"},
 		"views":            map[string]any{"track.time_dynamics": map[string]any{"status": "ready"}},
 		"target_ref":       viewGuardTarget(),
 	}
@@ -267,6 +268,23 @@ func TestFreeStateUnavailableProcessorRedirectNegatives(t *testing.T) {
 		if strings.Contains(reason, "processor.* CCB projections") {
 			t.Fatalf("budget omission gained a redirect note: %#v", budget["omission_reasons"])
 		}
+	}
+
+	// Guardrun2 forensics: the model's mixed sets (usable views plus the
+	// processor view) are bundle-partial — the note must still fire on the
+	// per-view unavailable citation.
+	mixed := map[string]any{
+		"schema_version": "ccb_observation_bundle.v1", "status": "partial",
+		"requested_views":  []any{"project.structure", "processor.identity_and_controls"},
+		"omission_reasons": []any{"project.structure: evidence status is partial", "processor.identity_and_controls: source evidence is missing"},
+		"omissions":        map[string]any{"processor.identity_and_controls": "unavailable"},
+		"views":            map[string]any{"project.structure": map[string]any{"status": "partial"}},
+		"target_ref":       viewGuardTarget(),
+	}
+	discloseCCBProcessorRedirectInBundle(mixed)
+	mixedReasons := messageLoopStringList(mixed["omission_reasons"])
+	if len(mixedReasons) != 3 || !strings.HasPrefix(mixedReasons[2], "processor.* CCB projections") {
+		t.Fatalf("mixed-set processor omission did not gain the redirect note: %#v", mixedReasons)
 	}
 }
 

@@ -2197,19 +2197,24 @@ func recordFreeStateCCBObservation(state *runState, observation *RecentObservati
 }
 
 // discloseCCBProcessorRedirectInBundle attaches the closed-template mechanism
-// note to an unavailable CCB bundle whose omission_reasons cite a requested
-// processor.* view: processor.* projections do not cover built-in track-level
-// plugins, and their authoritative parameter surface is the automation face
-// (plugin.get_parameters). The hook runs at the raw-bundle layer
-// (recentObservationForTool) so the note rides every model-visible face of the
-// receipt — the trace the context runtime model projection reads, the executed
-// record's ccb_observation_summary, and the recent observation clone. Ledger
-// rows filter the note back out (rawCCBDeliveryReasons). 237's residual: the
-// model kept re-requesting processor views because nothing told it where the
-// authoritative parameter face actually lives (M3-LOOP-UNAVAILABLE-VIEW-GUARD-
-// 1 goal 2; carries 237's "secondary fact" from the ruling).
+// note to a CCB receipt whose omission_reasons cite a requested processor.*
+// view as unavailable (guardrun2 forensics: the model routes around the
+// pure-unavailable shape by requesting mixed sets — usable views plus the
+// processor view — so the note must fire on the per-view citation, not only on
+// a fully-unavailable bundle). processor.* projections do not cover built-in
+// track-level plugins, and their authoritative parameter surface is the
+// automation face (plugin.get_parameters). The hook runs at the raw-bundle
+// layer (recentObservationForTool) so the note rides every model-visible face
+// of the receipt — the trace the context runtime model projection reads, the
+// executed record's ccb_observation_summary, and the recent observation clone.
+// Ledger rows filter the note back out (rawCCBDeliveryReasons); the mechanical
+// retry guard stays scoped to fully-unavailable exact sets (its red line is
+// unchanged — disclosure is additive, enforcement is not widened). 237's
+// residual: the model kept re-requesting processor views because nothing told
+// it where the authoritative parameter face actually lives
+// (M3-LOOP-UNAVAILABLE-VIEW-GUARD-1 goal 2; carries 237's "secondary fact").
 func discloseCCBProcessorRedirectInBundle(bundle map[string]any) {
-	if !ccbBundleViewSetUnavailable(bundle) {
+	if len(bundle) == 0 {
 		return
 	}
 	reasons := messageLoopStringList(freeStateObservationDeliveryReasons(bundle))
@@ -2225,13 +2230,20 @@ func discloseCCBProcessorRedirectInBundle(bundle map[string]any) {
 	if len(processorViews) == 0 {
 		return
 	}
-	// The bundle emits per-omitted-view reasons in the "<view_id>: ..." shape;
-	// only attach when a delivery reason actually cites a requested processor.*
-	// view, so usable omissions (e.g. disclosure budget) stay untouched.
+	// The bundle emits per-omitted-view reasons in the "<view_id>: ..." shape.
+	// Only a projection-coverage unavailability cites the redirect — the
+	// omissions map marking the processor view unavailable, or a "source
+	// evidence is ..." reason. A disclosure-budget trim ("omitted by
+	// disclosure budget") is a different condition and stays untouched.
+	omissions := messageLoopMapValue(bundle["omissions"])
 	cited := false
-	for _, reason := range reasons {
-		for _, viewID := range processorViews {
-			if strings.HasPrefix(reason, viewID+":") || strings.HasPrefix(reason, viewID+" ") {
+	for _, viewID := range processorViews {
+		switch strings.ToLower(strings.TrimSpace(fmt.Sprint(omissions[viewID]))) {
+		case "unavailable", "unsupported_projection", "missing", "deferred":
+			cited = true
+		}
+		for _, reason := range reasons {
+			if (strings.HasPrefix(reason, viewID+":") || strings.HasPrefix(reason, viewID+" ")) && strings.Contains(reason, "source evidence is") {
 				cited = true
 			}
 		}
