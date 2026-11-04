@@ -191,15 +191,30 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 	}
 	if durableInvocationID == "" && isContinueMessage(req.Message) {
 		if pending, ok := s.automaticContinuationForConversation(conversationID); ok {
+			// M3-CHAT-HOST-CARRY-FIX-1 (forensics 面三 T1a): the bare-continue
+			// swallow used to answer with attempt/status only, so every nudge
+			// while the terminal slice ran in the background read as "queued"
+			// with zero state — the writegate1 rounds never saw the pending
+			// work's actual face (forensics report §3.1 step 2). Carry the
+			// loop's current state (latest decision + proposal outline +
+			// latest observation face + budget counters) inside the existing
+			// WorkflowData map; no new protocol, the pendingmanager fields
+			// stay authoritative.
+			workflowData := map[string]any{
+				"continuation_id": pending.ContinuationID, "status": pending.Status, "attempt": pending.Attempt,
+			}
+			if loop, loopOK := s.freeStateLoop(conversationID); loopOK {
+				if summary := freeStateDecisionSummaryRow(loop); len(summary) > 0 {
+					workflowData["free_state_summary"] = summary
+				}
+			}
 			return ChatResponse{
 				ConversationID: conversationID,
 				TaskID:         pending.TaskID, GoalID: pending.GoalID, RunID: pending.RunID,
 				SliceID: pending.CurrentSliceID, TurnID: pending.CurrentTurnID, OriginalIntent: pending.OriginalIntent,
 				Reply:      "任务已在自动续跑队列中；这条消息不会创建新任务或重复执行。",
 				GoalStatus: string(agentruntime.StatusWaitingContinue), StopReason: "automatic_continuation_already_scheduled",
-				Workflow: "durable_continuation", WorkflowData: map[string]any{
-					"continuation_id": pending.ContinuationID, "status": pending.Status, "attempt": pending.Attempt,
-				},
+				Workflow: "durable_continuation", WorkflowData: workflowData,
 			}, true
 		}
 		if pending, ok := s.interactionContinuationForConversation(conversationID); ok {
@@ -3124,6 +3139,134 @@ func AgentLoopConfirmResponsePlanID(confirmedPlanID string, resp ChatResponse) s
 	return confirmedPlanID
 }
 
+// freeStateDecisionSummaryRow projects the durable loop's latest decision face
+// into the bounded receipt map carried by the bare-continue swallow reply
+// (M3-CHAT-HOST-CARRY-FIX-1 面三 T1a) and reused by the terminal summary
+// delivery. It is a projection of state the loop already holds — latest
+// decision + proposal outline + latest observation face + budget counters —
+// with no new protocol and no new UX face. Text fields are rune-bounded so a
+// verbose model summary cannot balloon the WorkflowData payload.
+func freeStateDecisionSummaryRow(loop freeStateReasoningLoop) map[string]any {
+	summary := map[string]any{
+		"loop_status":         strings.TrimSpace(loop.Status),
+		"cycle":               loop.Cycle,
+		"continuation_used":   loop.ContinuationUsed,
+		"continuation_budget": loop.ContinuationBudget,
+	}
+	if loop.TerminalTurnLocked {
+		summary["terminal_turn_locked"] = true
+	}
+	if decision := loop.LatestDecision; decision != nil {
+		summary["decision_status"] = strings.TrimSpace(decision.Status)
+		if text := truncateTerminalFinding(decision.Summary); text != "" {
+			summary["decision_summary"] = text
+		}
+		if proposal := decision.ImprovementProposal; proposal != nil {
+			summary["proposal"] = freeStateProposalOutline(proposal)
+		}
+	}
+	if observation := loop.LatestObservation; observation != nil {
+		summary["latest_observation"] = map[string]any{
+			"tool":   firstNonEmpty(strings.TrimSpace(observation.Tool), strings.TrimSpace(observation.CommandName)),
+			"status": strings.TrimSpace(observation.Status),
+		}
+	}
+	if len(loop.ObservationReceipts) > 0 {
+		summary["observation_receipt_count"] = len(loop.ObservationReceipts)
+	}
+	return summary
+}
+
+// freeStateProposalOutline reduces an improvement proposal to its structural
+// identity for the swallow-reply receipt and the terminal summary: what gets
+// proposed where, in one bounded map. Parameter points are never expanded —
+// the bounds map itself already carries the ranges the admission gate checks.
+func freeStateProposalOutline(proposal *agentprotocol.ImprovementProposal) map[string]any {
+	outline := map[string]any{
+		"action_domain": strings.TrimSpace(proposal.ActionDomain),
+		"action_kind":   strings.TrimSpace(proposal.ActionKind),
+	}
+	if text := truncateTerminalFinding(proposal.ImprovementIntent); text != "" {
+		outline["intent"] = text
+	}
+	if proposal.Confidence > 0 {
+		outline["confidence"] = proposal.Confidence
+	}
+	if len(proposal.ParameterBounds) > 0 {
+		outline["parameter_bounds"] = proposal.ParameterBounds
+	}
+	return outline
+}
+
+// freeStateTerminalSummaryReply composes the one-paragraph terminal receipt
+// delivered to the original conversation when a scheduler-driven chain
+// settles (M3-CHAT-HOST-CARRY-FIX-1 面三 T1b). The writegate1 rounds showed
+// the background terminal slice's outcome landing only in goal state/history
+// with zero chat-face delivery (forensics report §3.1 step 3), so the user
+// nudging "继续" kept reading "already queued" forever. The reply names the
+// settlement kind in plain language, carries the model's own summary and the
+// proposal outline when one exists, and runs the settled-chain guardrail
+// (internal codes stripped). No protocol, no new UI — it rides the existing
+// scheduler_chain terminal event, whose webui synthesis is goal-keyed and
+// therefore idempotent against the chain-end gate's own delivery.
+func freeStateTerminalSummaryReply(loop freeStateReasoningLoop) string {
+	decision := loop.LatestDecision
+	if decision == nil {
+		return ""
+	}
+	lead := ""
+	switch strings.ToLower(strings.TrimSpace(decision.Status)) {
+	case agentloop.FreeStateCapabilityBlocked:
+		lead = "这轮任务已停在能力边界，没有执行任何修改。"
+	case agentloop.FreeStateNeedsExperiment:
+		lead = "这轮任务已经形成一个有边界的改善提案，还没有执行；需要你确认后才会写入。"
+	case agentloop.FreeStateNoCandidateFound:
+		lead = "这轮任务没有找到可行的改善候选，已按无候选收尾。"
+	case agentloop.FreeStateBlocked:
+		lead = "这轮任务已按边界条件收尾。"
+	default:
+		return ""
+	}
+	parts := []string{lead}
+	if text := truncateTerminalFinding(decision.Summary); text != "" {
+		parts = append(parts, text)
+	}
+	if proposal := decision.ImprovementProposal; proposal != nil {
+		if outline := freeStateProposalOutline(proposal); len(outline) > 0 {
+			detail := make([]string, 0, 3)
+			if intent, ok := outline["intent"].(string); ok && intent != "" {
+				detail = append(detail, intent)
+			}
+			if domain, ok := outline["action_domain"].(string); ok && domain != "" {
+				detail = append(detail, domain)
+			}
+			if len(detail) > 0 {
+				parts = append(parts, "提案概要："+strings.Join(detail, "（")+"）。")
+			}
+		}
+	}
+	return sanitizeSettledTerminalReply(strings.Join(parts, ""))
+}
+
+// freeStateSchedulerDrivenGoalLocked reports whether the goal's terminal slice
+// is running under the scheduler's claim: a durable record in Running state
+// for this goal exists while recordGoalResult books the result. The HTTP turn
+// path never holds such a claim (the claim lease lives only between the
+// scheduler's claim and its release), so this is the authority that separates
+// a background terminal slice — whose ChatResponse has no delivery channel —
+// from an HTTP turn the caller renders itself. Caller holds s.mu.
+func (s *Server) freeStateSchedulerDrivenGoalLocked(goalID string) bool {
+	if strings.TrimSpace(goalID) == "" {
+		return false
+	}
+	for _, item := range s.durableContinuations {
+		if item.GoalID == goalID && item.Status == ContinuationRunning {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) error {
 	if s == nil || res.GoalID == "" {
 		return nil
@@ -3135,6 +3278,13 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 	pendingAutoApply := res.FreeStateDecision != nil && res.FreeStateDecision.ImprovementProposal != nil &&
 		s.authorityModeSnapshot() == authorityModeFull
 	s.mu.Lock()
+	// M3-CHAT-HOST-CARRY-FIX-1 面三 T1b: capture the scheduler-claim evidence
+	// BEFORE the terminal bookkeeping below settles the claim's record — once
+	// this function rewrites the record to a terminal lifecycle the "running"
+	// shape is gone. The claim lease exists only between the scheduler's claim
+	// and its release, so this is what tells a background terminal slice (no
+	// HTTP response channel) apart from an HTTP turn the caller renders.
+	schedulerDrivenSlice := s.freeStateSchedulerDrivenGoalLocked(res.GoalID)
 	if s.goalContinuations == nil {
 		s.goalContinuations = map[string]agentloop.Continuation{}
 	}
@@ -3589,6 +3739,46 @@ func (s *Server) recordGoalResult(conversationID string, res agentloop.Result) e
 			// The budget stop must be visible through the runtime interface:
 			// the goal settles instead of staying waiting_continue forever.
 			s.harness.SetGoalStatus(res.GoalID, agentruntime.StatusCompleted, nil)
+		}
+	}
+	// M3-CHAT-HOST-CARRY-FIX-1 面三 T1b: the chain-end terminal delivery. When
+	// a scheduler-claimed slice settles without arming a next checkpoint, its
+	// ChatResponse has no delivery channel of its own: the writegate1 rounds'
+	// terminal outcomes landed only in goal state/history while the bare
+	// "继续" swallow kept answering "already queued" (forensics report §3.1).
+	// Guard, in order:
+	//   - schedulerDrivenSlice: only a scheduler-claimed slice lacks a delivery
+	//     channel; an HTTP turn's caller renders its own response;
+	//   - res.Continuation == nil: the chain stops here (a checkpointed slice
+	//     hands delivery to its successor);
+	//   - not waiting_continue and not an interaction boundary: those forms
+	//     keep the chain alive (or park it) through their own answerable
+	//     delivery faces (waiting park via the chain-end gate, interaction via
+	//     the pending-interaction surface);
+	//   - a durable loop decision face must exist — the summary names the
+	//     settlement kind the loop actually recorded.
+	// The delivery reuses the existing scheduler_chain terminal event (no new
+	// protocol, no new UX face); its webui synthesis is goal-keyed, so a goal
+	// whose chain-end gate also delivers renders one terminal bubble, not two.
+	if schedulerDrivenSlice && res.Continuation == nil && conversationID != "" &&
+		res.Status != agentruntime.StatusWaitingContinue &&
+		res.Status != agentruntime.StatusWaitingConfirmation &&
+		res.Status != agentruntime.StatusWaitingClarification && !res.NeedsClarification {
+		if loop, loopOK := s.freeStateLoop(conversationID); loopOK &&
+			(strings.TrimSpace(loop.GoalID) == "" || loop.GoalID == res.GoalID) {
+			if summary := freeStateTerminalSummaryReply(loop); summary != "" {
+				terminalResp := ChatResponse{
+					ConversationID: conversationID,
+					GoalID:         res.GoalID, RunID: res.RunID, TaskID: res.TaskID,
+					GoalStatus: string(res.Status), StopReason: res.StopReason,
+					Reply: summary,
+				}
+				s.emitSchedulerChainResultEvent(conversationID, terminalResp, nil)
+				if s.logger != nil {
+					s.logger.Info("[chain.terminal-summary] delivered conversation=%s goal=%s decision=%s status=%s",
+						conversationID, res.GoalID, strings.TrimSpace(loop.LatestDecision.Status), res.Status)
+				}
+			}
 		}
 	}
 	for _, pendingEvent := range pendingEvents {
