@@ -35,6 +35,10 @@ Run matrix (card §8, fixed before execution):
   hard cap 15 LLM rounds; group success = >=4/5 correct-behavior rounds;
   stop-loss = 3 consecutive same-type failures inside a group (group aborts,
   evidence preserved, no further rounds spent).
+  Card 243: -Groups "1" (or "1,2") reruns only the listed groups — the 242
+  budget overrun root cause was the automatic inter-group progression.
+  Default (-Groups 1,2,3 / omitted) keeps the full three-group behavior
+  byte-for-byte unchanged.
 
 Round verdict vocabulary (card §8 failure classes):
   tool_chain_ok      - model armed the automation chain and the confirmation
@@ -196,13 +200,25 @@ GROUP_PHRASES = {
 # turn_directives layer. Same-source sync: the needle is the guidance's title
 # line from agent/internal/agentloop/ccb_model_prompt.go
 # (freeStateTimeVaryingActionPathGuidance, version
-# neutral-family-time-varying-action-path:v1); the Go lock test
+# neutral-family-time-varying-action-path:v2 since card 243); the Go lock test
 # (TestTimeVaryingActionPathGuidanceVersionLock) anchors the full phrase set
 # and turns red on wording drift — sync this needle when that test forces a
 # version bump. The payload-capture scan proves the guidance physically
 # reached the request messages the engine actually received (the 234
 # "received-payload reasoning gap" closure).
 TIME_VARYING_PATH_NEEDLE = "Action Path Selection (time-varying goals vs static adjustments)"
+
+# Card 243 (M3-WRITE-GATE-TRIGGER-CLARIFY-1): the v2 write-gate trigger
+# clarification sentence that replaced the causality-inverted "passes the
+# runtime governance gate ... before any write" clause (242 breakpoint: all
+# write elements held, yet the turn stalled in plain-text confirmation asking
+# that never forms a card). Same-source sync with the Go lock tests
+# (TestTimeVaryingActionPathGuidanceVersionLock /
+# TestSkeletonMutationRuleCarriesGovernanceGateSemantics); the payload scan
+# below counts rows whose request carries it and rows still carrying the old
+# clause (must be zero) — measurement only.
+WRITE_GATE_TRIGGER_NEEDLE = "never forms a confirmation card"
+WRITE_GATE_OLD_CLAUSE_NEEDLE = "before any write"
 
 # 218-verified vocabulary phrase used only by the choreo-pending legs.
 CHOREO_ARM_PHRASE = "0 到 30 秒，让这条轨的存在感慢慢强起来"
@@ -1117,6 +1133,12 @@ def scan_payload_guidance(payload_capture_path: Optional[Path]) -> Dict[str, Any
         "needle": TIME_VARYING_PATH_NEEDLE,
         "rows": 0,
         "rows_with_guidance": 0,
+        # card 243 measurement extension: the v2 trigger-clarification
+        # sentence must reach the request messages and the old
+        # causality-inverted clause must be gone from them.
+        "trigger_needle": WRITE_GATE_TRIGGER_NEEDLE,
+        "rows_with_trigger_clarification": 0,
+        "rows_with_old_clause": 0,
     }
     if not payload_capture_path or not payload_capture_path.exists():
         return result
@@ -1136,8 +1158,13 @@ def scan_payload_guidance(payload_capture_path: Optional[Path]) -> Dict[str, Any
             continue
         result["rows"] += 1
         messages = row.get("request", {}).get("messages") or []
-        if any(TIME_VARYING_PATH_NEEDLE in str(m.get("content") or "") for m in messages):
+        contents = [str(m.get("content") or "") for m in messages]
+        if any(TIME_VARYING_PATH_NEEDLE in c for c in contents):
             result["rows_with_guidance"] += 1
+        if any(WRITE_GATE_TRIGGER_NEEDLE in c for c in contents):
+            result["rows_with_trigger_clarification"] += 1
+        if any(WRITE_GATE_OLD_CLAUSE_NEEDLE in c for c in contents):
+            result["rows_with_old_clause"] += 1
     return result
 
 
@@ -1255,6 +1282,30 @@ def check_prompt_guidance(prompt_render_path: Optional[Path]) -> bool:
     return "automation.set_points" in blob and "automation.get_curve" in blob
 
 
+def parse_groups(spec: str) -> List[int]:
+    """Card 243 group filter: parse a comma-separated group spec ("1", "1,2")
+    into a sorted unique group list. Default "1,2,3" reproduces the
+    pre-243 full run byte-for-byte (same groups, same order). Unknown,
+    empty, or non-numeric entries are rejected before any LLM round is
+    spent."""
+    groups: List[int] = []
+    for part in spec.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            value = int(part)
+        except ValueError:
+            raise SystemExit(f"[FAIL] -Groups entry {part!r} is not an integer group id")
+        if value not in GROUP_PHRASES:
+            raise SystemExit(f"[FAIL] -Groups entry {value!r} is not a known group (known: {sorted(GROUP_PHRASES)})")
+        if value not in groups:
+            groups.append(value)
+    if not groups:
+        raise SystemExit("[FAIL] -Groups produced an empty group list")
+    return sorted(groups)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--agent-http", default="http://127.0.0.1:7878")
@@ -1268,7 +1319,13 @@ def main() -> None:
     parser.add_argument("--payload-capture-path", default="")
     parser.add_argument("--agent-log", default="")
     parser.add_argument("--rounds-per-group", type=int, default=5)
+    # Card 243: targeted group reruns. Default keeps the full three-group
+    # behavior unchanged (242 budget overrun root cause was the automatic
+    # inter-group progression; -Groups 1 reruns group 1 only).
+    parser.add_argument("-Groups", "--groups", dest="groups", default="1,2,3",
+                        help="comma-separated group ids to run (default 1,2,3 = all)")
     args = parser.parse_args()
+    selected_groups = parse_groups(args.groups)
 
     import tempfile
     project_path = Path(args.project_path).resolve() if args.project_path else Path(tempfile.gettempdir()) / f"automation_llm_route_{int(time.time())}.vit"
@@ -1286,6 +1343,7 @@ def main() -> None:
         "project_path": str(project_path),
         "llm_participation": "real (user engine config; every classified round below is a real billed LLM turn unless marked lexicon_hit)",
         "started_at": datetime.now(timezone.utc).isoformat(),
+        "groups_requested": selected_groups,
         "groups": {},
         "rounds": [],
     }
@@ -1363,7 +1421,7 @@ def main() -> None:
         chat_context = {"agent_mode": "chat", "selected_track_id": ride_track_id}
         stop_loss_hit: Optional[Dict[str, Any]] = None
 
-        for group in (1, 2, 3):
+        for group in selected_groups:
             phrase = GROUP_PHRASES[group]
             group_rounds: List[Dict[str, Any]] = []
             consecutive_same_failure: Dict[str, int] = {}
@@ -1461,8 +1519,8 @@ def main() -> None:
             summary["groups"][f"group_{group}"] = group_result
             print(f"[group {group}] {json.dumps(group_result, ensure_ascii=False)[:400]}")
             if exit_code == 3:
-                for remaining in (group + 1, group + 2):
-                    if remaining in (1, 2, 3):
+                for remaining in selected_groups:
+                    if remaining > group:
                         summary["groups"][f"group_{remaining}"] = {
                             "phrase": GROUP_PHRASES[remaining], "skipped": "env_interrupt_in_earlier_group",
                         }
@@ -1470,8 +1528,8 @@ def main() -> None:
             if group_aborted or lexicon_overflow:
                 # stop-loss/overflow ends this group only; remaining groups are
                 # not run (card: stop, fold the failure type, spend no rounds)
-                for remaining in (group + 1, group + 2):
-                    if remaining in (1, 2, 3):
+                for remaining in selected_groups:
+                    if remaining > group:
                         summary["groups"][f"group_{remaining}"] = {
                             "phrase": GROUP_PHRASES[remaining], "skipped": "stop_loss_in_earlier_group",
                         }

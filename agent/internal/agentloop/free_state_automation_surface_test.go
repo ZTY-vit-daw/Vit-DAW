@@ -226,10 +226,15 @@ func TestNeutralFamilyDisplayCarriesAutomationSurface(t *testing.T) {
 	for _, marker := range []string{
 		"plugin.get_parameters:", "automation.get_curve:", "automation.set_points:", "automation.clear_region:",
 		"governance gate", "value range", "readback",
+		// 243 写入触发权锚：目录行同因果正序。
+		"make the call directly", "never forms a confirmation card",
 	} {
 		if !strings.Contains(catalog, marker) {
 			t.Fatalf("catalog missing %q:\n%s", marker, catalog)
 		}
+	}
+	if strings.Contains(catalog, "before any write") {
+		t.Fatal("catalog rows must not carry the causality-inverted \"before any write\" clause (243 wording fix)")
 	}
 }
 
@@ -240,13 +245,18 @@ func TestSkeletonMutationRuleCarriesGovernanceGateSemantics(t *testing.T) {
 	skeleton := messageLoopNeutralFamilySystemSkeleton(state)
 	for _, marker := range []string{
 		"The automation surface is admitted in this phase",
-		"always pass the runtime governance gate",
+		// 243 写入触发权锚：因果正序——直接调用，运行时门自动拦成确认卡。
+		"make the call directly and the runtime governance gate pauses it into a user confirmation card automatically",
+		"a plain-text request for confirmation never forms a confirmation card",
 		"at most one such mutation per turn",
 		"Do not call any other mutation, plug-in loading, or typed control tool in this phase",
 	} {
 		if !strings.Contains(skeleton, marker) {
 			t.Fatalf("skeleton missing %q", marker)
 		}
+	}
+	if strings.Contains(skeleton, "before any write") {
+		t.Fatal("the causality-inverted \"before any write\" clause must be gone from the skeleton (243 wording fix)")
 	}
 	if strings.Contains(skeleton, "Do not call any mutation, plug-in loading, or typed control tool in this phase.") {
 		t.Fatal("the blanket mutation prohibition must be gone from the skeleton")
@@ -256,11 +266,14 @@ func TestSkeletonMutationRuleCarriesGovernanceGateSemantics(t *testing.T) {
 	// 语义同在）。
 	for _, marker := range []string{
 		"The automation surface is admitted in this phase",
-		"always pass the runtime governance gate",
+		"make the call directly and the runtime governance gate pauses it into a user confirmation card automatically",
 	} {
 		if !strings.Contains(legacyNeutralFamilySkeletonTemplate, marker) {
 			t.Fatalf("legacy template missing %q", marker)
 		}
+	}
+	if strings.Contains(legacyNeutralFamilySkeletonTemplate, "before any write") {
+		t.Fatal("the causality-inverted \"before any write\" clause must be gone from the legacy template (243 wording fix)")
 	}
 	if strings.Contains(legacyNeutralFamilySkeletonTemplate, "Do not call any mutation, plug-in loading, or typed control tool in this phase.") {
 		t.Fatal("the blanket mutation prohibition must be gone from the legacy template")
