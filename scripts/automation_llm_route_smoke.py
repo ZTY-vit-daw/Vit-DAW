@@ -220,6 +220,19 @@ TIME_VARYING_PATH_NEEDLE = "Action Path Selection (time-varying goals vs static 
 WRITE_GATE_TRIGGER_NEEDLE = "never forms a confirmation card"
 WRITE_GATE_OLD_CLAUSE_NEEDLE = "before any write"
 
+# Card 246 (M3-TERMINAL-ROUTE-WORDING-1): the terminal-turn three-choice
+# sentence (direct automation.set_points mutation call as the third legal
+# shape; 244 forensics §2.2 #1 pinned the two-choice lock) and the
+# time-varying exemption clause riding the target-level evidence rule line
+# (§2.2 #3 head-on collision with the v2 action-path teaching). Same-source
+# sync with the Go lock tests (TestTerminalTurnSentenceCarriesDirectCallShape
+# / TestConvergenceGuidanceCarriesTimeVaryingExemption); the payload scan
+# counts rows whose request carries each new sentence and rows still carrying
+# the replaced two-choice exact shape (must be zero) — measurement only.
+TERMINAL_DIRECT_CALL_NEEDLE = "a direct automation.set_points mutation call when every write element"
+TIME_VARYING_EXEMPTION_NEEDLE = "a time-varying goal is exempt from it"
+TERMINAL_OLD_TWOCHOICE_NEEDLE = "a bounded improvement proposal, or an explicit terminal statement"
+
 # 218-verified vocabulary phrase used only by the choreo-pending legs.
 CHOREO_ARM_PHRASE = "0 到 30 秒，让这条轨的存在感慢慢强起来"
 
@@ -1139,6 +1152,14 @@ def scan_payload_guidance(payload_capture_path: Optional[Path]) -> Dict[str, Any
         "trigger_needle": WRITE_GATE_TRIGGER_NEEDLE,
         "rows_with_trigger_clarification": 0,
         "rows_with_old_clause": 0,
+        # card 246 measurement extension: the terminal three-choice direct-
+        # call shape and the time-varying exemption must reach the request
+        # messages; the replaced two-choice exact shape must be gone.
+        "terminal_direct_call_needle": TERMINAL_DIRECT_CALL_NEEDLE,
+        "time_varying_exemption_needle": TIME_VARYING_EXEMPTION_NEEDLE,
+        "rows_with_terminal_direct_call": 0,
+        "rows_with_time_varying_exemption": 0,
+        "rows_with_terminal_twochoice": 0,
     }
     if not payload_capture_path or not payload_capture_path.exists():
         return result
@@ -1165,6 +1186,12 @@ def scan_payload_guidance(payload_capture_path: Optional[Path]) -> Dict[str, Any
             result["rows_with_trigger_clarification"] += 1
         if any(WRITE_GATE_OLD_CLAUSE_NEEDLE in c for c in contents):
             result["rows_with_old_clause"] += 1
+        if any(TERMINAL_DIRECT_CALL_NEEDLE in c for c in contents):
+            result["rows_with_terminal_direct_call"] += 1
+        if any(TIME_VARYING_EXEMPTION_NEEDLE in c for c in contents):
+            result["rows_with_time_varying_exemption"] += 1
+        if any(TERMINAL_OLD_TWOCHOICE_NEEDLE in c for c in contents):
+            result["rows_with_terminal_twochoice"] += 1
     return result
 
 

@@ -788,8 +788,13 @@ const FreeStateTerminalGateRejectedStopReason = "free_state_terminal_turn_gate_r
 
 // freeStateTerminalTurnSentence is the frozen final-turn directive
 // (BOUNDARY-1 §2.3c). Closed template: no domain, track, plugin, dosage, or
-// view content; pinned by test.
-const freeStateTerminalTurnSentence = "This is the final turn: return a final decision now — a bounded improvement proposal, or an explicit terminal statement of where you are blocked."
+// view content; pinned by test. 246 (M3-TERMINAL-ROUTE-WORDING-1) added the
+// third legal shape between the historical two: a direct automation.set_points
+// mutation call when every write element is already in hand — 244 forensics
+// §2.2 #1 pinned the terminal two-choice locking the final turn into
+// proposal-or-blocked with no direct-call exit for time-varying goals; the
+// wording mirrors the v2 write-gate trigger semantics (243) same-source.
+const freeStateTerminalTurnSentence = "This is the final turn: return a final decision now — a bounded improvement proposal, a direct automation.set_points mutation call when every write element (target track, parameter, in-range values, time range) is already in hand (the runtime governance gate pauses it into a user confirmation card automatically), or an explicit terminal statement of where you are blocked."
 
 // freeStateTerminalTurnRetryDirective is the frozen strengthened retry
 // sentence fed back on the first rejected terminal turn (BOUNDARY-1 §1.3).

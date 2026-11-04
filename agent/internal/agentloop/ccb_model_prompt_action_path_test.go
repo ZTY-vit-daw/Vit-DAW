@@ -109,10 +109,14 @@ func TestTimeVaryingActionPathGuidanceVersionLock(t *testing.T) {
 		"do not pre-ask in text",
 		// 与提案面的关系
 		"static action_domain proposal is the wrong instrument",
+		// 246 v3：时变形态示例（直调轮+读回终态轮）与确认语义桥接句。
+		`"tool":"automation.set_points"`,
+		`{"final":true,"reply":"short readback note","free_state":{"schema_version":"free_state_decision.v1","status":"satisfied","evidence_status":"sufficient","summary":"envelope written and read back"}}`,
+		"The confirmation card that the runtime gate raises for the direct call is itself where the time range and point values get checked",
 	}
 	for _, anchor := range requiredAnchors {
 		if !strings.Contains(guidance, anchor) {
-			t.Fatalf("time-varying action path guidance v2 anchor drift: missing %q (bump the version and re-sync the anchor set + smoke needle)", anchor)
+			t.Fatalf("time-varying action path guidance v3 anchor drift: missing %q (bump the version and re-sync the anchor set + smoke needle)", anchor)
 		}
 	}
 	// 243 v2 负断言：因果倒置旧句已替换（"passes the gate ... before any write"

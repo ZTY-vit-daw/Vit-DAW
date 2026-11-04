@@ -1,0 +1,21 @@
+{
+  "rows": 33,
+  "rows_with_terminal_turn_directive": 0,
+  "needle_hits": {
+    "terminal_three_choice": 0,
+    "time_varying_exemption": 28,
+    "shape_example_set_points": 28,
+    "shape_example_readback": 28,
+    "confirmation_bridge": 28,
+    "v3_title": 28
+  },
+  "old_twochoice_rows": 0,
+  "telemetry": {
+    "calls": 33,
+    "input_tokens": 474640,
+    "output_tokens": 46955,
+    "models": {
+      "deepseek-flash": 33
+    }
+  }
+}

@@ -117,17 +117,30 @@ func messageLoopNeutralFamilySystemSkeleton(state *runState) string {
 // first, then call" (242 forensics: full write elements held, yet the turn
 // stalled in plain-text confirmation asking with needs_confirmation=false).
 // v2 states the trigger right: call directly; the runtime gate pauses the
-// call into a card automatically; plain text never forms a card. Wording
-// changes require bumping freeStateTimeVaryingActionPathVersion and the
-// lock-test anchor set in ccb_model_prompt_action_path_test.go, plus the
+// call into a card automatically; plain text never forms a card.
+// v2 → v3 (246 M3-TERMINAL-ROUTE-WORDING-1): 244 forensics §2.2 #6 pinned
+// the shape-example adjacency defect — the only final:true example anywhere
+// near this teaching was the static-domain improvement_proposal, and shape
+// examples constrain output shape harder than prose; v3 adds the
+// time-varying shape example (direct-call turn + readback terminal turn,
+// matching the executable governance chain: normalizeMessageLoopOutput drops
+// tool_calls on a final:true turn, so the direct call itself is a
+// final:false tool-call turn like free_state_automation_surface_test.go
+// pins) and the confirmation-semantics bridge sentence (§2.3 #3: the two
+// confirmation worlds sat adjacent with no bridge, and the plain-text
+// pre-question was a semantics leak from the proposal world's gate).
+// Wording changes require bumping freeStateTimeVaryingActionPathVersion and
+// the lock-test anchor set in ccb_model_prompt_action_path_test.go, plus the
 // smoke-side needle in scripts/automation_llm_route_smoke.py (same-source
 // sync).
-const freeStateTimeVaryingActionPathVersion = "neutral-family-time-varying-action-path:v2"
+const freeStateTimeVaryingActionPathVersion = "neutral-family-time-varying-action-path:v3"
 
 func freeStateTimeVaryingActionPathGuidance() string {
 	return `Action Path Selection (time-varying goals vs static adjustments):
 - Decide the action path from the shape of the listening goal itself. A goal that one fixed parameter change would satisfy (raise or lower a level by an amount, move one eq band, shift one threshold) is a static adjustment: use needs_experiment with one improvement_proposal from the admitted static domains. A goal that asks a parameter to change gradually across a time range — riding a parameter up or down over time, fading in or out, becoming more or less prominent as the track plays — is time-varying: no single fixed value expresses it, so a static action_domain proposal is the wrong instrument for it.
 - For a time-varying goal, use the admitted automation tool chain on the decision turn: first observe to locate the target track and the parameter surface; then read the parameter value range with plugin.get_parameters; then call automation.set_points with points [{t seconds >= 0, v inside that range}] describing the envelope across the time range — make the mutation call directly once you hold every write element (target track, parameter, in-range values, time range); the runtime governance gate pauses the call into a user confirmation card automatically (or executes it directly under an explicit full-access grant); a plain-text request for confirmation never forms a confirmation card, so do not pre-ask in text; after the write, read back with automation.get_curve.
+- Shape example for the direct-call path (the envelope write is a tool-call turn, not a proposal): {"final":false,"reply":"short envelope write note","free_state":{"schema_version":"free_state_decision.v1","status":"needs_observation","evidence_status":"insufficient","summary":"parameter range already read; write the envelope now"},"tool_calls":[{"tool":"automation.set_points","args":{"plugin_id":"<plugin id resolved from plugin.get_parameters>","param_id":"<parameter id>","points":[{"t":0,"v":<value inside the read range>},{"t":<seconds>, "v":<value inside the read range>}]},"reason":"<why this envelope writes the goal>"}]} — after the confirmed write, the terminal decision reads the curve back: {"final":true,"reply":"short readback note","free_state":{"schema_version":"free_state_decision.v1","status":"satisfied","evidence_status":"sufficient","summary":"envelope written and read back"}}.
+- The confirmation card that the runtime gate raises for the direct call is itself where the time range and point values get checked: it carries the exact plugin_id, param_id, and points you sent, and the user confirms or adjusts them inside that card. That card is the authorization for a time-varying write — a plain-text pre-question in your reply is never part of that gate and never forms a card, so do not pre-ask in text.
 - The discrimination is semantic, not phrase matching: judge from the goal's time shape, never from specific user wording.`
 }
 
@@ -642,6 +655,10 @@ func messageLoopFreeStatePositiveInt(raw any) int {
 // and cross-dimension touring inside the budget is legal — no named fast-path
 // view sequence and no anti-breadth prohibition. Steering only: no validator,
 // gate, or runtime criterion reads it.
+// 246 (M3-TERMINAL-ROUTE-WORDING-1): the target-level evidence rule sentence
+// carries the time-varying exemption clause — 244 forensics §2.2 #3 pinned it
+// head-on colliding with the v2 action-path teaching (two workflow-level
+// instructions giving opposite terminal actions for a time-varying goal).
 func freeStateImprovementConvergenceGuidance() string {
 	return `Continuation Budget and Fair Observation Selection for Open Improvement Contracts:
 
@@ -649,7 +666,7 @@ func freeStateImprovementConvergenceGuidance() string {
 - A needs_experiment proposal is admissible in every closure phase: admission is decided only by the G1-G8 evidence gate (project binding, capacity, project scan, a closed dimension, the candidate frontier, target-level evidence, fresh revision-bound citations, target consistency). A proposal whose evidence does not satisfy the gate is returned a machine-readable gap and consumes no closure checkpoint. Do not rush the proposal; rush the GATE PATH instead.
 - Make catalog discovery your first observation step: call ccb.observation_catalog before your first ccb.observation_request, and choose view dimensions yourself from the returned catalog and the material at hand — visible track identities and names, the user's listening goal, and any disclosed still-unobserved diagnostic dimensions. There is no default view sequence and no privileged dimension.
 - Choose dimensions by evidence, not by habit: visiting more than one diagnostic dimension within the budget is legal and is often necessary, because a single-dimension reading cannot show whether the audible problem lives elsewhere. What wastes the budget is re-requesting views that already returned, or observing after the target-level evidence you need is already in hand.
-- The gate path itself, whatever views you choose: a candidate frontier is built from observation facts that disclose track-level candidates, and a target is confirmed by a target-level track.* observation of one concrete candidate track. Once the target-level evidence for your chosen candidate is in hand, return final=true needs_experiment with one bounded improvement_proposal.v1 citing it.
+- The gate path itself, whatever views you choose: a candidate frontier is built from observation facts that disclose track-level candidates, and a target is confirmed by a target-level track.* observation of one concrete candidate track. Once the target-level evidence for your chosen candidate is in hand, return final=true needs_experiment with one bounded improvement_proposal.v1 citing it. This proposal workflow serves static adjustments only; a time-varying goal is exempt from it (2026-11-04 vocabulary ruling: time-varying goals never enter the admitted proposal domains) — for a time-varying goal take the direct automation path instead: hold every write element, call automation.set_points directly, and never wrap a time-varying envelope in an improvement_proposal.
 - Plausible, reversible, and evidence-cited is enough for the proposal; proof of an objective defect is NOT required.
 
 `
