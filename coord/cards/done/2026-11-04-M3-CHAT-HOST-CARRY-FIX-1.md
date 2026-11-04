@@ -54,4 +54,6 @@
 
 ## 验收
 
-- （主管回填）
+- **pass（实现合入 b9e14639）**；裁定=[2026-11-04-M3-CHAT-HOST-CARRY-FIX-1-pass.md](../../rulings/2026-11-04-M3-CHAT-HOST-CARRY-FIX-1-pass.md)。
+- 亲核：面一 diff 亲读（字段+四 helper 语义沿用写侧）/chat 包亲跑 ok 122.1s/needle 亲证（终局轮定位法：r1 conv 行 31+r2 行 35 披露全在场，244 丢弃形态真栈消失；r3 零 get_parameters=无源可携正确语义）/T1a 三轮全字段/T1b 证据等级注（代码面+单测+回执引用，原始 agent log 未入库记工件卫生小瑕疵）。
+- 计费双口径入册（¥1.74 in+out / ¥2.53 含 cache 上界）；附带观察（r2 recordGoalResult 缺席+durable=cancelled）裁挂账：绿→并入链收口清理卡，红→并入下次取证包。
