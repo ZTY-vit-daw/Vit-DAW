@@ -3,6 +3,9 @@
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 
 
+- 2026-11-04 22:27 +0800 占用中 / **M3-AUTOMATION-GUARD-ADMIT-1(247) 真栈腿——占用登记（owner=ZCode GLM-5.3 PC 执行会话，247 卡会话）：被测 worktree D:/Vit_DAW_wt_247impl @ port/m3-automation-guard-admit-1（基线 064b7dd7=247 发卡提交，实现 commit 0089b558 唯一 diff=guard+新测试两文件，被测 agent=worktree 构建）；场景=dev_agent_smoke.ps1 -StartKernel -RestartAgent -AutomationLLMRouteSmoke -LlmRouteGroups 1 + deepseek-flash 引擎注入（-LlmModelOverride，先例=238/240/241/242/243/245/246）+载荷捕获全开（needle=终局三选句/时变豁免句在场+旧二选句计数=0）；kernel=wt_228 VitApp.exe SHA256 前缀 f9e3da0a 同款只读复用（22:26 哈希亲核一致）；端口面 5555/5556/7878/8787。登记前 fetch 重读 main=550ac711（无新占用）+进程/端口亲核全零（PROCS=0+TCP 六口=0+UDP=0，22:26:32）；预计单组单 run（判定成功=组 1 绿 no_route 消失+tool_chain_ok，或新断点取证包上交；终局三选句真栈检验搭车）**
+
+
 - 2026-11-04 21:49–22:04 +0800 释放 / **M3-TERMINAL-ROUTE-WORDING-1(246) 真栈腿——收口：wordingrun1 单 run（HEAD=40cdd189，被测 agent=AFDE0E71+kernel F9E3DA0A 只读复用），ps1 exit 0+场景腿 COMPLETED（-Groups 1）；判定=**组 1 未绿（no_route×3）+新断点取证包成立（卡面判定二选一之后者，按停止条件上交不重跑不自修）**：v3 措辞模型面效果完全达成——载荷五 needle 28/33 在场+旧二选句 0 命中+行为转变亲证（245 同栈基线零直调→本轮三轮一致直调，agent log 7 次 automation.set_points confirmed=false 行 226/260/289/347/354/408/420，ms=0-13=被 executor guard 短路）；**断点根因（红线区）=chat 宿主 executor 包装层既有 guard**（goalrunner_chat.go:855-863 每工具先过 freeStateInvokeMutationReason+free_state_invoke_guard.go:26-29 active free-state 期间 MutatesProject 工具全拒）——与 agentloop 治理链设计（决策轮直调→needs_confirmation 卡）正面冲突，235-245 零直调从未显形，v3 首次走到直调暴露；修复须新卡（guard automation 面白名单属准入/治理域）；终局三选句真栈未达检验（三轮直调被拒即 failed 无终局轮）如实记录；附带观察=轮内提案 G6/G8 被拒后转直调（豁免句方向转变轮内可见）；计费 33 调用 in 474K/out 47K≈¥0.85 预算内；拆栈 TEARDOWN_ALL_ZERO 亲核 22:04:51（PROCS=0+TCP 六口=0+UDP=0，owner 手拆 VitAgent 44028/VitApp 26276）；工件 coord/runs/M3-TERMINAL-ROUTE-WORDING-1/wordingrun1/（RECEIPT.md 判读+agent_last.log 入库=245 裁定要求，随 port/m3-terminal-route-wording-1 入库 67f923a2；payload_capture 2.1M+prompt_render 1.2M 留 worktree，clip.wav 已删）**
 
 
