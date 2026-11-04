@@ -41,7 +41,10 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-04；origin/main=d24878af（含 754db257 ✓）；owner=GLM-5.3 PC 执行会话（ZCode，用户当面派卡确认）
+- 分支 port/m3-write-gate-trigger-clarify-1；worktree D:\Vit_DAW_wt_243impl；领取 worktree D:\Vit_DAW_wt_243claim（coord/243-claim）
+- 领取基线：HEAD=d24878af；status=clean（新检出 worktree）；diff --stat=空
+- 真栈占用：实现完成后按 §2.2 登记（见回执）
 
 ## 回执
 
