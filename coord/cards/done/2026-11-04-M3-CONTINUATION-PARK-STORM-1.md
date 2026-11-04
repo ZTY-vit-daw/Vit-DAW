@@ -50,7 +50,16 @@ park 循环与 settle 记账所在 chat/agentruntime 包文件（执行侧勘察
 
 ## 回执
 
-- （执行侧回填）
+- **实现 commit a44dafa0** @ port/m3-continuation-park-storm-1（worktree D:/Vit_DAW_wt_248impl，分支已推送 origin；唯一 diff=chat 四文件 +252/-6：continuation_scheduler.go+server.go+goalrunner_chat.go+continuation_scheduler_test.go）。
+- **目标 1 park 空转修复 ✓**：①idle backoff=2s（continuationSchedulerIdleBackoff）只门控重型扫描（跨进程文件锁+全量 runtime reload+s.mu 整树恢复——风暴实质成本），workspace 恢复保持 tick 节奏（发现延迟不回退）；**租约在退避窗口内到期保 ticker 热态**（continuationIdleBackoffEligibleLocked，crashed-worker 回收延迟钉测试）；②park 日志签名节流=5s 间隔+签名变更立即打（logContinuationPark，镜像 stall 节流形态）；③claim 路径零退避——wake 绕过 deferral 即时 drive；参数依据入码注释（wake 全覆盖/lease 粒度/对齐 workspaceRecoveryInterval 2s 先例）。
+- **目标 2 wake 自激判定=不存在（勘察结论，零代码）**：风暴窗口（guardrun1 r3）两份日志 `continuation.wake`=**0 条**，风暴=纯 250ms ticker 稳定 4 条/s×181s+（729 条）；wake 生产调用点全 5 处均事件驱动一次性（Start/invocation release/workspace activate/goalrunner settle-arm×2），drive→claim 失败→无状态变化→无 wake 回路。卡面「≈6 条/s」系估算，实测 4 条/s。
+- **listener 拒绝面判定 ✓**：三轮真栈 7878 轮询面零拒绝（247 python 10061 fail-fast 形态未复现）；agent 日志全部拒绝=8787 vsphub（不在栈内既有 WARN 形态，264/143/442 次）——与风暴无关；风暴期轮询拒绝与 park 循环同期耦合成立（修复后三轮不复现）。
+- **目标 3 245 挂账勘察 ✓（observability 顺手修，跨域只交锚点）**：recordGoalResult 全仓唯一调用点=chatResponseFromAgentLoopResult(goalrunner_chat.go:2570)，GoalID 空**静默早退** :3271；goal=completed 写点=settleGoalAfterContinuationEnd→turn_close_guard.go:105；durable=cancelled 无痕写入者头号候选=**clearGoalContinuation**（goalrunner_chat.go:4094，零日志零 goal 状态写，5 调用方：turn_control.go:297 finalizeStoppedTurn/server.go:2767 mix-revised/goalrunner_chat.go:2971 plan-reject/clip_fade_gain_guard.go:47/audio_closure_controller.go:1754-1756）——已顺手修 observability=取消时补 `[continuation.clear]` 日志+计数（语义零改）；精确写入者定案需 245 形态复现轮时间序列（三轮真栈该形态未复现，[continuation.clear] 零触发）；次候选=armOwedSettlementCheckpointLocked/armFreeStateRecalibrationContinuation 的 displaced_by_* cancel（有 pending_interaction 标记可查）。
+- **单测 ✓**：新测试×2（TestParkLogThrottlesIdenticalSignatureAndLogsChange+TestSchedulerIdleBackoffDefersIdleScanAndWakeKeepsClaimImmediate）绿；**chat 包全量 ok 117.933s exit 0**；§6 健康五条全绿（history 1.182s/harness 0.388s/capabilitycontext 0.494s/mom 0.449s/chat 全量）。诚实记录：首轮全量红 TestStartupScanWaitsForLiveLeaseThenReclaims（2.00s 超时）——根因=初版 eligible 判据把「租约 100ms 内到期」误降频，修复为窗口内到期保 tick 热态后 PASS 0.25s（非原样重跑，判据缺陷修正）。
+- **真栈腿 ✓（3/3 ps1 exit-0 稳定 run，链收口前置件形式达成）**：parkrun1/2/3 全新栈三轮（占用 5fff9ede；每 run 零态复核 ≤60s；TEARDOWN_ALL_ZERO 亲核 00:43）。verdicts=tool_chain_ok **5/5+5/5+3/5**（run3 r4/r5 no_route×2 如实分列——旧形态模型行为残差非风暴非链路缺陷，是否影响组 1 绿口径交主管裁定，未重跑未追绿）；**park 零风暴三轮全程**（0.15 条/s 节流形态 vs 风暴 4 条/s×181s，无连续高频 park 行）；**choreo answerable 恢复腿 3/3**（确认卡→恢复→set_points 写达内核+读回=answerable 及时恢复红线真栈检验）；三轮 agent 日志 [continuation.clear] 零触发（245 形态未复现）。详见 coord/runs/M3-CONTINUATION-PARK-STORM-1/RECEIPT.md（工件随 port/m3-continuation-park-storm-1 入库）。
+- **计费披露（§8）**：364 调用 in 5.70M/out 445K≈**¥9.26 上界**（in ¥1/M+out ¥8/M，flash 实际更低）——**超卡面 ≈¥1.5-2.5 预算线如实披露**：组 1 场景设计=5 样本/run（247 的 3 轮系 r3 中断截断非场景全形）+run3 no_route 轮长链（178 调用）；卡面「单轮 ≈¥0.4」对应 3 样本短链形态。
+- **端测覆盖边界声明**：本卡改动面=agent chat 包 scheduler 循环/节流/记账日志，**webui 零改动**（无渲染面/用户旅程改动，E2E-WEBUI-1/JOURNEY-1 层级不涉）；验收=chat 包单测+真实栈三 run（HTTP/ZMQ 接口面+agent 日志面断言，脚本 exit 0 门槛）。
+- 工件分支=port/m3-continuation-park-storm-1（实现 a44dafa0+工件 commit）；payload/prompt_render 留 worktree；ps1 console 仅尾段存档（捕获缺陷如实记录）。
 
 ## 验收
 
