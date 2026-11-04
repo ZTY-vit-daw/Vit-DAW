@@ -56,4 +56,6 @@
 
 ## 验收
 
-- （主管回填）
+- **pass（实现合入 7b06c019）+链首绿成立**；裁定=[2026-11-04-M3-AUTOMATION-GUARD-ADMIT-1-pass.md](../../rulings/2026-11-04-M3-AUTOMATION-GUARD-ADMIT-1-pass.md)。
+- 亲核：guard diff 亲读/r1 治理链载荷亲证（确认卡→确认后 0→4 点写达内核+零裸写）/r2 读回/needle 三选句 4/4/r3 风暴证据（729 park+10061+直调亲证）/计费 ¥1.71。
+- 口径裁定：有效轮 2/2 判据达成=链首绿；r3 主管再分类为 agent 子系统缺陷（非纯环境）开卡 248；ps1 exit 1≠全组 exit-0，链收口前补 3/3 稳定 run；r1 终局 unparseable=246 同型 T2 观察挂账。
