@@ -60,4 +60,7 @@
 
 ## 验收
 
-- （主管回填）
+- **pass（实现合入 139fa254）**；裁定=[2026-11-04-M3-TERMINAL-ROUTE-WORDING-1-pass.md](../../rulings/2026-11-04-M3-TERMINAL-ROUTE-WORDING-1-pass.md)。
+- 亲核：措辞亲读+agentloop 亲跑 ok/needle 四项 28/33+旧句 0/7 次直调 agent log 逐行证/guard 拒绝轮工件 10 次逐字/三承重代码锚点（guard:26-29+goalrunner:855+final 清空 tool_calls）/计费 ¥0.85 数学吻合/agent log 入库落实。
+- 形态偏差（项二）裁可：final:true 清空 tool_calls 代码亲证，合法链形态保意图，§11 标准执行入正面案例；终局三选句真栈检验挂 247 搭车。
+- 新断点转 247：guard 对 automation surface 已准入 mutation 工具放行至治理门（确认卡仍唯一授权点，G7/G8 不动）。
