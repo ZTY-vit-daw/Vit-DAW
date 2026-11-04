@@ -61,4 +61,7 @@
 
 ## 验收
 
-- （主管回填）
+- **pass（报告合入 319e3444）**。主管亲核五承重锚点全属实：struct 无 AutomationSurfaces（全文件 grep 零命中）/fromAny:3401 Marshal→typed Unmarshal 标准丢弃/recordWrite loop["automation_surfaces"]/goalrunner:194-204 吞回执文本与载荷逐字/runner:589 单槽覆写；TERMINAL TURN 渲染格式与载荷亲合。
+- 假说修正入册：主管裁定修正②「上下文驱逐」机制层定案为 **chat 宿主 run 边界 typed round-trip 键丢失**（相位触发），compaction 字节机器独立未触发——报告以载荷+代码双证修正主管假说细节、证实方向，勘察卡价值兑现。
+- 零实现面/零 LLM 调用/未定位如实标注 ✓；载荷坐标口径（168 条分组+r2 通道=单槽非 ledger）与主管独立判读吻合。
+- 产出转卡：245=面一 T1+面三 T1（chat 侧确定性双修复）；246=面二措辞四项（含设计裁决：主管裁定时变维持直调正道不入提案词表，依据 2026-10-31 vocabulary-full-retirement 裁定+automation 工具链设立初衷，用户可推翻）。
