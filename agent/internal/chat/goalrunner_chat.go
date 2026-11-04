@@ -4093,6 +4093,7 @@ func (s *Server) clearGoalContinuation(goalID string) {
 	goalID = strings.TrimSpace(goalID)
 	delete(s.goalContinuations, goalID)
 	now := time.Now().UTC()
+	cancelled := 0
 	for continuationID, item := range s.durableContinuations {
 		if item.GoalID != goalID || item.Status == ContinuationCompleted || item.Status == ContinuationCancelled || item.Status == ContinuationFailed {
 			continue
@@ -4102,8 +4103,18 @@ func (s *Server) clearGoalContinuation(goalID string) {
 		item.LeaseExpiresAt = time.Time{}
 		item.UpdatedAt = now
 		s.durableContinuations[continuationID] = cloneDurableContinuation(item)
+		cancelled++
 	}
 	s.mu.Unlock()
+	// PARK-STORM-1 (245 挂账勘察): this is the only durable-cancel writer that
+	// left no trace at all — no goal-status write, no log line — which is why
+	// the carryrun1 r2 "durable=cancelled beside goal=completed" accounting
+	// contradiction had no candidate among the logged paths. Name the
+	// cancellation (count) so the next occurrence is attributable in the
+	// time-sequenced log; semantics untouched.
+	if cancelled > 0 && s.logger != nil {
+		s.logger.Info("[continuation.clear] cancelled non-terminal durable records goal=%s records=%d", goalID, cancelled)
+	}
 	s.persistCurrentProjectWorkspace()
 }
 

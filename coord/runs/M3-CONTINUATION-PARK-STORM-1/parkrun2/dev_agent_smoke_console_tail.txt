@@ -1,0 +1,30 @@
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=completed message=已执行片段清理：1038 已删除 3 个静音区域。
+ok: Strip Silence chat confirmation executed apply
+strip.chat.cleanup status=ok ids=1038
+
+== automation LLM route verification (M3-C4-AUTO-LLM-ROUTE-VERIFY-1)
+ok: automation LLM route project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun2\default_project.xml
+ok: automation LLM route group filter: -Groups 1
+[setup] ride track 1010 volume plugin 1011 (no external plugin, card group-2 premise)
+[setup] deterministic clips on both tracks (evidence: {'1007': 1, '1010': 1}, observation ready after 1 attempt(s), acoustic excerpt=['partial', 'partial'])
+[group 1] {"phrase": "杩欐璁╁畠瓒婃潵瓒婄獊鍑轰竴鐐?, "llm_samples": 5, "verdicts": ["tool_chain_ok", "tool_chain_ok", "tool_chain_ok", "tool_chain_ok", "tool_chain_ok"], "successes": 5, "group_pass": true, "stop_loss": null, "lexicon_overflow": false, "choreo_pending_leg": {"verdict": "pending_intact", "group": 1}}
+[DONE] status=COMPLETED exit=0
+ok: automation LLM route verification executed to completion (model-behavior findings in summary: D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun2\automation_llm_route_summary.json)
+
+== Chat route smoke
+chat.stop_reason=improvement_proposal_confirmation_required
+chat.reply=我先看了 Track 1 的频段能量分布：低频和中频占了绝大部分能量，而 2–6 kHz 的存在感和 6 kHz 以上的空气感几乎垫底，整体偏暗、靠后。据此先做一个幅度很小、可回退的高频存在感提升实验，然后在 DAW 里直接 A/B 对比。
+
+如果你认可这个小步建议，需要我继续执行吗？
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Summary
+ok: dev agent smoke completed

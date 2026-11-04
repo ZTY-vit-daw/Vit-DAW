@@ -113,6 +113,10 @@ type Server struct {
 	continuationStallLogMu             sync.Mutex
 	continuationStallLogAt             time.Time
 	continuationStallLogReason         string
+	continuationParkLogMu              sync.Mutex
+	continuationParkLogAt              time.Time
+	continuationParkLogSignature       string
+	idleScanNotBefore                  time.Time
 	lastWorkspaceRecoveryAttempt       time.Time
 	conversationGoals                  map[string]string
 	conversationMemory                 map[string]agentloop.ExecutionMemory
