@@ -50,6 +50,38 @@ func durableContinuationInvocationID(ctx context.Context) string {
 // every 250 ms tick and bury the slice logs it is meant to sit beside.
 const continuationStallLogInterval = 5 * time.Second
 
+// logContinuationPark reports, rate limited per state signature, the intended
+// "answerable park holds the chain" form. PARK-STORM-1 (2026-11-04 real stack,
+// guardrun1 r3): an answerable park is stable by definition, so the unthrottled
+// line repeated 4×/second for ~4.5 minutes (729 lines) and turned every tick
+// into log I/O on top of the unbacked-off scan below.
+const continuationParkLogInterval = 5 * time.Second
+
+// logContinuationPark is the throttled Info sibling of logContinuationStall:
+// same interval, same mu/state idiom, but keyed on the full park signature
+// (non_terminal/skipped_status/workspace) instead of a reason string, so a
+// state change — a second parked record, a workspace switch — surfaces
+// immediately while an identical steady state collapses to one line per
+// interval.
+func (s *Server) logContinuationPark(nonTerminal, skippedStatus int, workspace string) {
+	if s == nil || s.logger == nil {
+		return
+	}
+	now := time.Now()
+	signature := fmt.Sprintf("non_terminal=%d skipped_status=%d workspace=%s", nonTerminal, skippedStatus, workspace)
+	s.continuationParkLogMu.Lock()
+	repeated := signature == s.continuationParkLogSignature && now.Sub(s.continuationParkLogAt) < continuationParkLogInterval
+	if !repeated {
+		s.continuationParkLogSignature = signature
+		s.continuationParkLogAt = now
+	}
+	s.continuationParkLogMu.Unlock()
+	if repeated {
+		return
+	}
+	s.logger.Info("%s", "[continuation.park] answerable park holds the chain "+signature)
+}
+
 // logContinuationStall reports, rate limited per reason, that the scheduler saw
 // drivable-looking durable work and could not advance it. Before CONT-STALL-1
 // every one of these paths returned silently, which is why a 203-second dead
@@ -151,6 +183,24 @@ const (
 	continuationWorkspaceRecoveryInterval = 2 * time.Second
 	continuationWorkspaceDiscoveryTimeout = 2 * time.Second
 	continuationSchedulerShutdownWait     = 3 * time.Second
+
+	// continuationSchedulerIdleBackoff defers the scheduler's heavy scan when
+	// the previous drive found no claimable work and no lease expiring within
+	// the window (continuationIdleBackoffEligibleLocked). PARK-STORM-1
+	// (2026-11-04 guardrun1 r3 real stack): with a parked chain every 250 ms
+	// tick took the cross-process runtime-state lease, reloaded the whole
+	// runtime snapshot from disk and swapped it back in under s.mu — 4×/second
+	// for the entire park, starving the HTTP face (WinError 10061 on the poll
+	// leg). The value is 2s because (a) every in-process path that makes work
+	// claimable calls wakeContinuationScheduler, which bypasses the deferral
+	// outright, so the claim path keeps its tick latency; (b) the remaining
+	// discoverables — another process's state write — are coarse by nature, so
+	// ≤2s detection costs nothing, while leases expiring inside the window keep
+	// the ticker hot (crashed-worker takeover latency is pinned by test); (c)
+	// it matches the existing continuationWorkspaceRecoveryInterval cadence.
+	// The deferral gates only the scan: recoverContinuationWorkspace keeps its
+	// tick cadence so project discovery latency does not regress.
+	continuationSchedulerIdleBackoff = 2 * time.Second
 )
 
 // DurableContinuation is the durable envelope around agentloop.Continuation.
@@ -757,22 +807,97 @@ func (s *Server) startContinuationScheduler() {
 			defer close(done)
 			ticker := time.NewTicker(continuationSchedulerTick)
 			defer ticker.Stop()
-			drive := func() {
+			// PARK-STORM-1: an idle drive (nothing claimable) defers the next
+			// tick-driven heavy scan for continuationSchedulerIdleBackoff; a
+			// wake always drives immediately and clears the deferral, so the
+			// claim path keeps its tick latency. The cheap workspace identity
+			// check keeps running on every tick either way.
+			drive := func(wake bool) {
+				if !wake && s.idleScanDeferred() {
+					s.recoverContinuationWorkspace(s.schedulerCtx)
+					return
+				}
+				s.clearIdleScanDeferral()
 				s.recoverContinuationWorkspace(s.schedulerCtx)
 				_ = s.runContinuationSchedulerOnce(s.schedulerCtx)
+				if s.continuationIdleBackoffEligible() {
+					s.deferIdleScan()
+				}
 			}
 			for {
 				select {
 				case <-s.schedulerCtx.Done():
 					return
 				case <-ticker.C:
-					drive()
+					drive(false)
 				case <-s.schedulerWake:
-					drive()
+					drive(true)
 				}
 			}
 		}()
 	})
+}
+
+// continuationIdleBackoffEligibleLocked reports whether the scheduler may
+// defer its heavy scan: nothing claimable now, and no live lease expiring
+// within the backoff window. A lease that expires inside the window must keep
+// the ticker hot — the startup-scan reclaim path (crashed worker takeover)
+// depends on tick latency, and TestStartupScanWaitsForLiveLeaseThenReclaims
+// pins it. Answerable parks are exactly the eligible form: they never become
+// claimable by time passing, only by a wake. Caller must hold s.mu.
+func (s *Server) continuationIdleBackoffEligibleLocked(now time.Time) bool {
+	for _, item := range s.durableContinuations {
+		switch item.Status {
+		case ContinuationPending:
+			return false
+		case ContinuationClaimed, ContinuationRunning:
+			if item.LeaseExpiresAt.IsZero() || !now.Add(continuationSchedulerIdleBackoff).Before(item.LeaseExpiresAt) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// continuationIdleBackoffEligible is the lock-taking form for the scheduler
+// loop's post-drive decision.
+func (s *Server) continuationIdleBackoffEligible() bool {
+	if s == nil {
+		return false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.continuationIdleBackoffEligibleLocked(time.Now().UTC())
+}
+
+// deferIdleScan / clearIdleScanDeferral / idleScanDeferred manage the idle
+// backoff window from PARK-STORM-1. The scheduler goroutine writes; tests read
+// through the same s.mu discipline.
+func (s *Server) deferIdleScan() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	s.idleScanNotBefore = time.Now().Add(continuationSchedulerIdleBackoff)
+	s.mu.Unlock()
+}
+
+func (s *Server) clearIdleScanDeferral() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	s.idleScanNotBefore = time.Time{}
+	s.mu.Unlock()
+}
+
+func (s *Server) idleScanDeferred() bool {
+	if s == nil {
+		return false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return !s.idleScanNotBefore.IsZero() && time.Now().Before(s.idleScanNotBefore)
 }
 
 func (s *Server) recoverContinuationWorkspace(ctx context.Context) {
@@ -966,9 +1091,10 @@ func (s *Server) claimNextContinuation(now time.Time) (DurableContinuation, bool
 			s.logContinuationStall("no-claimable-record",
 				"non_terminal=%d stranded=%d skipped_status=%d skipped_live_lease=%d skipped_project=%d workspace=%s first_skip=[%s]",
 				nonTerminal, stranded, skippedStatus, skippedLease, skippedProject, firstNonEmpty(s.activeWorkspaceUUID, "<none>"), skipDetail)
-		} else if s.logger != nil {
-			s.logger.Info("[continuation.park] answerable park holds the chain non_terminal=%d skipped_status=%d workspace=%s",
-				nonTerminal, skippedStatus, firstNonEmpty(s.activeWorkspaceUUID, "<none>"))
+		} else {
+			// PARK-STORM-1: the intended answerable-park form is stable, so the
+			// report is signature-throttled instead of repeating per tick.
+			s.logContinuationPark(nonTerminal, skippedStatus, firstNonEmpty(s.activeWorkspaceUUID, "<none>"))
 		}
 	}
 	return DurableContinuation{}, false

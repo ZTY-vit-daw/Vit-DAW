@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -18,6 +19,7 @@ import (
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/llm"
+	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/planner"
 	agentruntime "vit-daw-agent/internal/runtime"
 	"vit-daw-agent/internal/shadow"
@@ -1530,5 +1532,108 @@ func TestInteractionBoundaryChatResponse(t *testing.T) {
 	}
 	if interactionBoundaryChatResponse(ChatResponse{GoalStatus: string(agentruntime.StatusWaitingContinue)}) {
 		t.Fatal("waiting_continue was misclassified as an interaction boundary")
+	}
+}
+
+// PARK-STORM-1: the intended answerable-park form is stable by definition, so
+// an identical park signature must collapse to one line per interval while a
+// signature change — a second parked record — surfaces immediately. The 2026
+// 11-04 real stack repeated the unthrottled line 4×/second for ~4.5 minutes.
+func TestParkLogThrottlesIdenticalSignatureAndLogsChange(t *testing.T) {
+	logPath := filepath.Join(t.TempDir(), "agent_last.log")
+	s := testContinuationServer()
+	s.logger = logx.New(false, logPath, 256)
+	s.activeWorkspaceUUID = "ws-park"
+	park := func(id string) DurableContinuation {
+		return DurableContinuation{
+			ContinuationID: "cont-" + id, GoalID: "goal-" + id, ConversationID: "conv-" + id,
+			Status:             ContinuationWaitingInteraction,
+			PendingInteraction: map[string]any{"interaction_id": "int-" + id, "requests": []any{map[string]any{"id": "int-" + id}}},
+			CreatedAt:          time.Now().UTC(), UpdatedAt: time.Now().UTC(),
+		}
+	}
+	s.durableContinuations["cont-a"] = park("a")
+	for i := 0; i < 10; i++ {
+		if _, ok := s.claimNextContinuation(time.Now().UTC()); ok {
+			t.Fatalf("answerable park must not be claimable (iteration %d)", i)
+		}
+	}
+	if got := countContinuationParkLines(t, logPath); got != 1 {
+		t.Fatalf("identical park state must log once: want 1, got %d", got)
+	}
+	s.durableContinuations["cont-b"] = park("b")
+	if _, ok := s.claimNextContinuation(time.Now().UTC()); ok {
+		t.Fatal("parked pair must not be claimable")
+	}
+	if got := countContinuationParkLines(t, logPath); got != 2 {
+		t.Fatalf("signature change must log immediately: want 2, got %d", got)
+	}
+	if _, ok := s.claimNextContinuation(time.Now().UTC()); ok {
+		t.Fatal("parked pair must stay unclaimable")
+	}
+	if got := countContinuationParkLines(t, logPath); got != 2 {
+		t.Fatalf("identical repeats must stay silent: want 2, got %d", got)
+	}
+}
+
+func countContinuationParkLines(t *testing.T, logPath string) int {
+	t.Helper()
+	data, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	count := 0
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.Contains(line, "[continuation.park]") {
+			count++
+		}
+	}
+	return count
+}
+
+// PARK-STORM-1: after an idle drive (an answerable park holds the chain) the
+// tick-driven heavy scan defers for continuationSchedulerIdleBackoff, but a
+// wake always drives immediately — the claim path keeps its tick latency and
+// dispatches without waiting out the backoff window.
+func TestSchedulerIdleBackoffDefersIdleScanAndWakeKeepsClaimImmediate(t *testing.T) {
+	s := testContinuationServer()
+	dispatched := make(chan DurableContinuation, 1)
+	s.continuationExecutor = func(_ context.Context, item DurableContinuation) error {
+		dispatched <- item
+		return nil
+	}
+	s.durableContinuations["cont-park"] = DurableContinuation{
+		ContinuationID: "cont-park", GoalID: "goal-park", ConversationID: "conv-park",
+		Status:             ContinuationWaitingInteraction,
+		PendingInteraction: map[string]any{"interaction_id": "int-park", "requests": []any{map[string]any{"id": "int-park"}}},
+		CreatedAt:          time.Now().UTC(), UpdatedAt: time.Now().UTC(),
+	}
+	s.startContinuationScheduler()
+	defer s.Close()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if s.idleScanDeferred() {
+			break
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	if !s.idleScanDeferred() {
+		t.Fatal("idle backoff did not engage over an answerable park")
+	}
+	s.mu.Lock()
+	s.durableContinuations["cont-live"] = DurableContinuation{
+		ContinuationID: "cont-live", GoalID: "goal-live", ConversationID: "conv-live",
+		Status:    ContinuationPending,
+		CreatedAt: time.Now().UTC(), UpdatedAt: time.Now().UTC(),
+	}
+	s.mu.Unlock()
+	s.wakeContinuationScheduler()
+	select {
+	case item := <-dispatched:
+		if item.ContinuationID != "cont-live" {
+			t.Fatalf("wake dispatched the wrong record: %+v", item)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("wake did not dispatch claimable work within the backoff window")
 	}
 }
