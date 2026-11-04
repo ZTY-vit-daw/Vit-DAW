@@ -37,7 +37,16 @@ park 循环与 settle 记账所在 chat/agentruntime 包文件（执行侧勘察
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记/**勘察定位后的文件清单**）
+- 领取时间：2026-11-04（晚窗）/ 领取基线 origin/main=d00c159d（fetch 核对卡在 todo 无 owner，doing 仅 GEN-SUNO 卡无文件域冲突）
+- owner：ZCode GLM-5.3-Flash L1 PC 执行会话（248 卡会话）/ 机器=PC / worktree=D:/Vit_DAW-coord-248 @ coord/m3-continuation-park-storm-1-claim（领取提交）；实现分支=port/m3-continuation-park-storm-1（worktree D:/Vit_DAW_wt_248impl）
+- 领取时主检出 status：既有未提交改动属其他会话/历史（M3-CHAT-AUTH-STAMP 卡面、UX-AB-AUDITION-IMPL-1 工件、webui design 草稿、VitApp Workspace 运行态）——非本卡输入，本卡零触碰；本卡全部改动仅在独立 worktree。
+- **勘察定位后的文件清单**（修复限退避/上限/记账分支类）：
+  - `agent/internal/chat/continuation_scheduler.go`——①scheduler 循环 :756-775 无可领降频（idle backoff 只门控重型扫描=文件锁+全量 reload+整树恢复，workspace 恢复 recoverContinuationWorkspace 保持 tick 节奏不降频——保发现延迟）；②park 日志 :969-971 节流（镜像 :47-73 stall 节流形态，签名变更立即打）；③wake 自激判定=**不存在**（风暴窗口 agent_last.log+full_tail `continuation.wake`=0 条，风暴=纯 ticker 稳定 4/s；wake 生产调用点全 5 处均事件驱动一次性，drive→claim 失败→无状态变化→无 wake 回路），无需去自激代码。
+  - `agent/internal/chat/server.go`——Server struct :113 邻接新增 park 日志节流状态字段（镜像 continuationStallLog* 三字段形态）。
+  - `agent/internal/chat/goalrunner_chat.go`——245 记账面 observability：`clearGoalContinuation` :4094-4108 无痕取消（零日志零 goal 状态写）补一行取消日志+计数（durable=cancelled vs goal=completed 矛盾的头号无痕写入者候选）。
+  - `agent/internal/chat/continuation_scheduler_test.go`——新增 park 节流/backoff/answerable 即时恢复测试。
+  - 仅锚点不改动（勘察上交）：recordGoalResult 全仓唯一调用点=chatResponseFromAgentLoopResult(goalrunner_chat.go:2570)，GoalID 空即静默早退 :3271；goal=completed 写点=settleGoalAfterContinuationEnd→turn_close_guard.go:105；245 形态精确写入者需复验轮时间序列日志定案（carryrun1 原始 agent log 未入库，仅 telemetry）。
+- 10061 归因（勘察结论，卡面目标 2 前置）：风暴窗口 10061 全部为 agent→vsphub:8787 出站 POST（VSP publish+hub registration），**vsphub 不在 dev_agent_smoke 栈内=既有 WARN 形态**（guardrun1 RECEIPT 亲证），与 park 循环无关；python 轮询腿 10061（agent HTTP 面）与风暴窗口重合，机制候选=每 tick 文件锁+全量 reload+mu 下整树恢复饿死 HTTP 面——修复后组 1 复验不复现即证。
 
 ## 回执
 
