@@ -30,7 +30,11 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 领取时间：2026-11-04T20:24+08:00；origin/main=2ad3346c（=依赖 244 报告合入基线 ✓）
+- 执行 owner：GLM-5.3 Flash（ZCode PC 执行会话 2026-11-04，M3-CHAT-HOST-CARRY-FIX-1 专属会话）
+- 协调 worktree：`D:\Vit_DAW_wt_245coord`（分支 `coord/245-claim`，仅卡片移动+回填）；实现 worktree：`D:\Vit_DAW_wt_245impl`（分支 `port/m3-chat-host-carry-fix-1`，从 2ad3346c 建立）
+- 领取基线核对：主工作树 `git status --short` 既存改动（VitApp/Workspace/*.xml、coord/runs/UX-AB-*、FE-GUI-* 未跟踪等）与本卡文件域（`agent/internal/chat/free_state_reasoning_loop.go`+`goalrunner_chat.go`+chat 测试）不相交 ✓；`git diff --stat` 零 chat 域条目 ✓
+- 与 246 错峰：本卡先跑真栈腿；246 待本卡释放 `coord/resources/PC-RUNTIME-STACK.md` 登记后方可登记启动
 
 ## 回执
 
