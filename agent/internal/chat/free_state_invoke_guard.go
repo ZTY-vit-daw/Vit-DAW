@@ -24,12 +24,18 @@ func freeStateInvokeMutationReason(req harness.InvokeRequest) string {
 			return "active free-state reasoning may use only read-only CCB observations; daw.invoke is forbidden"
 		}
 		if spec, ok := tools.DefaultCatalog().LookupTool(name); ok {
+			if freeStateAutomationAdmittedCommand(spec.CommandName) {
+				continue
+			}
 			if spec.MutatesProject || spec.RefreshAfter {
 				return "active free-state reasoning may use only read-only CCB observations; mutation tool " + name + " is forbidden"
 			}
 			continue
 		}
 		if spec, ok := tools.DefaultCatalog().LookupCommand(name); ok {
+			if freeStateAutomationAdmittedCommand(spec.CommandName) {
+				continue
+			}
 			if spec.MutatesProject || spec.RefreshAfter {
 				return "active free-state reasoning may use only read-only CCB observations; mutation command " + name + " is forbidden"
 			}
@@ -40,6 +46,23 @@ func freeStateInvokeMutationReason(req harness.InvokeRequest) string {
 		}
 	}
 	return ""
+}
+
+// freeStateAutomationAdmittedCommand reports the automation-surface commands
+// admitted through the free-state invoke guard (M3 automation surface
+// admission, card M3-AUTOMATION-GUARD-ADMIT-1). Admission here is not
+// execution: these commands continue into the downstream governance gates —
+// validateAutomationWrite plus the harness confirmation card
+// (spec.RequiresConfirmation) — so the confirmation card remains the single
+// authorization point. Everything else that mutates or refreshes stays
+// rejected by this guard, daw.invoke included.
+func freeStateAutomationAdmittedCommand(commandName string) bool {
+	switch commandName {
+	case "automation.set_points", "automation.clear_region":
+		return true
+	default:
+		return false
+	}
 }
 
 func invokeCommandNames(req harness.InvokeRequest) []string {
