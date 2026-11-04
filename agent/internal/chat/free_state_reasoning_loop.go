@@ -104,25 +104,39 @@ type freeStateReasoningLoop struct {
 	// no seed was needed (a carried ledger already satisfies G3) or when the
 	// observation machinery was unavailable — fail-open, the loop then starts
 	// exactly as before.
-	SeedObservation             map[string]any               `json:"seed_observation,omitempty"`
-	Cycle                       int                          `json:"cycle"`
-	MaxCycles                   int                          `json:"max_cycles"`
-	CurrentRoundID              string                       `json:"current_round_id,omitempty"`
-	CurrentPhase                string                       `json:"current_phase,omitempty"`
-	PriorityQueue               *audioclosure.PriorityQueue  `json:"priority_queue,omitempty"`
-	ContinuationBudget          int                          `json:"continuation_budget,omitempty"`
-	ContinuationUsed            int                          `json:"continuation_used,omitempty"`
-	ObservationIDs              []string                     `json:"observation_ids,omitempty"`
-	ObservationReceipts         []map[string]any             `json:"observation_receipts,omitempty"`
-	RejectedObservationRequests []map[string]any             `json:"rejected_observation_requests,omitempty"`
-	ObservationLedger           map[string]any               `json:"observation_ledger,omitempty"`
-	LatestProjectChange         map[string]any               `json:"latest_project_change,omitempty"`
-	LatestObservation           *agentloop.RecentObservation `json:"latest_observation,omitempty"`
-	Actions                     []freeStateActionRecord      `json:"actions,omitempty"`
-	LatestDecision              *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
-	Experiment                  *experiment.Turn             `json:"experiment,omitempty"`
-	D1State                     map[string]any               `json:"d1_state,omitempty"`
-	D1Receipt                   map[string]any               `json:"d1_receipt,omitempty"`
+	SeedObservation             map[string]any              `json:"seed_observation,omitempty"`
+	Cycle                       int                         `json:"cycle"`
+	MaxCycles                   int                         `json:"max_cycles"`
+	CurrentRoundID              string                      `json:"current_round_id,omitempty"`
+	CurrentPhase                string                      `json:"current_phase,omitempty"`
+	PriorityQueue               *audioclosure.PriorityQueue `json:"priority_queue,omitempty"`
+	ContinuationBudget          int                         `json:"continuation_budget,omitempty"`
+	ContinuationUsed            int                         `json:"continuation_used,omitempty"`
+	ObservationIDs              []string                    `json:"observation_ids,omitempty"`
+	ObservationReceipts         []map[string]any            `json:"observation_receipts,omitempty"`
+	RejectedObservationRequests []map[string]any            `json:"rejected_observation_requests,omitempty"`
+	// AutomationSurfaces is the M3-CHAT-HOST-CARRY-FIX-1 typed carrier for the
+	// agentloop-side pinned `automation_surfaces` rows (recordFreeStateAutomationSurface,
+	// agentloop/free_state_reasoning.go:2231-2258). Before this field existed the
+	// chat host's typed round-trip at the run boundary (freeStateLoopFromAny ->
+	// json.Unmarshal into this struct) silently dropped the top-level dynamic key,
+	// so a pinned parameter surface never survived a limit_reached -> checkpoint ->
+	// resume rebuild and the terminal turn rendered without the disclosure
+	// (2026-11-04 forensics report §1.2 step 3). With the field present the JSON
+	// round-trip in freeStateLoopFromAny / freeStateLoopMap / cloneFreeStateLoop
+	// carries the rows automatically; mergeFreeStateLoops owns the row-level
+	// merge (same fingerprint refresh, strict-forward revision expiry and FIFO
+	// bound as the agentloop writer). Rows stay plain JSON maps with the
+	// agentloop-side shape (plugin_id/track_id/params/round/project_revision).
+	AutomationSurfaces  []map[string]any             `json:"automation_surfaces,omitempty"`
+	ObservationLedger   map[string]any               `json:"observation_ledger,omitempty"`
+	LatestProjectChange map[string]any               `json:"latest_project_change,omitempty"`
+	LatestObservation   *agentloop.RecentObservation `json:"latest_observation,omitempty"`
+	Actions             []freeStateActionRecord      `json:"actions,omitempty"`
+	LatestDecision      *agentloop.FreeStateDecision `json:"latest_decision,omitempty"`
+	Experiment          *experiment.Turn             `json:"experiment,omitempty"`
+	D1State             map[string]any               `json:"d1_state,omitempty"`
+	D1Receipt           map[string]any               `json:"d1_receipt,omitempty"`
 	// AdmissionReceipt is the read-only FS6/FS7 boundary audit. It is kept
 	// separately from the execution receipt because a proposal may be absent
 	// or rejected before an experiment Turn exists.
@@ -582,7 +596,116 @@ func mergeFreeStateLoops(base, overlay freeStateReasoningLoop, overlayOK bool) f
 		out.Actions = append([]freeStateActionRecord(nil), overlay.Actions...)
 	}
 	out.ObservationLedger = mergeFreeStateLedgers(out.ObservationLedger, overlay.ObservationLedger)
+	// M3-CHAT-HOST-CARRY-FIX-1: carry the pinned automation surfaces across the
+	// run boundary with the same contract the agentloop writer enforces —
+	// per-track/per-plugin row refresh, strict-forward project-revision expiry,
+	// and the FIFO bound. A transport copy missing the rows can never erase the
+	// durable ones (identity merge, same posture as the observation receipts).
+	out.AutomationSurfaces = mergeFreeStateAutomationSurfaceRows(out.AutomationSurfaces, overlay.AutomationSurfaces, freeStateLoopProjectRevision(out))
 	return out
+}
+
+// freeStateAutomationSurfaceLedgerLimit mirrors the agentloop-side writer bound
+// (freeStateAutomationSurfaceLedgerLimit = 8, agentloop/free_state_reasoning.go).
+// The chat host never writes rows; it only merges and bounds them so a durable
+// loop restored across run boundaries keeps the same FIFO contract.
+const freeStateAutomationSurfaceLedgerLimit = 8
+
+// mergeFreeStateAutomationSurfaceRows merges pinned automation-surface rows
+// with the agentloop writer's semantics: a row re-read for the same
+// track_id+plugin_id fingerprint refreshes in place (the parameter surface may
+// have changed), otherwise it appends; rows whose project revision is strictly
+// older than the loop's current revision are dropped (freeStateRevisionStrictlyNewer
+// semantics — an equal or unorderable revision keeps the row, fail-closed to
+// pin); and the result is FIFO-bounded to the ledger limit. base rows win
+// identity ordering so a durable loop's rows keep their slots; overlay rows
+// refresh or extend them.
+func mergeFreeStateAutomationSurfaceRows(base, overlay []map[string]any, currentRevision string) []map[string]any {
+	if len(base) == 0 && len(overlay) == 0 {
+		return nil
+	}
+	if len(base) == 0 {
+		base = []map[string]any{}
+	}
+	out := make([]map[string]any, 0, len(base)+len(overlay))
+	out = append(out, base...)
+	for _, row := range overlay {
+		if len(row) == 0 {
+			continue
+		}
+		pluginID := firstStringFromMap(row, "plugin_id")
+		trackID := firstStringFromMap(row, "track_id")
+		refreshed := false
+		for index, existing := range out {
+			if firstStringFromMap(existing, "plugin_id") == pluginID && firstStringFromMap(existing, "track_id") == trackID {
+				out[index] = cloneContext(row)
+				refreshed = true
+				break
+			}
+		}
+		if !refreshed {
+			out = append(out, cloneContext(row))
+		}
+	}
+	kept := make([]map[string]any, 0, len(out))
+	for _, row := range out {
+		if currentRevision != "" && freeStateRevisionStrictlyNewer(currentRevision, firstStringFromMap(row, "project_revision")) {
+			continue
+		}
+		kept = append(kept, row)
+	}
+	if len(kept) > freeStateAutomationSurfaceLedgerLimit {
+		kept = kept[len(kept)-freeStateAutomationSurfaceLedgerLimit:]
+	}
+	return kept
+}
+
+// freeStateLoopProjectRevision resolves the loop's current project revision
+// from the chat-side source the loop actually carries (latest_project_change).
+// The agentloop writer reads a wider source family at its boundary; inside the
+// chat host the loop's own project-change receipt is the one authoritative
+// revision the durable merge can see, and an absent revision keeps every row
+// (no expiry without an orderable current revision).
+func freeStateLoopProjectRevision(loop freeStateReasoningLoop) string {
+	if loop.LatestProjectChange == nil {
+		return ""
+	}
+	if revision := firstStringFromMap(loop.LatestProjectChange, "project_revision"); revision != "" {
+		return revision
+	}
+	return firstStringFromMap(firstMapFromAny(loop.LatestProjectChange["to_project"]), "project_revision")
+}
+
+// freeStateRevisionStrictlyNewer orders two project revisions by their trailing
+// integer ("8", "rev-8"), mirroring agentloop freeStateRevisionStrictlyNewer
+// (agentloop/free_state_gate.go). A revision without an orderable trailing
+// integer compares as not-newer, keeping the merge fail-closed to keeping rows.
+func freeStateRevisionStrictlyNewer(current, prior string) bool {
+	currentNumber, currentOK := freeStateRevisionTrailingNumber(current)
+	if !currentOK {
+		return false
+	}
+	priorNumber, priorOK := freeStateRevisionTrailingNumber(prior)
+	if !priorOK {
+		return false
+	}
+	return currentNumber > priorNumber
+}
+
+func freeStateRevisionTrailingNumber(revision string) (int64, bool) {
+	text := strings.TrimSpace(revision)
+	end := len(text)
+	for end > 0 && text[end-1] >= '0' && text[end-1] <= '9' {
+		end--
+	}
+	if end == len(text) {
+		return 0, false
+	}
+	value, err := strconv.ParseInt(text[end:], 10, 64)
+	if err != nil {
+		return 0, false
+	}
+	return value, true
 }
 
 func freeStateLoopOverlayNewer(base, overlay freeStateReasoningLoop) bool {
