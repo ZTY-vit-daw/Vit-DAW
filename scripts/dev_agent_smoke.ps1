@@ -132,6 +132,13 @@ param(
     # run also bill on the override engine (same-run scope, disclosed per
     # card; 238 precheck adopted id deepseek-v4-pro).
     [string]$LlmModelOverride = "",
+    # M3-WRITE-GATE-TRIGGER-CLARIFY-1 (243): group filter passthrough for the
+    # LLM route leg ("-Groups 1" reruns group 1 only). Empty = full three-group
+    # run (python-side default), so the pre-243 behavior is unchanged; the
+    # value is validated by the python script itself before any LLM round is
+    # spent. Root cause context: the 242 budget overrun was the automatic
+    # inter-group progression.
+    [string]$LlmRouteGroups = "",
     # M3-CHAT-AUTH-STAMP-1 (223): chat-chain authority stamp smoke. Two-phase
     # leg with a REAL agent process restart in between (orchestrated here):
     # phase "before" switches full access through /agent/authority (durable
@@ -8751,7 +8758,14 @@ if ($AutomationLLMRouteSmoke) {
     $llmRouteSummaryPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_summary.json"
     $llmRouteConsolePath = Join-Path $llmRouteArtifactsDir "automation_llm_route_console.txt"
     $llmRouteProjectPath = Join-Path $llmRouteArtifactsDir "automation_llm_route_project.vit"
-    & python $llmRouteScript --agent-http $AgentHttp --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --project-path $llmRouteProjectPath --output $llmRouteSummaryPath --rounds-dir $llmRouteRoundsDir --telemetry-path $env:VIT_AGENT_LLM_TELEMETRY_PATH --prompt-render-path $env:VIT_AGENT_PROMPT_RENDER_PATH --payload-capture-path (Join-Path $LlmRouteLogsDir "agent_llm_payload_capture.jsonl") --agent-log $AgentLog > $llmRouteConsolePath 2>&1
+    $llmRoutePythonArgs = @($llmRouteScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--project-path", $llmRouteProjectPath, "--output", $llmRouteSummaryPath, "--rounds-dir", $llmRouteRoundsDir, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--prompt-render-path", $env:VIT_AGENT_PROMPT_RENDER_PATH, "--payload-capture-path", (Join-Path $LlmRouteLogsDir "agent_llm_payload_capture.jsonl"), "--agent-log", $AgentLog)
+    if (-not [string]::IsNullOrWhiteSpace($LlmRouteGroups)) {
+        # 243 targeted group rerun: pass the filter through; the python script
+        # validates the spec before any LLM round is spent.
+        $llmRoutePythonArgs += @("-Groups", $LlmRouteGroups)
+        Write-Ok ("automation LLM route group filter: -Groups " + $LlmRouteGroups)
+    }
+    & python @llmRoutePythonArgs > $llmRouteConsolePath 2>&1
     $llmRouteExit = $LASTEXITCODE
     Get-Content -LiteralPath $llmRouteConsolePath | ForEach-Object { Write-Host $_ }
     if (-not (Test-Path -LiteralPath $llmRouteSummaryPath)) {

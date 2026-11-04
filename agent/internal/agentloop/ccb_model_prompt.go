@@ -111,16 +111,23 @@ func messageLoopNeutralFamilySystemSkeleton(state *runState) string {
 // (vocabulary-full-retirement ruling 2026-10-31: syntax belongs to
 // deterministic code, semantics to the model). Steering text only: no
 // validator, admission gate, or runtime criterion reads it.
-// Version discipline: v1 — wording changes require bumping
-// freeStateTimeVaryingActionPathVersion and the lock-test anchor set in
-// ccb_model_prompt_action_path_test.go, plus the smoke-side needle in
-// scripts/automation_llm_route_smoke.py (same-source sync).
-const freeStateTimeVaryingActionPathVersion = "neutral-family-time-varying-action-path:v1"
+// Version discipline: v1 (235) → v2 (243 M3-WRITE-GATE-TRIGGER-CLARIFY-1):
+// the "passes the runtime governance gate ... before any write" clause was a
+// causality inversion the model could read as "obtain user confirmation
+// first, then call" (242 forensics: full write elements held, yet the turn
+// stalled in plain-text confirmation asking with needs_confirmation=false).
+// v2 states the trigger right: call directly; the runtime gate pauses the
+// call into a card automatically; plain text never forms a card. Wording
+// changes require bumping freeStateTimeVaryingActionPathVersion and the
+// lock-test anchor set in ccb_model_prompt_action_path_test.go, plus the
+// smoke-side needle in scripts/automation_llm_route_smoke.py (same-source
+// sync).
+const freeStateTimeVaryingActionPathVersion = "neutral-family-time-varying-action-path:v2"
 
 func freeStateTimeVaryingActionPathGuidance() string {
 	return `Action Path Selection (time-varying goals vs static adjustments):
 - Decide the action path from the shape of the listening goal itself. A goal that one fixed parameter change would satisfy (raise or lower a level by an amount, move one eq band, shift one threshold) is a static adjustment: use needs_experiment with one improvement_proposal from the admitted static domains. A goal that asks a parameter to change gradually across a time range — riding a parameter up or down over time, fading in or out, becoming more or less prominent as the track plays — is time-varying: no single fixed value expresses it, so a static action_domain proposal is the wrong instrument for it.
-- For a time-varying goal, use the admitted automation tool chain on the decision turn: first observe to locate the target track and the parameter surface; then read the parameter value range with plugin.get_parameters; then call automation.set_points with points [{t seconds >= 0, v inside that range}] describing the envelope across the time range — it passes the runtime governance gate (user confirmation card) before any write; after the write, read back with automation.get_curve.
+- For a time-varying goal, use the admitted automation tool chain on the decision turn: first observe to locate the target track and the parameter surface; then read the parameter value range with plugin.get_parameters; then call automation.set_points with points [{t seconds >= 0, v inside that range}] describing the envelope across the time range — make the mutation call directly once you hold every write element (target track, parameter, in-range values, time range); the runtime governance gate pauses the call into a user confirmation card automatically (or executes it directly under an explicit full-access grant); a plain-text request for confirmation never forms a confirmation card, so do not pre-ask in text; after the write, read back with automation.get_curve.
 - The discrimination is semantic, not phrase matching: judge from the goal's time shape, never from specific user wording.`
 }
 
@@ -229,7 +236,7 @@ func messageLoopNeutralFamilyCatalog(tools []string) string {
 		case "automation.get_curve":
 			rows = append(rows, "- automation.get_curve: read one plug-in parameter's automation points [{t seconds, v, c}], bypass flag and point_count; use it for readback after a write")
 		case "automation.set_points":
-			rows = append(rows, "- automation.set_points: replace a plug-in parameter's automation points; args plugin_id, param_id, points [{t seconds >=0, v inside the read value range, c -1..1 optional}], optional region {start,end seconds}; it is a mutation that always passes the runtime governance gate (user confirmation card, or direct execution under an explicit full-access grant) before any write; at most one such mutation call per turn")
+			rows = append(rows, "- automation.set_points: replace a plug-in parameter's automation points; args plugin_id, param_id, points [{t seconds >=0, v inside the read value range, c -1..1 optional}], optional region {start,end seconds}; it is a mutation — make the call directly when you hold every write element, the runtime governance gate pauses it into a user confirmation card automatically (or executes it directly under an explicit full-access grant), and a plain-text request for confirmation never forms a confirmation card so do not pre-ask in text; at most one such mutation call per turn")
 		case "automation.clear_region":
 			rows = append(rows, "- automation.clear_region: remove a plug-in parameter's automation points inside a time region; args plugin_id, param_id, region {start,end seconds}; same governance gate and one-per-turn mutation limit as automation.set_points")
 		}
@@ -711,7 +718,7 @@ Rules:
 - During processor_selection, choose a treatment family only from the observations you explicitly requested and the returned evidence. Choose a processor family yourself only after that evidence supports a material next treatment. Do not use lexical family rules, vendor/product priors, loaded-instance labels, plug-in names, topology, parameter identifiers, or prefilled coverage axes.
 - L3 improvement proposals are different from deterministic engineering actions. When the evidence plausibly relates to a user-stated listening goal but cannot prove an objective defect, return needs_experiment with improvement_proposal.v1. Do not force a unique processor family or claim that the existing mix is wrong.
 - The local governed router, PCA eligibility gate, typed controller, confirmation, transaction, readback, rollback, and verification remain execution authority. You return only a semantic_processor_intent.v1 family, open intent, and evidence-supported required coverage; deterministic code validates them and never fills missing values.
-- Do not output a plug-in name, vendor, product, path, control mapping, topology, or any plug-in parameter ID or value you have not resolved from returned evidence (a disclosed observation or plugin.get_parameters). The automation surface is admitted in this phase: plugin.get_parameters and automation.get_curve are read-only; automation.set_points and automation.clear_region are mutations that always pass the runtime governance gate (a user confirmation card, or direct execution only under an explicit full-access grant) before any write, with at most one such mutation per turn. Do not call any other mutation, plug-in loading, or typed control tool in this phase.
+- Do not output a plug-in name, vendor, product, path, control mapping, topology, or any plug-in parameter ID or value you have not resolved from returned evidence (a disclosed observation or plugin.get_parameters). The automation surface is admitted in this phase: plugin.get_parameters and automation.get_curve are read-only; automation.set_points and automation.clear_region are mutations — when you hold every write element, make the call directly and the runtime governance gate pauses it into a user confirmation card automatically (or executes it directly only under an explicit full-access grant); a plain-text request for confirmation never forms a confirmation card, so do not pre-ask in text; at most one such mutation per turn. Do not call any other mutation, plug-in loading, or typed control tool in this phase.
 - For needs_observation, request only the views you judge necessary and call exactly those CCB observation tools for them; automation-surface calls may ride the same turn and carry no view_ids. Do not copy a catalog default.
 - When revisiting the same target/view set, include priority_reason="contradiction" and a genuinely new unresolved_questions entry, or set declared_contradiction=true only when the prior receipt is stale/partial. A changed project revision is admitted automatically. These fields explain evidence freshness; they never override a rejected exact view-set.
 - A catalog-only discovery turn uses ccb.observation_catalog with requested_view_ids=[] because no view set is executed yet. A ccb.observation_request turn must use a non-empty requested_view_ids that exactly matches args.view_ids.

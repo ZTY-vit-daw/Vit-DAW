@@ -29,6 +29,10 @@ var timeVaryingActionPathNeedlePhrases = []string{
 	"automation.set_points",
 	"automation.get_curve",
 	"The discrimination is semantic, not phrase matching",
+	// 243 v2 写入触发权锚：直接调用→运行时自动拦卡；纯文本征询不成卡。
+	"make the mutation call directly",
+	"a plain-text request for confirmation never forms a confirmation card",
+	"do not pre-ask in text",
 }
 
 func TestNeutralFamilyTurnDirectivesCarryTimeVaryingActionPath(t *testing.T) {
@@ -98,15 +102,23 @@ func TestTimeVaryingActionPathGuidanceVersionLock(t *testing.T) {
 		"read the parameter value range with plugin.get_parameters",
 		"call automation.set_points",
 		"read back with automation.get_curve",
-		// 治理卡边界
-		"runtime governance gate",
+		// 治理卡边界（243 v2：触发权因果正序——直接调用，运行时自动拦卡）
+		"make the mutation call directly once you hold every write element",
+		"the runtime governance gate pauses the call into a user confirmation card automatically",
+		"a plain-text request for confirmation never forms a confirmation card",
+		"do not pre-ask in text",
 		// 与提案面的关系
 		"static action_domain proposal is the wrong instrument",
 	}
 	for _, anchor := range requiredAnchors {
 		if !strings.Contains(guidance, anchor) {
-			t.Fatalf("time-varying action path guidance v1 anchor drift: missing %q (bump the version and re-sync the anchor set + smoke needle)", anchor)
+			t.Fatalf("time-varying action path guidance v2 anchor drift: missing %q (bump the version and re-sync the anchor set + smoke needle)", anchor)
 		}
+	}
+	// 243 v2 负断言：因果倒置旧句已替换（"passes the gate ... before any write"
+	// 可被误读为「先取得用户确认再调用」，242 断点根因）。
+	if strings.Contains(guidance, "before any write") {
+		t.Fatal("guidance v2 must not carry the causality-inverted \"before any write\" clause (243 wording fix)")
 	}
 	// 红线自证：教学段不含任何具体用户话术示例（词表全量退役裁定）。
 	banned := []string{"这段", "越来越突出", "帮我把", "动起来"}
