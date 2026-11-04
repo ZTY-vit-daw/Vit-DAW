@@ -33,7 +33,10 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-04 晚 / origin/main=064b7dd7（=247 发卡提交，246 验收合入后 HEAD）/ owner=ZCode GLM-5.3 PC 执行会话（247 卡会话，用户口头开工）/ 实现 worktree `D:\Vit_DAW_wt_247impl` @ 分支 `port/m3-automation-guard-admit-1`（基线 064b7dd7）；协调 worktree `D:\Vit_DAW_wt_247claim` @ `coord/247-claim`（仅本卡状态提交）。
+- 领取基线：主检出 HEAD=064b7dd7 与 origin/main 一致；既有工作树改动均为运行时工程状态（VitApp/Workspace xml 两件）与历史 run 工件/旧卡状态（UX-AB-AUDITION 等），与本卡文件域（agent/internal/chat）不相交；`git diff --stat` 摘要 8 files +4469/-4429（全为领取前已有，非本卡 diff）。
+- 文件域核对：doing 池仅 GEN-SUNO-WEB-DESIGN-1（设计类，域不相交）；本卡域=free_state_invoke_guard.go+goalrunner_chat.go（如需）+chat 包测试，与其零相交。
+- 栈：空闲（246 已释放，2026-11-04 22:04:51 TEARDOWN_ALL_ZERO）；本卡真栈腿登记见回执。
 
 ## 回执
 
