@@ -50,7 +50,14 @@
 
 ## 回执
 
-- （执行侧回填）
+- **完成（执行侧自验通过，2026-11-04）**。报告：`coord/reports/2026-11-04-m3-breakpoint-forensics-1.md`，分支 `port/m3-breakpoint-forensics-1` @ **25c71355**（已推远端，待主管验收 cherry-pick；`git diff --stat`=仅报告文件 145 行，零代码改动 ✓）。
+- **零 LLM 调用** ✓：全部结论来自 writegate1 既有工件（payload_capture 168 条记录逐条解析+needle 亲扫）+源码静读；无新 run、无新真栈占用。
+- **面一（终局驱逐，主攻）**：机制定案=**chat 宿主 run 边界 typed round-trip 丢弃**——`freeStateLoopFromAny`（chat/free_state_reasoning_loop.go:3400-3413）json.Unmarshal 进 `freeStateReasoningLoop` struct（:69-215 **无 AutomationSurfaces 字段**）静默丢弃顶层 `automation_surfaces`，`mergeFreeStateLoops`（:449+）无处安放，续跑上下文 `freeStateLoopMap`（:442）重建即丢；agentloop 导出快照本身保留键（helpers.go:32-54）。触发=相位（limit_reached→checkpoint→终局轮续跑），**非字节阈值**（hot 10K/warm 5K/full 24K 预算机器独立存在且未触发，model_projection.go:174-230）。载荷对照：r1 ledger 披露在场记录 7–43（36 条连续）→终局 44 消失；r3 135–161→162 消失；r2 全轮 continuation 模式无 ledger 披露、幸存走**单槽时序运气**（终局前最后工具回执恰为 get_plugin_parameters，阻塞节区永不降级）。241 同族成立但机制修正：241 钉住 run 内有效（载荷亲证），跨宿主边界不存活。T1=struct 字段+merge 分支（确定性修复，验尸 needle=终局轮 ledger 含 1011/0.740818）。
+- **面二（misroute+软预问）**：竞争引导七项全清单（payload @offset 亲证+代码锚点），最重两项=①终局指令句二选无「直接调用」形态（free_state_reasoning.go:792）②**格式示例邻接缺陷**——v2 Action Path 段后唯一 final:true 示例是静态域 needs_experiment 提案（无任何 set_points tool_call 示例）+③目标级规则句「target-level evidence in hand→return needs_experiment」与 v2 正面对撞。软预问三判定缺口：time range「持有」无判据（证据背书 vs 计划假设）/不确定无出口（needs_resolution 槽只在提案路线合法）/双确认语义邻接无桥（提案世界确认门 vs 直调世界不预问）。admitted 域表 9 静态域无 automation 域，r2 自创 section_automation=词表外 improvisation。分级：措辞迭代三项+设计裁决一项（时变是否入提案词表）+T2 一项，未写新措辞 ✓。
+- **面三（continuation 前台吞）**：三轮 exchanges 完全同构亲证（首句→limit_reached/waiting_continue+checkpoint persisted→「继续」→`automatic_continuation_already_scheduled` 吞，goalrunner_chat.go:194-204）；终局结果 chat 面零渲染（三轮均无第三次 exchange，能力面零暴露载荷成立）；跨轮新 conversation_id 零 loop 继承（r2 continuation_used 自 0→4）。回执可见性结论=**单槽 latest-only+ledger 预算降级 cold ref，历史回执内容不可见不累积**（runner.go:589/610/638 单槽覆写+model_projection.go:174-230 降级；observation_ledger 降级标记载荷亲证）；r2 80 次观察（78×track.time_dynamics）持续不满足=追时间证据但只见 latest 一份 digest。附发现：预算句「每 needs_observation 轮耗一 checkpoint」与机械记账（resume 边界，goalrunner_chat.go:3361）错位——可见面夸大观察代价。T1=吞回执升级携带 pending 状态+终局结果补投递 chat 面。
+- **未定位四处（如实标注，未以推测充锚点）**：①observation_ledger 镜像丢失点（载荷证明 checkpoint 持久化已无镜像，宿主 merge 均 clone 式保留未知键，候选=边界导入携带钉住前旧面）；②锁定时 vs 渲染时计数差（r1 渲染 4/6+5/6 但 reason=budget_critical）；③终局片预算常量 80 来源；④r2 记录 77 整请求异形分支。另两小项见报告 §3.4（time_dynamics 模型面 digest 是否含 clip 起止未逐轮核验；终局结果其他投递面未查）。
+- 与卡面前提关系：无推翻性冲突；一处精确化——「241 同族」成立但机制非单槽逐出而是宿主 typed round-trip 键丢失，与裁定修正②兼容并落地代码层（报告 §1.3）。
+- 纪律自查：越域零（port 分支 diff 仅报告；本提交仅卡 mv+回执）；git mv 最后执行且 mv 后立即 add ✓；验收门槛=勘察卡无烟测腿（卡面验收标准：报告三面锚点+证据+分级+因果链 ✓，零代码改动 ✓）。
 
 ## 验收
 
