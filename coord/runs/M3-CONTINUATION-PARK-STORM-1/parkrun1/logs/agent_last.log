@@ -1,0 +1,800 @@
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVE" action="node_removed"
+2026-11-04T23:50:45 [WARN] [shadow] delta seq gap #4 last=2185 current=2187
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="0/1f79d1c" action="property_changed:lastSignificantChange"
+2026-11-04T23:50:45 [WARN] [telemetry] delta seq gap last=2185 current=2187
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="1011" action="property_changed:parameters"
+2026-11-04T23:50:45 [DEBUG] [shadow] live delta uid="0/1f79d1c" action="property_changed:lastSignificantChange"
+2026-11-04T23:50:46 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=capacity_project_facts err=false
+2026-11-04T23:50:46 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:50:46 [INFO] [timing] harness.refresh_shadow ms=5 reason=capacity_project_facts status=ok err=false
+2026-11-04T23:50:46 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=mix_request_observation_project_scope_state err=false
+2026-11-04T23:50:46 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:50:46 [INFO] [timing] harness.refresh_shadow ms=5 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-11-04T23:50:46 [INFO] [timing] harness.invoke total_ms=193 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=true err=false
+2026-11-04T23:50:46 [INFO] [free-state.seed] booked conversation=llm_route_g1_r5_1793807443 observation=obs_20261104T155046_1dbaf99d0328 receipt=ccbr_obs_20261104T155046_1dbaf99d0328 revision=13 scan_satisfied=true
+2026-11-04T23:50:46 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=user_named_target_resolution err=false
+2026-11-04T23:50:46 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:50:46 [INFO] [timing] harness.refresh_shadow ms=14 reason=user_named_target_resolution status=ok err=false
+2026-11-04T23:50:50 [WARN] VSP realtime publish pending failures=34 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:50:50 [WARN] VSP realtime publish pending failures=34 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:50:51 [INFO] [timing] message_loop.llm ms=4362 goal=goal_80af1c78a4e3bfb9 conversation=llm_route_g1_r5_1793807443 turn=1 messages=2 chars=56457 message_chars=0:system:17670,1:user:38787 err=false
+2026-11-04T23:50:51 [INFO] [timing] harness.invoke total_ms=37 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-11-04T23:50:51 [INFO] [timing] message_loop.tool ms=38 goal=goal_80af1c78a4e3bfb9 tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-11-04T23:50:56 [WARN] VSP realtime publish pending failures=37 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:50:56 [WARN] VSP realtime publish pending failures=37 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:01 [INFO] [timing] message_loop.llm ms=10118 goal=goal_80af1c78a4e3bfb9 conversation=llm_route_g1_r5_1793807443 turn=2 messages=2 chars=62882 message_chars=0:system:17670,1:user:45212 err=false
+2026-11-04T23:51:01 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=mix_request_observation_project_scope_state err=false
+2026-11-04T23:51:01 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:01 [INFO] [timing] harness.refresh_shadow ms=15 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-11-04T23:51:01 [INFO] [timing] harness.invoke total_ms=215 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-11-04T23:51:01 [INFO] [timing] message_loop.tool ms=217 goal=goal_80af1c78a4e3bfb9 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-11-04T23:51:02 [WARN] VSP realtime publish pending failures=40 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:02 [WARN] VSP realtime publish pending failures=40 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=430 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:07 [INFO] [timing] message_loop.llm ms=5732 goal=goal_80af1c78a4e3bfb9 conversation=llm_route_g1_r5_1793807443 turn=3 messages=2 chars=62318 message_chars=0:system:17670,1:user:44648 err=false
+2026-11-04T23:51:08 [WARN] VSP realtime publish pending failures=43 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:08 [WARN] VSP realtime publish pending failures=43 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:08 [INFO] [timing] harness.invoke total_ms=947 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-11-04T23:51:08 [INFO] [timing] message_loop.tool ms=948 goal=goal_80af1c78a4e3bfb9 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-11-04T23:51:08 [WARN] [harness] invoke pre_journal_validation_failed stage=resolve_implicit_targets tool=plugin.get_parameters command=get_plugin_parameters confirmed=false arg_keys=cmd,track_id error=plugin.get_parameters could not resolve plugin target: multiple visible plugins match: [1011 Volume & Pan Plugin, 1012 Level Meter]; specify plugin_id or plugin_name
+2026-11-04T23:51:08 [INFO] [timing] harness.invoke total_ms=4 tool=plugin.get_parameters command=get_plugin_parameters status=error confirmed=false err=true
+2026-11-04T23:51:08 [INFO] [timing] message_loop.tool ms=4 goal=goal_80af1c78a4e3bfb9 tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-04T23:51:14 [WARN] VSP realtime publish pending failures=46 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:14 [WARN] VSP realtime publish pending failures=46 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:17 [INFO] [timing] message_loop.llm ms=9297 goal=goal_80af1c78a4e3bfb9 conversation=llm_route_g1_r5_1793807443 turn=4 messages=2 chars=61104 message_chars=0:system:17670,1:user:43434 err=false
+2026-11-04T23:51:17 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=mix_request_observation_project_scope_state err=false
+2026-11-04T23:51:17 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:17 [INFO] [timing] harness.refresh_shadow ms=18 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-11-04T23:51:17 [INFO] [timing] harness.invoke total_ms=225 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-11-04T23:51:17 [INFO] [timing] message_loop.tool ms=226 goal=goal_80af1c78a4e3bfb9 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-11-04T23:51:18 [INFO] [timing] kernel.send_command ms=2 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-04T23:51:18 [INFO] [timing] harness.invoke total_ms=35 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-04T23:51:18 [INFO] [timing] message_loop.tool ms=37 goal=goal_80af1c78a4e3bfb9 tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-04T23:51:20 [WARN] VSP realtime publish pending failures=49 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:20 [WARN] VSP realtime publish pending failures=49 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:24 [INFO] [timing] message_loop.llm ms=5973 goal=goal_80af1c78a4e3bfb9 conversation=llm_route_g1_r5_1793807443 turn=5 messages=2 chars=61175 message_chars=0:system:17670,1:user:43505 err=false
+2026-11-04T23:51:24 [INFO] [timing] harness.invoke total_ms=33 tool=automation.set_points command=automation.set_points status=needs_confirmation confirmed=false err=false
+2026-11-04T23:51:24 [INFO] [timing] message_loop.tool ms=41 goal=goal_80af1c78a4e3bfb9 tool=automation.set_points confirmed=false stopped=true status=waiting_confirmation
+2026-11-04T23:51:24 [INFO] [free-state.ledger] boundary conversation=llm_route_g1_r5_1793807443 goal=goal_80af1c78a4e3bfb9 executed=7 ccb_observations=3 ids=[obs_20261104T155101_ab024918bf45 obs_20261104T155108_d325226678ff obs_20261104T155117_effc72e9a2ad] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-11-04T23:51:24 [INFO] [continuation.arm] conversation=llm_route_g1_r5_1793807443 goal=goal_80af1c78a4e3bfb9 status=waiting_confirmation stop=needs_confirmation limit= continuation=true durable=cont_9d58a9611b01d30e566773f9 lifecycle=waiting_interaction scheduled=false budget_stop=false requires_user_interaction=true owes_outcome=false settle_checkpoint=false
+2026-11-04T23:51:24 [INFO] [timing] agent_loop_chat total_ms=40434 conversation=llm_route_g1_r5_1793807443 goal=goal_80af1c78a4e3bfb9 mode=default status=waiting_confirmation stop=needs_confirmation completed_steps=5 executed=7
+2026-11-04T23:51:24 [INFO] [media_refs] ms=0 conversation=llm_route_g1_r5_1793807443 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-04T23:51:24 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=13
+2026-11-04T23:51:24 [INFO] [chat.artifacts] conversation=llm_route_g1_r5_1793807443 response_artifacts=0 request_artifacts=0 executed=7 reply_len=45
+2026-11-04T23:51:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=440 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:24 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=13 commit=c_20261104T155124_68f7b2e6 rebound=1 total_ms=70
+2026-11-04T23:51:25 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:51:25 [INFO] [timing] http.chat total_ms=41785 conversation=llm_route_g1_r5_1793807443 message_len=33
+2026-11-04T23:51:25 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:25 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVE" action="node_added"
+2026-11-04T23:51:25 [DEBUG] [shadow] live delta uid="POINT" action="node_added"
+2026-11-04T23:51:25 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=automation.set_points err=false
+2026-11-04T23:51:25 [DEBUG] [shadow] live delta uid="POINT" action="node_added"
+2026-11-04T23:51:25 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:25 [INFO] [timing] harness.refresh_shadow ms=31 reason=automation.set_points status=ok err=false
+2026-11-04T23:51:25 [DEBUG] [shadow] live delta uid="0/1f79d1c" action="property_changed:lastSignificantChange"
+2026-11-04T23:51:25 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:25 [INFO] [timing] kernel.send_command ms=64 command=automation.set_points tool=automation.set_points confirmed=true err=false
+2026-11-04T23:51:25 [INFO] [timing] harness.invoke total_ms=144 tool=automation.set_points command=automation.set_points status=ok confirmed=true err=false
+2026-11-04T23:51:25 [INFO] [timing] message_loop.tool ms=146 goal=goal_80af1c78a4e3bfb9 tool=automation.set_points confirmed=true stopped=false status=
+2026-11-04T23:51:26 [WARN] VSP realtime publish pending failures=52 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:26 [WARN] VSP realtime publish pending failures=52 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:26 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:26 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=14
+2026-11-04T23:51:32 [WARN] VSP realtime publish pending failures=55 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:32 [WARN] VSP realtime publish pending failures=55 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:33 [INFO] [timing] message_loop.llm ms=7345 goal=goal_80af1c78a4e3bfb9 conversation=llm_route_g1_r5_1793807443 turn=6 messages=2 chars=63746 message_chars=0:system:17670,1:user:46076 err=false
+2026-11-04T23:51:33 [INFO] [timing] kernel.send_command ms=2 command=automation.get_curve tool=automation.get_curve confirmed=false err=false
+2026-11-04T23:51:33 [INFO] [timing] harness.invoke total_ms=42 tool=automation.get_curve command=automation.get_curve status=ok confirmed=false err=false
+2026-11-04T23:51:33 [INFO] [timing] message_loop.tool ms=43 goal=goal_80af1c78a4e3bfb9 tool=automation.get_curve confirmed=false stopped=false status=
+2026-11-04T23:51:38 [WARN] VSP realtime publish pending failures=58 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:38 [WARN] VSP realtime publish pending failures=58 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:40 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.transport_publisher
+2026-11-04T23:51:40 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.realtime_publisher
+2026-11-04T23:51:43 [WARN] VSP realtime publish pending failures=5 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:44 [WARN] VSP realtime publish pending failures=5 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=450 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:47 [INFO] [timing] message_loop.llm ms=13715 goal=goal_80af1c78a4e3bfb9 conversation=llm_route_g1_r5_1793807443 turn=7 messages=2 chars=63900 message_chars=0:system:17670,1:user:46230 err=false
+2026-11-04T23:51:47 [INFO] [timing] harness.invoke total_ms=35 tool=automation.set_points command=automation.set_points status=needs_confirmation confirmed=false err=false
+2026-11-04T23:51:47 [INFO] [timing] message_loop.tool ms=45 goal=goal_80af1c78a4e3bfb9 tool=automation.set_points confirmed=false stopped=true status=waiting_confirmation
+2026-11-04T23:51:47 [INFO] [timing] agent_loop_confirm.resume ms=21357 plan=plan_1562e8bd37be2013 goal=goal_80af1c78a4e3bfb9 mode=default status=waiting_confirmation stop=needs_confirmation executed=3
+2026-11-04T23:51:47 [INFO] [continuation.arm] conversation=llm_route_g1_r5_1793807443 goal=goal_80af1c78a4e3bfb9 status=waiting_confirmation stop=needs_confirmation limit= continuation=true durable=cont_f9ea6e0f3f2d7b3e5ed8913f lifecycle=waiting_interaction scheduled=false budget_stop=false requires_user_interaction=true owes_outcome=false settle_checkpoint=false
+2026-11-04T23:51:47 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=14
+2026-11-04T23:51:47 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=14 commit=c_20261104T155147_b72fab32 rebound=1 total_ms=74
+2026-11-04T23:51:47 [INFO] [timing] agent_loop_confirm total_ms=21949 plan=plan_1562e8bd37be2013 status_code=200 response_status=ok goal=goal_80af1c78a4e3bfb9 next_plan=plan_ad7bac7db8e11331 needs_confirmation=true err=false
+2026-11-04T23:51:47 [INFO] [media_refs] ms=0 conversation=llm_route_g1_r5_1793807443 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-04T23:51:47 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=14
+2026-11-04T23:51:47 [INFO] [chat.artifacts] conversation=llm_route_g1_r5_1793807443 response_artifacts=0 request_artifacts=0 executed=3 reply_len=45
+2026-11-04T23:51:48 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:51:48 [INFO] [timing] http.chat total_ms=23346 conversation=llm_route_g1_r5_1793807443 message_len=6
+2026-11-04T23:51:48 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [INFO] [timing] harness.invoke total_ms=974 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [WARN] VSP realtime publish pending failures=8 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:49 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [WARN] VSP realtime publish pending failures=8 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:50 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVE" action="node_removed"
+2026-11-04T23:51:52 [WARN] [shadow] delta seq gap #5 last=2671 current=2673
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="0/1f79d1c" action="property_changed:lastSignificantChange"
+2026-11-04T23:51:52 [WARN] [telemetry] delta seq gap last=2671 current=2673
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:volume"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="1011" action="property_changed:parameters"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="0/1f79d1c" action="property_changed:lastSignificantChange"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVE" action="node_added"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="POINT" action="node_added"
+2026-11-04T23:51:52 [DEBUG] [shadow] live delta uid="0/1f79d1c" action="property_changed:lastSignificantChange"
+2026-11-04T23:51:53 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:53 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=16
+2026-11-04T23:51:54 [INFO] [automation.choreo] C4 node advanced conversation=choreo_pending_g1 node=C4 state=in_progress
+2026-11-04T23:51:54 [INFO] [media_refs] ms=0 conversation=choreo_pending_g1 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-04T23:51:54 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=16
+2026-11-04T23:51:54 [INFO] [chat.artifacts] conversation=choreo_pending_g1 response_artifacts=0 request_artifacts=0 executed=0 reply_len=567
+2026-11-04T23:51:54 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=16 commit=c_20261104T155154_425d80fb rebound=1 total_ms=73
+2026-11-04T23:51:54 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:51:54 [INFO] [timing] http.chat total_ms=5251 conversation=choreo_pending_g1 message_len=12
+2026-11-04T23:51:54 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:51:54 [DEBUG] [shadow] live delta uid="POINT" action="node_removed"
+2026-11-04T23:51:54 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVE" action="node_removed"
+2026-11-04T23:51:54 [DEBUG] [shadow] live delta uid="0/1f79d1c" action="property_changed:lastSignificantChange"
+2026-11-04T23:51:55 [WARN] VSP realtime publish pending failures=11 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:56 [WARN] VSP realtime publish pending failures=11 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:51:57 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=capacity_project_facts err=false
+2026-11-04T23:51:57 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:57 [INFO] [timing] harness.refresh_shadow ms=6 reason=capacity_project_facts status=ok err=false
+2026-11-04T23:51:58 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=mix_request_observation_project_scope_state err=false
+2026-11-04T23:51:58 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:58 [INFO] [timing] harness.refresh_shadow ms=17 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-11-04T23:51:58 [INFO] [timing] harness.invoke total_ms=221 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=true err=false
+2026-11-04T23:51:58 [INFO] [free-state.seed] booked conversation=dev_smoke_20261104_235155 observation=obs_20261104T155158_2258162f7576 receipt=ccbr_obs_20261104T155158_2258162f7576 revision=17 scan_satisfied=true
+2026-11-04T23:51:58 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=user_named_target_resolution err=false
+2026-11-04T23:51:58 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:51:58 [INFO] [timing] harness.refresh_shadow ms=18 reason=user_named_target_resolution status=ok err=false
+2026-11-04T23:52:01 [WARN] VSP realtime publish pending failures=14 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:02 [WARN] VSP realtime publish pending failures=14 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:02 [INFO] [timing] message_loop.llm ms=3760 goal=goal_fc129a61423142b1 conversation=dev_smoke_20261104_235155 turn=1 messages=2 chars=56338 message_chars=0:system:17670,1:user:38668 err=false
+2026-11-04T23:52:02 [INFO] [timing] harness.invoke total_ms=42 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-11-04T23:52:02 [INFO] [timing] message_loop.tool ms=43 goal=goal_fc129a61423142b1 tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-11-04T23:52:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=460 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:07 [WARN] VSP realtime publish pending failures=17 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:08 [WARN] VSP realtime publish pending failures=17 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:11 [INFO] [timing] message_loop.llm ms=9218 goal=goal_fc129a61423142b1 conversation=dev_smoke_20261104_235155 turn=2 messages=2 chars=62670 message_chars=0:system:17670,1:user:45000 err=false
+2026-11-04T23:52:11 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=mix_request_observation_project_scope_state err=false
+2026-11-04T23:52:11 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_248impl\\coord\\runs\\M3-CONTINUATION-PARK-STORM-1\\parkrun1\\automation_llm_route_project.vit" replayed_deltas=8
+2026-11-04T23:52:11 [INFO] [timing] harness.refresh_shadow ms=15 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-11-04T23:52:12 [INFO] [timing] harness.invoke total_ms=211 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-11-04T23:52:12 [INFO] [timing] message_loop.tool ms=212 goal=goal_fc129a61423142b1 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-11-04T23:52:13 [WARN] VSP realtime publish pending failures=20 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:14 [WARN] VSP realtime publish pending failures=20 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:19 [WARN] VSP realtime publish pending failures=23 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:20 [WARN] VSP realtime publish pending failures=23 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:20 [INFO] [timing] message_loop.llm ms=8006 goal=goal_fc129a61423142b1 conversation=dev_smoke_20261104_235155 turn=3 messages=2 chars=61708 message_chars=0:system:17670,1:user:44038 err=false
+2026-11-04T23:52:20 [INFO] [timing] harness.invoke total_ms=222 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-11-04T23:52:20 [INFO] [timing] message_loop.tool ms=223 goal=goal_fc129a61423142b1 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-11-04T23:52:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=470 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:25 [WARN] VSP realtime publish pending failures=26 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:26 [WARN] VSP realtime publish pending failures=26 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:31 [WARN] VSP realtime publish pending failures=29 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:32 [WARN] VSP realtime publish pending failures=29 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:37 [WARN] VSP realtime publish pending failures=32 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:38 [WARN] VSP realtime publish pending failures=32 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:43 [INFO] [timing] message_loop.llm ms=22873 goal=goal_fc129a61423142b1 conversation=dev_smoke_20261104_235155 turn=4 messages=2 chars=63286 message_chars=0:system:17670,1:user:45616 err=false
+2026-11-04T23:52:43 [INFO] [free-state.ledger] boundary conversation=dev_smoke_20261104_235155 goal=goal_fc129a61423142b1 executed=3 ccb_observations=2 ids=[obs_20261104T155211_9f71f0542e12 obs_20261104T155220_82ce35442bd2] snapshot_loop=true continuation_loop=false stored_receipts=0
+2026-11-04T23:52:43 [WARN] VSP realtime publish pending failures=35 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:44 [WARN] VSP realtime publish pending failures=35 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:44 [INFO] [timing] harness.invoke total_ms=84 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-11-04T23:52:44 [INFO] [mix.tick.pending] stored conversation=dev_smoke_20261104_235155 goal=goal_fc129a61423142b1 run=run_e165c89192885580 将 Track 1010 的电平调整 +2.00 dB observation=
+2026-11-04T23:52:44 [INFO] [continuation.arm] conversation=dev_smoke_20261104_235155 goal=goal_fc129a61423142b1 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-04T23:52:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=480 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:45 [INFO] [timing] agent_loop_chat total_ms=49677 conversation=dev_smoke_20261104_235155 goal=goal_fc129a61423142b1 mode=default status=waiting_confirmation stop=improvement_proposal_confirmation_required completed_steps=3 executed=3
+2026-11-04T23:52:45 [INFO] [media_refs] ms=0 conversation=dev_smoke_20261104_235155 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-04T23:52:45 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=17
+2026-11-04T23:52:45 [INFO] [chat.artifacts] conversation=dev_smoke_20261104_235155 response_artifacts=0 request_artifacts=0 executed=3 reply_len=574
+2026-11-04T23:52:45 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=17 commit=c_20261104T155245_ac9e1d8f rebound=1 total_ms=83
+2026-11-04T23:52:45 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:52:45 [INFO] [timing] http.chat total_ms=50708 conversation=dev_smoke_20261104_235155 message_len=27
+2026-11-04T23:52:46 [INFO] [mix.tick.pending] explicit confirmation had no candidate conversation=dev_no_pending_20261104_235245 message="可以执行"
+2026-11-04T23:52:46 [INFO] [media_refs] ms=0 conversation=dev_no_pending_20261104_235245 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-04T23:52:46 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW_wt_248impl\coord\runs\M3-CONTINUATION-PARK-STORM-1\parkrun1\automation_llm_route_project.vit revision=17
+2026-11-04T23:52:46 [INFO] [chat.artifacts] conversation=dev_no_pending_20261104_235245 response_artifacts=0 request_artifacts=0 executed=0 reply_len=126
+2026-11-04T23:52:46 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:52:46 [INFO] [timing] http.chat total_ms=1000 conversation=dev_no_pending_20261104_235245 message_len=12
+2026-11-04T23:52:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:52:49 [WARN] VSP realtime publish pending failures=38 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:50 [WARN] VSP realtime publish pending failures=38 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:52:55 [WARN] VSP realtime publish pending failures=41 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:56 [WARN] VSP realtime publish pending failures=41 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:52:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:01 [WARN] VSP realtime publish pending failures=44 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:02 [WARN] VSP realtime publish pending failures=44 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=490 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:07 [WARN] VSP realtime publish pending failures=47 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:08 [WARN] VSP realtime publish pending failures=47 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:13 [WARN] VSP realtime publish pending failures=50 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:14 [WARN] VSP realtime publish pending failures=50 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:20 [WARN] VSP realtime publish pending failures=53 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:20 [WARN] VSP realtime publish pending failures=53 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=500 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:26 [WARN] VSP realtime publish pending failures=56 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:26 [WARN] VSP realtime publish pending failures=56 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:32 [WARN] VSP realtime publish pending failures=59 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:32 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.transport_publisher
+2026-11-04T23:53:32 [WARN] VSP realtime publish pending failures=59 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:32 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.realtime_publisher
+2026-11-04T23:53:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:37 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:37 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:43 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:43 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=510 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:49 [WARN] VSP realtime publish pending failures=12 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:49 [WARN] VSP realtime publish pending failures=12 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:53:55 [WARN] VSP realtime publish pending failures=15 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:53:55 [WARN] VSP realtime publish pending failures=15 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:01 [WARN] VSP realtime publish pending failures=18 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:01 [WARN] VSP realtime publish pending failures=18 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=520 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:07 [WARN] VSP realtime publish pending failures=21 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:07 [WARN] VSP realtime publish pending failures=21 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:13 [WARN] VSP realtime publish pending failures=24 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:13 [WARN] VSP realtime publish pending failures=24 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:19 [WARN] VSP realtime publish pending failures=27 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:19 [WARN] VSP realtime publish pending failures=27 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=530 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:25 [WARN] VSP realtime publish pending failures=30 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:25 [WARN] VSP realtime publish pending failures=30 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:31 [WARN] VSP realtime publish pending failures=33 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:31 [WARN] VSP realtime publish pending failures=33 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:37 [WARN] VSP realtime publish pending failures=36 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:37 [WARN] VSP realtime publish pending failures=36 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:43 [WARN] VSP realtime publish pending failures=39 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:43 [WARN] VSP realtime publish pending failures=39 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=540 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:49 [WARN] VSP realtime publish pending failures=42 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:49 [WARN] VSP realtime publish pending failures=42 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:54:55 [WARN] VSP realtime publish pending failures=45 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:54:55 [WARN] VSP realtime publish pending failures=45 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:01 [WARN] VSP realtime publish pending failures=48 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:01 [WARN] VSP realtime publish pending failures=48 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=550 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:08 [WARN] VSP realtime publish pending failures=51 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:08 [WARN] VSP realtime publish pending failures=51 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:14 [WARN] VSP realtime publish pending failures=54 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:14 [WARN] VSP realtime publish pending failures=54 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:20 [WARN] VSP realtime publish pending failures=57 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:20 [WARN] VSP realtime publish pending failures=57 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:22 [WARN] VSP realtime publish dropped after retry budget failures=58 client=vit.agent.transport_publisher
+2026-11-04T23:55:22 [WARN] VSP realtime publish dropped after retry budget failures=58 client=vit.agent.realtime_publisher
+2026-11-04T23:55:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=560 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:26 [WARN] VSP realtime publish pending failures=5 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:26 [WARN] VSP realtime publish pending failures=5 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:32 [WARN] VSP realtime publish pending failures=8 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:32 [WARN] VSP realtime publish pending failures=8 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:38 [WARN] VSP realtime publish pending failures=11 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:38 [WARN] VSP realtime publish pending failures=11 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:44 [WARN] VSP realtime publish pending failures=14 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:44 [WARN] VSP realtime publish pending failures=14 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=570 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:50 [WARN] VSP realtime publish pending failures=17 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:50 [WARN] VSP realtime publish pending failures=17 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:55:56 [WARN] VSP realtime publish pending failures=20 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:55:56 [WARN] VSP realtime publish pending failures=20 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:56:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:56:02 [WARN] VSP realtime publish pending failures=23 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:56:02 [WARN] VSP realtime publish pending failures=23 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:56:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=580 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:56:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=7 workspace=vitproj_ab159ec49360451894241779ef592314
+2026-11-04T23:56:08 [WARN] VSP realtime publish pending failures=26 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-04T23:56:08 [WARN] VSP realtime publish pending failures=26 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
