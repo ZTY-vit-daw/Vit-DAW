@@ -39,7 +39,9 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-04 晚 / origin/main=f899cfac（=245 验收合入后 HEAD）/ owner=ZCode GLM-5.3 PC 执行会话（246 卡会话，用户口头开工）/ 实现 worktree `D:\Vit_DAW_wt_246impl` @ 分支 `port/m3-terminal-route-wording-1`（基线 f899cfac）；协调 worktree `D:\Vit_DAW_wt_246claim` @ `coord/246-claim`（仅本卡状态提交）。
+- 领取基线：主检出 HEAD=f899cfac，既有工作树改动均为运行时工程状态（Settings.xml/default_project.xml）与历史 run 工件/旧卡状态（UX-AB-AUDITION 等），与本卡文件域不相交；`git diff --stat` 摘要 8 files +4469/-4429（全为领取前已有，非本卡 diff）。
+- 栈：空闲（245 已释放 e089cbfe，2026-11-04 21:09 TEARDOWN_ALL_ZERO+错峰解锁注记「246 自该条起可登记」）；本卡真栈腿登记见回执。
 
 ## 回执
 
