@@ -41,7 +41,12 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat）
+- 领取时间：2026-11-04（PC 日窗）
+- 领取时 origin/main：052b211e44ee96fa87729f15406bb68a787e84dd（=本地 HEAD，fetch 后核对卡在 todo 无 owner、依赖 243 已在 main e0aa12a1 ✓）
+- 执行 owner：GLM-5.3 Flash（ZCode PC 执行会话，2026-11-04）
+- 协调 worktree：D:\Vit_DAW_wt_244coord（分支 coord/244-claim，仅卡状态提交）
+- 勘察 worktree：D:\Vit_DAW_wt_244work（分支 port/m3-breakpoint-forensics-1，只读勘察+报告写入）
+- 领取时主工作树状态：`git status --short` 含既存改动（VitApp/Workspace/*.xml ×2、coord/cards/done/M3-CHAT-AUTH-STAMP-1 相关 ×2、coord/runs/UX-AB-AUDITION-IMPL-1 ×4、若干未跟踪 design/reports/runs 目录）——均为他卡/历史遗留，与本卡文件域（coord/cards/todo/2026-11-04-M3-BREAKPOINT-FORENSICS-1.md + coord/reports/2026-11-04-m3-breakpoint-forensics-1.md）不相交；卡文件本身无未提交改动。领取基线 diff --stat：无本卡相关 diff。
 
 ## 回执
 
