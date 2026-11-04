@@ -48,7 +48,15 @@
 
 ## 回执
 
-- （执行侧回填）
+- **实现 commit b6cbc007 + 工件 commit f139165e（port/m3-write-gate-trigger-clarify-1）**；HEAD=b6cbc007 时 status 仅本卡 diff（9 文件 +135/-28）。
+- **目标 1（措辞因果修正）**：实际修正面=卡面两处之外同文件第三处同模式误读源一并修正——ccb_model_prompt.go 三处（L123 action path v1→v2 直接调用+运行时自动拦卡+纯文本不成卡不预问；catalog 目录行；legacy 模板 L714 位）+同源锁链强制三跳：agent/rules/ruleset/resources/sections/neutral_family.discipline.rules.txt（parity 字节锁）+chat.discipline.plugins_mixing.txt 同源行（TestNeutralFamilyAutomationRouteMatchesChatRulesetLine 锁）+agent/internal/chat/server.go chat fallback 模板（chat 包 ruleset_parity_test 锁）+neutral_automation_route.go 指引追加触发权句+CacheKey v1→v2。文件域微扩披露：ruleset 两个 txt+server.go 三文件为同源/parity 锁实现卡面目标的必然伴随面（与 needle 同步条款同精神）；卡面「两处」为发卡时勘察计数，实际同文件三处同模式。
+- **目标 2（组过滤重跑）**：automation_llm_route_smoke.py 加 -Groups/--groups（parse_groups 纯函数校验：未知/空/非数值拒绝，缺省 "1,2,3" 全组行为字节不变——手测断言全 PASS+CLI 形态验证）+trigger needle 判读扩展（rows_with_trigger_clarification+rows_with_old_clause 计数）+dev_agent_smoke.ps1 -LlmRouteGroups 透传（文件域微扩：真栈驱动通道）。真栈 writegate1：-LlmRouteGroups 1 单 run 亲证（groups_requested=[1]+组 1 外零执行）。
+- **目标 3（g2 观察腿）**：未跑——门未过+预算超线，卡面「门过且预算余量」双条件不满足。
+- **目标 4（单测）**：action_path 测试锚集更新（新句锚×4+before any write 负断言）+automation_surface 测试（skeleton/catalog/legacy 三面新锚+负断言）+全量 go test ./... 零 FAIL（agentloop/ruleset/chat 重点三包复验绿）。
+- **真栈判定（组 1 门未过→新断点取证包上呈，按停止条件 3 精神收口）**：verdicts=[no_route,no_route,no_route] 三连同型止损自动中止（非跑满）；**242 断点形态消失**（三轮零文本征询话术+零 set_points 尝试）+**新指引句在场被读亲证**（157/162 计费行 v2 句+0/162 旧句残留+r1 行为转变「好把渐强包络的点落在有效区间内」）；**新真断点双形态**：①r1 观察回执不满足循环（40/42 轮 needs_observation；get_parameters 带调用仍申报「范围未读取」；终局轮 capability_blocked 申报缺标识+时间跨度与中途持有 0-6s 区间矛盾）②durable continuation 轮间污染（r1 goal 挂起→r2/r3 前台 already_scheduled 吞+后台 84/34 调用空转）。归因候选（接线问题勘察面）：pending candidate 形成路径+观察回执跨轮投影可见性+continuation goal 存活窗口与 smoke 逐轮新对话的交互。不自修、不原样重跑。
+- **§8 计费**：162 调用 in 2,555,882/out 252,212 ≈¥3.1 上界（242 同口径 ¥1.103/百万 token）——超卡面 ¥3 上界如实披露：r1 单轮 43 调用长链+continuation 后台空转 118 调用为主因；三连止损自动封住后续花费；单 run 无重跑。
+- **栈**：占用登记 0930b61e（登记前亲核全零 18:24+push 后 18:28:01 ≤60s 即时复核全零）；拆栈 TEARDOWN_ALL_ZERO 亲核 19:04:13（PROCS=0+TCP 5555/5556/7878/8787/18787/5178=0+UDP 4444/4445=0）；释放登记随本批推 main。
+- **工件**：coord/runs/M3-WRITE-GATE-TRIGGER-CLARIFY-1/writegate1/（RECEIPT.md 判读+summary/console/rounds g1×3+telemetry 162 行+payload_capture 168 行 12M+driver_console 含 PS1_EXIT=0+head=b6cbc007）；prompt_render 6.2M 留 worktree 不入库（242 先例）；clip.wav+.vit_* 已删（240 教训）。端测边界声明：本卡无 webui 渲染面改动（AGENTS §5 渲染面条款不适用）。
 
 ## 验收
 
