@@ -5,13 +5,16 @@
 - 验收负责人：GLM 主管决策流
 - 池序 248；目标仓库=主仓 agent；P1 / 0.5 天 / 依赖=247 已在 main（7b06c019）✓；L1 / PC 执行会话；栈空闲
 
-## 标的（247 工件亲证）
+## 标的（247 工件亲证+主管验收后代码定位 2026-11-04）
+
+- **代码锚点（主管亲读）**：continuation_scheduler.go:150 `continuationSchedulerTick=250ms` 固定节奏 ticker（:758-775 循环）+ `s.schedulerWake` 通道**无节流并入**（每 wake 即时 drive，风暴实测 ≈6 次/秒>ticker 4 次/秒=wake 加成证据）；:963-975 park 日志分支无退避无节流（answerable park=有意形态每 tick 必打一行）；每 tick `drive()` 还执行 recoverContinuationWorkspace（workspace 身份检查+互斥锁）。注释自证历史：CONT-STALL-1 dead park 告警路径同函数。
+- **风暴机制假说（供验证）**：parked 链存在期间 scheduler 全速空转（tick+wake）→每轮持 s.mu 做检查→HTTP handler 同锁竞争→listener backlog 拒绝（10061）。**wake 是否自激**（drive→状态变化→wake→drive）须判定。
 
 guardrun1 r3：模型面直调完成后（22:38 telemetry 亲证），agent 陷入 continuation.park 空转风暴——agent_last_full_tail.log 22:40:59 起 729 条/约 2 分钟（≈6 条/秒「answerable park holds the chain non_terminal=1 skipped_status=4」），期间 HTTP 轮询遭 WinError 10061 拒绝（疑 park 循环打满 listener backlog），无 g1_r3.json/summary→ps1 exit 1。r2 settle 停 needs_confirmation 后 continuation parked——风暴疑与 settle/park 生命周期相关。**park 循环无退避**是直接观察。
 
 ## 目标
 
-1. **定位+修复 park 空转**：勘察 park 循环代码路径（settle 后 continuation parked 状态的 answerability 轮询），修复=加退避（同类 scheduler 循环惯例：指数/固定间隔+上限，具体值执行侧按现有惯例定）+如适用加空闲上限终止条件；修复不改变 park 语义（answerable 时仍须及时恢复——退避不得引入可感延迟，上限值给依据）。
+1. **修复 park 空转**（锚点已定）：①parked 无可领记录时 drive() 降频或 park 日志节流（如每 N 秒一行/状态变化才打）；②wake 通道自激判定+如有则去自激（drive 内不再触发 wake 的路径，或 wake 合并/最小间隔）；③保留 answerable 及时恢复（退避只作用于「无可领」分支，不作用于 claim 路径）。
 2. **listener 拒绝面判定**：核实风暴期间 10061 是否 park 循环自身 HTTP 打满（或无关并发因）；修复后组 1 全组复验不复现即证。
 3. **245 挂账勘察（并入）**：r2 终局 run 无 [continuation.arm] 行=recordGoalResult 未执行、durable=cancelled vs goal=completed 记账矛盾——定位 settle/记账分支缺口，产出锚点+修复方向（同域顺手修则修，跨域则只交锚点）。
 
