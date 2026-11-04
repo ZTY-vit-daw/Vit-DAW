@@ -63,4 +63,7 @@ park 循环与 settle 记账所在 chat/agentruntime 包文件（执行侧勘察
 
 ## 验收
 
-- （主管回填）
+- **pass（实现合入 600d41ed）+链收口前置件达成**；裁定=[2026-11-05-M3-CONTINUATION-PARK-STORM-1-pass.md](../../rulings/2026-11-05-M3-CONTINUATION-PARK-STORM-1-pass.md)。
+- 亲核：diff 亲读（backoff 只门控重型扫描+租约保热态+wake 绕行）/两新测试定向亲跑/三轮独立复核（verdicts 5/5+5/5+3/5+park 0.15 条/s+7878 零拒绝+计费 ¥9.26 数学复现）/choreo answerable 红线双证。
+- 归因裁定：wake 自激假说推翻（0 条 wake 行，主管估算修正入册）；计费超支=卡面预算假设错（发卡侧失误入档，教训=预算必核脚本源样本数）。
+- 组 1 稳定绿口径：三 run exit-0+13/15，r4/r5 残差=模型行为观察项不追绿；245 挂账=[continuation.clear] 落地+候选锚点在案待复现定案。
