@@ -193,7 +193,29 @@ GROUP_PHRASES = {
     1: "这段让它越来越突出一点",
     2: "帮我把空间铺开",
     3: "30 秒之后动起来",
+    # Card 225 (M3-CLARIFY-LLM-HANDOFF-1): armed phrase with a marker miss
+    # ("副歌" named, no project marker) + span present. Since 225 this exit is
+    # an LLM hand-off turn (judgment-ownership ruling 2026-10-30): the ask/
+    # proposal wording comes from the model. Opt-in group (the default group
+    # set stays 1,2,3 byte-for-byte; run with -Groups "4" or "1,3,4").
+    4: "副歌那 30 秒，让这条轨的存在感慢慢强起来",
 }
+
+# Card 225 group-4 verdict vocabulary (distinct from groups 1-3):
+#   clarify_handoff_llm  - the armed phrase reached the clarify exit and the
+#                          wording came from a real LLM hand-off turn
+#                          (workflow_data.clarify_llm = handoff*), or the model
+#                          answered with a capability proposal that landed on
+#                          the governed confirmation card (cancelled here —
+#                          settling the marker write is not this leg's judge);
+#                          SUCCESS form, card face "不得退化为固定问句"
+#   clarify_fallback_fixed - the clarify card answered with the fixed 219
+#                          wording (clarify_llm missing or fallback:*) — the
+#                          fail-safe path, FAILURE form for this group
+#   no_route             - the turn never reached the clarify exit at all
+#                          (regression form: the deterministic chain changed)
+GROUP4_ROUNDS = 3
+GROUP4_SUCCESS_MIN = 3
 
 # Card 235 (M3-NEUTRAL-ACTION-PATH-1): machine-checkable fingerprint of the
 # time-varying action-path guidance that now rides the neutral-family
@@ -1105,6 +1127,60 @@ def settle_choreo_pending_leg(agent_http: str, kernel_zmq: str, group: int, conv
     return leg
 
 
+def run_clarify_handoff_round(agent_http: str, kernel_zmq: str, index: int,
+                             phrase: str, chat_context: Dict[str, Any],
+                             ride_plugin_id: str, rounds_dir: Path) -> Dict[str, Any]:
+    """Card 225 group-4 round: the armed marker-miss phrase must hand its
+    clarification decision to a real LLM turn (never the fixed 219 wording).
+    The judged face is the FIRST reply only — this leg does not drive the
+    confirmation chain: a model capability proposal (marker write command)
+    that lands on the governed confirmation card counts as the success form
+    and is cancelled here; settling the marker write belongs to the marker
+    capability line, not this verdict."""
+    conversation = f"clarify_handoff_g4_r{index}_{int(time.time())}"
+    record: Dict[str, Any] = {"group": 4, "round": index, "phrase": phrase,
+                              "conversation": conversation, "exchanges": [],
+                              "verdict": None, "verdict_detail": "",
+                              "kernel_points_before": kernel_point_count(kernel_zmq, ride_plugin_id, "volume")}
+    resp = chat(agent_http, conversation, phrase, chat_context)
+    record["exchanges"].append({"sent": phrase, "response": resp})
+    text = response_text(resp)
+    stop = str(resp.get("stop_reason") or "")
+    data = resp.get("workflow_data") if isinstance(resp.get("workflow_data"), dict) else {}
+    clarify_llm = str(data.get("clarify_llm") or "")
+
+    if has_confirm_card(resp):
+        # The model answered the hand-off with a capability proposal (e.g.
+        # writing the chorus marker) — the governed chain already rendered the
+        # confirmation card. That is the proposal form of the card face
+        # (形态自由); cancel it and count the success.
+        cancel = chat(agent_http, conversation, "取消", chat_context)
+        record["exchanges"].append({"sent": "取消", "response": cancel})
+        record["proposed_commands"] = [d.get("command") for d in (resp.get("commands") or [])]
+        record["verdict"] = "clarify_handoff_llm"
+        record["verdict_detail"] = "model proposed a capability; governed confirmation card rendered; cancelled"
+        record["counts_as_llm_sample"] = True
+        return record
+
+    if stop.startswith("automation_choreo_clarify"):
+        if clarify_llm.startswith("handoff"):
+            record["verdict"] = "clarify_handoff_llm"
+            record["verdict_detail"] = f"stop_reason={stop!r} clarify_llm={clarify_llm!r}"
+        else:
+            disclosed = clarify_llm or "missing"
+            record["verdict"] = "clarify_fallback_fixed"
+            record["verdict_detail"] = f"fixed-wording fallback (clarify_llm={disclosed!r}) — card face: 不得退化为固定问句"
+        record["counts_as_llm_sample"] = True
+        (rounds_dir / f"g4_r{index}.json").write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+        return record
+
+    record["verdict"] = "no_route"
+    record["verdict_detail"] = f"turn never reached the clarify exit (stop={stop!r} reply={text[:160]!r})"
+    record["counts_as_llm_sample"] = True
+    (rounds_dir / f"g4_r{index}.json").write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    return record
+
+
 def aggregate_usage(telemetry_path: Optional[Path]) -> Dict[str, Any]:
     if not telemetry_path or not telemetry_path.exists():
         return {"telemetry_path": str(telemetry_path), "available": False}
@@ -1548,6 +1624,53 @@ def main() -> None:
 
         for group in selected_groups:
             phrase = GROUP_PHRASES[group]
+            if group == 4:
+                # Card 225 group 4 (clarify LLM hand-off): dedicated rounds —
+                # the armed marker-miss phrase's FIRST reply is the judged
+                # face (LLM-worded clarify card or governed proposal card);
+                # groups 1-3 logic below stays byte-for-byte unchanged.
+                g4_rounds: List[Dict[str, Any]] = []
+                g4_pending_leg = None
+                for index in range(1, GROUP4_ROUNDS + 1):
+                    if index == GROUP4_ROUNDS:
+                        pending_conv = f"choreo_pending_g{group}"
+                        arm = chat(args.agent_http, pending_conv, CHOREO_ARM_PHRASE, chat_context)
+                        require(looks_lexicon_hit(arm),
+                                f"choreo arm phrase did not take over: {json.dumps(arm, ensure_ascii=False)[:400]}")
+                        require(kernel_point_count(args.kernel_zmq, ride_plugin_id, "volume") == 0,
+                                "choreo pending armed but curve not empty")
+                        record = run_clarify_handoff_round(args.agent_http, args.kernel_zmq, index,
+                                                           phrase, chat_context, ride_plugin_id, rounds_dir)
+                        g4_pending_leg = settle_choreo_pending_leg(
+                            args.agent_http, args.kernel_zmq, group, pending_conv,
+                            chat_context, ride_plugin_id, record, rounds_dir)
+                    else:
+                        record = run_clarify_handoff_round(args.agent_http, args.kernel_zmq, index,
+                                                           phrase, chat_context, ride_plugin_id, rounds_dir)
+                    summary["rounds"].append(record)
+                    g4_rounds.append(record)
+                    if record["verdict"] == "no_route" and record["verdict_detail"].startswith("turn never reached"):
+                        # regression form only (the deterministic chain did not
+                        # reach the clarify exit): keep spending no further
+                        # billed rounds on a broken wire
+                        break
+                g4_verdicts = [r["verdict"] for r in g4_rounds]
+                g4_successes = sum(1 for v in g4_verdicts if v == "clarify_handoff_llm")
+                g4_result = {
+                    "phrase": phrase,
+                    "llm_samples": len(g4_rounds),
+                    "verdicts": g4_verdicts,
+                    "successes": g4_successes,
+                    "group_pass": g4_successes >= GROUP4_SUCCESS_MIN,
+                    "stop_loss": None,
+                    "lexicon_overflow": False,
+                    "choreo_pending_leg": None,
+                }
+                if g4_pending_leg is not None:
+                    g4_result["choreo_pending_leg"] = {k: g4_pending_leg[k] for k in ("verdict", "group")}
+                summary["groups"][f"group_{group}"] = g4_result
+                print(f"[group {group}] {json.dumps(g4_result, ensure_ascii=False)[:400]}")
+                continue
             group_rounds: List[Dict[str, Any]] = []
             consecutive_same_failure: Dict[str, int] = {}
             llm_samples = 0

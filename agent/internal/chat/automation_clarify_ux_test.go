@@ -126,6 +126,14 @@ func TestSpanCandidateAdoptionRequiresExplicitAffirmative(t *testing.T) {
 }
 
 func TestClarifyPendingAffirmativeGetsGuidanceNotReplay(t *testing.T) {
+	// 225 (judgment-ownership migration): the affirm answer now takes the
+	// LLM hand-off first; the 219 differentiated guidance this test pins is
+	// the fail-safe wording. Pin it deterministically by pointing the engine
+	// env at a dead port — the hand-off turn fails fast and the fixed
+	// guidance answers (assertions unchanged, they now lock the fallback).
+	t.Setenv("VIT_AGENT_LLM_BASE_URL", "http://127.0.0.1:9/v1")
+	t.Setenv("VIT_AGENT_LLM_API_KEY", "test-key")
+	t.Setenv("VIT_AGENT_LLM_MODEL", "test-model")
 	server := New(nil, shadow.New(nil), nil)
 	intent := parseAutomationIntent("让这条轨的存在感慢慢强起来")
 	first := server.automationChoreoClarifyResponse("conv-guide", agentModeDefault, "goal-guide", "run-guide",
