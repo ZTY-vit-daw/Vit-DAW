@@ -249,8 +249,15 @@ func inferProjectAwareCapability(message string) string {
 		}
 	}
 	// D1-D3 同 C2/C3：工程级只读观察能力入口，不做普通响度/翻译/参考曲话术
-	// 的词法后继（MIXLAYER-M1-4）；只有显式 D 标记可在此认领。
-	for _, marker := range []string{"pre_master.observation", "d1", "d2", "d3"} {
+	// 的词法后继（MIXLAYER-M1-4）；只有显式 D 标记可在此认领。AF-D1-LOUDNESS-
+	// SETTLE-1 增补显式检查意图词（全局响度检查/峰值检查族）——这些是明确的
+	// D1 检查请求，不是裸「响度」话术；入口仍是观察 pack，settle 深面由
+	// d1LoudnessSettleIntent 在 handler 内分支。
+	for _, marker := range []string{
+		"pre_master.observation", "d1", "d2", "d3",
+		"全局响度检查", "响度检查", "峰值检查", "母带前响度", "母带前检查",
+		"global loudness check", "loudness check", "loudness settle",
+	} {
 		if strings.Contains(text, marker) {
 			return premasterObservationCapabilityID
 		}
