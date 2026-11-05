@@ -1,5 +1,7 @@
 # GENAPI-REALVERIFY-1：genapi 真源端到端验证（零代码+首跑）
 
+> **[2026-11-05 取消结案：用户裁定生成线转向——Suno 经 MCP 调用、套壳按 MCP 思路开发，网页反代与 API 线全部取消。已合入的 GEN-API-ADAPTER 代码留存库中不追改，后续生成集成按新方向另立卡。见 decisions/2026-11-05-generation-mcp-pivot.md。]**
+
 - 发卡：Mac 决策侧 / 2026-10-16 晚（依据=GEN-API-ADAPTER-1 pass ruling 留口"真源验证小卡"+用户 2026-10-16 gate 解锁：key 已配好）
 - 派发确认：已确认（用户 2026-10-16 晚「继续发卡」批准本线报告§三.③立卡建议）
 - 验收负责人：Mac 决策侧先行裁定+PC 主管复核留档

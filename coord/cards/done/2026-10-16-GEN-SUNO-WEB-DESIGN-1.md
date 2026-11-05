@@ -1,5 +1,7 @@
 # GEN-SUNO-WEB-DESIGN-1：Suno 官网订阅网页反代勘察+设计（两腿）
 
+> **[2026-11-05 取消结案：用户裁定生成线转向——Suno 经 MCP 调用、套壳按 MCP 思路开发，网页反代腿取消（无需真实开通 Suno 订阅）。见 decisions/2026-11-05-generation-mcp-pivot.md。]**
+
 - 发卡：Mac 决策侧 / 2026-10-16 深夜（依据=用户裁定"把官网订阅的 Suno 通过网页端直接反代出来"，见 [decisions/2026-10-16-pca-b-native-and-gen-source.md](../../decisions/2026-10-16-pca-b-native-and-gen-source.md) §二）
 - 派发确认：已确认（用户 2026-10-16 深夜方向裁定）
 - 验收负责人：Mac 决策侧先行裁定+PC 主管复核留档

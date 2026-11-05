@@ -69,3 +69,7 @@
 ## 验收
 
 - （主管回填）
+
+## 验收
+
+- **2026-11-05 pass 合入**（GLM 主管决策流）——[2026-11-05-AF-FAMILY-HEALTH-1-pass.md](../../rulings/2026-11-05-AF-FAMILY-HEALTH-1-pass.md)：双面全达+G1-G7 逐项裁定（259=flaky 族/260=脚本卫生含 RunDir/261=PCA context 腿/G6 裁定=needs_confirmation 契约维持→262 行为回归取证/C4=首拆候选→263）；拆减矩阵=A-F 进度权威底账（A 态基线=0）；「真回归 0」判定链采信。
