@@ -60,6 +60,41 @@ func TestParseAutomationIntentCategoryMapping(t *testing.T) {
 	}
 }
 
+// M3-TIMEWINDOW-INTENT-ARM-1: time-window phrases ("30 秒之后动起来") arm the
+// choreography deterministically through the two added vocabulary entries and
+// ride the existing clarification chain — the region layer keeps offering the
+// bare "30 秒" as a confirmable span candidate instead of dropping the number.
+func TestAutomationIntentTimeWindowArming(t *testing.T) {
+	cases := []struct {
+		text  string
+		armed bool
+	}{
+		{"30 秒之后动起来", true},                    // group-3 smoke phrase: window + verb, category unknown
+		{"30 秒之后调整一下", true},                   // window + treatment verb, no semantic word
+		{"30 秒后优化一下", true},                    // short window form
+		{"把这条轨存在感调强一点", false},                 // static treatment path unchanged
+		{"30 秒", false},                        // bare span, no verb
+		{"别动", false},                          // narrow-verb guard: bare "动" is not in the family
+		{"帮我把空间铺开", false},                     // group-2 wording: no time word, stays non-armed
+		{"等 30 秒再说", false},                    // "秒再说" is not a window marker
+	}
+	for _, tc := range cases {
+		if got := automationIntentArmed(tc.text); got != tc.armed {
+			t.Errorf("automationIntentArmed(%q) = %v, want %v", tc.text, got, tc.armed)
+		}
+	}
+	// The group-3 phrase keeps the category unknown (the clarification card
+	// asks, never guesses) while the region layer carries the bare span.
+	intent := parseAutomationIntent("30 秒之后动起来")
+	if !intent.TimeVarying || intent.Category != "" {
+		t.Errorf("time-window verb phrase: TimeVarying=%v Category=%q, want true/empty", intent.TimeVarying, intent.Category)
+	}
+	region := parseAutomationRegionIntent("30 秒之后动起来")
+	if region.Source != automationRegionNeedsClarify || region.BareSpanSeconds != 30 {
+		t.Errorf("time-window region = %+v, want clarify channel with bare span 30", region)
+	}
+}
+
 func TestParseAutomationRegionThreeChannels(t *testing.T) {
 	// Channel 1: utterance-embedded absolute windows.
 	for _, tc := range []struct {
