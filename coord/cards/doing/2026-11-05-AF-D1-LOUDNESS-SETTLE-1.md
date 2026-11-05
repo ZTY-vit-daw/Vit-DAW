@@ -31,7 +31,7 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-05 20:46 +0800 / origin/main=b46a9096（领取基线，与本地一致）/ owner=GLM-5.3 L1-L2 PC 执行会话（ZCode，254 卡会话，sess 本流）/ worktree D:/Vit_DAW_wt_254impl / 分支 port/af-d1-loudness-settle-1 / 领取基线 HEAD=b46a9096，status --short 空、diff --stat 空（干净基线）/ 真栈占用：领取时最近记录=2026-11-05 20:11 M3(225) 释放 TEARDOWN_ALL_ZERO；真栈腿启动前另行登记（§2.2），与 255 错峰
 
 ## 回执
 
