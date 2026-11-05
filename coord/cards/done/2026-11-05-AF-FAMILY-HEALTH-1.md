@@ -54,7 +54,17 @@
 
 ## 回执
 
-- （执行侧回填：逐腿结果/两矩阵/问题清单/计费合计）
+- 2026-11-05 23:00 +0800 / 报告=[coord/reports/2026-11-05-af-family-health.md](../../reports/2026-11-05-af-family-health.md)（健康矩阵+拆减准备度矩阵+问题 G1-G7+处置建议）随 port/af-family-health-1 入库；工件 coord/runs/AF-FAMILY-HEALTH-1/{deesser_matrix_20261105_224002, mix_tick_20261105_224459}/ 同批。
+
+**面 1 摘要**：零栈全绿（C1 冒测七包+agentloop B 族契约+chat 全量复跑——首轮 5 失败取证=测试隔离缺陷非回归，删全局 Temp 残留后全绿）；真栈批 1 de-esser=**腿过时**（9/9 PCA 装载门拦，py invoke 无 context，2026-08-08 门落位后腿未跟上，compressor 系列同根因）；批 2 mix_single_tick=**模型行为分支非链路回归**（观察工具链三步亲证健康，模型对「先等我确认」话术走终局文字建议未挂卡——256 措辞漂移假说同族，needs_confirmation 契约存废**交主管裁定** G6）；批 3 b13b 不跑（同族风险+预算节制，已记录）；C4 引用 M3 收口（组 1 稳定绿 13/15+组 3 5/5）、D1 in-flight（256）。
+
+**面 2 摘要**：固定路由面逐族钉死（capability_owner.go 词表梯度：B2 12+词>B3/B4/C1>C2/C3 仅显式标记；C4 automation_intent 词表；B1 agentloop preflight；D1 settle 意图词；queue fastpath=记账非派发）；harness 可达面=工具 Invoke 全 case 清单（观察/执行/A4/D1/自动化五族）+指引面（read-only 白名单+full-access autonomy 指令+能力目录披露）；拆减准备度矩阵 23 节点（**A=0/H=1（C4）/F=B1-B4+C1-C3+D1+A 族观察面/not_built=C5-D2-D4-E-F1**）；ablation 腿模板四件套（§六，未执行）。
+
+**问题清单**：断言过时 0 定性+1 待裁定（G6）；真回归 0；缺口 7（G1/G2 flaky 测试隔离、G3 脚本退出码缺口、G5 matrix 腿族过时、G6 行为面待裁定、G7 环境陷阱记录）。处置建议见报告 §七（G1-G5/G6-G7/C4 首拆/B4 次选/C2 最后/D1 等 256）。
+
+**计费**：零栈+批 1 零 LLM；批 2 deepseek-flash 257 行 telemetry ≈¥0.2-0.4（预算 ¥1-3 内）。栈占用 22:39-22:51（登记 4a416ef0/TEARDOWN_ALL_ZERO 22:51:27），与 256 错峰满足。
+
+**红线核对**：各族脚本/生产代码零改动（worktree git diff 仅 coord/+工件；256 域 scripts/run_free_state_d1_smoke.ps1 只读未触碰）。端测边界声明：本卡为体检盘点卡，无渲染面/用户旅程改动（§5 两层层级门槛不适用）。
 
 ## 验收
 
