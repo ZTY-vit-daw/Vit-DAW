@@ -1,0 +1,67 @@
+[
+ {
+  "round_file": "g2_r1.json",
+  "phrase": "帮我把空间铺开",
+  "verdict": "capability_blocked",
+  "verdict_detail": "honest capability-blocked declaration (stop_reason='capability_blocked'): '自由态推理申报了能力边界（工程级关系观察（obs_20261105T014400_c97a60d7557a）为部分结果：成对掩蔽维度不可用，返回内容也未形成可核验的轨道级候选清单；此前基于所选轨道立体声观察的两次实验提案分别因目标不属候选前沿、以及所选候选项缺失目标轨而未被受理，本轮又无法重新取回那两条历史观察（obs_20261105T014123_c8f1bbdb3684、obs_202611'",
+  "first_reply_head": "Track 2 的立体声相关性偏高（约 0.68），声像集中在中间，听感偏窄。可以给它挂一条空间混响总线，先小幅加长衰减，把这条轨向后、向两侧铺开一点；改动只动衰减量，不做其他处理。改完在同一段做前后对比，听宽度和尾音是否更舒展，同时主体是否仍居中清晰。",
+  "stop_reason": "improvement_proposal_confirmation_required",
+  "needs_confirmation": true,
+  "workflow": "improvement_proposal",
+  "exchange_count": 3,
+  "followup_sends": [
+   "确认提案",
+   "0 到 30 秒"
+  ],
+  "kernel_evidence": null
+ },
+ {
+  "round_file": "g2_r2.json",
+  "phrase": "帮我把空间铺开",
+  "verdict": "no_route",
+  "verdict_detail": "plain-text response, no automation tool face: '任务在形成有效结算前失败；失败原因与已有证据已保留。'",
+  "first_reply_head": "现在两条轨道的立体声相关性都在 0.68 左右，声像偏集中，左右展开不足。建议先把 Track 1 的声像向左小幅偏移一点，让两条轨道在左右方向上错开，形成更宽的空间感；这次只做一个小幅度、可回退的试听对比，做与不做直接在 DAW 里切换对比即可。",
+  "stop_reason": "improvement_proposal_confirmation_required",
+  "needs_confirmation": true,
+  "workflow": "improvement_proposal",
+  "exchange_count": 4,
+  "followup_sends": [
+   "确认提案",
+   "确认执行",
+   "0 到 30 秒"
+  ],
+  "kernel_evidence": null
+ },
+ {
+  "round_file": "g2_r3.json",
+  "phrase": "帮我把空间铺开",
+  "verdict": "no_route",
+  "verdict_detail": "continuation settled goal failed with no write, confirmation, or capability face (stop_reason='', summary='帮我把空间铺开')",
+  "first_reply_head": "我还在继续处理这个任务，完成后再向你汇报。",
+  "stop_reason": "limit_reached",
+  "needs_confirmation": false,
+  "workflow": null,
+  "exchange_count": 4,
+  "followup_sends": [
+   "继续",
+   "确认",
+   "确认执行"
+  ],
+  "kernel_evidence": null
+ },
+ {
+  "round_file": "g2_r4.json",
+  "phrase": "帮我把空间铺开",
+  "verdict": "no_route",
+  "verdict_detail": "continuation settled goal completed with no write, confirmation, or capability face (stop_reason='', summary='帮我把空间铺开')",
+  "first_reply_head": "我还在继续处理这个任务，完成后再向你汇报。",
+  "stop_reason": "limit_reached",
+  "needs_confirmation": false,
+  "workflow": null,
+  "exchange_count": 2,
+  "followup_sends": [
+   "继续"
+  ],
+  "kernel_evidence": null
+ }
+]

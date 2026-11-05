@@ -1,0 +1,297 @@
+{
+ "scenario": "M3-C4-AUTO-LLM-ROUTE-VERIFY-1 LLM-turn automation routing",
+ "agent_http": "http://127.0.0.1:7878",
+ "kernel_zmq": "tcp://127.0.0.1:5555",
+ "project_path": "D:\\Vit_DAW_wt_249run\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_094045\\logs\\automation_llm_route_project.vit",
+ "llm_participation": "real (user engine config; every classified round below is a real billed LLM turn unless marked lexicon_hit)",
+ "started_at": "2026-11-05T01:41:01.779135+00:00",
+ "groups_requested": [
+  2,
+  3
+ ],
+ "groups": {
+  "group_2": {
+   "phrase": "帮我把空间铺开",
+   "llm_samples": 4,
+   "verdicts": [
+    "capability_blocked",
+    "no_route",
+    "no_route",
+    "no_route"
+   ],
+   "successes": 0,
+   "group_pass": false,
+   "stop_loss": {
+    "group": 2,
+    "failure_type": "no_route",
+    "consecutive": 3
+   },
+   "lexicon_overflow": false,
+   "choreo_pending_leg": null
+  },
+  "group_3": {
+   "phrase": "30 秒之后动起来",
+   "skipped": "stop_loss_in_earlier_group"
+  }
+ },
+ "rounds": [
+  {
+   "group": 2,
+   "round": 1,
+   "phrase": "帮我把空间铺开",
+   "conversation": "llm_route_g2_r1_1793842862",
+   "verdict": "capability_blocked",
+   "verdict_detail": "honest capability-blocked declaration (stop_reason='capability_blocked'): '自由态推理申报了能力边界（工程级关系观察（obs_20261105T014400_c97a60d7557a）为部分结果：成对掩蔽维度不可用，返回内容也未形成可核验的轨道级候选清单；此前基于所选轨道立体声观察的两次实验提案分别因目标不属候选前沿、以及所选候选项缺失目标轨而未被受理，本轮又无法重新取回那两条历史观察（obs_20261105T014123_c8f1bbdb3684、obs_202611'",
+   "kernel_points_before": 0,
+   "convergence": {
+    "llm": {
+     "available": true,
+     "llm_calls": 17,
+     "input_tokens": 228217,
+     "output_tokens": 41144
+    },
+    "turns": {
+     "available": true,
+     "turn_records": 13,
+     "max_turn": 9
+    },
+    "observation_requests": 5,
+    "proposal_reached": true,
+    "limit_reached_seen": false,
+    "post_round_observation_probe": {
+     "probe_ok": true,
+     "view_present": true,
+     "view_excerpt": "{\"facts\": {\"track.1010.fast.levels\": {\"crest_db\": 7.701, \"headroom_db\": 4.188, \"peak_abs\": 0.617432, \"peak_dbfs\": -4.188, \"rms\": 0.254415, \"rms_dbfs\": -11.889, \"status\": \"ready\", \"updated_at\": \"2026-11-05T01:44:00.374444Z\"}, \"track.1010.static.identity\": {\"listen_scope\": {\"source\": {\"focus_ids\": [\"1010\"], \"mode\": \"selected_track_with_project_context\"}, \"time\": {\"mode\": \"full_song\", \"source\": \"defa",
+     "omissions_excerpt": ""
+    }
+   },
+   "pre_confirm_zero_write": true,
+   "tools_called": [
+    "ccb.observation_request",
+    "ccb.observation_catalog",
+    "version.checkpoint",
+    "track.send.list",
+    "plugin.semantic_search"
+   ],
+   "counts_as_llm_sample": true,
+   "exchanges_count": 3,
+   "first_reply_head": "Track 2 的立体声相关性偏高（约 0.68），声像集中在中间，听感偏窄。可以给它挂一条空间混响总线，先小幅加长衰减，把这条轨向后、向两侧铺开一点；改动只动衰减量，不做其他处理。改完在同一段做前后对比，听宽度和尾音是否更舒展，同时主体是否仍居中清晰。"
+  },
+  {
+   "group": 2,
+   "round": 2,
+   "phrase": "帮我把空间铺开",
+   "conversation": "llm_route_g2_r2_1793843143",
+   "verdict": "no_route",
+   "verdict_detail": "plain-text response, no automation tool face: '任务在形成有效结算前失败；失败原因与已有证据已保留。'",
+   "kernel_points_before": 0,
+   "convergence": {
+    "llm": {
+     "available": true,
+     "llm_calls": 12,
+     "input_tokens": 170262,
+     "output_tokens": 32401
+    },
+    "turns": {
+     "available": true,
+     "turn_records": 10,
+     "max_turn": 9
+    },
+    "observation_requests": 5,
+    "proposal_reached": true,
+    "limit_reached_seen": false,
+    "post_round_observation_probe": {
+     "probe_ok": true,
+     "view_present": true,
+     "view_excerpt": "{\"facts\": {\"track.1010.fast.levels\": {\"crest_db\": 7.701, \"headroom_db\": 4.188, \"peak_abs\": 0.617432, \"peak_dbfs\": -4.188, \"rms\": 0.254415, \"rms_dbfs\": -11.889, \"status\": \"ready\", \"updated_at\": \"2026-11-05T01:44:00.374444Z\"}, \"track.1010.static.identity\": {\"listen_scope\": {\"source\": {\"focus_ids\": [\"1010\"], \"mode\": \"selected_track_with_project_context\"}, \"time\": {\"mode\": \"full_song\", \"source\": \"defa",
+     "omissions_excerpt": ""
+    }
+   },
+   "pre_confirm_zero_write": true,
+   "tools_called": [
+    "ccb.observation_request",
+    "ccb.observation_catalog",
+    "version.checkpoint",
+    "mix.observe"
+   ],
+   "counts_as_llm_sample": true,
+   "exchanges_count": 4,
+   "first_reply_head": "现在两条轨道的立体声相关性都在 0.68 左右，声像偏集中，左右展开不足。建议先把 Track 1 的声像向左小幅偏移一点，让两条轨道在左右方向上错开，形成更宽的空间感；这次只做一个小幅度、可回退的试听对比，做与不做直接在 DAW 里切换对比即可。"
+  },
+  {
+   "group": 2,
+   "round": 3,
+   "phrase": "帮我把空间铺开",
+   "conversation": "llm_route_g2_r3_1793843364",
+   "verdict": "no_route",
+   "verdict_detail": "continuation settled goal failed with no write, confirmation, or capability face (stop_reason='', summary='帮我把空间铺开')",
+   "kernel_points_before": 0,
+   "convergence": {
+    "llm": {
+     "available": true,
+     "llm_calls": 13,
+     "input_tokens": 203109,
+     "output_tokens": 29859
+    },
+    "turns": {
+     "available": true,
+     "turn_records": 12,
+     "max_turn": 12
+    },
+    "observation_requests": 10,
+    "proposal_reached": false,
+    "limit_reached_seen": true,
+    "post_round_observation_probe": {
+     "probe_ok": true,
+     "view_present": true,
+     "view_excerpt": "{\"facts\": {\"track.1010.fast.levels\": {\"crest_db\": 7.701, \"headroom_db\": 4.188, \"peak_abs\": 0.617432, \"peak_dbfs\": -4.188, \"rms\": 0.254415, \"rms_dbfs\": -11.889, \"status\": \"ready\", \"updated_at\": \"2026-11-05T01:44:00.374444Z\"}, \"track.1010.static.identity\": {\"listen_scope\": {\"source\": {\"focus_ids\": [\"1010\"], \"mode\": \"selected_track_with_project_context\"}, \"time\": {\"mode\": \"full_song\", \"source\": \"defa",
+     "omissions_excerpt": ""
+    }
+   },
+   "limit_reached_seen": true,
+   "terminal_wait": {
+    "window_sec": 900.0,
+    "poll_interval_sec": 10.0,
+    "polls": 6,
+    "goal_id": "goal_bffc9a2a8d192595",
+    "final_goal": {
+     "status": "failed",
+     "stop_reason": "",
+     "summary": "帮我把空间铺开",
+     "error": "durable continuation failed: minimal audio closure controller failed: minimal audio closure requires a verified semantic entry"
+    }
+   },
+   "confirmations_driven": 2,
+   "tools_called": [
+    "ccb.observation_catalog",
+    "ccb.observation_request",
+    "version.checkpoint",
+    "mix.observe"
+   ],
+   "counts_as_llm_sample": true,
+   "exchanges_count": 4,
+   "first_reply_head": "我还在继续处理这个任务，完成后再向你汇报。"
+  },
+  {
+   "group": 2,
+   "round": 4,
+   "phrase": "帮我把空间铺开",
+   "conversation": "llm_route_g2_r4_1793843620",
+   "verdict": "no_route",
+   "verdict_detail": "continuation settled goal completed with no write, confirmation, or capability face (stop_reason='', summary='帮我把空间铺开')",
+   "kernel_points_before": 0,
+   "convergence": {
+    "llm": {
+     "available": true,
+     "llm_calls": 18,
+     "input_tokens": 291002,
+     "output_tokens": 30883
+    },
+    "turns": {
+     "available": true,
+     "turn_records": 17,
+     "max_turn": 17
+    },
+    "observation_requests": 0,
+    "proposal_reached": false,
+    "limit_reached_seen": true,
+    "post_round_observation_probe": {
+     "probe_ok": true,
+     "view_present": true,
+     "view_excerpt": "{\"facts\": {\"track.1010.fast.levels\": {\"crest_db\": 7.701, \"headroom_db\": 4.188, \"peak_abs\": 0.617432, \"peak_dbfs\": -4.188, \"rms\": 0.254415, \"rms_dbfs\": -11.889, \"status\": \"ready\", \"updated_at\": \"2026-11-05T01:44:00.374444Z\"}, \"track.1010.static.identity\": {\"listen_scope\": {\"source\": {\"focus_ids\": [\"1010\"], \"mode\": \"selected_track_with_project_context\"}, \"time\": {\"mode\": \"full_song\", \"source\": \"defa",
+     "omissions_excerpt": ""
+    }
+   },
+   "limit_reached_seen": true,
+   "terminal_wait": {
+    "window_sec": 900.0,
+    "poll_interval_sec": 10.0,
+    "polls": 4,
+    "goal_id": "goal_00c596a3033fa94b",
+    "final_goal": {
+     "status": "completed",
+     "stop_reason": "",
+     "summary": "帮我把空间铺开",
+     "error": ""
+    }
+   },
+   "tools_called": [],
+   "counts_as_llm_sample": true,
+   "exchanges_count": 2,
+   "first_reply_head": "我还在继续处理这个任务，完成后再向你汇报。"
+  }
+ ],
+ "setup": {
+  "ride_track_id": "1010",
+  "ride_volume_plugin_id": "1011",
+  "external_plugins_loaded": 0,
+  "clip_wav": "D:\\Vit_DAW_wt_249run\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_094045\\logs\\automation_llm_route_clip.wav",
+  "clip_duration_seconds": 6.0,
+  "clip_counts": {
+   "1007": 1,
+   "1010": 1
+  },
+  "observation_ready_attempts": 1,
+  "observation_view_excerpt": "{\"facts\": {\"track.1010.fast.levels\": {\"crest_db\": null, \"headroom_db\": null, \"peak_abs\": null, \"peak_dbfs\": null, \"rms\": null, \"rms_dbfs\": null, \"status\": \"missing\"}, \"track.1010.static.identity\": {\"listen_scope\": {\"source\": {\"focus_ids\": [\"1010\"], \"mode\": \"selected_track_with_project_context\"}, \"time\": {\"mode\": \"full_song\", \"source\": \"default\"}}, \"mix_objects\": [{\"effect_scope\": \"track_rack\", \"id",
+  "acoustic_package_status": {
+   "excerpted": true,
+   "path": "D:\\Vit_DAW_wt_249run\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_094045\\logs\\.vit_derived\\vitproj_1d6fbdd3af3847468104f363721ba582\\acoustic_package_status.json",
+   "package_statuses": [
+    "partial",
+    "partial"
+   ]
+  }
+ },
+ "prompt_guidance_rendered": true,
+ "verdict_distribution": {
+  "capability_blocked": 1,
+  "no_route": 3
+ },
+ "usage": {
+  "telemetry_path": "D:\\Vit_DAW_wt_249run\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_094045\\logs\\agent_llm_telemetry.jsonl",
+  "available": true,
+  "llm_calls": 61,
+  "models": {
+   "deepseek-flash": {
+    "calls": 61,
+    "input_tokens": 893296,
+    "output_tokens": 135847
+   }
+  }
+ },
+ "payload_guidance": {
+  "payload_capture_path": "D:\\Vit_DAW_wt_249run\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_094045\\logs\\agent_llm_payload_capture.jsonl",
+  "available": true,
+  "needle": "Action Path Selection (time-varying goals vs static adjustments)",
+  "rows": 61,
+  "rows_with_guidance": 52,
+  "trigger_needle": "never forms a confirmation card",
+  "rows_with_trigger_clarification": 52,
+  "rows_with_old_clause": 0,
+  "terminal_direct_call_needle": "a direct automation.set_points mutation call when every write element",
+  "time_varying_exemption_needle": "a time-varying goal is exempt from it",
+  "rows_with_terminal_direct_call": 7,
+  "rows_with_time_varying_exemption": 52,
+  "rows_with_terminal_twochoice": 0
+ },
+ "payload_param_surface": {
+  "payload_capture_path": "D:\\Vit_DAW_wt_249run\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_094045\\logs\\agent_llm_payload_capture.jsonl",
+  "available": true,
+  "needle": "automation_param_surface",
+  "rows": 61,
+  "rows_with_param_surface": 0,
+  "rows_with_param_value": 0
+ },
+ "payload_automation_surfaces": {
+  "payload_capture_path": "D:\\Vit_DAW_wt_249run\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_094045\\logs\\agent_llm_payload_capture.jsonl",
+  "available": true,
+  "needle": "automation_surfaces",
+  "rows": 61,
+  "rows_with_automation_surfaces": 0,
+  "rows_with_pinned_plugin_id": 0,
+  "rows_with_attribution_receipt": 0,
+  "rows_with_pinned_value": 0
+ },
+ "status": "COMPLETED",
+ "finished_at": "2026-11-05T01:57:21.187327+00:00"
+}
