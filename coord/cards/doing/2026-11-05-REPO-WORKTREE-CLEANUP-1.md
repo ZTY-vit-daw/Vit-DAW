@@ -44,6 +44,7 @@
 - 勘误记录：dirty 尺寸首轮相对路径误测，已全量绝对路径重算（dirty_detail2.txt）；A₀ 表 20 支 ahead 数未逐支计（同型 1–2），Phase 2 按需补。
 - **等待主管+用户裁定 §9 七项后再领 Phase 2**；Phase 1 零 git 写操作（除协调提交）、零真栈、零 LLM 成本；与 253 无 git 写冲突窗口（其 worktree 独立 index，本卡写操作仅领取/回执两笔协调提交，瞬时完成）。
 - 主检出 status 与领取基线一致（差异仅本卡卡面+报告两个 coord 文件）。
+- 推送冲突处置记录（一次性）：回执首推被拒（远端期间进 252 领取/done+253 占用登记三笔，文件域零重叠）；主检出未提交改动不可 stash/rebase，按 PROTOCOL §2.1.3/§3 走临时协调 worktree cherry-pick 重放推送成功（origin/main=6d57de55）。**主检出本地 main 停在等价补丁 e9efb0cd（ahead1/behind4）**，主管侧下次 `git pull --rebase` 会自动跳过该等价提交自愈；工作树与基线一致不受影响。
 
 ## 验收
 
