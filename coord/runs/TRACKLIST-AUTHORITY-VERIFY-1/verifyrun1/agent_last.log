@@ -1,0 +1,280 @@
+2026-11-05T20:55:51 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-05T20:55:51 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-05T20:55:51 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-05T20:55:51 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-05T20:55:51 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-05T20:55:51 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-05T20:55:51 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-05T20:55:51 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-05T20:55:51 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1793883351143_63111898 type=session.hello_ack
+2026-11-05T20:55:51 [INFO] [shadow] initialized tracks=5 project_path="" replayed_deltas=0
+2026-11-05T20:55:51 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:51 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:51 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:52 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:52 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:52 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:52 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:53 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:53 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-11-05T20:55:53 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:53 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:53 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:53 [INFO] [timing] kernel.send_command ms=2 command=list_tracks tool=track.list confirmed=false err=false
+2026-11-05T20:55:53 [INFO] [timing] harness.invoke total_ms=8 tool=track.list command=list_tracks status=ok confirmed=false err=false
+2026-11-05T20:55:53 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="0/1cd51d3" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="1010" action="property_changed:id"
+2026-11-05T20:55:53 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1012" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1011" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/1cd51d3" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1013" action="property_changed:id"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1015" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1014" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/1cd51d3" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1016" action="property_changed:id"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1017" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1018" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1017" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1016" action="property_changed:name"
+2026-11-05T20:55:54 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/1cd51d3" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1016" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1019" action="property_changed:id"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1020" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1021" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1020" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1019" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/1cd51d3" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1019" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1022" action="property_changed:id"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1023" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1024" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1023" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1022" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/1cd51d3" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1022" action="property_changed:name"
+2026-11-05T20:55:54 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1026 project_id=current target_path=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav status=ready
+2026-11-05T20:55:54 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1026 project_id=current target_path=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav status=ready
+2026-11-05T20:55:54 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1026 project_id=current target_path=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav status=ready
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1026" action="property_changed:elastiqueMode"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1026" action="property_changed:pan"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1026" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1026" action="property_changed:colour"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1026" action="property_changed:proxyAllowed"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1026" action="property_changed:resamplingQuality"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/1cd51d3" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:54 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:54 [INFO] [timing] kernel.send_command ms=3 command=list_tracks tool=track.list confirmed=false err=false
+2026-11-05T20:55:54 [INFO] [timing] harness.invoke total_ms=8 tool=track.list command=list_tracks status=ok confirmed=false err=false
+2026-11-05T20:55:54 [INFO] [workspace] activation pending uuid=vitproj_legacy_04c5d6c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:54 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=7
+2026-11-05T20:55:54 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-11-05T20:55:54 [INFO] [workspace] activation pending uuid=vitproj_e8d70a927aad47f78c42de66c01fe32c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/30ac42f" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1010" action="property_changed:id"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1012" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1011" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/30ac42f" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [INFO] [workspace] activation pending uuid=vitproj_e8d70a927aad47f78c42de66c01fe32c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1013" action="property_changed:id"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1015" action="node_added"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1014" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="0/30ac42f" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:54 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1016" action="property_changed:id"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1017" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1018" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1017" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1016" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="0/30ac42f" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1016" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1019" action="property_changed:id"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1020" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1021" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1020" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_e8d70a927aad47f78c42de66c01fe32c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1019" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="0/30ac42f" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1019" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1022" action="property_changed:id"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_e8d70a927aad47f78c42de66c01fe32c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1023" action="node_added"
+2026-11-05T20:55:55 [INFO] [timing] kernel.send_command ms=2 command=list_tracks tool=track.list confirmed=false err=false
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1024" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1023" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:55 [INFO] [timing] harness.invoke total_ms=19 tool=track.list command=list_tracks status=ok confirmed=false err=false
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1022" action="property_changed:name"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="0/30ac42f" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_e8d70a927aad47f78c42de66c01fe32c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1022" action="property_changed:name"
+2026-11-05T20:55:55 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1026 project_id=vitproj_e8d70a927aad47f78c42de66c01fe32c target_path=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav status=ready
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_e8d70a927aad47f78c42de66c01fe32c reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1026 project_id=vitproj_e8d70a927aad47f78c42de66c01fe32c target_path=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav status=ready
+2026-11-05T20:55:55 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=7
+2026-11-05T20:55:55 [INFO] [timing] kernel.send_command ms=8 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-05T20:55:55 [INFO] [timing] harness.invoke total_ms=9 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-05T20:55:55 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1026 project_id=vitproj_84820d5c401d439692dd9bfb0c15815b target_path=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav status=ready
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_84820d5c401d439692dd9bfb0c15815b reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1026" action="property_changed:elastiqueMode"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1026" action="property_changed:pan"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1026" action="node_added"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1026" action="property_changed:colour"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1026" action="property_changed:proxyAllowed"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="1026" action="property_changed:resamplingQuality"
+2026-11-05T20:55:55 [DEBUG] [shadow] live delta uid="0/30ac42f" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_84820d5c401d439692dd9bfb0c15815b reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_84820d5c401d439692dd9bfb0c15815b reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [INFO] [timing] kernel.send_command ms=3 command=list_tracks tool=track.list confirmed=false err=false
+2026-11-05T20:55:55 [INFO] [timing] harness.invoke total_ms=7 tool=track.list command=list_tracks status=ok confirmed=false err=false
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_84820d5c401d439692dd9bfb0c15815b reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [INFO] [workspace] activation pending uuid=vitproj_84820d5c401d439692dd9bfb0c15815b reason=startup_recovery_disabled_new_session
+2026-11-05T20:55:55 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_255impl\\coord\\runs\\FIX-TRACKLIST-SHADOW-FRESHNESS-1\\run_20261105_205547\\fixture_open_existing_live.vit" replayed_deltas=2
+2026-11-05T20:55:55 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=4
+2026-11-05T20:55:55 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-05T20:55:55 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_legacy_00
+2026-11-05T20:55:55 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_255impl\\coord\\runs\\FIX-TRACKLIST-SHADOW-FRESHNESS-1\\run_20261105_205547\\fixture_open_existing_live.vit" uuid=vitproj_legacy_00 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-05T20:55:56 [INFO] [timing] kernel.send_command ms=2 command=list_tracks tool=track.list confirmed=false err=false
+2026-11-05T20:55:56 [INFO] [timing] harness.invoke total_ms=8 tool=track.list command=list_tracks status=ok confirmed=false err=false
+2026-11-05T20:55:56 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-11-05T20:55:56 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_legacy_00
+2026-11-05T20:55:56 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_255impl\\coord\\runs\\FIX-TRACKLIST-SHADOW-FRESHNESS-1\\run_20261105_205547\\fixture_open_existing_live.vit" replayed_deltas=2
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="1013" action="property_changed:id"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-05T20:55:56 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=add_track err=false
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-05T20:55:56 [INFO] [shadow] initialized tracks=3 project_path="D:\\Vit_DAW_wt_255impl\\coord\\runs\\FIX-TRACKLIST-SHADOW-FRESHNESS-1\\run_20261105_205547\\fixture_open_existing_live.vit" replayed_deltas=3
+2026-11-05T20:55:56 [INFO] [timing] harness.refresh_shadow ms=14 reason=add_track status=ok err=false
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-05T20:55:56 [INFO] [shadow] initialized tracks=3 project_path="D:\\Vit_DAW_wt_255impl\\coord\\runs\\FIX-TRACKLIST-SHADOW-FRESHNESS-1\\run_20261105_205547\\fixture_open_existing_live.vit" replayed_deltas=3
+2026-11-05T20:55:56 [INFO] [timing] kernel.send_command ms=39 command=add_track tool=track.add confirmed=true err=false
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="1015" action="node_added"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="1014" action="property_changed:remapOnTempoChange"
+2026-11-05T20:55:56 [INFO] [timing] harness.invoke total_ms=47 tool=track.add command=add_track status=ok confirmed=true err=false
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="0/0" action="property_changed:lastSignificantChange"
+2026-11-05T20:55:56 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-05T20:55:56 [INFO] [timing] kernel.send_command ms=2 command=list_tracks tool=track.list confirmed=false err=false
+2026-11-05T20:55:56 [INFO] [timing] harness.invoke total_ms=8 tool=track.list command=list_tracks status=ok confirmed=false err=false

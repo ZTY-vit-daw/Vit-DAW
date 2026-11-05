@@ -1,0 +1,61 @@
+{
+  "vsp_version": "1.0",
+  "schema": "vsp.state.snapshot.v1",
+  "message_id": "msg_kernel_1793883353881_529147809",
+  "session_id": "sess_kernel_1793883353845_362249326",
+  "client_id": "kernel.main",
+  "role": "kernel",
+  "channel": "state",
+  "type": "state.snapshot",
+  "created_at": "2026-11-05T20:55:53.881+08:00",
+  "correlation_id": "msg_probe_1793883353879_14200",
+  "trace_id": "trace_probe_323800",
+  "project_epoch": "epoch_73739767350f4f20",
+  "revision": 1,
+  "ack": {
+    "stage": "completed",
+    "message": "State snapshot captured"
+  },
+  "payload": {
+    "status": "ok",
+    "resync": false,
+    "scope": "project.timeline",
+    "snapshot_hash": "1f3ca195ae9d30fa",
+    "snapshot": {
+      "project": {
+        "project_id": "project_current",
+        "project_path": "",
+        "project_uuid": "vitproj_legacy_04c5d6c",
+        "parent_project_uuid": "",
+        "scope": "project.timeline",
+        "track_count": 0,
+        "clip_count": 0,
+        "legacy_graph_revision": 0,
+        "legacy_graph_active_revision": 0,
+        "legacy_graph_pending_revision": 0,
+        "legacy_graph_last_diff_kind": "",
+        "legacy_graph_publish_mode": "idle",
+        "legacy_graph_lifecycle_state": "idle"
+      },
+      "tracks": [],
+      "markers": []
+    },
+    "project": {
+      "project_id": "project_current",
+      "project_path": "",
+      "project_uuid": "vitproj_legacy_04c5d6c",
+      "parent_project_uuid": "",
+      "scope": "project.timeline",
+      "track_count": 0,
+      "clip_count": 0,
+      "legacy_graph_revision": 0,
+      "legacy_graph_active_revision": 0,
+      "legacy_graph_pending_revision": 0,
+      "legacy_graph_last_diff_kind": "",
+      "legacy_graph_publish_mode": "idle",
+      "legacy_graph_lifecycle_state": "idle"
+    },
+    "tracks": []
+  },
+  "_http_status": 200
+}

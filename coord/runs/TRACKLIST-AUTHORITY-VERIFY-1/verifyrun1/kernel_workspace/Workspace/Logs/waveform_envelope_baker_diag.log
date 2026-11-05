@@ -1,0 +1,48 @@
+[waveform_envelope.lifecycle] begin_gen key=1002 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1003 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1004 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1005 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1006 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1026 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] start_bake key=1026 gen=1 priority_rank=10 track_id=1007 clip_id=1026 source_revision=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000 clip_revision=clip=1026|track=1007|source=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000|offset=0.0000|length=1.0000 source_offset=0.0000 bake_length=1.0000 frames_per_tile=1024 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[waveform_envelope.queue] workers_started count=4 queue_max=256
+[waveform_envelope.queue] enqueue key=1026 gen=1 priority_rank=10 queue_size=1
+[VitImportPerf] op=waveform_envelope stage=source_read_lease total_ms=0.01 key=1026 gen=1 wait_ms=0.01
+[VitImportPerf] op=waveform_envelope stage=reader_open total_ms=0.31 key=1026 gen=1 stage_ms=0.05
+[VitImportPerf] op=waveform_envelope stage=range_ready total_ms=0.45 key=1026 gen=1 sample_rate=48000.00 total_tiles=1 total_duration=1.0000 frames_per_tile=1024
+[VitImportPerf] op=waveform_envelope stage=tile_read_begin total_ms=0.74 key=1026 gen=1 tile=1/1 source_sample=0 valid_samples=48000
+[VitImportPerf] op=waveform_envelope stage=tile_read_end total_ms=0.94 key=1026 gen=1 tile=1/1
+[VitImportPerf] op=waveform_envelope stage=tile_progress total_ms=1.48 key=1026 gen=1 tile=1/1 tile_ms=0.85 tile_duration=1.0000 handles=1
+[VitImportPerf] op=waveform_envelope stage=finish total_ms=1.62 key=1026 gen=1 status=ok completed_tiles=1 total_tiles=1
+[waveform_envelope.lifecycle] begin_gen key=1002 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1003 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1004 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1005 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1006 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1007 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1010 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1013 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1016 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1019 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1022 gen=1 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1026 gen=2 retired_handles=1
+[waveform_envelope.lifecycle] start_bake key=1026 gen=2 priority_rank=10 track_id=1007 clip_id=1026 source_revision=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000 clip_revision=clip=1026|track=1007|source=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000|offset=0.0000|length=1.0000 source_offset=0.0000 bake_length=1.0000 frames_per_tile=1024 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[waveform_envelope.queue] enqueue key=1026 gen=2 priority_rank=10 queue_size=1
+[VitImportPerf] op=waveform_envelope stage=source_read_lease total_ms=0.01 key=1026 gen=2 wait_ms=0.00
+[VitImportPerf] op=waveform_envelope stage=reader_open total_ms=0.26 key=1026 gen=2 stage_ms=0.05
+[VitImportPerf] op=waveform_envelope stage=range_ready total_ms=0.41 key=1026 gen=2 sample_rate=48000.00 total_tiles=1 total_duration=1.0000 frames_per_tile=1024
+[VitImportPerf] op=waveform_envelope stage=tile_read_begin total_ms=1.00 key=1026 gen=2 tile=1/1 source_sample=0 valid_samples=48000
+[VitImportPerf] op=waveform_envelope stage=tile_read_end total_ms=1.55 key=1026 gen=2 tile=1/1
+[VitImportPerf] op=waveform_envelope stage=tile_progress total_ms=2.43 key=1026 gen=2 tile=1/1 tile_ms=1.53 tile_duration=1.0000 handles=1
+[VitImportPerf] op=waveform_envelope stage=finish total_ms=2.85 key=1026 gen=2 status=ok completed_tiles=1 total_tiles=1
+[waveform_envelope.lifecycle] begin_gen key=1002 gen=3 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1003 gen=3 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1004 gen=3 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1005 gen=3 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1006 gen=3 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1007 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1010 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1013 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1016 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1019 gen=2 retired_handles=0
+[waveform_envelope.lifecycle] begin_gen key=1022 gen=2 retired_handles=0

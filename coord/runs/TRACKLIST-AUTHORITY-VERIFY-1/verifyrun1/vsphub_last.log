@@ -1,0 +1,7 @@
+2026-11-05T20:55:50 [INFO] VspHub started listen=127.0.0.1:8787 kernel_req=tcp://127.0.0.1:5555 kernel_sub=tcp://127.0.0.1:5556 telemetry=true
+2026-11-05T20:55:50 [INFO] VspHub HTTP listening on http://127.0.0.1:8787
+2026-11-05T20:55:50 [INFO] VSP telemetry relay started: tcp://127.0.0.1:5556 -> vsp.hub.websocket
+2026-11-05T20:55:51 [INFO] VSP session registered role=agent client_id=vit.agent.official session_id=sess_kernel_1793883351143_63111898 transport=vsp.hub.http
+2026-11-05T20:55:51 [INFO] VSP session registered role=agent client_id=vit.agent.transport_publisher session_id=sess_kernel_1793883351172_611637566 transport=vsp.hub.http
+2026-11-05T20:55:53 [INFO] VSP session registered role=agent client_id=probe.tracklist session_id=sess_kernel_1793883353845_362249326 transport=vsp.hub.http
+2026-11-05T20:55:54 [INFO] VSP session registered role=agent client_id=vit.agent.realtime_publisher session_id=sess_kernel_1793883354143_430685551 transport=vsp.hub.http

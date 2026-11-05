@@ -1,0 +1,13 @@
+﻿{
+    "finished":  "2026-11-05T20:56:01.6980663+08:00",
+    "kernel_pid":  19648,
+    "vsphub_pid":  3028,
+    "agent_pid":  17932,
+    "exit_code":  0,
+    "probe_summary":  "D:\\Vit_DAW_wt_255impl\\coord\\runs\\FIX-TRACKLIST-SHADOW-FRESHNESS-1\\run_20261105_205547\\probe_summary.json",
+    "remaining_listeners":  0,
+    "remaining_processes":  0,
+    "out_of_scope_godot_editors":  [
+
+                                   ]
+}

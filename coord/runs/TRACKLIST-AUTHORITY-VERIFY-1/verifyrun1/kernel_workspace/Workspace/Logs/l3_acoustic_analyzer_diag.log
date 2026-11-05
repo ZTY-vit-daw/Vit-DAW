@@ -1,0 +1,18 @@
+[dad_l3] queued track_id=1007 clip_id=1026 feature_type=l3_acoustic_summary source_revision=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000 clip_revision=clip=1026|track=1007|source=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000|offset=0.0000|length=1.0000 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] start track_id=1007 clip_id=1026 feature_type=l3_acoustic_summary source_revision=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000 clip_revision=clip=1026|track=1007|source=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000|offset=0.0000|length=1.0000 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] source_read_lease track_id=1007 wait_ms=0.32 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] reader_open track_id=1007 elapsed_ms=0.04 reader_ok=true file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] reader_read_begin track_id=1007 sample=0 valid=4096 total_samples=48000
+[dad_l3] reader_read_end track_id=1007 sample=0
+[dad_l3] reader_read_begin track_id=1007 sample=45056 valid=2944 total_samples=48000
+[dad_l3] reader_read_end track_id=1007 sample=45056
+[dad_l3] finish track_id=1007 clip_id=1026 quality_status=ready analyzed_sample_count=48000 coverage=1.0000
+[dad_l3] queued track_id=1007 clip_id=1026 feature_type=l3_acoustic_summary source_revision=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000 clip_revision=clip=1026|track=1007|source=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000|offset=0.0000|length=1.0000 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] start track_id=1007 clip_id=1026 feature_type=l3_acoustic_summary source_revision=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000 clip_revision=clip=1026|track=1007|source=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav|size=96044|mtime=1793883353800|length=1.0000|offset=0.0000|length=1.0000 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] source_read_lease track_id=1007 wait_ms=2.53 file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] reader_open track_id=1007 elapsed_ms=0.06 reader_ok=true file=D:\Vit_DAW_wt_255impl\coord\runs\FIX-TRACKLIST-SHADOW-FRESHNESS-1\run_20261105_205547\probe_sine.wav
+[dad_l3] reader_read_begin track_id=1007 sample=0 valid=4096 total_samples=48000
+[dad_l3] reader_read_end track_id=1007 sample=0
+[dad_l3] reader_read_begin track_id=1007 sample=45056 valid=2944 total_samples=48000
+[dad_l3] reader_read_end track_id=1007 sample=45056
+[dad_l3] finish track_id=1007 clip_id=1026 quality_status=ready analyzed_sample_count=48000 coverage=1.0000
