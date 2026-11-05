@@ -60,4 +60,4 @@
 
 ## 验收
 
-- （主管回填）
+- **2026-11-05 pass 合入**（GLM 主管决策流）——[2026-11-05-M3-GROUP23-DISCRIMINATE-1-pass.md](../../rulings/2026-11-05-M3-GROUP23-DISCRIMINATE-1-pass.md)：工件亲核（退出码/summary 判定面/逐轮 verdict/计费 67 行口径注记/零代码 diff/栈两笔/abort 证据链）；判别结论确认=组 2 confirm_broken 消失（242×3→0/4）+转化 capability_blocked×1+no_route×3（limit_reached 族 2）；组 3 未采样=结构性 skip——**发卡侧卡面缺口入档**（未预判止损连带 skip，脚本源 1561），处置=续卡 251 单组 run；g23run1 abort=环境中断零 LLM 损耗合规；计费 ¥2.3-3.0 上界卡面内。
