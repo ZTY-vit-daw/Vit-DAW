@@ -46,3 +46,7 @@
 ## 验收
 
 - （主管回填）
+
+## 验收
+
+- **2026-11-05 pass 合入，卡终结**（GLM 主管决策流）——[2026-11-05-TRACKLIST-AUTHORITY-VERIFY-1-pass.md](../../rulings/2026-11-05-TRACKLIST-AUTHORITY-VERIFY-1-pass.md)：证据链亲核（同 kernel 字节探针复用+决定性帧 tool=6≡kernel≠shadow=0+静态三面锚点互证）；139 形态不在 main 定案，143 修复覆盖存活；分支终局=ledger 残件备份后 worktree+分支主管亲关（19→18）；fixup 自体手术不构成违规；ps1:147 RunDir 缺陷记入脚本卫生清单。

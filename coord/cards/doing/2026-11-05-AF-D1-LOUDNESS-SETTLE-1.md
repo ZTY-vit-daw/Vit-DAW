@@ -55,3 +55,9 @@ un_free_state_d1_smoke.ps1 -RepoRoot D:\Vit_DAW_wt_254impl -PromptFlavor reverb 
 ## 验收
 
 - （主管回填）
+
+## 主管中间裁定（2026-11-05 22:1x）
+
+- 实现面 **pass**（diff 红线零触碰+单测亲复跑 7 例全 PASS+gate4 关线核可）——[2026-11-05-AF-D1-LOUDNESS-SETTLE-1-interim.md](../../rulings/2026-11-05-AF-D1-LOUDNESS-SETTLE-1-interim.md)；
+- 真栈 exit 1 归因定案=引擎延迟×排干窗口（41 轮×9-20s 实测+第 41 轮 60s 超时+limit=timeout 停泊；非模型分支非实现缺陷）；
+- **补证腿裁定：同 fixture 去注入（默认引擎）单 run**，成功条件=原卡面三件套；再超时→转 D1 runner 取证卡。跑前口径=裁定 §三。
