@@ -1,0 +1,15 @@
+{
+  "case": {
+    "id": "fabfilter_pro_ds",
+    "plugin_name": "Pro-DS",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-DS.vst3",
+    "expectation": "de_esser"
+  },
+  "capture_only": false,
+  "result": {
+    "id": "fabfilter_pro_ds",
+    "plugin_name": "Pro-DS",
+    "status": "failed",
+    "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+  }
+}
