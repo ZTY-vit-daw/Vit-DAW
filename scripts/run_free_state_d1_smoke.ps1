@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 [CmdletBinding()]
 param(
     [string]$RepoRoot = "D:\Vit_DAW",
@@ -95,7 +95,18 @@ param(
     # record for this action domain plus the [domain-route] processor_selection
     # log lines (observability of the new selection route).
     [ValidateSet("", "track_gain", "static_eq", "broadband_compression", "de_esser", "transient_shaper", "pan", "limiter", "gate_expander", "multiband_dynamics")]
-    [string]$ExpectProcessorSelection = ""
+    [string]$ExpectProcessorSelection = "",
+    # AF-D1-LOUDNESS-SETTLE-1: opt-in D1 loudness/peak settle leg. Runs after
+    # the default D1 runner exits 0 (and after the -LoudnessWatch tail when
+    # both are on). Deterministic gates only (no LLM): the explicit check
+    # chat turn, the d1_settle verdict record on disk, the pending-confirmation
+    # action face (breach parks a governed card, zero mutation; the cancel leg
+    # retires it), and the D1 queue node leaving not_started.
+    [switch]$D1LoudnessSettle,
+    # Pass-through to dev_agent_smoke's -LlmModelOverride (VIT_AGENT_LLM_MODEL
+    # env injection; 238-253/225 precedent: deepseek-flash for budget-bound
+    # real-stack runs). Empty keeps the child agent's default engine.
+    [string]$LlmModelOverride = ""
 )
 
 Set-StrictMode -Version Latest
@@ -128,6 +139,12 @@ if ($ImmediateStopProbe -and ($MultiRoundProbe -or $AdmissionOnly -or $Settlemen
 # the run tail) are mutually exclusive with -LoudnessWatch.
 if ($LoudnessWatch -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe -or $StopSemanticsProbe -or $ImmediateStopProbe -or $ExpectProcessorSelection -ne "")) {
     throw "-LoudnessWatch owns the post-run tail (LW gates run after a default D1 runner exits 0) and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, -ContinuationAdoptionProbe, -StopSemanticsProbe, -ImmediateStopProbe, or -ExpectProcessorSelection"
+}
+# -D1LoudnessSettle shares the same post-runner window and the same
+# tail-owning exclusions (it may run alongside -LoudnessWatch: the LW gates
+# finish first, the settle leg appends).
+if ($D1LoudnessSettle -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe -or $StopSemanticsProbe -or $ImmediateStopProbe -or $ExpectProcessorSelection -ne "")) {
+    throw "-D1LoudnessSettle owns the post-run tail (D1 settle gates run after a default D1 runner exits 0) and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, -ContinuationAdoptionProbe, -StopSemanticsProbe, -ImmediateStopProbe, or -ExpectProcessorSelection"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
 # AGENT-1/AGENT-2 domain-route env discipline: the launcher owns
@@ -321,6 +338,9 @@ if (-not [string]::IsNullOrWhiteSpace($GodotExe)) {
 }
 if ($SkipBuild) {
     $devArgs += "-SkipBuild"
+}
+if (-not [string]::IsNullOrWhiteSpace($LlmModelOverride)) {
+    $devArgs += @("-LlmModelOverride", $LlmModelOverride.Trim())
 }
 & powershell @devArgs
 if ($LASTEXITCODE -ne 0) {
@@ -918,6 +938,213 @@ if ($LoudnessWatch) {
         throw ("LOUDNESS-WATCH gates failed (" + [string]$lwFailures.Count + " failure(s)); evidence=" + $lwGatesPath)
     }
     Write-Host ("[lw] PASS: disclosure + verdict store/round trigger + dedupe + config-off silence + E1 all green; gates=" + $lwGatesPath) -ForegroundColor Green
+}
+# ------------------- D1 loudness/peak settle gates (opt-in; AF-D1-LOUDNESS-SETTLE-1)
+# Deterministic /agent/chat + /agent/invoke gates, zero LLM turns (the settle
+# phrase routes through the capability canary before any semantic entry):
+#   A. explicit check turn: stop_reason=d1_loudness_settled, the observation
+#      carrier reports the global loudness/peak face, the settle payload
+#      discloses config basis + verdict, and the project was not mutated;
+#   B. d1_settle verdict record on disk (trigger_kind=d1_settle in the
+#      project's loudness_watch verdict store);
+#   C. action face honesty: a breach verdict must park a governed
+#      mix_tick_confirmation card (needs_confirmation, zero mutation) and the
+#      cancel leg must retire it (mix_tick_rejected); a non-breach verdict
+#      must park nothing. The verdict kind itself is fixture-dependent and
+#      stays unasserted (90-card precedent);
+#   D. the D1 queue node left not_started (mix_queue_view).
+if ($D1LoudnessSettle) {
+    Write-Host ""
+    Write-Host "== Phase D1-SETTLE: loudness/peak settle gates ==" -ForegroundColor Cyan
+    $settleUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+    $settleInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+    $settleConv = "conv_d1_settle_" + $stamp
+    $settleReport = @{
+        chat_stop_reason        = ""
+        observation_face        = ""
+        settle_checked          = $false
+        config_basis_present    = $false
+        verdict_kind            = ""
+        verdict_record_on_disk  = $false
+        verdict_store_path      = ""
+        mutation_performed      = ""
+        action_card_kind        = ""
+        cancel_stop_reason      = ""
+        d1_node_state           = ""
+        failures                = @()
+    }
+    $settleFailures = New-Object System.Collections.Generic.List[string]
+
+    # Gate A: the explicit check turn.
+    Write-Host "[d1-settle] gate A: explicit check chat turn"
+    $settleResp = Invoke-D1ToolJson -Uri $settleUri -Body @{
+        conversation_id = $settleConv
+        message         = "全局响度检查"
+        context         = @{ agent_mode = "chat" }
+    } -TimeoutSec 180
+    $settleChatPath = Join-Path $artifactDir "d1_settle_chat.json"
+    Save-D1JsonEvidence -Object $settleResp -Path $settleChatPath
+    $settleReport.chat_stop_reason = [string]$settleResp.stop_reason
+    if ($settleReport.chat_stop_reason -eq "d1_loudness_settled") {
+        Write-Host "   [ok] stop_reason=d1_loudness_settled" -ForegroundColor Green
+    }
+    else {
+        $settleFailures.Add("D1-SETTLE FAIL: chat stop_reason was '" + $settleReport.chat_stop_reason + "' (expected d1_loudness_settled); evidence=" + $settleChatPath)
+        Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+    }
+    $settleData = $settleResp.workflow_data
+    $settleObservation = $null
+    if ($null -ne $settleData) { $settleObservation = $settleData.observation }
+    $settleReport.observation_face = [string]$settleObservation.loudness_peak_status
+    if ($settleReport.observation_face -eq "present") {
+        Write-Host "   [ok] observation carrier reports the global loudness/peak face (present)" -ForegroundColor Green
+    }
+    else {
+        $settleFailures.Add("D1-SETTLE FAIL: observation loudness_peak_status was '" + $settleReport.observation_face + "' (expected present)")
+        Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+    }
+    $settlePayload = $null
+    if ($null -ne $settleData) { $settlePayload = $settleData.d1_settle }
+    if ($null -ne $settlePayload) {
+        $settleReport.settle_checked = ($settlePayload.checked -eq $true)
+        $settleReport.config_basis_present = (-not [string]::IsNullOrWhiteSpace([string]$settlePayload.config_basis))
+        $settleReport.verdict_kind = [string]$settlePayload.verdict
+        if ($settleReport.settle_checked -and $settleReport.config_basis_present) {
+            Write-Host ("   [ok] settle payload: checked=true, verdict=" + $settleReport.verdict_kind + ", config basis disclosed") -ForegroundColor Green
+        }
+        else {
+            $settleFailures.Add("D1-SETTLE FAIL: settle payload incomplete (checked=" + $settleReport.settle_checked + ", config_basis_present=" + $settleReport.config_basis_present + ")")
+            Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+        }
+    }
+    else {
+        $settleFailures.Add("D1-SETTLE FAIL: workflow_data.d1_settle missing from the chat response")
+        Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+    }
+    $settleReport.mutation_performed = [string]$settleData.mutation_performed
+    if ($settleReport.mutation_performed -eq "False") {
+        Write-Host "   [ok] settle turn performed no project mutation" -ForegroundColor Green
+    }
+    else {
+        $settleFailures.Add("D1-SETTLE FAIL: mutation_performed=" + $settleReport.mutation_performed + " on the read-only settle turn")
+        Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+    }
+
+    # Gate B: the d1_settle verdict record on disk.
+    Write-Host "[d1-settle] gate B: d1_settle verdict record on disk"
+    try {
+        $settleStoreCandidates = @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project") -Filter "loudness_watch_verdicts.json" -File -Recurse -ErrorAction SilentlyContinue)
+        if ($settleStoreCandidates.Count -gt 0) {
+            $settleReport.verdict_store_path = $settleStoreCandidates[0].FullName
+            $settleStoreJson = Get-Content -LiteralPath $settleReport.verdict_store_path -Raw | ConvertFrom-Json
+            Copy-Item -LiteralPath $settleReport.verdict_store_path -Destination (Join-Path $artifactDir "d1_settle_verdict_store.json") -Force
+            foreach ($record in @($settleStoreJson.verdicts)) {
+                if ([string]$record.trigger_kind -eq "d1_settle") {
+                    $settleReport.verdict_record_on_disk = $true
+                    break
+                }
+            }
+        }
+    }
+    catch { }
+    if ($settleReport.verdict_record_on_disk) {
+        Write-Host "   [ok] verdict store carries a d1_settle trigger record" -ForegroundColor Green
+    }
+    else {
+        $settleFailures.Add("D1-SETTLE FAIL: no d1_settle trigger record found in any loudness_watch verdict store under the project workdir")
+        Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+    }
+
+    # Gate C: action-face honesty, branched by the actual verdict kind.
+    Write-Host ("[d1-settle] gate C: action face (verdict=" + $settleReport.verdict_kind + ")")
+    if ($settleReport.verdict_kind -eq "breach") {
+        $cardSeen = $false
+        if ($settleResp.needs_confirmation -eq $true -and $null -ne $settleResp.interaction_requests) {
+            foreach ($request in @($settleResp.interaction_requests)) {
+                if ([string]$request.kind -eq "mix_tick_confirmation") { $cardSeen = $true; $settleReport.action_card_kind = "mix_tick_confirmation" }
+            }
+        }
+        if ($cardSeen -and $settleReport.mutation_performed -eq "False") {
+            Write-Host "   [ok] breach parked a governed mix_tick_confirmation card with zero mutation" -ForegroundColor Green
+        }
+        else {
+            $settleFailures.Add("D1-SETTLE FAIL: breach verdict must park a governed confirmation card with zero mutation (card=" + $cardSeen + ", mutation=" + $settleReport.mutation_performed + ")")
+            Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+        }
+        # Cancel leg: retire the card through the same chat surface.
+        $cancelResp = Invoke-D1ToolJson -Uri $settleUri -Body @{
+            conversation_id = $settleConv
+            message         = "取消"
+            context         = @{ agent_mode = "chat" }
+        } -TimeoutSec 60
+        $settleCancelPath = Join-Path $artifactDir "d1_settle_cancel.json"
+        Save-D1JsonEvidence -Object $cancelResp -Path $settleCancelPath
+        $settleReport.cancel_stop_reason = [string]$cancelResp.stop_reason
+        if ($settleReport.cancel_stop_reason -eq "mix_tick_rejected") {
+            Write-Host "   [ok] cancel leg retired the pending card (mix_tick_rejected)" -ForegroundColor Green
+        }
+        else {
+            $settleFailures.Add("D1-SETTLE FAIL: cancel leg stop_reason was '" + $settleReport.cancel_stop_reason + "' (expected mix_tick_rejected); evidence=" + $settleCancelPath)
+            Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+        }
+    }
+    else {
+        $noCard = ($settleResp.needs_confirmation -ne $true) -or ($null -eq $settleResp.interaction_requests)
+        if ($noCard) {
+            Write-Host "   [ok] non-breach verdict parked no action card" -ForegroundColor Green
+        }
+        else {
+            $settleFailures.Add("D1-SETTLE FAIL: non-breach verdict (" + $settleReport.verdict_kind + ") must not park an action card")
+            Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+        }
+    }
+
+    # Gate D: the D1 queue node left not_started.
+    Write-Host "[d1-settle] gate D: mix_queue_view D1 node state"
+    $queueResp = Invoke-D1ToolJson -Uri $settleInvokeUri -Body @{
+        tool      = "mix_queue_view"
+        args      = @{}
+        confirmed = $true
+        source    = "free_state_d1_smoke"
+    } -TimeoutSec 60
+    $settleQueuePath = Join-Path $artifactDir "d1_settle_queue_view.json"
+    Save-D1JsonEvidence -Object $queueResp -Path $settleQueuePath
+    $queueNodes = $null
+    if ($null -ne $queueResp.result) { $queueNodes = $queueResp.result.view.nodes }
+    if ($null -ne $queueNodes) {
+        foreach ($node in @($queueNodes)) {
+            if ([string]$node.node_id -eq "D1") { $settleReport.d1_node_state = [string]$node.state }
+        }
+    }
+    if (($settleReport.d1_node_state -eq "in_progress") -or ($settleReport.d1_node_state -eq "needs_confirmation")) {
+        Write-Host ("   [ok] D1 node state=" + $settleReport.d1_node_state) -ForegroundColor Green
+    }
+    else {
+        $settleFailures.Add("D1-SETTLE FAIL: D1 queue node state was '" + $settleReport.d1_node_state + "' (expected in_progress or needs_confirmation, not not_started); evidence=" + $settleQueuePath)
+        Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
+    }
+
+    $settleReport.failures = @($settleFailures.ToArray())
+    $settleGatesPath = Join-Path $artifactDir "d1_settle_gates.json"
+    $settleGatesReport = @{
+        schema_version = "d1_loudness_settle_gates.v0"
+        run_stamp      = $stamp
+        runner_exit    = $runnerExit
+        conversation   = $settleConv
+        report         = $settleReport
+        gate_results   = @{
+            settle_turn       = ($settleReport.chat_stop_reason -eq "d1_loudness_settled" -and $settleReport.observation_face -eq "present" -and $settleReport.settle_checked -and $settleReport.config_basis_present -and $settleReport.mutation_performed -eq "False")
+            verdict_on_disk   = $settleReport.verdict_record_on_disk
+            action_face       = (($settleReport.verdict_kind -eq "breach" -and $settleReport.action_card_kind -eq "mix_tick_confirmation" -and $settleReport.cancel_stop_reason -eq "mix_tick_rejected") -or ($settleReport.verdict_kind -ne "breach" -and [string]::IsNullOrEmpty($settleReport.action_card_kind)))
+            d1_node_lit       = (($settleReport.d1_node_state -eq "in_progress") -or ($settleReport.d1_node_state -eq "needs_confirmation"))
+        }
+        failures       = @($settleFailures.ToArray())
+    }
+    try { $settleGatesReport | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $settleGatesPath -Encoding UTF8 } catch { }
+    if ($settleFailures.Count -gt 0) {
+        throw ("D1-LOUDNESS-SETTLE gates failed (" + [string]$settleFailures.Count + " failure(s)); evidence=" + $settleGatesPath)
+    }
+    Write-Host ("[d1-settle] PASS: settle turn + verdict on disk + action face + D1 node lit; gates=" + $settleGatesPath) -ForegroundColor Green
 }
 if ($AdmissionOnly) {
     Write-Host ("D1-S1 ADMISSION_ONLY PASS: real-stack proposal/admission smoke completed without Apply; report=" + $report) -ForegroundColor Green

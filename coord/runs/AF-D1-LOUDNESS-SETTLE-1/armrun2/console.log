@@ -1,0 +1,52 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261105_215626\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_254impl
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=29668 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=29668
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_254impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=29668
+ok: ZMQ SUB listening: 5556 pid=29668
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+[lw] binary face: kernel=F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A agent=F321AF5E268CE2C14FB83BDA15BE1C4F73083AFC3C3BC620299E486720C6E1AD
+[lw] D1 project binding live after 0s: D:\Vit_DAW_wt_254impl\artifacts\free_state_d1_s1\20261105_215624\project\spv1_p01.vit
+[lw] watch configured before the run (digest=0079aa999954...); runner will reuse the bound project
+[lw] running the D1 python runner (reuse_existing_project=True, log=D:\Vit_DAW_wt_254impl\artifacts\free_state_d1_s1\20261105_215624\runner_stdout.log)
+python.exe : D1-S1 FAIL: D1 must contain exactly one forward mutation; report=D:\Vit_DAW_wt_254impl\artifacts\free_stat
+e_d1_s1\20261105_215624\d1_smoke_report.json
+所在位置 D:\Vit_DAW_wt_254impl\scripts\run_free_state_d1_smoke.ps1:590 字符: 26
++         $lwRunnerLines = & python @smokeArgs 2>&1
++                          ~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (D1-S1 FAIL: D1 ...oke_report.json:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+PS1_EXIT=1

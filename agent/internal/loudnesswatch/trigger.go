@@ -34,6 +34,10 @@ const (
 	TriggerKindProjectChange   = "project_change"
 	TriggerKindObservationRide = "observation_piggyback"
 	TriggerKindPeriodic        = "periodic"
+	// TriggerKindD1Settle marks an explicit D1 loudness-settle check
+	// (AF-D1-LOUDNESS-SETTLE-1): the caller supplies the config so an
+	// unconfigured project still gets one honest on-demand verdict.
+	TriggerKindD1Settle = "d1_settle"
 )
 
 // MaxBakeClipsPerTrigger is the per-trigger stale-fill bake cap (design 01
@@ -183,7 +187,6 @@ func (r *Runtime) Check(trigger TriggerContext) {
 	if r == nil {
 		return
 	}
-	started := r.now()
 	config, ok := r.config()
 	if !ok || !config.Enabled {
 		// Silent zero cost: no counter, no disk write, no goroutine spawn.
@@ -195,7 +198,40 @@ func (r *Runtime) Check(trigger TriggerContext) {
 		return
 	}
 	r.EnsurePeriodic()
+	r.evaluateAndRecord(trigger, config)
+}
 
+// CheckWithConfig runs one D1-settle evaluation with an explicit, already
+// validated config (AF-D1-LOUDNESS-SETTLE-1). It bypasses the configured
+// switch — the caller's explicit check request IS the intent — but keeps
+// every evaluation discipline of the ordinary path: freshness partition,
+// bake cap, honest unmeasurable reasons, dedupe persistence. Realtime mode
+// stays a stored-but-inactive capability gap and is rejected fail-closed
+// here too (the caller discloses the gap instead of faking a verdict). The
+// recorded verdict is returned; ok=false means no evaluation ran (invalid
+// or realtime config) and the caller discloses the gap honestly.
+func (r *Runtime) CheckWithConfig(trigger TriggerContext, config Config) (Verdict, bool) {
+	if r == nil {
+		return Verdict{}, false
+	}
+	if err := ValidateConfig(Normalize(config)); err != nil {
+		r.warn("d1 settle check rejected invalid config err=%v", err)
+		return Verdict{}, false
+	}
+	if config.TriggerMode == TriggerRealtime {
+		r.warn("d1 settle check rejected realtime config (no producer)")
+		return Verdict{}, false
+	}
+	verdict := r.evaluateAndRecord(trigger, config)
+	return verdict, true
+}
+
+// evaluateAndRecord is the shared check core: rows read, freshness split,
+// pure Compare, stale-fill handling, verdict record. Both entry points
+// (Check via the configured switch, CheckWithConfig via an explicit config)
+// funnel through here so no evaluation discipline can drift between them.
+func (r *Runtime) evaluateAndRecord(trigger TriggerContext, config Config) Verdict {
+	started := r.now()
 	rows := r.rows()
 	if len(trigger.CoveredTargets) > 0 {
 		rows = rowsCoveredByTargets(rows, trigger.CoveredTargets)
@@ -238,6 +274,7 @@ func (r *Runtime) Check(trigger TriggerContext) {
 		FreshRows:  len(fresh),
 		StaleRows:  len(stale),
 	})
+	return verdict
 }
 
 // RecordMetrics carries one check's cost telemetry into the store (E1).

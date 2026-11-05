@@ -157,6 +157,11 @@ func (s *Server) handlePreMasterObservationRuntime(ctx context.Context, conversa
 	rlmProjection := s.d1d3BuildRLMProjection(req, state, observe)
 
 	report := d1d3AssemblePreMasterReport(observe, observeErr, len(trackIDs), trackRows, rlmProjection, req.Message)
+	// AF-D1-LOUDNESS-SETTLE-1：显式 D1 检查意图在观察报告之上跑 settle 面
+	//（判断 + 待确认动作 + D1 节点点亮）；普通 D1-D3 观察保持只读报告原样。
+	if d1LoudnessSettleIntent(req.Message) {
+		return s.handleD1LoudnessSettle(ctx, conversationID, req, goal, sessionID, state, report)
+	}
 	workflowData := map[string]any{
 		"session_id":         sessionID,
 		"capability_id":      premasterObservationCapabilityID,
