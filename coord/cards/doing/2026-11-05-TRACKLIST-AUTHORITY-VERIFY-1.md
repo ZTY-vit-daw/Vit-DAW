@@ -32,7 +32,7 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-05 21:02 +0800 / origin/main=c56a1695（领取基线=254 领取提交之上，干净检出）/ owner=GLM-5.3 L1 PC 执行会话（ZCode，255 卡会话，sess 本流）/ worktree D:/Vit_DAW_wt_255impl / 分支 port/tracklist-authority-verify-1 / 领取基线 HEAD=c56a1695，status --short 空、diff --stat 空（干净基线）/ 真栈占用：领取时最近记录=2026-11-05 20:11 M3(225) 释放 TEARDOWN_ALL_ZERO，栈空闲；真栈腿启动前另行登记（§2.2），与 254 错峰 / 领取前只读勘察已核：143 修复 88e88327（A 面公共回包 kernel-reply 权威+shadow_stale 披露）与 vsp-shadow-1 ee4a991e 均在 main 祖先链，三面静态锚点在场——复验判定以真栈行为面为准
 
 ## 回执
 
