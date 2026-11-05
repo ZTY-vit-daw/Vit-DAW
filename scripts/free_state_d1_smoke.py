@@ -1375,6 +1375,69 @@ def require(condition: bool, message: str) -> None:
         raise RuntimeError(message)
 
 
+def zero_mutation_journal_rows(base_url: str, run_goal_id: str, timeout: float) -> list[dict[str, Any]]:
+    """Journal rows this run's D1-S1 leg booked, goal-scoped like the applied path."""
+    actions = request_json("GET", base_url.rstrip("/") + "/agent/actions?limit=200", None, timeout)
+    return [item for item in rows(actions.get("actions"))
+            if first_text(item.get("source")) == "free_state_d1_s1"
+            and (not run_goal_id or first_text(item.get("goal_id")) in ("", run_goal_id))]
+
+
+def validate_zero_mutation_boundary(
+    loop: dict[str, Any],
+    experiment: dict[str, Any],
+    admission: dict[str, Any],
+    round_row: dict[str, Any],
+    domain: str,
+    responses: list[dict[str, Any]],
+    journal_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """D1-RUNNER-FORENSICS-1 (256): branch-tolerant validation for the honest
+    zero-mutation terminal (90-card precedent: the mutation count is
+    model-branch-dependent, so each legal branch keeps its own tight
+    governance invariants instead of one hard cardinality).
+
+    Forensics anchor (armrun2 20261105_215624 vs 133 run2 20261018_124639,
+    same fixture spv1_p01/reverb, same engine): the post-M3 wording chain
+    (227 gate-open 4a439588, 235 time-varying guidance e9a51a06, 243 v2
+    trigger b6cbc007, 246 v3 terminal route 40cdd189 — all merged after the
+    133-era calibration) grew the D1 system prompt 14,331→17,670 chars and
+    widened the legal model behavior set: armrun2's model proposed, got the
+    driver's confirmation, chose the semantic-treatment strategy route, was
+    refused by the progressive-disclosure observation audit ("partial"),
+    and ended blocked with boundary=admitted, mutation_performed=False on
+    every response, zero interventions and a null d1_receipt — the honest
+    zero-mutation branch. This is distinct from the 2026-10-13
+    hallucinated-settle dead chain (FIX-FS-SETTLE-DEADCHAIN-1): there the
+    model narrated completion with a fabricated settle; here nothing is
+    narrated and nothing is written, so the branch below demands exactly
+    that honesty — no receipt, no journal row, a real terminal boundary
+    declaration, and no response claiming a mutation — while the budget
+    discipline (budget==1, max_action_attempts==1, typed domain/kind/dose
+    bounds) stays asserted on the shared prefix in validate_d1.
+    """
+    require(not loop.get("d1_receipt"), "zero-mutation branch carries a d1_receipt without interventions (hallucinated settle form)")
+    decision = loop.get("latest_decision") if isinstance(loop.get("latest_decision"), dict) else {}
+    decision_status = first_text(decision.get("status")).lower()
+    require(decision_status in {"blocked", "capability_blocked"}, f"zero-mutation branch terminal decision status is {decision_status!r}, not a governed boundary")
+    boundary_stop_reason = first_text(decision.get("stop_reason"))
+    require(bool(boundary_stop_reason), "zero-mutation branch ended without a boundary declaration (silent park)")
+    mutation_claims = [value for value in values_for_key(responses, "mutation_performed") if value is True]
+    require(not mutation_claims, f"zero-mutation branch has {len(mutation_claims)} response(s) claiming mutation_performed=true")
+    require(not journal_rows, f"zero-mutation branch booked {len(journal_rows)} journal mutation row(s) without interventions")
+    return {
+        "status": "pass",
+        "branch": "zero_mutation_boundary",
+        "action_domain": domain,
+        "target_ref": admission.get("target_ref") if isinstance(admission.get("target_ref"), dict) else {},
+        "turn_id": first_text(experiment.get("turn_id")),
+        "round_id": first_text(round_row.get("round_id")),
+        "boundary_stop_reason": boundary_stop_reason,
+        "forward_mutation_count": 0,
+        "journal_mutation_count": 0,
+    }
+
+
 def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, Any]], timeout: float, case_id: str) -> dict[str, Any]:
     loop = find_d1_loop(responses)
     require(loop is not None, "D1 loop projection is missing")
@@ -1427,6 +1490,16 @@ def validate_d1(base_url: str, conversation_id: str, responses: list[dict[str, A
     require(len(experiment_rounds) == 1, "D1 must contain exactly one experiment round")
     round_row = experiment_rounds[0]
     interventions = rows(round_row.get("interventions"))
+    if not interventions:
+        # D1-RUNNER-FORENSICS-1 (256): the honest zero-mutation terminal is a
+        # legal post-M3 branch (armrun2 20261105_215624); it gets its own
+        # tight governance contract above, not a bare cardinality waiver. Any
+        # other shape (2+ interventions, a receipt without interventions, a
+        # silent park) still fails here or inside that contract.
+        return validate_zero_mutation_boundary(
+            loop, experiment, admission, round_row, domain, responses,
+            zero_mutation_journal_rows(base_url, first_text(loop.get("goal_id")), timeout),
+        )
     require(len(interventions) == 1, "D1 must contain exactly one forward mutation")
     intervention = interventions[0]
     receipt = intervention.get("receipt") if isinstance(intervention.get("receipt"), dict) else {}
@@ -2025,6 +2098,53 @@ def test_validate_honest_refusal_forms() -> None:
     def drop_intervention(fixture: dict[str, Any]) -> None:
         fixture["loop"]["experiment"]["rounds"][0]["interventions"] = []
     expect_rejection(drop_intervention, "(1)")
+
+
+def _zero_mutation_boundary_fixture() -> dict[str, Any]:
+    # D1-RUNNER-FORENSICS-1 (256): the armrun2 20261105_215624 loop shape —
+    # admitted, driver-confirmed proposal, semantic-treatment route refused
+    # by the progressive-disclosure audit, blocked terminal, nothing written.
+    return {
+        "loop": {
+            "status": "blocked",
+            "d1_receipt": None,
+            "latest_decision": {"status": "blocked", "stop_reason": "semantic_treatment_capability_boundary"},
+        },
+        "experiment": {"turn_id": "turn:forensics"},
+        "admission": {"target_ref": {"id": "1032", "kind": "track"}},
+        "round_row": {"round_id": "round-1-forensics"},
+        "domain": "reverb",
+        "responses": [
+            {"workflow_data": {"mutation_performed": False}},
+            {"workflow_data": {"mutation_performed": False}},
+        ],
+        "journal_rows": [],
+    }
+
+
+def test_validate_zero_mutation_boundary_forms() -> None:
+    validate_zero_mutation_boundary(**_zero_mutation_boundary_fixture())
+
+    def expect_rejection(mutate, fragment: str) -> None:
+        fixture = _zero_mutation_boundary_fixture()
+        mutate(fixture)
+        try:
+            validate_zero_mutation_boundary(**fixture)
+        except RuntimeError as exc:
+            assert fragment in str(exc), f"expected {fragment!r} in zero-mutation rejection, got: {exc}"
+        else:
+            raise AssertionError(f"zero-mutation branch accepted an illegal form (wanted {fragment!r})")
+
+    # The 2026-10-13 hallucinated-settle dead chain shape stays dead.
+    def fabricate_receipt(fixture: dict[str, Any]) -> None:
+        fixture["loop"]["d1_receipt"] = {"parameter_applied": True}
+    expect_rejection(fabricate_receipt, "hallucinated settle")
+    # A non-terminal park or a silent stop is not a governed boundary.
+    expect_rejection(lambda f: f["loop"].update(latest_decision={"status": "waiting_continue", "stop_reason": "limit_reached"}), "not a governed boundary")
+    expect_rejection(lambda f: f["loop"].update(latest_decision={"status": "blocked", "stop_reason": ""}), "without a boundary declaration")
+    # Any write claim or booked journal row breaks the zero-mutation honesty.
+    expect_rejection(lambda f: f["responses"][0]["workflow_data"].update(mutation_performed=True), "claiming mutation_performed")
+    expect_rejection(lambda f: f.update(journal_rows=[{"source": "free_state_d1_s1"}]), "journal mutation row")
 
 
 # AGENT-2 A3 (2026-09-05): evaluator-side target-truth comparison. The sealed
