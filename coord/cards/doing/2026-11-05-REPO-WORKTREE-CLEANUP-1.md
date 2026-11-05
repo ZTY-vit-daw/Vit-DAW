@@ -39,7 +39,11 @@
 
 ## 回执
 
-- （执行侧回填）
+- **Phase 1 完成（检查点上交）2026-11-05**：报告=[coord/reports/2026-11-05-worktree-cleanup.md](../../reports/2026-11-05-worktree-cleanup.md)。
+- 盘点结果：142 项注册 worktree 全在场、无 locked/prunable；A 类 78（干净+已合入，建议删）/ A₀ 27（干净未合入，删树留支待裁）/ B 19（dirty，弃置 12+归档 3+上交 4 组建议）/ C 13（codex 8+claude 1+本流 detached 3+E 盘 1，不判删）/ 硬保留 5；分支层 241 支已合入 port/coord（147 孤儿可直接 -d）；磁盘预估 A 档 ~55GB / 全弃置档 ~89GB（±30% 抽样法，Phase 2 逐项 du 前后对照出精确值）。
+- 勘误记录：dirty 尺寸首轮相对路径误测，已全量绝对路径重算（dirty_detail2.txt）；A₀ 表 20 支 ahead 数未逐支计（同型 1–2），Phase 2 按需补。
+- **等待主管+用户裁定 §9 七项后再领 Phase 2**；Phase 1 零 git 写操作（除协调提交）、零真栈、零 LLM 成本；与 253 无 git 写冲突窗口（其 worktree 独立 index，本卡写操作仅领取/回执两笔协调提交，瞬时完成）。
+- 主检出 status 与领取基线一致（差异仅本卡卡面+报告两个 coord 文件）。
 
 ## 验收
 
