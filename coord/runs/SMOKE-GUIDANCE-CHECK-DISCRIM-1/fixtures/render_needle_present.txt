@@ -1,0 +1,2 @@
+chat system prompt render (control)
+routing line: automation.set_points then readback via automation.get_curve

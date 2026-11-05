@@ -1,0 +1,2 @@
+chat system prompt render (defect control)
+routing guidance absent from this render

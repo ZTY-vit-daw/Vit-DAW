@@ -1,0 +1,5 @@
+== control diff driver (real pre-252 module @76305d87 vs candidate) ==
+combinations=16 same=15 intended_change=1 regressions=0
+intended_change: file_absent + all_arbitration_251_archive -> n_a_all_arbitration summary={"prompt_guidance_rendered": "n/a (all-arbitration)", "prompt_guidance_n_a": {"reason": "prompt_render_file_absent_all_arbitration", "telemetry": {"telemetry_path": "D:\\Vit_DAW_wt_252impl\\coord\\runs\\SMOKE-GUIDANCE-CHECK-DISCRIM-1\\fixtures\\telemetry_251_g3run1_all_arbitration.jsonl", "available": true, "rows": 13, "semantic_entry_rows": 13, "message_loop_rows": 0, "other_source_rows": 0, "all_arbitration": true}}}
+[PASS] all non-all-arbitration combinations byte-equivalent to the pre-252 module; exactly one intended change (all-arbitration n/a)
+driver exit=0

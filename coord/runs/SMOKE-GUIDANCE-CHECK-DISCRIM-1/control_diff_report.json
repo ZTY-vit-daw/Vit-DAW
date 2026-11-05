@@ -1,0 +1,215 @@
+{
+  "scenario": "SMOKE-GUIDANCE-CHECK-DISCRIM-1 control diff (real pre-252 module vs candidate)",
+  "old_module": "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit252_ctrl\\smoke_baseline_pre252.py",
+  "new_module": "D:\\Vit_DAW_wt_252impl\\scripts\\automation_llm_route_smoke.py",
+  "combinations": 16,
+  "same": 15,
+  "intended_change": 1,
+  "regressions": 0,
+  "rows": [
+    {
+      "render": "needle_present",
+      "telemetry": "all_arbitration_251_archive",
+      "old_rendered": true,
+      "old_stop_condition_2": false,
+      "new_state": "ok",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": true
+      },
+      "new_stop_condition_2": false,
+      "verdict": "same"
+    },
+    {
+      "render": "needle_present",
+      "telemetry": "mixed_with_message_loop",
+      "old_rendered": true,
+      "old_stop_condition_2": false,
+      "new_state": "ok",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": true
+      },
+      "new_stop_condition_2": false,
+      "verdict": "same"
+    },
+    {
+      "render": "needle_present",
+      "telemetry": "telemetry_absent",
+      "old_rendered": true,
+      "old_stop_condition_2": false,
+      "new_state": "ok",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": true
+      },
+      "new_stop_condition_2": false,
+      "verdict": "same"
+    },
+    {
+      "render": "needle_present",
+      "telemetry": "not_configured",
+      "old_rendered": true,
+      "old_stop_condition_2": false,
+      "new_state": "ok",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": true
+      },
+      "new_stop_condition_2": false,
+      "verdict": "same"
+    },
+    {
+      "render": "needle_absent",
+      "telemetry": "all_arbitration_251_archive",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "needle_missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": true,
+      "verdict": "same"
+    },
+    {
+      "render": "needle_absent",
+      "telemetry": "mixed_with_message_loop",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "needle_missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": true,
+      "verdict": "same"
+    },
+    {
+      "render": "needle_absent",
+      "telemetry": "telemetry_absent",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "needle_missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": true,
+      "verdict": "same"
+    },
+    {
+      "render": "needle_absent",
+      "telemetry": "not_configured",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "needle_missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": true,
+      "verdict": "same"
+    },
+    {
+      "render": "file_absent",
+      "telemetry": "all_arbitration_251_archive",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "n_a_all_arbitration",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": "n/a (all-arbitration)",
+        "prompt_guidance_n_a": {
+          "reason": "prompt_render_file_absent_all_arbitration",
+          "telemetry": {
+            "telemetry_path": "D:\\Vit_DAW_wt_252impl\\coord\\runs\\SMOKE-GUIDANCE-CHECK-DISCRIM-1\\fixtures\\telemetry_251_g3run1_all_arbitration.jsonl",
+            "available": true,
+            "rows": 13,
+            "semantic_entry_rows": 13,
+            "message_loop_rows": 0,
+            "other_source_rows": 0,
+            "all_arbitration": true
+          }
+        }
+      },
+      "new_stop_condition_2": false,
+      "verdict": "intended_change"
+    },
+    {
+      "render": "file_absent",
+      "telemetry": "mixed_with_message_loop",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": true,
+      "verdict": "same"
+    },
+    {
+      "render": "file_absent",
+      "telemetry": "telemetry_absent",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": true,
+      "verdict": "same"
+    },
+    {
+      "render": "file_absent",
+      "telemetry": "not_configured",
+      "old_rendered": false,
+      "old_stop_condition_2": true,
+      "new_state": "missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": true,
+      "verdict": "same"
+    },
+    {
+      "render": "not_configured",
+      "telemetry": "all_arbitration_251_archive",
+      "old_rendered": false,
+      "old_stop_condition_2": null,
+      "new_state": "missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": null,
+      "verdict": "same"
+    },
+    {
+      "render": "not_configured",
+      "telemetry": "mixed_with_message_loop",
+      "old_rendered": false,
+      "old_stop_condition_2": null,
+      "new_state": "missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": null,
+      "verdict": "same"
+    },
+    {
+      "render": "not_configured",
+      "telemetry": "telemetry_absent",
+      "old_rendered": false,
+      "old_stop_condition_2": null,
+      "new_state": "missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": null,
+      "verdict": "same"
+    },
+    {
+      "render": "not_configured",
+      "telemetry": "not_configured",
+      "old_rendered": false,
+      "old_stop_condition_2": null,
+      "new_state": "missing",
+      "new_summary_fragment": {
+        "prompt_guidance_rendered": false
+      },
+      "new_stop_condition_2": null,
+      "verdict": "same"
+    }
+  ]
+}
