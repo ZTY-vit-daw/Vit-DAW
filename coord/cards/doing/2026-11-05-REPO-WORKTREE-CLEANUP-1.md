@@ -57,3 +57,11 @@
   6. 147 支已合入孤儿分支：**随本轮一并 -d**（仅 -d）；
   7. 磁盘回收：**最大档**（A+A₀ 树+B 弃置组+两降级 worktree），Phase 2 逐项 du 出前后对照精确值。
 - Phase 2 待用户对删除量 go 后领取执行。
+
+## Phase 2 裁定补充（2026-11-05 用户 go 后，主管补裁）
+
+1. **上交组 3 项终裁：保留**——wt_topoplan154（timefx-bus-topoplan-1，ahead=12）/wt_writegate155（timefx-bus-writegate-1，ahead=2）/wt_tracklist1（track-list-gap-1，ahead=5）均含**未合入实现提交**，属权威输入（AGENTS §12）；标记为 **A-F 主线开线勘察输入**，归属勘察后另裁。本轮不动。
+2. klte1 终裁：build-klte1/ 2.7GB **弃置**；worktree 按 **A₀ 式删树留支**（分支 kernel-l3-timeenergy-1 ahead=2 不删）；xml 改动随树弃置（卡已验收+run 归档）。
+3. wt_253impl 状态更新（盘点时在飞，现已验收合入）：按 A 类处置（树删；分支 port/m3-timewindow-intent-arm-1 系真合并可达，`-d` 可删）。
+4. 主检出内残件（todo/ 下 252 空白模板）由主管自清，不属 Phase 2 域。
+5. Phase 2 执行域=原裁定 1/2/3（弃置+归档组）/4（detached 并 A）/5（wt_249run/wt_251run 降级）/6/7 不变；执行前后各跑一次 `git worktree list`+`git status --short` 存证，磁盘回收以逐项 du 前后对照出精确值落报告 Phase 2 节。
