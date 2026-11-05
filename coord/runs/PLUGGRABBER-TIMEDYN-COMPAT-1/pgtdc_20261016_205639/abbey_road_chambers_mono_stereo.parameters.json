@@ -1,0 +1,3542 @@
+{
+  "case": {
+    "plugin_name": "Abbey Road Chambers Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-Abbey Road Chambers Mono/Stereo-695648d-2dcf63f6",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1455",
+      "rack_item_id": "1460",
+      "plugin_id": "1461",
+      "plugin_item_id": "1461",
+      "plugin_name": "Abbey Road Chambers Mono/Stereo",
+      "plugin_identifier": "VST3-Abbey Road Chambers Mono/Stereo-695648d-2dcf63f6",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=Abbey Road Chambers Mono/Stereo id=1461 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 2,
+      "graph_active_revision": 2,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 1,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node Abbey Road Chambers Mono/Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 2,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Mono/Stereo",
+          "track_id": "1455",
+          "rack_item_id": "1460",
+          "node_id": "1461",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155416714
+        },
+        {
+          "revision": 1,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Mono",
+          "track_id": "1448",
+          "rack_item_id": "1453",
+          "node_id": "1454",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155412664
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1455",
+    "plugin_id": "1461",
+    "plugin_item_id": "1461",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_bef941eb9acb282e",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Reverb Type",
+        "normalized_role": "other",
+        "alias": "Reverb Type"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Speaker",
+        "normalized_role": "other",
+        "alias": "Speaker"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Speaker Facing",
+        "normalized_role": "other",
+        "alias": "Speaker Facing"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Mic",
+        "normalized_role": "other",
+        "alias": "Mic"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Mic Position",
+        "normalized_role": "other",
+        "alias": "Mic Position"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "Mic Position Mirror",
+        "normalized_role": "other",
+        "alias": "Mic Position Mirror"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "Mic Position Stone",
+        "normalized_role": "other",
+        "alias": "Mic Position Stone"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "Drive On/Off",
+        "normalized_role": "tone_drive",
+        "alias": "Drive On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "Delay Mod",
+        "normalized_role": "other",
+        "alias": "Delay Mod"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "Drive",
+        "normalized_role": "tone_drive",
+        "alias": "Drive"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "Delay Link",
+        "normalized_role": "other",
+        "alias": "Delay Link"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "11",
+        "param_name": "Delay Sync On/Off",
+        "normalized_role": "other",
+        "alias": "Delay Sync On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "12",
+        "param_name": "Delay Time",
+        "normalized_role": "other",
+        "alias": "Delay Time"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "13",
+        "param_name": "Delay Time R",
+        "normalized_role": "other",
+        "alias": "Delay Time R"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "14",
+        "param_name": "Delay Division",
+        "normalized_role": "other",
+        "alias": "Delay Division"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "15",
+        "param_name": "Delay Division R",
+        "normalized_role": "other",
+        "alias": "Delay Division R"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "16",
+        "param_name": "Bass Cut FB",
+        "normalized_role": "other",
+        "alias": "Bass Cut FB"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "17",
+        "param_name": "RS106 Bass Cut",
+        "normalized_role": "other",
+        "alias": "RS106 Bass Cut"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "RS106 Top Cut",
+        "normalized_role": "other",
+        "alias": "RS106 Top Cut"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "19",
+        "param_name": "Mid FB",
+        "normalized_role": "other",
+        "alias": "Mid FB"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "20",
+        "param_name": "Top Cut FB",
+        "normalized_role": "other",
+        "alias": "Top Cut FB"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "21",
+        "param_name": "RS127 Freq",
+        "normalized_role": "other",
+        "alias": "RS127 Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "22",
+        "param_name": "RS127 Gain",
+        "normalized_role": "common_gain",
+        "alias": "RS127 Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "23",
+        "param_name": "Filters To Chamber On/Off",
+        "normalized_role": "other",
+        "alias": "Filters To Chamber On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "24",
+        "param_name": "ARChambers On/Off",
+        "normalized_role": "other",
+        "alias": "ARChambers On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "25",
+        "param_name": "Feedback",
+        "normalized_role": "mod_feedback",
+        "alias": "Feedback"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "26",
+        "param_name": "Dry/Wet",
+        "normalized_role": "common_mix",
+        "alias": "Dry/Wet"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "27",
+        "param_name": "Reverb Mix",
+        "normalized_role": "common_mix",
+        "alias": "Reverb Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "28",
+        "param_name": "Input Level",
+        "normalized_role": "common_gain",
+        "alias": "Input Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "29",
+        "param_name": "Output",
+        "normalized_role": "common_gain",
+        "alias": "Output"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1461",
+        "plugin_name": "Abbey Road Chambers Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "30",
+        "param_name": "Reverb Time X",
+        "normalized_role": "other",
+        "alias": "Reverb Time X"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Tone",
+        "parameter_ids": [
+          "7",
+          "9"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "22",
+          "26",
+          "27",
+          "28",
+          "29"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameter_ids": [
+          "25"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18",
+          "19",
+          "20",
+          "21",
+          "23",
+          "24",
+          "30"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "22",
+        "raw_param_id": "22",
+        "label": "RS127 Gain",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "7",
+        "raw_param_id": "7",
+        "label": "Drive On/Off",
+        "widget": "slider",
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "9",
+        "raw_param_id": "9",
+        "label": "Drive",
+        "widget": "slider",
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "25",
+        "raw_param_id": "25",
+        "label": "Feedback",
+        "widget": "slider",
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.375
+      },
+      {
+        "param_id": "26",
+        "raw_param_id": "26",
+        "label": "Dry/Wet",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Tone",
+          "parameter_ids": [
+            "7",
+            "9"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "22",
+            "26",
+            "27",
+            "28",
+            "29"
+          ]
+        },
+        {
+          "name": "Modulation",
+          "parameter_ids": [
+            "25"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "8",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "23",
+            "24",
+            "30"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Reverb Type",
+        "name": "Reverb Type",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Chamber 2 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "Reverb Type",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Chamber 2 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Chamber 2 "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "Mirror Room "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "Stone Room "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Chamber 2 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Mirror Room "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Mirror Room "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Stone Room "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Stone Room "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Reverb Type",
+          "normalized_role": "other",
+          "alias": "Reverb Type"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Speaker",
+        "name": "Speaker",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "BW ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Speaker",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "BW ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Altec "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "BW "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Altec "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Altec "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "BW "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "BW "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "BW "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Speaker",
+          "normalized_role": "other",
+          "alias": "Speaker"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Speaker Facing",
+        "name": "Speaker Facing",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Facing Wall ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Speaker Facing",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Facing Wall ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Facing Room "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Facing Wall "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Facing Room "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Facing Room "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Facing Wall "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Facing Wall "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Facing Wall "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Speaker Facing",
+          "normalized_role": "other",
+          "alias": "Speaker Facing"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Mic",
+        "name": "Mic",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "KM53s ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Mic",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "KM53s ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "KM53s "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "MK2Hs "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "KM53s "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "KM53s "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "MK2Hs "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "MK2Hs "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "MK2Hs "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Mic",
+          "normalized_role": "other",
+          "alias": "Mic"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "Mic Position",
+        "name": "Mic Position",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "Classic ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Mic Position",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Classic ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Wall "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "Classic "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "Room "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Wall "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Classic "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Classic "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Room "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Room "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "Mic Position",
+          "normalized_role": "other",
+          "alias": "Mic Position"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "Mic Position Mirror",
+        "name": "Mic Position Mirror",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Near Mirror ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Mic Position Mirror",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Near Mirror ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Near Mirror "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Far Mirror "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Near Mirror "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Near Mirror "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Far Mirror "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Far Mirror "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Far Mirror "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "Mic Position Mirror",
+          "normalized_role": "other",
+          "alias": "Mic Position Mirror"
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "Mic Position Stone",
+        "name": "Mic Position Stone",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Near Stone ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Mic Position Stone",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Near Stone ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Near Stone "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Far Stone "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Near Stone "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Near Stone "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Far Stone "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Far Stone "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Far Stone "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "Mic Position Stone",
+          "normalized_role": "other",
+          "alias": "Mic Position Stone"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "Drive On/Off",
+        "name": "Drive On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Drive On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "Drive On/Off",
+          "normalized_role": "tone_drive",
+          "alias": "Drive On/Off"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "Delay Mod",
+        "name": "Delay Mod",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Mod",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "Delay Mod",
+          "normalized_role": "other",
+          "alias": "Delay Mod"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "Drive",
+        "name": "Drive",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Drive",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "Drive",
+          "normalized_role": "tone_drive",
+          "alias": "Drive"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "Delay Link",
+        "name": "Delay Link",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Link",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "Delay Link",
+          "normalized_role": "other",
+          "alias": "Delay Link"
+        }
+      },
+      {
+        "id": "11",
+        "param_id": "11",
+        "raw_param_id": "11",
+        "raw_param_name": "Delay Sync On/Off",
+        "name": "Delay Sync On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Delay Sync On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Sync "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Sync "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Sync "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Sync "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "11",
+          "param_name": "Delay Sync On/Off",
+          "normalized_role": "other",
+          "alias": "Delay Sync On/Off"
+        }
+      },
+      {
+        "id": "12",
+        "param_id": "12",
+        "raw_param_id": "12",
+        "raw_param_name": "Delay Time",
+        "name": "Delay Time",
+        "value": 0.222000002861023,
+        "normalized_value": 0.222000002861023,
+        "value_text": "111.0 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Time",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "111.0 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off   ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "125.0 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "250.0 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "375.0 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "500.0 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "12",
+          "param_name": "Delay Time",
+          "normalized_role": "other",
+          "alias": "Delay Time"
+        }
+      },
+      {
+        "id": "13",
+        "param_id": "13",
+        "raw_param_id": "13",
+        "raw_param_name": "Delay Time R",
+        "name": "Delay Time R",
+        "value": 0.222000002861023,
+        "normalized_value": 0.222000002861023,
+        "value_text": "111.0 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Time R",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "111.0 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off   ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "125.0 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "250.0 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "375.0 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "500.0 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "13",
+          "param_name": "Delay Time R",
+          "normalized_role": "other",
+          "alias": "Delay Time R"
+        }
+      },
+      {
+        "id": "14",
+        "param_id": "14",
+        "raw_param_id": "14",
+        "raw_param_name": "Delay Division",
+        "name": "Delay Division",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 15,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Division",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 0.071428574621677,
+              "label": "1/64T "
+            },
+            {
+              "index": 2,
+              "value": 0.142857149243355,
+              "label": "1/64 "
+            },
+            {
+              "index": 3,
+              "value": 0.214285731315613,
+              "label": "1/32T "
+            },
+            {
+              "index": 4,
+              "value": 0.28571429848671,
+              "label": "1/64D "
+            },
+            {
+              "index": 5,
+              "value": 0.357142865657806,
+              "label": "1/32 "
+            },
+            {
+              "index": 6,
+              "value": 0.428571462631226,
+              "label": "1/16T "
+            },
+            {
+              "index": 7,
+              "value": 0.5,
+              "label": "1/32D "
+            },
+            {
+              "index": 8,
+              "value": 0.571428596973419,
+              "label": "1/16 "
+            },
+            {
+              "index": 9,
+              "value": 0.642857193946838,
+              "label": "1/8T "
+            },
+            {
+              "index": 10,
+              "value": 0.714285731315613,
+              "label": "1/16D "
+            },
+            {
+              "index": 11,
+              "value": 0.785714328289032,
+              "label": "1/8 "
+            },
+            {
+              "index": 12,
+              "value": 0.857142925262451,
+              "label": "1/4T "
+            },
+            {
+              "index": 13,
+              "value": 0.928571462631226,
+              "label": "1/8D "
+            },
+            {
+              "index": 14,
+              "value": 1.0,
+              "label": "1/4 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1/64D "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1/32D "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1/8 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1/4 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "14",
+          "param_name": "Delay Division",
+          "normalized_role": "other",
+          "alias": "Delay Division"
+        }
+      },
+      {
+        "id": "15",
+        "param_id": "15",
+        "raw_param_id": "15",
+        "raw_param_name": "Delay Division R",
+        "name": "Delay Division R",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 15,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Division R",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 0.071428574621677,
+              "label": "1/64T "
+            },
+            {
+              "index": 2,
+              "value": 0.142857149243355,
+              "label": "1/64 "
+            },
+            {
+              "index": 3,
+              "value": 0.214285731315613,
+              "label": "1/32T "
+            },
+            {
+              "index": 4,
+              "value": 0.28571429848671,
+              "label": "1/64D "
+            },
+            {
+              "index": 5,
+              "value": 0.357142865657806,
+              "label": "1/32 "
+            },
+            {
+              "index": 6,
+              "value": 0.428571462631226,
+              "label": "1/16T "
+            },
+            {
+              "index": 7,
+              "value": 0.5,
+              "label": "1/32D "
+            },
+            {
+              "index": 8,
+              "value": 0.571428596973419,
+              "label": "1/16 "
+            },
+            {
+              "index": 9,
+              "value": 0.642857193946838,
+              "label": "1/8T "
+            },
+            {
+              "index": 10,
+              "value": 0.714285731315613,
+              "label": "1/16D "
+            },
+            {
+              "index": 11,
+              "value": 0.785714328289032,
+              "label": "1/8 "
+            },
+            {
+              "index": 12,
+              "value": 0.857142925262451,
+              "label": "1/4T "
+            },
+            {
+              "index": 13,
+              "value": 0.928571462631226,
+              "label": "1/8D "
+            },
+            {
+              "index": 14,
+              "value": 1.0,
+              "label": "1/4 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1/64D "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1/32D "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1/8 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1/4 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "15",
+          "param_name": "Delay Division R",
+          "normalized_role": "other",
+          "alias": "Delay Division R"
+        }
+      },
+      {
+        "id": "16",
+        "param_id": "16",
+        "raw_param_id": "16",
+        "raw_param_name": "Bass Cut FB",
+        "name": "Bass Cut FB",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Flat ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Bass Cut FB",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Flat ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Flat "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "94 Hz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "451 Hz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1405 Hz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "6400 Hz "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "16",
+          "param_name": "Bass Cut FB",
+          "normalized_role": "other",
+          "alias": "Bass Cut FB"
+        }
+      },
+      {
+        "id": "17",
+        "param_id": "17",
+        "raw_param_id": "17",
+        "raw_param_name": "RS106 Bass Cut",
+        "name": "RS106 Bass Cut",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Flat ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "RS106 Bass Cut",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Flat ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Flat "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "94 Hz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "451 Hz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1405 Hz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "6400 Hz "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "17",
+          "param_name": "RS106 Bass Cut",
+          "normalized_role": "other",
+          "alias": "RS106 Bass Cut"
+        }
+      },
+      {
+        "id": "18",
+        "param_id": "18",
+        "raw_param_id": "18",
+        "raw_param_name": "RS106 Top Cut",
+        "name": "RS106 Top Cut",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Flat ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "RS106 Top Cut",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Flat ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "3.46 kHz "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "5.50 kHz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "8.00 kHz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "11.02 kHz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Flat "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "18",
+          "param_name": "RS106 Top Cut",
+          "normalized_role": "other",
+          "alias": "RS106 Top Cut"
+        }
+      },
+      {
+        "id": "19",
+        "param_id": "19",
+        "raw_param_id": "19",
+        "raw_param_name": "Mid FB",
+        "name": "Mid FB",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Mid FB",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-6.0 dB "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-3.0 dB "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.0 dB "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "6.0 dB "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "19",
+          "param_name": "Mid FB",
+          "normalized_role": "other",
+          "alias": "Mid FB"
+        }
+      },
+      {
+        "id": "20",
+        "param_id": "20",
+        "raw_param_id": "20",
+        "raw_param_name": "Top Cut FB",
+        "name": "Top Cut FB",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Flat ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Top Cut FB",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Flat ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "3.46 kHz "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "5.50 kHz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "8.00 kHz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "11.02 kHz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Flat "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "20",
+          "param_name": "Top Cut FB",
+          "normalized_role": "other",
+          "alias": "Top Cut FB"
+        }
+      },
+      {
+        "id": "21",
+        "param_id": "21",
+        "raw_param_id": "21",
+        "raw_param_name": "RS127 Freq",
+        "name": "RS127 Freq",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "3.5 kHz ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "RS127 Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "3.5 kHz ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "2.7 kHz "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "3.5 kHz "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "10.0 kHz "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "2.7 kHz "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "3.5 kHz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3.5 kHz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "10.0 kHz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "10.0 kHz "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "21",
+          "param_name": "RS127 Freq",
+          "normalized_role": "other",
+          "alias": "RS127 Freq"
+        }
+      },
+      {
+        "id": "22",
+        "param_id": "22",
+        "raw_param_id": "22",
+        "raw_param_name": "RS127 Gain",
+        "name": "RS127 Gain",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "RS127 Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-10.0 dB "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-5.0 dB "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "5.0 dB "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "10.0 dB "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "22",
+          "param_name": "RS127 Gain",
+          "normalized_role": "common_gain",
+          "alias": "RS127 Gain"
+        }
+      },
+      {
+        "id": "23",
+        "param_id": "23",
+        "raw_param_id": "23",
+        "raw_param_name": "Filters To Chamber On/Off",
+        "name": "Filters To Chamber On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Filters To Chamber On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "23",
+          "param_name": "Filters To Chamber On/Off",
+          "normalized_role": "other",
+          "alias": "Filters To Chamber On/Off"
+        }
+      },
+      {
+        "id": "24",
+        "param_id": "24",
+        "raw_param_id": "24",
+        "raw_param_name": "ARChambers On/Off",
+        "name": "ARChambers On/Off",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "ARChambers On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "24",
+          "param_name": "ARChambers On/Off",
+          "normalized_role": "other",
+          "alias": "ARChambers On/Off"
+        }
+      },
+      {
+        "id": "25",
+        "param_id": "25",
+        "raw_param_id": "25",
+        "raw_param_name": "Feedback",
+        "name": "Feedback",
+        "value": 0.375,
+        "normalized_value": 0.375,
+        "value_text": "37.5 % ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Feedback",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "37.5 % ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 % "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 % "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 % "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 % "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "25",
+          "param_name": "Feedback",
+          "normalized_role": "mod_feedback",
+          "alias": "Feedback"
+        }
+      },
+      {
+        "id": "26",
+        "param_id": "26",
+        "raw_param_id": "26",
+        "raw_param_name": "Dry/Wet",
+        "name": "Dry/Wet",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100 % ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry/Wet",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 % ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 % "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 % "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 % "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 % "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 % "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "26",
+          "param_name": "Dry/Wet",
+          "normalized_role": "common_mix",
+          "alias": "Dry/Wet"
+        }
+      },
+      {
+        "id": "27",
+        "param_id": "27",
+        "raw_param_id": "27",
+        "raw_param_name": "Reverb Mix",
+        "name": "Reverb Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100 % ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Reverb Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 % ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 % "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 % "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 % "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 % "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 % "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "27",
+          "param_name": "Reverb Mix",
+          "normalized_role": "common_mix",
+          "alias": "Reverb Mix"
+        }
+      },
+      {
+        "id": "28",
+        "param_id": "28",
+        "raw_param_id": "28",
+        "raw_param_name": "Input Level",
+        "name": "Input Level",
+        "value": 0.726999998092651,
+        "normalized_value": 0.726999998092651,
+        "value_text": "0.0 dB ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Input Level",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-48 dB "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-31.5 dB "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-15.0 dB "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.5 dB "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "18.0 dB "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "28",
+          "param_name": "Input Level",
+          "normalized_role": "common_gain",
+          "alias": "Input Level"
+        }
+      },
+      {
+        "id": "29",
+        "param_id": "29",
+        "raw_param_id": "29",
+        "raw_param_name": "Output",
+        "name": "Output",
+        "value": 0.726999998092651,
+        "normalized_value": 0.726999998092651,
+        "value_text": "0.0 dB ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Output",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-48 dB "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-31.5 dB "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-15.0 dB "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.5 dB "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "18.0 dB "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "29",
+          "param_name": "Output",
+          "normalized_role": "common_gain",
+          "alias": "Output"
+        }
+      },
+      {
+        "id": "30",
+        "param_id": "30",
+        "raw_param_id": "30",
+        "raw_param_name": "Reverb Time X",
+        "name": "Reverb Time X",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "1.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Reverb Time X",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.5 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.8 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.3 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1.5 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1461",
+          "plugin_name": "Abbey Road Chambers Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "30",
+          "param_name": "Reverb Time X",
+          "normalized_role": "other",
+          "alias": "Reverb Time X"
+        }
+      }
+    ]
+  }
+}

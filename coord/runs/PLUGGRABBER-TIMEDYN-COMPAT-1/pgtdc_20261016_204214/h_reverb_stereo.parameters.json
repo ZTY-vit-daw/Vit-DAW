@@ -1,0 +1,6805 @@
+{
+  "case": {
+    "plugin_name": "H-Reverb Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-H-Reverb Stereo-695648d-bc35ab8a",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1182",
+      "rack_item_id": "1187",
+      "plugin_id": "1188",
+      "plugin_item_id": "1188",
+      "plugin_name": "H-Reverb Stereo",
+      "plugin_identifier": "VST3-H-Reverb Stereo-695648d-bc35ab8a",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=H-Reverb Stereo id=1188 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 26,
+      "graph_active_revision": 26,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 25,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node H-Reverb Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 26,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb Stereo",
+          "track_id": "1182",
+          "rack_item_id": "1187",
+          "node_id": "1188",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154645999
+        },
+        {
+          "revision": 25,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb Mono/Stereo",
+          "track_id": "1175",
+          "rack_item_id": "1180",
+          "node_id": "1181",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154642207
+        },
+        {
+          "revision": 24,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb Mono/5.1",
+          "track_id": "1168",
+          "rack_item_id": "1173",
+          "node_id": "1174",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154638381
+        },
+        {
+          "revision": 23,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb Mono/5.0",
+          "track_id": "1161",
+          "rack_item_id": "1166",
+          "node_id": "1167",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154634583
+        },
+        {
+          "revision": 22,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb Mono",
+          "track_id": "1154",
+          "rack_item_id": "1159",
+          "node_id": "1160",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154630675
+        },
+        {
+          "revision": 21,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb 5.1",
+          "track_id": "1147",
+          "rack_item_id": "1152",
+          "node_id": "1153",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154627019
+        },
+        {
+          "revision": 20,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb 5.0",
+          "track_id": "1140",
+          "rack_item_id": "1145",
+          "node_id": "1146",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154623611
+        },
+        {
+          "revision": 19,
+          "kind": "node_add",
+          "summary": "Added rack node H-Delay Stereo",
+          "track_id": "1133",
+          "rack_item_id": "1138",
+          "node_id": "1139",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154619416
+        },
+        {
+          "revision": 18,
+          "kind": "node_add",
+          "summary": "Added rack node H-Delay Mono/Stereo",
+          "track_id": "1126",
+          "rack_item_id": "1131",
+          "node_id": "1132",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154615347
+        },
+        {
+          "revision": 17,
+          "kind": "node_add",
+          "summary": "Added rack node H-Delay Mono",
+          "track_id": "1119",
+          "rack_item_id": "1124",
+          "node_id": "1125",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154611456
+        },
+        {
+          "revision": 16,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler4 Stereo",
+          "track_id": "1112",
+          "rack_item_id": "1117",
+          "node_id": "1118",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154607520
+        },
+        {
+          "revision": 15,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler4 Mono/Stereo",
+          "track_id": "1105",
+          "rack_item_id": "1110",
+          "node_id": "1111",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154603583
+        },
+        {
+          "revision": 14,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler4 Mono",
+          "track_id": "1098",
+          "rack_item_id": "1103",
+          "node_id": "1104",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154599630
+        },
+        {
+          "revision": 13,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Stereo",
+          "track_id": "1091",
+          "rack_item_id": "1096",
+          "node_id": "1097",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154595491
+        },
+        {
+          "revision": 12,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Mono/Stereo",
+          "track_id": "1084",
+          "rack_item_id": "1089",
+          "node_id": "1090",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154591630
+        },
+        {
+          "revision": 11,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Mono",
+          "track_id": "1077",
+          "rack_item_id": "1082",
+          "node_id": "1083",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154587613
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1182",
+    "plugin_id": "1188",
+    "plugin_item_id": "1188",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_ab1221a968c66c0f",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Predelay Free",
+        "normalized_role": "other",
+        "alias": "Predelay Free"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Predelay Sync",
+        "normalized_role": "other",
+        "alias": "Predelay Sync"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "PreDelay Mode",
+        "normalized_role": "other",
+        "alias": "PreDelay Mode"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Buildup Time",
+        "normalized_role": "other",
+        "alias": "Buildup Time"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Reverb Size",
+        "normalized_role": "other",
+        "alias": "Reverb Size"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "ReverbTime",
+        "normalized_role": "other",
+        "alias": "ReverbTime"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "ER Model",
+        "normalized_role": "other",
+        "alias": "ER Model"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "ER/Tail Balance",
+        "normalized_role": "other",
+        "alias": "ER/Tail Balance"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "Dry/Wet",
+        "normalized_role": "common_mix",
+        "alias": "Dry/Wet"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "Output",
+        "normalized_role": "common_gain",
+        "alias": "Output"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "XTime",
+        "normalized_role": "other",
+        "alias": "XTime"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "11",
+        "param_name": "XGain",
+        "normalized_role": "common_gain",
+        "alias": "XGain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "12",
+        "param_name": "Density",
+        "normalized_role": "other",
+        "alias": "Density"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "13",
+        "param_name": "In Echoes ByPass",
+        "normalized_role": "common_bypass",
+        "alias": "In Echoes ByPass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "14",
+        "param_name": "In Echoes Type",
+        "normalized_role": "other",
+        "alias": "In Echoes Type"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "15",
+        "param_name": "In Echoes Discrete",
+        "normalized_role": "other",
+        "alias": "In Echoes Discrete"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "16",
+        "param_name": "In Echoes Diffused",
+        "normalized_role": "other",
+        "alias": "In Echoes Diffused"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "17",
+        "param_name": "Out Echoes ByPass",
+        "normalized_role": "common_bypass",
+        "alias": "Out Echoes ByPass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "Out Echoes Amount",
+        "normalized_role": "mod_depth",
+        "alias": "Out Echoes Amount"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "19",
+        "param_name": "Out Echoes Size",
+        "normalized_role": "other",
+        "alias": "Out Echoes Size"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "20",
+        "param_name": "Out Echoes Tone",
+        "normalized_role": "other",
+        "alias": "Out Echoes Tone"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "21",
+        "param_name": "Dynamics On/Off",
+        "normalized_role": "other",
+        "alias": "Dynamics On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "22",
+        "param_name": "Dynamics Mode",
+        "normalized_role": "other",
+        "alias": "Dynamics Mode"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "23",
+        "param_name": "Dynamics Threshold",
+        "normalized_role": "comp_threshold",
+        "alias": "Dynamics Threshold"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "24",
+        "param_name": "Dynamics Recovery",
+        "normalized_role": "other",
+        "alias": "Dynamics Recovery"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "25",
+        "param_name": "Dynamics Range",
+        "normalized_role": "other",
+        "alias": "Dynamics Range"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "26",
+        "param_name": "ER Filter Gain",
+        "normalized_role": "common_gain",
+        "alias": "ER Filter Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "27",
+        "param_name": "ER Filter Frequency",
+        "normalized_role": "other",
+        "alias": "ER Filter Frequency"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "28",
+        "param_name": "EQ LoShelf OnOff",
+        "normalized_role": "other",
+        "alias": "EQ LoShelf OnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "29",
+        "param_name": "EQ LoShelf Gain",
+        "normalized_role": "common_gain",
+        "alias": "EQ LoShelf Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "30",
+        "param_name": "EQ LoShelf Freq",
+        "normalized_role": "other",
+        "alias": "EQ LoShelf Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "31",
+        "param_name": "EQ LoBell OnOff",
+        "normalized_role": "other",
+        "alias": "EQ LoBell OnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "32",
+        "param_name": "EQ LoBell Gain",
+        "normalized_role": "common_gain",
+        "alias": "EQ LoBell Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "33",
+        "param_name": "EQ LoBell Freq",
+        "normalized_role": "other",
+        "alias": "EQ LoBell Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "34",
+        "param_name": "EQ LoBell Q",
+        "normalized_role": "other",
+        "alias": "EQ LoBell Q"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "35",
+        "param_name": "EQ HiBell OnOff",
+        "normalized_role": "other",
+        "alias": "EQ HiBell OnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "36",
+        "param_name": "EQ HiBell Gain",
+        "normalized_role": "common_gain",
+        "alias": "EQ HiBell Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "37",
+        "param_name": "EQ HiBell Freq",
+        "normalized_role": "other",
+        "alias": "EQ HiBell Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "38",
+        "param_name": "EQ HiBell Q",
+        "normalized_role": "other",
+        "alias": "EQ HiBell Q"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "39",
+        "param_name": "EQ HiShelf OnOff",
+        "normalized_role": "other",
+        "alias": "EQ HiShelf OnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "40",
+        "param_name": "EQ HiShelf Gain",
+        "normalized_role": "common_gain",
+        "alias": "EQ HiShelf Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "41",
+        "param_name": "EQ HiShelf Freq",
+        "normalized_role": "other",
+        "alias": "EQ HiShelf Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "42",
+        "param_name": "Time Filter Type",
+        "normalized_role": "other",
+        "alias": "Time Filter Type"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "43",
+        "param_name": "Damping LF CutOff",
+        "normalized_role": "tone_filter",
+        "alias": "Damping LF CutOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "44",
+        "param_name": "Damping LF Ratio",
+        "normalized_role": "comp_ratio",
+        "alias": "Damping LF Ratio"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "45",
+        "param_name": "Damping HF Ratio",
+        "normalized_role": "comp_ratio",
+        "alias": "Damping HF Ratio"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "46",
+        "param_name": "Damping HF CutOff",
+        "normalized_role": "tone_filter",
+        "alias": "Damping HF CutOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "47",
+        "param_name": "Envelope Attack Time",
+        "normalized_role": "comp_attack",
+        "alias": "Envelope Attack Time"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "48",
+        "param_name": "Envelope Decay Time",
+        "normalized_role": "other",
+        "alias": "Envelope Decay Time"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "49",
+        "param_name": "Filter Type",
+        "normalized_role": "other",
+        "alias": "Filter Type"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "50",
+        "param_name": "Filter Q",
+        "normalized_role": "other",
+        "alias": "Filter Q"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "51",
+        "param_name": "Filter Mix",
+        "normalized_role": "common_mix",
+        "alias": "Filter Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "52",
+        "param_name": "Filter Flip",
+        "normalized_role": "other",
+        "alias": "Filter Flip"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "53",
+        "param_name": "F1",
+        "normalized_role": "other",
+        "alias": "F1"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "54",
+        "param_name": "F2",
+        "normalized_role": "other",
+        "alias": "F2"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "55",
+        "param_name": "LFO Free Rate",
+        "normalized_role": "mod_rate",
+        "alias": "LFO Free Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "56",
+        "param_name": "LFO Sync Rate",
+        "normalized_role": "mod_rate",
+        "alias": "LFO Sync Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "57",
+        "param_name": "LFO Rate Mode",
+        "normalized_role": "mod_rate",
+        "alias": "LFO Rate Mode"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "58",
+        "param_name": "Modulation ByPass",
+        "normalized_role": "common_bypass",
+        "alias": "Modulation ByPass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "59",
+        "param_name": "AM Depth",
+        "normalized_role": "mod_depth",
+        "alias": "AM Depth"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "60",
+        "param_name": "AM Rate",
+        "normalized_role": "mod_rate",
+        "alias": "AM Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "61",
+        "param_name": "FM Mix",
+        "normalized_role": "common_mix",
+        "alias": "FM Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "62",
+        "param_name": "Drive",
+        "normalized_role": "tone_drive",
+        "alias": "Drive"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "63",
+        "param_name": "Tempo Source",
+        "normalized_role": "other",
+        "alias": "Tempo Source"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "64",
+        "param_name": "Tempo",
+        "normalized_role": "other",
+        "alias": "Tempo"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "65",
+        "param_name": "Analog",
+        "normalized_role": "other",
+        "alias": "Analog"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1188",
+        "plugin_name": "H-Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "66",
+        "param_name": "Digital",
+        "normalized_role": "other",
+        "alias": "Digital"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Tone",
+        "parameter_ids": [
+          "43",
+          "46",
+          "62"
+        ]
+      },
+      {
+        "name": "Dynamics",
+        "parameter_ids": [
+          "23",
+          "44",
+          "45",
+          "47"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "8",
+          "9",
+          "11",
+          "26",
+          "29",
+          "32",
+          "36",
+          "40",
+          "51",
+          "61"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameter_ids": [
+          "18",
+          "55",
+          "56",
+          "57",
+          "59",
+          "60"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001",
+          "13",
+          "17",
+          "58"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "7",
+          "10",
+          "12",
+          "14",
+          "15",
+          "16",
+          "19",
+          "20",
+          "21",
+          "22",
+          "24",
+          "25",
+          "27",
+          "28",
+          "30",
+          "31",
+          "33",
+          "34",
+          "35",
+          "37",
+          "38",
+          "39",
+          "41",
+          "42",
+          "48",
+          "49",
+          "50",
+          "52",
+          "53",
+          "54",
+          "63",
+          "64",
+          "65",
+          "66"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "9",
+        "raw_param_id": "9",
+        "label": "Output",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "43",
+        "raw_param_id": "43",
+        "label": "Damping LF CutOff",
+        "widget": "slider",
+        "normalized_role": "tone_filter",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.769999861717224
+      },
+      {
+        "param_id": "62",
+        "raw_param_id": "62",
+        "label": "Drive",
+        "widget": "slider",
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "55",
+        "raw_param_id": "55",
+        "label": "LFO Free Rate",
+        "widget": "slider",
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.095477387309074
+      },
+      {
+        "param_id": "18",
+        "raw_param_id": "18",
+        "label": "Out Echoes Amount",
+        "widget": "slider",
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.580999970436096
+      },
+      {
+        "param_id": "23",
+        "raw_param_id": "23",
+        "label": "Dynamics Threshold",
+        "widget": "slider",
+        "normalized_role": "comp_threshold",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.639999985694885
+      },
+      {
+        "param_id": "44",
+        "raw_param_id": "44",
+        "label": "Damping LF Ratio",
+        "widget": "knob",
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.578947365283966
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Tone",
+          "parameter_ids": [
+            "43",
+            "46",
+            "62"
+          ]
+        },
+        {
+          "name": "Dynamics",
+          "parameter_ids": [
+            "23",
+            "44",
+            "45",
+            "47"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "8",
+            "9",
+            "11",
+            "26",
+            "29",
+            "32",
+            "36",
+            "40",
+            "51",
+            "61"
+          ]
+        },
+        {
+          "name": "Modulation",
+          "parameter_ids": [
+            "18",
+            "55",
+            "56",
+            "57",
+            "59",
+            "60"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001",
+            "13",
+            "17",
+            "58"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "10",
+            "12",
+            "14",
+            "15",
+            "16",
+            "19",
+            "20",
+            "21",
+            "22",
+            "24",
+            "25",
+            "27",
+            "28",
+            "30",
+            "31",
+            "33",
+            "34",
+            "35",
+            "37",
+            "38",
+            "39",
+            "41",
+            "42",
+            "48",
+            "49",
+            "50",
+            "52",
+            "53",
+            "54",
+            "63",
+            "64",
+            "65",
+            "66"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Predelay Free",
+        "name": "Predelay Free",
+        "value": 0.048000000417233,
+        "normalized_value": 0.048000000417233,
+        "value_text": "24 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Predelay Free",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "24 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "125 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "250 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "375 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "500 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Predelay Free",
+          "normalized_role": "other",
+          "alias": "Predelay Free"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Predelay Sync",
+        "name": "Predelay Sync",
+        "value": 0.111111111938953,
+        "normalized_value": 0.111111111938953,
+        "value_text": "3/256 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Predelay Sync",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "3/256 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1/128 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "3/128 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1/16 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3/16 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1/2 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Predelay Sync",
+          "normalized_role": "other",
+          "alias": "Predelay Sync"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "PreDelay Mode",
+        "name": "PreDelay Mode",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Free ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "PreDelay Mode",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Free ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Free "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Sync "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Free "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Free "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Sync "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Sync "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Sync "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "PreDelay Mode",
+          "normalized_role": "other",
+          "alias": "PreDelay Mode"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Buildup Time",
+        "name": "Buildup Time",
+        "value": 0.232079446315765,
+        "normalized_value": 0.232079446315765,
+        "value_text": "0.025 Seconds",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Buildup Time",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.025 Seconds",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.000 Seconds"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.031 Seconds"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.250 Seconds"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "0.844 Seconds"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.000 Seconds"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Buildup Time",
+          "normalized_role": "other",
+          "alias": "Buildup Time"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "Reverb Size",
+        "name": "Reverb Size",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "1.00 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Reverb Size",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.00 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.50 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.71 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.00 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.41 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.00 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "Reverb Size",
+          "normalized_role": "other",
+          "alias": "Reverb Size"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "ReverbTime",
+        "name": "ReverbTime",
+        "value": 0.696610152721405,
+        "normalized_value": 0.696610152721405,
+        "value_text": "4.21 Sec",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "ReverbTime",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "4.21 Sec",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 Sec"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1.58 Sec"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3.05 Sec"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "4.53 Sec"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "6.00 Sec"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "ReverbTime",
+          "normalized_role": "other",
+          "alias": "ReverbTime"
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "ER Model",
+        "name": "ER Model",
+        "value": 0.444444447755814,
+        "normalized_value": 0.444444447755814,
+        "value_text": "5 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 10,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "ER Model",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "5 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "1 "
+            },
+            {
+              "index": 1,
+              "value": 0.111111111938953,
+              "label": "2 "
+            },
+            {
+              "index": 2,
+              "value": 0.222222223877907,
+              "label": "3 "
+            },
+            {
+              "index": 3,
+              "value": 0.333333343267441,
+              "label": "4 "
+            },
+            {
+              "index": 4,
+              "value": 0.444444447755814,
+              "label": "5 "
+            },
+            {
+              "index": 5,
+              "value": 0.555555582046509,
+              "label": "6 "
+            },
+            {
+              "index": 6,
+              "value": 0.666666686534882,
+              "label": "7 "
+            },
+            {
+              "index": 7,
+              "value": 0.777777791023254,
+              "label": "8 "
+            },
+            {
+              "index": 8,
+              "value": 0.888888895511627,
+              "label": "9 "
+            },
+            {
+              "index": 9,
+              "value": 1.0,
+              "label": "10 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "3 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "6 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "8 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "10 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "ER Model",
+          "normalized_role": "other",
+          "alias": "ER Model"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "ER/Tail Balance",
+        "name": "ER/Tail Balance",
+        "value": 0.73199999332428,
+        "normalized_value": 0.73199999332428,
+        "value_text": "73.2 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "ER/Tail Balance",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "73.2 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "ER/Tail Balance",
+          "normalized_role": "other",
+          "alias": "ER/Tail Balance"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "Dry/Wet",
+        "name": "Dry/Wet",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry/Wet",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "Dry/Wet",
+          "normalized_role": "common_mix",
+          "alias": "Dry/Wet"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "Output",
+        "name": "Output",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Output",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "12.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "24.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "Output",
+          "normalized_role": "common_gain",
+          "alias": "Output"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "XTime",
+        "name": "XTime",
+        "value": 0.550000011920929,
+        "normalized_value": 0.550000011920929,
+        "value_text": "55.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "XTime",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "55.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "XTime",
+          "normalized_role": "other",
+          "alias": "XTime"
+        }
+      },
+      {
+        "id": "11",
+        "param_id": "11",
+        "raw_param_id": "11",
+        "raw_param_name": "XGain",
+        "name": "XGain",
+        "value": 0.424242436885834,
+        "normalized_value": 0.424242436885834,
+        "value_text": "-64.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "XGain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-64.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-120.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-87.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-54.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-21.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "11",
+          "param_name": "XGain",
+          "normalized_role": "common_gain",
+          "alias": "XGain"
+        }
+      },
+      {
+        "id": "12",
+        "param_id": "12",
+        "raw_param_id": "12",
+        "raw_param_name": "Density",
+        "name": "Density",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Density",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "12",
+          "param_name": "Density",
+          "normalized_role": "other",
+          "alias": "Density"
+        }
+      },
+      {
+        "id": "13",
+        "param_id": "13",
+        "raw_param_id": "13",
+        "raw_param_name": "In Echoes ByPass",
+        "name": "In Echoes ByPass",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "In Echoes ByPass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "13",
+          "param_name": "In Echoes ByPass",
+          "normalized_role": "common_bypass",
+          "alias": "In Echoes ByPass"
+        }
+      },
+      {
+        "id": "14",
+        "param_id": "14",
+        "raw_param_id": "14",
+        "raw_param_name": "In Echoes Type",
+        "name": "In Echoes Type",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "6Tap 8th FB ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 7,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "In Echoes Type",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "6Tap 8th FB ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "6Tap 8th FB "
+            },
+            {
+              "index": 1,
+              "value": 0.16666667163372,
+              "label": "2Tap 3/4 "
+            },
+            {
+              "index": 2,
+              "value": 0.333333343267441,
+              "label": "4Tap 3/4 "
+            },
+            {
+              "index": 3,
+              "value": 0.5,
+              "label": "6Tap RollUp "
+            },
+            {
+              "index": 4,
+              "value": 0.666666686534882,
+              "label": "6Tap 32th 123 "
+            },
+            {
+              "index": 5,
+              "value": 0.833333373069763,
+              "label": "6Tap St 246 "
+            },
+            {
+              "index": 6,
+              "value": 1.0,
+              "label": "2Tap St 8th "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "6Tap 8th FB "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "4Tap 3/4 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "6Tap RollUp "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "6Tap St 246 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2Tap St 8th "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "14",
+          "param_name": "In Echoes Type",
+          "normalized_role": "other",
+          "alias": "In Echoes Type"
+        }
+      },
+      {
+        "id": "15",
+        "param_id": "15",
+        "raw_param_id": "15",
+        "raw_param_name": "In Echoes Discrete",
+        "name": "In Echoes Discrete",
+        "value": 0.693333327770233,
+        "normalized_value": 0.693333327770233,
+        "value_text": "-18.4 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "In Echoes Discrete",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-18.4 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-45.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-30.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-15.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "15",
+          "param_name": "In Echoes Discrete",
+          "normalized_role": "other",
+          "alias": "In Echoes Discrete"
+        }
+      },
+      {
+        "id": "16",
+        "param_id": "16",
+        "raw_param_id": "16",
+        "raw_param_name": "In Echoes Diffused",
+        "name": "In Echoes Diffused",
+        "value": 0.516666650772095,
+        "normalized_value": 0.516666650772095,
+        "value_text": "-29.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "In Echoes Diffused",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-29.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-45.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-30.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-15.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "16",
+          "param_name": "In Echoes Diffused",
+          "normalized_role": "other",
+          "alias": "In Echoes Diffused"
+        }
+      },
+      {
+        "id": "17",
+        "param_id": "17",
+        "raw_param_id": "17",
+        "raw_param_name": "Out Echoes ByPass",
+        "name": "Out Echoes ByPass",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Out Echoes ByPass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "17",
+          "param_name": "Out Echoes ByPass",
+          "normalized_role": "common_bypass",
+          "alias": "Out Echoes ByPass"
+        }
+      },
+      {
+        "id": "18",
+        "param_id": "18",
+        "raw_param_id": "18",
+        "raw_param_name": "Out Echoes Amount",
+        "name": "Out Echoes Amount",
+        "value": 0.580999970436096,
+        "normalized_value": 0.580999970436096,
+        "value_text": "5.81 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Out Echoes Amount",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "5.81 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.00 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "2.50 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "5.00 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "7.50 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "10.00 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "18",
+          "param_name": "Out Echoes Amount",
+          "normalized_role": "mod_depth",
+          "alias": "Out Echoes Amount"
+        }
+      },
+      {
+        "id": "19",
+        "param_id": "19",
+        "raw_param_id": "19",
+        "raw_param_name": "Out Echoes Size",
+        "name": "Out Echoes Size",
+        "value": 0.649999976158142,
+        "normalized_value": 0.649999976158142,
+        "value_text": "65.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Out Echoes Size",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "65.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "19",
+          "param_name": "Out Echoes Size",
+          "normalized_role": "other",
+          "alias": "Out Echoes Size"
+        }
+      },
+      {
+        "id": "20",
+        "param_id": "20",
+        "raw_param_id": "20",
+        "raw_param_name": "Out Echoes Tone",
+        "name": "Out Echoes Tone",
+        "value": 0.720000028610229,
+        "normalized_value": 0.720000028610229,
+        "value_text": "7.2 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Out Echoes Tone",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "7.2 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "2.5 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "5.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "7.5 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "10.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "20",
+          "param_name": "Out Echoes Tone",
+          "normalized_role": "other",
+          "alias": "Out Echoes Tone"
+        }
+      },
+      {
+        "id": "21",
+        "param_id": "21",
+        "raw_param_id": "21",
+        "raw_param_name": "Dynamics On/Off",
+        "name": "Dynamics On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Dynamics On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "21",
+          "param_name": "Dynamics On/Off",
+          "normalized_role": "other",
+          "alias": "Dynamics On/Off"
+        }
+      },
+      {
+        "id": "22",
+        "param_id": "22",
+        "raw_param_id": "22",
+        "raw_param_name": "Dynamics Mode",
+        "name": "Dynamics Mode",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Duck ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "Dynamics Mode",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Duck ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Duck "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "Comp "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "DeEss "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Duck "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Comp "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Comp "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "DeEss "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "DeEss "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "22",
+          "param_name": "Dynamics Mode",
+          "normalized_role": "other",
+          "alias": "Dynamics Mode"
+        }
+      },
+      {
+        "id": "23",
+        "param_id": "23",
+        "raw_param_id": "23",
+        "raw_param_name": "Dynamics Threshold",
+        "name": "Dynamics Threshold",
+        "value": 0.639999985694885,
+        "normalized_value": 0.639999985694885,
+        "value_text": "-18.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_threshold",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dynamics Threshold",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-18.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-50.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-37.5 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-25.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-12.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "23",
+          "param_name": "Dynamics Threshold",
+          "normalized_role": "comp_threshold",
+          "alias": "Dynamics Threshold"
+        }
+      },
+      {
+        "id": "24",
+        "param_id": "24",
+        "raw_param_id": "24",
+        "raw_param_name": "Dynamics Recovery",
+        "name": "Dynamics Recovery",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "300.00 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Dynamics Recovery",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "300.00 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "30.00 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "94.87 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "300.00 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "948.68 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "3000.00 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "24",
+          "param_name": "Dynamics Recovery",
+          "normalized_role": "other",
+          "alias": "Dynamics Recovery"
+        }
+      },
+      {
+        "id": "25",
+        "param_id": "25",
+        "raw_param_id": "25",
+        "raw_param_name": "Dynamics Range",
+        "name": "Dynamics Range",
+        "value": 0.25,
+        "normalized_value": 0.25,
+        "value_text": "-18.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Dynamics Range",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-18.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "25",
+          "param_name": "Dynamics Range",
+          "normalized_role": "other",
+          "alias": "Dynamics Range"
+        }
+      },
+      {
+        "id": "26",
+        "param_id": "26",
+        "raw_param_id": "26",
+        "raw_param_name": "ER Filter Gain",
+        "name": "ER Filter Gain",
+        "value": 0.625,
+        "normalized_value": 0.625,
+        "value_text": "-22.5 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "ER Filter Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-22.5 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-80.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-57.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-34.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-11.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "26",
+          "param_name": "ER Filter Gain",
+          "normalized_role": "common_gain",
+          "alias": "ER Filter Gain"
+        }
+      },
+      {
+        "id": "27",
+        "param_id": "27",
+        "raw_param_id": "27",
+        "raw_param_name": "ER Filter Frequency",
+        "name": "ER Filter Frequency",
+        "value": 0.410947263240814,
+        "normalized_value": 0.410947263240814,
+        "value_text": "2958 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "ER Filter Frequency",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "2958 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1000 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1934 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3742 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "7238 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "14000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "27",
+          "param_name": "ER Filter Frequency",
+          "normalized_role": "other",
+          "alias": "ER Filter Frequency"
+        }
+      },
+      {
+        "id": "28",
+        "param_id": "28",
+        "raw_param_id": "28",
+        "raw_param_name": "EQ LoShelf OnOff",
+        "name": "EQ LoShelf OnOff",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ LoShelf OnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "28",
+          "param_name": "EQ LoShelf OnOff",
+          "normalized_role": "other",
+          "alias": "EQ LoShelf OnOff"
+        }
+      },
+      {
+        "id": "29",
+        "param_id": "29",
+        "raw_param_id": "29",
+        "raw_param_name": "EQ LoShelf Gain",
+        "name": "EQ LoShelf Gain",
+        "value": 0.869565188884735,
+        "normalized_value": 0.869565188884735,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQ LoShelf Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-80.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-57.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-34.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-11.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "29",
+          "param_name": "EQ LoShelf Gain",
+          "normalized_role": "common_gain",
+          "alias": "EQ LoShelf Gain"
+        }
+      },
+      {
+        "id": "30",
+        "param_id": "30",
+        "raw_param_id": "30",
+        "raw_param_name": "EQ LoShelf Freq",
+        "name": "EQ LoShelf Freq",
+        "value": 0.635197341442108,
+        "normalized_value": 0.635197341442108,
+        "value_text": "240 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ LoShelf Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "240 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "20 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "53 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "141 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "376 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "30",
+          "param_name": "EQ LoShelf Freq",
+          "normalized_role": "other",
+          "alias": "EQ LoShelf Freq"
+        }
+      },
+      {
+        "id": "31",
+        "param_id": "31",
+        "raw_param_id": "31",
+        "raw_param_name": "EQ LoBell OnOff",
+        "name": "EQ LoBell OnOff",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ LoBell OnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "31",
+          "param_name": "EQ LoBell OnOff",
+          "normalized_role": "other",
+          "alias": "EQ LoBell OnOff"
+        }
+      },
+      {
+        "id": "32",
+        "param_id": "32",
+        "raw_param_id": "32",
+        "raw_param_name": "EQ LoBell Gain",
+        "name": "EQ LoBell Gain",
+        "value": 0.638888895511627,
+        "normalized_value": 0.638888895511627,
+        "value_text": "-1.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQ LoBell Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-1.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-15.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "32",
+          "param_name": "EQ LoBell Gain",
+          "normalized_role": "common_gain",
+          "alias": "EQ LoBell Gain"
+        }
+      },
+      {
+        "id": "33",
+        "param_id": "33",
+        "raw_param_id": "33",
+        "raw_param_name": "EQ LoBell Freq",
+        "name": "EQ LoBell Freq",
+        "value": 0.549855172634125,
+        "normalized_value": 0.549855172634125,
+        "value_text": "604 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ LoBell Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "604 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "60 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "171 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "490 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1400 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "4000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "33",
+          "param_name": "EQ LoBell Freq",
+          "normalized_role": "other",
+          "alias": "EQ LoBell Freq"
+        }
+      },
+      {
+        "id": "34",
+        "param_id": "34",
+        "raw_param_id": "34",
+        "raw_param_name": "EQ LoBell Q",
+        "name": "EQ LoBell Q",
+        "value": 0.307684659957886,
+        "normalized_value": 0.307684659957886,
+        "value_text": "0.70 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ LoBell Q",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.70 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.26 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.58 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.30 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "2.91 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "6.50 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "34",
+          "param_name": "EQ LoBell Q",
+          "normalized_role": "other",
+          "alias": "EQ LoBell Q"
+        }
+      },
+      {
+        "id": "35",
+        "param_id": "35",
+        "raw_param_id": "35",
+        "raw_param_name": "EQ HiBell OnOff",
+        "name": "EQ HiBell OnOff",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ HiBell OnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "35",
+          "param_name": "EQ HiBell OnOff",
+          "normalized_role": "other",
+          "alias": "EQ HiBell OnOff"
+        }
+      },
+      {
+        "id": "36",
+        "param_id": "36",
+        "raw_param_id": "36",
+        "raw_param_name": "EQ HiBell Gain",
+        "name": "EQ HiBell Gain",
+        "value": 0.666666686534882,
+        "normalized_value": 0.666666686534882,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQ HiBell Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-15.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "36",
+          "param_name": "EQ HiBell Gain",
+          "normalized_role": "common_gain",
+          "alias": "EQ HiBell Gain"
+        }
+      },
+      {
+        "id": "37",
+        "param_id": "37",
+        "raw_param_id": "37",
+        "raw_param_name": "EQ HiBell Freq",
+        "name": "EQ HiBell Freq",
+        "value": 0.322975933551788,
+        "normalized_value": 0.322975933551788,
+        "value_text": "2398 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ HiBell Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "2398 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1000 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1968 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3873 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "7622 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "15000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "37",
+          "param_name": "EQ HiBell Freq",
+          "normalized_role": "other",
+          "alias": "EQ HiBell Freq"
+        }
+      },
+      {
+        "id": "38",
+        "param_id": "38",
+        "raw_param_id": "38",
+        "raw_param_name": "EQ HiBell Q",
+        "name": "EQ HiBell Q",
+        "value": 0.307684659957886,
+        "normalized_value": 0.307684659957886,
+        "value_text": "0.70 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ HiBell Q",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.70 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.26 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.58 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.30 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "2.91 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "6.50 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "38",
+          "param_name": "EQ HiBell Q",
+          "normalized_role": "other",
+          "alias": "EQ HiBell Q"
+        }
+      },
+      {
+        "id": "39",
+        "param_id": "39",
+        "raw_param_id": "39",
+        "raw_param_name": "EQ HiShelf OnOff",
+        "name": "EQ HiShelf OnOff",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ HiShelf OnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "39",
+          "param_name": "EQ HiShelf OnOff",
+          "normalized_role": "other",
+          "alias": "EQ HiShelf OnOff"
+        }
+      },
+      {
+        "id": "40",
+        "param_id": "40",
+        "raw_param_id": "40",
+        "raw_param_name": "EQ HiShelf Gain",
+        "name": "EQ HiShelf Gain",
+        "value": 0.533695638179779,
+        "normalized_value": 0.533695638179779,
+        "value_text": "-30.9 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQ HiShelf Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-30.9 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-80.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-57.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-34.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-11.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "40",
+          "param_name": "EQ HiShelf Gain",
+          "normalized_role": "common_gain",
+          "alias": "EQ HiShelf Gain"
+        }
+      },
+      {
+        "id": "41",
+        "param_id": "41",
+        "raw_param_id": "41",
+        "raw_param_name": "EQ HiShelf Freq",
+        "name": "EQ HiShelf Freq",
+        "value": 0.044082600623369,
+        "normalized_value": 0.044082600623369,
+        "value_text": "2192 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ HiShelf Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "2192 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "2000 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "3364 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "5657 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9514 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "16000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "41",
+          "param_name": "EQ HiShelf Freq",
+          "normalized_role": "other",
+          "alias": "EQ HiShelf Freq"
+        }
+      },
+      {
+        "id": "42",
+        "param_id": "42",
+        "raw_param_id": "42",
+        "raw_param_name": "Time Filter Type",
+        "name": "Time Filter Type",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Damping ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "Time Filter Type",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Damping ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Damping "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "Envelope "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "LFO "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Damping "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Envelope "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Envelope "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "LFO "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "LFO "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "42",
+          "param_name": "Time Filter Type",
+          "normalized_role": "other",
+          "alias": "Time Filter Type"
+        }
+      },
+      {
+        "id": "43",
+        "param_id": "43",
+        "raw_param_id": "43",
+        "raw_param_name": "Damping LF CutOff",
+        "name": "Damping LF CutOff",
+        "value": 0.769999861717224,
+        "normalized_value": 0.769999861717224,
+        "value_text": "721 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_filter",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Damping LF CutOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "721 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "50 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "119 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "283 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "673 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1600 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "43",
+          "param_name": "Damping LF CutOff",
+          "normalized_role": "tone_filter",
+          "alias": "Damping LF CutOff"
+        }
+      },
+      {
+        "id": "44",
+        "param_id": "44",
+        "raw_param_id": "44",
+        "raw_param_name": "Damping LF Ratio",
+        "name": "Damping LF Ratio",
+        "value": 0.578947365283966,
+        "normalized_value": 0.578947365283966,
+        "value_text": "1.20 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Damping LF Ratio",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.20 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.57 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.05 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.53 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.00 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "44",
+          "param_name": "Damping LF Ratio",
+          "normalized_role": "comp_ratio",
+          "alias": "Damping LF Ratio"
+        }
+      },
+      {
+        "id": "45",
+        "param_id": "45",
+        "raw_param_id": "45",
+        "raw_param_name": "Damping HF Ratio",
+        "name": "Damping HF Ratio",
+        "value": 0.415789484977722,
+        "normalized_value": 0.415789484977722,
+        "value_text": "0.89 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Damping HF Ratio",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.89 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.57 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.05 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.53 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.00 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "45",
+          "param_name": "Damping HF Ratio",
+          "normalized_role": "comp_ratio",
+          "alias": "Damping HF Ratio"
+        }
+      },
+      {
+        "id": "46",
+        "param_id": "46",
+        "raw_param_id": "46",
+        "raw_param_name": "Damping HF CutOff",
+        "name": "Damping HF CutOff",
+        "value": 0.483027428388596,
+        "normalized_value": 0.483027428388596,
+        "value_text": "3699 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_filter",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Damping HF CutOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "3699 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1000 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1968 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3873 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "7622 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "15000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "46",
+          "param_name": "Damping HF CutOff",
+          "normalized_role": "tone_filter",
+          "alias": "Damping HF CutOff"
+        }
+      },
+      {
+        "id": "47",
+        "param_id": "47",
+        "raw_param_id": "47",
+        "raw_param_name": "Envelope Attack Time",
+        "name": "Envelope Attack Time",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_attack",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Envelope Attack Time",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "47",
+          "param_name": "Envelope Attack Time",
+          "normalized_role": "comp_attack",
+          "alias": "Envelope Attack Time"
+        }
+      },
+      {
+        "id": "48",
+        "param_id": "48",
+        "raw_param_id": "48",
+        "raw_param_name": "Envelope Decay Time",
+        "name": "Envelope Decay Time",
+        "value": 0.34400001168251,
+        "normalized_value": 0.34400001168251,
+        "value_text": "34.4 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Envelope Decay Time",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "34.4 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "48",
+          "param_name": "Envelope Decay Time",
+          "normalized_role": "other",
+          "alias": "Envelope Decay Time"
+        }
+      },
+      {
+        "id": "49",
+        "param_id": "49",
+        "raw_param_id": "49",
+        "raw_param_name": "Filter Type",
+        "name": "Filter Type",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Reso Lpf ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "Filter Type",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Reso Lpf ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Reso Lpf "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Reso Hpf "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Reso Lpf "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Reso Lpf "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Reso Hpf "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Reso Hpf "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Reso Hpf "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "49",
+          "param_name": "Filter Type",
+          "normalized_role": "other",
+          "alias": "Filter Type"
+        }
+      },
+      {
+        "id": "50",
+        "param_id": "50",
+        "raw_param_id": "50",
+        "raw_param_name": "Filter Q",
+        "name": "Filter Q",
+        "value": 0.073684208095074,
+        "normalized_value": 0.073684208095074,
+        "value_text": "1.2 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Filter Q",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.2 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.5 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "2.9 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "5.3 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "7.6 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "10.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "50",
+          "param_name": "Filter Q",
+          "normalized_role": "other",
+          "alias": "Filter Q"
+        }
+      },
+      {
+        "id": "51",
+        "param_id": "51",
+        "raw_param_id": "51",
+        "raw_param_name": "Filter Mix",
+        "name": "Filter Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Filter Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "51",
+          "param_name": "Filter Mix",
+          "normalized_role": "common_mix",
+          "alias": "Filter Mix"
+        }
+      },
+      {
+        "id": "52",
+        "param_id": "52",
+        "raw_param_id": "52",
+        "raw_param_name": "Filter Flip",
+        "name": "Filter Flip",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Filter Flip",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "52",
+          "param_name": "Filter Flip",
+          "normalized_role": "other",
+          "alias": "Filter Flip"
+        }
+      },
+      {
+        "id": "53",
+        "param_id": "53",
+        "raw_param_id": "53",
+        "raw_param_name": "F1",
+        "name": "F1",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "100 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "F1",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "100 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "350 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1225 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "4286 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "15000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "53",
+          "param_name": "F1",
+          "normalized_role": "other",
+          "alias": "F1"
+        }
+      },
+      {
+        "id": "54",
+        "param_id": "54",
+        "raw_param_id": "54",
+        "raw_param_name": "F2",
+        "name": "F2",
+        "value": 0.839004576206207,
+        "normalized_value": 0.839004576206207,
+        "value_text": "6695 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "F2",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "6695 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "100 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "350 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1225 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "4286 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "15000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "54",
+          "param_name": "F2",
+          "normalized_role": "other",
+          "alias": "F2"
+        }
+      },
+      {
+        "id": "55",
+        "param_id": "55",
+        "raw_param_id": "55",
+        "raw_param_name": "LFO Free Rate",
+        "name": "LFO Free Rate",
+        "value": 0.095477387309074,
+        "normalized_value": 0.095477387309074,
+        "value_text": "2.00 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "LFO Free Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "2.00 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "5.08 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "10.04 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "15.02 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "20.00 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "55",
+          "param_name": "LFO Free Rate",
+          "normalized_role": "mod_rate",
+          "alias": "LFO Free Rate"
+        }
+      },
+      {
+        "id": "56",
+        "param_id": "56",
+        "raw_param_id": "56",
+        "raw_param_name": "LFO Sync Rate",
+        "name": "LFO Sync Rate",
+        "value": 0.4375,
+        "normalized_value": 0.4375,
+        "value_text": "1/4 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "LFO Sync Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1/4 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "4B "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1/2 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3/16 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1/12 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1/32 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "56",
+          "param_name": "LFO Sync Rate",
+          "normalized_role": "mod_rate",
+          "alias": "LFO Sync Rate"
+        }
+      },
+      {
+        "id": "57",
+        "param_id": "57",
+        "raw_param_id": "57",
+        "raw_param_name": "LFO Rate Mode",
+        "name": "LFO Rate Mode",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Sync ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "LFO Rate Mode",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Sync ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Free "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Sync "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Free "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Free "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Sync "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Sync "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Sync "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "57",
+          "param_name": "LFO Rate Mode",
+          "normalized_role": "mod_rate",
+          "alias": "LFO Rate Mode"
+        }
+      },
+      {
+        "id": "58",
+        "param_id": "58",
+        "raw_param_id": "58",
+        "raw_param_name": "Modulation ByPass",
+        "name": "Modulation ByPass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Modulation ByPass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "58",
+          "param_name": "Modulation ByPass",
+          "normalized_role": "common_bypass",
+          "alias": "Modulation ByPass"
+        }
+      },
+      {
+        "id": "59",
+        "param_id": "59",
+        "raw_param_id": "59",
+        "raw_param_name": "AM Depth",
+        "name": "AM Depth",
+        "value": 0.200000002980232,
+        "normalized_value": 0.200000002980232,
+        "value_text": "20 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "AM Depth",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "20 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "59",
+          "param_name": "AM Depth",
+          "normalized_role": "mod_depth",
+          "alias": "AM Depth"
+        }
+      },
+      {
+        "id": "60",
+        "param_id": "60",
+        "raw_param_id": "60",
+        "raw_param_name": "AM Rate",
+        "name": "AM Rate",
+        "value": 0.200000002980232,
+        "normalized_value": 0.200000002980232,
+        "value_text": "20.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "AM Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "20.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "60",
+          "param_name": "AM Rate",
+          "normalized_role": "mod_rate",
+          "alias": "AM Rate"
+        }
+      },
+      {
+        "id": "61",
+        "param_id": "61",
+        "raw_param_id": "61",
+        "raw_param_name": "FM Mix",
+        "name": "FM Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "FM Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "61",
+          "param_name": "FM Mix",
+          "normalized_role": "common_mix",
+          "alias": "FM Mix"
+        }
+      },
+      {
+        "id": "62",
+        "param_id": "62",
+        "raw_param_id": "62",
+        "raw_param_name": "Drive",
+        "name": "Drive",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Drive",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "62",
+          "param_name": "Drive",
+          "normalized_role": "tone_drive",
+          "alias": "Drive"
+        }
+      },
+      {
+        "id": "63",
+        "param_id": "63",
+        "raw_param_id": "63",
+        "raw_param_name": "Tempo Source",
+        "name": "Tempo Source",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "HOST ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Tempo Source",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "HOST ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "INT "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "HOST "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "INT "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "INT "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "HOST "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "HOST "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "HOST "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "63",
+          "param_name": "Tempo Source",
+          "normalized_role": "other",
+          "alias": "Tempo Source"
+        }
+      },
+      {
+        "id": "64",
+        "param_id": "64",
+        "raw_param_id": "64",
+        "raw_param_name": "Tempo",
+        "name": "Tempo",
+        "value": 0.109999999403954,
+        "normalized_value": 0.109999999403954,
+        "value_text": "120.00 BPM",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Tempo",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "120.00 BPM",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "10.00 BPM"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "260.00 BPM"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "510.00 BPM"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "760.00 BPM"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1010.00 BPM"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "64",
+          "param_name": "Tempo",
+          "normalized_role": "other",
+          "alias": "Tempo"
+        }
+      },
+      {
+        "id": "65",
+        "param_id": "65",
+        "raw_param_id": "65",
+        "raw_param_name": "Analog",
+        "name": "Analog",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Analog",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "65",
+          "param_name": "Analog",
+          "normalized_role": "other",
+          "alias": "Analog"
+        }
+      },
+      {
+        "id": "66",
+        "param_id": "66",
+        "raw_param_id": "66",
+        "raw_param_name": "Digital",
+        "name": "Digital",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Digital",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "8 Bit "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "12 Bit "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "Off "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "8 Bit "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "12 Bit "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "12 Bit "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Off "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1188",
+          "plugin_name": "H-Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "66",
+          "param_name": "Digital",
+          "normalized_role": "other",
+          "alias": "Digital"
+        }
+      }
+    ]
+  }
+}

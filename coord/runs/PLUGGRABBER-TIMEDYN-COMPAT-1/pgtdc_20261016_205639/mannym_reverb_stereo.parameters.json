@@ -1,0 +1,1621 @@
+{
+  "case": {
+    "plugin_name": "MannyM Reverb Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-MannyM Reverb Stereo-695648d-46aa2bcc",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1812",
+      "rack_item_id": "1817",
+      "plugin_id": "1818",
+      "plugin_item_id": "1818",
+      "plugin_name": "MannyM Reverb Stereo",
+      "plugin_identifier": "VST3-MannyM Reverb Stereo-695648d-46aa2bcc",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=MannyM Reverb Stereo id=1818 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 53,
+      "graph_active_revision": 53,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 52,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node MannyM Reverb Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 53,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Stereo",
+          "track_id": "1812",
+          "rack_item_id": "1817",
+          "node_id": "1818",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155616301
+        },
+        {
+          "revision": 52,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Mono/Stereo",
+          "track_id": "1805",
+          "rack_item_id": "1810",
+          "node_id": "1811",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155612073
+        },
+        {
+          "revision": 51,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Mono",
+          "track_id": "1798",
+          "rack_item_id": "1803",
+          "node_id": "1804",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155607540
+        },
+        {
+          "revision": 50,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Stereo",
+          "track_id": "1791",
+          "rack_item_id": "1796",
+          "node_id": "1797",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155603434
+        },
+        {
+          "revision": 49,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Mono/Stereo",
+          "track_id": "1784",
+          "rack_item_id": "1789",
+          "node_id": "1790",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155599663
+        },
+        {
+          "revision": 48,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Stereo",
+          "track_id": "1777",
+          "rack_item_id": "1782",
+          "node_id": "1783",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155595564
+        },
+        {
+          "revision": 47,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono/Stereo",
+          "track_id": "1770",
+          "rack_item_id": "1775",
+          "node_id": "1776",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155591415
+        },
+        {
+          "revision": 46,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono",
+          "track_id": "1763",
+          "rack_item_id": "1768",
+          "node_id": "1769",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155587072
+        },
+        {
+          "revision": 45,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 full Stereo",
+          "track_id": "1756",
+          "rack_item_id": "1761",
+          "node_id": "1762",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155583082
+        },
+        {
+          "revision": 44,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 efficient Stereo",
+          "track_id": "1749",
+          "rack_item_id": "1754",
+          "node_id": "1755",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155578966
+        },
+        {
+          "revision": 43,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono/Stereo",
+          "track_id": "1742",
+          "rack_item_id": "1747",
+          "node_id": "1748",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155574897
+        },
+        {
+          "revision": 42,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono",
+          "track_id": "1735",
+          "rack_item_id": "1740",
+          "node_id": "1741",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155570996
+        },
+        {
+          "revision": 41,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L full Stereo",
+          "track_id": "1728",
+          "rack_item_id": "1733",
+          "node_id": "1734",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155567036
+        },
+        {
+          "revision": 40,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L efficient Stereo",
+          "track_id": "1721",
+          "rack_item_id": "1726",
+          "node_id": "1727",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155562944
+        },
+        {
+          "revision": 39,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L Mono/Stereo",
+          "track_id": "1714",
+          "rack_item_id": "1719",
+          "node_id": "1720",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155558670
+        },
+        {
+          "revision": 38,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L Mono",
+          "track_id": "1707",
+          "rack_item_id": "1712",
+          "node_id": "1713",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155554566
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1812",
+    "plugin_id": "1818",
+    "plugin_item_id": "1818",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_b90e2660c0ac2e30",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Input",
+        "normalized_role": "common_gain",
+        "alias": "Input"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Reverb Amount",
+        "normalized_role": "mod_depth",
+        "alias": "Reverb Amount"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Lows",
+        "normalized_role": "other",
+        "alias": "Lows"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Mids",
+        "normalized_role": "other",
+        "alias": "Mids"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Highs",
+        "normalized_role": "other",
+        "alias": "Highs"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "Comp",
+        "normalized_role": "other",
+        "alias": "Comp"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "Phaser",
+        "normalized_role": "other",
+        "alias": "Phaser"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "Phaser Rate",
+        "normalized_role": "mod_rate",
+        "alias": "Phaser Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "Distortion",
+        "normalized_role": "tone_drive",
+        "alias": "Distortion"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "Dry/Wet",
+        "normalized_role": "common_mix",
+        "alias": "Dry/Wet"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1818",
+        "plugin_name": "MannyM Reverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "Output",
+        "normalized_role": "common_gain",
+        "alias": "Output"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Tone",
+        "parameter_ids": [
+          "8"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "0",
+          "9",
+          "10"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameter_ids": [
+          "1",
+          "7"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "6"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "0",
+        "raw_param_id": "0",
+        "label": "Input",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "8",
+        "raw_param_id": "8",
+        "label": "Distortion",
+        "widget": "slider",
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "7",
+        "raw_param_id": "7",
+        "label": "Phaser Rate",
+        "widget": "slider",
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.508739113807678
+      },
+      {
+        "param_id": "1",
+        "raw_param_id": "1",
+        "label": "Reverb Amount",
+        "widget": "slider",
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "9",
+        "raw_param_id": "9",
+        "label": "Dry/Wet",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Tone",
+          "parameter_ids": [
+            "8"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "0",
+            "9",
+            "10"
+          ]
+        },
+        {
+          "name": "Modulation",
+          "parameter_ids": [
+            "1",
+            "7"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "2",
+            "3",
+            "4",
+            "5",
+            "6"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Input",
+        "name": "Input",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Input",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-9.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "18.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Input",
+          "normalized_role": "common_gain",
+          "alias": "Input"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Reverb Amount",
+        "name": "Reverb Amount",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Reverb Amount",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.5 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3.1 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "17.7 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Reverb Amount",
+          "normalized_role": "mod_depth",
+          "alias": "Reverb Amount"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Lows",
+        "name": "Lows",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Lows",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-50.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-25.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "25.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "50.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Lows",
+          "normalized_role": "other",
+          "alias": "Lows"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Mids",
+        "name": "Mids",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Mids",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-50.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-25.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "25.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "50.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Mids",
+          "normalized_role": "other",
+          "alias": "Mids"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "Highs",
+        "name": "Highs",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Highs",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-50.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-25.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "25.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "50.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "Highs",
+          "normalized_role": "other",
+          "alias": "Highs"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "Comp",
+        "name": "Comp",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Comp",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "Comp",
+          "normalized_role": "other",
+          "alias": "Comp"
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "Phaser",
+        "name": "Phaser",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Phaser",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "Phaser",
+          "normalized_role": "other",
+          "alias": "Phaser"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "Phaser Rate",
+        "name": "Phaser Rate",
+        "value": 0.508739113807678,
+        "normalized_value": 0.508739113807678,
+        "value_text": "0.34 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Phaser Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.34 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.00 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.04 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.32 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "2.52 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "20.0 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "Phaser Rate",
+          "normalized_role": "mod_rate",
+          "alias": "Phaser Rate"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "Distortion",
+        "name": "Distortion",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Distortion",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "Distortion",
+          "normalized_role": "tone_drive",
+          "alias": "Distortion"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "Dry/Wet",
+        "name": "Dry/Wet",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry/Wet",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "Dry/Wet",
+          "normalized_role": "common_mix",
+          "alias": "Dry/Wet"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "Output",
+        "name": "Output",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Output",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-9.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "18.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1818",
+          "plugin_name": "MannyM Reverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "Output",
+          "normalized_role": "common_gain",
+          "alias": "Output"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,3398 @@
+{
+  "case": {
+    "plugin_name": "MannyM Delay Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-MannyM Delay Stereo-695648d-121c1dcc",
+    "vendor": "waves",
+    "family": "delay"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1791",
+      "rack_item_id": "1796",
+      "plugin_id": "1797",
+      "plugin_item_id": "1797",
+      "plugin_name": "MannyM Delay Stereo",
+      "plugin_identifier": "VST3-MannyM Delay Stereo-695648d-121c1dcc",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=MannyM Delay Stereo id=1797 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 50,
+      "graph_active_revision": 50,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 49,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node MannyM Delay Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 50,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Stereo",
+          "track_id": "1791",
+          "rack_item_id": "1796",
+          "node_id": "1797",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155603434
+        },
+        {
+          "revision": 49,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Mono/Stereo",
+          "track_id": "1784",
+          "rack_item_id": "1789",
+          "node_id": "1790",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155599663
+        },
+        {
+          "revision": 48,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Stereo",
+          "track_id": "1777",
+          "rack_item_id": "1782",
+          "node_id": "1783",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155595564
+        },
+        {
+          "revision": 47,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono/Stereo",
+          "track_id": "1770",
+          "rack_item_id": "1775",
+          "node_id": "1776",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155591415
+        },
+        {
+          "revision": 46,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono",
+          "track_id": "1763",
+          "rack_item_id": "1768",
+          "node_id": "1769",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155587072
+        },
+        {
+          "revision": 45,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 full Stereo",
+          "track_id": "1756",
+          "rack_item_id": "1761",
+          "node_id": "1762",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155583082
+        },
+        {
+          "revision": 44,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 efficient Stereo",
+          "track_id": "1749",
+          "rack_item_id": "1754",
+          "node_id": "1755",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155578966
+        },
+        {
+          "revision": 43,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono/Stereo",
+          "track_id": "1742",
+          "rack_item_id": "1747",
+          "node_id": "1748",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155574897
+        },
+        {
+          "revision": 42,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono",
+          "track_id": "1735",
+          "rack_item_id": "1740",
+          "node_id": "1741",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155570996
+        },
+        {
+          "revision": 41,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L full Stereo",
+          "track_id": "1728",
+          "rack_item_id": "1733",
+          "node_id": "1734",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155567036
+        },
+        {
+          "revision": 40,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L efficient Stereo",
+          "track_id": "1721",
+          "rack_item_id": "1726",
+          "node_id": "1727",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155562944
+        },
+        {
+          "revision": 39,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L Mono/Stereo",
+          "track_id": "1714",
+          "rack_item_id": "1719",
+          "node_id": "1720",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155558670
+        },
+        {
+          "revision": 38,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L Mono",
+          "track_id": "1707",
+          "rack_item_id": "1712",
+          "node_id": "1713",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155554566
+        },
+        {
+          "revision": 37,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Stereo/5.1",
+          "track_id": "1700",
+          "rack_item_id": "1705",
+          "node_id": "1706",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155550769
+        },
+        {
+          "revision": 36,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Stereo/5.0",
+          "track_id": "1693",
+          "rack_item_id": "1698",
+          "node_id": "1699",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155547152
+        },
+        {
+          "revision": 35,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Stereo",
+          "track_id": "1686",
+          "rack_item_id": "1691",
+          "node_id": "1692",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155543465
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1791",
+    "plugin_id": "1797",
+    "plugin_item_id": "1797",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_e4723643e6b0f588",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Input",
+        "normalized_role": "common_gain",
+        "alias": "Input"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Delay Left ms",
+        "normalized_role": "other",
+        "alias": "Delay Left ms"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Delay Left Tempo",
+        "normalized_role": "other",
+        "alias": "Delay Left Tempo"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Delay Right ms",
+        "normalized_role": "other",
+        "alias": "Delay Right ms"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Delay Right Tempo",
+        "normalized_role": "other",
+        "alias": "Delay Right Tempo"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "Fdbk Left",
+        "normalized_role": "other",
+        "alias": "Fdbk Left"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "Fdbk Right",
+        "normalized_role": "other",
+        "alias": "Fdbk Right"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "Dry/Wet",
+        "normalized_role": "common_mix",
+        "alias": "Dry/Wet"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "Delay Link",
+        "normalized_role": "other",
+        "alias": "Delay Link"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "Mode",
+        "normalized_role": "other",
+        "alias": "Mode"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "HP",
+        "normalized_role": "other",
+        "alias": "HP"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "11",
+        "param_name": "LP",
+        "normalized_role": "other",
+        "alias": "LP"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "12",
+        "param_name": "HP/LP Link",
+        "normalized_role": "other",
+        "alias": "HP/LP Link"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "13",
+        "param_name": "Verb Size",
+        "normalized_role": "other",
+        "alias": "Verb Size"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "14",
+        "param_name": "Verb Level",
+        "normalized_role": "common_gain",
+        "alias": "Verb Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "15",
+        "param_name": "Verb On/Off",
+        "normalized_role": "other",
+        "alias": "Verb On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "16",
+        "param_name": "Distortion Send",
+        "normalized_role": "tone_drive",
+        "alias": "Distortion Send"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "17",
+        "param_name": "Distortion Width",
+        "normalized_role": "tone_drive",
+        "alias": "Distortion Width"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "Distortion Level",
+        "normalized_role": "tone_drive",
+        "alias": "Distortion Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "19",
+        "param_name": "Distortion On/Off",
+        "normalized_role": "tone_drive",
+        "alias": "Distortion On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "20",
+        "param_name": "Doubler Detune",
+        "normalized_role": "other",
+        "alias": "Doubler Detune"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "21",
+        "param_name": "Doubler Level",
+        "normalized_role": "common_gain",
+        "alias": "Doubler Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "22",
+        "param_name": "Doubler On/Off",
+        "normalized_role": "other",
+        "alias": "Doubler On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "23",
+        "param_name": "Phaser Rate",
+        "normalized_role": "mod_rate",
+        "alias": "Phaser Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "24",
+        "param_name": "Phaser Level",
+        "normalized_role": "common_gain",
+        "alias": "Phaser Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "25",
+        "param_name": "Phaser On/Off",
+        "normalized_role": "other",
+        "alias": "Phaser On/Off"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "26",
+        "param_name": "Monitor",
+        "normalized_role": "other",
+        "alias": "Monitor"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1797",
+        "plugin_name": "MannyM Delay Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "27",
+        "param_name": "Output",
+        "normalized_role": "common_gain",
+        "alias": "Output"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Tone",
+        "parameter_ids": [
+          "16",
+          "17",
+          "18",
+          "19"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "0",
+          "7",
+          "14",
+          "21",
+          "24",
+          "27"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameter_ids": [
+          "23"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "6",
+          "8",
+          "9",
+          "10",
+          "11",
+          "12",
+          "13",
+          "15",
+          "20",
+          "22",
+          "25",
+          "26"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "0",
+        "raw_param_id": "0",
+        "label": "Input",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "16",
+        "raw_param_id": "16",
+        "label": "Distortion Send",
+        "widget": "slider",
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.822000026702881
+      },
+      {
+        "param_id": "23",
+        "raw_param_id": "23",
+        "label": "Phaser Rate",
+        "widget": "slider",
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.508739113807678
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "7",
+        "raw_param_id": "7",
+        "label": "Dry/Wet",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "14",
+        "raw_param_id": "14",
+        "label": "Verb Level",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Tone",
+          "parameter_ids": [
+            "16",
+            "17",
+            "18",
+            "19"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "0",
+            "7",
+            "14",
+            "21",
+            "24",
+            "27"
+          ]
+        },
+        {
+          "name": "Modulation",
+          "parameter_ids": [
+            "23"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
+            "13",
+            "15",
+            "20",
+            "22",
+            "25",
+            "26"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Input",
+        "name": "Input",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Input",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-9.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "18.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Input",
+          "normalized_role": "common_gain",
+          "alias": "Input"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Delay Left ms",
+        "name": "Delay Left ms",
+        "value": 0.25,
+        "normalized_value": 0.25,
+        "value_text": "500 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Left ms",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "500 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "500 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1000 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1500 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2000 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Delay Left ms",
+          "normalized_role": "other",
+          "alias": "Delay Left ms"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Delay Left Tempo",
+        "name": "Delay Left Tempo",
+        "value": 0.722222208976746,
+        "normalized_value": 0.722222208976746,
+        "value_text": "1/4 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 19,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Left Tempo",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1/4 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "1/64T "
+            },
+            {
+              "index": 1,
+              "value": 0.055555555969477,
+              "label": "1/64 "
+            },
+            {
+              "index": 2,
+              "value": 0.111111111938953,
+              "label": "1/32T "
+            },
+            {
+              "index": 3,
+              "value": 0.16666667163372,
+              "label": "1/64D "
+            },
+            {
+              "index": 4,
+              "value": 0.222222223877907,
+              "label": "1/32 "
+            },
+            {
+              "index": 5,
+              "value": 0.277777791023254,
+              "label": "1/16T "
+            },
+            {
+              "index": 6,
+              "value": 0.333333343267441,
+              "label": "1/32D "
+            },
+            {
+              "index": 7,
+              "value": 0.388888895511627,
+              "label": "1/16 "
+            },
+            {
+              "index": 8,
+              "value": 0.444444447755814,
+              "label": "1/8T "
+            },
+            {
+              "index": 9,
+              "value": 0.5,
+              "label": "1/16D "
+            },
+            {
+              "index": 10,
+              "value": 0.555555582046509,
+              "label": "1/8 "
+            },
+            {
+              "index": 11,
+              "value": 0.611111104488373,
+              "label": "1/4T "
+            },
+            {
+              "index": 12,
+              "value": 0.666666686534882,
+              "label": "1/8D "
+            },
+            {
+              "index": 13,
+              "value": 0.722222208976746,
+              "label": "1/4 "
+            },
+            {
+              "index": 14,
+              "value": 0.777777791023254,
+              "label": "1/2T "
+            },
+            {
+              "index": 15,
+              "value": 0.833333313465118,
+              "label": "1/4D "
+            },
+            {
+              "index": 16,
+              "value": 0.888888895511627,
+              "label": "1/2 "
+            },
+            {
+              "index": 17,
+              "value": 0.944444477558136,
+              "label": "1/2D "
+            },
+            {
+              "index": 18,
+              "value": 1.0,
+              "label": "Whole "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1/64T "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1/16T "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1/16D "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1/2T "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Whole "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Delay Left Tempo",
+          "normalized_role": "other",
+          "alias": "Delay Left Tempo"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Delay Right ms",
+        "name": "Delay Right ms",
+        "value": 0.25,
+        "normalized_value": 0.25,
+        "value_text": "500 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Right ms",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "500 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "500 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1000 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1500 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2000 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Delay Right ms",
+          "normalized_role": "other",
+          "alias": "Delay Right ms"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "Delay Right Tempo",
+        "name": "Delay Right Tempo",
+        "value": 0.722222208976746,
+        "normalized_value": 0.722222208976746,
+        "value_text": "1/4 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 19,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Right Tempo",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1/4 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "1/64T "
+            },
+            {
+              "index": 1,
+              "value": 0.055555555969477,
+              "label": "1/64 "
+            },
+            {
+              "index": 2,
+              "value": 0.111111111938953,
+              "label": "1/32T "
+            },
+            {
+              "index": 3,
+              "value": 0.16666667163372,
+              "label": "1/64D "
+            },
+            {
+              "index": 4,
+              "value": 0.222222223877907,
+              "label": "1/32 "
+            },
+            {
+              "index": 5,
+              "value": 0.277777791023254,
+              "label": "1/16T "
+            },
+            {
+              "index": 6,
+              "value": 0.333333343267441,
+              "label": "1/32D "
+            },
+            {
+              "index": 7,
+              "value": 0.388888895511627,
+              "label": "1/16 "
+            },
+            {
+              "index": 8,
+              "value": 0.444444447755814,
+              "label": "1/8T "
+            },
+            {
+              "index": 9,
+              "value": 0.5,
+              "label": "1/16D "
+            },
+            {
+              "index": 10,
+              "value": 0.555555582046509,
+              "label": "1/8 "
+            },
+            {
+              "index": 11,
+              "value": 0.611111104488373,
+              "label": "1/4T "
+            },
+            {
+              "index": 12,
+              "value": 0.666666686534882,
+              "label": "1/8D "
+            },
+            {
+              "index": 13,
+              "value": 0.722222208976746,
+              "label": "1/4 "
+            },
+            {
+              "index": 14,
+              "value": 0.777777791023254,
+              "label": "1/2T "
+            },
+            {
+              "index": 15,
+              "value": 0.833333313465118,
+              "label": "1/4D "
+            },
+            {
+              "index": 16,
+              "value": 0.888888895511627,
+              "label": "1/2 "
+            },
+            {
+              "index": 17,
+              "value": 0.944444477558136,
+              "label": "1/2D "
+            },
+            {
+              "index": 18,
+              "value": 1.0,
+              "label": "Whole "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1/64T "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1/16T "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1/16D "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1/2T "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Whole "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "Delay Right Tempo",
+          "normalized_role": "other",
+          "alias": "Delay Right Tempo"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "Fdbk Left",
+        "name": "Fdbk Left",
+        "value": 0.29899999499321,
+        "normalized_value": 0.29899999499321,
+        "value_text": "29.9 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Fdbk Left",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "29.9 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "Fdbk Left",
+          "normalized_role": "other",
+          "alias": "Fdbk Left"
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "Fdbk Right",
+        "name": "Fdbk Right",
+        "value": 0.29899999499321,
+        "normalized_value": 0.29899999499321,
+        "value_text": "29.9 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Fdbk Right",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "29.9 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "Fdbk Right",
+          "normalized_role": "other",
+          "alias": "Fdbk Right"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "Dry/Wet",
+        "name": "Dry/Wet",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry/Wet",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "Dry/Wet",
+          "normalized_role": "common_mix",
+          "alias": "Dry/Wet"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "Delay Link",
+        "name": "Delay Link",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Link",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "Delay Link",
+          "normalized_role": "other",
+          "alias": "Delay Link"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "Mode",
+        "name": "Mode",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Host ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "Mode",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Host ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "ms "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Host "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "ms "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "ms "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Host "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Host "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Host "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "Mode",
+          "normalized_role": "other",
+          "alias": "Mode"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "HP",
+        "name": "HP",
+        "value": 0.003284708596766,
+        "normalized_value": 0.003284708596766,
+        "value_text": "16 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "HP",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "16 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "95 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "578 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3513 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21357 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "HP",
+          "normalized_role": "other",
+          "alias": "HP"
+        }
+      },
+      {
+        "id": "11",
+        "param_id": "11",
+        "raw_param_id": "11",
+        "raw_param_name": "LP",
+        "name": "LP",
+        "value": 0.999997138977051,
+        "normalized_value": 0.999997138977051,
+        "value_text": "21357 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "LP",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "21357 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "95 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "578 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3513 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21357 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "11",
+          "param_name": "LP",
+          "normalized_role": "other",
+          "alias": "LP"
+        }
+      },
+      {
+        "id": "12",
+        "param_id": "12",
+        "raw_param_id": "12",
+        "raw_param_name": "HP/LP Link",
+        "name": "HP/LP Link",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "HP/LP Link",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "12",
+          "param_name": "HP/LP Link",
+          "normalized_role": "other",
+          "alias": "HP/LP Link"
+        }
+      },
+      {
+        "id": "13",
+        "param_id": "13",
+        "raw_param_id": "13",
+        "raw_param_name": "Verb Size",
+        "name": "Verb Size",
+        "value": 0.544545471668243,
+        "normalized_value": 0.544545471668243,
+        "value_text": "54.9 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Verb Size",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "54.9 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.7 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.5 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.2 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "13",
+          "param_name": "Verb Size",
+          "normalized_role": "other",
+          "alias": "Verb Size"
+        }
+      },
+      {
+        "id": "14",
+        "param_id": "14",
+        "raw_param_id": "14",
+        "raw_param_name": "Verb Level",
+        "name": "Verb Level",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "50.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Verb Level",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "50.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "14",
+          "param_name": "Verb Level",
+          "normalized_role": "common_gain",
+          "alias": "Verb Level"
+        }
+      },
+      {
+        "id": "15",
+        "param_id": "15",
+        "raw_param_id": "15",
+        "raw_param_name": "Verb On/Off",
+        "name": "Verb On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Verb On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "15",
+          "param_name": "Verb On/Off",
+          "normalized_role": "other",
+          "alias": "Verb On/Off"
+        }
+      },
+      {
+        "id": "16",
+        "param_id": "16",
+        "raw_param_id": "16",
+        "raw_param_name": "Distortion Send",
+        "name": "Distortion Send",
+        "value": 0.822000026702881,
+        "normalized_value": 0.822000026702881,
+        "value_text": "82.2 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Distortion Send",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "82.2 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "16",
+          "param_name": "Distortion Send",
+          "normalized_role": "tone_drive",
+          "alias": "Distortion Send"
+        }
+      },
+      {
+        "id": "17",
+        "param_id": "17",
+        "raw_param_id": "17",
+        "raw_param_name": "Distortion Width",
+        "name": "Distortion Width",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Distortion Width",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "17",
+          "param_name": "Distortion Width",
+          "normalized_role": "tone_drive",
+          "alias": "Distortion Width"
+        }
+      },
+      {
+        "id": "18",
+        "param_id": "18",
+        "raw_param_id": "18",
+        "raw_param_name": "Distortion Level",
+        "name": "Distortion Level",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "50.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Distortion Level",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "50.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "18",
+          "param_name": "Distortion Level",
+          "normalized_role": "tone_drive",
+          "alias": "Distortion Level"
+        }
+      },
+      {
+        "id": "19",
+        "param_id": "19",
+        "raw_param_id": "19",
+        "raw_param_name": "Distortion On/Off",
+        "name": "Distortion On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "tone_drive",
+        "display_group": "Tone",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Distortion On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "19",
+          "param_name": "Distortion On/Off",
+          "normalized_role": "tone_drive",
+          "alias": "Distortion On/Off"
+        }
+      },
+      {
+        "id": "20",
+        "param_id": "20",
+        "raw_param_id": "20",
+        "raw_param_name": "Doubler Detune",
+        "name": "Doubler Detune",
+        "value": 0.540000021457672,
+        "normalized_value": 0.540000021457672,
+        "value_text": "8 Cents",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Doubler Detune",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "8 Cents",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-100 Cents"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-50 Cents"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0 Cents"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "50 Cents"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 Cents"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "20",
+          "param_name": "Doubler Detune",
+          "normalized_role": "other",
+          "alias": "Doubler Detune"
+        }
+      },
+      {
+        "id": "21",
+        "param_id": "21",
+        "raw_param_id": "21",
+        "raw_param_name": "Doubler Level",
+        "name": "Doubler Level",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "50.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Doubler Level",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "50.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "21",
+          "param_name": "Doubler Level",
+          "normalized_role": "common_gain",
+          "alias": "Doubler Level"
+        }
+      },
+      {
+        "id": "22",
+        "param_id": "22",
+        "raw_param_id": "22",
+        "raw_param_name": "Doubler On/Off",
+        "name": "Doubler On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Doubler On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "22",
+          "param_name": "Doubler On/Off",
+          "normalized_role": "other",
+          "alias": "Doubler On/Off"
+        }
+      },
+      {
+        "id": "23",
+        "param_id": "23",
+        "raw_param_id": "23",
+        "raw_param_name": "Phaser Rate",
+        "name": "Phaser Rate",
+        "value": 0.508739113807678,
+        "normalized_value": 0.508739113807678,
+        "value_text": "0.34 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Phaser Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.34 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.00 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.04 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.32 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "2.52 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "20.0 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "23",
+          "param_name": "Phaser Rate",
+          "normalized_role": "mod_rate",
+          "alias": "Phaser Rate"
+        }
+      },
+      {
+        "id": "24",
+        "param_id": "24",
+        "raw_param_id": "24",
+        "raw_param_name": "Phaser Level",
+        "name": "Phaser Level",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "50.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Phaser Level",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "50.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "24",
+          "param_name": "Phaser Level",
+          "normalized_role": "common_gain",
+          "alias": "Phaser Level"
+        }
+      },
+      {
+        "id": "25",
+        "param_id": "25",
+        "raw_param_id": "25",
+        "raw_param_name": "Phaser On/Off",
+        "name": "Phaser On/Off",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Phaser On/Off",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "25",
+          "param_name": "Phaser On/Off",
+          "normalized_role": "other",
+          "alias": "Phaser On/Off"
+        }
+      },
+      {
+        "id": "26",
+        "param_id": "26",
+        "raw_param_id": "26",
+        "raw_param_name": "Monitor",
+        "name": "Monitor",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "L+R ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Monitor",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "L+R ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "L "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "L+R "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "R "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "L "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "L+R "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "L+R "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "R "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "R "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "26",
+          "param_name": "Monitor",
+          "normalized_role": "other",
+          "alias": "Monitor"
+        }
+      },
+      {
+        "id": "27",
+        "param_id": "27",
+        "raw_param_id": "27",
+        "raw_param_name": "Output",
+        "name": "Output",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Output",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-9.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "18.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1797",
+          "plugin_name": "MannyM Delay Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "27",
+          "param_name": "Output",
+          "normalized_role": "common_gain",
+          "alias": "Output"
+        }
+      }
+    ]
+  }
+}

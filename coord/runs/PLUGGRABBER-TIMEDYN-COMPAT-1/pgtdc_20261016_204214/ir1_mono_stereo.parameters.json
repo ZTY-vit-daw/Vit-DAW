@@ -1,0 +1,991 @@
+{
+  "case": {
+    "plugin_name": "IR1 Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-IR1 Mono/Stereo-695648d-e8ccdf68",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1301",
+      "rack_item_id": "1306",
+      "plugin_id": "1307",
+      "plugin_item_id": "1307",
+      "plugin_name": "IR1 Mono/Stereo",
+      "plugin_identifier": "VST3-IR1 Mono/Stereo-695648d-e8ccdf68",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=IR1 Mono/Stereo id=1307 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 43,
+      "graph_active_revision": 43,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 42,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node IR1 Mono/Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 43,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono/Stereo",
+          "track_id": "1301",
+          "rack_item_id": "1306",
+          "node_id": "1307",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154714630
+        },
+        {
+          "revision": 42,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono",
+          "track_id": "1294",
+          "rack_item_id": "1299",
+          "node_id": "1300",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154710308
+        },
+        {
+          "revision": 41,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L full Stereo",
+          "track_id": "1287",
+          "rack_item_id": "1292",
+          "node_id": "1293",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154706013
+        },
+        {
+          "revision": 40,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L efficient Stereo",
+          "track_id": "1280",
+          "rack_item_id": "1285",
+          "node_id": "1286",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154701583
+        },
+        {
+          "revision": 39,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L Mono/Stereo",
+          "track_id": "1273",
+          "rack_item_id": "1278",
+          "node_id": "1279",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154697264
+        },
+        {
+          "revision": 38,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L Mono",
+          "track_id": "1266",
+          "rack_item_id": "1271",
+          "node_id": "1272",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154693007
+        },
+        {
+          "revision": 37,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Stereo/5.1",
+          "track_id": "1259",
+          "rack_item_id": "1264",
+          "node_id": "1265",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154689078
+        },
+        {
+          "revision": 36,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Stereo/5.0",
+          "track_id": "1252",
+          "rack_item_id": "1257",
+          "node_id": "1258",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154685022
+        },
+        {
+          "revision": 35,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Stereo",
+          "track_id": "1245",
+          "rack_item_id": "1250",
+          "node_id": "1251",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154681079
+        },
+        {
+          "revision": 34,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Mono/Stereo",
+          "track_id": "1238",
+          "rack_item_id": "1243",
+          "node_id": "1244",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154677094
+        },
+        {
+          "revision": 33,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Mono/5.1",
+          "track_id": "1231",
+          "rack_item_id": "1236",
+          "node_id": "1237",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154673344
+        },
+        {
+          "revision": 32,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Mono/5.0",
+          "track_id": "1224",
+          "rack_item_id": "1229",
+          "node_id": "1230",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154669319
+        },
+        {
+          "revision": 31,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long Mono",
+          "track_id": "1217",
+          "rack_item_id": "1222",
+          "node_id": "1223",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154665537
+        },
+        {
+          "revision": 30,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long 5.1",
+          "track_id": "1210",
+          "rack_item_id": "1215",
+          "node_id": "1216",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154661465
+        },
+        {
+          "revision": 29,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb long 5.0",
+          "track_id": "1203",
+          "rack_item_id": "1208",
+          "node_id": "1209",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154657544
+        },
+        {
+          "revision": 28,
+          "kind": "node_add",
+          "summary": "Added rack node H-Reverb Stereo/5.1",
+          "track_id": "1196",
+          "rack_item_id": "1201",
+          "node_id": "1202",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154653676
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1301",
+    "plugin_id": "1307",
+    "plugin_item_id": "1307",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_9690ce5d91e6aa8",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1307",
+        "plugin_name": "IR1 Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1307",
+        "plugin_name": "IR1 Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1307",
+        "plugin_name": "IR1 Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1307",
+        "plugin_name": "IR1 Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Wet-Dry",
+        "normalized_role": "common_mix",
+        "alias": "Wet-Dry"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1307",
+        "plugin_name": "IR1 Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Gain",
+        "normalized_role": "common_gain",
+        "alias": "Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1307",
+        "plugin_name": "IR1 Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Dry Gain",
+        "normalized_role": "common_mix",
+        "alias": "Dry Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1307",
+        "plugin_name": "IR1 Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Dry Gain Mode",
+        "normalized_role": "common_mix",
+        "alias": "Dry Gain Mode"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "0",
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "1",
+        "raw_param_id": "1",
+        "label": "Gain",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "0",
+        "raw_param_id": "0",
+        "label": "Wet-Dry",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "2",
+        "raw_param_id": "2",
+        "label": "Dry Gain",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "3",
+        "raw_param_id": "3",
+        "label": "Dry Gain Mode",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "value": 0.0
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "0",
+            "1",
+            "2",
+            "3"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1307",
+          "plugin_name": "IR1 Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1307",
+          "plugin_name": "IR1 Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1307",
+          "plugin_name": "IR1 Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Wet-Dry",
+        "name": "Wet-Dry",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet-Dry",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.000 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.462 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "3.06 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "17.7 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1307",
+          "plugin_name": "IR1 Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Wet-Dry",
+          "normalized_role": "common_mix",
+          "alias": "Wet-Dry"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Gain",
+        "name": "Gain",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-50.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-37.5 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-25.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-12.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1307",
+          "plugin_name": "IR1 Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Gain",
+          "normalized_role": "common_gain",
+          "alias": "Gain"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Dry Gain",
+        "name": "Dry Gain",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-inf dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-inf dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-inf dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-45.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-30.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-15.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1307",
+          "plugin_name": "IR1 Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Dry Gain",
+          "normalized_role": "common_mix",
+          "alias": "Dry Gain"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Dry Gain Mode",
+        "name": "Dry Gain Mode",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "out ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "Dry Gain Mode",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "out ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "out "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "in "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "out "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "out "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "in "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "in "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "in "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1307",
+          "plugin_name": "IR1 Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Dry Gain Mode",
+          "normalized_role": "common_mix",
+          "alias": "Dry Gain Mode"
+        }
+      }
+    ]
+  }
+}

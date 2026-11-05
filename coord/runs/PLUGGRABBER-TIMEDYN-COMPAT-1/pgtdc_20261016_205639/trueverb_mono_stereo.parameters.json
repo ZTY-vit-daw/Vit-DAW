@@ -1,0 +1,3024 @@
+{
+  "case": {
+    "plugin_name": "TrueVerb Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-TrueVerb Mono/Stereo-695648d-525120a",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1854",
+      "rack_item_id": "1859",
+      "plugin_id": "1860",
+      "plugin_item_id": "1860",
+      "plugin_name": "TrueVerb Mono/Stereo",
+      "plugin_identifier": "VST3-TrueVerb Mono/Stereo-695648d-525120a",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=TrueVerb Mono/Stereo id=1860 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 59,
+      "graph_active_revision": 59,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 58,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node TrueVerb Mono/Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 59,
+          "kind": "node_add",
+          "summary": "Added rack node TrueVerb Mono/Stereo",
+          "track_id": "1854",
+          "rack_item_id": "1859",
+          "node_id": "1860",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155639883
+        },
+        {
+          "revision": 58,
+          "kind": "node_add",
+          "summary": "Added rack node TrueVerb Mono",
+          "track_id": "1847",
+          "rack_item_id": "1852",
+          "node_id": "1853",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155635937
+        },
+        {
+          "revision": 57,
+          "kind": "node_add",
+          "summary": "Added rack node Timeless 3",
+          "track_id": "1840",
+          "rack_item_id": "1845",
+          "node_id": "1846",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155632368
+        },
+        {
+          "revision": 56,
+          "kind": "node_add",
+          "summary": "Added rack node RVerb Stereo",
+          "track_id": "1833",
+          "rack_item_id": "1838",
+          "node_id": "1839",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155628390
+        },
+        {
+          "revision": 55,
+          "kind": "node_add",
+          "summary": "Added rack node RVerb Mono/Stereo",
+          "track_id": "1826",
+          "rack_item_id": "1831",
+          "node_id": "1832",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155624212
+        },
+        {
+          "revision": 54,
+          "kind": "node_add",
+          "summary": "Added rack node Pro-R",
+          "track_id": "1819",
+          "rack_item_id": "1824",
+          "node_id": "1825",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155620424
+        },
+        {
+          "revision": 53,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Stereo",
+          "track_id": "1812",
+          "rack_item_id": "1817",
+          "node_id": "1818",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155616301
+        },
+        {
+          "revision": 52,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Mono/Stereo",
+          "track_id": "1805",
+          "rack_item_id": "1810",
+          "node_id": "1811",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155612073
+        },
+        {
+          "revision": 51,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Mono",
+          "track_id": "1798",
+          "rack_item_id": "1803",
+          "node_id": "1804",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155607540
+        },
+        {
+          "revision": 50,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Stereo",
+          "track_id": "1791",
+          "rack_item_id": "1796",
+          "node_id": "1797",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155603434
+        },
+        {
+          "revision": 49,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Mono/Stereo",
+          "track_id": "1784",
+          "rack_item_id": "1789",
+          "node_id": "1790",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155599663
+        },
+        {
+          "revision": 48,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Stereo",
+          "track_id": "1777",
+          "rack_item_id": "1782",
+          "node_id": "1783",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155595564
+        },
+        {
+          "revision": 47,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono/Stereo",
+          "track_id": "1770",
+          "rack_item_id": "1775",
+          "node_id": "1776",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155591415
+        },
+        {
+          "revision": 46,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono",
+          "track_id": "1763",
+          "rack_item_id": "1768",
+          "node_id": "1769",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155587072
+        },
+        {
+          "revision": 45,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 full Stereo",
+          "track_id": "1756",
+          "rack_item_id": "1761",
+          "node_id": "1762",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155583082
+        },
+        {
+          "revision": 44,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 efficient Stereo",
+          "track_id": "1749",
+          "rack_item_id": "1754",
+          "node_id": "1755",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155578966
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1854",
+    "plugin_id": "1860",
+    "plugin_item_id": "1860",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_ad50a06de59f04d3",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Decay Time",
+        "normalized_role": "other",
+        "alias": "Decay Time"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Low Damp Ratio",
+        "normalized_role": "comp_ratio",
+        "alias": "Low Damp Ratio"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Low Freq Cut",
+        "normalized_role": "other",
+        "alias": "Low Freq Cut"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Hi Damp Ratio",
+        "normalized_role": "comp_ratio",
+        "alias": "Hi Damp Ratio"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Hi Freq Cut",
+        "normalized_role": "other",
+        "alias": "Hi Freq Cut"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "Distance",
+        "normalized_role": "other",
+        "alias": "Distance"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "Dimension",
+        "normalized_role": "other",
+        "alias": "Dimension"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "EVar",
+        "normalized_role": "other",
+        "alias": "EVar"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "RoomSize",
+        "normalized_role": "other",
+        "alias": "RoomSize"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "Reverb Mix",
+        "normalized_role": "common_mix",
+        "alias": "Reverb Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "Er Ref In/Out",
+        "normalized_role": "other",
+        "alias": "Er Ref In/Out"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "11",
+        "param_name": "RevLink ->",
+        "normalized_role": "other",
+        "alias": "RevLink ->"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "12",
+        "param_name": "Freq",
+        "normalized_role": "other",
+        "alias": "Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "13",
+        "param_name": "ER Absorb",
+        "normalized_role": "other",
+        "alias": "ER Absorb"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "14",
+        "param_name": "Pre Delay",
+        "normalized_role": "other",
+        "alias": "Pre Delay"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "15",
+        "param_name": "RVar",
+        "normalized_role": "other",
+        "alias": "RVar"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "16",
+        "param_name": "Input Gain",
+        "normalized_role": "common_gain",
+        "alias": "Input Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "17",
+        "param_name": "Rev Shelf",
+        "normalized_role": "other",
+        "alias": "Rev Shelf"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "Direct In/Out",
+        "normalized_role": "other",
+        "alias": "Direct In/Out"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "19",
+        "param_name": "Reverb In/Out",
+        "normalized_role": "other",
+        "alias": "Reverb In/Out"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "20",
+        "param_name": "Density",
+        "normalized_role": "other",
+        "alias": "Density"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "21",
+        "param_name": "Balance",
+        "normalized_role": "other",
+        "alias": "Balance"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "22",
+        "param_name": "Direct Mix",
+        "normalized_role": "common_mix",
+        "alias": "Direct Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "23",
+        "param_name": "Er Ref Mix",
+        "normalized_role": "common_mix",
+        "alias": "Er Ref Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "24",
+        "param_name": "Er Lowcut On",
+        "normalized_role": "other",
+        "alias": "Er Lowcut On"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1860",
+        "plugin_name": "TrueVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "25",
+        "param_name": "Er Lowcut Freq",
+        "normalized_role": "other",
+        "alias": "Er Lowcut Freq"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Dynamics",
+        "parameter_ids": [
+          "1",
+          "3"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "9",
+          "16",
+          "22",
+          "23"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "0",
+          "2",
+          "4",
+          "5",
+          "6",
+          "7",
+          "8",
+          "10",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "17",
+          "18",
+          "19",
+          "20",
+          "21",
+          "24",
+          "25"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "16",
+        "raw_param_id": "16",
+        "label": "Input Gain",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "1",
+        "raw_param_id": "1",
+        "label": "Low Damp Ratio",
+        "widget": "knob",
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.667999982833862
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "3",
+        "raw_param_id": "3",
+        "label": "Hi Damp Ratio",
+        "widget": "knob",
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.158000007271767
+      },
+      {
+        "param_id": "9",
+        "raw_param_id": "9",
+        "label": "Reverb Mix",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "22",
+        "raw_param_id": "22",
+        "label": "Direct Mix",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Dynamics",
+          "parameter_ids": [
+            "1",
+            "3"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "9",
+            "16",
+            "22",
+            "23"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "2",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "10",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "17",
+            "18",
+            "19",
+            "20",
+            "21",
+            "24",
+            "25"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Decay Time",
+        "name": "Decay Time",
+        "value": 0.287999987602234,
+        "normalized_value": 0.287999987602234,
+        "value_text": "1.2 sec",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Decay Time",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.2 sec",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.2 sec"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.9 sec"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "4.5 sec"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "21.1 sec"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 sec"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Decay Time",
+          "normalized_role": "other",
+          "alias": "Decay Time"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Low Damp Ratio",
+        "name": "Low Damp Ratio",
+        "value": 0.667999982833862,
+        "normalized_value": 0.667999982833862,
+        "value_text": "1.37x ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Low Damp Ratio",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.37x ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10x "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.57x "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.05x "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.53x "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.00x "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Low Damp Ratio",
+          "normalized_role": "comp_ratio",
+          "alias": "Low Damp Ratio"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Low Freq Cut",
+        "name": "Low Freq Cut",
+        "value": 0.751999974250793,
+        "normalized_value": 0.751999974250793,
+        "value_text": "511 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Low Freq Cut",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "511 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "51 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "160 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "506 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1600 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Low Freq Cut",
+          "normalized_role": "other",
+          "alias": "Low Freq Cut"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Hi Damp Ratio",
+        "name": "Hi Damp Ratio",
+        "value": 0.158000007271767,
+        "normalized_value": 0.158000007271767,
+        "value_text": "0.40x ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Hi Damp Ratio",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.40x ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10x "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.57x "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.05x "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.53x "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.00x "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Hi Damp Ratio",
+          "normalized_role": "comp_ratio",
+          "alias": "Hi Damp Ratio"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "Hi Freq Cut",
+        "name": "Hi Freq Cut",
+        "value": 0.578999996185303,
+        "normalized_value": 0.578999996185303,
+        "value_text": "7104 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Hi Freq Cut",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "7104 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1600 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "3045 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "5797 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "11033 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "Hi Freq Cut",
+          "normalized_role": "other",
+          "alias": "Hi Freq Cut"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "Distance",
+        "name": "Distance",
+        "value": 0.684000015258789,
+        "normalized_value": 0.684000015258789,
+        "value_text": "10.02 meters",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Distance",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "10.02 meters",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.50 meters"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1.50 meters"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "4.47 meters"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "13.37 meters"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "40.00 meters"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "Distance",
+          "normalized_role": "other",
+          "alias": "Distance"
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "Dimension",
+        "name": "Dimension",
+        "value": 0.669000029563904,
+        "normalized_value": 0.669000029563904,
+        "value_text": "3.00 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Dimension",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "3.00 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1.00 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1.75 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "2.50 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.24 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "3.99 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "Dimension",
+          "normalized_role": "other",
+          "alias": "Dimension"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "EVar",
+        "name": "EVar",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "EVar: 0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 7,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EVar",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "EVar: 0 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "EVar: 0 "
+            },
+            {
+              "index": 1,
+              "value": 0.16666667163372,
+              "label": "EVar: 1 "
+            },
+            {
+              "index": 2,
+              "value": 0.333333343267441,
+              "label": "EVar: 2 "
+            },
+            {
+              "index": 3,
+              "value": 0.5,
+              "label": "EVar: 3 "
+            },
+            {
+              "index": 4,
+              "value": 0.666666686534882,
+              "label": "EVar: 4 "
+            },
+            {
+              "index": 5,
+              "value": 0.833333373069763,
+              "label": "EVar: 5 "
+            },
+            {
+              "index": 6,
+              "value": 1.0,
+              "label": "EVar: 6 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "EVar: 0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "EVar: 2 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "EVar: 3 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "EVar: 5 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "EVar: 6 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "EVar",
+          "normalized_role": "other",
+          "alias": "EVar"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "RoomSize",
+        "name": "RoomSize",
+        "value": 0.785000026226044,
+        "normalized_value": 0.785000026226044,
+        "value_text": "5516 cube",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "RoomSize",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "5516 cube",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "50 cube"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "224 cube"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1000 cube"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "4472 cube"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "20000 cube"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "RoomSize",
+          "normalized_role": "other",
+          "alias": "RoomSize"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "Reverb Mix",
+        "name": "Reverb Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Reverb Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "Reverb Mix",
+          "normalized_role": "common_mix",
+          "alias": "Reverb Mix"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "Er Ref In/Out",
+        "name": "Er Ref In/Out",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Er Ref In/Out",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "On "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Off "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Off "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "Er Ref In/Out",
+          "normalized_role": "other",
+          "alias": "Er Ref In/Out"
+        }
+      },
+      {
+        "id": "11",
+        "param_id": "11",
+        "raw_param_id": "11",
+        "raw_param_name": "RevLink ->",
+        "name": "RevLink ->",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Link ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "RevLink ->",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Link ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "No Link "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Link "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "No Link "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "No Link "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Link "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Link "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Link "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "11",
+          "param_name": "RevLink ->",
+          "normalized_role": "other",
+          "alias": "RevLink ->"
+        }
+      },
+      {
+        "id": "12",
+        "param_id": "12",
+        "raw_param_id": "12",
+        "raw_param_name": "Freq",
+        "name": "Freq",
+        "value": 0.365000009536743,
+        "normalized_value": 0.365000009536743,
+        "value_text": "4095 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "4095 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1600 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "3045 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "5797 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "11033 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "12",
+          "param_name": "Freq",
+          "normalized_role": "other",
+          "alias": "Freq"
+        }
+      },
+      {
+        "id": "13",
+        "param_id": "13",
+        "raw_param_id": "13",
+        "raw_param_name": "ER Absorb",
+        "name": "ER Absorb",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-6.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "ER Absorb",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-6.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-4.5 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-3.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-1.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "13",
+          "param_name": "ER Absorb",
+          "normalized_role": "other",
+          "alias": "ER Absorb"
+        }
+      },
+      {
+        "id": "14",
+        "param_id": "14",
+        "raw_param_id": "14",
+        "raw_param_name": "Pre Delay",
+        "name": "Pre Delay",
+        "value": 0.526278853416443,
+        "normalized_value": 0.526278853416443,
+        "value_text": "88.9 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Pre Delay",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "88.9 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "10.0 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "47.5 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "85.0 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "122.5 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "160.0 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "14",
+          "param_name": "Pre Delay",
+          "normalized_role": "other",
+          "alias": "Pre Delay"
+        }
+      },
+      {
+        "id": "15",
+        "param_id": "15",
+        "raw_param_id": "15",
+        "raw_param_name": "RVar",
+        "name": "RVar",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "RVar: 0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "RVar",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "RVar: 0 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "RVar: 0 "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "RVar: 1 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "RVar: 0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "RVar: 0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "RVar: 1 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "RVar: 1 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "RVar: 1 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "15",
+          "param_name": "RVar",
+          "normalized_role": "other",
+          "alias": "RVar"
+        }
+      },
+      {
+        "id": "16",
+        "param_id": "16",
+        "raw_param_id": "16",
+        "raw_param_name": "Input Gain",
+        "name": "Input Gain",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Input Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-Inf dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-24.1 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-5.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "16",
+          "param_name": "Input Gain",
+          "normalized_role": "common_gain",
+          "alias": "Input Gain"
+        }
+      },
+      {
+        "id": "17",
+        "param_id": "17",
+        "raw_param_id": "17",
+        "raw_param_name": "Rev Shelf",
+        "name": "Rev Shelf",
+        "value": 0.75,
+        "normalized_value": 0.75,
+        "value_text": "-3.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Rev Shelf",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-3.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-9.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-3.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "17",
+          "param_name": "Rev Shelf",
+          "normalized_role": "other",
+          "alias": "Rev Shelf"
+        }
+      },
+      {
+        "id": "18",
+        "param_id": "18",
+        "raw_param_id": "18",
+        "raw_param_name": "Direct In/Out",
+        "name": "Direct In/Out",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Direct In/Out",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "On "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Off "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Off "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "18",
+          "param_name": "Direct In/Out",
+          "normalized_role": "other",
+          "alias": "Direct In/Out"
+        }
+      },
+      {
+        "id": "19",
+        "param_id": "19",
+        "raw_param_id": "19",
+        "raw_param_name": "Reverb In/Out",
+        "name": "Reverb In/Out",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Reverb In/Out",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "On "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Off "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Off "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "19",
+          "param_name": "Reverb In/Out",
+          "normalized_role": "other",
+          "alias": "Reverb In/Out"
+        }
+      },
+      {
+        "id": "20",
+        "param_id": "20",
+        "raw_param_id": "20",
+        "raw_param_name": "Density",
+        "name": "Density",
+        "value": 0.850000023841858,
+        "normalized_value": 0.850000023841858,
+        "value_text": "0.850 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Density",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.850 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.000 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.250 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.500 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "0.750 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1.000 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "20",
+          "param_name": "Density",
+          "normalized_role": "other",
+          "alias": "Density"
+        }
+      },
+      {
+        "id": "21",
+        "param_id": "21",
+        "raw_param_id": "21",
+        "raw_param_name": "Balance",
+        "name": "Balance",
+        "value": 0.850000023841858,
+        "normalized_value": 0.850000023841858,
+        "value_text": "3.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Balance",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "3.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-48.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-33.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-18.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-3.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "21",
+          "param_name": "Balance",
+          "normalized_role": "other",
+          "alias": "Balance"
+        }
+      },
+      {
+        "id": "22",
+        "param_id": "22",
+        "raw_param_id": "22",
+        "raw_param_name": "Direct Mix",
+        "name": "Direct Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Direct Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "22",
+          "param_name": "Direct Mix",
+          "normalized_role": "common_mix",
+          "alias": "Direct Mix"
+        }
+      },
+      {
+        "id": "23",
+        "param_id": "23",
+        "raw_param_id": "23",
+        "raw_param_name": "Er Ref Mix",
+        "name": "Er Ref Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Er Ref Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "23",
+          "param_name": "Er Ref Mix",
+          "normalized_role": "common_mix",
+          "alias": "Er Ref Mix"
+        }
+      },
+      {
+        "id": "24",
+        "param_id": "24",
+        "raw_param_id": "24",
+        "raw_param_name": "Er Lowcut On",
+        "name": "Er Lowcut On",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Er Lowcut On",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "24",
+          "param_name": "Er Lowcut On",
+          "normalized_role": "other",
+          "alias": "Er Lowcut On"
+        }
+      },
+      {
+        "id": "25",
+        "param_id": "25",
+        "raw_param_id": "25",
+        "raw_param_name": "Er Lowcut Freq",
+        "name": "Er Lowcut Freq",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "16 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Er Lowcut Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "16 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "38 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "91 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "215 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "512 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1860",
+          "plugin_name": "TrueVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "25",
+          "param_name": "Er Lowcut Freq",
+          "normalized_role": "other",
+          "alias": "Er Lowcut Freq"
+        }
+      }
+    ]
+  }
+}

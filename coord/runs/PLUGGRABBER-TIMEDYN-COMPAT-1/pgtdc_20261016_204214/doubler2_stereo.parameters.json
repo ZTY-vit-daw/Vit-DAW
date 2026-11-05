@@ -1,0 +1,3734 @@
+{
+  "case": {
+    "plugin_name": "Doubler2 Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-Doubler2 Stereo-695648d-b0b7dfe1",
+    "vendor": "waves",
+    "family": "delay"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1091",
+      "rack_item_id": "1096",
+      "plugin_id": "1097",
+      "plugin_item_id": "1097",
+      "plugin_name": "Doubler2 Stereo",
+      "plugin_identifier": "VST3-Doubler2 Stereo-695648d-b0b7dfe1",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=Doubler2 Stereo id=1097 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 13,
+      "graph_active_revision": 13,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 12,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node Doubler2 Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 13,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Stereo",
+          "track_id": "1091",
+          "rack_item_id": "1096",
+          "node_id": "1097",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154595491
+        },
+        {
+          "revision": 12,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Mono/Stereo",
+          "track_id": "1084",
+          "rack_item_id": "1089",
+          "node_id": "1090",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154591630
+        },
+        {
+          "revision": 11,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Mono",
+          "track_id": "1077",
+          "rack_item_id": "1082",
+          "node_id": "1083",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154587613
+        },
+        {
+          "revision": 10,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Stereo",
+          "track_id": "1070",
+          "rack_item_id": "1075",
+          "node_id": "1076",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154583582
+        },
+        {
+          "revision": 9,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Pro Stereo",
+          "track_id": "1063",
+          "rack_item_id": "1068",
+          "node_id": "1069",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154579583
+        },
+        {
+          "revision": 8,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Pro Mono",
+          "track_id": "1056",
+          "rack_item_id": "1061",
+          "node_id": "1062",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154575951
+        },
+        {
+          "revision": 7,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Mono",
+          "track_id": "1049",
+          "rack_item_id": "1054",
+          "node_id": "1055",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154571811
+        },
+        {
+          "revision": 6,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Stereo",
+          "track_id": "1042",
+          "rack_item_id": "1047",
+          "node_id": "1048",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154567122
+        },
+        {
+          "revision": 5,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Mono/Stereo",
+          "track_id": "1035",
+          "rack_item_id": "1040",
+          "node_id": "1041",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154563089
+        },
+        {
+          "revision": 4,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Mono",
+          "track_id": "1028",
+          "rack_item_id": "1033",
+          "node_id": "1034",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154559269
+        },
+        {
+          "revision": 3,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Stereo",
+          "track_id": "1021",
+          "rack_item_id": "1026",
+          "node_id": "1027",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154554743
+        },
+        {
+          "revision": 2,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Mono/Stereo",
+          "track_id": "1014",
+          "rack_item_id": "1019",
+          "node_id": "1020",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154550635
+        },
+        {
+          "revision": 1,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Mono",
+          "track_id": "1007",
+          "rack_item_id": "1012",
+          "node_id": "1013",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154546472
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1091",
+    "plugin_id": "1097",
+    "plugin_item_id": "1097",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_90fd78fe1971164b",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Master Gain",
+        "normalized_role": "common_gain",
+        "alias": "Master Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Feedback HiPass",
+        "normalized_role": "mod_feedback",
+        "alias": "Feedback HiPass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "ResetLFO",
+        "normalized_role": "other",
+        "alias": "ResetLFO"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Range",
+        "normalized_role": "other",
+        "alias": "Range"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "AlignDirect",
+        "normalized_role": "other",
+        "alias": "AlignDirect"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "Direct OnOff",
+        "normalized_role": "other",
+        "alias": "Direct OnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "Direct Gain",
+        "normalized_role": "common_gain",
+        "alias": "Direct Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "Direct Pan",
+        "normalized_role": "common_pan",
+        "alias": "Direct Pan"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "EQLowOnOff",
+        "normalized_role": "other",
+        "alias": "EQLowOnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "EQLowGain",
+        "normalized_role": "common_gain",
+        "alias": "EQLowGain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "EQLowFrq",
+        "normalized_role": "other",
+        "alias": "EQLowFrq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "11",
+        "param_name": "EQHighOnOff",
+        "normalized_role": "other",
+        "alias": "EQHighOnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "12",
+        "param_name": "EQHighGain",
+        "normalized_role": "common_gain",
+        "alias": "EQHighGain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "13",
+        "param_name": "EQHighFrq",
+        "normalized_role": "other",
+        "alias": "EQHighFrq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "14",
+        "param_name": "Voice1 OnOff",
+        "normalized_role": "other",
+        "alias": "Voice1 OnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "15",
+        "param_name": "Voice1 Gain",
+        "normalized_role": "common_gain",
+        "alias": "Voice1 Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "16",
+        "param_name": "Voice1 Pan",
+        "normalized_role": "common_pan",
+        "alias": "Voice1 Pan"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "17",
+        "param_name": "Voice1 Delay",
+        "normalized_role": "other",
+        "alias": "Voice1 Delay"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "Voice1 Feedback",
+        "normalized_role": "mod_feedback",
+        "alias": "Voice1 Feedback"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "19",
+        "param_name": "Voice1 Octaver",
+        "normalized_role": "other",
+        "alias": "Voice1 Octaver"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "20",
+        "param_name": "Voice1 Detune",
+        "normalized_role": "other",
+        "alias": "Voice1 Detune"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "21",
+        "param_name": "Voice1 Depth",
+        "normalized_role": "mod_depth",
+        "alias": "Voice1 Depth"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "22",
+        "param_name": "Voice1 Rate",
+        "normalized_role": "mod_rate",
+        "alias": "Voice1 Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "23",
+        "param_name": "Voice2 OnOff",
+        "normalized_role": "other",
+        "alias": "Voice2 OnOff"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "24",
+        "param_name": "Voice2 Gain",
+        "normalized_role": "common_gain",
+        "alias": "Voice2 Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "25",
+        "param_name": "Voice2 Pan",
+        "normalized_role": "common_pan",
+        "alias": "Voice2 Pan"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "26",
+        "param_name": "Voice2 Delay",
+        "normalized_role": "other",
+        "alias": "Voice2 Delay"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "27",
+        "param_name": "Voice2 Feedback",
+        "normalized_role": "mod_feedback",
+        "alias": "Voice2 Feedback"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "28",
+        "param_name": "Voice2 Octaver",
+        "normalized_role": "other",
+        "alias": "Voice2 Octaver"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "29",
+        "param_name": "Voice2 Detune",
+        "normalized_role": "other",
+        "alias": "Voice2 Detune"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "30",
+        "param_name": "Voice2 Depth",
+        "normalized_role": "mod_depth",
+        "alias": "Voice2 Depth"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "31",
+        "param_name": "Voice2 Rate",
+        "normalized_role": "mod_rate",
+        "alias": "Voice2 Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "32",
+        "param_name": "Source1",
+        "normalized_role": "other",
+        "alias": "Source1"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1097",
+        "plugin_name": "Doubler2 Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "33",
+        "param_name": "Source2",
+        "normalized_role": "other",
+        "alias": "Source2"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "0",
+          "6",
+          "7",
+          "9",
+          "12",
+          "15",
+          "16",
+          "24",
+          "25"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameter_ids": [
+          "1",
+          "18",
+          "21",
+          "22",
+          "27",
+          "30",
+          "31"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "2",
+          "3",
+          "4",
+          "5",
+          "8",
+          "10",
+          "11",
+          "13",
+          "14",
+          "17",
+          "19",
+          "20",
+          "23",
+          "26",
+          "28",
+          "29",
+          "32",
+          "33"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "0",
+        "raw_param_id": "0",
+        "label": "Master Gain",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "7",
+        "raw_param_id": "7",
+        "label": "Direct Pan",
+        "widget": "knob",
+        "normalized_role": "common_pan",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "22",
+        "raw_param_id": "22",
+        "label": "Voice1 Rate",
+        "widget": "slider",
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.277999997138977
+      },
+      {
+        "param_id": "21",
+        "raw_param_id": "21",
+        "label": "Voice1 Depth",
+        "widget": "slider",
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "1",
+        "raw_param_id": "1",
+        "label": "Feedback HiPass",
+        "widget": "slider",
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.003000000026077
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "0",
+            "6",
+            "7",
+            "9",
+            "12",
+            "15",
+            "16",
+            "24",
+            "25"
+          ]
+        },
+        {
+          "name": "Modulation",
+          "parameter_ids": [
+            "1",
+            "18",
+            "21",
+            "22",
+            "27",
+            "30",
+            "31"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "2",
+            "3",
+            "4",
+            "5",
+            "8",
+            "10",
+            "11",
+            "13",
+            "14",
+            "17",
+            "19",
+            "20",
+            "23",
+            "26",
+            "28",
+            "29",
+            "32",
+            "33"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Master Gain",
+        "name": "Master Gain",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Master Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Master Gain",
+          "normalized_role": "common_gain",
+          "alias": "Master Gain"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Feedback HiPass",
+        "name": "Feedback HiPass",
+        "value": 0.003000000026077,
+        "normalized_value": 0.003000000026077,
+        "value_text": "16 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Feedback HiPass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "16 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "95 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "578 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3513 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21357 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Feedback HiPass",
+          "normalized_role": "mod_feedback",
+          "alias": "Feedback HiPass"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "ResetLFO",
+        "name": "ResetLFO",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "ResetLFO",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "0 "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "1 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "ResetLFO",
+          "normalized_role": "other",
+          "alias": "ResetLFO"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Range",
+        "name": "Range",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "80Hz ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Range",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "80Hz ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "80Hz "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "20Hz "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "80Hz "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "80Hz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "20Hz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "20Hz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "20Hz "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Range",
+          "normalized_role": "other",
+          "alias": "Range"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "AlignDirect",
+        "name": "AlignDirect",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "No ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "AlignDirect",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "No ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "No "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Yes "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "No "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "No "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Yes "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Yes "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Yes "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "AlignDirect",
+          "normalized_role": "other",
+          "alias": "AlignDirect"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "Direct OnOff",
+        "name": "Direct OnOff",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Direct OnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "Direct OnOff",
+          "normalized_role": "other",
+          "alias": "Direct OnOff"
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "Direct Gain",
+        "name": "Direct Gain",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Direct Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-48.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-36.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "Direct Gain",
+          "normalized_role": "common_gain",
+          "alias": "Direct Gain"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "Direct Pan",
+        "name": "Direct Pan",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 Deg",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_pan",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Direct Pan",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 Deg",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-45.0 Deg"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-22.5 Deg"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 Deg"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "22.5 Deg"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "45.0 Deg"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "Direct Pan",
+          "normalized_role": "common_pan",
+          "alias": "Direct Pan"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "EQLowOnOff",
+        "name": "EQLowOnOff",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQLowOnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "EQLowOnOff",
+          "normalized_role": "other",
+          "alias": "EQLowOnOff"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "EQLowGain",
+        "name": "EQLowGain",
+        "value": 0.879999995231628,
+        "normalized_value": 0.879999995231628,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQLowGain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-88.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-63.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-38.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-13.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "EQLowGain",
+          "normalized_role": "common_gain",
+          "alias": "EQLowGain"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "EQLowFrq",
+        "name": "EQLowFrq",
+        "value": 0.257999986410141,
+        "normalized_value": 0.257999986410141,
+        "value_text": "101 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQLowFrq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "101 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "95 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "578 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3513 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21357 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "EQLowFrq",
+          "normalized_role": "other",
+          "alias": "EQLowFrq"
+        }
+      },
+      {
+        "id": "11",
+        "param_id": "11",
+        "raw_param_id": "11",
+        "raw_param_name": "EQHighOnOff",
+        "name": "EQHighOnOff",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQHighOnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "11",
+          "param_name": "EQHighOnOff",
+          "normalized_role": "other",
+          "alias": "EQHighOnOff"
+        }
+      },
+      {
+        "id": "12",
+        "param_id": "12",
+        "raw_param_id": "12",
+        "raw_param_name": "EQHighGain",
+        "name": "EQHighGain",
+        "value": 0.921000003814697,
+        "normalized_value": 0.921000003814697,
+        "value_text": "4.1 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQHighGain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "4.1 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-88.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-63.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-38.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-13.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "12",
+          "param_name": "EQHighGain",
+          "normalized_role": "common_gain",
+          "alias": "EQHighGain"
+        }
+      },
+      {
+        "id": "13",
+        "param_id": "13",
+        "raw_param_id": "13",
+        "raw_param_name": "EQHighFrq",
+        "name": "EQHighFrq",
+        "value": 0.612999975681305,
+        "normalized_value": 0.612999975681305,
+        "value_text": "1306 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQHighFrq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1306 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "95 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "578 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3513 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21357 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "13",
+          "param_name": "EQHighFrq",
+          "normalized_role": "other",
+          "alias": "EQHighFrq"
+        }
+      },
+      {
+        "id": "14",
+        "param_id": "14",
+        "raw_param_id": "14",
+        "raw_param_name": "Voice1 OnOff",
+        "name": "Voice1 OnOff",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice1 OnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "14",
+          "param_name": "Voice1 OnOff",
+          "normalized_role": "other",
+          "alias": "Voice1 OnOff"
+        }
+      },
+      {
+        "id": "15",
+        "param_id": "15",
+        "raw_param_id": "15",
+        "raw_param_name": "Voice1 Gain",
+        "name": "Voice1 Gain",
+        "value": 0.875,
+        "normalized_value": 0.875,
+        "value_text": "-6.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice1 Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-6.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-48.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-36.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "15",
+          "param_name": "Voice1 Gain",
+          "normalized_role": "common_gain",
+          "alias": "Voice1 Gain"
+        }
+      },
+      {
+        "id": "16",
+        "param_id": "16",
+        "raw_param_id": "16",
+        "raw_param_name": "Voice1 Pan",
+        "name": "Voice1 Pan",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-45.0 Deg",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_pan",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice1 Pan",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-45.0 Deg",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-45.0 Deg"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-22.5 Deg"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 Deg"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "22.5 Deg"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "45.0 Deg"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "16",
+          "param_name": "Voice1 Pan",
+          "normalized_role": "common_pan",
+          "alias": "Voice1 Pan"
+        }
+      },
+      {
+        "id": "17",
+        "param_id": "17",
+        "raw_param_id": "17",
+        "raw_param_name": "Voice1 Delay",
+        "name": "Voice1 Delay",
+        "value": 0.093999996781349,
+        "normalized_value": 0.093999996781349,
+        "value_text": "9.4 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice1 Delay",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "9.4 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "17",
+          "param_name": "Voice1 Delay",
+          "normalized_role": "other",
+          "alias": "Voice1 Delay"
+        }
+      },
+      {
+        "id": "18",
+        "param_id": "18",
+        "raw_param_id": "18",
+        "raw_param_name": "Voice1 Feedback",
+        "name": "Voice1 Feedback",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice1 Feedback",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "18",
+          "param_name": "Voice1 Feedback",
+          "normalized_role": "mod_feedback",
+          "alias": "Voice1 Feedback"
+        }
+      },
+      {
+        "id": "19",
+        "param_id": "19",
+        "raw_param_id": "19",
+        "raw_param_name": "Voice1 Octaver",
+        "name": "Voice1 Octaver",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice1 Octaver",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "19",
+          "param_name": "Voice1 Octaver",
+          "normalized_role": "other",
+          "alias": "Voice1 Octaver"
+        }
+      },
+      {
+        "id": "20",
+        "param_id": "20",
+        "raw_param_id": "20",
+        "raw_param_name": "Voice1 Detune",
+        "name": "Voice1 Detune",
+        "value": 0.529999971389771,
+        "normalized_value": 0.529999971389771,
+        "value_text": "6 Cents",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice1 Detune",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "6 Cents",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-100 Cents"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-50 Cents"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0 Cents"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "50 Cents"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 Cents"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "20",
+          "param_name": "Voice1 Detune",
+          "normalized_role": "other",
+          "alias": "Voice1 Detune"
+        }
+      },
+      {
+        "id": "21",
+        "param_id": "21",
+        "raw_param_id": "21",
+        "raw_param_name": "Voice1 Depth",
+        "name": "Voice1 Depth",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0 Cents",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice1 Depth",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 Cents",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-200 Cents"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-100 Cents"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0 Cents"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "100 Cents"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "200 Cents"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "21",
+          "param_name": "Voice1 Depth",
+          "normalized_role": "mod_depth",
+          "alias": "Voice1 Depth"
+        }
+      },
+      {
+        "id": "22",
+        "param_id": "22",
+        "raw_param_id": "22",
+        "raw_param_name": "Voice1 Rate",
+        "name": "Voice1 Rate",
+        "value": 0.277999997138977,
+        "normalized_value": 0.277999997138977,
+        "value_text": "1.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice1 Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.1 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.8 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "6.3 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "50.3 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "400.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "22",
+          "param_name": "Voice1 Rate",
+          "normalized_role": "mod_rate",
+          "alias": "Voice1 Rate"
+        }
+      },
+      {
+        "id": "23",
+        "param_id": "23",
+        "raw_param_id": "23",
+        "raw_param_name": "Voice2 OnOff",
+        "name": "Voice2 OnOff",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "On ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice2 OnOff",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "On ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "23",
+          "param_name": "Voice2 OnOff",
+          "normalized_role": "other",
+          "alias": "Voice2 OnOff"
+        }
+      },
+      {
+        "id": "24",
+        "param_id": "24",
+        "raw_param_id": "24",
+        "raw_param_name": "Voice2 Gain",
+        "name": "Voice2 Gain",
+        "value": 0.875,
+        "normalized_value": 0.875,
+        "value_text": "-6.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice2 Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-6.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-48.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-36.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "24",
+          "param_name": "Voice2 Gain",
+          "normalized_role": "common_gain",
+          "alias": "Voice2 Gain"
+        }
+      },
+      {
+        "id": "25",
+        "param_id": "25",
+        "raw_param_id": "25",
+        "raw_param_name": "Voice2 Pan",
+        "name": "Voice2 Pan",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "45.0 Deg",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_pan",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice2 Pan",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "45.0 Deg",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-45.0 Deg"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-22.5 Deg"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 Deg"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "22.5 Deg"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "45.0 Deg"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "25",
+          "param_name": "Voice2 Pan",
+          "normalized_role": "common_pan",
+          "alias": "Voice2 Pan"
+        }
+      },
+      {
+        "id": "26",
+        "param_id": "26",
+        "raw_param_id": "26",
+        "raw_param_name": "Voice2 Delay",
+        "name": "Voice2 Delay",
+        "value": 0.237000003457069,
+        "normalized_value": 0.237000003457069,
+        "value_text": "23.7 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice2 Delay",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "23.7 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "26",
+          "param_name": "Voice2 Delay",
+          "normalized_role": "other",
+          "alias": "Voice2 Delay"
+        }
+      },
+      {
+        "id": "27",
+        "param_id": "27",
+        "raw_param_id": "27",
+        "raw_param_name": "Voice2 Feedback",
+        "name": "Voice2 Feedback",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice2 Feedback",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "27",
+          "param_name": "Voice2 Feedback",
+          "normalized_role": "mod_feedback",
+          "alias": "Voice2 Feedback"
+        }
+      },
+      {
+        "id": "28",
+        "param_id": "28",
+        "raw_param_id": "28",
+        "raw_param_name": "Voice2 Octaver",
+        "name": "Voice2 Octaver",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice2 Octaver",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "28",
+          "param_name": "Voice2 Octaver",
+          "normalized_role": "other",
+          "alias": "Voice2 Octaver"
+        }
+      },
+      {
+        "id": "29",
+        "param_id": "29",
+        "raw_param_id": "29",
+        "raw_param_name": "Voice2 Detune",
+        "name": "Voice2 Detune",
+        "value": 0.469999998807907,
+        "normalized_value": 0.469999998807907,
+        "value_text": "-6 Cents",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Voice2 Detune",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-6 Cents",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-100 Cents"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-50 Cents"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0 Cents"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "50 Cents"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 Cents"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "29",
+          "param_name": "Voice2 Detune",
+          "normalized_role": "other",
+          "alias": "Voice2 Detune"
+        }
+      },
+      {
+        "id": "30",
+        "param_id": "30",
+        "raw_param_id": "30",
+        "raw_param_name": "Voice2 Depth",
+        "name": "Voice2 Depth",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0 Cents",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice2 Depth",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 Cents",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-200 Cents"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-100 Cents"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0 Cents"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "100 Cents"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "200 Cents"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "30",
+          "param_name": "Voice2 Depth",
+          "normalized_role": "mod_depth",
+          "alias": "Voice2 Depth"
+        }
+      },
+      {
+        "id": "31",
+        "param_id": "31",
+        "raw_param_id": "31",
+        "raw_param_name": "Voice2 Rate",
+        "name": "Voice2 Rate",
+        "value": 0.277999997138977,
+        "normalized_value": 0.277999997138977,
+        "value_text": "1.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Voice2 Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.1 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.8 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "6.3 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "50.3 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "400.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "31",
+          "param_name": "Voice2 Rate",
+          "normalized_role": "mod_rate",
+          "alias": "Voice2 Rate"
+        }
+      },
+      {
+        "id": "32",
+        "param_id": "32",
+        "raw_param_id": "32",
+        "raw_param_name": "Source1",
+        "name": "Source1",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "L ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Source1",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "L ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "L "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "L+R "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "L-R "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "L "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "L+R "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "L+R "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "L-R "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "L-R "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "32",
+          "param_name": "Source1",
+          "normalized_role": "other",
+          "alias": "Source1"
+        }
+      },
+      {
+        "id": "33",
+        "param_id": "33",
+        "raw_param_id": "33",
+        "raw_param_name": "Source2",
+        "name": "Source2",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "R ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Source2",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "R ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "R "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "R+L "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "R-L "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "R "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "R+L "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "R+L "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "R-L "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "R-L "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1097",
+          "plugin_name": "Doubler2 Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "33",
+          "param_name": "Source2",
+          "normalized_role": "other",
+          "alias": "Source2"
+        }
+      }
+    ]
+  }
+}

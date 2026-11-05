@@ -1,0 +1,2417 @@
+{
+  "case": {
+    "plugin_name": "H-Delay Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-H-Delay Mono/Stereo-695648d-6e4e2da1",
+    "vendor": "waves",
+    "family": "delay"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1126",
+      "rack_item_id": "1131",
+      "plugin_id": "1132",
+      "plugin_item_id": "1132",
+      "plugin_name": "H-Delay Mono/Stereo",
+      "plugin_identifier": "VST3-H-Delay Mono/Stereo-695648d-6e4e2da1",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=H-Delay Mono/Stereo id=1132 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 18,
+      "graph_active_revision": 18,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 17,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node H-Delay Mono/Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 18,
+          "kind": "node_add",
+          "summary": "Added rack node H-Delay Mono/Stereo",
+          "track_id": "1126",
+          "rack_item_id": "1131",
+          "node_id": "1132",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154615347
+        },
+        {
+          "revision": 17,
+          "kind": "node_add",
+          "summary": "Added rack node H-Delay Mono",
+          "track_id": "1119",
+          "rack_item_id": "1124",
+          "node_id": "1125",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154611456
+        },
+        {
+          "revision": 16,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler4 Stereo",
+          "track_id": "1112",
+          "rack_item_id": "1117",
+          "node_id": "1118",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154607520
+        },
+        {
+          "revision": 15,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler4 Mono/Stereo",
+          "track_id": "1105",
+          "rack_item_id": "1110",
+          "node_id": "1111",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154603583
+        },
+        {
+          "revision": 14,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler4 Mono",
+          "track_id": "1098",
+          "rack_item_id": "1103",
+          "node_id": "1104",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154599630
+        },
+        {
+          "revision": 13,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Stereo",
+          "track_id": "1091",
+          "rack_item_id": "1096",
+          "node_id": "1097",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154595491
+        },
+        {
+          "revision": 12,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Mono/Stereo",
+          "track_id": "1084",
+          "rack_item_id": "1089",
+          "node_id": "1090",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154591630
+        },
+        {
+          "revision": 11,
+          "kind": "node_add",
+          "summary": "Added rack node Doubler2 Mono",
+          "track_id": "1077",
+          "rack_item_id": "1082",
+          "node_id": "1083",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154587613
+        },
+        {
+          "revision": 10,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Stereo",
+          "track_id": "1070",
+          "rack_item_id": "1075",
+          "node_id": "1076",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154583582
+        },
+        {
+          "revision": 9,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Pro Stereo",
+          "track_id": "1063",
+          "rack_item_id": "1068",
+          "node_id": "1069",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154579583
+        },
+        {
+          "revision": 8,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Pro Mono",
+          "track_id": "1056",
+          "rack_item_id": "1061",
+          "node_id": "1062",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154575951
+        },
+        {
+          "revision": 7,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Mono",
+          "track_id": "1049",
+          "rack_item_id": "1054",
+          "node_id": "1055",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154571811
+        },
+        {
+          "revision": 6,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Stereo",
+          "track_id": "1042",
+          "rack_item_id": "1047",
+          "node_id": "1048",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154567122
+        },
+        {
+          "revision": 5,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Mono/Stereo",
+          "track_id": "1035",
+          "rack_item_id": "1040",
+          "node_id": "1041",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154563089
+        },
+        {
+          "revision": 4,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Mono",
+          "track_id": "1028",
+          "rack_item_id": "1033",
+          "node_id": "1034",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154559269
+        },
+        {
+          "revision": 3,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Stereo",
+          "track_id": "1021",
+          "rack_item_id": "1026",
+          "node_id": "1027",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154554743
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1126",
+    "plugin_id": "1132",
+    "plugin_item_id": "1132",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_c97a121f83ca3c40",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Delay Sec",
+        "normalized_role": "other",
+        "alias": "Delay Sec"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Delay BPM",
+        "normalized_role": "other",
+        "alias": "Delay BPM"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Feedback",
+        "normalized_role": "mod_feedback",
+        "alias": "Feedback"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "PingPong",
+        "normalized_role": "other",
+        "alias": "PingPong"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Sync",
+        "normalized_role": "other",
+        "alias": "Sync"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "Mix",
+        "normalized_role": "common_mix",
+        "alias": "Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "Output",
+        "normalized_role": "common_gain",
+        "alias": "Output"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "Analog",
+        "normalized_role": "other",
+        "alias": "Analog"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "LoFi",
+        "normalized_role": "other",
+        "alias": "LoFi"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "Rate",
+        "normalized_role": "mod_rate",
+        "alias": "Rate"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "Depth",
+        "normalized_role": "mod_depth",
+        "alias": "Depth"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "11",
+        "param_name": "HiPass",
+        "normalized_role": "other",
+        "alias": "HiPass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "12",
+        "param_name": "LoPass",
+        "normalized_role": "other",
+        "alias": "LoPass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "13",
+        "param_name": "Phase L",
+        "normalized_role": "other",
+        "alias": "Phase L"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "14",
+        "param_name": "Phase R",
+        "normalized_role": "other",
+        "alias": "Phase R"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "15",
+        "param_name": "BPM",
+        "normalized_role": "other",
+        "alias": "BPM"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "16",
+        "param_name": "Ping Pong Start Direction",
+        "normalized_role": "other",
+        "alias": "Ping Pong Start Direction"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "17",
+        "param_name": "Delay Sec R",
+        "normalized_role": "other",
+        "alias": "Delay Sec R"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1132",
+        "plugin_name": "H-Delay Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "Delay BPM R",
+        "normalized_role": "other",
+        "alias": "Delay BPM R"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "5",
+          "6"
+        ]
+      },
+      {
+        "name": "Modulation",
+        "parameter_ids": [
+          "2",
+          "9",
+          "10"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "0",
+          "1",
+          "3",
+          "4",
+          "7",
+          "8",
+          "11",
+          "12",
+          "13",
+          "14",
+          "15",
+          "16",
+          "17",
+          "18"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "6",
+        "raw_param_id": "6",
+        "label": "Output",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.5
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "9",
+        "raw_param_id": "9",
+        "label": "Rate",
+        "widget": "slider",
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "10",
+        "raw_param_id": "10",
+        "label": "Depth",
+        "widget": "slider",
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "2",
+        "raw_param_id": "2",
+        "label": "Feedback",
+        "widget": "slider",
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.300000011920929
+      },
+      {
+        "param_id": "5",
+        "raw_param_id": "5",
+        "label": "Mix",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "5",
+            "6"
+          ]
+        },
+        {
+          "name": "Modulation",
+          "parameter_ids": [
+            "2",
+            "9",
+            "10"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "1",
+            "3",
+            "4",
+            "7",
+            "8",
+            "11",
+            "12",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Delay Sec",
+        "name": "Delay Sec",
+        "value": 0.374000012874603,
+        "normalized_value": 0.374000012874603,
+        "value_text": "375 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Sec",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "375 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "251 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "501 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1540 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "3500 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Delay Sec",
+          "normalized_role": "other",
+          "alias": "Delay Sec"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Delay BPM",
+        "name": "Delay BPM",
+        "value": 0.578999996185303,
+        "normalized_value": 0.578999996185303,
+        "value_text": "1/8D ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay BPM",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1/8D ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1/64T "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1/32D "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1/8 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1/4D "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2B "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Delay BPM",
+          "normalized_role": "other",
+          "alias": "Delay BPM"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Feedback",
+        "name": "Feedback",
+        "value": 0.300000011920929,
+        "normalized_value": 0.300000011920929,
+        "value_text": "60 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_feedback",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Feedback",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "60 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "50 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "100 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "150 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "200 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Feedback",
+          "normalized_role": "mod_feedback",
+          "alias": "Feedback"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "PingPong",
+        "name": "PingPong",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Stereo ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "PingPong",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Stereo ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Stereo "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "PingPong "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Stereo "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Stereo "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "PingPong "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "PingPong "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "PingPong "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "PingPong",
+          "normalized_role": "other",
+          "alias": "PingPong"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "Sync",
+        "name": "Sync",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "Host ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 3,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Sync",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Host ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "BPM "
+            },
+            {
+              "index": 1,
+              "value": 0.5,
+              "label": "Host "
+            },
+            {
+              "index": 2,
+              "value": 1.0,
+              "label": "ms "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "BPM "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Host "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Host "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "ms "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "ms "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "Sync",
+          "normalized_role": "other",
+          "alias": "Sync"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "Mix",
+        "name": "Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "Mix",
+          "normalized_role": "common_mix",
+          "alias": "Mix"
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "Output",
+        "name": "Output",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Output",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-9.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "18.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "Output",
+          "normalized_role": "common_gain",
+          "alias": "Output"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "Analog",
+        "name": "Analog",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "Mod2 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 5,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Analog",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Mod2 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off "
+            },
+            {
+              "index": 1,
+              "value": 0.25,
+              "label": "Mod1 "
+            },
+            {
+              "index": 2,
+              "value": 0.5,
+              "label": "Mod2 "
+            },
+            {
+              "index": 3,
+              "value": 0.75,
+              "label": "Mod3 "
+            },
+            {
+              "index": 4,
+              "value": 1.0,
+              "label": "Mod4 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Mod1 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Mod2 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Mod3 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Mod4 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "Analog",
+          "normalized_role": "other",
+          "alias": "Analog"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "LoFi",
+        "name": "LoFi",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "HiFi ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "LoFi",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "HiFi ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "HiFi "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "LoFi "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "HiFi "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "HiFi "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "LoFi "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "LoFi "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "LoFi "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "LoFi",
+          "normalized_role": "other",
+          "alias": "LoFi"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "Rate",
+        "name": "Rate",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.10 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_rate",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Rate",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.10 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1.57 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "24.5 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "383 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "6.00k Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "Rate",
+          "normalized_role": "mod_rate",
+          "alias": "Rate"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "Depth",
+        "name": "Depth",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "mod_depth",
+        "display_group": "Modulation",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Depth",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "Depth",
+          "normalized_role": "mod_depth",
+          "alias": "Depth"
+        }
+      },
+      {
+        "id": "11",
+        "param_id": "11",
+        "raw_param_id": "11",
+        "raw_param_name": "HiPass",
+        "name": "HiPass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "HiPass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "108Hz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "619Hz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.53kHz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "20.1kHz "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "11",
+          "param_name": "HiPass",
+          "normalized_role": "other",
+          "alias": "HiPass"
+        }
+      },
+      {
+        "id": "12",
+        "param_id": "12",
+        "raw_param_id": "12",
+        "raw_param_name": "LoPass",
+        "name": "LoPass",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Off ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "LoPass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "19Hz "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "108Hz "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "619Hz "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.53kHz "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Off "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "12",
+          "param_name": "LoPass",
+          "normalized_role": "other",
+          "alias": "LoPass"
+        }
+      },
+      {
+        "id": "13",
+        "param_id": "13",
+        "raw_param_id": "13",
+        "raw_param_name": "Phase L",
+        "name": "Phase L",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "+ ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Phase L",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+ ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "+ "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "- "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "+ "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "+ "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "- "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "- "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "- "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "13",
+          "param_name": "Phase L",
+          "normalized_role": "other",
+          "alias": "Phase L"
+        }
+      },
+      {
+        "id": "14",
+        "param_id": "14",
+        "raw_param_id": "14",
+        "raw_param_name": "Phase R",
+        "name": "Phase R",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "+ ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Phase R",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+ ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "+ "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "- "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "+ "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "+ "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "- "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "- "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "- "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "14",
+          "param_name": "Phase R",
+          "normalized_role": "other",
+          "alias": "Phase R"
+        }
+      },
+      {
+        "id": "15",
+        "param_id": "15",
+        "raw_param_id": "15",
+        "raw_param_name": "BPM",
+        "name": "BPM",
+        "value": 0.333333343267441,
+        "normalized_value": 0.333333343267441,
+        "value_text": "120 BPM",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "BPM",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "120 BPM",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "30 BPM"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "98 BPM"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "165 BPM"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "233 BPM"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "300 BPM"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "15",
+          "param_name": "BPM",
+          "normalized_role": "other",
+          "alias": "BPM"
+        }
+      },
+      {
+        "id": "16",
+        "param_id": "16",
+        "raw_param_id": "16",
+        "raw_param_name": "Ping Pong Start Direction",
+        "name": "Ping Pong Start Direction",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Left ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Ping Pong Start Direction",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Left ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Left "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Right "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Left "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Left "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Right "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Right "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Right "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "16",
+          "param_name": "Ping Pong Start Direction",
+          "normalized_role": "other",
+          "alias": "Ping Pong Start Direction"
+        }
+      },
+      {
+        "id": "17",
+        "param_id": "17",
+        "raw_param_id": "17",
+        "raw_param_name": "Delay Sec R",
+        "name": "Delay Sec R",
+        "value": 0.374000012874603,
+        "normalized_value": 0.374000012874603,
+        "value_text": "375 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay Sec R",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "375 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "251 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "501 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1540 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "3500 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "17",
+          "param_name": "Delay Sec R",
+          "normalized_role": "other",
+          "alias": "Delay Sec R"
+        }
+      },
+      {
+        "id": "18",
+        "param_id": "18",
+        "raw_param_id": "18",
+        "raw_param_name": "Delay BPM R",
+        "name": "Delay BPM R",
+        "value": 0.578947365283966,
+        "normalized_value": 0.578947365283966,
+        "value_text": "1/8D ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Delay BPM R",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1/8D ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1/64T "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "1/32D "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1/8 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1/4D "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2B "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1132",
+          "plugin_name": "H-Delay Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "18",
+          "param_name": "Delay BPM R",
+          "normalized_role": "other",
+          "alias": "Delay BPM R"
+        }
+      }
+    ]
+  }
+}

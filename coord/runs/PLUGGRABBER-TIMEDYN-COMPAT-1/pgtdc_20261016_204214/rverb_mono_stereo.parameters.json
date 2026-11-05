@@ -1,0 +1,2402 @@
+{
+  "case": {
+    "plugin_name": "RVerb Mono/Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-RVerb Mono/Stereo-695648d-1be9bfac",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1385",
+      "rack_item_id": "1390",
+      "plugin_id": "1391",
+      "plugin_item_id": "1391",
+      "plugin_name": "RVerb Mono/Stereo",
+      "plugin_identifier": "VST3-RVerb Mono/Stereo-695648d-1be9bfac",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=RVerb Mono/Stereo id=1391 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 55,
+      "graph_active_revision": 55,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 54,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node RVerb Mono/Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 55,
+          "kind": "node_add",
+          "summary": "Added rack node RVerb Mono/Stereo",
+          "track_id": "1385",
+          "rack_item_id": "1390",
+          "node_id": "1391",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154771443
+        },
+        {
+          "revision": 54,
+          "kind": "node_add",
+          "summary": "Added rack node Pro-R",
+          "track_id": "1378",
+          "rack_item_id": "1383",
+          "node_id": "1384",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154765980
+        },
+        {
+          "revision": 53,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Stereo",
+          "track_id": "1371",
+          "rack_item_id": "1376",
+          "node_id": "1377",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154761220
+        },
+        {
+          "revision": 52,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Mono/Stereo",
+          "track_id": "1364",
+          "rack_item_id": "1369",
+          "node_id": "1370",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154756476
+        },
+        {
+          "revision": 51,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Reverb Mono",
+          "track_id": "1357",
+          "rack_item_id": "1362",
+          "node_id": "1363",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154752280
+        },
+        {
+          "revision": 50,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Stereo",
+          "track_id": "1350",
+          "rack_item_id": "1355",
+          "node_id": "1356",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154746751
+        },
+        {
+          "revision": 49,
+          "kind": "node_add",
+          "summary": "Added rack node MannyM Delay Mono/Stereo",
+          "track_id": "1343",
+          "rack_item_id": "1348",
+          "node_id": "1349",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154742661
+        },
+        {
+          "revision": 48,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Stereo",
+          "track_id": "1336",
+          "rack_item_id": "1341",
+          "node_id": "1342",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154736853
+        },
+        {
+          "revision": 47,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono/Stereo",
+          "track_id": "1329",
+          "rack_item_id": "1334",
+          "node_id": "1335",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154732471
+        },
+        {
+          "revision": 46,
+          "kind": "node_add",
+          "summary": "Added rack node IRLive Mono",
+          "track_id": "1322",
+          "rack_item_id": "1327",
+          "node_id": "1328",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154728010
+        },
+        {
+          "revision": 45,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 full Stereo",
+          "track_id": "1315",
+          "rack_item_id": "1320",
+          "node_id": "1321",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154723578
+        },
+        {
+          "revision": 44,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 efficient Stereo",
+          "track_id": "1308",
+          "rack_item_id": "1313",
+          "node_id": "1314",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154719222
+        },
+        {
+          "revision": 43,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono/Stereo",
+          "track_id": "1301",
+          "rack_item_id": "1306",
+          "node_id": "1307",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154714630
+        },
+        {
+          "revision": 42,
+          "kind": "node_add",
+          "summary": "Added rack node IR1 Mono",
+          "track_id": "1294",
+          "rack_item_id": "1299",
+          "node_id": "1300",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154710308
+        },
+        {
+          "revision": 41,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L full Stereo",
+          "track_id": "1287",
+          "rack_item_id": "1292",
+          "node_id": "1293",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154706013
+        },
+        {
+          "revision": 40,
+          "kind": "node_add",
+          "summary": "Added rack node IR-L efficient Stereo",
+          "track_id": "1280",
+          "rack_item_id": "1285",
+          "node_id": "1286",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792154701583
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1385",
+    "plugin_id": "1391",
+    "plugin_item_id": "1391",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_c97a121f83ca3c40",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Predelay",
+        "normalized_role": "other",
+        "alias": "Predelay"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Time",
+        "normalized_role": "other",
+        "alias": "Time"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Size",
+        "normalized_role": "other",
+        "alias": "Size"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Diffusion",
+        "normalized_role": "other",
+        "alias": "Diffusion"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "4",
+        "param_name": "Decay",
+        "normalized_role": "other",
+        "alias": "Decay"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "5",
+        "param_name": "Early Ref.",
+        "normalized_role": "other",
+        "alias": "Early Ref."
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "6",
+        "param_name": "Reverb Mix",
+        "normalized_role": "common_mix",
+        "alias": "Reverb Mix"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "7",
+        "param_name": "Wet-Dry",
+        "normalized_role": "common_mix",
+        "alias": "Wet-Dry"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "8",
+        "param_name": "Gain",
+        "normalized_role": "common_gain",
+        "alias": "Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "9",
+        "param_name": "Dmp Low-F Ratio",
+        "normalized_role": "comp_ratio",
+        "alias": "Dmp Low-F Ratio"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10",
+        "param_name": "Dmp Hi-F Ratio",
+        "normalized_role": "comp_ratio",
+        "alias": "Dmp Hi-F Ratio"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "11",
+        "param_name": "Dmp Low-F Freq",
+        "normalized_role": "other",
+        "alias": "Dmp Low-F Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "12",
+        "param_name": "Dmp Hi-F Freq",
+        "normalized_role": "other",
+        "alias": "Dmp Hi-F Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "13",
+        "param_name": "EQ Low-F Gain",
+        "normalized_role": "common_gain",
+        "alias": "EQ Low-F Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "14",
+        "param_name": "EQ Hi-F Gain",
+        "normalized_role": "common_gain",
+        "alias": "EQ Hi-F Gain"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "15",
+        "param_name": "EQ Low-F Freq",
+        "normalized_role": "other",
+        "alias": "EQ Low-F Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "16",
+        "param_name": "EQ Hi-F Freq",
+        "normalized_role": "other",
+        "alias": "EQ Hi-F Freq"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "17",
+        "param_name": "Decorrelation",
+        "normalized_role": "other",
+        "alias": "Decorrelation"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1391",
+        "plugin_name": "RVerb Mono/Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "18",
+        "param_name": "Reverb Type",
+        "normalized_role": "other",
+        "alias": "Reverb Type"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Dynamics",
+        "parameter_ids": [
+          "9",
+          "10"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "6",
+          "7",
+          "8",
+          "13",
+          "14"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "0",
+          "1",
+          "2",
+          "3",
+          "4",
+          "5",
+          "11",
+          "12",
+          "15",
+          "16",
+          "17",
+          "18"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "8",
+        "raw_param_id": "8",
+        "label": "Gain",
+        "widget": "slider",
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "9",
+        "raw_param_id": "9",
+        "label": "Dmp Low-F Ratio",
+        "widget": "knob",
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.474000006914139
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "6",
+        "raw_param_id": "6",
+        "label": "Reverb Mix",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "7",
+        "raw_param_id": "7",
+        "label": "Wet-Dry",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      },
+      {
+        "param_id": "10",
+        "raw_param_id": "10",
+        "label": "Dmp Hi-F Ratio",
+        "widget": "knob",
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.263000011444092
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Dynamics",
+          "parameter_ids": [
+            "9",
+            "10"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "6",
+            "7",
+            "8",
+            "13",
+            "14"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "11",
+            "12",
+            "15",
+            "16",
+            "17",
+            "18"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Predelay",
+        "name": "Predelay",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "0.0 ms",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Predelay",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 ms",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-160.0 ms"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-80.0 ms"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "0.0 ms"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "80.0 ms"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "160.0 ms"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Predelay",
+          "normalized_role": "other",
+          "alias": "Predelay"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Time",
+        "name": "Time",
+        "value": 0.600000023841858,
+        "normalized_value": 0.600000023841858,
+        "value_text": "2.40 Sec",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Time",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "2.40 Sec",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 Sec"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.38 Sec"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.41 Sec"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "5.32 Sec"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "20.0 Sec"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Time",
+          "normalized_role": "other",
+          "alias": "Time"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Size",
+        "name": "Size",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Size",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.7 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.5 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.2 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Size",
+          "normalized_role": "other",
+          "alias": "Size"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Diffusion",
+        "name": "Diffusion",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Diffusion",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Diffusion",
+          "normalized_role": "other",
+          "alias": "Diffusion"
+        }
+      },
+      {
+        "id": "4",
+        "param_id": "4",
+        "raw_param_id": "4",
+        "raw_param_name": "Decay",
+        "name": "Decay",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "Linear ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Decay",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Linear ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.04 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.90 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.77 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "2.63 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Linear "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "4",
+          "param_name": "Decay",
+          "normalized_role": "other",
+          "alias": "Decay"
+        }
+      },
+      {
+        "id": "5",
+        "param_id": "5",
+        "raw_param_id": "5",
+        "raw_param_name": "Early Ref.",
+        "name": "Early Ref.",
+        "value": 0.949999988079071,
+        "normalized_value": 0.949999988079071,
+        "value_text": "-2.0 dB ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Early Ref.",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-2.0 dB ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-30.0 dB "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-20.0 dB "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-10.0 dB "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "5",
+          "param_name": "Early Ref.",
+          "normalized_role": "other",
+          "alias": "Early Ref."
+        }
+      },
+      {
+        "id": "6",
+        "param_id": "6",
+        "raw_param_id": "6",
+        "raw_param_name": "Reverb Mix",
+        "name": "Reverb Mix",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Reverb Mix",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-30.0 dB "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-20.0 dB "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-10.0 dB "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "6",
+          "param_name": "Reverb Mix",
+          "normalized_role": "common_mix",
+          "alias": "Reverb Mix"
+        }
+      },
+      {
+        "id": "7",
+        "param_id": "7",
+        "raw_param_id": "7",
+        "raw_param_name": "Wet-Dry",
+        "name": "Wet-Dry",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "100.0 %",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet-Dry",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "100.0 %",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 %"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 %"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 %"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 %"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 %"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "7",
+          "param_name": "Wet-Dry",
+          "normalized_role": "common_mix",
+          "alias": "Wet-Dry"
+        }
+      },
+      {
+        "id": "8",
+        "param_id": "8",
+        "raw_param_id": "8",
+        "raw_param_name": "Gain",
+        "name": "Gain",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-18.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "8",
+          "param_name": "Gain",
+          "normalized_role": "common_gain",
+          "alias": "Gain"
+        }
+      },
+      {
+        "id": "9",
+        "param_id": "9",
+        "raw_param_id": "9",
+        "raw_param_name": "Dmp Low-F Ratio",
+        "name": "Dmp Low-F Ratio",
+        "value": 0.474000006914139,
+        "normalized_value": 0.474000006914139,
+        "value_text": "1.00 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dmp Low-F Ratio",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "1.00 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.57 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.05 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.53 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.00 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "9",
+          "param_name": "Dmp Low-F Ratio",
+          "normalized_role": "comp_ratio",
+          "alias": "Dmp Low-F Ratio"
+        }
+      },
+      {
+        "id": "10",
+        "param_id": "10",
+        "raw_param_id": "10",
+        "raw_param_name": "Dmp Hi-F Ratio",
+        "name": "Dmp Hi-F Ratio",
+        "value": 0.263000011444092,
+        "normalized_value": 0.263000011444092,
+        "value_text": "0.60 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "comp_ratio",
+        "display_group": "Dynamics",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dmp Hi-F Ratio",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.60 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.10 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "0.57 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "1.05 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "1.53 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "2.00 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10",
+          "param_name": "Dmp Hi-F Ratio",
+          "normalized_role": "comp_ratio",
+          "alias": "Dmp Hi-F Ratio"
+        }
+      },
+      {
+        "id": "11",
+        "param_id": "11",
+        "raw_param_id": "11",
+        "raw_param_name": "Dmp Low-F Freq",
+        "name": "Dmp Low-F Freq",
+        "value": 0.744000017642975,
+        "normalized_value": 0.744000017642975,
+        "value_text": "492 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Dmp Low-F Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "492 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "51 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "160 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "506 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1600 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "11",
+          "param_name": "Dmp Low-F Freq",
+          "normalized_role": "other",
+          "alias": "Dmp Low-F Freq"
+        }
+      },
+      {
+        "id": "12",
+        "param_id": "12",
+        "raw_param_id": "12",
+        "raw_param_name": "Dmp Hi-F Freq",
+        "name": "Dmp Hi-F Freq",
+        "value": 0.229000002145767,
+        "normalized_value": 0.229000002145767,
+        "value_text": "2008 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Dmp Hi-F Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "2008 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1000 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "2141 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "4583 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9810 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "12",
+          "param_name": "Dmp Hi-F Freq",
+          "normalized_role": "other",
+          "alias": "Dmp Hi-F Freq"
+        }
+      },
+      {
+        "id": "13",
+        "param_id": "13",
+        "raw_param_id": "13",
+        "raw_param_name": "EQ Low-F Gain",
+        "name": "EQ Low-F Gain",
+        "value": 0.666999995708466,
+        "normalized_value": 0.666999995708466,
+        "value_text": "0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQ Low-F Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-15.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "13",
+          "param_name": "EQ Low-F Gain",
+          "normalized_role": "common_gain",
+          "alias": "EQ Low-F Gain"
+        }
+      },
+      {
+        "id": "14",
+        "param_id": "14",
+        "raw_param_id": "14",
+        "raw_param_name": "EQ Hi-F Gain",
+        "name": "EQ Hi-F Gain",
+        "value": 0.368999987840652,
+        "normalized_value": 0.368999987840652,
+        "value_text": "-10.7 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_gain",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "EQ Hi-F Gain",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-10.7 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-15.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "3.0 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "12.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "14",
+          "param_name": "EQ Hi-F Gain",
+          "normalized_role": "common_gain",
+          "alias": "EQ Hi-F Gain"
+        }
+      },
+      {
+        "id": "15",
+        "param_id": "15",
+        "raw_param_id": "15",
+        "raw_param_name": "EQ Low-F Freq",
+        "name": "EQ Low-F Freq",
+        "value": 0.495000004768372,
+        "normalized_value": 0.495000004768372,
+        "value_text": "156 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ Low-F Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "156 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "16 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "51 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "160 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "506 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "1600 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "15",
+          "param_name": "EQ Low-F Freq",
+          "normalized_role": "other",
+          "alias": "EQ Low-F Freq"
+        }
+      },
+      {
+        "id": "16",
+        "param_id": "16",
+        "raw_param_id": "16",
+        "raw_param_name": "EQ Hi-F Freq",
+        "name": "EQ Hi-F Freq",
+        "value": 0.573000013828278,
+        "normalized_value": 0.573000013828278,
+        "value_text": "5723 Hz",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "EQ Hi-F Freq",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "5723 Hz",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "1000 Hz"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "2141 Hz"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "4583 Hz"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "9810 Hz"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "21000 Hz"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "16",
+          "param_name": "EQ Hi-F Freq",
+          "normalized_role": "other",
+          "alias": "EQ Hi-F Freq"
+        }
+      },
+      {
+        "id": "17",
+        "param_id": "17",
+        "raw_param_id": "17",
+        "raw_param_name": "Decorrelation",
+        "name": "Decorrelation",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Var: 0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 7,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Decorrelation",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Var: 0 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Var: 0 "
+            },
+            {
+              "index": 1,
+              "value": 0.16666667163372,
+              "label": "Var: 1 "
+            },
+            {
+              "index": 2,
+              "value": 0.333333343267441,
+              "label": "Var: 2 "
+            },
+            {
+              "index": 3,
+              "value": 0.5,
+              "label": "Var: 3 "
+            },
+            {
+              "index": 4,
+              "value": 0.666666686534882,
+              "label": "Var: 4 "
+            },
+            {
+              "index": 5,
+              "value": 0.833333373069763,
+              "label": "Var: 5 "
+            },
+            {
+              "index": 6,
+              "value": 1.0,
+              "label": "Var: 6 "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Var: 0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Var: 2 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Var: 3 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Var: 5 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Var: 6 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "17",
+          "param_name": "Decorrelation",
+          "normalized_role": "other",
+          "alias": "Decorrelation"
+        }
+      },
+      {
+        "id": "18",
+        "param_id": "18",
+        "raw_param_id": "18",
+        "raw_param_name": "Reverb Type",
+        "name": "Reverb Type",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Hall 1 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 12,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "mode_control",
+        "control_priority": 65,
+        "alias": "Reverb Type",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Hall 1 ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Hall 1 "
+            },
+            {
+              "index": 1,
+              "value": 0.090909093618393,
+              "label": "Hall 2 "
+            },
+            {
+              "index": 2,
+              "value": 0.181818187236786,
+              "label": "Room "
+            },
+            {
+              "index": 3,
+              "value": 0.272727280855179,
+              "label": "Chamber "
+            },
+            {
+              "index": 4,
+              "value": 0.363636374473572,
+              "label": "Church "
+            },
+            {
+              "index": 5,
+              "value": 0.454545468091965,
+              "label": "Plate 1 "
+            },
+            {
+              "index": 6,
+              "value": 0.545454561710358,
+              "label": "Plate 2 "
+            },
+            {
+              "index": 7,
+              "value": 0.636363625526428,
+              "label": "Reverse "
+            },
+            {
+              "index": 8,
+              "value": 0.727272748947144,
+              "label": "Gated "
+            },
+            {
+              "index": 9,
+              "value": 0.818181872367859,
+              "label": "Non-Linear "
+            },
+            {
+              "index": 10,
+              "value": 0.909090936183929,
+              "label": "EchoVerb "
+            },
+            {
+              "index": 11,
+              "value": 1.0,
+              "label": "ResoVerb "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Hall 1 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Chamber "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Plate 2 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Gated "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "ResoVerb "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1391",
+          "plugin_name": "RVerb Mono/Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "18",
+          "param_name": "Reverb Type",
+          "normalized_role": "other",
+          "alias": "Reverb Type"
+        }
+      }
+    ]
+  }
+}

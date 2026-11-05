@@ -1,0 +1,923 @@
+{
+  "case": {
+    "plugin_name": "Clarity Vx - DeReverb Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_identifier": "VST3-Clarity Vx - DeReverb Stereo-695648d-d8711721",
+    "vendor": "waves",
+    "family": "reverb"
+  },
+  "plugin_resolution": {
+    "rack_add_node": {
+      "status": "ok",
+      "message": "Rack node added",
+      "track_id": "1511",
+      "rack_item_id": "1516",
+      "plugin_id": "1517",
+      "plugin_item_id": "1517",
+      "plugin_name": "Clarity Vx - DeReverb Stereo",
+      "plugin_identifier": "VST3-Clarity Vx - DeReverb Stereo-695648d-d8711721",
+      "zone_id": "Z3",
+      "clip_scope": "track",
+      "template_role": "other",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=Clarity Vx - DeReverb Stereo id=1517 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "x": 0.319999992847443,
+      "y": 0.319999992847443,
+      "graph_revision": 10,
+      "graph_active_revision": 10,
+      "graph_pending_revision": 0,
+      "graph_last_retired_revision": 9,
+      "graph_retired_snapshot_count": 1,
+      "graph_last_diff_kind": "node_add",
+      "graph_last_diff_summary": "Added rack node Clarity Vx - DeReverb Stereo",
+      "graph_publish_mode": "context_rebuild_idle",
+      "graph_lifecycle_state": "active",
+      "graph_recent_changes": [
+        {
+          "revision": 10,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Stereo",
+          "track_id": "1511",
+          "rack_item_id": "1516",
+          "node_id": "1517",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155450177
+        },
+        {
+          "revision": 9,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Pro Stereo",
+          "track_id": "1504",
+          "rack_item_id": "1509",
+          "node_id": "1510",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155446067
+        },
+        {
+          "revision": 8,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Pro Mono",
+          "track_id": "1497",
+          "rack_item_id": "1502",
+          "node_id": "1503",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155441855
+        },
+        {
+          "revision": 7,
+          "kind": "node_add",
+          "summary": "Added rack node Clarity Vx - DeReverb Mono",
+          "track_id": "1490",
+          "rack_item_id": "1495",
+          "node_id": "1496",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155437375
+        },
+        {
+          "revision": 6,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Stereo",
+          "track_id": "1483",
+          "rack_item_id": "1488",
+          "node_id": "1489",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155433144
+        },
+        {
+          "revision": 5,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Mono/Stereo",
+          "track_id": "1476",
+          "rack_item_id": "1481",
+          "node_id": "1482",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155429004
+        },
+        {
+          "revision": 4,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Plates Mono",
+          "track_id": "1469",
+          "rack_item_id": "1474",
+          "node_id": "1475",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155425142
+        },
+        {
+          "revision": 3,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Stereo",
+          "track_id": "1462",
+          "rack_item_id": "1467",
+          "node_id": "1468",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155420832
+        },
+        {
+          "revision": 2,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Mono/Stereo",
+          "track_id": "1455",
+          "rack_item_id": "1460",
+          "node_id": "1461",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155416714
+        },
+        {
+          "revision": 1,
+          "kind": "node_add",
+          "summary": "Added rack node Abbey Road Chambers Mono",
+          "track_id": "1448",
+          "rack_item_id": "1453",
+          "node_id": "1454",
+          "source_id": "",
+          "dest_id": "",
+          "timestamp_ms": 1792155412664
+        }
+      ]
+    }
+  },
+  "parameters": {
+    "status": "ok",
+    "track_id": "1511",
+    "plugin_id": "1517",
+    "plugin_item_id": "1517",
+    "template_role": "other",
+    "supports_param_grabber": true,
+    "current_param_signature_hash": "probe_9690ce5d91e6aa8",
+    "binding_targets": [
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1517",
+        "plugin_name": "Clarity Vx - DeReverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "dry level",
+        "param_name": "Dry Level",
+        "normalized_role": "common_mix",
+        "alias": "Dry Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1517",
+        "plugin_name": "Clarity Vx - DeReverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "wet level",
+        "param_name": "Wet Level",
+        "normalized_role": "common_mix",
+        "alias": "Wet Level"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1517",
+        "plugin_name": "Clarity Vx - DeReverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "10000001",
+        "param_name": "Bypass",
+        "normalized_role": "common_bypass",
+        "alias": "Bypass"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1517",
+        "plugin_name": "Clarity Vx - DeReverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "0",
+        "param_name": "Main Knob",
+        "normalized_role": "other",
+        "alias": "Main Knob"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1517",
+        "plugin_name": "Clarity Vx - DeReverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "1",
+        "param_name": "Reset Neural Network",
+        "normalized_role": "other",
+        "alias": "Reset Neural Network"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1517",
+        "plugin_name": "Clarity Vx - DeReverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "2",
+        "param_name": "Analysis/Width",
+        "normalized_role": "common_width",
+        "alias": "Analysis/Width"
+      },
+      {
+        "target_kind": "plugin_param",
+        "plugin_id": "1517",
+        "plugin_name": "Clarity Vx - DeReverb Stereo",
+        "plugin_type": "vst",
+        "template_role": "",
+        "param_id": "3",
+        "param_name": "Presence",
+        "normalized_role": "other",
+        "alias": "Presence"
+      }
+    ],
+    "recommended_groups": [
+      {
+        "name": "Mix",
+        "parameter_ids": [
+          "dry level",
+          "wet level",
+          "2"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_ids": [
+          "0",
+          "1",
+          "3"
+        ]
+      }
+    ],
+    "quick_controls": [
+      {
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "label": "Dry Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "2",
+        "raw_param_id": "2",
+        "label": "Analysis/Width",
+        "widget": "slider",
+        "normalized_role": "common_width",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 0.0
+      },
+      {
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "label": "Bypass",
+        "widget": "toggle",
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "value": 0.0
+      },
+      {
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "label": "Wet Level",
+        "widget": "slider",
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "value": 1.0
+      }
+    ],
+    "control_shell": {
+      "template_role": "other",
+      "default_tabs": [
+        "Parameters",
+        "Search",
+        "Recommended"
+      ],
+      "advanced_tabs": [
+        "Template",
+        "Link",
+        "History",
+        "Macro",
+        "Freeze",
+        "Bypass"
+      ],
+      "recommended_groups": [
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "2"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "10000001"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "1",
+            "3"
+          ]
+        }
+      ],
+      "supports_param_grabber": true
+    },
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "parameters": [
+      {
+        "id": "dry level",
+        "param_id": "dry level",
+        "raw_param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "name": "Dry Level",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "-INF dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Dry Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1517",
+          "plugin_name": "Clarity Vx - DeReverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "dry level",
+          "param_name": "Dry Level",
+          "normalized_role": "common_mix",
+          "alias": "Dry Level"
+        }
+      },
+      {
+        "id": "wet level",
+        "param_id": "wet level",
+        "raw_param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "name": "Wet Level",
+        "value": 1.0,
+        "normalized_value": 1.0,
+        "value_text": "+0.0 dB",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "common_mix",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Wet Level",
+        "supports_automation": true,
+        "source": "tracktion_wrapper",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1517",
+          "plugin_name": "Clarity Vx - DeReverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "wet level",
+          "param_name": "Wet Level",
+          "normalized_role": "common_mix",
+          "alias": "Wet Level"
+        }
+      },
+      {
+        "id": "10000001",
+        "param_id": "10000001",
+        "raw_param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "name": "Bypass",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Off",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "common_bypass",
+        "display_group": "Utility",
+        "host_controllable": true,
+        "control_relevance": "utility_control",
+        "control_priority": 75,
+        "alias": "Bypass",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "On"
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1517",
+          "plugin_name": "Clarity Vx - DeReverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "10000001",
+          "param_name": "Bypass",
+          "normalized_role": "common_bypass",
+          "alias": "Bypass"
+        }
+      },
+      {
+        "id": "0",
+        "param_id": "0",
+        "raw_param_id": "0",
+        "raw_param_name": "Main Knob",
+        "name": "Main Knob",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "0.0 ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Main Knob",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "0.0 ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0.0 "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25.0 "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50.0 "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75.0 "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100.0 "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1517",
+          "plugin_name": "Clarity Vx - DeReverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "0",
+          "param_name": "Main Knob",
+          "normalized_role": "other",
+          "alias": "Main Knob"
+        }
+      },
+      {
+        "id": "1",
+        "param_id": "1",
+        "raw_param_id": "1",
+        "raw_param_name": "Reset Neural Network",
+        "name": "Reset Neural Network",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Reset ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 2,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Reset Neural Network",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Reset ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Reset "
+            },
+            {
+              "index": 1,
+              "value": 1.0,
+              "label": "Reset "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Reset "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Reset "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Reset "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Reset "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Reset "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1517",
+          "plugin_name": "Clarity Vx - DeReverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "1",
+          "param_name": "Reset Neural Network",
+          "normalized_role": "other",
+          "alias": "Reset Neural Network"
+        }
+      },
+      {
+        "id": "2",
+        "param_id": "2",
+        "raw_param_id": "2",
+        "raw_param_name": "Analysis/Width",
+        "name": "Analysis/Width",
+        "value": 0.0,
+        "normalized_value": 0.0,
+        "value_text": "Single Stereo ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": true,
+        "num_steps": 4,
+        "is_boolean": false,
+        "normalized_role": "common_width",
+        "display_group": "Mix",
+        "host_controllable": true,
+        "control_relevance": "musical_control",
+        "control_priority": 100,
+        "alias": "Analysis/Width",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Single Stereo ",
+          "label": "",
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0.0,
+              "label": "Single Stereo "
+            },
+            {
+              "index": 1,
+              "value": 0.333333343267441,
+              "label": "Double Mono "
+            },
+            {
+              "index": 2,
+              "value": 0.666666686534882,
+              "label": "Double Stereo "
+            },
+            {
+              "index": 3,
+              "value": 1.0,
+              "label": "Single Mono "
+            }
+          ],
+          "all_labels": [],
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "Single Stereo "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Double Mono "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Double Stereo "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Double Stereo "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "Single Mono "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1517",
+          "plugin_name": "Clarity Vx - DeReverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "2",
+          "param_name": "Analysis/Width",
+          "normalized_role": "common_width",
+          "alias": "Analysis/Width"
+        }
+      },
+      {
+        "id": "3",
+        "param_id": "3",
+        "raw_param_id": "3",
+        "raw_param_name": "Presence",
+        "name": "Presence",
+        "value": 0.5,
+        "normalized_value": 0.5,
+        "value_text": "50 % ",
+        "min": 0.0,
+        "max": 1.0,
+        "is_discrete": false,
+        "num_steps": 0,
+        "is_boolean": false,
+        "normalized_role": "other",
+        "display_group": "Other",
+        "host_controllable": true,
+        "control_relevance": "unknown_control",
+        "control_priority": 40,
+        "alias": "Presence",
+        "supports_automation": true,
+        "source": "hosted_plugin_parameter",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "50 % ",
+          "label": "",
+          "samples": [
+            {
+              "normalized_value": 0.0,
+              "value": 0.0,
+              "text": "0 % "
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25 % "
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50 % "
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75 % "
+            },
+            {
+              "normalized_value": 1.0,
+              "value": 1.0,
+              "text": "100 % "
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "binding_target": {
+          "target_kind": "plugin_param",
+          "plugin_id": "1517",
+          "plugin_name": "Clarity Vx - DeReverb Stereo",
+          "plugin_type": "vst",
+          "template_role": "",
+          "param_id": "3",
+          "param_name": "Presence",
+          "normalized_role": "other",
+          "alias": "Presence"
+        }
+      }
+    ]
+  }
+}
