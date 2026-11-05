@@ -1,0 +1,15 @@
+{
+  "case": {
+    "id": "waves_rdeesser_stereo",
+    "plugin_name": "RDeEsser Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "expectation": "de_esser"
+  },
+  "capture_only": false,
+  "result": {
+    "id": "waves_rdeesser_stereo",
+    "plugin_name": "RDeEsser Stereo",
+    "status": "failed",
+    "error": "plugin.load_to_rack: status='error' error='pca_load_gate: missing non-forgeable exact selection authorization'"
+  }
+}

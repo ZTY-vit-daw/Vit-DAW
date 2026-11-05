@@ -1,0 +1,26 @@
+ok: dev agent smoke completed
+
+== Prepare kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=23976
+ok: kernel command port listening: 5555 pid=23976
+
+== Create two-track fixture
+
+== Reset fixture project
+ok: project.new reset completed
+ok: no existing audio tracks to delete
+ok: fixture ready: Track 1=1007 Track 2=1010
+
+== Run chat observe turn
+warn: chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget 720s, conversation mix_single_tick_e2e_20261105_224459)
+warn: settle poll: goal=running
+warn: settle poll: goal=completed
+observe turn stop_reason: got 'done', want one of [needs_confirmation, improvement_proposal_confirmation_required]
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_257impl\scripts\run_mix_single_tick_e2e.ps1:55 ×Ö·û: 5
++     throw $Message
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (observe turn st...ation_required]:String) [], RuntimeException
+    + FullyQualifiedErrorId : observe turn stop_reason: got 'done', want one of [needs_confirmation, improvement_propo 
+   sal_confirmation_required]
+ 
+BATCH2_EXIT=0
