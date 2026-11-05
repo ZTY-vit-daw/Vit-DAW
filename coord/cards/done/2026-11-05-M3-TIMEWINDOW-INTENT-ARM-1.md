@@ -47,7 +47,18 @@
 
 ## 回执
 
-- （执行侧回填：完整命令/退出码/run ID/HEAD/计费/判定/组 1 回归证据/组 3 逐轮 verdict）
+- 实现 commit=`0593e05a`（port/m3-timewindow-intent-arm-1；唯一 diff=automation_intent.go +8/-1+automation_intent_test.go +35，2 files changed）；工件 commit=`1a5270bc`（同分支）
+- 本地验证：`go build ./...` OK；`go test ./internal/chat -count=1` 全绿（127.152s 存量零回退）；`TestAutomationIntentTimeWindowArming`（正 3/负 5 按卡面清单）+`TestAutomationIntentArmingBoundary` verbose PASS
+- 真栈单 run（§8 无重跑）：run ID=`automation_llm_route_20261105_184935`，18:49:35 启动（占用登记 f2719977 推送+owner 重读+≤60s 即时复核 PROCS/端口=0 后）；命令=dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW_wt_253impl -StartKernel -RestartAgent -AutomationLLMRouteSmoke **-LlmRouteGroups "1,3"** -LlmModelOverride deepseek-flash -KernelExe（wt_228 VitApp.exe SHA256 F9E3DA0A66263F0B…D67A 18:45 亲核）；python 腿 [DONE] status=COMPLETED exit=0（19:03:35）；**ps1 PS1_EXIT=0（§5 交付门槛过）**；Strip Silence 前置腿全绿零 warn
+- 组 1 回归证据（首要红线）：llm_samples=5，verdicts=[no_route, tool_chain_ok×4]，successes=4，**group_pass=true**，choreo_pending_leg=pending_intact——红线绿；r1 no_route=模型行为样本如实记录（组判据内，取证件 rounds/g1_r1.json 留 worktree，不扩域）
+- 组 3 逐轮 verdict：r1-r5 **全 lexicon_hit**（counts_as_llm_sample=false 零 LLM 判定轮），stop_reason=`automation_choreo_clarify_category`+workflow=`section_automation_choreo`，successes=5/5，**group_pass=true**，pending_intact——词表补词后「30 秒之后动起来」首轮确定性武装走既有澄清卡，与卡面预期形态逐字一致；251 全仲裁 unresolved 形态消失
+- payload needle 面：payload_guidance/payload_automation_surfaces/payload_param_surface 全 available=true+prompt_guidance_rendered=true（未回退）
+- 计费：90 调用全 deepseek-flash in 1,376,092/out 121,208（telemetry 覆盖 ps1 全程）≈¥1.7-2.3（基准=251 口径），预算 ≈¥2-3 内
+- 拆栈：owner 手拆 VitAgent(21444)/VitApp(31936)，**TEARDOWN_ALL_ZERO 亲核 19:09:05**（PROCS=0+TCP 7878/5555/5556/8787/18787=0+UDP 4444/4445=0）
+- 工件：coord/runs/M3-TIMEWINDOW-INTENT-ARM-1/armrun1/（RECEIPT.md+summary slim 7.6KB+telemetry 154KB+双 console）随 **port/m3-timewindow-intent-arm-1 @ 1a5270bc** 入库；大件（payload 6.5MB/prompt_render 3.6MB/summary 全量 3.2MB/rounds 2.9MB）留 worktree run 目录；clip.wav 已删
+- 端测覆盖边界声明：真栈腿覆盖 Groups 1,3 全判定面；**组 2 话术未在本 run 重跑**（判别基线维持 251/249 结论，单测负例「帮我把空间铺开」守其入口不变）；webui 渲染面/用户旅程不在本卡域
+- 词表评估记录：「秒之内」「到 N 秒」窗式**未入表**（卡面授权评估项）——本卡正例矩阵无覆盖+窗式需 regex 而非 substring，扩面不扩验证面违反最小面；如后续话术家族需要另立卡
+- 终验=GLM 主管决策流
 
 ## 验收
 
