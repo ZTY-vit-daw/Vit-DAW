@@ -29,7 +29,9 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat）
+- 2026-11-05 18:42 / origin/main `76305d87` / owner=GLM-5.3 PC L1 执行会话（ZCode，本会话）/ 分支 `port/smoke-guidance-check-discrim-1` / worktree `D:/Vit_DAW_wt_252impl`
+- 领取基线状态：worktree 新建于 `76305d87`，`git status --short` 空、`git diff --stat` 空（clean checkout，无领取前 diff）
+- 领取提交=本提交（claim commit，hash 记入回执）；文件域核对：doing 两卡（GEN-SUNO-WEB-DESIGN-1=webui 设计面、253 M3-TIMEWINDOW-INTENT-ARM-1=agent 词表面）与本卡 scripts/ 域无交集
 
 ## 回执
 
