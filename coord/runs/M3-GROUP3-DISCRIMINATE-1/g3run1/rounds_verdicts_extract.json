@@ -1,0 +1,175 @@
+{
+ "run": "g3run1",
+ "note": "per-round verdicts + per-exchange arbiter decisions (payload rows 1-12 = group 3 exchanges; row 0 = strip silence suggest leg)",
+ "rounds": [
+  {
+   "file": "g3_r1.json",
+   "group": 3,
+   "round": 1,
+   "verdict": "no_route",
+   "verdict_detail": "plain-text response, no automation tool face: '我没太明白你的意思——是想继续刚才的确认，还是提个新要求？如果是继续刚才的确认，直接回「需要」或「可以执行」；如果是新的调整，请说清楚要动哪条轨道、往哪个方向调。'",
+   "exchanges": [
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    }
+   ]
+  },
+  {
+   "file": "g3_r2.json",
+   "group": 3,
+   "round": 2,
+   "verdict": "no_route",
+   "verdict_detail": "plain-text response, no automation tool face: '我没太明白你的意思——是想继续刚才的确认，还是提个新要求？如果是继续刚才的确认，直接回「需要」或「可以执行」；如果是新的调整，请说清楚要动哪条轨道、往哪个方向调。'",
+   "exchanges": [
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    }
+   ]
+  },
+  {
+   "file": "g3_r3.json",
+   "group": 3,
+   "round": 3,
+   "verdict": "no_route",
+   "verdict_detail": "plain-text response, no automation tool face: '我没太明白你的意思——是想继续刚才的确认，还是提个新要求？如果是继续刚才的确认，直接回「需要」或「可以执行」；如果是新的调整，请说清楚要动哪条轨道、往哪个方向调。'",
+   "exchanges": [
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    },
+    {
+     "stop_reason": "semantic_entry_unresolved"
+    }
+   ]
+  }
+ ],
+ "arbiter_decisions": [
+  {
+   "row": 0,
+   "user_request": "suggest strip silence cleanup parameters for the current selected audio clip and estimate threshold",
+   "route": "explicit_control",
+   "confidence": 0.76,
+   "reason": "User names a concrete edit operation (strip silence cleanup) and asks for specific parameter and threshold values on the selected clip, rather than leaving an acoustic outcome or method open.",
+   "rejection_reason": null
+  },
+  {
+   "row": 1,
+   "user_request": "30 秒之后动起来",
+   "route": "unresolved",
+   "confidence": 0.2,
+   "reason": "The request is too vague: it does not specify what should change or what 'move' means acoustically.",
+   "rejection_reason": "Ambiguous request: '动起来' has no defined acoustic outcome or control target."
+  },
+  {
+   "row": 2,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.25,
+   "reason": "The request only specifies a time range and does not state whether to discuss, observe, or control anything.",
+   "rejection_reason": "Insufficient context: a time range alone does not identify the requested interaction, target, or operation."
+  },
+  {
+   "row": 3,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.25,
+   "reason": "Input is only a time range (0-30 s) with no expressed goal, verb, or object; it is unclear whether the user wants discussion, inspection, or project change.",
+   "rejection_reason": "The request contains only a time span and no identifiable action or intent, so it cannot be safely classified as discussion, observation, or control."
+  },
+  {
+   "row": 4,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.2,
+   "reason": "Only a time range was provided; no requested action or outcome is specified.",
+   "rejection_reason": "The request '0 到 30 秒' does not indicate whether the user wants discussion, observation, or a project change."
+  },
+  {
+   "row": 5,
+   "user_request": "30 秒之后动起来",
+   "route": "unresolved",
+   "confidence": 0.32,
+   "reason": "The request only says to make something move after 30 seconds; the object, action, and acoustic intent are unclear.",
+   "rejection_reason": "Insufficient information to determine whether this is discussion, observation, explicit control, or an open acoustic request."
+  },
+  {
+   "row": 6,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.35,
+   "reason": "请求仅给出“0 到 30 秒”的时间范围，未说明要讨论、观察还是执行何种操作。",
+   "rejection_reason": "缺少动作意图，无法安全判定为讨论、观察或控制请求。"
+  },
+  {
+   "row": 7,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.2,
+   "reason": "Only a time range was provided, with no requested action or question.",
+   "rejection_reason": "The request '0 to 30 seconds' is too ambiguous to determine whether the user wants observation, discussion, or a control action."
+  },
+  {
+   "row": 8,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.2,
+   "reason": "The request only specifies a time range and does not state whether to discuss, inspect, or modify anything.",
+   "rejection_reason": "Insufficient context to determine the requested interaction or target."
+  },
+  {
+   "row": 9,
+   "user_request": "30 秒之后动起来",
+   "route": "unresolved",
+   "confidence": 0.2,
+   "reason": "The request '30 秒之后动起来' is too vague to determine whether it asks for playback, automation, modulation, or another action.",
+   "rejection_reason": "Insufficient specificity to classify the requested interaction safely."
+  },
+  {
+   "row": 10,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.18,
+   "reason": "Only a time range is provided without any requested action or acoustic intent.",
+   "rejection_reason": "The request '0 to 30 seconds' is too ambiguous to classify safely; no operation, observation, or discussion intent is specified."
+  },
+  {
+   "row": 11,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.2,
+   "reason": "The request contains only a time range and no identifiable intent.",
+   "rejection_reason": "Only a time range (0 to 30 seconds) was provided; no discussion, observation, or control intent is specified."
+  },
+  {
+   "row": 12,
+   "user_request": "0 到 30 秒",
+   "route": "unresolved",
+   "confidence": 0.35,
+   "reason": "Only a time range is provided without an explicit observation or control request.",
+   "rejection_reason": "The request '0 到 30 秒' does not specify whether the user wants discussion, inspection, or a project change."
+  }
+ ]
+}
