@@ -50,7 +50,7 @@
 
 ## 领取
 
-- （执行侧回填）
+- 2026-11-05 22:24 +0800 / 基线 origin/main=15ef1050 / owner=ZCode GLM-5.3 L1 PC 执行会话 / 分支 port/af-family-health-1 / worktree D:/Vit_DAW_wt_257impl / 领取提交=本笔（hash 见回执）。领取时核对：卡在 todo、派发已确认（用户明示）、doing 仅 256（文件域 scripts/run_free_state_d1_smoke.ps1，本卡只读不相交）；真栈被 256 占用中（VitApp 13372/VitAgent 44016/Godot 39304，登记 15ef1050）——本卡执行序=先零栈/只读腿（面 2 盘点+脚本勘察+最小栈测试），真栈腿等 256 释放后按 §2.2 分批登记错峰跑。
 
 ## 回执
 
