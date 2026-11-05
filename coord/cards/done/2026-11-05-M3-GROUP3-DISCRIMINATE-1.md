@@ -58,4 +58,4 @@
 
 ## 验收
 
-- （主管回填）
+- **2026-11-05 pass 合入**（GLM 主管决策流）——[2026-11-05-M3-GROUP3-DISCRIMINATE-1-pass.md](../../rulings/2026-11-05-M3-GROUP3-DISCRIMINATE-1-pass.md)：工件亲核（summary 判定面/仲裁块 12/12 unresolved/计费 13 行全 flash 全 semantic_entry 零 message_loop/栈两笔/abort 取证）；**exit 1 根因链三层源码锚点亲证**（message_loop.go:532 唯一插桩点→py:1298 文件缺失即 False→ccb_model_prompt.go:61 无条件装配）=验证面结构性误报非回归；判别定案=组 3 断点层钉死语义入口仲裁器（确定性模板 semantic_entry.go:395），措辞链对组 3 结构性不可达，改进杠杆在仲裁器解析；处置=脚本盲区开卡 252+仲裁器改进候选记链收口报告；工件 31b574a7 随验收合入 main。
