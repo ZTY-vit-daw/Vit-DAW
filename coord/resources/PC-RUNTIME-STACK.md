@@ -2,6 +2,9 @@
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 
+- 2026-11-05 21:56–22:01 +0800 释放 / **AF-D1-LOUDNESS-SETTLE-1(254) 补证腿——收口：armrun2 单 run（interim §三裁定执行：同命令去 -LlmModelOverride，默认引擎=config 亲读 defaultModel=deepseek-flash 与 armrun1 同引擎）**PS1_EXIT=1 且形态≠排干超时**——settle 链 2 分钟完整收敛（goal completed/stop=done，executed=5/receipts=0 agent 日志实证），卡 D1 runner 断言 `exactly one forward mutation`（模型动作数量分支）；本卡 LW/D1 settle 门再次未执行到；**引擎变量排除闭合**（两次同引擎两种失败形态均不在本卡面）→ 按裁定 §三分叉取证上交不重跑，转 D1 runner settle 链取证卡归主管；计费 10 调用 deepseek-flash 0 err in 154,472/out 13,743 ≈¥0.2-0.3；owner 手动拆 VitAgent 37272/VitApp 29668/Godot 前端，**TEARDOWN_ALL_ZERO 亲核 22:01:13**；工件 coord/runs/AF-D1-LOUDNESS-SETTLE-1/armrun2/（随 port 分支 c6fbb7d6 入库），大件留盘 worktree artifacts/free_state_d1_s1/20261105_215624；当前空闲**
+
+
 - 2026-11-05 21:56 +0800 占用 / **AF-D1-LOUDNESS-SETTLE-1(254) 补证腿——占用登记（owner=ZCode GLM-5.3 L1-L2 PC 执行会话，254 卡会话；依据=interim ruling 2026-11-05-AF-D1-LOUDNESS-SETTLE-1-interim §三，实现面已判 pass 不再改动）：被测 worktree D:/Vit_DAW_wt_254impl @ port/af-d1-loudness-settle-1（实现 c687c9a1+工件 9b6e443d 已推；被测 agent=armrun1 同款 bin/VitAgent.exe SHA256 F321AF5E268CE2C14FB83BDA15BE1C4F73083AFC3C3BC620299E486720C6E1AD 不重建）；场景=run_free_state_d1_smoke.ps1 同 armrun1 命令**去掉 -LlmModelOverride**（裁定字面=默认引擎；跑前亲读本机持久化 config ~/.vit/config.json defaultModel=deepseek-flash——去注入与本机默认同值，如实入回执）其余参数不动（-PublicManifest 主检出 fixture+-PromptFlavor reverb -ExpectDomain reverb -LoudnessWatch -D1LoudnessSettle -SkipBuild + -KernelExe wt_228 F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A 显式）；成功条件=裁定三件套（runner exit 0+LW 四门不回退+D1 settle 四门+queue view D1≠not_started）；分叉预写=过→done 待终验/再遇排干超时→取证上交不重跑（引擎变量排除成立转 D1 runner 取证卡）；净空亲核 21:54:18 四端口+三类进程全零；本腿单 run 无重跑；登记推送后 ≤60s 即时复核再启动**
 
 
