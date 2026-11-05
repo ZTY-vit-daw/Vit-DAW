@@ -378,9 +378,14 @@ func (s *Server) handleAutomationChoreoChat(ctx context.Context, conversationID 
 	}
 
 	// Category: known -> resolve parameters; unknown -> clarify (never guess).
+	// M3-CLARIFY-LLM-HANDOFF-1: the ask itself is now an LLM hand-off turn
+	// (what to ask / propose is the model's judgment); the 219 fixed wording
+	// below survives verbatim as the fail-safe when the LLM turn is down.
 	if intent.Category == "" {
-		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
-			"这段变化想调哪一类参数？电平类（存在感/能量/音量）、空间类（远近/湿度）还是音色类（亮闷薄）？说「电平」「空间」或「音色」，或直接重说完整话术。", "category"), true
+		return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+			"category",
+			"这段变化想调哪一类参数？电平类（存在感/能量/音量）、空间类（远近/湿度）还是音色类（亮闷薄）？说「电平」「空间」或「音色」，或直接重说完整话术。",
+			map[string]any{"category_words": []string{"电平", "空间", "音色"}}), true
 	}
 
 	pluginID, pluginName, paramID := "", "", ""
@@ -413,9 +418,11 @@ func (s *Server) handleAutomationChoreoChat(ctx context.Context, conversationID 
 				},
 			}, true
 		}
-		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
+		return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+			"param",
 			fmt.Sprintf("%s 上挂着这些插件：%s。%s类包络需要指名具体插件和参数（例如挂了混响可以写 wet 参数）；请指名参数，或改用电平类（音量）话术。",
-				automationChoreoTrackLabel(trackID, trackLabel), strings.Join(names, "、"), shapeWordForCategory(intent.Category)), "param"), true
+				automationChoreoTrackLabel(trackID, trackLabel), strings.Join(names, "、"), shapeWordForCategory(intent.Category)),
+			map[string]any{"track_plugins": names, "category": intent.Category}), true
 	}
 
 	// Region: three channels, no guessing.
@@ -428,22 +435,29 @@ func (s *Server) handleAutomationChoreoChat(ctx context.Context, conversationID 
 		start, end, markerOK := s.automationMarkerRegion(ctx, region.SectionName, region.SectionSeconds)
 		if !markerOK {
 			// Face 1: a span the user already said ("副歌那 30 秒") is offered
-			// back as a confirmable candidate instead of being dropped.
+			// back as a confirmable candidate instead of being dropped — the
+			// ask wording itself is the LLM hand-off turn (225), the 219 fixed
+			// wording inside the fallback stays as the fail-safe.
 			if region.SectionSeconds > 0 {
-				return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, region.SectionName, region.SectionSeconds), true
+				return s.automationChoreoSpanCandidateHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent, choreoTarget, region.SectionName, region.SectionSeconds), true
 			}
-			return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
-				fmt.Sprintf("话术里的「%s」在工程段落标记里没有找到对应区间（不猜测段落位置）。请直接说绝对区间，例如「0 到 30 秒」，或先在工程里打上段落标记。", region.SectionName), "region"), true
+			return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+				"region",
+				fmt.Sprintf("话术里的「%s」在工程段落标记里没有找到对应区间（不猜测段落位置）。请直接说绝对区间，例如「0 到 30 秒」，或先在工程里打上段落标记。", region.SectionName),
+				map[string]any{"section_name": region.SectionName}), true
 		}
 		region.Start, region.End, region.Source = start, end, automationRegionSourceMarker
 	default:
 		// Face 3: a bare "N 秒" carries a confirmable candidate ("是从 0 开始
-		// 的 N 秒吗？"), never a silent default.
+		// 的 N 秒吗？"), never a silent default. The ask wording is the LLM
+		// hand-off turn (225); the fixed candidate ask stays as the fail-safe.
 		if region.BareSpanSeconds > 0 {
-			return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, "", region.BareSpanSeconds), true
+			return s.automationChoreoSpanCandidateHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent, choreoTarget, "", region.BareSpanSeconds), true
 		}
-		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
-			"这段变化从哪一秒到哪一秒？请给出区间（例如「0 到 30 秒」），或指名工程里已有的段落标记（如「副歌」）。", "region"), true
+		return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+			"region",
+			"这段变化从哪一秒到哪一秒？请给出区间（例如「0 到 30 秒」），或指名工程里已有的段落标记（如「副歌」）。",
+			nil), true
 	}
 	if region.End-region.Start > automationChoreoMaxRegionSpanS {
 		return ChatResponse{
@@ -533,7 +547,7 @@ func (s *Server) automationChoreoClarifyChatResponse(conversationID, mode, goalI
 // hand-off (track + level plugin): a span-candidate adoption rebuilds the
 // proposal from the stored context without re-resolving against the kernel.
 type automationChoreoTarget struct {
-	TrackID, TrackLabel         string
+	TrackID, TrackLabel           string
 	PluginID, PluginName, ParamID string
 }
 
@@ -719,7 +733,7 @@ func (s *Server) automationChoreoConfirmationResponse(conversationID, mode strin
 			"region_start_s": candidate.RegionStart, "region_end_s": candidate.RegionEnd,
 			"shape": candidate.Shape.Name, "points": candidate.Points,
 			"display": map[string]any{"title": "段落包络待确认", "summary": automationChoreoHumanSummary(candidate)},
-			"card": automationChoreoDeclarativeCard(candidate),
+			"card":    automationChoreoDeclarativeCard(candidate),
 		},
 	}
 	s.storePendingInteraction(request, request.Payload)
@@ -823,10 +837,16 @@ func (s *Server) handlePendingAutomationChoreoChat(ctx context.Context, conversa
 	if len(candidate.Clarify) > 0 {
 		clarifyKind := firstStringFromMap(candidate.Clarify, "kind")
 		// Face 2: an affirmative/confirmation word with no content of its own
-		// gets the differentiated guidance (what is still awaited, no plan
-		// exists yet) instead of a verbatim replay of the ask. The pending
-		// clarification stays alive.
+		// gets a judgment answer instead of a verbatim replay of the ask —
+		// since 225 the judgment is the LLM's (it knows what it asked; e.g.
+		// a marker proposal's 「可以」 is consent to that proposal, routed to
+		// the governed command chain). The pending clarification stays alive;
+		// the 219 differentiated guidance is the fail-safe when the LLM turn
+		// is down.
 		if clarifyKind != "region_span_candidate" && automationChoreoAffirmAnswer(message) {
+			if resp, handled := s.automationChoreoClarifyAffirmHandoff(ctx, conversationID, mode, *candidate, req, message); handled {
+				return resp, true
+			}
 			return s.automationChoreoClarifyAffirmGuidance(conversationID, mode, *candidate), true
 		}
 		// Face 1: the offered span candidate is adopted only by the user's
@@ -924,8 +944,10 @@ func (s *Server) handleAutomationChoreoEntry(ctx context.Context, conversationID
 			"要给哪条轨做这段自动化？请指名轨道（或先在 DAW 里选中它），再说一次完整话术。", "track"), true
 	}
 	if intent.Category == "" {
-		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
-			"这段变化想调哪一类参数？电平类（存在感/能量/音量）、空间类（远近/湿度）还是音色类（亮闷薄）？", "category"), true
+		return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+			"category",
+			"这段变化想调哪一类参数？电平类（存在感/能量/音量）、空间类（远近/湿度）还是音色类（亮闷薄）？",
+			map[string]any{"category_words": []string{"电平", "空间", "音色"}}), true
 	}
 	pluginID, pluginName, paramID := "", "", ""
 	if intent.Category != automationCategoryLevel {
@@ -939,8 +961,10 @@ func (s *Server) handleAutomationChoreoEntry(ctx context.Context, conversationID
 				Workflow: automationChoreoWorkflow, WorkflowData: map[string]any{"mutation_performed": false, "category": intent.Category},
 			}, true
 		}
-		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
-			fmt.Sprintf("轨上插件：%s。%s类包络请指名具体插件和参数；或改用电平类话术。", strings.Join(names, "、"), shapeWordForCategory(intent.Category)), "param"), true
+		return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+			"param",
+			fmt.Sprintf("轨上插件：%s。%s类包络请指名具体插件和参数；或改用电平类话术。", strings.Join(names, "、"), shapeWordForCategory(intent.Category)),
+			map[string]any{"track_plugins": names, "category": intent.Category}), true
 	}
 	resolvedPlugin, resolvedName, resolvedParam, resolvedOK := s.automationResolveLevelPlugin(ctx, trackID)
 	if !resolvedOK {
@@ -960,18 +984,22 @@ func (s *Server) handleAutomationChoreoEntry(ctx context.Context, conversationID
 		start, end, markerOK := s.automationMarkerRegion(ctx, region.SectionName, region.SectionSeconds)
 		if !markerOK {
 			if region.SectionSeconds > 0 {
-				return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, region.SectionName, region.SectionSeconds), true
+				return s.automationChoreoSpanCandidateHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent, choreoTarget, region.SectionName, region.SectionSeconds), true
 			}
-			return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
-				fmt.Sprintf("「%s」在工程段落标记里没有找到对应区间（不猜测段落位置）。请直接说绝对区间，例如「0 到 30 秒」。", region.SectionName), "region"), true
+			return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+				"region",
+				fmt.Sprintf("「%s」在工程段落标记里没有找到对应区间（不猜测段落位置）。请直接说绝对区间，例如「0 到 30 秒」。", region.SectionName),
+				map[string]any{"section_name": region.SectionName}), true
 		}
 		region.Start, region.End, region.Source = start, end, automationRegionSourceMarker
 	default:
 		if region.BareSpanSeconds > 0 {
-			return s.automationChoreoClarifySpanCandidateResponse(conversationID, mode, goalID, runID, message, intent, choreoTarget, "", region.BareSpanSeconds), true
+			return s.automationChoreoSpanCandidateHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent, choreoTarget, "", region.BareSpanSeconds), true
 		}
-		return s.automationChoreoClarifyResponse(conversationID, mode, goalID, runID, message, intent,
-			"这段变化从哪一秒到哪一秒？请给出区间（例如「0 到 30 秒」），或指名工程里已有的段落标记。", "region"), true
+		return s.automationChoreoClarifyHandoffResponse(ctx, conversationID, mode, goalID, runID, message, intent,
+			"region",
+			"这段变化从哪一秒到哪一秒？请给出区间（例如「0 到 30 秒」），或指名工程里已有的段落标记。",
+			nil), true
 	}
 	if region.End-region.Start > automationChoreoMaxRegionSpanS {
 		return ChatResponse{
