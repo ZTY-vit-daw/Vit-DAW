@@ -34,7 +34,13 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 领取时间：2026-11-05 10:29 +0800
+- 领取时 origin/main：9adfea3107466a4c3eb8a61a8e641e89e3696af0（=local HEAD，已核对依赖 249 验收 pass 9adfea31 在内）
+- owner：GLM-5.3-Flash（ZCode PC 执行会话，L1）/ 机器=PC / 卡=M3-GROUP3-DISCRIMINATE-1
+- 分支：port/m3-group3-discriminate-1（基线=9adfea31）
+- worktree：D:\Vit_DAW_wt_251run（新建，领取时干净）
+- 领取基线工作树状态（主检出 D:\Vit_DAW，他流遗留与本卡文件域不相交，不动）：tracked 修改 8 文件（VitApp/Workspace 两 xml、CHAT-AUTH-STAMP-1 卡 blocked→done mv 未提交、UX-AB-AUDITION-IMPL-1 工件 4 文件）；未跟踪副本若干（agent/coord/、webui/design/、coord/runs/ 多目录、todo/2026-11-05-REPO-WORKTREE-CLEANUP-1.md 等）——均不属本卡文件域
+- 栈登记：见 coord/resources/PC-RUNTIME-STACK.md（本卡单 run 前另行登记占用，推送 main 后 ≤60s 内起栈）
 
 ## 回执
 
