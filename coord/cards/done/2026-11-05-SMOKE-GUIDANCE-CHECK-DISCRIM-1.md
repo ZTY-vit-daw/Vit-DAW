@@ -35,7 +35,12 @@
 
 ## 回执
 
-- （执行侧回填）
+- 实现 commit `2135d9df`（scripts/automation_llm_route_smoke.py +112/−10 + 新增 scripts/test_automation_llm_route_smoke.py）；工件 commit `6cfef43a`（`coord/runs/SMOKE-GUIDANCE-CHECK-DISCRIM-1/`，`port/smoke-guidance-check-discrim-1` 分支）；领取提交 `8816da59`（领取窗口遇 250 先推，§2.1.3 重读远端本卡仍无 owner 后重放成功）。
+- 三态落地：①文件+双 needle=ok；②文件缺 needle=needle_missing 维持 fail（exit 2 不变）；③文件缺失+`classify_telemetry_sources` 判全仲裁（rows>0 且全 semantic_entry 族；unknown/无 source 计 other，fail-closed）→summary 标注 `prompt_guidance_rendered="n/a (all-arbitration)"`+`prompt_guidance_n_a` 证据，不触发 stop condition 2（exit 0）。`--prompt-render-path` 未传时调用点整段跳过（两侧一致）。**ps1 零改动**：态③ py 退出 2→0 后走 ps1 既有 exit-0 分支。
+- 验证（全部离线，无栈无 LLM）：`py_compile` 两文件 exit 0；`python -m unittest test_automation_llm_route_smoke -v` 11/11 OK exit 0；对照驱动（**真实改前模块** `git show 76305d87:...` 提取件 vs 候选）4×4=16 组合：15 same / 1 intended_change（=文件缺失+251 归档 13/13 全仲裁→n/a）/ 0 regression，exit 0。fixture=251 g3run1 归档 telemetry 原样复制+派生 mixed/render 对照件。
+- 端测覆盖边界声明（AGENTS §5）：本卡=脚本面单测+fixture 验证，**未跑真实栈**（卡面既定：真栈复验挂下次全仲裁场景 run 搭车）；态③端到端（exit 0→ps1 OK 分支）为函数级断言推演，未经完整栈确认。
+- 详见 [../../runs/SMOKE-GUIDANCE-CHECK-DISCRIM-1/RECEIPT.md](../../runs/SMOKE-GUIDANCE-CHECK-DISCRIM-1/RECEIPT.md)（含 FIXTURES.md 构造说明与全部 console 摘录）。
+- done=执行侧自验完成，待主管验收。
 
 ## 验收
 
