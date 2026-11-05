@@ -1,0 +1,21 @@
+== py_compile ==
+PY_COMPILE_OK exit=0
+
+== unittest (offline, no stack) ==
+test_classify_counts_source_families (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_classify_counts_source_families) ... ok
+test_classify_missing_and_empty_paths (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_classify_missing_and_empty_paths) ... ok
+test_control_equivalence_to_legacy_on_all_non_na_forms (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_control_equivalence_to_legacy_on_all_non_na_forms) ... ok
+test_file_absent_empty_telemetry_still_fails (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_file_absent_empty_telemetry_still_fails) ... ok
+test_file_absent_mixed_telemetry_still_fails (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_file_absent_mixed_telemetry_still_fails) ... ok
+test_file_absent_no_telemetry_argument_still_fails (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_file_absent_no_telemetry_argument_still_fails) ... ok
+test_file_absent_telemetry_path_absent_still_fails (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_file_absent_telemetry_path_absent_still_fails) ... ok
+test_file_absent_unknown_source_row_still_fails (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_file_absent_unknown_source_row_still_fails) ... ok
+test_state_na_file_absent_all_arbitration (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_state_na_file_absent_all_arbitration) ... ok
+test_state_needle_missing_still_fails (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_state_needle_missing_still_fails) ... ok
+test_state_ok_file_and_needle_present (test_automation_llm_route_smoke.CheckPromptGuidanceThreeStateTest.test_state_ok_file_and_needle_present) ... ok
+
+----------------------------------------------------------------------
+Ran 11 tests in 0.063s
+
+OK
+unittest exit=0
