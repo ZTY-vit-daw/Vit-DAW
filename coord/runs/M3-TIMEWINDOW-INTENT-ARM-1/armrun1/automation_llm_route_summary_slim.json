@@ -1,0 +1,219 @@
+{
+ "scenario": "M3-C4-AUTO-LLM-ROUTE-VERIFY-1 LLM-turn automation routing",
+ "status": "COMPLETED",
+ "groups_requested": [
+  1,
+  3
+ ],
+ "started_at": "2026-11-05T10:49:44.663875+00:00",
+ "finished_at": "2026-11-05T11:03:35.496834+00:00",
+ "agent_http": "http://127.0.0.1:7878",
+ "kernel_zmq": "tcp://127.0.0.1:5555",
+ "setup": {
+  "ride_track_id": "1010",
+  "ride_volume_plugin_id": "1011",
+  "external_plugins_loaded": 0,
+  "clip_wav": "D:\\Vit_DAW_wt_253impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_184935\\logs\\automation_llm_route_clip.wav",
+  "clip_duration_seconds": 6.0,
+  "clip_counts": {
+   "1007": 1,
+   "1010": 1
+  },
+  "observation_ready_attempts": 1,
+  "observation_view_excerpt": "{\"facts\": {\"track.1010.fast.levels\": {\"crest_db\": null, \"headroom_db\": null, \"peak_abs\": null, \"peak_dbfs\": null, \"rms\": null, \"rms_dbfs\": null, \"status\": \"missing\"}, \"track.1010.static.identity\": {\"listen_scope\": {\"source\": {\"focus_ids\": [\"1010\"], \"mode\": \"selected_track_with_project_context\"}, \"time\": {\"mode\": \"full_song\", \"source\": \"default\"}}, \"mix_objects\": [{\"effect_scope\": \"track_rack\", \"id",
+  "acoustic_package_status": {
+   "excerpted": true,
+   "path": "D:\\Vit_DAW_wt_253impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_184935\\logs\\.vit_derived\\vitproj_405373daf4004054aa1ae752902bc4f7\\acoustic_package_status.json",
+   "package_statuses": [
+    "partial",
+    "partial",
+    "partial"
+   ]
+  }
+ },
+ "llm_participation": "real (user engine config; every classified round below is a real billed LLM turn unless marked lexicon_hit)",
+ "usage": {
+  "telemetry_path": "D:\\Vit_DAW_wt_253impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_184935\\logs\\agent_llm_telemetry.jsonl",
+  "available": true,
+  "llm_calls": 90,
+  "models": {
+   "deepseek-flash": {
+    "calls": 90,
+    "input_tokens": 1376092,
+    "output_tokens": 121208
+   }
+  }
+ },
+ "verdict_distribution": {
+  "no_route": 1,
+  "tool_chain_ok": 4,
+  "lexicon_hit": 5
+ },
+ "payload_guidance": {
+  "payload_capture_path": "D:\\Vit_DAW_wt_253impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_184935\\logs\\agent_llm_payload_capture.jsonl",
+  "available": true,
+  "needle": "Action Path Selection (time-varying goals vs static adjustments)",
+  "rows": 90,
+  "rows_with_guidance": 82,
+  "trigger_needle": "never forms a confirmation card",
+  "rows_with_trigger_clarification": 82,
+  "rows_with_old_clause": 0,
+  "terminal_direct_call_needle": "a direct automation.set_points mutation call when every write element",
+  "time_varying_exemption_needle": "a time-varying goal is exempt from it",
+  "rows_with_terminal_direct_call": 4,
+  "rows_with_time_varying_exemption": 82,
+  "rows_with_terminal_twochoice": 0
+ },
+ "payload_automation_surfaces": {
+  "payload_capture_path": "D:\\Vit_DAW_wt_253impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_184935\\logs\\agent_llm_payload_capture.jsonl",
+  "available": true,
+  "needle": "automation_surfaces",
+  "rows": 90,
+  "rows_with_automation_surfaces": 38,
+  "rows_with_pinned_plugin_id": 38,
+  "rows_with_attribution_receipt": 22,
+  "rows_with_pinned_value": 38
+ },
+ "payload_param_surface": {
+  "payload_capture_path": "D:\\Vit_DAW_wt_253impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261105_184935\\logs\\agent_llm_payload_capture.jsonl",
+  "available": true,
+  "needle": "automation_param_surface",
+  "rows": 90,
+  "rows_with_param_surface": 10,
+  "rows_with_param_value": 10
+ },
+ "prompt_guidance_rendered": true,
+ "groups": {
+  "group_1": {
+   "phrase": "这段让它越来越突出一点",
+   "llm_samples": 5,
+   "verdicts": [
+    "no_route",
+    "tool_chain_ok",
+    "tool_chain_ok",
+    "tool_chain_ok",
+    "tool_chain_ok"
+   ],
+   "successes": 4,
+   "group_pass": true,
+   "stop_loss": null,
+   "lexicon_overflow": false,
+   "choreo_pending_leg": {
+    "verdict": "pending_intact",
+    "group": 1
+   }
+  },
+  "group_3": {
+   "phrase": "30 秒之后动起来",
+   "llm_samples": 5,
+   "verdicts": [
+    "lexicon_hit",
+    "lexicon_hit",
+    "lexicon_hit",
+    "lexicon_hit",
+    "lexicon_hit"
+   ],
+   "successes": 5,
+   "group_pass": true,
+   "stop_loss": null,
+   "lexicon_overflow": false,
+   "choreo_pending_leg": {
+    "verdict": "pending_intact",
+    "group": 3
+   }
+  }
+ },
+ "rounds_slim": [
+  {
+   "group": 1,
+   "round": 1,
+   "verdict": "no_route",
+   "verdict_detail": "continuation settled goal failed with no write, confirmation, or capability face (stop_reason='', summary='这段让它越来越突出一点')",
+   "counts_as_llm_sample": true,
+   "conversation": "llm_route_g1_r1_1793875785",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 1,
+   "round": 2,
+   "verdict": "tool_chain_ok",
+   "verdict_detail": "confirmed write reached kernel (points=4)",
+   "counts_as_llm_sample": true,
+   "conversation": "llm_route_g1_r2_1793876133",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 1,
+   "round": 3,
+   "verdict": "tool_chain_ok",
+   "verdict_detail": "confirmed write reached kernel (points=4)",
+   "counts_as_llm_sample": true,
+   "conversation": "llm_route_g1_r3_1793876231",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 1,
+   "round": 4,
+   "verdict": "tool_chain_ok",
+   "verdict_detail": "confirmed write reached kernel (points=4)",
+   "counts_as_llm_sample": true,
+   "conversation": "llm_route_g1_r4_1793876386",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 1,
+   "round": 5,
+   "verdict": "tool_chain_ok",
+   "verdict_detail": "confirmed write reached kernel (points=4)",
+   "counts_as_llm_sample": true,
+   "conversation": "llm_route_g1_r5_1793876497",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 3,
+   "round": 1,
+   "verdict": "lexicon_hit",
+   "verdict_detail": "stop_reason='automation_choreo_clarify_category' workflow='section_automation_choreo'",
+   "counts_as_llm_sample": false,
+   "conversation": "llm_route_g3_r1_1793876602",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 3,
+   "round": 2,
+   "verdict": "lexicon_hit",
+   "verdict_detail": "stop_reason='automation_choreo_clarify_category' workflow='section_automation_choreo'",
+   "counts_as_llm_sample": false,
+   "conversation": "llm_route_g3_r2_1793876603",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 3,
+   "round": 3,
+   "verdict": "lexicon_hit",
+   "verdict_detail": "stop_reason='automation_choreo_clarify_category' workflow='section_automation_choreo'",
+   "counts_as_llm_sample": false,
+   "conversation": "llm_route_g3_r3_1793876604",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 3,
+   "round": 4,
+   "verdict": "lexicon_hit",
+   "verdict_detail": "stop_reason='automation_choreo_clarify_category' workflow='section_automation_choreo'",
+   "counts_as_llm_sample": false,
+   "conversation": "llm_route_g3_r4_1793876605",
+   "kernel_points_before": 0
+  },
+  {
+   "group": 3,
+   "round": 5,
+   "verdict": "lexicon_hit",
+   "verdict_detail": "stop_reason='automation_choreo_clarify_category' workflow='section_automation_choreo'",
+   "counts_as_llm_sample": false,
+   "conversation": "llm_route_g3_r5_1793876607",
+   "kernel_points_before": 0
+  }
+ ],
+ "slim_note": "slim of automation_llm_route_summary.json (full 3.2MB with exchanges+convergence stays in worktree VitApp/Workspace/Artifacts/smoke/automation_llm_route_20261105_184935/logs/); per-round exchanges stripped, verdicts kept"
+}
