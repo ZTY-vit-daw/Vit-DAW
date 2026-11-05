@@ -1295,18 +1295,116 @@ def scan_payload_automation_surfaces(payload_capture_path: Optional[Path]) -> Di
     return result
 
 
-def check_prompt_guidance(prompt_render_path: Optional[Path]) -> bool:
-    """Stop condition 2 anchor: the rendered chat system prompt must carry the
-    217 automation routing guidance (both the legacy template and the embed
-    source are byte-locked in production tests; here we check the live render
-    actually reached the model)."""
-    if not prompt_render_path or not prompt_render_path.exists():
-        return False
+# Card 252: telemetry source families for the all-arbitration discrimination.
+# The prompt-render diagnostic has a single writer (message_loop.go:532
+# appendMessageLoopPromptRenderDiagnostic, telemetry source "message_loop");
+# the semantic-entry arbitration face (source "ordinary_agent_semantic_entry",
+# semantic_entry.go:147) never enters the message loop, so an all-arbitration
+# run legitimately never creates the render file — a missing file alone cannot
+# distinguish "guidance never rendered" from "message loop never entered".
+SEMANTIC_ENTRY_SOURCE_MARK = "semantic_entry"
+MESSAGE_LOOP_SOURCE_PREFIX = "message_loop"
+
+
+def classify_telemetry_sources(telemetry_path: Optional[Path]) -> Dict[str, Any]:
+    """Card 252 state-3 discriminator: count telemetry rows per LLM face.
+
+    A row belongs to the message-loop family when its source starts with
+    "message_loop" (main loop + repair faces), to the semantic-entry family
+    when its source contains "semantic_entry" (the pre-assembly arbitration
+    face); anything else — including rows with no source — counts as "other"
+    and disqualifies the all-arbitration proof (fail-closed: unknown faces
+    are never treated as arbitration evidence)."""
+    result: Dict[str, Any] = {
+        "telemetry_path": str(telemetry_path) if telemetry_path else "",
+        "available": False,
+        "rows": 0,
+        "semantic_entry_rows": 0,
+        "message_loop_rows": 0,
+        "other_source_rows": 0,
+    }
+    if not telemetry_path or not telemetry_path.exists():
+        return result
+    result["available"] = True
+    try:
+        text = telemetry_path.read_text(encoding="utf-8", errors="replace")
+    except OSError as exc:
+        result["available"] = False
+        result["error"] = str(exc)
+        return result
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        result["rows"] += 1
+        source = str(row.get("source") or "")
+        if source.startswith(MESSAGE_LOOP_SOURCE_PREFIX):
+            result["message_loop_rows"] += 1
+        elif SEMANTIC_ENTRY_SOURCE_MARK in source:
+            result["semantic_entry_rows"] += 1
+        else:
+            result["other_source_rows"] += 1
+    result["all_arbitration"] = (
+        result["rows"] > 0 and result["semantic_entry_rows"] == result["rows"]
+    )
+    return result
+
+
+def check_prompt_guidance(prompt_render_path: Optional[Path],
+                          telemetry_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Stop condition 2 anchor, three states (card 252):
+
+    state ok                  - render file present, needle present -> rendered
+    state needle_missing      - render file present, needle absent -> a real
+                                assembly defect (unchanged pre-252 failure)
+    state n_a_all_arbitration - render file absent + telemetry proves the run
+                                was 100% semantic-entry arbitration (zero
+                                message-loop rounds): the guidance face was
+                                structurally never reached, so the check is
+                                n/a, not a deployment defect (251 finding).
+    states missing/unreadable - render file absent without that proof (or
+                                unreadable): keep failing exactly as before —
+    the discrimination requires positive evidence, never absence of it."""
+    if prompt_render_path is None:
+        # not configured for this run: the caller skips the check entirely,
+        # and the function stays legacy-equivalent (False) so that the ONLY
+        # input combination whose verdict differs from pre-252 is
+        # "file expected but absent + all-arbitration telemetry".
+        return {"state": "missing", "rendered": False}
+    if not prompt_render_path.exists():
+        telemetry = classify_telemetry_sources(telemetry_path)
+        if telemetry.get("all_arbitration"):
+            return {"state": "n_a_all_arbitration", "rendered": None,
+                    "telemetry": telemetry}
+        return {"state": "missing", "rendered": False}
     try:
         blob = prompt_render_path.read_text(encoding="utf-8", errors="replace")
     except OSError:
+        return {"state": "unreadable", "rendered": False}
+    rendered = "automation.set_points" in blob and "automation.get_curve" in blob
+    return {"state": "ok" if rendered else "needle_missing", "rendered": rendered}
+
+
+def apply_prompt_guidance_summary(summary: Dict[str, Any], guidance: Dict[str, Any]) -> bool:
+    """Card 252: fold the three-state guidance verdict into the summary and
+    report whether stop condition 2 must fire. States ok/needle_missing/
+    missing/unreadable keep the exact pre-252 summary shape and exit-code
+    semantics (boolean field, exit 2 iff the needle is not proven present);
+    state n_a_all_arbitration labels the check "n/a (all-arbitration)" with
+    the telemetry evidence attached and never fires stop condition 2."""
+    if guidance["state"] == "n_a_all_arbitration":
+        summary["prompt_guidance_rendered"] = "n/a (all-arbitration)"
+        summary["prompt_guidance_n_a"] = {
+            "reason": "prompt_render_file_absent_all_arbitration",
+            "telemetry": guidance["telemetry"],
+        }
         return False
-    return "automation.set_points" in blob and "automation.get_curve" in blob
+    summary["prompt_guidance_rendered"] = guidance["rendered"]
+    return not guidance["rendered"]
 
 
 def parse_groups(spec: str) -> List[int]:
@@ -1563,9 +1661,13 @@ def main() -> None:
                 break
 
         # ---- guidance render check (stop condition 2) ----------------------
+        # Card 252: three-state verdict. The all-arbitration form (render file
+        # absent + telemetry 100% semantic-entry rows) is guidance n/a and must
+        # not fire stop condition 2; every other form keeps the pre-252
+        # behavior byte-for-byte (exit 2 iff the needle is not proven present).
         if prompt_render_path is not None:
-            summary["prompt_guidance_rendered"] = check_prompt_guidance(prompt_render_path)
-            if not summary["prompt_guidance_rendered"]:
+            guidance = check_prompt_guidance(prompt_render_path, telemetry_path)
+            if apply_prompt_guidance_summary(summary, guidance):
                 exit_code = 2
         # card 234: final-form distribution across all executed rounds
         # (verdict vocabulary unchanged; this only aggregates what the
