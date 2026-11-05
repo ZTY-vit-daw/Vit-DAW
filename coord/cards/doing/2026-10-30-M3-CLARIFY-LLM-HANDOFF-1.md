@@ -36,5 +36,19 @@
 - origin/main：**5ac45a12**（领取核对首 fetch 时=d520c4f7，核对窗口内主管推送 250 Phase 2 dispatch → worktree 按最新远端建立，依赖卡状态复核对未变：222/224 pass 合入 ✓、227 闸开放落地 ✓、253 词表武装合入 ✓、doing 两卡文件域不相交 ✓、PC 栈空闲（最近释放 19:09）✓）
 - owner：ZCode GLM-5.3 L2 PC 执行会话（本会话，225 卡专会话）
 - 分支：port/m3-clarify-llm-handoff-1 / worktree：D:/Vit_DAW_wt_225impl（新建，领取基线=干净树 `git status --short` 仅本卡 mv，无既有 diff——主检出他流痕迹不随 worktree）
-- 领取提交：本提交（coord/225-claim → main fast-forward，hash 推送后见 `git log origin/main -1`）
-- 真栈错峰：真栈腿启动前按 §2.2 登记（当前无占用）；§8 运行口径于真栈执行前成文入本卡，跑前不得改
+- 领取提交：18de1d34（coord/225-claim → main fast-forward 已推送，远端 owner 已核对）
+- 真栈错峰：真栈腿启动前按 §2.2 登记；§8 运行口径于真栈执行前成文入本卡，跑前不得改
+
+## 真栈腿 §8 运行口径（2026-11-05 20:0x +0800 成文，跑前不得改）
+
+- **命令**：`dev_agent_smoke.ps1 -RepoRoot D:\Vit_DAW_wt_225impl -StartKernel -RestartAgent -AutomationLLMRouteSmoke -LlmRouteGroups "1,3,4" -KernelExe D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe -LlmModelOverride deepseek-flash`（+载荷捕获全开，先例=238-253；kernel SHA256 F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A 已亲核=wt_228 同款只读复用）
+- **运行次数**：单 run 无重跑（红线）
+- **成功条件**（全部满足才 pass）：
+  1. ps1 exit 0（§5 门槛）；
+  2. 组 1 回归红线：group_pass=true（≥4/5 tool_chain_ok/boundary_ok，确认一次→写达内核→读回不回退）；
+  3. 组 3 回归：group_pass=true（≥4/5 lexicon_hit——225 后 clarify 出口文案来源升级为 handoff LLM 轮，判据 workflow/stop_reason 不变；**不得**出现仲裁器 unresolved 回归）；
+  4. **组 4 新面（本卡验收主体）**：group_pass=true 3/3 clarify_handoff_llm——「副歌那 30 秒…」无标记工程话术→LLM 提议打标记或给候选（形态自由=clarify 卡 LLM 文案或治理确认卡命令提议），**0 轮**退化为固定问句（clarify_fallback_fixed）；
+  5. 组 4 choreo-pending 嵌入腿 pending_intact（handoff 与 pending 状态机并存不破）；
+  6. 计费如实披露，预估 ≈¥2.5-3.5（253 同栈组 1+3≈¥2.3 上界+组 4 三轮增量）。
+- **失败分类**（预写）：clarify_fallback_fixed=功能断言失败（fallback 原因在 WorkflowData clarify_llm=fallback:* 披露+agent 日志取证，上交不重跑）；no_route（组 4 未达 clarify 出口）=接线回归取证上交；env_interrupt=栈/LLM 环境失败（原始日志留证，§9 处置）——若 telemetry 显示 handoff 轮全 HTTP 失败（flash 限流类，非模型行为），记 env_interrupt 候选交主管裁定，不自行改判；组 1/3 回归失败=回归红线破，如实记录上交，不得为凑绿重跑。
+- **止损线**：单 run 消耗后无论结果不再重跑；组 4 no_route 立即停（脚本内 break）；修复冲动→越域即停上交。
