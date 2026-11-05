@@ -2,6 +2,9 @@
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
 
+- 2026-11-05 21:16 +0800 占用 / **AF-D1-LOUDNESS-SETTLE-1(254) 真栈腿——占用登记（owner=ZCode GLM-5.3 L1-L2 PC 执行会话，254 卡会话）：被测 worktree D:/Vit_DAW_wt_254impl @ port/af-d1-loudness-settle-1（领取提交 c56a1695，实现提交 c687c9a1=chat 四文件+loudnesswatch 三文件+脚本，被测 agent=worktree 构建 bin/VitAgent.exe SHA256 F321AF5E268CE2C14FB83BDA15BE1C4F73083AFC3C3BC620299E486720C6E1AD，38292992 bytes 21:15）；场景=run_free_state_d1_smoke.ps1 -RepoRoot D:\Vit_DAW_wt_254impl -PromptFlavor reverb -ExpectDomain reverb -LoudnessWatch -D1LoudnessSettle -LlmModelOverride deepseek-flash -SkipBuild + -KernelExe D:\Vit_DAW_wt_228\VitAppuild_release\VitApp_artefacts\Release\VitApp.exe（SHA256 F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A=225/249/251/253 同款只读复用）；§8 口径已卡面成文（单 run 无重跑；成功条件=runner exit 0+LW 四门回归+D1 settle 四门；失败分类预写[模型随机分支/环境中断/断言失败取证不重跑]；预算 deepseek-flash ≈¥2-4 上界，settle 门零 LLM）；领取前净空亲核 21:15:44 四端口 free+VitAgent/VitApp/vsphub=0+Godot=0（255 verifyrun1 已于 20:57 释放，错峰满足）；登记推送成功后 ≤60 秒即时复核进程/端口再启动（结果记卡面回执）**
+
+
 
 - 2026-11-05 20:54–20:57 +0800 释放 / **TRACKLIST-AUTHORITY-VERIFY-1(255) 真栈腿——收口：verifyrun1 单 run（20:55:47 起 kernel pid19648+vsphub pid3028+agent pid17932，python probe PASS exit 0，**PS1_EXIT=0 §5 门槛过**）；**139 缺陷形态判定=不在当前 main**——同 kernel 字节（B6565DCF85D1DA86=139/143 run 同款 stock）+143 修复验收探针原样复用，七面全过：sanity 三面 ID+uuid 全阶段一致/A 面 tool≡kernel 全 6 阶段+silent-stale 空+undisclosed 空/**S1 r1 决定性帧 kernel=6·hub=6·state=6·shadow=0·tool=6（tool≠shadow 且 shadow_stale=true 披露，139 时代同帧 tool=0==shadow）**/B 面 S1 两轮 heal（0.26s/0.01s）/自愈/S3/同帧 VSP ack；LLM=0 亲证（agent_last.log 零 llm 行）≈¥0；拆栈后独立复核 20:57:10 TCP=0+PROCS=0（teardown.json remaining=0/0 同证）；工件 coord/runs/TRACKLIST-AUTHORITY-VERIFY-1/verifyrun1/（随 port/tracklist-authority-verify-1 入库；工件原落 FIX 目录默认路径——ps1:147 参数自清空缺陷，已原样移至本卡目录+MOVE-NOTE 留痕）；复验分叉=证据包收口（143 修复存活三周演进），分支 port/track-list-gap-1 草稿被超集覆盖**；
 
