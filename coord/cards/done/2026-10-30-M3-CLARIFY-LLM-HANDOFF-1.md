@@ -52,3 +52,14 @@
   6. 计费如实披露，预估 ≈¥2.5-3.5（253 同栈组 1+3≈¥2.3 上界+组 4 三轮增量）。
 - **失败分类**（预写）：clarify_fallback_fixed=功能断言失败（fallback 原因在 WorkflowData clarify_llm=fallback:* 披露+agent 日志取证，上交不重跑）；no_route（组 4 未达 clarify 出口）=接线回归取证上交；env_interrupt=栈/LLM 环境失败（原始日志留证，§9 处置）——若 telemetry 显示 handoff 轮全 HTTP 失败（flash 限流类，非模型行为），记 env_interrupt 候选交主管裁定，不自行改判；组 1/3 回归失败=回归红线破，如实记录上交，不得为凑绿重跑。
 - **止损线**：单 run 消耗后无论结果不再重跑；组 4 no_route 立即停（脚本内 break）；修复冲动→越域即停上交。
+
+## 回执（执行侧自验完成，待主管验收）
+
+- 实现 commit：**de7c1da2**（port/m3-clarify-llm-handoff-1，基于领取提交 18de1d34）+coord 提交 f19ea6c3/e9c54afd（§8 口径+栈登记）；diff=`chat` 三文件+py：automation_clarify_handoff.go 新增（handoff 核心）、automation_choreo.go（两入口 12 处 clarify 调用点迁移+affirm face2 分流）、automation_clarify_ux_test.go（唯一受影响 219 pin 加死端口 env 守护，断言原文零弱化）、automation_clarify_handoff_test.go 新增（6 例）、automation_llm_route_smoke.py（组 4 opt-in，默认组集 1,2,3 字节不变，ps1 零改动）。automation_intent.go **零改动**（handoff 只读消费）。
+- **单测**：go build ./... 全树 OK；`go test ./internal/chat/ -count=1` **全包 PASS（112s，exit 0）**；handoff 新测 6 例（五类形态 LLM 轮请求含能力目录 project.markers.*+候选值/兜底披露+pending 状态机不破含 adopt 链/marker 提议→治理确认卡（能力调用入口断言）/affirm 同意→能力命令/affirm 文本判断 pending 保留/入口全链 category miss）。
+- **真栈腿**：run ID automation_llm_route_20261105_195543，PS1_EXIT=0；§8 六条成功条件全过——组 1 **5/5 tool_chain_ok**（回归红线绿）+组 3 **5/5 lexicon_hit** 零 unresolved（组 3 clarify 出口=handoff LLM 轮，判据不变亲证）+**组 4 3/3 clarify_handoff_llm**（「副歌那 30 秒」→LLM 候选区间+类别确认+**建议先打副歌标记再写包络**=裁定目标行为真栈实证，0 轮固定问句退化）；choreo-pending 腿三组 pending_intact；计费 100 调用全 deepseek-flash in 1,426,974/out 112,016≈¥2.2-2.4（预算内）；telemetry 8 行 fingerprint=automation-clarify-handoff:v1 亲证；单 run 无重跑。工件 coord/runs/M3-CLARIFY-LLM-HANDOFF-1/armrun1/（RECEIPT.md+summary_slim+console+telemetry+rounds；payload 6.0M+prompt_render 3.4M 大件留 worktree）。
+- **栈两笔在册**：占用 e9c54afd（19:55 净空复核 PROCS=0/TCP=0/UDP=0 后同窗启动）/释放随本批（TEARDOWN_ALL_ZERO 亲核 20:11:43）。
+- **迁移清单核对**（判断权决策 §2 护栏 2）：①span 降级候选问句（face 1）②肯定词族引导（face 2，affirm 分流 region_span_candidate 机械采纳表=执行层保留）③裸单端候选问句（face 3）——三面全部迁移为「LLM handoff 正常路径+219 固定文案逐字保留为 fail-safe 兜底」，WorkflowData clarify_llm=handoff*/fallback:原因 如实披露；另两入口 region/category/param 固定问句（219 时代）同步迁移。**track kind 卡面五类之外未迁移**（保留原固定路径=边界申报）。判断权冻结令执行面：本卡 diff 零新增用户面固定澄清文案（handoff system 指引=协议指令非问句文案）。
+- **意外真实调用披露**：测试 bring-up 期间 1 次单测意外触达真实引擎（automation_clarify_handoff_test.go 初版 env 置空法失效——config.Load 文件配置兜底，~/.vit/config.json 引擎在场；已改 httptest 显式注入+broken-engine 形态，复跑全绿），计费约数百 token 级，如实记录。
+- **端测覆盖边界声明（§5）**：已覆盖=真实栈 LLM handoff 轮（组 4 三轮+组 3 五轮真实计费）+五类形态单测（fake 引擎请求体断言）+治理链入口单测+chat 全包回归；**未覆盖**=「LLM 提议打标记→用户同意→marker 实际写入内核」的完整端到端真栈轮（组 4 判定面=第一回复，命令提议形态 cancel 收尾不 drive 确认链——marker 写入纵深属段落标记能力线/A5 链，单测已断言到 chatResponseForCommands 治理入口）；webui 渲染面（clarify 卡 LLM 文案渲染）未过浏览器级断言（E2E-WEBUI-1 建设卡未就绪，卡结构同形复制断言由 vitest 面覆盖=既有渲染测试同构）。
+- 纪律核对：§12 领取基线在卡面（干净树）；worktree 独立（主检出他流痕迹零触碰）；工件独立 runs 目录不覆盖旧 run；无 stop 未披露项。
