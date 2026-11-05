@@ -18,10 +18,15 @@ import (
 // automationTimeVaryingQualifiers is the time-variant qualifier family — the
 // boundary words that separate an envelope intent from a static treatment. A
 // phrase without one of these never arms the choreography (negative case:
-// "把这条轨存在感调强一点" stays on the static treatment paths).
+// "把这条轨存在感调强一点" stays on the static treatment paths). M3-TIMEWINDOW-
+// INTENT-ARM-1 adds the time-window markers "秒之后"/"秒后" ("30 秒之后动起来"):
+// deliberately the two-syllable-plus forms only — a bare "秒" would mis-arm
+// "等 30 秒再说"; other window forms ("秒之内"/"到 N 秒") stay out until a real
+// phrase family needs them (no positive case in this card's matrix).
 var automationTimeVaryingQualifiers = []string{
 	"慢慢", "逐渐", "渐渐", "渐强", "渐弱", "越来越", "逐步", "一点点",
 	"推起来", "铺进来", "铺满", "往上走", "往下走",
+	"秒之后", "秒后",
 	"slowly", "gradually", "crescendo", "build up", "ramp up", "ramp down", "fade in", "fade out",
 }
 
@@ -67,6 +72,7 @@ var automationTreatmentVerbs = []string{
 	"处理", "调一", "调整", "调改", "改善", "优化", "修一", "修改",
 	"不闷", "更亮", "亮一点", "暗一点", "更厚", "更薄", "干净", "好听",
 	"混响", "均衡", "压缩", "激励", "响一点",
+	"动起来", // M3-TIMEWINDOW-INTENT-ARM-1: narrow form only — bare "动" would mis-arm "别动"
 	"treat", "process", "adjust", "improve", "fix", "brighten", "eq", "compress", "reverb",
 }
 
