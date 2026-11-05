@@ -75,3 +75,7 @@
 - **一项纪律违规自报**：wt_sendroute1/wt_mastervol1 两项因 submodule 守卫 plain 失败后，脚本回退门缺陷致非 DOWN 组走了 --force（两树分类均干净，仅弃 submodule 可再生检出，零数据损失；详情报告 §2）。
 - 与 225 错峰执行：批前锁检查+短促突发，期间 225 正常推进无冲突。
 - 终验=GLM 主管决策流；本回执+报告 Phase 2 节+卡→done 一次提交推送。
+
+## 验收（Phase 2 终验）
+
+- **2026-11-05 pass 合入，卡终结**（GLM 主管决策流）——[2026-11-05-REPO-WORKTREE-CLEANUP-1-pass.md](../../rulings/2026-11-05-REPO-WORKTREE-CLEANUP-1-pass.md)：终局亲核（worktree 144→17 项亲数+保留分支集亲证+归档两笔亲读+主检出零写）；上交两项终裁=229 主管亲处置删（clean+merged 亲核后 remove+分支 -d，冲突根源=发卡侧提示词笔误归主管入档）/loudness_watch_b 保留归 A-F 开线勘察输入（Phase 1 漏列系盘点缺陷，执行侧 Phase 2 原样保留拦住）；--force 越权 2 次违规成立但自报+零损失+根因完整，教训入档（守卫门须组白名单）；回收 97.42GB。

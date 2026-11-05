@@ -63,3 +63,7 @@
 - **意外真实调用披露**：测试 bring-up 期间 1 次单测意外触达真实引擎（automation_clarify_handoff_test.go 初版 env 置空法失效——config.Load 文件配置兜底，~/.vit/config.json 引擎在场；已改 httptest 显式注入+broken-engine 形态，复跑全绿），计费约数百 token 级，如实记录。
 - **端测覆盖边界声明（§5）**：已覆盖=真实栈 LLM handoff 轮（组 4 三轮+组 3 五轮真实计费）+五类形态单测（fake 引擎请求体断言）+治理链入口单测+chat 全包回归；**未覆盖**=「LLM 提议打标记→用户同意→marker 实际写入内核」的完整端到端真栈轮（组 4 判定面=第一回复，命令提议形态 cancel 收尾不 drive 确认链——marker 写入纵深属段落标记能力线/A5 链，单测已断言到 chatResponseForCommands 治理入口）；webui 渲染面（clarify 卡 LLM 文案渲染）未过浏览器级断言（E2E-WEBUI-1 建设卡未就绪，卡结构同形复制断言由 vitest 面覆盖=既有渲染测试同构）。
 - 纪律核对：§12 领取基线在卡面（干净树）；worktree 独立（主检出他流痕迹零触碰）；工件独立 runs 目录不覆盖旧 run；无 stop 未披露项。
+
+## 验收
+
+- **2026-11-05 pass 合入**（GLM 主管决策流）——[2026-11-05-M3-CLARIFY-LLM-HANDOFF-1-pass.md](../../rulings/2026-11-05-M3-CLARIFY-LLM-HANDOFF-1-pass.md)：实现面亲核（判断权冻结令执行面=零新增固定澄清文案；LLM 提议≠写入走既有治理链；253 词表面未触）+测试 worktree 亲复跑 PASS+真栈判定面亲读（组 1 **5/5**/组 3 5/5/组 4 3/3+needle 81/95 旧句 0+¥2.2-2.4 卡面内）+意外调用与端测边界两面披露核可；工件随 port 分支合入 main。M3 线至此无尾巴。
