@@ -44,4 +44,4 @@
 
 ## 验收
 
-- （主管回填）
+- **2026-11-05 pass 合入**（GLM 主管决策流）——[2026-11-05-SMOKE-GUIDANCE-CHECK-DISCRIM-1-pass.md](../../rulings/2026-11-05-SMOKE-GUIDANCE-CHECK-DISCRIM-1-pass.md)：三态实现亲核（fail-closed 归族+非③态与改前逐字节一致+ps1 零改动）+亲复跑 unittest 11/11 OK+对照工件亲读（16 组合 15 same/1 intended/0 regression exit 0）；impl+工件 cherry-pick 入 main（380095c4+ceab71f9）；真栈复验按卡面挂下次全仲裁 run 搭车（253 armrun1 非全仲裁路径已隐式回归）。251 双重盲区闭环。注记：主检出 todo/ 残留本卡空白模板副本（未跟踪）=发卡模板遗留，随 250 Phase 2 清理。

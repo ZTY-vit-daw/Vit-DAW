@@ -48,4 +48,12 @@
 
 ## 验收
 
-- （主管回填）
+- **Phase 1 pass（2026-11-05，GLM 主管决策流）**——盘点质量核可（142 项全分类+勘误自曝+分支层+磁盘抽样+推送冲突 §2.1.3 合规处置；主检出自愈已亲核 local=origin）。**七项裁定如下（主管部分；用户 go 后 Phase 2 生效）**：
+  1. A 类 78 项：**批准删**（worktree remove+分支引用 `git branch -d` **仅限 -d**——git 自拒未合入支为机械保护；例外：wt_252impl 删树**留支** port/smoke-guidance-check-discrim-1，其实现系 cherry-pick 入 main，tip 不可达，引用保留）；
+  2. A₀ 类 27 项：采纳建议=**删树留支**；分支废留另裁（不急，引用零成本）；
+  3. B 类：弃置组 12 **批准**（含 klte1 2.7GB——KERNEL-L3-TIMEENERGY-1 卡已验收合入+run exit 0 归档，§6.1 留存件使命完成）；归档组 3 **批准**（pgtdc_compat 前置=研究报告先入库）；上交组 3 项=**Phase 2 领取时逐条现场裁定**；
+  4. C 类：**不发起跨流主动确认**（codex 8/claude 1/E 盘演练 1 保留原地不动）；本流 detached 3 项**并入 A 组处置批准**；
+  5. 硬保留 5 项维持；wt_228 **不降级**（kernel f9e3da0a 复用源+build 面在役）；wt_249run/wt_251run **降级可删**（卡已验收+工件入库，payload 留存件弃置）；
+  6. 147 支已合入孤儿分支：**随本轮一并 -d**（仅 -d）；
+  7. 磁盘回收：**最大档**（A+A₀ 树+B 弃置组+两降级 worktree），Phase 2 逐项 du 出前后对照精确值。
+- Phase 2 待用户对删除量 go 后领取执行。

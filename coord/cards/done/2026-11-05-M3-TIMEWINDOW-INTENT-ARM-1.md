@@ -62,4 +62,4 @@
 
 ## 验收
 
-- （主管回填）
+- **2026-11-05 pass 合入**（GLM 主管决策流）——[2026-11-05-M3-TIMEWINDOW-INTENT-ARM-1-pass.md](../../rulings/2026-11-05-M3-TIMEWINDOW-INTENT-ARM-1-pass.md)：实现最小面亲核（词表两处+测试，零接线未触仲裁器）+单测 worktree 亲复跑双 PASS（负例全绿）+真栈判定面亲读（组 1 回归绿 4/5+组 3 lexicon_hit 5/5+needle 82/90 旧句 0）+96 行全 flash ¥2.3 卡面内+栈两笔在册。**组 3 修复定案，M3 链 229→253 全线收口**。
