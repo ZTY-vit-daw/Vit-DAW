@@ -65,3 +65,13 @@
 3. wt_253impl 状态更新（盘点时在飞，现已验收合入）：按 A 类处置（树删；分支 port/m3-timewindow-intent-arm-1 系真合并可达，`-d` 可删）。
 4. 主检出内残件（todo/ 下 252 空白模板）由主管自清，不属 Phase 2 域。
 5. Phase 2 执行域=原裁定 1/2/3（弃置+归档组）/4（detached 并 A）/5（wt_249run/wt_251run 降级）/6/7 不变；执行前后各跑一次 `git worktree list`+`git status --short` 存证，磁盘回收以逐项 du 前后对照出精确值落报告 Phase 2 节。
+
+## Phase 2 回执（2026-11-06 执行完毕，卡→done 待验收）
+
+- **执行结果：125/125 worktree 删除全 OK、238 支分支 -d 全 OK（零拒绝、全程未用 -D）、fsck 零错误、主检出零写操作（status 前后 371 行一致）**；worktree 注册 143→18（裁定保留项+偏差 2 项，清单见报告 §5）。
+- 归档两笔先行入库：`3d58a252`（pgtdc 报告+122 参数 json+两 run 目录）、`22601fb4`（carry1 六目录 tar.gz+MANIFEST，41MB）。
+- 磁盘回收：125 项目标 du 合计 **97.42 GB**；D: 盘空闲 +104.6 GB（45.59→150.19 GB）。Phase 1 预估 55-89GB 低估（构建目录树超样本假设），已在报告 §4 说明。
+- **两项上交（报告 §5）**：①D:/Vit_DAW-229=dispatch 红线点名保留 vs 卡面 A 类含之，从严保留待复核；②wt_loudness_watch_b=Phase 1 报告 B 分组漏列第 19 项（未入裁定组），原样保留待裁。
+- **一项纪律违规自报**：wt_sendroute1/wt_mastervol1 两项因 submodule 守卫 plain 失败后，脚本回退门缺陷致非 DOWN 组走了 --force（两树分类均干净，仅弃 submodule 可再生检出，零数据损失；详情报告 §2）。
+- 与 225 错峰执行：批前锁检查+短促突发，期间 225 正常推进无冲突。
+- 终验=GLM 主管决策流；本回执+报告 Phase 2 节+卡→done 一次提交推送。

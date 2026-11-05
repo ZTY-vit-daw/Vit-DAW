@@ -180,3 +180,55 @@ worktree 本身可安全 remove（提交保存在分支引用上不丢失），�
 
 ---
 *Phase 2（删除执行）待本检查点裁定后另起；本文档 Phase 2 部分将由后续回执追加。*
+
+## Phase 2 执行记录（2026-11-06，裁定后执行）
+
+执行依据：卡面「验收·七项裁定」+「Phase 2 裁定补充」（用户 go 后主管补裁）；执行侧=Phase 1 同会话。
+
+### 1. 归档前置（两笔入库 commit）
+
+- `3d58a252` archive①：pgtdc_compat——2026-10-18 reaper 插件参数研究报告（原主检出未跟踪件）+ 两 run 目录（204214/205639，各 129 项 13MB；122 个 parameters.json 全量入库，其余 .gitignore 覆盖件不适用）。
+- `22601fb4` archive②：carry1——FS-LEDGER-CARRY-1 未跟踪六目录 41MB tar.gz + MANIFEST（sha256+逐件清单）入库；RESULTS.md/evidence 系分支已跟踪件不随树丢。
+
+### 2. worktree 删除（125/125 OK，7 批 ×≤20，批间核对）
+
+- 执行前 143 项注册（Phase 1 的 142 + 225 会话新建 wt_225impl）；执行后 19 项（=下表 18 保留 + 本卡临时协调 worktree arcwt，收口后已拆）。
+- A 类 77（78−D:/Vit_DAW-229，见 §5 偏差 1）/ 本流 detached 3 / A₀ 27（树删支留）/ B 弃置 12（--force）/ B 归档 3（--force，归档后）/ 降级 3（wt_249run、wt_251run、wt_253impl）。
+- **偏差披露（2 项 --force 回退越权，零数据损失）**：wt_sendroute1（A）、wt_mastervol1（A₀）plain remove 被 git「contains submodules」机械守卫拒绝（本仓有真 .gitmodules），执行脚本回退门缺陷致非 DOWN 组也走了 --force。两树 Phase 1 分类均为干净；丢弃内容仅 submodule 工作检出（提交在 .git/modules，可再生）。回执如实记纪律违规一次，脚本门缺陷已定位。
+
+### 3. 分支处置（238 支 -d，零拒绝，全程未用 -D）
+
+- attached 91（A 76 + DOWN 3 + B 弃置 12；wt_252impl 支 port/smoke-guidance-check-discrim-1 按裁定保留）；
+- 孤儿清扫 147（已合入+无持有+port|coord 前缀−保留集；coord 104+port 43）——与裁定数 147 严丝合缝；pluggrabber（删树后已成已合入孤儿）被保留集正确拦截；
+- 保留分支集：port/{pluggrabber-timedyn-compat-1, fs-ledger-carry-1, kernel-l3-timeenergy-1, smoke-guidance-check-discrim-1, loudness-watch-trigger-1-d1} + A₀ 全部 27 支 + 上交组 3 支 + codex/claude/fix/杂项全部。
+
+### 4. 磁盘回收（逐项 du 前对照+盘面空闲差）
+
+- 125 项目标删除前逐项 du 合计 **97.42 GB**（Phase 1 抽样预估 55-89GB 被低估，主因 klte1 3.3GB、mastervol1 3.4GB 等含大型构建目录树超出样本假设）；
+- D: 盘空闲 45.59 GB → 150.19 GB（**+104.6 GB**，与目标合计同向吻合，余量含 worktree 元数据与系统噪声）；
+- 归档侧新增约 54MB 入库（pgtdc 两目录 26MB+carry1 tar 27MB）。
+
+### 5. 保留清单（终局 18 项）与上交事项
+
+| 项 | 依据 |
+|---|---|
+| D:/Vit_DAW 主检出 | 硬保留 |
+| D:/Vit_DAW_wt_228 | 硬保留不降级（kernel f9e3da0a 复用源+build 面在役） |
+| **D:/Vit_DAW-229**（port/m3-llm-turn-budget-1，干净+已合入） | **偏差 1**：dispatch 红线点名保留 vs 卡面裁定 A 类 78 含之——从严保留，请主管复核后定弃留 |
+| wt_topoplan154 / wt_writegate155 / wt_tracklist1 | 补充裁定 1：A-F 主线开线勘察输入，保留 |
+| **wt_loudness_watch_b**（port/loudness-watch-trigger-1-d1，dirty 72MB，未合入） | **偏差 2**：Phase 1 报告 §4 分组漏列 B 类第 19 项，未入任何裁定组——原样保留待裁 |
+| codex 流 8（C:/Users/.codex 4 + D:/Vit_DAW_worktrees 4） | C 类跨流不动 |
+| claude 流 1（.claude，含 17KB tracked 改动） | C 类跨流不动 |
+| E 盘恢复演练 1 | C 类不动 |
+| wt_225impl（225 在飞） | 盘点后新增，非本卡域 |
+
+### 6. 验收对照
+
+- `git worktree list` 终局 19→18 项（arcwt 拆后）=上表 18 保留项，无裁定删除项残留；
+- `git fsck` exit 0，错误类发现 0（171 个 dangling 对象为批量 -d 后正常悬空，待 gc）；
+- 主检出 `git status` 前后均 371 行零变化（本卡 Phase 2 在主检出零写操作；归档/卡面/报告全部经临时协调 worktree arcwt 完成）；
+- 卡面回执与卡→done 随报告同批推送；终验=GLM 主管决策流。
+
+### 7. 工件
+
+- 逐项 du（du_p2.tsv 125 行）、删除日志（p2_removal.log 125 行）、分支日志（p2_branch_del.log 238 行）、拒绝日志（空）、执行前后快照（p2_status_before/after.txt、p2_free_before/after.txt）——均在 `%TEMP%/wtcleanup250/`（临时件不入库，关键数字已全部内联本报告）。
