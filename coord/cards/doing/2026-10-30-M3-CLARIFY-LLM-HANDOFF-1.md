@@ -32,4 +32,9 @@
 
 ## 领取
 
-（待领取：记录 HEAD/status/diff --stat；真栈错峰登记；§8 运行口径执行前成文不得改）
+- 时间：2026-11-05 19:29–19:35 +0800
+- origin/main：**5ac45a12**（领取核对首 fetch 时=d520c4f7，核对窗口内主管推送 250 Phase 2 dispatch → worktree 按最新远端建立，依赖卡状态复核对未变：222/224 pass 合入 ✓、227 闸开放落地 ✓、253 词表武装合入 ✓、doing 两卡文件域不相交 ✓、PC 栈空闲（最近释放 19:09）✓）
+- owner：ZCode GLM-5.3 L2 PC 执行会话（本会话，225 卡专会话）
+- 分支：port/m3-clarify-llm-handoff-1 / worktree：D:/Vit_DAW_wt_225impl（新建，领取基线=干净树 `git status --short` 仅本卡 mv，无既有 diff——主检出他流痕迹不随 worktree）
+- 领取提交：本提交（coord/225-claim → main fast-forward，hash 推送后见 `git log origin/main -1`）
+- 真栈错峰：真栈腿启动前按 §2.2 登记（当前无占用）；§8 运行口径于真栈执行前成文入本卡，跑前不得改
