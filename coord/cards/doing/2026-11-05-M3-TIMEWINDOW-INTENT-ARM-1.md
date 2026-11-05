@@ -40,7 +40,10 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 2026-11-05 18:37 +0800；领取时 origin/main=c7c22e432abf428b1ae3f1862feec9eeb620fb82（=本地 main=HEAD；依赖 251 验收合入 0e58f3a3 已在 main ✓）
+- owner=ZCode GLM-5.3-Flash L1 PC 执行会话（253 卡会话）；机器=PC；分支=port/m3-timewindow-intent-arm-1；worktree=D:/Vit_DAW_wt_253impl（自 c7c22e43 新建）
+- 领取时主检出状态（非本卡改动，本卡不触，留档备查）：8 个 tracked 脏文件=M VitApp/Workspace/Settings/Settings.xml、M VitApp/Workspace/default_project.xml、D coord/cards/blocked/2026-10-30-M3-CHAT-AUTH-STAMP-1.md、M coord/cards/done/2026-10-30-M3-CHAT-AUTH-STAMP-1.md、M×3 coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/{driver_console.txt,logs/agent_llm_telemetry.jsonl,logs/agent_prompt_render.jsonl}、M coord/runs/UX-AB-AUDITION-IMPL-1/assert_aba174.py；另有 untracked 若干（design png/html、reports 等）。diff --stat 汇总=8 files changed, 4469 insertions(+), 4429 deletions(-)
+- 栈登记：真栈腿执行前按 §2.2 另行登记占用（登记时最近释放=2026-11-05 10:50:22，251 收口 TEARDOWN_ALL_ZERO）
 
 ## 回执
 
