@@ -62,3 +62,7 @@ un_free_state_d1_smoke.ps1 -RepoRoot D:\Vit_DAW_wt_254impl -PromptFlavor reverb 
 - 实现面 **pass**（diff 红线零触碰+单测亲复跑 7 例全 PASS+gate4 关线核可）——[2026-11-05-AF-D1-LOUDNESS-SETTLE-1-interim.md](../../rulings/2026-11-05-AF-D1-LOUDNESS-SETTLE-1-interim.md)；
 - 真栈 exit 1 归因定案=引擎延迟×排干窗口（41 轮×9-20s 实测+第 41 轮 60s 超时+limit=timeout 停泊；非模型分支非实现缺陷）；
 - **补证腿裁定：同 fixture 去注入（默认引擎）单 run**，成功条件=原卡面三件套；再超时→转 D1 runner 取证卡。跑前口径=裁定 §三。
+
+## 终验（2026-11-05 22:2x）
+
+- **实现面 pass 合入；运行面挂起转 256；卡以诚实状态收口**（GLM 主管决策流）——[2026-11-05-AF-D1-LOUDNESS-SETTLE-1-final.md](../../rulings/2026-11-05-AF-D1-LOUDNESS-SETTLE-1-final.md)：armrun2 亲核（settle 收敛+零 mutation 分支×断言错配）；归因修正第二笔（引擎隔离设计作废=默认引擎同值，教训入册）；实现随 port 分支合入 main；D1 真栈点亮证据由 256 验收腿补全。
