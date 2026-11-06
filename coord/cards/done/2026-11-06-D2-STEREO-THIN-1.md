@@ -37,4 +37,4 @@ D2=全局立体声关系（not_built，capability IDs=nil）：观察面已由 M
   - **端测边界声明（AGENTS §5）**：本卡改动=agent 判据/runtime/queue 挂点+冒测脚本——未触 webui 渲染面与 demo 用户旅程，两门槛（E2E-WEBUI-1/JOURNEY-1）不适用；真栈验收=run_free_state_d1_smoke.ps1 -D2StereoCheck 门组（上表证据+exit 0 未达成申报）。
   - **工件**：coord/runs/D2-STEREO-THIN-1/d2run1/（RUNBOOK §8 全程+console×4+d2_manual_gates.json+probe/check 证据，003c5b9c 随 port 分支）；大件留盘 worktree artifacts/free_state_d1_s1/*（gitignored）。
   - **域外观察**：①50e6f859 合并说明与 diff 不符（宣告并入 264/265 领取笔实只含 262）——协调面瑕疵非本卡面，已在此留痕；②D1 settle 门 B/D 的 254 时代脚本模式（ANSI 读 UTF-8 store、mix_queue_view 工具名、needs_confirmation 属性访问）从未被活栈验证过，本卡 run1-4 证明其中至少三处在 1-mutation 分支上会同样失败——D1 面脚本修补不属本卡文件域，建议主管开卫生卡（本卡修复仅及本卡门组，D1 门组代码未动）。
-- 验收：（主管回填）
+- 验收（2026-11-06 晚窗，主管）：**条件 pass**——判据/验证器/产品面真栈全过（门 A-D 证据组合+交叉复跑三包全绿）；**两置顶申报均接受**（①v1 纯披露零挂卡=不发明动作红线正确，动作面待 E3 后最小加；②裸话术过 semantic_entry 不建词表=263 教训正确应用）；exit 0 未达成→**选项①补跑腿挂今夜 23:00 后非高峰自主批次**（脚本 bug 四处已修入库，260 分支化已合入；补跑过=终验闭合，再败按 §8 取证）。计费诚实分账接受。域外处置：D1 门组脚本卫生**开卡 268**；50e6f859 merge message 瑕疵认账（教训=描述须与 stat 核对）。D2 认知=not_built→判据+披露薄层点亮。合入 7d6a5abe 零冲突。详见 [rulings/2026-11-06-D2-STEREO-THIN-1-pass.md](../../rulings/2026-11-06-D2-STEREO-THIN-1-pass.md)。
