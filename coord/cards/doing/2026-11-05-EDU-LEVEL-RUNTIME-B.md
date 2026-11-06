@@ -35,7 +35,23 @@
 
 ## 回执
 
-- （执行侧回填）
+### 段 1：挂载实现（2026-11-07，commit `87ea0b29` @ `port/edu-level-runtime-b` 已推送）
+
+- **diff 清单**（7 文件，+2070/−2）：
+  - `agent/internal/chat/edu_jam_chat.go`（新，核心挂载面）：确定性拦截面（与 handleMixWorkflowQueueChat 并排，同 `durableInvocationID==""` 门）——enter（装载 279 卡建 jam state+会话/工程双绑定，活跃局幂等拒绝重复 enter）/状态查询/推进检查（**形态 i 闭环**：「写好了」→观察组装（get_project_state+get_midi_clip_notes 经 runtime_slots track_index 寻址）→EvaluateNodeConditions 全叶反馈→AdvanceJam→回话，零侵入主循环）/事件记录（`乐局事件 <name> [key]`，闭集 fail-closed）/闭合判定+确认终局/exit；**拉回**（pullback_after_turns 阈值→当前节点目标注入 chatContext[`edu_jam_pullback`]，非命令轮不偷、放行既有路由）；**终局**（structure_complete 三件判定→closure_inquiry 问询→确认后置终态+trajectory `EventSettled` 零新增协议+沉淀钩子位 memory_writes/objectives_check/trajectory_archive 进 WorkflowData）；**持久化** storeEduJamSession+persistCurrentProjectWorkspace（freeStateLoop 同型）+restore 逐会话 fail-closed（未知 schema/卡不可加载/绑定不符→丢弃计数 Warn 留痕）
+  - `agent/internal/chat/goalrunner_chat.go`：+9 行插点（180 段 if 块内，注释 4+代码 5）
+  - `agent/internal/chat/server.go`：+15 行快照接线（import+Server 双字段+projectAgentRuntimeState 字段+persist 行+restore 行）——**文件域说明**：卡面目标 4 点名「freeStateLoop 同型 storeXxx+persistCurrentProjectWorkspace 先例」，该先例落点在 server.go，此为最小接线（无逻辑分叉），请验收时裁定
+  - `agent/internal/edu/command.go`：+7 行（ParseClipNotes 导出，与 276 命令面同解析器零漂移）
+  - `agent/internal/chat/edu_jam_chat_test.go`（新，9 测例）/ `scripts/edu_jam_smoke.py`（新，烟测腿驱动）/ `scripts/dev_agent_smoke.ps1`（+82 行：-EduJamSmoke 开关+隔离清单+env 块+runner 块）
+- **测试命令与退出码**（全 0）：`go test ./internal/chat -run 'TestEduJam' -count=1`（9 例 PASS）；`go test ./internal/chat -count=1`（全包 128.7s ok 零回退）；`go test ./internal/edu -count=1`（ok）；§6 五条健康检查（history/harness/capabilitycontext/mom/chat 生命周期）全部 ok；`go build ./...` exit 0
+- **拉回触发用例**：TestEduJamJudgeFailAttemptFeedbackAndPullback——n1 判定失败（attempt=1，计 1 次未推进）后第 3 条普通轮（阈值 4）到点：消息放行（handled=false）但 chatContext 注入 `edu_jam_pullback`（node_id=n1_read_and_fix+goal 文本），计数归零后 3 条普通轮不再注入；「开始乐局吧」类自然语不入局不吞轮（TestEduJamCheckAndConfirmWithoutJamNotHandled）
+- **零路由红线核验**：未触 assessFreeStateCapacity/validCapacityAssessment/restoreCapabilityRoutes 三处白名单、controllerOwners/orchestrationcontroller 枚举、catalog/policy/capability_pack；注册面第四披露面检查=乐局读面走 s.kernel.SendCommand 直读（automation_choreo.go 同型先例），不经工具目录披露，无需白名单同步
+- **端测边界声明（AGENTS §5）**：段 1 仅单测+build（假内核注入缝 eduJamKernelSendOverride）；真栈烟测腿（-EduJamSmoke：fixture 42 音主题→HTTP chat 驱动 enter→n0→n1 judge→状态→exit，全确定性**零 LLM** 并断言 telemetry 零行）**已备妥未执行——候栈**（277 ARR-SRCLOAD-1 smokerun1 占栈中，卡面让位记录 7b6469b0 已见）；人格渲染层=占位（问询/enter 文本直出，rulings §五-19 终审前）
+- **运行口径（§8，烟测腿跑前成文）**：单 run 无重跑；exit 0=PASS / 2=环境（栈/传输/fixture）/ 4=确定性面缺陷（取证上交）；n1 judge 过兼作 fixture↔卡 notes.theme 对账
+
+## 验收
+
+- （主管回填）
 
 ## 验收
 
