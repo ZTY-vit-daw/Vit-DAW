@@ -37,3 +37,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\Vit_DAW_wt_276impl\script
 
 - 净空亲核→登记（逐文件 add 提交推 main）→≤60s 复核（fetch 重读+进程/端口即时复核）→启栈
 - 释放：run 后 TEARDOWN_ALL_ZERO 亲核（六口 TCP 5555/5556/5557/7878/8787/18787 listen=0 + UDP 4444/4445=0 + VitApp/VitAgent/VspHub/Godot 四类进程=0）→ 释放登记推 main
+
+## 复跑轮 rerun1（段 3b，主管裁定 A 授权，2026-11-07）
+
+- 授权：段 3 取证验收通过+裁定选项 A（域外最小扩域一行：`goalrunner_chat.go` `agentLoopMidiTools()` 补 `midi.analyze_transformations`，L1 台账记录；C 选项重构挂 backlog 不做）——补丁 commit `2f61434d`（配对单测双层钉+chat/agentloop 包全绿+vet 告警系 main 既有未触碰文件）。
+- §8 口径沿用原 RUNBOOK：**单 run 无重跑**（本腿为本卡第二次也是最后一次授权 run——裁定明示「若复跑仍失败按 §8 取证上交不重跑，不再授权第三次」）；预算上界 ≈¥0.5-2；失败分类 ①PASS ②环境（至多重建栈 1 次）③LLM 未达 ④命令面缺陷 同预写；成功条件=PS1 exit 0+chat 驱动 findings 黄金断言全过。
+- 预期变化：midi 能力轮披露目录含新工具行（配对单测已钉），模型可调 `midi.analyze_transformations`；若模型仍不调（随机分支）→③如实上交不重跑。
+- 命令同原（-RunArtifactsDir 指向 smokerun1\rerun1 复跑轮子目录）；占栈协议照走（fetch 重读→净空亲核→登记推 main→≤60s 复核→启栈→跑→TEARDOWN_ALL_ZERO→释放登记）。
