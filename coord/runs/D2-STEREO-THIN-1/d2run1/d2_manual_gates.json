@@ -1,0 +1,44 @@
+{
+  "gates": {
+    "schema_version": "d2_manual_gates.v0",
+    "executed_at": "2026-11-06T21:01-21:10 +0800",
+    "stack": "run4 standing stack (20261106_203639, owner=265impl, occupancy 19:34 in registry)",
+    "context": "runner leg of run4 failed on the 254-documented drain-timeout family BEFORE the script D2 phase; gates executed manually with the same HTTP calls the fixed script uses, against the same live stack + project binding",
+    "gate_A_check_turn": {
+      "pass": true,
+      "stop_reason": "d2_stereo_checked",
+      "verdict": "unmeasurable (fixture-honest: stereo_face=missing, 7 track rows, no producer)",
+      "action_face": "disclosure_only_v1",
+      "mutation_performed": false,
+      "evidence": "d2_manual_check_chat.json"
+    },
+    "gate_B_verdict_on_disk": {
+      "pass": true,
+      "store": "stereo_check_verdicts.json under project workdir",
+      "trigger_kind": "d2_stereo_check",
+      "checks_total": 1,
+      "evidence": "d2_verdict_store.json"
+    },
+    "gate_C_action_face": {
+      "pass": true,
+      "card_parked": false,
+      "needs_confirmation": false,
+      "interaction_requests": "absent",
+      "note": "v1 pinned no-card branch, zero mutation"
+    },
+    "gate_D_node_lit": {
+      "pass": true,
+      "d2_node_state": "in_progress",
+      "source": "persisted annotation (authoritative input the queue view folds)",
+      "evidence": "annotation excerpt embedded in this file",
+      "live_mix_report_invoke": "blocked by runner drain occupancy until teardown; offline annotation stands"
+    },
+    "probe_face": {
+      "pass": true,
+      "run1": "stop_reason=limit_reached (entered the free-state loop, NOT semantic_entry_unresolved)",
+      "run3": "stop_reason=done (completed observation turn)",
+      "conclusion": "bare phrase passes semantic_entry — no-vocabulary entry baseline holds (263 lesson)"
+    }
+  },
+  "d2_annotation_excerpt": null
+}

@@ -1,0 +1,27 @@
+{
+  "schema_version": "stereo_check_verdicts.v0",
+  "updated_at": "2026-11-06T13:01:56.5870001Z",
+  "checks_total": 1,
+  "verdicts": [
+    {
+      "key": "vitproj_b3f2838183d64add9ca7824b8b3ac557|5|unmeasurable",
+      "project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+      "project_revision": "5",
+      "verdict_kind": "unmeasurable",
+      "verdict": {
+        "schema_version": "stereo_check_verdicts.v0",
+        "verdict": "unmeasurable",
+        "tracks_measured": 0,
+        "tracks_skipped": 0,
+        "unmeasurable_reason": "no_stereo_evidence: 全局 stereo_relation 缺席且无任何可读的逐轨 stereo summary 行",
+        "summary": "无法测量：no_stereo_evidence: 全局 stereo_relation 缺席且无任何可读的逐轨 stereo summary 行。"
+      },
+      "trigger_kind": "d2_stereo_check",
+      "trigger_ref": "cap_v1_d1d3_conv_d2_manual_20261106_2101_1",
+      "recorded_at": "2026-11-06T13:01:56.5870001Z",
+      "risk_track_count": 0,
+      "tracks_measured": 0,
+      "tracks_skipped": 0
+    }
+  ]
+}
