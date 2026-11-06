@@ -1311,6 +1311,41 @@ func TestAgentLoopCapabilityNamesDetectsConversationalMix(t *testing.T) {
 	}
 }
 
+// EDU-SYMBOL-CORE-1（276 段 3b）：midi 能力轮必须披露变换分析命令。
+// smokerun1 取证根因——agentLoopMidiTools 是与 capability_pack.go
+// pack.Tools 并行的第四处注册面，capabilityPackSummary 对两者求交，
+// 白名单缺行时 catalog/policy/pack 三处注册全部被遮蔽：模型在 chat 轮
+// 诚实申报「工具目录里没有 midi.analyze_transformations」后停
+// needs_clarification。本测试钉两层：允许列表含该工具 + 渲染目录
+// （agentLoopToolContext.CatalogSummary，即 prompt 实际披露面）出现
+// 该工具行，防未来注册面再漂移时漏行。
+func TestAgentLoopMidiCapabilityDisclosesTransformationAnalysis(t *testing.T) {
+	message := "分析这条 MIDI 片段里的模进和重复变换关系"
+	caps := agentLoopCapabilityNames(message, map[string]any{})
+	sawMidi := false
+	for _, cap := range caps {
+		if cap == "midi" {
+			sawMidi = true
+		}
+	}
+	if !sawMidi {
+		t.Fatalf("expected midi capability for MIDI-flavored analysis message, got %+v", caps)
+	}
+	server := New(nil, shadow.New(nil), nil)
+	tools := toolNamesForAgentLoopCapabilities(server.harness, agentModeDefault, []string{"midi"})
+	toolSet := map[string]bool{}
+	for _, tool := range tools {
+		toolSet[tool] = true
+	}
+	if !toolSet["midi.analyze_transformations"] {
+		t.Fatalf("midi capability allowlist must disclose midi.analyze_transformations, got %+v", tools)
+	}
+	toolContext := server.agentLoopToolContext(agentModeDefault, message, map[string]any{})
+	if !strings.Contains(toolContext.CatalogSummary, "midi.analyze_transformations") {
+		t.Fatal("midi capability catalog summary (the prompt disclosure face) must carry midi.analyze_transformations")
+	}
+}
+
 func TestPluginLoadCountQuestionDoesNotRouteToLoadWorkflow(t *testing.T) {
 	text := "how many plugins are loaded on the current track?"
 	if looksLikePluginGrabberLoadIntent(text) {

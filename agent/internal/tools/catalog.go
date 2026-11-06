@@ -559,6 +559,8 @@ func argHint(commandName string) string {
 		return "track_id:string file_path:string optional start_time_beats:number mode:merge_tracks"
 	case "get_midi_clip_notes", "get_midi_clip_data":
 		return "clip_id:string optional track_id:string"
+	case "analyze_midi_transformations":
+		return "clip_id:string optional track_id:string range_beats:[start,end] transformations:repeat|sequence|inversion|retrograde[] min_match_notes:number(>=2, 0=default 3) key:{tonic:0-11 pitch class, mode:\"major\"|omitted}"
 	case "add_midi_notes", "add_midi_notes_bulk":
 		return "clip_id:string optional track_id:string time_unit:beats notes:{pitch:number start:number length|duration:number velocity?:number id?:string}[]"
 	case "mutate_midi_notes":
@@ -1155,6 +1157,7 @@ func defaultSpecs() []CommandSpec {
 		spec("mutate_midi_notes", "midi.legacy_mutate_notes", "midi", "Modify existing MIDI notes using the legacy compatibility path.", RiskConfirm, true, true, true, true, "track_id", "clip_id"),
 		spec("delete_midi_notes", "midi.legacy_delete_notes", "midi", "Delete MIDI notes using the legacy compatibility path.", RiskConfirm, true, true, true, true, "track_id", "clip_id"),
 		spec("apply_midi_note_patch", "midi.apply_note_patch", "midi", "Apply a beat-based MIDI note patch to a clip.", RiskConfirm, true, true, true, true, "clip_id"),
+		spec("analyze_midi_transformations", "midi.analyze_transformations", "midi", "Agent-local read-only analysis of transformation-family structure (repeat / sequence[chromatic|diatonic] / inversion / retrograde) in a MIDI clip's note sequence; returns bar-anchored findings with evidence refs and LLM context (bar fields require single-tempo music context).", RiskDirect, false, false, false, false, "clip_id"),
 
 		spec("plugin_list_available", "plugin.list_available", "plugin", "List indexed plugins with loadable paths.", RiskDirect, false, false, false, false),
 		spec("plugin_search", "plugin.search", "plugin", "Search indexed plugins and return loadable candidates.", RiskDirect, false, false, false, false),
