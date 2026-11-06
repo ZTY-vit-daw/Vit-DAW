@@ -1,0 +1,42 @@
+﻿{
+    "probe":  "probe_270",
+    "card":  "SMOKE-ENC-HYGIENE-2",
+    "date":  "2026-11-07 00:19:30",
+    "pre_baseline":  "D:/Vit_DAW/coord/runs/SMOKE-ENC-HYGIENE-2/construct/pre_baseline_run_free_state_d1_smoke.ps1",
+    "post_snapshot":  "D:/Vit_DAW/coord/runs/SMOKE-ENC-HYGIENE-2/construct/postfix_run_free_state_d1_smoke.ps1",
+    "stub_encoding":  "UTF-8 no BOM (byte-level constructed)",
+    "legs":  [
+                 {
+                     "leg":  "leg1_manifest_prefix",
+                     "pass":  true,
+                     "form":  "mojibake_or_wrong_value",
+                     "detail":  "got=[D:/宸ョ▼妗?鏍蜂緥_娣烽煶_娴嬭瘯.json] expected=[D:/工程桁/样例_混音_测试.json]"
+                 },
+                 {
+                     "leg":  "leg2_manifest_postfix",
+                     "pass":  true,
+                     "form":  "clean_parse",
+                     "detail":  "got=[D:/工程桁/样例_混音_测试.json] expected=[D:/工程桁/样例_混音_测试.json]"
+                 },
+                 {
+                     "leg":  "leg3_reason_prefix",
+                     "pass":  true,
+                     "form":  "mojibake_or_wrong_value",
+                     "detail":  "got=[棰勭畻涓婇檺宸插埌锛氱 2 杞湭閫氳繃] expected=[预算上限已到：第 2 轮未通过]"
+                 },
+                 {
+                     "leg":  "leg4_reason_postfix",
+                     "pass":  true,
+                     "form":  "clean_parse",
+                     "detail":  "got=[预算上限已到：第 2 轮未通过] expected=[预算上限已到：第 2 轮未通过]"
+                 },
+                 {
+                     "leg":  "leg5_static_encoding_coverage",
+                     "pass":  true,
+                     "form":  "postfix_unencoded=0 prefix_unencoded=2",
+                     "detail":  "total Get-Content lines postfix=7; expected exactly 2 unencoded in pre (268 four + this card two covered by postfix=0)"
+                 }
+             ],
+    "all_pass":  true,
+    "failure_count":  0
+}

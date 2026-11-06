@@ -21,5 +21,7 @@
 ## 领取/回执/验收
 
 - 领取：2026-11-07 / owner=GLM 主会话 freeflash 车道子代理（ZCode GLM-5.3-Flash，PC）/ 领取时 origin/main=8732bd213a901bfa86ef63e857983f2332e15bd8 / 分支=port/smoke-enc-hygiene-2 / worktree=D:/Vit_DAW_wt_270impl
-- （执行侧回填）
+- 回执：2026-11-07 / 实现 commit=4a6c0f9b（port/smoke-enc-hygiene-2，基于领取基线 8732bd21）——`scripts/run_free_state_d1_smoke.ps1` 仅 2 行改动（+2/-2）：:445 LW manifest 读取、:630 NOT_EXERCISED reason 读取各补 `-Encoding UTF8`，断言语义零改动，268 已修四处零回退（行号未漂移，与卡面一致）
+- 构造验证（零真栈零 LLM）：probe_270 attempt3（20261107_001930）**exit 0，5/5 ALL PASS**——leg1/leg3=pre 基线行对 UTF-8 无 BOM 中文桩读取乱码实证（GBK CP936 误读形态），leg2/leg4=post 行 clean_parse 逐字节正确读回（try/catch 同脚本 :629-:633 原形制），leg5=静态扫描 post 快照 7 处 Get-Content 全带 -Encoding（268 四处+本卡两处零回退全覆盖，268 leg1 形制由 leg2/4 同构覆盖未重做）；第三处同族=无（全文件扫描）。工件：coord/runs/SMOKE-ENC-HYGIENE-2/construct/（RESULTS.md 证据链+probe_270.ps1+pre/post 快照+attempt1/2 失败留档+attempt3 全套）
+- 执行侧自验完成 → done（待主管验收；本卡零真栈构造验证，无需真栈烟测；attempt1=提取 pattern 歧义、attempt2=桩漏最外层 `}`，均为 probe/桩面问题已留档，非被测脚本问题）
 - （主管回填）

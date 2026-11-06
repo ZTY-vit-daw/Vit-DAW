@@ -1,0 +1,11 @@
+[probe] pre  :445 line: $lwManifest = Get-Content -LiteralPath $PublicManifest -Raw | ConvertFrom-Json
+[probe] post :445 line: $lwManifest = Get-Content -LiteralPath $PublicManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+[probe] pre  :630 line: $notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw) | ConvertFrom-Json).reason
+[probe] post :630 line: $notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw -Encoding UTF8) | ConvertFrom-Json).reason
+[PASS] leg1_manifest_prefix  form=parse_throw(ArgumentException)  got=[] expected=[D:/囊程桁/样例_混音_测试.json]
+[FAIL] leg2_manifest_postfix  form=parse_throw(ArgumentException)  got=[] expected=[D:/囊程桁/样例_混音_测试.json]
+[PASS] leg3_reason_prefix  form=mojibake_or_wrong_value  got=[棰勭畻涓婇檺宸插埌锛氱 2 杞湭閫氳繃] expected=[预算上限已到：第 2 轮未通过]
+[PASS] leg4_reason_postfix  form=clean_parse  got=[预算上限已到：第 2 轮未通过] expected=[预算上限已到：第 2 轮未通过]
+[PASS] leg5_static_encoding_coverage  form=postfix_unencoded=0 prefix_unencoded=2  total Get-Content lines postfix=7; expected exactly 2 unencoded in pre (268 four + this card two covered by postfix=0)
+[probe] summary: D:\Vit_DAW\coord\runs\SMOKE-ENC-HYGIENE-2\construct\attempt2_20261107_001612\probe_270_summary.json
+[probe] FAILED legs: leg2_manifest_postfix
