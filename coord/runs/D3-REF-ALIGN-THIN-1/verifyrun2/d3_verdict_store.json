@@ -1,0 +1,33 @@
+{
+  "schema_version": "ref_align_verdicts.v0",
+  "updated_at": "2026-11-06T17:36:56.2278657Z",
+  "checks_total": 1,
+  "verdicts": [
+    {
+      "key": "vitproj_b3f2838183d64add9ca7824b8b3ac557|6|aligned",
+      "project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+      "project_revision": "6",
+      "verdict_kind": "aligned",
+      "verdict": {
+        "schema_version": "ref_align_verdicts.v0",
+        "verdict": "aligned",
+        "profile_id": "builtin:spotify",
+        "profile_basis": "intent_named",
+        "measurement_grade": "approximate",
+        "band_max_lufs": -14,
+        "true_peak_max_dbtp": -1,
+        "measured_clips": 19,
+        "peak_check": "no_breach_seen",
+        "lw_verdict": "pass",
+        "summary": "参考标准 builtin:spotify（意图点名（一次性判断，未写绑定）；integrated band ≤ -14.0 LUFS，true peak ≤ -1.0 dBTP）。近似口径结论：已测 19 载体均在目标带内（未见越界）。"
+      },
+      "trigger_kind": "d3_ref_align",
+      "trigger_ref": "cap_v1_d1d3_conv_d3_check_20261107_013013_1",
+      "recorded_at": "2026-11-06T17:36:56.2278657Z",
+      "gap_count": 0,
+      "measured_clips": 19,
+      "profile_id": "builtin:spotify",
+      "profile_basis": "intent_named"
+    }
+  ]
+}
