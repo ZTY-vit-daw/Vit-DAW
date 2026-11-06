@@ -178,7 +178,22 @@ func enforceModelLayerBudgets(snapshot map[string]any, hotSections, warmSections
 			degradable = append(degradable, section)
 		}
 	}
+	// D1-DISCLOSURE-FORENSICS-1 (verifyrun1 form): the observation ledger is the
+	// model's only durable cross-turn observation memory ([system, rebuilt-user]
+	// message pairs carry no assistant history), and during active observation
+	// it is chronically the largest warm section — largest-first degradation
+	// stubbed it to a cold ref exactly when the proposal face needed the
+	// disclosed track bindings, leaving the model no visible track id for the
+	// proposal target. Durable evidence memory degrades last; process metadata
+	// (goal trace summary, catalog ref, recent goal context) yields first under
+	// the same budget, marker and fail-closed overflow semantics. The ledger
+	// still degrades on its own when everything else already yielded and it
+	// alone exceeds the warm budget.
 	sort.SliceStable(degradable, func(i, j int) bool {
+		ti, tj := ledgerDegradeTier(degradable[i]), ledgerDegradeTier(degradable[j])
+		if ti != tj {
+			return ti < tj
+		}
 		return modelJSONSize(snapshot[degradable[i]]) > modelJSONSize(snapshot[degradable[j]])
 	})
 	markers := []map[string]any{}
@@ -227,6 +242,16 @@ func enforceModelLayerBudgets(snapshot map[string]any, hotSections, warmSections
 		return markers, true
 	}
 	return markers, false
+}
+
+// ledgerDegradeTier ranks a degradable section's degradation order: the
+// observation ledger (tier 1) degrades after every other degradable section
+// (tier 0) regardless of relative size.
+func ledgerDegradeTier(section string) int {
+	if section == "observation_ledger" {
+		return 1
+	}
+	return 0
 }
 
 func modelLayerSectionBytes(snapshot map[string]any, sections []string) map[string]int {

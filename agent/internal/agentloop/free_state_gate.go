@@ -455,14 +455,91 @@ func gateG6(state *runState) bool {
 	return false
 }
 
+// freeStateRevisionNewer reports whether revision a is strictly newer than
+// revision b under the kernel's monotonic revision counters. Non-numeric
+// values never compare as newer (conservative: unparseable revisions fall
+// back to the tracked baseline and the gate keeps its fail-closed verdict).
+func freeStateRevisionNewer(a, b string) bool {
+	a, b = strings.TrimSpace(a), strings.TrimSpace(b)
+	if a == "" || b == "" || a == b {
+		return false
+	}
+	aNum, aErr := strconv.ParseUint(a, 10, 64)
+	bNum, bErr := strconv.ParseUint(b, 10, 64)
+	if aErr != nil || bErr != nil {
+		return false
+	}
+	return aNum > bNum
+}
+
+// freeStateClosureRevisionSuperseded reports whether the closure's superseded
+// set (governed-mutation history the tracked revision already replaced) covers
+// a revision; a superseded revision never advances the admission baseline.
+func freeStateClosureRevisionSuperseded(closure map[string]any, revision string) bool {
+	if len(closure) == 0 || revision == "" {
+		return false
+	}
+	superseded := messageLoopMapValue(closure["superseded_project_revisions"])
+	_, present := superseded[strings.TrimSpace(revision)]
+	return present
+}
+
+// freeStateAdmissionRequiredRevision returns the project revision G7 requires
+// proposal evidence refs to be bound to. The closure's tracked revision is the
+// baseline, but the closure only reconciles revision drift at request entry
+// (chat/audio_closure_controller.go prepareAudioClosureContext); a mid-request
+// external writer (D1-DISCLOSURE-FORENSICS-1 verifyrun2 form: a concurrent PCA
+// certification's guard-track add/delete churned the revision) leaves the
+// tracked revision frozen behind the authoritative project state, and evidence
+// taken at the real current revision can never match the frozen one — an
+// unsatisfiable admission. Kernel-minted ledger receipts at a strictly newer
+// revision prove the drift: with no active capability pinning the tracked
+// revision and no supersede booking, the newest receipt revision becomes the
+// admission baseline. Evidence older than that baseline still fails
+// fail-closed, exactly as before.
+func freeStateAdmissionRequiredRevision(state *runState) string {
+	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
+	closureRevision := strings.TrimSpace(firstMapText(closure, "project_revision"))
+	if closureRevision == "" {
+		return ""
+	}
+	if len(messageLoopMapValue(closure["active_capability"])) > 0 {
+		return closureRevision
+	}
+	ledger := messageLoopMapValue(messageLoopFreeStateContext(state)["observation_ledger"])
+	newest := ""
+	for _, row := range messageLoopMapRows(ledger["receipts"]) {
+		if len(row) == 0 {
+			continue
+		}
+		revision := firstNonEmpty(firstMapText(row, "project_revision"),
+			firstMapText(messageLoopMapValue(row["freshness"]), "project_revision"))
+		if revision == "" || freeStateClosureRevisionSuperseded(closure, revision) {
+			continue
+		}
+		if newest == "" {
+			if freeStateRevisionNewer(revision, closureRevision) {
+				newest = revision
+			}
+			continue
+		}
+		if freeStateRevisionNewer(revision, newest) && freeStateRevisionNewer(revision, closureRevision) {
+			newest = revision
+		}
+	}
+	if newest != "" {
+		return newest
+	}
+	return closureRevision
+}
+
 // gateG7 requires every improvement-proposal evidence ref to resolve to a
 // fresh, revision-bound observation receipt.
 func gateG7(state *runState, evidenceRefs []string) bool {
 	if state == nil || len(evidenceRefs) == 0 {
 		return false
 	}
-	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
-	closureRevision := firstMapText(closure, "project_revision")
+	closureRevision := freeStateAdmissionRequiredRevision(state)
 	if closureRevision == "" {
 		return false
 	}
@@ -879,8 +956,7 @@ func gateG7MissingConditions(state *runState, decision *FreeStateDecision, faile
 	if state == nil {
 		return []FreeStateAdmissionMissingCondition{{GateID: freeStateGateG7, Condition: "gate_state_unavailable", Binding: binding}}
 	}
-	closure := messageLoopMapValue(state.input.Context["minimal_audio_closure"])
-	closureRevision := firstMapText(closure, "project_revision")
+	closureRevision := freeStateAdmissionRequiredRevision(state)
 	if closureRevision == "" {
 		return []FreeStateAdmissionMissingCondition{{GateID: freeStateGateG7, Condition: "closure_revision_missing", Freshness: "minimal_audio_closure.project_revision is empty", Binding: binding}}
 	}

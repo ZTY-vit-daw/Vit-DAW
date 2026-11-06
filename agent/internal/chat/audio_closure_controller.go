@@ -716,6 +716,50 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		// merely because this Result has no Executed projection.
 		observations = appendUniqueFreeStateObservations(observations, freeStateLedgerObservations(loop.ObservationLedger))
 	}
+	// D1-DISCLOSURE-FORENSICS-1 (verifyrun2 form): an external writer can
+	// advance the authoritative project revision mid-request (a concurrent
+	// PCA certification's guard-track add/delete churned 2→3→4), and the
+	// closure only reconciles revision drift at request entry. Recording the
+	// then-fresh observation hit the cross-revision guard and settled the
+	// closure dead ("observation belongs to a different project revision")
+	// while the admission gate simultaneously judged the same evidence
+	// unsatisfiable against the frozen tracked revision. A strictly newer
+	// kernel-minted observation revision means the tracked revision lags the
+	// project, not that the evidence is stale: heal once to the newest such
+	// revision before recording (the request-entry revalidation applied at the
+	// drift's detection point). The revision fold empties prior-revision
+	// evidence and closes the in-flight round by design; re-admit so the
+	// post-drift evidence books into the fresh round, and skip the pass's
+	// pre-drift rows below instead of feeding them to the settle guard. The
+	// parked-judgment and post-action boundaries keep their own settle
+	// semantics and never heal.
+	healedRevision := ""
+	if !parkedAtJudgmentBoundary && !postActionObservationRequired {
+		for _, observation := range observations {
+			if observation == nil {
+				continue
+			}
+			key := audioClosureObservationKey(current, observation, requestContext)
+			if audioClosureObservationRevisionHeals(current, key.ProjectRevision) &&
+				(healedRevision == "" || audioClosureRevisionGreater(key.ProjectRevision, healedRevision)) {
+				healedRevision = strings.TrimSpace(key.ProjectRevision)
+			}
+		}
+	}
+	if healedRevision != "" {
+		healed, _, healErr := driver.RevalidateProjectRevision(current, current.Revision, healedRevision, time.Now().UTC())
+		if healErr != nil {
+			return current, healErr
+		}
+		current = healed
+		// The revision fold closes the in-flight round; re-admit so the fresh
+		// post-drift evidence books into the new round.
+		readmitted, _, admitErr := driver.AdmitRound(current, current.Revision, time.Now().UTC())
+		if admitErr != nil {
+			return current, admitErr
+		}
+		current = readmitted
+	}
 	for _, observation := range observations {
 		if observation == nil || current.Terminal() {
 			continue
@@ -770,6 +814,14 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 			}
 			current = next
 			break
+		}
+		// Pre-drift evidence superseded by this pass's revision heal: the fold
+		// already invalidated its booked counterparts, so skip it rather than
+		// feed the cross-revision guard a settle. Without a heal this pass the
+		// guard's non-parked settle semantics stay verbatim
+		// (FIX-SETTLE-PARK-REPLAY-RACE-1 nail ③).
+		if healedRevision != "" && key.ProjectRevision != current.ProjectRevision {
+			continue
 		}
 		var outcome audioclosure.ObservationOutcome
 		var err error
@@ -891,6 +943,40 @@ func (s *Server) recordAudioClosureRound(state audioclosure.State, res agentloop
 		s.settleAudioClosureOwner(current)
 	}
 	return current, nil
+}
+
+// audioClosureObservationRevisionHeals reports whether an observation key's
+// project revision may heal the closure's tracked revision before recording:
+// strictly newer (the kernel's revision counters are monotonic), not a
+// superseded governed-mutation booking, and no active capability pinning the
+// tracked revision. Parked-judgment and post-action-debt boundaries never
+// reach this predicate (their skip filters own those settle semantics).
+func audioClosureObservationRevisionHeals(state audioclosure.State, observationRevision string) bool {
+	observationRevision = strings.TrimSpace(observationRevision)
+	tracked := strings.TrimSpace(state.ProjectRevision)
+	if observationRevision == "" || tracked == "" || observationRevision == tracked {
+		return false
+	}
+	if state.SupersededProjectRevisions[observationRevision] || state.ActiveCapability != nil {
+		return false
+	}
+	return audioClosureRevisionGreater(observationRevision, tracked)
+}
+
+// audioClosureRevisionGreater reports whether revision a sorts numerically
+// above revision b; unparseable or empty values never compare greater
+// (conservative: non-numeric revisions keep the guard's settle semantics).
+func audioClosureRevisionGreater(a, b string) bool {
+	a, b = strings.TrimSpace(a), strings.TrimSpace(b)
+	if a == "" || b == "" || a == b {
+		return false
+	}
+	aNum, aErr := strconv.ParseUint(a, 10, 64)
+	bNum, bErr := strconv.ParseUint(b, 10, 64)
+	if aErr != nil || bErr != nil {
+		return false
+	}
+	return aNum > bNum
 }
 
 func audioClosureHasObservationID(state audioclosure.State, observationID string) bool {
