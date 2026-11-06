@@ -92,6 +92,12 @@ func TestMain(m *testing.M) {
 	if draftRoot != "" {
 		_ = os.RemoveAll(draftRoot)
 	}
+	// CHAT-TEST-ISOLATION-1 G1: anything that still resolved the mixboard
+	// default root while unbound (late goroutines outliving their test's
+	// t.Setenv restoration) lands under the pid-scoped vit-daw-unbound dir —
+	// process-own residue only, so sweep it instead of leaving files that a
+	// later round's must-not-exist assertions could trip over.
+	_ = os.RemoveAll(filepath.Join(os.TempDir(), "vit-daw-unbound", fmt.Sprint(os.Getpid())))
 	os.Exit(code)
 }
 

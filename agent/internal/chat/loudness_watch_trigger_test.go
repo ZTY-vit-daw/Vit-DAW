@@ -260,6 +260,7 @@ func TestSettleWithEnabledWatchRecordsVerdict(t *testing.T) {
 func TestProjectChangeHookFiresOnLoopContextAssembly(t *testing.T) {
 	projectstore.Deactivate()
 	t.Cleanup(projectstore.Deactivate)
+	isolateUnboundMixboardRootForTest(t)
 
 	fake := &fakeWatchHook{}
 	server := &Server{harness: harness.New(nil, nil, nil)}
@@ -302,6 +303,7 @@ func TestProjectChangeHookFiresOnLoopContextAssembly(t *testing.T) {
 func TestProjectChangeHookSilentWithoutChange(t *testing.T) {
 	projectstore.Deactivate()
 	t.Cleanup(projectstore.Deactivate)
+	isolateUnboundMixboardRootForTest(t)
 
 	fake := &fakeWatchHook{}
 	server := &Server{harness: harness.New(nil, nil, nil)}
@@ -330,6 +332,7 @@ func TestProjectChangeHookSilentWithoutChange(t *testing.T) {
 func TestConfigureRoutesThroughChatHandler(t *testing.T) {
 	projectstore.Deactivate()
 	t.Cleanup(projectstore.Deactivate)
+	isolateUnboundMixboardRootForTest(t)
 
 	server := &Server{harness: harness.New(nil, nil, nil)}
 	hook := server.loudnessWatchHook()

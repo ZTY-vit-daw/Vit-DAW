@@ -1,0 +1,2 @@
+ok  	vit-daw-agent/internal/chat	141.332s
+EXIT=0

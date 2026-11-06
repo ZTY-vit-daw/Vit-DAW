@@ -1,0 +1,4 @@
+=== RUN   TestV2ProjectStoreSurvivesRestartAndContinues
+--- PASS: TestV2ProjectStoreSurvivesRestartAndContinues (0.15s)
+PASS
+ok  	vit-daw-agent/internal/harness	0.291s

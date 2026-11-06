@@ -1,0 +1,158 @@
+diff --git a/agent/internal/chat/free_state_conclusion_bridge_test.go b/agent/internal/chat/free_state_conclusion_bridge_test.go
+index f9228f24..7d4660d2 100644
+--- a/agent/internal/chat/free_state_conclusion_bridge_test.go
++++ b/agent/internal/chat/free_state_conclusion_bridge_test.go
+@@ -64,6 +64,16 @@ func TestRecordFreeStateSettlementPersistsAcrossSessions(t *testing.T) {
+ 	server.recordFreeStateSettlement(loop, mixboard.FreeStateConclusionKindExperimentSettle, "improved", "user preferred B; treatment candidate retained",
+ 		&mixboard.FreeStateJudgmentOutcome{EvidenceID: "evid-1", Preference: "b", HeardDifference: "yes"}, "")
+ 
++	// The conclusion write routes through the process-global projectstore
++	// binding (mixboard.NewStore("") -> DefaultRoot). A foreign async
++	// Activate between this test's Activate and the write would redirect the
++	// write and surface as the confusing "conclusion dir not created" below;
++	// pin the binding so any drift fails with its actual cause instead
++	// (CHAT-TEST-ISOLATION-1 G2 order-sensitivity hardening).
++	if current, ok := projectstore.Current(); !ok || current.Agent != roots.Agent {
++		t.Fatalf("projectstore binding drifted mid-test: got %+v (ok=%t), want agent root %s", current, ok, roots.Agent)
++	}
++
+ 	// The record lands in the project-keyed conclusion directory beside the
+ 	// decision ledger, not in a conversation-keyed location.
+ 	conclusionDir := filepath.Join(roots.Agent, "mixboard", "decisions", "free_state_conclusions")
+diff --git a/agent/internal/chat/loudness_watch_persist_race_test.go b/agent/internal/chat/loudness_watch_persist_race_test.go
+index 0a39dcaa..0697b5be 100644
+--- a/agent/internal/chat/loudness_watch_persist_race_test.go
++++ b/agent/internal/chat/loudness_watch_persist_race_test.go
+@@ -89,6 +89,7 @@ func assertLoudnessWatchEnabledForTest(t *testing.T, s *Server, want bool, label
+ // the continuation scheduler's durable-snapshot replay. The replay must not
+ // resurrect the stale enabled=true, and the following persist must keep false.
+ func TestLoudnessWatchExplicitOffSurvivesSchedulerDiskReplay(t *testing.T) {
++	isolateUnboundMixboardRootForTest(t)
+ 	s := newChatServerForTest(t, nil, nil, nil)
+ 	dir := t.TempDir()
+ 	const projectUUID = "vitproj_lw_explicit_off_replay"
+@@ -146,6 +147,7 @@ func TestLoudnessWatchExplicitConfigSurvivesDeferredSyncAfterReplay(t *testing.T
+ 	}
+ 	for _, tc := range cases {
+ 		t.Run(tc.name, func(t *testing.T) {
++			isolateUnboundMixboardRootForTest(t)
+ 			s := newChatServerForTest(t, nil, nil, nil)
+ 			dir := t.TempDir()
+ 			const projectUUID = "vitproj_lw_explicit_defer"
+diff --git a/agent/internal/chat/loudness_watch_state_test.go b/agent/internal/chat/loudness_watch_state_test.go
+index 1750e423..4a42d931 100644
+--- a/agent/internal/chat/loudness_watch_state_test.go
++++ b/agent/internal/chat/loudness_watch_state_test.go
+@@ -29,6 +29,7 @@ func loudnessWatchConfigCopyForTest(config loudnesswatch.Config) *loudnesswatch.
+ // at zero, and the persisted form must not gain the key (zero behavior change,
+ // AGENTS.md §11).
+ func TestLoudnessWatchAbsentFieldRestoresDisabled(t *testing.T) {
++	isolateUnboundMixboardRootForTest(t)
+ 	restarted := New(nil, nil, nil)
+ 	restarted.mu.Lock()
+ 	restarted.restoreProjectAgentRuntimeStateLocked(projectAgentRuntimeState{})
+@@ -64,6 +65,7 @@ func TestLoudnessWatchAbsentFieldRestoresDisabled(t *testing.T) {
+ // trip -> restore on a fresh server -> read back equal, including the custom
+ // pointer thresholds.
+ func TestLoudnessWatchConfigRoundTripThroughRestore(t *testing.T) {
++	isolateUnboundMixboardRootForTest(t)
+ 	server := New(nil, nil, nil)
+ 	resp := server.invokeLoudnessWatchConfigure(map[string]any{
+ 		"enabled":        true,
+@@ -126,6 +128,7 @@ func TestLoudnessWatchInvalidRecordsDropAndCount(t *testing.T) {
+ 
+ 	for name, record := range map[string]loudnesswatch.Config{"bad_schema": badSchema, "bad_trigger": badTrigger, "unknown_builtin": unknownBuiltin} {
+ 		t.Run(name, func(t *testing.T) {
++			isolateUnboundMixboardRootForTest(t)
+ 			restarted := New(nil, nil, nil)
+ 			restarted.mu.Lock()
+ 			restarted.restoreProjectAgentRuntimeStateLocked(projectAgentRuntimeState{LoudnessWatchConfig: loudnessWatchConfigCopyForTest(record)})
+@@ -159,6 +162,7 @@ func TestLoudnessWatchInvalidRecordsDropAndCount(t *testing.T) {
+ // Test ⑥ (card acceptance list, chat half): realtime mode survives the round
+ // trip and the status face discloses the honest unavailable reason.
+ func TestLoudnessWatchRealtimeStatusDisclosure(t *testing.T) {
++	isolateUnboundMixboardRootForTest(t)
+ 	server := New(nil, nil, nil)
+ 	resp := server.invokeLoudnessWatchConfigure(map[string]any{
+ 		"enabled":        true,
+@@ -201,6 +205,7 @@ func TestLoudnessWatchRealtimeStatusDisclosure(t *testing.T) {
+ // Configure face: partial merge, fail-closed rejections, and the returned
+ // effective config.
+ func TestLoudnessWatchConfigureFace(t *testing.T) {
++	isolateUnboundMixboardRootForTest(t)
+ 	server := New(nil, nil, nil)
+ 	if resp := server.invokeLoudnessWatchConfigure(map[string]any{"enabled": true}); resp.Status != "error" {
+ 		t.Fatalf("enabled-only on an empty config has no profile source and must fail closed: %+v", resp)
+diff --git a/agent/internal/chat/loudness_watch_trigger_test.go b/agent/internal/chat/loudness_watch_trigger_test.go
+index dab364b3..c984cb7f 100644
+--- a/agent/internal/chat/loudness_watch_trigger_test.go
++++ b/agent/internal/chat/loudness_watch_trigger_test.go
+@@ -260,6 +260,7 @@ func TestSettleWithEnabledWatchRecordsVerdict(t *testing.T) {
+ func TestProjectChangeHookFiresOnLoopContextAssembly(t *testing.T) {
+ 	projectstore.Deactivate()
+ 	t.Cleanup(projectstore.Deactivate)
++	isolateUnboundMixboardRootForTest(t)
+ 
+ 	fake := &fakeWatchHook{}
+ 	server := &Server{harness: harness.New(nil, nil, nil)}
+@@ -302,6 +303,7 @@ func TestProjectChangeHookFiresOnLoopContextAssembly(t *testing.T) {
+ func TestProjectChangeHookSilentWithoutChange(t *testing.T) {
+ 	projectstore.Deactivate()
+ 	t.Cleanup(projectstore.Deactivate)
++	isolateUnboundMixboardRootForTest(t)
+ 
+ 	fake := &fakeWatchHook{}
+ 	server := &Server{harness: harness.New(nil, nil, nil)}
+@@ -330,6 +332,7 @@ func TestProjectChangeHookSilentWithoutChange(t *testing.T) {
+ func TestConfigureRoutesThroughChatHandler(t *testing.T) {
+ 	projectstore.Deactivate()
+ 	t.Cleanup(projectstore.Deactivate)
++	isolateUnboundMixboardRootForTest(t)
+ 
+ 	server := &Server{harness: harness.New(nil, nil, nil)}
+ 	hook := server.loudnessWatchHook()
+diff --git a/agent/internal/chat/server_test.go b/agent/internal/chat/server_test.go
+index fe7406aa..272789f1 100644
+--- a/agent/internal/chat/server_test.go
++++ b/agent/internal/chat/server_test.go
+@@ -92,6 +92,12 @@ func TestMain(m *testing.M) {
+ 	if draftRoot != "" {
+ 		_ = os.RemoveAll(draftRoot)
+ 	}
++	// CHAT-TEST-ISOLATION-1 G1: anything that still resolved the mixboard
++	// default root while unbound (late goroutines outliving their test's
++	// t.Setenv restoration) lands under the pid-scoped vit-daw-unbound dir —
++	// process-own residue only, so sweep it instead of leaving files that a
++	// later round's must-not-exist assertions could trip over.
++	_ = os.RemoveAll(filepath.Join(os.TempDir(), "vit-daw-unbound", fmt.Sprint(os.Getpid())))
+ 	os.Exit(code)
+ }
+ 
+diff --git a/agent/internal/chat/server_test_helpers_test.go b/agent/internal/chat/server_test_helpers_test.go
+index 2c0c9360..f1c74c06 100644
+--- a/agent/internal/chat/server_test_helpers_test.go
++++ b/agent/internal/chat/server_test_helpers_test.go
+@@ -9,6 +9,23 @@ import (
+ 	"vit-daw-agent/internal/shadow"
+ )
+ 
++// isolateUnboundMixboardRootForTest pins the mixboard default-root fallback to
++// a throwaway per-test directory (CHAT-TEST-ISOLATION-1 G1). The loudness-watch
++// machinery (loudnessWatchVerdictStorePath, feature snapshot reads) resolves
++// through mixboard.DefaultRoot; without a bound projectstore that fallback is
++// the process-global %TEMP%/vit-daw-unbound/<pid> location — one shared file
++// for every test in the binary, order-sensitive and residue-carrying. The
++// VIT_MIXBOARD_ROOT override wins over the projectstore binding in DefaultRoot,
++// so tests that assert on the activated store's own roots must NOT use this
++// helper; it is for tests that exercise watcher/configure faces without
++// activating a projectstore.
++func isolateUnboundMixboardRootForTest(t *testing.T) string {
++	t.Helper()
++	root := t.TempDir()
++	t.Setenv("VIT_MIXBOARD_ROOT", root)
++	return root
++}
++
+ // newChatServerForTest 构造测试专用 Server，并根治 Windows 下 t.TempDir()
+ // 清理竞态族（FIX-CHAT-TMPDIR-FLAKE-1）：测试函数返回后 t.TempDir() 的
+ // RemoveAll 会与 Server 后台 goroutine（continuation scheduler 的 250ms

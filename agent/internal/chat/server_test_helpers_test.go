@@ -9,6 +9,23 @@ import (
 	"vit-daw-agent/internal/shadow"
 )
 
+// isolateUnboundMixboardRootForTest pins the mixboard default-root fallback to
+// a throwaway per-test directory (CHAT-TEST-ISOLATION-1 G1). The loudness-watch
+// machinery (loudnessWatchVerdictStorePath, feature snapshot reads) resolves
+// through mixboard.DefaultRoot; without a bound projectstore that fallback is
+// the process-global %TEMP%/vit-daw-unbound/<pid> location — one shared file
+// for every test in the binary, order-sensitive and residue-carrying. The
+// VIT_MIXBOARD_ROOT override wins over the projectstore binding in DefaultRoot,
+// so tests that assert on the activated store's own roots must NOT use this
+// helper; it is for tests that exercise watcher/configure faces without
+// activating a projectstore.
+func isolateUnboundMixboardRootForTest(t *testing.T) string {
+	t.Helper()
+	root := t.TempDir()
+	t.Setenv("VIT_MIXBOARD_ROOT", root)
+	return root
+}
+
 // newChatServerForTest 构造测试专用 Server，并根治 Windows 下 t.TempDir()
 // 清理竞态族（FIX-CHAT-TMPDIR-FLAKE-1）：测试函数返回后 t.TempDir() 的
 // RemoveAll 会与 Server 后台 goroutine（continuation scheduler 的 250ms
