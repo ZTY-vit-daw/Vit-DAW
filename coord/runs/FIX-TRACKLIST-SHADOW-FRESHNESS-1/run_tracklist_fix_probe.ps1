@@ -144,7 +144,9 @@ $hubProc = $null
 $kernelPid = $null
 $agentPid = $null
 $hubPid = $null
-$RunDir = ""
+# SMOKE-SCRIPT-HYGIENE-1 (260): no `$RunDir = ""` re-init here — the param()
+# default already provides it, and clearing it unconditionally discarded a
+# caller-passed -RunDir (255 MOVE-NOTE forensics). The parameter is authoritative.
 
 try {
     Write-Step "Preflight: ports and processes (AGENTS.md section 9 / PC-RUNTIME-STACK)"

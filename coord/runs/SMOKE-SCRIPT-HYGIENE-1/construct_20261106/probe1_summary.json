@@ -1,0 +1,23 @@
+﻿[
+    {
+        "leg":  "legA_prefix_failstub",
+        "exit_code":  0,
+        "throw_line":  false,
+        "stub_repo":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe1_f4542420e851454ab07c60165857d28d\\stubA_prefix_fail",
+        "console_path":  "D:\\Vit_DAW_wt_260impl\\coord\\runs\\SMOKE-SCRIPT-HYGIENE-1\\construct_20261106\\legA_prefix_failstub_console.txt"
+    },
+    {
+        "leg":  "legB_postfix_failstub",
+        "exit_code":  1,
+        "throw_line":  true,
+        "stub_repo":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe1_f4542420e851454ab07c60165857d28d\\stubB_postfix_fail",
+        "console_path":  "D:\\Vit_DAW_wt_260impl\\coord\\runs\\SMOKE-SCRIPT-HYGIENE-1\\construct_20261106\\legB_postfix_failstub_console.txt"
+    },
+    {
+        "leg":  "legC_postfix_passstub",
+        "exit_code":  0,
+        "throw_line":  false,
+        "stub_repo":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe1_f4542420e851454ab07c60165857d28d\\stubC_postfix_pass",
+        "console_path":  "D:\\Vit_DAW_wt_260impl\\coord\\runs\\SMOKE-SCRIPT-HYGIENE-1\\construct_20261106\\legC_postfix_passstub_console.txt"
+    }
+]

@@ -4,6 +4,23 @@ This directory contains stable development smoke-test entry points. Keep these
 paths stable so future agent, kernel, and mix-loop work can reuse the same
 commands.
 
+## Smoke-Run Prerequisites (G7, SMOKE-SCRIPT-HYGIENE-1 2026-11-06)
+
+Two preflight requirements for any real-stack smoke leg launched from Git
+Bash or a fresh worktree (AF-FAMILY-HEALTH-1 §1.2: both traps burned a formal
+run attempt with zero stack started and zero LLM cost — caught before the
+stack, but they still waste a round):
+
+1. **Forward-slash paths.** Git Bash swallows unquoted backslashes
+   (`D:\Vit_DAW_wt_257impl` arrives as `D:Vit_DAW_wt_257impl`). Pass every
+   Windows path with forward slashes (`D:/Vit_DAW_wt_257impl`) or quote it
+   (AGENTS.md §5 known trap; 254 armrun1 / 257 batch-1 same form).
+2. **Explicit `-KernelExe`.** Build artifacts (`VitApp.exe`) are gitignored
+   and therefore absent in a fresh worktree. A leg run out of a worktree
+   must pass `-KernelExe <path-to-a-built-kernel>` explicitly (or build
+   first); the launcher default resolves against the checkout's own build
+   tree and fails late otherwise.
+
 ## Draft Root Isolation Contract (Card 144, 2026-10-18)
 
 Every script in this directory that starts the real stack — the VitAgent

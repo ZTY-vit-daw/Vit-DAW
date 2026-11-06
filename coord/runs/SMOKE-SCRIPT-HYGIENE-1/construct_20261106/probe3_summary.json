@@ -1,0 +1,24 @@
+﻿{
+    "leg1_zero_mutation_postfix":  {
+                                       "exit":  0,
+                                       "lw_skip_face":  true,
+                                       "settle_skip_face":  true,
+                                       "branch_skip_lines":  true,
+                                       "pass_tail":  true
+                                   },
+    "leg2_one_mutation_lw":  {
+                                 "exit":  1,
+                                 "gates_ran_honest_fail":  true,
+                                 "throw_present":  true
+                             },
+    "leg3_one_mutation_settle":  {
+                                     "exit":  1,
+                                     "gates_ran_honest_fail":  true,
+                                     "throw_present":  true
+                                 },
+    "leg4_zero_mutation_prefix":  {
+                                      "exit":  1,
+                                      "lw_fail_no_branch_awareness":  true,
+                                      "settle_gates_absent_cut_off":  true
+                                  }
+}

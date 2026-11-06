@@ -1,0 +1,39 @@
+﻿{
+    "runner_exit":  0,
+    "gate_results":  {
+                         "settle_turn":  false,
+                         "d1_node_lit":  false,
+                         "verdict_on_disk":  false,
+                         "action_face":  true
+                     },
+    "schema_version":  "d1_loudness_settle_gates.v0",
+    "report":  {
+                   "verdict_record_on_disk":  false,
+                   "failures":  [
+                                    "D1-SETTLE FAIL: chat stop_reason was \u0027stub_no_settle\u0027 (expected d1_loudness_settled); evidence=C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg3_postfix_one_mutation_settle\\artifacts\\free_state_d1_s1\\20261106_182829\\d1_settle_chat.json",
+                                    "D1-SETTLE FAIL: observation loudness_peak_status was \u0027absent_stub\u0027 (expected present)",
+                                    "D1-SETTLE FAIL: settle payload incomplete (checked=False, config_basis_present=False)",
+                                    "D1-SETTLE FAIL: no d1_settle trigger record found in any loudness_watch verdict store under the project workdir",
+                                    "D1-SETTLE FAIL: D1 queue node state was \u0027\u0027 (expected in_progress or needs_confirmation, not not_started); evidence=C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg3_postfix_one_mutation_settle\\artifacts\\free_state_d1_s1\\20261106_182829\\d1_settle_queue_view.json"
+                                ],
+                   "observation_face":  "absent_stub",
+                   "settle_checked":  false,
+                   "verdict_store_path":  "",
+                   "action_card_kind":  "",
+                   "d1_node_state":  "",
+                   "mutation_performed":  "False",
+                   "config_basis_present":  false,
+                   "cancel_stop_reason":  "",
+                   "verdict_kind":  "stub",
+                   "chat_stop_reason":  "stub_no_settle"
+               },
+    "run_stamp":  "20261106_182829",
+    "failures":  [
+                     "D1-SETTLE FAIL: chat stop_reason was \u0027stub_no_settle\u0027 (expected d1_loudness_settled); evidence=C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg3_postfix_one_mutation_settle\\artifacts\\free_state_d1_s1\\20261106_182829\\d1_settle_chat.json",
+                     "D1-SETTLE FAIL: observation loudness_peak_status was \u0027absent_stub\u0027 (expected present)",
+                     "D1-SETTLE FAIL: settle payload incomplete (checked=False, config_basis_present=False)",
+                     "D1-SETTLE FAIL: no d1_settle trigger record found in any loudness_watch verdict store under the project workdir",
+                     "D1-SETTLE FAIL: D1 queue node state was \u0027\u0027 (expected in_progress or needs_confirmation, not not_started); evidence=C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg3_postfix_one_mutation_settle\\artifacts\\free_state_d1_s1\\20261106_182829\\d1_settle_queue_view.json"
+                 ],
+    "conversation":  "conv_d1_settle_20261106_182829"
+}

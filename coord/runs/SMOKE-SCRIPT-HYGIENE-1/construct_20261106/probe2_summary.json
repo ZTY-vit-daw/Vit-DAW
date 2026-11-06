@@ -1,0 +1,23 @@
+﻿{
+    "legA":  {
+                 "exit":  1,
+                 "passed_dir_created":  false,
+                 "default_dirs_instead":  1
+             },
+    "legB":  {
+                 "exit":  1,
+                 "passed_dir_created":  true,
+                 "run_meta_inside":  true,
+                 "teardown_inside":  true,
+                 "console_names_dir":  true
+             },
+    "legC":  {
+                 "exit":  1,
+                 "default_dirs_created":  true
+             },
+    "legD":  {
+                 "exit":  0,
+                 "run_dirs_after":  0,
+                 "preflight_ok_line":  true
+             }
+}

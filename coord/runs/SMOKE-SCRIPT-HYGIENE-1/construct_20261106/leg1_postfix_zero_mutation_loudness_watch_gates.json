@@ -1,0 +1,35 @@
+﻿{
+    "schema_version":  "loudness_watch_d1_gates.v0",
+    "failures":  [
+
+                 ],
+    "phase_reachable":  false,
+    "d1_branch":  "zero_mutation_boundary",
+    "setup":  {
+                  "configure_ok":  true,
+                  "project_poll_seconds":  0,
+                  "prepared":  true,
+                  "config_digest":  "stubdigest260",
+                  "runner_stdout_log":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg1_postfix_zero_mutation\\artifacts\\free_state_d1_s1\\20261106_182823\\runner_stdout.log",
+                  "agent_sha256":  "unavailable",
+                  "agent_exe":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg1_postfix_zero_mutation\\agent\\bin\\VitAgent.exe",
+                  "kernel_exe":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg1_postfix_zero_mutation\\kernel_dummy.exe",
+                  "ui_port_wait_seconds":  30,
+                  "enabled":  true,
+                  "kernel_sha256":  "460406332A479A201D76E0C66A77F5A91DF6233BD8AB3ED3FF95A4FE00ADF098",
+                  "config_error":  "",
+                  "project_path_seen":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit260_probe3_4a61c3b602534c84bc7af31ad18f5454\\leg1_postfix_zero_mutation\\artifacts\\free_state_d1_s1\\20261106_182823\\project\\case.vit",
+                  "project_open_ok":  true
+              },
+    "gate_results":  {
+                         "a4_zero_markers":  "skipped_branch_unreachable",
+                         "verdict_store_round_trigger":  "skipped_branch_unreachable",
+                         "e1_samples":  "skipped_branch_unreachable",
+                         "dedupe":  "skipped_branch_unreachable",
+                         "config_off_silent":  "skipped_branch_unreachable",
+                         "disclosure":  "skipped_branch_unreachable"
+                     },
+    "run_stamp":  "20261106_182823",
+    "runner_exit":  0,
+    "skip_reason":  "zero_mutation_boundary: the watch hook registers lazily and only on a trigger (T3 project_change after the applied action / T1 settle); this round applied nothing, fired no trigger, and the LW gates are structurally unreachable on this branch"
+}

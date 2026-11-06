@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "selected_domains": [
+    "reverb"
+  ],
+  "stub": true,
+  "validation": {
+    "status": "pass",
+    "action_domain": "reverb",
+    "forward_mutation_count": 1
+  }
+}
