@@ -442,7 +442,7 @@ if ($LoudnessWatch) {
     $lwInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
     $lwProjectDir = Join-Path $artifactDir "project"
     try {
-        $lwManifest = Get-Content -LiteralPath $PublicManifest -Raw | ConvertFrom-Json
+        $lwManifest = Get-Content -LiteralPath $PublicManifest -Raw -Encoding UTF8 | ConvertFrom-Json
         $lwCase = @($lwManifest.cases) | Where-Object { [string]$_.public_case_id -eq $PublicCaseId } | Select-Object -First 1
         if ($null -eq $lwCase -or [string]::IsNullOrWhiteSpace([string]$lwCase.project_path)) {
             $lwSetup.config_error = "public case " + $PublicCaseId + " not found in the manifest; watch not configured"
@@ -627,7 +627,7 @@ if ($runnerExit -eq 3) {
     # multi-round budget form and misled the 2026-08-30 nightly triage.
     $notExercisedReason = ""
     try {
-        $notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw) | ConvertFrom-Json).reason
+        $notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw -Encoding UTF8) | ConvertFrom-Json).reason
     }
     catch {
     }
