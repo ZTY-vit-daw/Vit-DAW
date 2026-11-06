@@ -21,4 +21,4 @@
   - 端测边界声明：本卡零真栈口径=卡面定义（构造验证）；桩腿证明脚本层分支调度与判定面产出，不证明真实栈上分支不可达事实（该事实由 258 verifyrun1 真栈工件钉死，本卡在其上做相位门分支化）。probe2 legB/C 以 exit 1 收尾（kernel 桩 3s 听门超时）为桩腿预期形态，RunDir 语义在 kernel 启动前已完全落盘。
   - 文件域偏差披露：卡面写「目标=scripts/ 四处」但第②项目标文件实际在 `coord/runs/FIX-TRACKLIST-SHADOW-FRESHNESS-1/run_tracklist_fix_probe.ps1`（ps1:147 所指），按卡面条目文义执行，diff 中含该文件。
   - 上交观察（域外不修）：`coord/runs/TRACK-LIST-GAP-1/run_tracklist_gap_probe.ps1:147`（139 runner，②复制源）同型 `$RunDir=""` 缺陷——是否追认/另开小卡交决策侧。
-- （主管回填验收）
+- 验收（2026-11-06 晚窗，主管）：**pass**——四处全落地+三 probe 11 腿 ALL PASS（pre-fix 对照可复现=取证质量高）；④分支化=258 裁定①落地（1-mutation 门组体字节零改动亲证），258 挂账脚本面清偿；257 G3/G7 关闭。文件域偏差（②目标文件实在 coord/runs/FIX-TRACKLIST-SHADOW-FRESHNESS-1/）**追认**——发卡侧行号锚点未带全路径（主管发卡瑕疵入账），执行侧按条目文义+主动披露=良性。域外观察（TRACK-LIST-GAP-1 ps1:147 同型）**裁定不修**：历史取证工件目录不改动（取证一致性），复用时再修，known-issue 记录不入池。合入 631b54a2 零冲突。详见 [rulings/2026-11-06-SMOKE-SCRIPT-HYGIENE-1-pass.md](../../rulings/2026-11-06-SMOKE-SCRIPT-HYGIENE-1-pass.md)。

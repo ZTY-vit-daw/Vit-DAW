@@ -16,7 +16,9 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- （执行侧回填）/（执行侧回填）——见下方领取与回执节
+
+- 验收（2026-11-06 晚窗，主管）：**pass**——授权面接通（ensure_full_project_access GET→POST→复核，拒绝即 raise）四腿接线+invoke 零 context+门本体/Go 零改动=门语义零削弱设计正确；真栈 matrixrun1 **PS1_EXIT=0 §5 门槛过**：9 case passed+**门拦截=0**（257 的 9/9 pca_load_gate 清零，G5 关闭）+authority manual→full 亲证（persisted=false 无 workspace 污染）+零 LLM ≈¥0；§8 单 run 兑现+占用/释放/TEARDOWN_ALL_ZERO 全程在档。其余三腿（compressor/limiter/transient）共享模块同修未跑（卡面不强制）——挂账 AF 体检下轮抽查。端测边界声明接受。合入 9e488cd6 零冲突+主管交叉复跑 build 全量 exit 0。详见 [rulings/2026-11-06-MATRIX-LEG-PCA-CONTEXT-1-pass.md](../../rulings/2026-11-06-MATRIX-LEG-PCA-CONTEXT-1-pass.md)。
 
 - 领取：2026-11-06 18:11 +0800 / origin/main=964c8026（发卡基线 929d6cd9 后仅增 259 领取协调提交，chat 测试域与本卡 scripts/*.py 不相交）/ owner=ZCode GLM-5.3 执行会话·PC / 分支 port/matrix-leg-pca-context-1 / worktree D:/Vit_DAW_wt_261impl / 领取提交=本笔（hash 见 git log）
 
