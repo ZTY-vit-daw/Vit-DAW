@@ -35,4 +35,4 @@
   - **指纹恒定 fd94d36a×26 的重定性**：非反馈丢失，而是「请求逐字节不变」（每轮弹回 issue 文本相同+ledger 无新观察+directives 恒定）→ 模型确定性重采样同一回答。**真实缺口**=模型看不到累积弹回史（第 N 次弹回与第 1 次在请求上无差别；History 同时裁掉 assistant 轮，模型看不到自己此前的重复输出）——属新修复面（弹回计数/累积史），超出本卡「修反馈可见性」目标域，**交决策侧裁定是否另开卡**。
   - 测试（全部 exit 0）：`go test ./internal/agentloop -run 'TestMessageLoopBounceFeedbackEntersRebuiltRequest' -count=1`；回归 `go build ./...`、`go test ./internal/chat -count=1`（121s ok）、`go test ./internal/agentloop -count=1`（4.7s ok）零回退。去重门判据与弹回行为零改动（弹回断言在测试内）。
   - 工件：worktree D:/Vit_DAW_wt_267impl @ port/msgloop-feedback-loss-1（claim 96aa9240→test 59c12e68）；本状态提交 @ coord-close-267。零真栈、零 LLM 计费。
-- 验收：（主管回填：裁定关卡或按新事实开「累积弹回史可见性」修订卡）
+- 验收（2026-11-06 深夜前，主管）：**pass（取证型收口）**——前提推翻接受（167 字符逐字符吻合+机制 8 月在库+既有测试锁可见性+真实弹回路径单测零生产改动 PASS=无丢弃点可修）；重定性接受（请求逐字节不变→模型确定性重采样）；**累积弹回史修订卡裁定=挂 262 验证腿读数后**（262-A 注入新信息正是对症路径：验证过→降级 P3 深化项，不过→开修订卡）；90 行回归测试合入锁可见性；下级证据推翻上级发卡前提=良性互动第五笔；发卡侧引用瑕疵入账（取证文件未注明分支位置+代码路径写错包）。详见 [rulings/2026-11-06-MSGLOOP-FEEDBACK-LOSS-1-pass.md](../../rulings/2026-11-06-MSGLOOP-FEEDBACK-LOSS-1-pass.md)。
