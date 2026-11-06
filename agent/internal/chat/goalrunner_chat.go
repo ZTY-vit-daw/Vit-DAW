@@ -4937,6 +4937,14 @@ func agentLoopMidiTools() []string {
 		"midi.create_clip", "midi.insert_clip", "midi.import_file",
 		"midi.apply_note_patch", "midi.write_clip_notes", "midi.read_notes", "midi.read_clip_notes", "midi.read_clip_data",
 		"midi.insert_notes", "midi.delete_notes", "midi.move_notes", "midi.resize_notes", "midi.quantize", "midi.transpose", "midi.set_velocity", "midi.replace_region",
+		// EDU-SYMBOL-CORE-1（276 段 3b，主管裁定 A 扩域）：chat 能力门控轮的
+		// midi 工具白名单——第四处注册面（与 capability_pack.go 的 pack.Tools
+		// 并行的披露允许列表，capabilityPackSummary 求交会遮蔽未在此行的
+		// 工具）。变换关系分析命令必须在场，否则 midi 能力轮（消息含
+		// MIDI/音符/旋律即触发 agentLoopCapabilityNames）永不向模型披露该
+		// 工具，chat 驱动路径不可达（smokerun1 取证：模型诚实申报工具目录
+		// 缺失后停 needs_clarification）。
+		"midi.analyze_transformations",
 		"clip.select",
 	}
 }
