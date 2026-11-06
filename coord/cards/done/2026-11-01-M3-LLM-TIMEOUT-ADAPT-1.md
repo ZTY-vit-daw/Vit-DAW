@@ -67,3 +67,4 @@
 ## 验收
 
 - （主管回填）
+- 验收（2026-11-06 深夜，主管）：**pass**——硬界 1-3600s 回落+红线三语义零改动（测试钉）+ps1 透传；口径四条取舍均接受（telemetry 面不扩=§11 精神）；交叉复跑 llm 包 ok+三包零回退。详见 [rulings/2026-11-06-M3-LLM-TIMEOUT-ADAPT-1-pass.md](../../rulings/2026-11-06-M3-LLM-TIMEOUT-ADAPT-1-pass.md)。
