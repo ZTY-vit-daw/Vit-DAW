@@ -162,6 +162,12 @@ func (s *Server) handlePreMasterObservationRuntime(ctx context.Context, conversa
 	if d1LoudnessSettleIntent(req.Message) {
 		return s.handleD1LoudnessSettle(ctx, conversationID, req, goal, sessionID, state, report)
 	}
+	// D2-STEREO-THIN-1：显式 D2 翻译检查意图在观察报告之上跑 stereo 风险面
+	//（判据 → verdict 落 store → D2 节点点亮；v1 动作面=纯披露，见
+	// d2_stereo_check_runtime.go 文件头）。普通 D1-D3 观察保持只读报告原样。
+	if d2StereoCheckIntent(req.Message) {
+		return s.handleD2StereoCheck(ctx, conversationID, req, goal, sessionID, state, report)
+	}
 	workflowData := map[string]any{
 		"session_id":         sessionID,
 		"capability_id":      premasterObservationCapabilityID,
