@@ -36,7 +36,13 @@
 
 ## 领取
 
-- （执行侧回填：会话/worktree/分支/领取基线 HEAD+status+diff --stat/栈登记）
+- 领取时间：2026-11-06（池序 239 派发执行）
+- 执行 owner：GLM 主会话 flash-worker 子代理（PC 执行会话）
+- 领取基线：origin/main = `7864930a8de2e3a67634e37f8eaa0e63e015502c`（依赖 238=5bbd679c 已在 main ✓）
+- worktree：`D:/Vit_DAW_wt_239impl`（新建，基线 7864930a，工作树干净）
+- 分支：`port/m3-llm-timeout-adapt-1`（基于 origin/main 7864930a）
+- 领取时主仓 `git status --short`：既有改动仅 VitApp/Workspace 设置、coord/runs 工件、.zcode/ 等非本卡文件域文件（原样保留不动）；本卡文件域（`agent/internal/llm/`、`scripts/dev_agent_smoke.ps1`）无预先改动；`git diff --stat` 同源（无本卡文件域 diff）
+- 栈登记：纯适配卡零真栈腿（单测面收口，主管复跑），不占用 PC-RUNTIME-STACK
 
 ## 回执
 
