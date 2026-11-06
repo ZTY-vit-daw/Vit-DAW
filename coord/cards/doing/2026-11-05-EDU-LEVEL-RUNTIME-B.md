@@ -29,7 +29,9 @@
 
 ## 领取
 
-- （执行侧回填）
+- 2026-11-07 / origin/main `0401a6d8` / owner=GLM 主会话 L2-worker 子代理（ZCode，PC）/ 分支 `port/edu-level-runtime-b` / worktree `D:/Vit_DAW_wt_281impl`
+- 领取基线：HEAD=`0401a6d8`；`git status --short` 空；`git diff --stat` 空（净树建枝）
+- 段划分：**段 1=挂载实现+单测+build 零栈先行**（本次领取即开工）；真栈烟测腿候栈——挂载完成先停下回报，等主管调度栈窗口后再派烟测腿指令（266 verifyrun2 占栈中，本卡不自行占栈）
 
 ## 回执
 
