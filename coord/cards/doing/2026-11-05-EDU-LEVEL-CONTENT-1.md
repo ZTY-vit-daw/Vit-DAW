@@ -36,7 +36,14 @@
 
 ## 回执
 
-- （执行侧回填）
+### 先行稿轮（2026-11-06，GLM 主会话 L2-worker 子代理）
+
+- **产物**：[coord/levels/first-run-twinkle/DESIGN-DRAFT-2026-11-06.md](../../levels/first-run-twinkle/DESIGN-DRAFT-2026-11-06.md)（自包含：schema 草案 §1 + 实例素材规格 §2 + 目录提案 §3 + 裁定 18 三锚点映射 §4 + 280 对齐清单 §5 + 开放问题 §6 + 定稿轮差额 §7 + 机械验证附录 A）；实现 commit `30c06198`（@ `port/edu-level-content-1`，已推 origin）；协调 commit（本回执）另推 main。
+- **格式要点**：schema_version=`vit.level_card.v0`；done_when 三叶一阶文法（**判定器只用首版 3 枚举**——本实例 done_when 仅用 note_sequence_match；交互事件/结构谓词另立闭集）；timing 块 bpm+小节起拍显式进卡（257 修订②）；write_boundary 白名单+confirm_downgrade: none（257 修订③，默认不降级）；persona_slot 提示词块级（裁定 19）；finale 块按裁定 18 现文（完成先于导出/三锚点闭合/免问询直通/完成≠停止≠冻结）+budget 止损（§8）。
+- **对齐**：276 检测核可判定字段逐项对齐表（sequence 双语义=Key 开关非请求参数、min≥2、range 半开容差、断言字段族、bar 守门=挂在 n2 后）；280 校验门拒绝路径 12 条 + 新增对齐项 6 条（互引面就绪，待 280 回执互引）。
+- **判定预期机械验证（附录 A）**：以 276 核只读复制（@f2950cd7）离线复算——min 阶梯 30/20/8/6/6；B 窗口 [8,32)+min∈[5,7] 恰 3 条 findings；no-key 漏检全部 diatonic（必须带 key 实证）；改错轨差分=14 音 A→A' repeat 消失+8 音后截出现；judge 恰 1 处 mismatch（idx 33/窗口 5）。**初版四处手推误断言经复算推翻并已在轮内自纠**（诚实边界：修正记录进附录 A）。§2.5 YAML 块 PyYAML 解析 OK（16 顶层键/7 节点/judge 引用全在枚举内）。
+- **开放问题 13 条**（§6，定稿前须确认项摘要）：①裁定 18 用户确认态（先行稿按现文设计）②276 段 3 终验后 schema 冻结 ③素材版权口径（公版+Vit 原创，发布前懂版权者核实）④RiskConfirm 乐局内降级（用户裁定，默认不降）⑤280 判定器三件语义定案 ⑥拍谱 OMR 容差（286）⑦谱面排版来源 ⑧人格块终审 ⑨真栈复跑校准（定稿轮占栈）⑩止损数值 ⑪空白轨豁免口径 ⑫素材力度约定 ⑬280 互测夹具物化与否。
+- **状态**：先行稿交付完毕，**卡保持 doing——定稿轮待前置**（裁定 18 确认+276 终验+上述归属用户/主管项）；未做任何定稿动作（无 level.yaml 真文件、无素材二进制、未碰 agent 代码/capability_pack）。
 
 ## 验收
 
