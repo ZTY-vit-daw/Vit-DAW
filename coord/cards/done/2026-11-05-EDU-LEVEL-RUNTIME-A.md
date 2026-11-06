@@ -68,3 +68,4 @@ pending ──enter──▶ active ──done_when ✓──▶ done（终态�
 ## 验收
 
 - （主管回填）
+- 验收（2026-11-07 凌晨，主管）：**pass**——三核+校验门交付（定稿夹具 12+6 逐项断言+互测基线对账一致）；91 测试零回退+主管交叉复跑 ok+vet 干净；**两项裁定均接受**：①runtime_slots 升格必检（轨槽=clip 寻址坐标系+279 实例已带零返工）②判定器语义定案（pitch_set_match 音高多重集+set_mode 双值/accept_transposed 仅 note_sequence_match/组合子深度一层）。yaml.v3 依赖声明引入合规。合入 fc316e45。281 解锁。
