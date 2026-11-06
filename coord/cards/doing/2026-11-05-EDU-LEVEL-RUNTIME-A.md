@@ -27,7 +27,10 @@
 
 ## 领取
 
-- （执行侧回填）
+- 2026-11-07 / owner=GLM 主会话 L2-worker 子代理（ZCode / PC）；验收负责人=GLM 主管决策流
+- worktree=`D:/Vit_DAW_wt_280impl` @ 分支 `port/edu-level-runtime-a`；卡面协调提交走 `coord/280-edu-level-runtime-a`（worktree `D:/Vit_DAW_wt_280coord`，PROTOCOL §2.1-2）
+- 领取基线：origin/main `a8be057e`（279 定稿终验 pass 后 HEAD）；impl worktree `git status --short` 空、`git diff --stat` 空（净树领取）
+- 文件域=`agent/internal/edu/` 新文件+测试（jam_state / 判定器注册表 / lesson_card 校验门；276 合入的 judge.go 等既有文件不修改，注册表落新文件）+ `agent/go.mod`/`go.sum`（yaml 解析依赖 gopkg.in/yaml.v3 v3.0.1，模块缓存已有，离线可加）+本卡面；零栈零 LLM；零注册面改动（不碰 orchestrationcontroller/路由白名单）；capability_pack 不触（282 前）
 
 ## 回执
 
