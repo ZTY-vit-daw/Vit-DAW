@@ -55,3 +55,17 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\Vit_DAW_wt_265rv\scripts\
 - **处置=按预写③「环境中断至多重建栈 1 次」**：owner 亲拆三进程（VitAgent 13984/VitApp 33348/Godot 48076），**TEARDOWN_ALL_ZERO 亲核 23:22:05**（六口 TCP 5555/5556/5557/7878/8787/18787=0+UDP 4444/4445=0+四类进程 0）；重建后同参重跑一次（run2=最终轮，再败即止损上交）。
 - **run1 计费（拆栈冻结后亲数 telemetry）**：49 调用全 deepseek-flash in 845,711 / out 88,019 / cache_read 351,104 tok，0 err，估 ≈¥0.5-1（d2run1 chars 比价），入本腿总账；快照 telemetry_run1_interrupted{,final}.jsonl 在档。
 - 工件：console_20261106_2307.txt+d1_smoke_report.json+agent_last.log（artifacts/free_state_d1_s1/20261106_230715/ 留盘，小件随本目录入库）。
+
+## run2 结果：**PS1 EXIT 0 达成——补跑腿终验闭合件**（2026-11-06 23:3x 记录）
+
+- run stamp=20261106_232316（23:23:16 重建起栈：kernel pid=49684=wt_228 F9E3DA0A 复用/agent=worktree 构建 F8790861/Godot pid=23516；重建前 23:23:10 净空复核全零+fetch 亲证栈记录头仍为本腿 23:07 占用）。
+- **PS1_EXIT=0**（console_20261106_2323.txt 亲证；d2_gates.json runner_exit=0）：
+  - **runner 主链 D1-S1 PASS，1-mutation 主链形态**（validation forward_mutation_count=1——优于分支容忍下限；action_domain=reverb 符合 -ExpectDomain；goal 完整收敛 done+settle_records_landed，非零停泊）；确认链六响应健康（improvement_proposal_confirmation_required→plugin_selection_required→waiting_confirmation→semantic_dynamic_confirmation_required→done→settle_records_landed）；
+  - **D2 门组四门全绿**（d2_gates.json failures=[]）：门 A check_turn=true（stop_reason=d2_stereo_checked/verdict=unmeasurable[fixture 如实 stereo_face=missing]/action_face=disclosure_only_v1/mutation=False）；门 B verdict_on_disk=true（stereo_check_verdicts.json trigger_kind=d2_stereo_check，key=vitproj_b3f2838183d64add9ca7824b8b3ac557|5|unmeasurable，candidates=1）；门 C action_face=true（card_parked=false 零挂卡零 mutation）；门 D d2_node_lit=true（mix.report 三视图 D2 节点 state=in_progress）；
+  - **probe 腿过**：裸话术 stop_reason=limit_reached 过 semantic_entry（route/conf 空=非 unresolved 模板形态）——不建词表基线（263 教训）非高峰窗再证；
+  - **268 门组修复读取面活栈覆盖达成**（主管注记要求）：门 B/-Encoding UTF8 路径与门 D mix.report+守卫访问在活栈上执行通过（本 run 直接证据），:658 分支检测正确读出 1-mutation 主链（260 分支化零回退佐证）。
+- **run2 计费**：16 调用全 deepseek-flash in 157,564 / out 17,492 / cache_read 36,352 tok，0 err，估 ≈¥0.2-0.5。
+- **栈收口**：脚本 exit-0 路径不自拆（d2run1 同型）→ owner 亲拆 VitAgent 13348/VitApp 49684/Godot 23516，**TEARDOWN_ALL_ZERO 亲核 23:31:03**（六口 TCP 5555/5556/5557/7878/8787/18787=0+UDP 4444/4445=0+四类进程 0）。
+- **本腿总账**：两轮 65 调用 deepseek-flash in 1,003,275 / out 105,511 / cache 387,456 tok，估 ≈¥0.7-1.5（卡面预算 ≈¥0.5-1.5 上沿内；其中 run1 环境中断轮 49 调用 ≈¥0.5-1 如实入账——非产品面浪费，按预写③重建授权花销）；排干族**未**在非高峰窗致死（run2 goal 完整收敛，「晚高峰瞬态」归因未被推翻亦无需再引）。
+- 工件：本目录（RUNBOOK+console×2+d2_gates+d2_check_chat+d2_probe_chat+d2_queue_view+d2_verdict_store+agent_last_run2+telemetry 快照×3）；大件 d1_smoke_report.json×2 留盘 worktree artifacts/free_state_d1_s1/{20261106_230715,20261106_232316}/（gitignored）。
+- **终验闭合**：主管裁定预设「补跑过=终验闭合」条件达成——265 卡「条件 pass」就此闭合（终验签署权留主管）。
