@@ -35,3 +35,4 @@ D3=参考曲对齐（not_built）：观察面已建（M1-4：RLM reference_level
   - **域外观察**：main a775cf96 并入 270 的 ps1 两行 -Encoding UTF8（:445/:630）与本题 ps1 改动（参数块/互斥块/D3 门组 ~1560+）区域不相交，主管合入时 git 可自动合并（已在位核实 diff 无重叠行）。
   - **端测边界声明（AGENTS §5）**：本卡改动=agent 判据/runtime/queue 挂点+冒测脚本——未触 webui 渲染面与 demo 用户旅程，两门槛（E2E-WEBUI-1/JOURNEY-1）不适用；真栈验收=run_free_state_d1_smoke.ps1 -D3RefAlign 门组（本腿未跑，留主管调度）。
 - 验收：（主管回填）
+- 验收（2026-11-07 凌晨，主管·实现面 pass，终验待验证腿）：判据设计合格——参考标准解析（投影 RenderBindings→builtin 点名→unmeasurable 三态）+**差距计算委托 loudnesswatch.Compare**（继承 approximate 口径不另立标准=正确复用）；**动作面挂卡判定追认**（置顶申报①）：电平类差距有既有 gain 动作链（SuggestGainAction→mix.propose_tick 确认链=D1 settle 同款）→挂卡正确，与 D2 纯披露的区分=「有既有动作则挂、无则披露」原则两卡一致应用；无可定位载体/剂量钳零→纯披露红线维持。5 文件 +1499，15/15 单测+chat 全包+消费包全绿+主管交叉复跑 D3 聚焦 ok；-D3RefAlign 门组与 270 修复区不相交。验证腿进栈队列（276 段 3b→269→266）。
