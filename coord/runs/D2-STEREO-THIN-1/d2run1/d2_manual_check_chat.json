@@ -1,0 +1,166 @@
+﻿{
+    "conversation_id":  "conv_d2_manual_20261106_2101",
+    "task_id":  "task_2ece593f3cf32ae9",
+    "goal_id":  "goal_f055853cdd3e848f",
+    "run_id":  "run_f9fe978614afc569",
+    "original_intent":  "d2 翻译检查",
+    "reply":  "D2 翻译检查（stereo→mono，schema d1d3.premaster.observation.v0 载体，只读）。\n全局立体声（mix.observe digest）：stereo_relation 缺席（缺失如实保留）。\n逐轨 stereo summary：读取 7 轨，mono 风险 0 轨。\n判断结果：无法测量：no_stereo_evidence: 全局 stereo_relation 缺席且无任何可读的逐轨 stereo summary 行。\n检查结果已记入 stereo check verdict 记录；D2 节点状态可在队列视图查看。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "capability_runtime_v1",
+    "workflow_data":  {
+                          "canary_stage":  "d2_stereo_check",
+                          "capability_id":  "pre_master.stereo_check.v0",
+                          "d2_stereo_check":  {
+                                                  "action_face":  "disclosure_only_v1",
+                                                  "action_face_reason":  "v1 确认链操作（gain/pan/eq_band/broadband）无一能改变声道间相关性：gain 对 mono 抵消比例不变，pan 收窄不修复相位抵消；真实修复（立体声宽度/相位处理）属母带 E3 面未建——按「不发明动作」红线，risk_found 仅披露不挂写卡",
+                                                  "capability_id":  "pre_master.stereo_check.v0",
+                                                  "checked":  true,
+                                                  "risk_track_count":  0,
+                                                  "tracks_measured":  0,
+                                                  "tracks_skipped":  0,
+                                                  "unmeasurable_reason":  "no_stereo_evidence: 全局 stereo_relation 缺席且无任何可读的逐轨 stereo summary 行",
+                                                  "verdict":  "unmeasurable",
+                                                  "verdict_store_key":  "vitproj_b3f2838183d64add9ca7824b8b3ac557|5|unmeasurable",
+                                                  "verdict_summary":  "无法测量：no_stereo_evidence: 全局 stereo_relation 缺席且无任何可读的逐轨 stereo summary 行。"
+                                              },
+                          "mutation_performed":  false,
+                          "observation":  {
+                                              "schema_version":  "d1d3.premaster.observation.v0",
+                                              "observation_id":  "obs_20261106T130150_a648106e0cf9",
+                                              "loudness_peak_status":  "missing",
+                                              "rlm_status":  "ready",
+                                              "rlm_mode":  "coarse",
+                                              "rlm_selected_metric":  "rms_dbfs",
+                                              "rlm_reference_level":  -25.151,
+                                              "rlm_summary":  {
+                                                                  "candidate_count":  6,
+                                                                  "eligible_track_count":  6,
+                                                                  "missing_metric_count":  0,
+                                                                  "not_calibratable_count":  0,
+                                                                  "reference_basis":  "median",
+                                                                  "selected_unit":  "dBFS",
+                                                                  "track_count":  7
+                                                              },
+                                              "rlm_limitations":  [
+                                                                      "rlm_strict_active_or_lufs_missing_coarse_reference"
+                                                                  ],
+                                              "stereo_status":  "missing",
+                                              "track_stereo":  [
+                                                                   {
+                                                                       "track_id":  "1007",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1012",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1017",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1022",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1027",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1032",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1039",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   }
+                                                               ],
+                                              "tracks_considered":  7,
+                                              "tracks_skipped":  0,
+                                              "mono_risk_tracks":  0,
+                                              "user_intent":  "d2 翻译检查",
+                                              "render_binding_count":  0,
+                                              "reference_track_gap":  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补",
+                                              "limitations":  [
+                                                                  "全局 stereo_relation 缺席（依赖声学证据，缺失原样保留不升级）",
+                                                                  "当前无 render→delivery 绑定（render_profile_bind 写端不在本只读 pack，绑定面如实为空）",
+                                                                  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补"
+                                                              ]
+                                          },
+                          "observation_carrier":  "pre_master.observation.v0",
+                          "read_only":  true,
+                          "schema":  "d1d3.premaster.observation.v0",
+                          "session_id":  "cap_v1_d1d3_conv_d2_manual_20261106_2101_1"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "d2 翻译检查",
+    "stop_reason":  "d2_stereo_checked",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261106T130156_3560eeb6",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261106T124608_bcaca6cf"
+                                         },
+                            "commit_count":  5,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "d2 翻译检查",
+                                                              "logical_message_id":  "n_20261106T130148_4cc8dea8",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261106T130148_4cc8dea8",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "D2 翻译检查（stereo→mono，schema d1d3.premaster.observation.v0 载体，只读）。\n全局立体声（mix.observe digest）：stereo_relation 缺席（缺失如实保留）。\n逐轨 stereo summary：读取 7 轨，mono 风险 0 轨。\n判断结果：无法测量：no_stereo_evidence: 全局 stereo_relation 缺席且无任何可读的逐轨 stereo summary 行。\n检查结果已记入 stereo check verdict 记录；D2 节点状态可在队列视图查看。",
+                                                              "logical_message_id":  "n_20261106T130156_3560eeb6",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261106T130156_3560eeb6",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261106T124608_bcaca6cf",
+                            "initialized":  true,
+                            "project_label":  "spv1_p01",
+                            "project_path":  "D:\\Vit_DAW_wt_265impl\\artifacts\\free_state_d1_s1\\20261106_203639\\project\\spv1_p01.vit",
+                            "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261106T124608_bcaca6cf"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261106T124608_bcaca6cf",
+                                                  "created_at":  "2026-11-06T13:01:56.8193293Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261106T124608_bcaca6cf",
+                                                  "path":  "D:\\Vit_DAW_wt_265impl\\artifacts\\free_state_d1_s1\\20261106_203639\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_265impl\\artifacts\\free_state_d1_s1\\20261106_203639\\project\\spv1_p01.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_265impl\\artifacts\\free_state_d1_s1\\20261106_203639\\project\\spv1_p01.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_265impl\\artifacts\\free_state_d1_s1\\20261106_203639\\project\\spv1_p01.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_f9fe978614afc569",
+    "logical_message_id":  "n_20261106T130156_3560eeb6"
+}

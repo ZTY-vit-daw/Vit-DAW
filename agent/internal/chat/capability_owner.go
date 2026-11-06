@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"vit-daw-agent/internal/orchestration"
@@ -207,6 +208,20 @@ func sessionBelongsToConversation(session orchestration.PlanningSession, convers
 	return strings.HasPrefix(session.ID, base+"_")
 }
 
+// lowEndRelationAblationEnv is the B4-ABLATION-1 test-only hook: when set to
+// exactly "1" the B4 family lexicon short-circuit is bypassed (every low-end
+// phrase falls through to the LLM turn) and the canary dispatch to the B4
+// runtime is disabled — the ablation face of the A-F scaffolding endstate
+// ruling (257 matrix §六 B4 拆法：词表短路+canary dispatch 分支禁用). The
+// governance chain (pending proposal confirmation) is not bypassed. Default
+// unset keeps production behavior byte-for-byte; the env is never set by
+// production startup paths.
+const lowEndRelationAblationEnv = "VIT_LOW_END_RELATION_ABLATION"
+
+func lowEndRelationAblationBypassed() bool {
+	return strings.TrimSpace(os.Getenv(lowEndRelationAblationEnv)) == "1"
+}
+
 func inferProjectAwareCapability(message string) string {
 	text := strings.ToLower(strings.TrimSpace(message))
 	for _, marker := range []string{
@@ -223,9 +238,11 @@ func inferProjectAwareCapability(message string) string {
 			return panLayoutCapabilityID
 		}
 	}
-	for _, marker := range []string{"static_mix.low_end_relation", "b4", "低频关系", "low-end relation", "low end relation", "低频分析", "低频占用", "低频遮蔽"} {
-		if strings.Contains(text, marker) {
-			return lowEndRelationCapabilityID
+	if !lowEndRelationAblationBypassed() {
+		for _, marker := range []string{"static_mix.low_end_relation", "b4", "低频关系", "low-end relation", "low end relation", "低频分析", "低频占用", "低频遮蔽"} {
+			if strings.Contains(text, marker) {
+				return lowEndRelationCapabilityID
+			}
 		}
 	}
 	for _, marker := range []string{"fine_mix.frequency_cleanup", "c1", "frequency cleanup", "frequency clean-up", "频段清理", "频率清理", "频谱清理", "全工程eq清理"} {
