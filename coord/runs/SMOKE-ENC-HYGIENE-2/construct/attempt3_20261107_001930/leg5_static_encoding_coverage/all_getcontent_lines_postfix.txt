@@ -1,0 +1,7 @@
+﻿$text = [string](Get-Content -LiteralPath $Path -Raw -Encoding UTF8)
+$lwManifest = Get-Content -LiteralPath $PublicManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+$notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw -Encoding UTF8) | ConvertFrom-Json).reason
+$d1ReportRaw = Get-Content -LiteralPath $report -Raw -Encoding UTF8
+try { $lwText = [string](Get-Content -LiteralPath $lwSurface -Raw -Encoding UTF8) } catch { $lwText = "" }
+$settleStoreJson = Get-Content -LiteralPath $settleReport.verdict_store_path -Raw -Encoding UTF8 | ConvertFrom-Json
+$d2StoreJson = Get-Content -LiteralPath $d2Report.verdict_store_path -Raw -Encoding UTF8 | ConvertFrom-Json

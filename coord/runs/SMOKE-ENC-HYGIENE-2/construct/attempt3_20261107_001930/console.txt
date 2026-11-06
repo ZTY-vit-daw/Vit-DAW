@@ -1,0 +1,11 @@
+[probe] pre  :445 line: $lwManifest = Get-Content -LiteralPath $PublicManifest -Raw | ConvertFrom-Json
+[probe] post :445 line: $lwManifest = Get-Content -LiteralPath $PublicManifest -Raw -Encoding UTF8 | ConvertFrom-Json
+[probe] pre  :630 line: $notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw) | ConvertFrom-Json).reason
+[probe] post :630 line: $notExercisedReason = [string]((Get-Content -LiteralPath $report -Raw -Encoding UTF8) | ConvertFrom-Json).reason
+[PASS] leg1_manifest_prefix  form=mojibake_or_wrong_value  got=[D:/\u5bb8\u30e7\u25bc\u5997?\u93cd\u8702\u7de5_\u5a23\u70fd\u7176_\u5a34\u5b2d\u762f.json] expected=[D:/\u5de5\u7a0b\u6841/\u6837\u4f8b_\u6df7\u97f3_\u6d4b\u8bd5.json]
+[PASS] leg2_manifest_postfix  form=clean_parse  got=[D:/\u5de5\u7a0b\u6841/\u6837\u4f8b_\u6df7\u97f3_\u6d4b\u8bd5.json] expected=[D:/\u5de5\u7a0b\u6841/\u6837\u4f8b_\u6df7\u97f3_\u6d4b\u8bd5.json]
+[PASS] leg3_reason_prefix  form=mojibake_or_wrong_value  got=[\u68f0\u52ed\u757b\u6d93\u5a47\u6aba\u5bb8\u63d2\u57cc\u951b\u6c31\ue0c7 2 \u675e\ue1bd\u6e6d\u95ab\u6c33\u7e43] expected=[\u9884\u7b97\u4e0a\u9650\u5df2\u5230\uff1a\u7b2c 2 \u8f6e\u672a\u901a\u8fc7]
+[PASS] leg4_reason_postfix  form=clean_parse  got=[\u9884\u7b97\u4e0a\u9650\u5df2\u5230\uff1a\u7b2c 2 \u8f6e\u672a\u901a\u8fc7] expected=[\u9884\u7b97\u4e0a\u9650\u5df2\u5230\uff1a\u7b2c 2 \u8f6e\u672a\u901a\u8fc7]
+[PASS] leg5_static_encoding_coverage  form=postfix_unencoded=0 prefix_unencoded=2  total Get-Content lines postfix=7; expected exactly 2 unencoded in pre (268 four + this card two covered by postfix=0)
+[probe] summary: D:\Vit_DAW\coord\runs\SMOKE-ENC-HYGIENE-2\construct\attempt3_20261107_001930\probe_270_summary.json
+[probe] ALL PASS (5/5)
