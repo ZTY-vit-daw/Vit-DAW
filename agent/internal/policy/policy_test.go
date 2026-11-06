@@ -49,3 +49,24 @@ func TestCommandNameFallback(t *testing.T) {
 		t.Fatalf("name = %q, want play", name)
 	}
 }
+
+// EDU-SYMBOL-CORE-1：只读符号分析命令按 direct 级放行（spec 与
+// directCommands 兜底两条路径都必须是 direct）。
+func TestAnalyzeMidiTransformationsIsDirect(t *testing.T) {
+	for _, cmd := range []map[string]any{
+		{"cmd": "analyze_midi_transformations", "clip_id": "clipA"},
+		{"tool": "midi.analyze_transformations", "args": map[string]any{"clip_id": "clipA"}},
+	} {
+		d := Classify(cmd)
+		if d.Risk != RiskDirect {
+			t.Fatalf("risk = %s, want %s (cmd=%v)", d.Risk, RiskDirect, cmd)
+		}
+		if NeedsConfirmation([]Decision{d}) {
+			t.Fatal("read-only analysis must not require confirmation")
+		}
+	}
+	// 未注册裸命令名兜底路径（catalog 缺行时的防线）。
+	if !directCommands["analyze_midi_transformations"] {
+		t.Fatal("analyze_midi_transformations missing from directCommands fallback")
+	}
+}

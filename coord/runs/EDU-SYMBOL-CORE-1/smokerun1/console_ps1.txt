@@ -1,0 +1,52 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_002236\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_276impl\coord\runs\EDU-SYMBOL-CORE-1\smokerun1\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: edu transform telemetry capture: telemetry=D:\Vit_DAW_wt_276impl\coord\runs\EDU-SYMBOL-CORE-1\smokerun1\logs\agent_llm_telemetry.jsonl prompt_render=D:\Vit_DAW_wt_276impl\coord\runs\EDU-SYMBOL-CORE-1\smokerun1\logs\agent_prompt_render.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_276impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_276impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_276impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_276impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=36600 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_276impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=36600
+ok: ZMQ SUB listening: 5556 pid=36600
+
+== Project state invoke
+project.state status=ok error=
+
+== chat-driven analyze_midi_transformations smoke (EDU-SYMBOL-CORE-1 segment 3)
+ok: edu transform project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_276impl\coord\runs\EDU-SYMBOL-CORE-1\smokerun1\default_project.xml
+[edu-transform] fixture verified: track=1007 clip=1010 notes=42
+[edu-transform] FAIL exit=3 phase=chat: no midi.analyze_transformations row in executed_kernel_reply; executed=['midi.read_clip_notes', 'midi.read_clip_data']; log_tools=['midi.read_clip_notes', 'midi.read_clip_data']; stop_reason=needs_clarification
+edu transform smoke LLM behavior miss (model did not drive the tool / omitted the instructed key; honest record, no rer
+un) - see D:\Vit_DAW_wt_276impl\coord\runs\EDU-SYMBOL-CORE-1\smokerun1\edu_transform_summary.json
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_276impl\scripts\dev_agent_smoke.ps1:8938 ×Ö·û: 9
++         throw ("edu transform smoke LLM behavior miss (model did not  ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (edu transform s...rm_summary.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : edu transform smoke LLM behavior miss (model did not drive the tool / omitted the instru 
+   cted key; honest record, no rerun) - see D:\Vit_DAW_wt_276impl\coord\runs\EDU-SYMBOL-CORE-1\smokerun1\edu_transfor  
+  m_summary.json
+ 
