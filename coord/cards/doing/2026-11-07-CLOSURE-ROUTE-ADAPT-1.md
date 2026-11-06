@@ -35,7 +35,13 @@
 
 ### 回执（勘察腿）
 
-- （执行侧回填）
+- 完成时间：2026-11-07；产出=[recon-design.md](../runs/CLOSURE-ROUTE-ADAPT-1/recon-design.md)（取证+3 案+裁定请求清单）+ [PROGRESS.md](../runs/CLOSURE-ROUTE-ADAPT-1/PROGRESS.md)；零代码改动、零 LLM 调用、纯读档（grep/git log/读文件）
+- **路由面结论**：判据链 6 环全锚定（semantic_entry.go:79-99 分类语义 / :285-286 observation 与 open_semantic 同派 MinimalAudioClosure / capability_routing.go:308 无条件加固 / audio_closure_controller.go:108-119 武装+ModeDiagnostic 分派 / :356-367 模式双向映射）。分析类请求无专用类，discussion vs observation 判据边界摇摆=276 随机路由根因；准入侧无只读/编辑意图过滤（唯一区分=Mode 字段）；工具披露面已含分析命令（276 卷内实证），失败因素=预算×模型单轮行为而非工具不可达
+- **预算面结论**：MaxTurns=1 为基线期冻结设计（38ecd24b 2026-08-19 注释逐字同今，"one probe + one verdict" 假设）+ 229 有意保留（测试钉 TestAudioClosureBudgetDiagnosticRoundKeepsClamp）；但 goalrunner_chat.go:800-807 诊断轮 base=5 turns 与 closure clamp=1 并存=**欠账形态直接证据**（同一诊断语义两个预算值）
+- **方案建议**：主推**案 B（预算面最小修：诊断闭包轮承认基础预算，零判断权边界触碰）**；**案 A（路由面：observation 拆纯分析身份派 OrdinaryConversation，治本消解分类摇摆）提请判断权边界裁定**；案 C（工具面）兜底；案 D（续跑腿）独立验证腿
+- **裁定请求 5 项**见 recon-design.md §6（含 2 项标红边界：route 语义划界授权、诊断轮 clamp 测试意图修订）
+- **取证勘误**：276 rerun1 evidence.md「frontier 有候选=2」与卷内 chat_response.json 不符（frontier 实际空，MaxTurns=1 生效）——已记 recon-design.md §4，处置待裁定项 5
+- 验证边界：本腿为勘察产出，无测试/构建/真栈运行；实现腿验收须另按卡面验证口径（零栈构造单测优先）
 
 ### 验收（主管）
 
