@@ -42,3 +42,16 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\Vit_DAW_wt_265rv\scripts\
 ## 止损线
 
 - 单 run 结束即止：任何门失败→取证入 reverify1 工件→卡面回执上交主管；不自行重跑、不自行改断言凑过、不把失败改写成成功。
+
+## run1 结果：环境中断（预写分类③），按预写重建栈重跑一次（2026-11-06 23:2x 记录）
+
+- run stamp=20261106_230715（23:07:15 起栈：kernel pid=33348=wt_228 F9E3DA0A 复用/agent pid=13984=worktree 构建 F8790861/Godot pid=48076；栈起段全绿 tool_count=295）；**PS1_EXIT=1**。
+- **失败形态=预写分类③环境中断（infra 瞬态），非排干族 throw、非断言失败**：
+  - runner 主链确认链健康走完 5 响应（improvement_proposal_confirmation_required→plugin_selection_required→〔无 stop 中间步〕→semantic_dynamic_confirmation_required→limit_reached[completed_steps=12/executed=12]，d1_smoke_report.json responses 亲证）；
+  - 23:16:16 agent 侧 `continuation.arm waiting_continue stop=limit_reached limit=timeout`（排干族签名在场但**非致死点**——d2run1 run2/4 的致死 throw 文本「did not drain within the smoke timeout」未出现）；
+  - **致死点=python 驱动在 resp4（limit_reached）后的下一次 urlopen（wait_scheduler_drain 腿，目标 127.0.0.1:7878）获 WinError 10061 连接拒绝**（~23:16:17）——彼时三进程全活（VitApp 23:07:19/VitAgent 23:07:21/Godot 23:07:25 启动后零重启）且 7878 事后亲证由 VitAgent 13984 在听；单次 loopback 瞬态拒绝，无产品断言失败、零代码改动；
+  - python 死后 agent 仍自主排干同一 goal（活日志 23:20:26 turn=36 持续推进）——owner 23:22 亲拆止血；
+  - 8787 VSP 拒绝=248 在案既有形态（本栈无 VspHub 进程，非本腿引入变量）。
+- **处置=按预写③「环境中断至多重建栈 1 次」**：owner 亲拆三进程（VitAgent 13984/VitApp 33348/Godot 48076），**TEARDOWN_ALL_ZERO 亲核 23:22:05**（六口 TCP 5555/5556/5557/7878/8787/18787=0+UDP 4444/4445=0+四类进程 0）；重建后同参重跑一次（run2=最终轮，再败即止损上交）。
+- **run1 计费（拆栈冻结后亲数 telemetry）**：49 调用全 deepseek-flash in 845,711 / out 88,019 / cache_read 351,104 tok，0 err，估 ≈¥0.5-1（d2run1 chars 比价），入本腿总账；快照 telemetry_run1_interrupted{,final}.jsonl 在档。
+- 工件：console_20261106_2307.txt+d1_smoke_report.json+agent_last.log（artifacts/free_state_d1_s1/20261106_230715/ 留盘，小件随本目录入库）。
