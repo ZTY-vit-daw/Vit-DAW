@@ -37,7 +37,19 @@
 
 ## 回执
 
-- （执行侧回填）
+### 段 1（勘察+pack 骨架+注册链②，2026-11-07）——零真栈零内核，勘察结论待主管过目后再启段 2
+
+- **勘察工件**：`coord/runs/ARR-SRCLOAD-1/recon.md` @ `port/arr-srcload-1` 分支（实现 commit `965046f0` 内）——258 报告内核/agent 锚点全复核有效；**增量发现缺口 #6**（能力触发词表不含音源词→编曲轮装载工具被遮蔽，"给 MIDI 轨加钢琴音源"此前只落 midi 能力，rack_add_node 不可披露）与 **#7**（render.start 不在任何能力白名单→门控轮无法离线渲染）；**未触发停止条件**。
+- **择一决策（存档 recon.md §4）**：**新增 arrangement pack**，不扩 midi pack——依据=卡面验收"既有九 pack 行为零变化"硬约束 + 词表/披露分离 + taxonomy 编曲域镜像 + midi pack 刚扩域回归面最小；九 pack 定义零 diff。
+- **实现 commit**：`965046f0` @ `port/arr-srcload-1`（已推远端）；diff=6 文件 +295/-1：
+  - `agent/internal/tools/capability_pack.go`：新 arrangement pack（装载编排次序 Preconditions：semantic_search type=instrument → rack.add_node Z2 → get_parameters → 写 clip → 试听/渲染；preset 缺口引导；analyze_transformations 衔接占位归 283）
+  - `agent/internal/tools/catalog.go`：plugin_semantic_search usage 披露补丁（type 值域 effect|instrument|synth + include_instruments——实现面早已支持，纯披露）
+  - `agent/internal/chat/goalrunner_chat.go`：arrangement 触发词表（编曲/配器/音源/合成器/乐器/钢琴/synth/synthesizer/instrument/vsti/sampler/piano）+ `case "arrangement"` + `agentLoopArrangementTools()` 第四披露面白名单（与 pack.Tools 对齐；含 render.start 修缺口 #7）
+  - 测试：`catalog_test.go`（pack 骨架钉+usage 披露钉）、`server_test.go`（276 同款三层钉：触发词命中+允许列表含装载链+prompt 披露面工具行）
+  - `policy.go` 零改动（无新命令，plugin 族 spec/policy 注册面勘察核实在场——recon.md §2.1）
+- **测试（全部退出码 0）**：`go build ./...`=0；`go test ./internal/tools/ ./internal/policy/ -count=1`=ok；`go test ./internal/chat/ -count=1`=ok（152.0s）；新增 3 测试全过（TestArrangementCapabilityPackSkeleton / TestPluginSemanticSearchUsageDisclosesInstrumentType / TestAgentLoopArrangementCapabilityDisclosesLoadChain）。
+- **端测边界声明（AGENTS §5）**：本段零真栈——pack/披露改动仅单测+编译级验证；装载链真栈验证（chat 驱动装载→写 clip→渲染非静音）留段 2/3 烟测腿；既有九 pack 行为零变化由对照单测钉（九 pack 定义零 diff）+全包回归绿背书。
+- **段 2 就绪**：勘察结论交主管过目（recon.md §6 留题：VSTi 索引预检/装载双通道路由分流/plugingrabber 词表缺钢琴单独词[域外微补丁建议随段 2 处置]/渲染静音断言脚本面）；过目通过后段 2 开装载链烟测腿（真栈按 PC-RUNTIME-STACK.md 登记协议，当前栈被 269 verifyrun1 占用中）。
 
 ## 验收
 
