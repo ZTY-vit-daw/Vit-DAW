@@ -139,6 +139,15 @@ param(
     # spent. Root cause context: the 242 budget overrun was the automatic
     # inter-group progression.
     [string]$LlmRouteGroups = "",
+    # C4-ABLATION-1: ablation mode for the LLM route leg. Sets
+    # VIT_AUTOMATION_INTENT_ABLATION=1 in the same env-before-agent-start
+    # window as the telemetry/engine envs above (agent inherits it for its
+    # whole lifetime; never persisted, dies with this run) so the agent's
+    # pre-model automation lexicon arming is bypassed and every phrase falls
+    # through to the LLM turn; also passes -AblationHook to the python driver
+    # (skips the choreo-pending leg whose vocabulary arm is disabled by
+    # design, and invalidates any lexicon_hit). Off = behavior unchanged.
+    [switch]$LlmRouteAblationHook,
     # M3-CHAT-AUTH-STAMP-1 (223): chat-chain authority stamp smoke. Two-phase
     # leg with a REAL agent process restart in between (orchestrated here):
     # phase "before" switches full access through /agent/authority (durable
@@ -1385,6 +1394,12 @@ if ($AutomationLLMRouteSmoke -and -not $ScenarioMode) {
     if (-not [string]::IsNullOrWhiteSpace($LlmModelOverride)) {
         Set-Item -LiteralPath "env:VIT_AGENT_LLM_MODEL" -Value $LlmModelOverride.Trim()
         Write-Ok ("automation LLM route engine override: VIT_AGENT_LLM_MODEL=" + $env:VIT_AGENT_LLM_MODEL)
+    }
+    # C4-ABLATION-1: same inheritance window as the envs above — set before
+    # the agent process starts so the ablation hook is live for the whole run.
+    if ($LlmRouteAblationHook) {
+        Set-Item -LiteralPath "env:VIT_AUTOMATION_INTENT_ABLATION" -Value "1"
+        Write-Ok ("automation LLM route ablation hook: VIT_AUTOMATION_INTENT_ABLATION=" + $env:VIT_AUTOMATION_INTENT_ABLATION)
     }
     Write-Ok ("automation LLM route telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " payload_capture=" + $env:VIT_AGENT_LLM_PAYLOAD_CAPTURE)
 }
@@ -8764,6 +8779,11 @@ if ($AutomationLLMRouteSmoke) {
         # validates the spec before any LLM round is spent.
         $llmRoutePythonArgs += @("-Groups", $LlmRouteGroups)
         Write-Ok ("automation LLM route group filter: -Groups " + $LlmRouteGroups)
+    }
+    if ($LlmRouteAblationHook) {
+        # C4-ABLATION-1 ablation mode passthrough (see the param block note).
+        $llmRoutePythonArgs += @("-AblationHook")
+        Write-Ok ("automation LLM route ablation mode: -AblationHook (agent env VIT_AUTOMATION_INTENT_ABLATION=1)")
     }
     & python @llmRoutePythonArgs > $llmRouteConsolePath 2>&1
     $llmRouteExit = $LASTEXITCODE
