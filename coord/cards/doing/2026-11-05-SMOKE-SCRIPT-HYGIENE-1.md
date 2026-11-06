@@ -14,4 +14,5 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-06 18:14 +0800 / origin/main=929d6cd9（领取时 worktree 新建于该基线，git status 干净、零已有 diff）/ owner=GLM-5.3 执行流（ZCode 会话，PC）/ 分支=port/smoke-script-hygiene-1 / worktree=D:\Vit_DAW_wt_260impl / 领取提交=（推送后回填 hash）
+- （执行侧回填回执）/（主管回填验收）
