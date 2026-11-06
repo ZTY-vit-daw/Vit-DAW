@@ -97,6 +97,9 @@ def main() -> int:
     if args.sets in {"regression", "both"}:
         groups.append(("regression", manifest.get("regression_cases") or []))
     args.output_dir.mkdir(parents=True, exist_ok=True)
+    authority = matrix.ensure_full_project_access(args.agent_http, 30)
+    blind.write_json(args.output_dir / "authority.json", authority)
+    print(f"authority: {authority['authority_before']} -> {authority['authority_after']}", flush=True)
     results = []
     for group, cases in groups:
         for index, case in enumerate(cases, 1):
@@ -105,7 +108,8 @@ def main() -> int:
             result["set"] = group
             results.append(result)
             print(json.dumps(result, ensure_ascii=False), flush=True)
-    summary = {"schema_version": "plugin_grabber.limiter_matrix_report.v1", "results": results,
+    summary = {"schema_version": "plugin_grabber.limiter_matrix_report.v1", "authority": authority,
+               "results": results,
                "verdict": "passed" if all(row["status"] in {"passed", "covered_by_unit_fixture"} for row in results) else "failed"}
     blind.write_json(args.output_dir / "summary.json", summary)
     print(json.dumps(summary, ensure_ascii=False, indent=2))

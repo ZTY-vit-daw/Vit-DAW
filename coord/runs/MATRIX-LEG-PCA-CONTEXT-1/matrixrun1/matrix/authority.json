@@ -1,0 +1,11 @@
+{
+  "authority_before": "manual_confirmation",
+  "switched": true,
+  "switch_response": {
+    "authority_mode": "full_project_access",
+    "persisted": false,
+    "status": "ok",
+    "workspace_ready": false
+  },
+  "authority_after": "full_project_access"
+}

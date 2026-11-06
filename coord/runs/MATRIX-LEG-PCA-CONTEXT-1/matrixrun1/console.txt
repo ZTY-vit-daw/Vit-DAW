@@ -1,0 +1,176 @@
+authority: manual_confirmation -> full_project_access
+{"id": "fabfilter_pro_ds", "plugin_name": "Pro-DS", "status": "passed", "classification": "frequency_selective_de_esser", "generation": "d1t1_80e8419c2c084a95dc3ea353", "stage_count": 1, "binding_count": 13, "stable_two_reads": true, "set": "training"}
+{"id": "waves_deesser_stereo", "plugin_name": "DeEsser Stereo", "status": "passed", "classification": "frequency_selective_de_esser", "generation": "d1t1_0fd3af7a66720f68d11022a5", "stage_count": 1, "binding_count": 5, "stable_two_reads": true, "set": "training"}
+{"id": "waves_rdeesser_stereo", "plugin_name": "RDeEsser Stereo", "status": "passed", "classification": "frequency_selective_de_esser", "generation": "d1t1_8ad968c1b9f8133371475f66", "stage_count": 1, "binding_count": 6, "stable_two_reads": true, "set": "training"}
+{"id": "waves_sibilance_stereo", "plugin_name": "Sibilance Stereo", "status": "passed", "classification": "sibilance_detector_de_esser", "generation": "d1t1_30adc530e0a0fe4bd1b545fc", "stage_count": 1, "binding_count": 7, "stable_two_reads": true, "set": "training"}
+{"id": "waves_sibilance_live_stereo", "plugin_name": "Sibilance-Live Stereo", "status": "passed", "classification": "sibilance_detector_de_esser", "generation": "d1t1_f120921f84fa297f3d3ef9ab", "stage_count": 1, "binding_count": 6, "stable_two_reads": true, "set": "training"}
+{"id": "waves_deesser_mono", "plugin_name": "DeEsser Mono", "status": "passed", "classification": "frequency_selective_de_esser", "generation": "d1t1_0fd3af7a66720f68d11022a5", "stage_count": 1, "binding_count": 5, "stable_two_reads": true, "set": "regression"}
+{"id": "waves_rdeesser_mono", "plugin_name": "RDeEsser Mono", "status": "passed", "classification": "frequency_selective_de_esser", "generation": "d1t1_8ad968c1b9f8133371475f66", "stage_count": 1, "binding_count": 6, "stable_two_reads": true, "set": "regression"}
+{"id": "waves_sibilance_mono", "plugin_name": "Sibilance Mono", "status": "passed", "classification": "sibilance_detector_de_esser", "generation": "d1t1_30adc530e0a0fe4bd1b545fc", "stage_count": 1, "binding_count": 7, "stable_two_reads": true, "set": "regression"}
+{"id": "waves_sibilance_live_mono", "plugin_name": "Sibilance-Live Mono", "status": "passed", "classification": "sibilance_detector_de_esser", "generation": "d1t1_f120921f84fa297f3d3ef9ab", "stage_count": 1, "binding_count": 6, "stable_two_reads": true, "set": "regression"}
+{"id": "synthetic_sidechain_eq_negative", "status": "covered_by_unit_fixture", "expectation": "not_de_esser", "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/broadband_compressor_with_sidechain_EQ", "set": "regression"}
+{"id": "synthetic_multiband_negative", "status": "covered_by_unit_fixture", "expectation": "not_de_esser", "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/multiband_dynamics", "set": "regression"}
+{"id": "synthetic_spectral_negative", "status": "covered_by_unit_fixture", "expectation": "not_de_esser", "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/dynamic_EQ", "set": "regression"}
+{"id": "synthetic_gate_negative", "status": "covered_by_unit_fixture", "expectation": "not_de_esser", "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/gate", "set": "regression"}
+{"id": "synthetic_limiter_negative", "status": "covered_by_unit_fixture", "expectation": "not_de_esser", "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/limiter", "set": "regression"}
+{"id": "synthetic_clipper_negative", "status": "covered_by_unit_fixture", "expectation": "not_de_esser", "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/clipper", "set": "regression"}
+{
+  "schema_version": "plugin_grabber.de_esser_matrix_report.v1",
+  "capture_only": false,
+  "authority": {
+    "authority_before": "manual_confirmation",
+    "switched": true,
+    "switch_response": {
+      "authority_mode": "full_project_access",
+      "persisted": false,
+      "status": "ok",
+      "workspace_ready": false
+    },
+    "authority_after": "full_project_access"
+  },
+  "results": [
+    {
+      "id": "fabfilter_pro_ds",
+      "plugin_name": "Pro-DS",
+      "status": "passed",
+      "classification": "frequency_selective_de_esser",
+      "generation": "d1t1_80e8419c2c084a95dc3ea353",
+      "stage_count": 1,
+      "binding_count": 13,
+      "stable_two_reads": true,
+      "set": "training"
+    },
+    {
+      "id": "waves_deesser_stereo",
+      "plugin_name": "DeEsser Stereo",
+      "status": "passed",
+      "classification": "frequency_selective_de_esser",
+      "generation": "d1t1_0fd3af7a66720f68d11022a5",
+      "stage_count": 1,
+      "binding_count": 5,
+      "stable_two_reads": true,
+      "set": "training"
+    },
+    {
+      "id": "waves_rdeesser_stereo",
+      "plugin_name": "RDeEsser Stereo",
+      "status": "passed",
+      "classification": "frequency_selective_de_esser",
+      "generation": "d1t1_8ad968c1b9f8133371475f66",
+      "stage_count": 1,
+      "binding_count": 6,
+      "stable_two_reads": true,
+      "set": "training"
+    },
+    {
+      "id": "waves_sibilance_stereo",
+      "plugin_name": "Sibilance Stereo",
+      "status": "passed",
+      "classification": "sibilance_detector_de_esser",
+      "generation": "d1t1_30adc530e0a0fe4bd1b545fc",
+      "stage_count": 1,
+      "binding_count": 7,
+      "stable_two_reads": true,
+      "set": "training"
+    },
+    {
+      "id": "waves_sibilance_live_stereo",
+      "plugin_name": "Sibilance-Live Stereo",
+      "status": "passed",
+      "classification": "sibilance_detector_de_esser",
+      "generation": "d1t1_f120921f84fa297f3d3ef9ab",
+      "stage_count": 1,
+      "binding_count": 6,
+      "stable_two_reads": true,
+      "set": "training"
+    },
+    {
+      "id": "waves_deesser_mono",
+      "plugin_name": "DeEsser Mono",
+      "status": "passed",
+      "classification": "frequency_selective_de_esser",
+      "generation": "d1t1_0fd3af7a66720f68d11022a5",
+      "stage_count": 1,
+      "binding_count": 5,
+      "stable_two_reads": true,
+      "set": "regression"
+    },
+    {
+      "id": "waves_rdeesser_mono",
+      "plugin_name": "RDeEsser Mono",
+      "status": "passed",
+      "classification": "frequency_selective_de_esser",
+      "generation": "d1t1_8ad968c1b9f8133371475f66",
+      "stage_count": 1,
+      "binding_count": 6,
+      "stable_two_reads": true,
+      "set": "regression"
+    },
+    {
+      "id": "waves_sibilance_mono",
+      "plugin_name": "Sibilance Mono",
+      "status": "passed",
+      "classification": "sibilance_detector_de_esser",
+      "generation": "d1t1_30adc530e0a0fe4bd1b545fc",
+      "stage_count": 1,
+      "binding_count": 7,
+      "stable_two_reads": true,
+      "set": "regression"
+    },
+    {
+      "id": "waves_sibilance_live_mono",
+      "plugin_name": "Sibilance-Live Mono",
+      "status": "passed",
+      "classification": "sibilance_detector_de_esser",
+      "generation": "d1t1_f120921f84fa297f3d3ef9ab",
+      "stage_count": 1,
+      "binding_count": 6,
+      "stable_two_reads": true,
+      "set": "regression"
+    },
+    {
+      "id": "synthetic_sidechain_eq_negative",
+      "status": "covered_by_unit_fixture",
+      "expectation": "not_de_esser",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/broadband_compressor_with_sidechain_EQ",
+      "set": "regression"
+    },
+    {
+      "id": "synthetic_multiband_negative",
+      "status": "covered_by_unit_fixture",
+      "expectation": "not_de_esser",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/multiband_dynamics",
+      "set": "regression"
+    },
+    {
+      "id": "synthetic_spectral_negative",
+      "status": "covered_by_unit_fixture",
+      "expectation": "not_de_esser",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/dynamic_EQ",
+      "set": "regression"
+    },
+    {
+      "id": "synthetic_gate_negative",
+      "status": "covered_by_unit_fixture",
+      "expectation": "not_de_esser",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/gate",
+      "set": "regression"
+    },
+    {
+      "id": "synthetic_limiter_negative",
+      "status": "covered_by_unit_fixture",
+      "expectation": "not_de_esser",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/limiter",
+      "set": "regression"
+    },
+    {
+      "id": "synthetic_clipper_negative",
+      "status": "covered_by_unit_fixture",
+      "expectation": "not_de_esser",
+      "fixture": "unit:TestDetectDeEsserModelNegativeBoundaries/clipper",
+      "set": "regression"
+    }
+  ],
+  "verdict": "passed"
+}
+artifacts: D:\Vit_DAW_wt_261impl\VitApp\Workspace\Artifacts\smoke\de_esser_control\20261106_181640
