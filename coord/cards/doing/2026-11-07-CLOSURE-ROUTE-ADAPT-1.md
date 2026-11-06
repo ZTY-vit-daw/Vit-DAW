@@ -25,4 +25,18 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+### 领取（2026-11-07，勘察腿）
+
+- Owner：GLM 主会话 freeflash 子代理（**勘察腿**——路由面取证+适配方案设计，读档零 LLM 零代码改动，产出=recon-design.md 交主管裁定，不动代码）
+- 领取基线：origin/main `a8be057ed772f9030ab148eb9a6b704d0f07e064`（worktree 新建于该点，`git status --short` 空、`git diff --stat` 空）
+- Worktree：`D:/Vit_DAW_wt_271impl` @ 分支 `port/closure-route-adapt-1`
+- 主仓 coord/ 存在其他会话未提交改动（UX-AB-AUDITION-IMPL-1、FE-* runs 等）——不属本卡文件域，未触碰
+- 工件目录：`D:/Vit_DAW/coord/runs/CLOSURE-ROUTE-ADAPT-1/`（PROGRESS.md 断点续跑协议执行中）
+
+### 回执（勘察腿）
+
+- （执行侧回填）
+
+### 验收（主管）
+
+- （主管回填）
