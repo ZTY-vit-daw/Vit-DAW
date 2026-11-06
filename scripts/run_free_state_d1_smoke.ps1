@@ -1390,7 +1390,10 @@ if ($D2StereoCheck) {
         $d2StoreSearchDiagnosis = "candidates=" + $d2StoreCandidates.Count
         if ($d2StoreCandidates.Count -gt 0) {
             $d2Report.verdict_store_path = $d2StoreCandidates[0].FullName
-            $d2StoreJson = Get-Content -LiteralPath $d2Report.verdict_store_path -Raw | ConvertFrom-Json
+            # -Encoding UTF8 is load-bearing: the Go-written store is BOM-less
+            # UTF-8 with Chinese summary text; the ANSI-default read mangles
+            # multi-byte sequences and ConvertFrom-Json throws (run3 lesson).
+            $d2StoreJson = Get-Content -LiteralPath $d2Report.verdict_store_path -Raw -Encoding UTF8 | ConvertFrom-Json
             Copy-Item -LiteralPath $d2Report.verdict_store_path -Destination (Join-Path $artifactDir "d2_verdict_store.json") -Force
             foreach ($record in @($d2StoreJson.verdicts)) {
                 if ([string]$record.trigger_kind -eq "d2_stereo_check") {
@@ -1435,10 +1438,13 @@ if ($D2StereoCheck) {
         Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
     }
 
-    # Gate D: the D2 queue node left not_started.
-    Write-Host "[d2-stereo] gate D: mix_queue_view D2 node state"
+    # Gate D: the D2 queue node left not_started. The queue view rides the
+    # mix.report catalog tool (M1-5 three-view: result.mix_workflow_queue) —
+    # there is no standalone mix_queue_view invoke tool (run3 lesson: the
+    # 254-era guessed name returned unknown tool).
+    Write-Host "[d2-stereo] gate D: mix.report queue view D2 node state"
     $d2QueueResp = Invoke-D1ToolJson -Uri $d2InvokeUri -Body @{
-        tool      = "mix_queue_view"
+        tool      = "mix.report"
         args      = @{}
         confirmed = $true
         source    = "free_state_d1_smoke"
@@ -1446,7 +1452,12 @@ if ($D2StereoCheck) {
     $d2QueuePath = Join-Path $artifactDir "d2_queue_view.json"
     Save-D1JsonEvidence -Object $d2QueueResp -Path $d2QueuePath
     $d2QueueNodes = $null
-    if ($null -ne $d2QueueResp.result) { $d2QueueNodes = $d2QueueResp.result.view.nodes }
+    if ($null -ne $d2QueueResp.PSObject.Properties['result'] -and $null -ne $d2QueueResp.result) {
+        $d2QueueMap = $d2QueueResp.result
+        if ($null -ne $d2QueueMap.PSObject.Properties['mix_workflow_queue'] -and $null -ne $d2QueueMap.mix_workflow_queue) {
+            $d2QueueNodes = $d2QueueMap.mix_workflow_queue.nodes
+        }
+    }
     if ($null -ne $d2QueueNodes) {
         foreach ($node in @($d2QueueNodes)) {
             if ([string]$node.node_id -eq "D2") { $d2Report.d2_node_state = [string]$node.state }
