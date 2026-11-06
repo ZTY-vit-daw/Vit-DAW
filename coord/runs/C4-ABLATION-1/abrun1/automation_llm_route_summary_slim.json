@@ -1,0 +1,157 @@
+{
+  "scenario": "M3-C4-AUTO-LLM-ROUTE-VERIFY-1 LLM-turn automation routing",
+  "ablation_hook": true,
+  "started_at": "2026-11-06T02:42:41.252223+00:00",
+  "finished_at": "2026-11-06T02:56:29.471775+00:00",
+  "status": "COMPLETED",
+  "groups_requested": [
+    1,
+    3
+  ],
+  "llm_participation": "real (user engine config; every classified round below is a real billed LLM turn unless marked lexicon_hit)",
+  "verdict_distribution": {
+    "tool_chain_ok": 4,
+    "no_route": 4
+  },
+  "usage": {
+    "telemetry_path": "D:\\Vit_DAW_wt_263impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261106_104227\\logs\\agent_llm_telemetry.jsonl",
+    "available": true,
+    "llm_calls": 106,
+    "models": {
+      "deepseek-flash": {
+        "calls": 106,
+        "input_tokens": 1486923,
+        "output_tokens": 114145
+      }
+    }
+  },
+  "prompt_guidance": null,
+  "payload_guidance": {
+    "payload_capture_path": "D:\\Vit_DAW_wt_263impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261106_104227\\logs\\agent_llm_payload_capture.jsonl",
+    "available": true,
+    "needle": "Action Path Selection (time-varying goals vs static adjustments)",
+    "rows": 106,
+    "rows_with_guidance": 88,
+    "trigger_needle": "never forms a confirmation card",
+    "rows_with_trigger_clarification": 88,
+    "rows_with_old_clause": 0,
+    "terminal_direct_call_needle": "a direct automation.set_points mutation call when every write element",
+    "time_varying_exemption_needle": "a time-varying goal is exempt from it",
+    "rows_with_terminal_direct_call": 6,
+    "rows_with_time_varying_exemption": 88,
+    "rows_with_terminal_twochoice": 0
+  },
+  "payload_param_surface": {
+    "payload_capture_path": "D:\\Vit_DAW_wt_263impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261106_104227\\logs\\agent_llm_payload_capture.jsonl",
+    "available": true,
+    "needle": "automation_param_surface",
+    "rows": 106,
+    "rows_with_param_surface": 8,
+    "rows_with_param_value": 8
+  },
+  "payload_automation_surfaces": {
+    "payload_capture_path": "D:\\Vit_DAW_wt_263impl\\VitApp\\Workspace\\Artifacts\\smoke\\automation_llm_route_20261106_104227\\logs\\agent_llm_payload_capture.jsonl",
+    "available": true,
+    "needle": "automation_surfaces",
+    "rows": 106,
+    "rows_with_automation_surfaces": 16,
+    "rows_with_pinned_plugin_id": 16,
+    "rows_with_attribution_receipt": 51,
+    "rows_with_pinned_value": 16
+  },
+  "ablation_hook_invalid": null,
+  "groups": {
+    "group_1": {
+      "phrase": "这段让它越来越突出一点",
+      "llm_samples": 5,
+      "verdicts": [
+        "tool_chain_ok",
+        "tool_chain_ok",
+        "tool_chain_ok",
+        "no_route",
+        "tool_chain_ok"
+      ],
+      "successes": 4,
+      "group_pass": true,
+      "stop_loss": null,
+      "choreo_pending_leg": {
+        "verdict": "skipped_ablation_hook",
+        "group": 1
+      }
+    },
+    "group_3": {
+      "phrase": "30 秒之后动起来",
+      "llm_samples": 3,
+      "verdicts": [
+        "no_route",
+        "no_route",
+        "no_route"
+      ],
+      "successes": 0,
+      "group_pass": false,
+      "stop_loss": {
+        "group": 3,
+        "failure_type": "no_route",
+        "consecutive": 3
+      },
+      "choreo_pending_leg": {
+        "verdict": "skipped_ablation_hook",
+        "group": 3
+      }
+    }
+  },
+  "rounds_slim": [
+    {
+      "group": 1,
+      "round": 1,
+      "verdict": "tool_chain_ok",
+      "counts_as_llm_sample": true
+    },
+    {
+      "group": 1,
+      "round": 2,
+      "verdict": "tool_chain_ok",
+      "counts_as_llm_sample": true
+    },
+    {
+      "group": 1,
+      "round": 3,
+      "verdict": "tool_chain_ok",
+      "counts_as_llm_sample": true
+    },
+    {
+      "group": 1,
+      "round": 4,
+      "verdict": "no_route",
+      "counts_as_llm_sample": true,
+      "verdict_detail": "continuation settled goal completed with no write, confirmation, or capability face (stop_reason='', summary='这段让它越来越突出一点')"
+    },
+    {
+      "group": 1,
+      "round": 5,
+      "verdict": "tool_chain_ok",
+      "counts_as_llm_sample": true
+    },
+    {
+      "group": 3,
+      "round": 1,
+      "verdict": "no_route",
+      "counts_as_llm_sample": true,
+      "verdict_detail": "plain-text response, no automation tool face: '我没太明白你的意思——是想继续刚才的确认，还是提个新要求？如果是继续刚才的确认，直接回「需要」或「可以执行」；如果是新的调整，请说清楚要动哪条轨道、往哪个方向调。'"
+    },
+    {
+      "group": 3,
+      "round": 2,
+      "verdict": "no_route",
+      "counts_as_llm_sample": true,
+      "verdict_detail": "plain-text response, no automation tool face: '我没太明白你的意思——是想继续刚才的确认，还是提个新要求？如果是继续刚才的确认，直接回「需要」或「可以执行」；如果是新的调整，请说清楚要动哪条轨道、往哪个方向调。'"
+    },
+    {
+      "group": 3,
+      "round": 3,
+      "verdict": "no_route",
+      "counts_as_llm_sample": true,
+      "verdict_detail": "plain-text response, no automation tool face: '我没太明白你的意思——是想继续刚才的确认，还是提个新要求？如果是继续刚才的确认，直接回「需要」或「可以执行」；如果是新的调整，请说清楚要动哪条轨道、往哪个方向调。'"
+    }
+  ]
+}
