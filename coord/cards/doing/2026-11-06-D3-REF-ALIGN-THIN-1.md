@@ -25,4 +25,6 @@ D3=参考曲对齐（not_built）：观察面已建（M1-4：RLM reference_level
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07T00:3x+08:00 / origin/main=b5db5157（领取时最新；HEAD=工作树零 diff 亲证 status/diff --stat 均空）/ owner=GLM-5.3（PC，ZCode 主会话 L2-worker 子代理 266impl）/ 分支=port/d3-ref-align-thin-1（worktree=D:\Vit_DAW_wt_266impl，实现基线=b5db5157）/ 领取提交=（本笔）
+- （执行侧回填回执）
+- （主管回填）
