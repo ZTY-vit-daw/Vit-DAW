@@ -622,6 +622,28 @@ if ($runnerExit -eq 3) {
 if ($runnerExit -ne 0) {
     throw "D1-S1 smoke failed; report=$report"
 }
+# ------------------- D1 terminal-branch detection (SMOKE-SCRIPT-HYGIENE-1, 260)
+# 258 ruling §二-①: the D1 runner has two legal terminal branches — 256
+# legalized the honest zero-mutation boundary in the runner's assertion
+# surface (validation.branch="zero_mutation_boundary"; the applied path
+# carries no branch key). The watch hook registers lazily and only on a
+# trigger (T3 project_change after the applied action / T1 settle), so on
+# the zero-mutation branch no trigger ever fires and the LW / D1-SETTLE
+# phase gates are structurally unreachable. Below, that branch records
+# "branch unreachable" (skip-with-reason, still a complete judgment face in
+# the phase gates report) instead of failing gates and throwing; the
+# 1-mutation branch keeps its full gate semantics unchanged. A missing or
+# foreign branch marker fails toward the full-gate path (honest gates, no
+# silent skip).
+$d1ValidationBranch = ""
+try {
+    $d1ReportRaw = Get-Content -LiteralPath $report -Raw
+    if (-not [string]::IsNullOrWhiteSpace($d1ReportRaw)) {
+        $d1ValidationBranch = [string](Get-D1JsonProperty -Object (Get-D1JsonProperty -Object ($d1ReportRaw | ConvertFrom-Json) -Name "validation") -Name "branch")
+    }
+}
+catch { }
+$zeroMutationBranch = ($d1ValidationBranch -eq "zero_mutation_boundary")
 # ------------------- LW post-run gates (opt-in; only after runner exit 0)
 # LOUDNESS-B-TRIGGER revision leg (BATCH1 2026-10-17 §二 案①): the D1 settle
 # leg is the deterministic trigger bed for the watch hook. All gates are
@@ -635,7 +657,7 @@ if ($runnerExit -ne 0) {
 #      dedupe keys stay unique (same revision+kind rechecks, never duplicates);
 #   4. configure off -> observe #3 -> checks_total does not move (silent zero
 #      cost); A4 fixed-orchestration marker scan; E1 cost extraction.
-if ($LoudnessWatch) {
+if ($LoudnessWatch -and -not $zeroMutationBranch) {
     Write-Host ""
     Write-Host "== Phase LW: loudness watch post-settle gates ==" -ForegroundColor Cyan
     $lwInvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
@@ -939,6 +961,38 @@ if ($LoudnessWatch) {
     }
     Write-Host ("[lw] PASS: disclosure + verdict store/round trigger + dedupe + config-off silence + E1 all green; gates=" + $lwGatesPath) -ForegroundColor Green
 }
+elseif ($LoudnessWatch) {
+    # Zero-mutation branch (256-legalized runner terminal; 258 §二-①): the
+    # watch hook registers lazily and only on a trigger (T3 project_change /
+    # T1 settle); this round applied nothing, so no trigger fired and every
+    # LW gate is structurally unreachable. Record the skip-with-reason
+    # judgment face and keep the run going so later phases (D1-SETTLE) still
+    # get their own faces instead of being cut off by a throw.
+    Write-Host ""
+    Write-Host "== Phase LW: loudness watch post-settle gates ==" -ForegroundColor Cyan
+    $lwSkipGates = "skipped_branch_unreachable"
+    $lwGatesPath = Join-Path $artifactDir "loudness_watch_gates.json"
+    $lwGatesSkip = @{
+        schema_version  = "loudness_watch_d1_gates.v0"
+        run_stamp       = $stamp
+        runner_exit     = $runnerExit
+        d1_branch       = $d1ValidationBranch
+        phase_reachable = $false
+        skip_reason     = "zero_mutation_boundary: the watch hook registers lazily and only on a trigger (T3 project_change after the applied action / T1 settle); this round applied nothing, fired no trigger, and the LW gates are structurally unreachable on this branch"
+        setup           = $lwSetup
+        gate_results    = @{
+            disclosure                  = $lwSkipGates
+            verdict_store_round_trigger = $lwSkipGates
+            dedupe                      = $lwSkipGates
+            config_off_silent           = $lwSkipGates
+            a4_zero_markers             = $lwSkipGates
+            e1_samples                  = $lwSkipGates
+        }
+        failures        = @()
+    }
+    try { $lwGatesSkip | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $lwGatesPath -Encoding UTF8 } catch { }
+    Write-Host ("[lw] BRANCH-SKIP (zero-mutation): LW gates unreachable on this branch, recorded skip-with-reason (phase_reachable=false); gates=" + $lwGatesPath) -ForegroundColor Yellow
+}
 # ------------------- D1 loudness/peak settle gates (opt-in; AF-D1-LOUDNESS-SETTLE-1)
 # Deterministic /agent/chat + /agent/invoke gates, zero LLM turns (the settle
 # phrase routes through the capability canary before any semantic entry):
@@ -953,7 +1007,7 @@ if ($LoudnessWatch) {
 #      must park nothing. The verdict kind itself is fixture-dependent and
 #      stays unasserted (90-card precedent);
 #   D. the D1 queue node left not_started (mix_queue_view).
-if ($D1LoudnessSettle) {
+if ($D1LoudnessSettle -and -not $zeroMutationBranch) {
     Write-Host ""
     Write-Host "== Phase D1-SETTLE: loudness/peak settle gates ==" -ForegroundColor Cyan
     $settleUri = $AgentHttp.TrimEnd("/") + "/agent/chat"
@@ -1145,6 +1199,36 @@ if ($D1LoudnessSettle) {
         throw ("D1-LOUDNESS-SETTLE gates failed (" + [string]$settleFailures.Count + " failure(s)); evidence=" + $settleGatesPath)
     }
     Write-Host ("[d1-settle] PASS: settle turn + verdict on disk + action face + D1 node lit; gates=" + $settleGatesPath) -ForegroundColor Green
+}
+elseif ($D1LoudnessSettle) {
+    # Zero-mutation branch (256-legalized runner terminal; 258 §二-①): the
+    # settle gates live off the same unreachable machinery — gate B needs a
+    # d1_settle verdict record in the project's loudness_watch verdict store
+    # (no hook registered -> no store) and gate D needs the D1 queue node to
+    # have left not_started (no applied action -> it never lit). Record the
+    # skip-with-reason judgment face instead of running gates that can only
+    # fail structurally; the 1-mutation branch keeps its full gate semantics.
+    Write-Host ""
+    Write-Host "== Phase D1-SETTLE: loudness/peak settle gates ==" -ForegroundColor Cyan
+    $settleSkipGates = "skipped_branch_unreachable"
+    $settleGatesPath = Join-Path $artifactDir "d1_settle_gates.json"
+    $settleGatesSkip = @{
+        schema_version  = "d1_loudness_settle_gates.v0"
+        run_stamp       = $stamp
+        runner_exit     = $runnerExit
+        d1_branch       = $d1ValidationBranch
+        phase_reachable = $false
+        skip_reason     = "zero_mutation_boundary: no applied action -> no watch-hook trigger -> no verdict store (gate B) and the D1 queue node never left not_started (gate D); the settle gates are structurally unreachable on this branch"
+        gate_results    = @{
+            settle_turn     = $settleSkipGates
+            verdict_on_disk = $settleSkipGates
+            action_face     = $settleSkipGates
+            d1_node_lit     = $settleSkipGates
+        }
+        failures        = @()
+    }
+    try { $settleGatesSkip | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $settleGatesPath -Encoding UTF8 } catch { }
+    Write-Host ("[d1-settle] BRANCH-SKIP (zero-mutation): settle gates unreachable on this branch, recorded skip-with-reason (phase_reachable=false); gates=" + $settleGatesPath) -ForegroundColor Yellow
 }
 if ($AdmissionOnly) {
     Write-Host ("D1-S1 ADMISSION_ONLY PASS: real-stack proposal/admission smoke completed without Apply; report=" + $report) -ForegroundColor Green
