@@ -28,7 +28,11 @@
 
 ## 领取
 
-- （执行侧回填）
+- 2026-11-06 / **先行稿轮**（设计先行；定稿须 276 终验后+裁定 18 用户确认后另轮执行）
+- owner=GLM 主会话 L2-worker 子代理（ZCode / PC）；验收负责人=GLM 主管决策流
+- worktree=`D:/Vit_DAW_wt_279impl` @ 分支 `port/edu-level-content-1`
+- 领取基线：origin/main `9eebccdf`；worktree `git status --short` 空、`git diff --stat` 空（净树领取）
+- 文件域=coord/levels/（新目录）+本卡面；零 agent 代码零内核；零真栈腿不占栈（纯文档设计）；零 LLM 计费
 
 ## 回执
 
