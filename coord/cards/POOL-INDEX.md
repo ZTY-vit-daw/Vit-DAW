@@ -22,7 +22,7 @@
 | 267 | MSGLOOP-FEEDBACK-LOSS-1 | **done 取证型 pass**（前提推翻+重定性；累积弹回史挂 262 验证腿读数） |
 | 268 | D1GATE-SCRIPT-HYGIENE-1 | 新卡（265 域外②），自主批次在派 |
 | 276 | EDU-SYMBOL-CORE-1 | doing（段 1+2 pass；段 3 真栈烟测=栈腿串行第三） |
-| 279 | EDU-LEVEL-CONTENT-1 | doing（**先行稿轮 pass**；定稿待 PD-1+276 终验） |
+| 279 | EDU-LEVEL-CONTENT-1 | **done 待验收**（定稿轮交付 2026-11-07：level.yaml+MIDI 素材+MANIFEST+persona；机械复算全绿；开放项⑨真栈校准移交 280） |
 | 239 | M3-LLM-TIMEOUT-ADAPT-1 | done 已验收 pass |
 
 ### 未成卡 backlog

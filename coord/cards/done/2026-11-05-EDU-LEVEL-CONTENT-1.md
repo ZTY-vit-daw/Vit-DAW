@@ -52,7 +52,24 @@
 - **开放问题 13 条**（§6，定稿前须确认项摘要）：①裁定 18 用户确认态（先行稿按现文设计）②276 段 3 终验后 schema 冻结 ③素材版权口径（公版+Vit 原创，发布前懂版权者核实）④RiskConfirm 乐局内降级（用户裁定，默认不降）⑤280 判定器三件语义定案 ⑥拍谱 OMR 容差（286）⑦谱面排版来源 ⑧人格块终审 ⑨真栈复跑校准（定稿轮占栈）⑩止损数值 ⑪空白轨豁免口径 ⑫素材力度约定 ⑬280 互测夹具物化与否。
 - **状态**：先行稿交付完毕，**卡保持 doing——定稿轮待前置**（裁定 18 确认+276 终验+上述归属用户/主管项）；未做任何定稿动作（无 level.yaml 真文件、无素材二进制、未碰 agent 代码/capability_pack）。
 
+### 定稿轮（2026-11-07，GLM 主会话 L2-worker 子代理）
+
+- **产物**（impl commit `0ef7da9c` @ `port/edu-level-content-1`，已推 origin；8 文件 +803 行）：
+  - `coord/levels/first-run-twinkle/level.yaml` —— `vit.level_card.v0` 首个定稿实例（蓝本=设计稿 §2.5）：42 音全表 + 7 节点（done_when 判定器名全在首版 3 枚举内，本实例仅用 note_sequence_match）+ finale（裁定 18 现文全量落卡）+ write_boundary（9 命令实名）+ **runtime_slots 三轨落位（新增块**=开放问题⑤-4 实例落位，§2.3 轨布局卡内化）+ budget（60/120）+ guidance；
+  - 素材：`assets/theme_twinkle_v0.mid`（42 音，419B，sha256 `276e1ffb…8952`）/ `assets/theme_twinkle_corrupted_v0.mid`（@37→68，419B，sha256 `2a58dbfb…bd33`）。**MIDI 生成方式设计决策存档**：Python stdlib 确定性生成器（`tools/gen_theme_midi.py`，同输入逐字节相同；notes.theme 为唯一数据权威、MIDI=其投影非独立数据；format 0/PPQ 480/ch 0/vel 100 固定=开放问题⑫定稿；tempo meta 100bpm+4/4 仅播放器显示，工程 tempo 走 n2 set_tempo——import 不读 tempo meta）；`assets/MANIFEST.yaml`（哈希+出处+produced_by 存档；score PDF=deferred_286 登记 deferred_files，未入 assets——校验门拒绝路径 10 要求文件+哈希在档）；
+  - `persona_default.md`（§2.7 骨架填充 v1；终审=开放问题⑧待用户/主管）；`coord/levels/README.md`（目录语义+格式索引=§3 提案落成）；`tools/check_level_yaml.py`（结构自检，280 校验门落地前作内容侧 lint）。
+- **schema 对齐（开放问题②关闭）**：edu 包四文件（edu/transform/judge/command.go @ main `24f7280a`，276 合入版）与先行稿 §1.3 对齐表逐项核对=**零漂移**（parseAnalyzeArgs 字段族/半开窗口 1e-6 容差/min≥2/key 双语义/Finding 投影/bar 守门全一致）；§6-2 漂移修订规则未触发。write_boundary 逐名核对修正两处：`mutate_midi_notes`/`delete_midi_notes` 复数实名（先行稿单数为占位笔误）、`add_midi_notes_bulk` 独立实名分列（先行稿"含 bulk"表述修正）。
+- **机械复算（附录 A 模式；main edu 包只读复制至中立临时目录 `D:/tmp_279_edu_verify2/`，零仓库改动零栈零 LLM）**：
+  - 结构自检 `python tools/check_level_yaml.py`：**319 项通过 / 0 失败，exit 0**（PyYAML 解析；判定器名全在 3 枚举；事件 6/结构谓词 3 闭集；组合子单层；轨槽与资产引用可解；bar 引用域；write_boundary ⊆ 注册面；assets↔MANIFEST↔实际文件哈希三方对账）；
+  - 检测核复算 `go test ./edu/ -v`（go1.26.2，同包复用 windowNotes/buildAnalyzeSegment 真代码）：**5 测试全 PASS，exit 0**——①min 阶梯 3/4/5/6/7→30/20/8/6/6（=附录 A 基线）；②hook 断言：concept_b_section 3 条 expected_findings 全对（proto_bars/match_bars 经 command.go bar 投影真代码换算）+diagnose expect_absent（14 音 repeat bars1-4→9-12）未出现/expect_present（8 音后截 bars2-4→10-12）出现；③B 窗口 [8,32) min∈{5,6,7} 均恰 3 条且内容一致；④差分：完好 6 条/改错 6 条、共有 5 条逐条一致；⑤judge 全曲恰 1 mismatch idx=33（actual 68/expected 69/proto 69，rhythm_matched=true）+窗口 [32,48) idx=5；
+  - MIDI 回环对账：两文件音符↔level.yaml notes 表逐音相等（42/42；PPQ=480/ch=0/vel=100 约定核对）。
+  - 诚实边界：check_level_yaml.py 初版两处口径缺陷（notes_ref 点路径解析、派生资产免 notes_ref）轮内自纠后全绿；extract_spec.py 初版 MIDI 解析器状态字节推进 bug 轮内自纠——均未影响定稿产物（生成器与 level.yaml 一次成型）。
+- **开放问题终态（13 条全处置）**：①**关闭**——裁定 18 按现文生效（主管定稿轮派发指令 2026-11-07 述明用户确认；**main rulings 文本仍标"待确认"，回写=决策侧账务，如实标注**）；②**关闭**——零漂移；③卡内口径落定（公版+vit_original 入 MANIFEST license；发布前懂版权者核实=发布前置条件，保留）；④**关闭**——`confirm_downgrade: none`；⑤**开放（归 280 互引）**——本卡侧实例落位：runtime_slots 块+accept_transposed 两处（false）+组合子全单层+pitch_set_match 本实例零使用待 280 定案；⑥**开放（归 286）**——n0 fallback 已兜底；⑦口径**关闭**（自排 vit_original）+工件延后（deferred_286）；⑧**开放**——v1 骨架已交付，终审=用户/主管；⑨**开放**——本卡零栈，真栈复跑校准移交（280 运行时卡或后续占栈卡，届时按 PROTOCOL §2.2 登记）；⑩**定稿**=60/120+`preserve_scene_and_escalate`（运行期读数校准归 280/281）；⑪**定稿**=无豁免通道（用户明示留白不构成闭合条件）；⑫**定稿**=velocity 100 固定/channel 0；⑬**消解**——真 level.yaml 已在档，280 直接引用为互测夹具（无需从 §2.5 另行物化）。
+- **280 校验门对齐面终态**：12 条拒绝路径在本实例全部有可判落点（1/2/3 枚举闭集、4 bar 域、5 range 形态、6 min≥2、7 key、8 transformations 白名单、9 node id、10 assets+sha256、11 schema_version、12 objectives check+verbal_rubric 显式豁免）；6 新增项：①事件/结构谓词枚举（本卡自检已按闭集 lint）②pitch_set_match 语义（待 280）③accept_transposed（本卡两处实证卡面可写）④组合子单层（实例全单层）⑤内嵌 notes 判定输入源（42 行实证零栈可判）⑥runtime_slots（**变化：本轮已落位为卡字段提案**——280 需裁定升格必检或保持实例惯例）。
+- **端测覆盖边界声明（AGENTS §5）**：本卡纯内容工件（coord 下 YAML/MIDI/md/生成校验工具），零 agent 代码零内核零 webui——渲染面与用户旅程门槛不适用；本卡验收面=结构自检+机械复算（全绿如上）；真实栈校准=开放项⑨显式移交。
+- **状态**：定稿轮交付完毕，自验通过，卡转 **done 待主管验收**；project_template（§3 提案位）未入 §7 差额清单本轮不做，留 280/后续卡。
+
 ## 验收
 
 - **先行稿轮验收（2026-11-06 深夜，主管）：pass**——627 行自包含设计稿结构完整（schema/素材/目录/裁定 18 映射/280 对齐/开放问题/定稿差额）；**离线机械复算实证=质量典范**（276 核只读复跑全套+YAML 自检；初版四处手推断言被复算推翻轮内自纠留档——诚实边界执行到位）；开放问题 13 条归属清晰（用户 5/主管 3/280-286 执行侧 5）。定稿轮阻塞三件维持（PD-1 裁定 18 确认+写入降级+276 段 3 终验），卡保持 doing 合规。
-- （定稿轮验收：待前置落定后另轮回填）
+- （定稿轮验收：待主管——定稿轮回执已交，见上定稿轮段）
