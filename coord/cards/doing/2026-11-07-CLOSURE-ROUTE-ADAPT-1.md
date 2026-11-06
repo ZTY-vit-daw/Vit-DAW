@@ -47,3 +47,18 @@
 
 - （主管回填）
 - **勘察腿验收+裁定（2026-11-07 凌晨，主管）：pass+案 B 先行**——根因链钉死（LLM 分类摇摆×capability_routing.go:308 无条件派 closure×ModeDiagnostic 1-turn clamp[38ecd24b 基线期冻结]）；**裁定**：①案 B 获准（诊断闭包轮承认 base 预算 5-turn 同源——依据=同语义双预算欠账+229 automation 轮 48/80 预算面先例+结构性判据零判断权触碰[mode/phase 字段，禁话术判断入预算]）②**测试意图修订授权**（TestAudioClosureBudgetDiagnosticRoundKeepsClamp 以 276 卷内证据=one-probe-one-verdict 假设被打破为依据改意图+注明修订依据，禁静默改期望值）③案 A（纯分析身份派 OrdinaryConversation）**挂 PD-3 用户裁定**（判断权归属域）④案 C 不做（B 超集+触 227 定案边界）⑤276 遗留 continuation=fixture 内状态无收口义务记录⑥276 evidence frontier 笔误以本卡勘误为权威修正。续跑腿=验证腿便车兜底。
+
+### 回执（实现腿，案 B）
+
+- 完成时间：2026-11-07；依据=主管裁定①②（c1d78a8b）；实现腿在 worktree `D:/Vit_DAW_wt_271impl` @ `port/closure-route-adapt-1` 零栈零 LLM 完成（勘察腿同 owner 会话续做）
+- **实现 commit**：`cf22db7f`（已推 `origin/port/closure-route-adapt-1`；领取基线=origin/main c1d78a8b[ff 合入零冲突]；工作树领取时净、commit 后净；2 文件 167+/22-）
+- **diff 范围**（文件域内）：
+  - `agent/internal/chat/audio_closure_controller.go`（+57）：新增 `audioClosureDiagnosticRoundContext`——结构性判据=closure 自身 `Mode` 字段（经 `audioClosureStateMap` JSON 投影，tag 无 omitempty 序列化必有值），**裁定①结构性判据红线履行**（mode/phase 字段、零话术判断、禁语入预算注释在案）；mode 空/未知 fail-closed 回 229 钳制（持久化兼容）；`audioClosureMessageLoopBudget` 在 automation 分支**之后**插入诊断轮豁免分支（保留 caller base 不压回 1，floor 语义；`≤6` 工具钳制保持；轮边界 MaxClosureRounds/no-progress 熔断不变）；229 decay 注释按事实修订+271 案 B 依据注释（276 卷内证据引用在案）
+  - `agent/internal/chat/audio_closure_turn_budget_test.go`（+132/-22）：**裁定②授权修订履行**——`TestAudioClosureBudgetDiagnosticRoundKeepsClamp`→`TestAudioClosureBudgetDiagnosticRoundKeepsDiagnosticBaseBudget`（文件头+函数注释注明 276 卷内证据[closure mode=diagnostic/fs2_capacity_assessed/frontier 空→MaxTurns=1 生效、模型 86tok 零工具调用 limit_reached、one-probe-one-verdict 假设被实证打破]+271 引用+「禁静默改期望值」条款履行声明），5 场景钉：①同源 5（base 直接取自 `agentLoopBudgetForContext`，钉「5-turn 同源」裁定原文）②276 回归形态（mode=diagnostic+goal base 保留）③fail-closed 三 mode（空/unknown/treatment→1，legacy 零回退）④诊断续跑片继承（229 side 2 契约）⑤terminal_turn_locked 由 base≥5 自然覆盖；新增 `TestAudioClosureBudgetTreatmentRoundClampUnchanged`（治疗轮 1/2 钳制+候选选择 verbatim=裁定①治疗轮零影响）与 `TestAudioClosureBudgetAutomationRoundUnaffectedByDiagnosticExemption`（automation 分支先于豁免的顺序红线=48/80 不变）
+- **测试与退出码**：`go build ./...` exit 0；`go test ./internal/chat ./internal/agentloop -count=1` → chat 171.169s ok + agentloop 5.721s ok（exit 0）；定向 `go test -run 'TestAudioClosureBudget' -v` → 7 面全 PASS（含既有 terminal loop/legacy/自动化续跑片三面原样通过=零回退证明）
+- **边界声明**：本腿零栈——端侧真栈烟测未跑（验证腿留主管栈调度，与卡面验证口径一致：真栈可搭后续 run 便车）；预算面改动仅涉轮内 turns/calls 数值，不改路由语义、工具披露面、治理门与轮边界熔断
+- 工件：[PROGRESS.md 实现腿段](../runs/CLOSURE-ROUTE-ADAPT-1/PROGRESS.md)（R1-R5 全 DONE）；gofmt CRLF 全文件重排已规避（LF 副本校验仅 1 处对齐修正，git diff 干净）
+
+### 验收（实现腿，主管）
+
+- （主管回填）

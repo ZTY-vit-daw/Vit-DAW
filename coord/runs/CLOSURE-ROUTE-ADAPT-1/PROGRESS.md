@@ -20,6 +20,27 @@
 
 **DONE**（2026-11-07）——勘察腿完成。方案要点一句话：分析类请求误入 closure 的根因是 semantic_entry LLM 在 discussion/observation 判据边界摇摆且 observation 被无条件派给 MinimalAudioClosure 闭包（ModeDiagnostic、1-turn clamp），建议主推案 B（诊断闭包轮预算面最小修，承认 base 预算，零判断权边界触碰），案 A（路由面拆纯分析身份）交判断权归属裁定后叠加。
 
+---
+
+# 实现腿（2026-11-07 第二次派发，案 B 获准）
+
+- 派发：主管验收勘察腿 pass + 裁定**案 B 获准**；实现腿在 worktree D:/Vit_DAW_wt_271impl @ port/closure-route-adapt-1 续做，零栈零 LLM
+- 文件域：agent/internal/chat/audio_closure_controller.go 预算段 + audio_closure_turn_budget_test.go（+如需配对测试新文件）；验证=go build 全量 + chat/agentloop 全包绿
+
+## 实现腿步骤
+
+| # | 状态 | 内容 | 产物/证据 |
+|---|---|---|---|
+| R1 | DONE | git fetch + worktree ff 至 c1d78a8b（远端新增裁定提交 271 勘察 pass+案 B 获准+PD-3 挂起；fast-forward 零冲突） | HEAD=c1d78a8b |
+| R2 | DONE | 案 B 实现完成：audioClosureDiagnosticRoundContext（closure mode 结构判据，mode 空/未知 fail-closed）+ 诊断轮豁免分支（automation 分支之后插入，保留 caller base，≤6 工具钳制保持）+ 229 decay 注释修订 + 271 案 B 依据注释（276 卷内证据引用） | audio_closure_controller.go（+57 行） |
+| R3 | DONE | 测试修订完成：TestAudioClosureBudgetDiagnosticRoundKeepsClamp → TestAudioClosureBudgetDiagnosticRoundKeepsDiagnosticBaseBudget（5 场景：同源 5/276 回归钉/fail-closed 三 mode/续跑片继承/terminal_turn_locked）；新增 TestAudioClosureBudgetTreatmentRoundClampUnchanged + TestAudioClosureBudgetAutomationRoundUnaffectedByDiagnosticExemption（顺序红线）；文件头注明授权修订依据+禁静默条款履行；gofmt 修 1 处对齐（CRLF 全文件重排规避，git diff 干净 167+/22-） | audio_closure_turn_budget_test.go（+132/-22） |
+| R4 | DONE | ①`go build ./...` exit 0；②`go test ./internal/chat ./internal/agentloop -count=1` → chat 171.169s ok + agentloop 5.721s ok，exit 0；定向 `go test -run TestAudioClosureBudget -v` → 7 面全 PASS（自动化 48/80、诊断主面 5 场景、治疗轮不变、自动化顺序红线、terminal loop、legacy 零回退、自动化续跑片） | 本行退出码 |
+| R5 | DONE | 实现 commit **cf22db7f** 落分支 port/closure-route-adapt-1（worktree HEAD=c1d78a8b 之上，2 文件 167+/22-，commit 后工作树净）并推 origin；卡面回执实现腿段+本文件终态更新提交 main | commit cf22db7f；分支已推 |
+
+## 实现腿终态
+
+**DONE**（2026-11-07）——案 B 实现腿完成。一句话：诊断闭包轮（closure mode=diagnostic 结构判据）在 audioClosureMessageLoopBudget 中保留 caller base 不再压回 1（≤6 工具钳制与轮边界熔断不变，treatment/legacy/自动化三面 verbatim 零影响），测试面 7 钉全绿；实现 commit cf22db7f @ port/closure-route-adapt-1（已推 origin），合入 main 待决策验收。
+
 ## 长命令记录（跑之前先记）
 
 （暂无）
