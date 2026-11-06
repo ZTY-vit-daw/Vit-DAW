@@ -1,0 +1,31 @@
+﻿{
+    "runner_exit":  0,
+    "gate_results":  {
+                         "settle_turn":  false,
+                         "d1_node_lit":  true,
+                         "verdict_on_disk":  true,
+                         "action_face":  true
+                     },
+    "schema_version":  "d1_loudness_settle_gates.v0",
+    "report":  {
+                   "verdict_record_on_disk":  true,
+                   "failures":  [
+                                    "D1-SETTLE FAIL: observation loudness_peak_status was \u0027missing\u0027 (expected present)"
+                                ],
+                   "observation_face":  "missing",
+                   "settle_checked":  true,
+                   "verdict_store_path":  "D:\\Vit_DAW_wt_266impl\\artifacts\\free_state_d1_s1\\20261107_011211\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\loudness_watch_verdicts.json",
+                   "action_card_kind":  "mix_tick_confirmation",
+                   "d1_node_state":  "needs_confirmation",
+                   "mutation_performed":  "False",
+                   "config_basis_present":  true,
+                   "cancel_stop_reason":  "mix_tick_rejected",
+                   "verdict_kind":  "breach",
+                   "chat_stop_reason":  "d1_loudness_settled"
+               },
+    "run_stamp":  "20261107_011211",
+    "failures":  [
+                     "D1-SETTLE FAIL: observation loudness_peak_status was \u0027missing\u0027 (expected present)"
+                 ],
+    "conversation":  "conv_d1_settle_20261107_011211"
+}

@@ -168,6 +168,12 @@ func (s *Server) handlePreMasterObservationRuntime(ctx context.Context, conversa
 	if d2StereoCheckIntent(req.Message) {
 		return s.handleD2StereoCheck(ctx, conversationID, req, goal, sessionID, state, report)
 	}
+	// D3-REF-ALIGN-THIN-1：显式 D3 参考对齐意图在观察报告+RLM 投影之上跑
+	// 参考标准对齐面（判据 → verdict 落 store → 差距可定位时挂既有 mix_tick
+	// 确认链 → D3 节点点亮；动作面口径见 d3_ref_align_runtime.go 文件头）。
+	if d3RefAlignIntent(req.Message) {
+		return s.handleD3RefAlignCheck(ctx, conversationID, req, goal, sessionID, state, report, rlmProjection)
+	}
 	workflowData := map[string]any{
 		"session_id":         sessionID,
 		"capability_id":      premasterObservationCapabilityID,

@@ -1,0 +1,285 @@
+# ============================================================================
+# Vit 乐局卡 v0 —— first-run-twinkle（小星星乐局）定稿实例
+# 卡：coord/cards/doing/2026-11-05-EDU-LEVEL-CONTENT-1.md（池序 279，定稿轮 2026-11-07）
+# 设计权威：DESIGN-DRAFT-2026-11-06.md（先行稿，主管验收 pass；本文件=其 §2.5 蓝本定稿落成）
+# 对齐基线：agent/internal/edu @ main 24f7280a（276 EDU-SYMBOL-CORE-1 合入后；
+#   定稿轮逐文件核对=与先行稿 §1.3 对齐表零漂移，开放问题②关闭）
+# 坐标约定：音符坐标=clip 内 beats；判定参照权威=notes.theme 内嵌表
+#   （assets MIDI 由其确定性生成，tools/gen_theme_midi.py，哈希入档 MANIFEST.yaml）
+# ============================================================================
+
+schema_version: vit.level_card.v0
+id: first-run-twinkle
+title: 一个旋律的变奏（小星星乐局）
+story: >
+  莫扎特用《小星星》的旋律写了 12 段变奏（K.265）。这一次，轮到你和 {model_name}。
+lead_default: model                # 会话级主导极性默认（rulings §五-17；可逐节点覆写；advisory）
+players: [human, model]
+
+timing:                            # 257 修订②：bpm 与小节起拍显式进卡，判定器不做小节推断
+  bpm_default: 100                 # n2 确认前的建议默认；n2 确认后 set_tempo 写入工程（唯一一次 tempo 写入）
+  time_signature: "4/4"
+  beats_per_bar: 4
+  pickup_beats: 0                  # 弱起拍数（本曲无）
+  clip_origins:                    # 各 clip 资产全局起点：bar(n) ↔ 全局 beat [(n-1)*4, n*4)
+    theme:           { start_beats_global: 0.0, first_bar: 1 }
+    theme_corrupted: { start_beats_global: 0.0, first_bar: 1 }   # 平行对照轨，同起点
+  bar_span: { first_bar: 1, last_bar: 12 }
+
+persona_slot:                      # rulings §五-19：12 月=最小人格槽，提示词块级
+  id: default_producer
+  form: prompt_block
+  source: persona_default.md       # 终审态=开放问题⑧（v1 骨架填充，用户/主管终审待）
+
+assets:
+  - id: theme
+    kind: midi_reference           # 判定参照 + n0 fallback 直导源
+    file: assets/theme_twinkle_v0.mid
+    sha256: 276e1ffbeba0357329169aecbb8e060694ac8aace4ad09f2ba889ba97b0c8952
+    key: { tonic: 0, mode: major }
+    notes_ref: notes.theme
+  - id: theme_corrupted
+    kind: midi_reference
+    file: assets/theme_twinkle_corrupted_v0.mid
+    sha256: 2a58dbfbe172701513a7a916a5d3f4a1306d51b57ea011d2c4e9af433e07bd33
+    derived_from: theme
+    deviations:
+      - { at_beat: 37, pitch: 68, replaces: 69 }   # §2.2 默认损坏点（starter 难度）：A'1 第 6 音 A4→A♭4
+  # 谱面 score_twinkle_v0.pdf：延后制作（deferred_286，登记于 MANIFEST.yaml deferred_files）——
+  # 排版来源已定=自排 vit_original（开放问题⑦终态）；n0 有 fallback 直导 theme，本局运行不依赖谱面。
+  # 未列入 assets：校验门拒绝路径 10 要求 assets 条目带文件与 sha256 在档。
+
+runtime_slots:                     # 开放问题⑤-4 实例落位（§2.3 轨布局卡内化；提案值，280 互引面确认）
+  melody_imported:                 # 轨 1「旋律（你的谱）」：n0 产物（OMR 导入或 fallback 直导 theme）
+    track_index: 1
+    kind: workspace
+    preload: null                  # n0 由 import_midi_to_track 或 fallback 直导建立 clip
+    initial_state: empty
+  melody_corrupted:                # 轨 2「旋律（改错版）」：模板预置
+    track_index: 2
+    kind: reference
+    preload: theme_corrupted
+    initial_state: muted           # 防剧透；n3 解除
+  accompaniment_blank:             # 轨 3「伴奏」：空白轨（n5 填充；finale 锚点① no_placeholder_blanks 检查对象）
+    track_index: 3
+    kind: blank_to_fill
+    preload: null
+    initial_state: empty
+
+notes:                             # 内嵌判定参照表（beats 域；加载器合成 note id asset:<id>#<k>）
+  theme:                           # 42 音全表（§2.1）；MIDI 资产=本表确定性投影
+    # A1（bars 1-2）
+    - { pitch: 60, start: 0.0,  length: 1.0 }
+    - { pitch: 60, start: 1.0,  length: 1.0 }
+    - { pitch: 67, start: 2.0,  length: 1.0 }
+    - { pitch: 67, start: 3.0,  length: 1.0 }
+    - { pitch: 69, start: 4.0,  length: 1.0 }
+    - { pitch: 69, start: 5.0,  length: 1.0 }
+    - { pitch: 67, start: 6.0,  length: 2.0 }
+    # A2（bars 3-4）
+    - { pitch: 65, start: 8.0,  length: 1.0 }
+    - { pitch: 65, start: 9.0,  length: 1.0 }
+    - { pitch: 64, start: 10.0, length: 1.0 }
+    - { pitch: 64, start: 11.0, length: 1.0 }
+    - { pitch: 62, start: 12.0, length: 1.0 }
+    - { pitch: 62, start: 13.0, length: 1.0 }
+    - { pitch: 60, start: 14.0, length: 2.0 }
+    # B1（bars 5-6）
+    - { pitch: 67, start: 16.0, length: 1.0 }
+    - { pitch: 67, start: 17.0, length: 1.0 }
+    - { pitch: 65, start: 18.0, length: 1.0 }
+    - { pitch: 65, start: 19.0, length: 1.0 }
+    - { pitch: 64, start: 20.0, length: 1.0 }
+    - { pitch: 64, start: 21.0, length: 1.0 }
+    - { pitch: 62, start: 22.0, length: 2.0 }
+    # B2（bars 7-8）
+    - { pitch: 67, start: 24.0, length: 1.0 }
+    - { pitch: 67, start: 25.0, length: 1.0 }
+    - { pitch: 65, start: 26.0, length: 1.0 }
+    - { pitch: 65, start: 27.0, length: 1.0 }
+    - { pitch: 64, start: 28.0, length: 1.0 }
+    - { pitch: 64, start: 29.0, length: 1.0 }
+    - { pitch: 62, start: 30.0, length: 2.0 }
+    # A'1（bars 9-10；37 音符处为完好值 69——损坏只存在于 theme_corrupted 资产）
+    - { pitch: 60, start: 32.0, length: 1.0 }
+    - { pitch: 60, start: 33.0, length: 1.0 }
+    - { pitch: 67, start: 34.0, length: 1.0 }
+    - { pitch: 67, start: 35.0, length: 1.0 }
+    - { pitch: 69, start: 36.0, length: 1.0 }
+    - { pitch: 69, start: 37.0, length: 1.0 }
+    - { pitch: 67, start: 38.0, length: 2.0 }
+    # A'2（bars 11-12）
+    - { pitch: 65, start: 40.0, length: 1.0 }
+    - { pitch: 65, start: 41.0, length: 1.0 }
+    - { pitch: 64, start: 42.0, length: 1.0 }
+    - { pitch: 64, start: 43.0, length: 1.0 }
+    - { pitch: 62, start: 44.0, length: 1.0 }
+    - { pitch: 62, start: 45.0, length: 1.0 }
+    - { pitch: 60, start: 46.0, length: 2.0 }
+
+objectives:
+  - id: obj1
+    text: 能听辨旋律中的模进与原样重复
+    check: { event: user_identified, key: transformation_kind }   # 正误仲裁=模型对 analyze findings（符号证据在人耳答案之后）
+  - id: obj2
+    text: 能说出模进是「动机在不同音高上重复」
+    check: { kind: verbal_rubric, rubric: [提到重复, 提到音高位置改变, 区分于原样重复] }   # 教学侧非判定器：校验门显式豁免（§1.9-12）
+  - id: obj3
+    text: 能把听出的错音改对（使重复关系恢复）
+    check: { judge: note_sequence_match, node: n3_find_wrong_note }
+
+nodes:
+  - id: n0_photo_score_open
+    title: 拍谱开局
+    lead: model
+    goal: 把你手里的谱变成工程里的 MIDI：给谱 → Vit 识别导入 → 回放给你听
+    model_does: [score_omr_import, play]
+    needs_human: true
+    fallback: 直接导入 theme 资产（OMR 不可用/识别失败；286 未部署时默认走此路——谱面 PDF 延后制作不阻塞本节点）
+    done_when:
+      all:
+        - { structure: clip_exists, clip: melody_imported }
+        - { event: human_replied }
+    teaching: { note: 录入即问询即教学（rulings §五-12） }
+
+  - id: n1_read_and_fix
+    title: 读谱纠错
+    lead: human
+    goal: 回放里听着不对的地方（识别错的音），在卷帘里改对它
+    model_does: [play_loop, analyze_midi_transformations 定位候选小节, 指出期望音]
+    needs_human: true
+    done_when:
+      judge: note_sequence_match
+      target:    { clip: melody_imported, range_beats: [0.0, 48.0] }
+      reference: { asset: theme, range_beats: [0.0, 48.0] }
+      accept_transposed: false       # 卡面裁决落点（276 judge.go 语义说明预留；开放问题⑤-2 归 280 定案）
+    hint_ladder: [先让听全曲, 再循环可疑小节, 再并排演奏两版同小节, 最后指出小节范围请学生指音]   # advisory，人格渲染
+    teaching: { objectives: [obj3] }
+    note: 判定参照绑定 canonical 主题资产（本局=小星星实例）；任意谱通用化时本节点降级 event-only——后续内容卡注意
+
+  - id: n2_set_tempo
+    title: 定速度
+    lead: human                       # 硬护栏：模型估的 BPM 只能当建议
+    goal: 一起定下这首歌的速度
+    model_does: [给出 90-108 BPM 建议并说明理由]
+    needs_human: true
+    done_when:
+      all:
+        - { event: user_confirmed, key: tempo }
+        - { structure: tempo_set }
+    then: [set_tempo]                 # 唯一一次 tempo 写入（bar 守门前提：tempo_setting_count==1）
+
+  - id: n3_find_wrong_note
+    title: 找错音（听辨模进/重复）
+    lead: human                       # 耳朵判定权在人（rulings §五-7）；符号复核在模型
+    goal: 第二轨旋律有一个音被改错了——先听出在哪一段，再找到它改对
+    model_does:
+      - project.markers.upsert 标注 原型/A 段/B 段（可锚定参照物，rulings §五-8）
+      - 讲解 repeat 与 sequence（调内模进），用 analyze findings 作证
+      - A/B 循环两轨（transport_set_loop + solo 切换）
+      - note_sequence_match mismatches 定位错音（expected_pitch 口径）
+    needs_human: true
+    done_when:
+      judge: note_sequence_match
+      target:    { clip: melody_corrupted, range_beats: [0.0, 48.0] }   # 全曲范围（难度由 hint_ladder 收敛，不缩判定域）
+      reference: { asset: theme, range_beats: [0.0, 48.0] }
+      accept_transposed: false
+    hint_ladder: [听全曲自由找, 循环 9-12 小节, 并排演奏 bars 1-2 vs 9-10, 指出 bar 10 请学生指音]
+    teaching:
+      objectives: [obj1, obj2, obj3]
+      evidence_hooks:                 # 双挂接：概念讲解窗口 + 错音诊断差分；参数与预期均以 main edu 包只读复算核对（定稿轮，见卡面回执）
+        - id: concept_b_section       # 概念讲解：B 段窗口恰 3 条（min∈[5,7] 稳定；复算实证）
+          analyze: midi.analyze_transformations
+          params: { clip_id: melody_imported, range_beats: [8.0, 32.0], transformations: [repeat, sequence], key: { tonic: 0, mode: major }, min_match_notes: 7 }
+          # clip_id=运行时轨槽名（runtime_slots 声明；运行时替换实际 clip id）。n3 前置=n1 done
+          #（轨 1 与 notes.theme 逐音一致），故窗口数据=主题等值。
+          expected_findings:          # 断言字段投影：proto_bars/match_bars ← segments[].bar_start/bar_end；note_count ← len(segments[prototype].note_ids)
+            - { kind: repeat,   proto_bars: [5, 6], match_bars: [7, 8], shift_semitones: 0, note_count: 7 }
+            - { kind: sequence, sequence_quality: diatonic, proto_bars: [3, 4], match_bars: [5, 6], diatonic_steps: 1, shift_semitones: 2, note_count: 7 }
+            - { kind: sequence, sequence_quality: diatonic, proto_bars: [3, 4], match_bars: [7, 8], diatonic_steps: 1, shift_semitones: 2, note_count: 7 }
+        - id: diagnose_a_prime        # 错音诊断：改错轨全曲（无 range=全曲）vs 完好轨差分（§2.2）
+          analyze: midi.analyze_transformations
+          params: { clip_id: melody_corrupted, transformations: [repeat, sequence], key: { tonic: 0, mode: major }, min_match_notes: 7 }
+          expect_absent:              # 完好轨有、改错轨无
+            - { kind: repeat, proto_bars: [1, 4], match_bars: [9, 12], note_count: 14 }
+          expect_present:             # 改错轨特有（8 音后截）
+            - { kind: repeat, proto_bars: [2, 4], match_bars: [10, 12], note_count: 8 }
+
+  - id: n4_variation_direction
+    title: 选变奏方向
+    lead: human
+    goal: 决定变奏往哪儿走（换小调 / 改节奏 / 加装饰音 / 换风格）
+    model_does: [按画像给 2-3 个方向，各写 8 小节试听片段]   # 生成后端可插拔双轨（rulings §七-20/21：编曲线或变换兜底 1b）
+    needs_human: true
+    done_when: { event: user_chose, key: variation_direction }
+
+  - id: n5_make_it_ours
+    title: 共同完成
+    lead: model
+    goal: 把选定方向发展成完整变奏，你至少提一次修改意见
+    model_does: [MIDI 编写, 配伴奏填充空白轨, 基础混音]
+    needs_human: true
+    done_when:
+      all:
+        - { event: user_feedback_given, min_count: 1 }
+        - { event: user_confirmed, key: final }
+    advisory_checks:                 # 建议性符号证据（非 done_when 判定器）：变奏段宜含至少一处变换族关系（教学叙事自洽）
+      - analyze 变奏段 transformations 全族
+
+  - id: n6_name_and_export
+    title: 命名+导出（终局）
+    lead: human
+    goal: 给这首曲子起个名字，导出属于你们的版本
+    done_when: { event: export_completed }
+    finale_ref: finale               # 终局判定与仪式见 finale 块
+
+guidance:                           # 拉回配置（281 消费）
+  pullback_after_turns: 4           # 多轮未推进当前节点 → 运行时重新注入当前节点目标
+  soft: 鼓励模型分享推理、询问感受；用户打字多是好事
+  avoid: [重复询问画像已有信息, 让用户报模型能读到的数据, 同一问题换说法反复问]
+
+write_boundary:                     # 257 修订③：写入边界声明进卡
+  allow:                            # 定稿轮逐名核对（vs agent 命令注册面 @main 24f7280a）：
+                                    #   mutate_midi_notes / delete_midi_notes = 复数实名（先行稿单数为占位笔误，已修正）；
+                                    #   add_midi_notes_bulk = 独立实名（先行稿「add_midi_notes 含 bulk」修正为分列）。
+    - import_midi_to_track
+    - create_midi_clip
+    - add_midi_notes
+    - add_midi_notes_bulk
+    - mutate_midi_notes
+    - delete_midi_notes
+    - apply_midi_note_patch         # operations[]: transpose / quantize / velocity
+    - set_tempo
+    - project.markers.upsert        # 含 range marker（问询可锚定参照物）
+  confirm_downgrade: none           # 用户裁定 2026-11-07：乐局内不降级 RiskConfirm（开放问题④终态）
+
+finale:                             # 裁定 18（用户确认 2026-11-07 按现文生效）；三锚点实例映射=设计稿 §4
+  completion_before_export: true    # 完成时刻在导出之前；导出=确认后的仪式动作，非终审证据
+  closure_check:                    # 前置锚点=闭合判定（agent 可评估、达阈值主动触发问询）
+    structure_complete:             # 锚点①
+      all_nodes_done: true          # 全节点 done_when（设计局口径）
+      no_placeholder_blanks: [accompaniment_blank]   # 待填轨非空（豁免口径=开放问题⑪定稿：无豁免通道——用户明示「伴奏就留白」不构成闭合条件；留白诉求如成立须改卡面目标）
+      whole_song_playable: { from_beats: 0.0 }       # 整曲可从头播到尾（至最后 clip 末端）
+    work_surface_quiet:             # 锚点②
+      no_pending_proposals: true
+      no_unanswered_queries: true
+      quiet_turns_min: 2            # 近 2 轮无实质工程修改（只听不改）
+    soft_signals:                   # 锚点③
+      user_closing_language: { role: weighted, required: false }   # 加权项非必要条件
+  ask:
+    semantic_template: closure_inquiry   # 闭合达阈值→agent 携证据、用可锚定坐标问询「要收吗」；运行时发语义模板，人格渲染
+  user_direct_export: skip_ask      # 用户主动要导出=用户侧闭合信号，免问询直走仪式
+  ritual: [name_together, export, settle]   # 命名+导出（终局仪式）
+  settle:                           # 沉淀
+    memory_writes: [user.display_name, model.display_name, user.taste.variation_choice,
+                    user.speaking_style_feedback, user.music_experience]
+    objectives_check: all           # 学习目标检查（obj1-obj3 状态入轨迹）
+    trajectory_archive: true
+  edges:
+    completion_neq_stop: true       # 挂起是合法出口但非完成
+    completion_neq_freeze: true     # 判定对象是局非工程；局后继续修改正常，不回滚完成状态
+
+budget:                             # §8 止损；开放问题⑩定稿=先行稿提案值（60/120），运行期读数校准归 280/281 试跑
+  max_turns: 60
+  max_llm_calls: 120
+  on_stop_loss: preserve_scene_and_escalate   # 止损只停止投入：保留现场上交；不得把未发生的成功改写为成功，不得把环境错误归因模型

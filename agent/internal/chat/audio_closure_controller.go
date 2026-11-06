@@ -451,6 +451,20 @@ func audioClosureAutomationRoundContext(context map[string]any) bool {
 	return true
 }
 
+// audioClosureDiagnosticRoundContext reports whether this budget derivation
+// faces a diagnostic closure round. The predicate is the closure's own durable
+// Mode field as projected by audioClosureStateMap (json "mode", always present:
+// State.Mode has no omitempty) — a structural field, never a phrase judgment
+// (judgment-ownership ruling: deterministic layer recognizes, the LLM judges).
+// The free_state_diagnostic_only flag alone is NOT the predicate here: it marks
+// FS diagnostic replay and is consumed by audioClosureAutomationRoundContext;
+// a context without a closure state (or with an unknown/empty mode) fails
+// closed back to the clamp, so legacy persisted shapes keep the 229 semantics.
+func audioClosureDiagnosticRoundContext(context map[string]any) bool {
+	mode := strings.ToLower(strings.TrimSpace(firstStringFromMap(firstMapFromAny(context[audioClosureContextKey]), "mode")))
+	return mode == string(audioclosure.ModeDiagnostic)
+}
+
 // audioClosureAutomationRoundMaxTurns / audioClosureAutomationRoundMaxToolCalls
 // are the headroom floor an automation-capable free-state decision round's
 // slice budget opens to (232, user ruling 2026-10-31: the per-slice limit is a
@@ -503,8 +517,10 @@ func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any
 	//             boundary is untouched — a wider slice never extends closure
 	//             lifetime;
 	//   decay   = narrow admission face only (free-state decision rounds;
-	//             diagnostic-only rounds and non-free-state closure rounds
-	//             keep the clamp below verbatim). The governance gate and
+	//             treatment rounds and non-diagnostic legacy closure rounds
+	//             keep the clamp below verbatim; diagnostic closure rounds
+	//             keep the caller base per CLOSURE-ROUTE-ADAPT-1 (271, case B,
+	//             approved 2026-11-07) below). The governance gate and
 	//             one-mutation-per-round rate limit (227) do not relax with
 	//             the wider budget — a budget is not a write channel.
 	// Continuation slices (scheduler-driven or user "continue") re-derive
@@ -520,6 +536,43 @@ func audioClosureMessageLoopBudget(base agentloop.Budget, context map[string]any
 			opened.MaxToolCalls = audioClosureAutomationRoundMaxToolCalls
 		}
 		return opened
+	}
+	// CLOSURE-ROUTE-ADAPT-1 (271, case B, approved 2026-11-07): a diagnostic
+	// closure round keeps the caller base instead of the 1-2-turn clamp. The
+	// clamp assumed a "one probe + one verdict" single turn; 276 rerun1 broke
+	// that assumption on in-volume 276 evidence (closure mode=diagnostic,
+	// phase=fs2_capacity_assessed, empty frontier → MaxTurns=1 in force; the
+	// model spent its only turn on an 86-token progress note with zero tool
+	// calls although analyze_midi_transformations was disclosed — limit_reached
+	// parked the goal waiting_continue with the command face never reached).
+	// The base already prices the diagnostic chain (agentLoopBudgetForContext:
+	// free_state_diagnostic_only rounds get 5 turns / 6 calls for catalog
+	// discovery + structure + view set + diagnostic bundle + conclusion; mode
+	// bases are 8-10) — the same diagnostic semantics had two budget answers
+	// (5 vs 1) depending on whether a closure was active, and this branch
+	// removes that debt. Faces:
+	//   source  = the closure's own Mode field (audioClosureDiagnosticRoundContext),
+	//             structural only — the semantic-entry route label is not
+	//             re-derived here and no phrase judgment enters the budget;
+	//   ceiling = none of its own: the base is kept, never raised (no
+	//             automation-scale opening — the tool face stays observation;
+	//             the ≤6 tool-call clamp below still applies) and never
+	//             narrowed (a settle-headroom base survives, floor semantics
+	//             like the automation branch);
+	//   decay   = mode empty/unknown/treatment fails closed to the clamp
+	//             (legacy persisted shapes and treatment rounds keep the 229
+	//             semantics verbatim); MaxClosureRounds / no-progress / round
+	//             boundaries above remain the real fuse — a wider slice never
+	//             extends closure lifetime.
+	// Continuation slices re-derive through this same branch on the rebound
+	// closure state (bindAudioClosureContext re-binds after admit), so a
+	// resumed diagnostic slice inherits the same base — no bypass path (229
+	// side 2 contract, same function).
+	if audioClosureDiagnosticRoundContext(context) {
+		if base.MaxToolCalls <= 0 || base.MaxToolCalls > 6 {
+			base.MaxToolCalls = 6
+		}
+		return base
 	}
 	// Candidate selection is the one closure phase that needs two adjacent
 	// model turns: request the bounded target observation, then decide from

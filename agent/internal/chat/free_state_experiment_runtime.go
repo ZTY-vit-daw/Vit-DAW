@@ -171,14 +171,119 @@ func validateD1FreshObservedTarget(loop freeStateReasoningLoop, admission experi
 	if strings.ToLower(firstStringFromMap(target, "kind", "target_kind")) != wantKind || firstStringFromMap(target, "id", "target_id", "track_id") != wantID {
 		return experiment.Observation{}, fmt.Errorf("D1-S1 target must match the fresh observation target")
 	}
-	// The proposal must cite the observation itself, not only its receipt or a
-	// secondary evidence ref.  Receipt IDs remain useful audit metadata, but
-	// they do not establish the model's target-observation binding required by
-	// the FS6 -> FS7 handoff.
-	if !containsStringFold(admission.EvidenceRefs, observation.ID) {
-		return experiment.Observation{}, fmt.Errorf("D1-S1 evidence_refs must include the target observation ID %q", observation.ID)
+	// The proposal must cite fresh target-observation evidence for the FS6 ->
+	// FS7 handoff. EXPADMIT-EVIDENCE-RULE-1 relaxes the citation selection
+	// rule (not the freshness rule): the historical form pinned the citation to
+	// the LatestObservation's own id, which over-concretized "fresh evidence"
+	// into "the single latest observation" — the 262 verifyrun1 proposal cited
+	// the same-revision basic_energy row of the same target (the acoustically
+	// most relevant evidence for a level proposal) while the loop had just
+	// returned a time_dynamics row, and the pin refused and terminalized an
+	// otherwise valid proposal. A citation that resolves — through the durable
+	// observation ledger, with G7's ref resolution family — to an observation
+	// of the same target bound to the same revision as the validated latest
+	// observation establishes the same binding: G7's revision-bound semantics
+	// make earlier and latest observations within one revision equivalently
+	// fresh. Cross-revision citations stay refused; freshness is not weakened.
+	if containsStringFold(admission.EvidenceRefs, observation.ID) {
+		return observation, nil
 	}
-	return observation, nil
+	if freeStateEvidenceCitesFreshSameTargetObservation(loop, admission, observation) {
+		return observation, nil
+	}
+	return experiment.Observation{}, fmt.Errorf("D1-S1 evidence_refs must cite a fresh revision-bound observation of the target (latest %q at revision %s)", observation.ID, observation.ProjectRevision)
+}
+
+// freeStateEvidenceCitesFreshSameTargetObservation implements the
+// EXPADMIT-EVIDENCE-RULE-1 relaxed citation binding: a proposal that does not
+// quote the latest target observation id verbatim still establishes the
+// FS6 -> FS7 target-observation binding when any cited ref resolves, through
+// the durable observation ledger rows, to an observation of the SAME target
+// bound to the SAME revision as the validated latest observation. Freshness
+// follows G7's existing revision-bound semantics (freeStateFreshObservationClass
+// plus revision equality against the latest observation's revision — the same
+// revision the admission baseline fingerprint anchors to): within one
+// revision, earlier and latest target observations are equally fresh, and a
+// cross-revision or explicitly stale citation never passes. No new freshness
+// criterion is invented and the agentloop G7 gate itself is untouched — this
+// validator runs behind it and borrows its resolution and freshness families.
+func freeStateEvidenceCitesFreshSameTargetObservation(loop freeStateReasoningLoop, admission experiment.Admission, latest experiment.Observation) bool {
+	if strings.TrimSpace(latest.ProjectRevision) == "" {
+		return false
+	}
+	wantKind := strings.ToLower(firstStringFromMap(admission.TargetRef, "kind"))
+	wantID := firstStringFromMap(admission.TargetRef, "id", "track_id")
+	if wantID == "" {
+		return false
+	}
+	rows := append([]map[string]any{}, freeStateMapRows(loop.ObservationLedger["receipts"])...)
+	for _, value := range firstMapFromAny(loop.ObservationLedger["available_views"]) {
+		if row := firstMapFromAny(value); len(row) > 0 {
+			rows = append(rows, row)
+		}
+	}
+	for _, ref := range admission.EvidenceRefs {
+		ref = strings.TrimSpace(ref)
+		if ref == "" {
+			continue
+		}
+		for _, row := range rows {
+			if !freeStateRefResolvesLedgerRow(ref, row) {
+				continue
+			}
+			target := firstMapFromAny(row["target_ref"])
+			if strings.ToLower(firstStringFromMap(target, "kind", "target_kind")) != wantKind ||
+				firstStringFromMap(target, "id", "target_id", "track_id") != wantID {
+				continue
+			}
+			if freeStateLedgerRowFreshAtRevision(row, latest.ProjectRevision) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// freeStateRefResolvesLedgerRow mirrors the G7 gate's ref resolution family
+// (agentloop refMatchesLedgerRow): a cited ref resolves through the row's
+// observation id, its audit receipt id, or the row's own evidence refs. The
+// gate is consumed, never modified — the same resolution the already-passed
+// G7 audit used, applied to the same durable ledger rows.
+func freeStateRefResolvesLedgerRow(ref string, row map[string]any) bool {
+	if strings.EqualFold(strings.TrimSpace(firstStringFromMap(row, "observation_id")), ref) ||
+		strings.EqualFold(strings.TrimSpace(firstStringFromMap(row, "receipt_id")), ref) {
+		return true
+	}
+	for _, candidate := range freeStateStringSlice(row["evidence_refs"]) {
+		if strings.EqualFold(strings.TrimSpace(candidate), ref) {
+			return true
+		}
+	}
+	return false
+}
+
+// freeStateLedgerRowFreshAtRevision mirrors the G7 gate's revision-bound
+// freshness verdict (agentloop freeStateReceiptFreshRevisionBound) with the
+// validated latest observation's revision as the bound revision: an explicitly
+// non-fresh class/status never passes, and only a revision equal to the bound
+// revision proves the binding — a row without any revision information cannot
+// prove freshness either (fail-closed, exactly like the gate).
+func freeStateLedgerRowFreshAtRevision(row map[string]any, revision string) bool {
+	if freshness := firstMapFromAny(row["freshness"]); len(freshness) > 0 {
+		freshnessValue := firstNonEmpty(firstStringFromMap(freshness, "class"), firstStringFromMap(freshness, "status"))
+		if freshnessValue != "" && !freeStateFreshObservationClass(freshnessValue) {
+			return false
+		}
+		if bound := firstStringFromMap(freshness, "project_revision"); bound != "" {
+			return strings.EqualFold(bound, revision)
+		}
+	} else if status := strings.TrimSpace(firstStringFromMap(row, "freshness")); status != "" && !freeStateFreshObservationClass(status) {
+		return false
+	}
+	if bound := firstStringFromMap(row, "project_revision"); bound != "" {
+		return strings.EqualFold(bound, revision)
+	}
+	return false
 }
 
 func freeStateFreshObservationClass(value string) bool {

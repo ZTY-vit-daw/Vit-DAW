@@ -1,0 +1,43 @@
+﻿{
+    "probe":  {
+                  "passed":  true,
+                  "stop_reason":  "limit_reached",
+                  "entry_route":  "",
+                  "conversation_id":  "conv_d3_probe_20261107_013013",
+                  "entry_confidence":  "",
+                  "message":  "帮我看看这首歌跟 spotify 的标准差多少",
+                  "sent_vocabulary":  false
+              },
+    "runner_exit":  0,
+    "gate_results":  {
+                         "d3_node_lit":  true,
+                         "verdict_on_disk":  true,
+                         "check_turn":  true,
+                         "action_face":  true
+                     },
+    "schema_version":  "d3_ref_align_gates.v0",
+    "report":  {
+                   "d3_node_state":  "in_progress",
+                   "profile_id":  "builtin:spotify",
+                   "probe_passed":  true,
+                   "action_face":  "none_needed",
+                   "measurement_grade":  "approximate",
+                   "check_stop_reason":  "d3_ref_align_checked",
+                   "profile_basis":  "intent_named",
+                   "action_reason_present":  true,
+                   "verdict_kind":  "aligned",
+                   "card_kind":  "",
+                   "card_parked":  false,
+                   "mutation_performed":  "False",
+                   "cancel_stop_reason":  "",
+                   "verdict_record_on_disk":  true,
+                   "failures":  [
+
+                                ],
+                   "verdict_store_path":  "D:\\Vit_DAW_wt_266impl\\artifacts\\free_state_d1_s1\\20261107_013013\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\ref_align_verdicts.json"
+               },
+    "run_stamp":  "20261107_013013",
+    "failures":  [
+
+                 ]
+}
