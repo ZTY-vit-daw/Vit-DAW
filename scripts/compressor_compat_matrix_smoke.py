@@ -56,6 +56,37 @@ def invoke(base: str, tool: str, args: dict[str, Any], timeout: float,
     }, timeout)
 
 
+def ensure_full_project_access(base: str, timeout: float) -> dict[str, Any]:
+    """Put the server-owned full-project-access authority in force for loads.
+
+    The PCA load gate (enforceAgentProcessorLoadGate) admits plugin.load_to_rack
+    either through a manual UI selection authorization or through the
+    full-project-access authority, and the only place that mode is granted is
+    the server-side /agent/authority control (PCA-FULLACCESS-1): no invoke body
+    may carry it. This runner therefore switches the server authority before
+    the first load — the same service-end authorization path journey1 uses —
+    and every invoke below stays bare; the server stamps the mode itself.
+    """
+    authority_url = base.rstrip("/") + "/agent/authority"
+    before = request_json("GET", authority_url, None, timeout)
+    prior = str(before.get("authority_mode", ""))
+    switch: dict[str, Any] = {}
+    if prior != "full_project_access":
+        switch = request_json("POST", authority_url,
+                              {"authority_mode": "full_project_access"}, timeout)
+        if str(switch.get("authority_mode", "")) != "full_project_access":
+            raise RuntimeError(f"full-project-access authority refused: {switch}")
+    after = request_json("GET", authority_url, None, timeout)
+    if str(after.get("authority_mode", "")) != "full_project_access":
+        raise RuntimeError(f"full-project-access authority not in force: {after}")
+    return {
+        "authority_before": prior,
+        "switched": bool(switch),
+        "switch_response": switch,
+        "authority_after": after.get("authority_mode"),
+    }
+
+
 def result_of(response: dict[str, Any]) -> dict[str, Any]:
     result = response.get("result", response)
     return result if isinstance(result, dict) else {}
@@ -324,6 +355,10 @@ def main() -> int:
     health = request_json("GET", args.agent_http.rstrip("/") + "/health", None, 10)
     if str(health.get("status", "")).lower() not in {"ok", "ready"}:
         raise RuntimeError(f"agent health check failed: {health}")
+    authority = ensure_full_project_access(args.agent_http, 30)
+    (output_dir / "authority.json").write_text(
+        json.dumps(authority, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(f"authority: {authority['authority_before']} -> {authority['authority_after']}", flush=True)
 
     results: list[dict[str, Any]] = []
     failures: list[dict[str, str]] = []
@@ -352,6 +387,7 @@ def main() -> int:
         "config": str(config_path.resolve()),
         "positive_case_count": len(positive_cases),
         "negative_case_count": len(negative_cases),
+        "authority": authority,
         "results": results,
         "failures": failures,
         "status": "failed" if failures else "ok",
