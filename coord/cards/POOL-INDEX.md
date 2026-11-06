@@ -6,14 +6,18 @@
 
 ## 一、主线（混音/自由态/A-F/仪器）——GLM 主管决策流管辖
 
+### A-F 进度计量（终局裁定口径：A=已证可拆 / H=harness 形态已测 / F=固定层推测）
+
+**A=1（B4，2026-11-06 [264 裁定](../rulings/2026-11-06-B4-ABLATION-1-pass.md)）｜ C4=H（263 维持）｜ B1-B3/C1-C3/D1=F ｜ C5/D2-D4/E/F=not_built**
+
 ### 活跃/待领
 
 | 池序 | 卡 ID | 状态 |
 |---|---|---|
-| 262 | MIXTICK-CONFIRM-CONTRACT-1 | **在跑**（2026-11-06 晚窗，G6 收官） |
-| 264 | B4-ABLATION-1 | **在跑**（A-F 第二张 ablation） |
-| 265 | D2-STEREO-THIN-1 | 已发待领/在跑 |
-| 266 | D3-REF-ALIGN-THIN-1 | 待领（建议 D2 收口后） |
+| 262 | MIXTICK-CONFIRM-CONTRACT-1 | 在跑（取证腿毕交裁定，验证腿 HELD 等栈） |
+| 264 | B4-ABLATION-1 | **done 已验收（A 态确认）** |
+| 265 | D2-STEREO-THIN-1 | 在跑（d2run1 占栈中） |
+| 266 | D3-REF-ALIGN-THIN-1 | 待领（前置勘察毕；PD-2 裁定 B 待用户确认） |
 | 239 | M3-LLM-TIMEOUT-ADAPT-1 | 可领（P2 排后小卡，0.25 天，纯 timeout 适配） |
 
 ### 未成卡 backlog
