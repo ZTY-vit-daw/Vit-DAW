@@ -30,3 +30,11 @@
 - 机器/worktree：PC / `D:/Vit_DAW_wt_272impl` @ 分支 `port/obsface-selective-miss-1`
 - 领取基线：`git rev-parse HEAD`=`37fd7c97c26f221ab92f04dfe5b2518e5c556769`（=origin/main 当日最新）；worktree 全新检出，`git status --short` 空、`git diff --stat` 空（无领取前 diff）
 - 领取动作：卡面 todo→doing（git mv），本记录回填
+
+### 回执（2026-11-07，取证腿完成）
+
+- **定性一句话：缺陷成立但位置改写——主缺陷=agent 侧 d1d3 观察消费面接线错位（d1d3AssemblePreMasterReport 从 harness 响应顶层读 stereo_status/peak_dbfs/waveform/rankings，实际嵌套在 out["digest"]，拍平面在 out["acoustic_digest"] 且 stereo 键名不同；M1-4 e0e2f4ac 起先天，单测喂错形状掩盖），投影结构性恒 missing；卡面「kernel 观察面选择性缺失非确定性」不成立——铸造层（mixboard.BuildDigest，agent 侧 Go，VitApp C++ 零命中）stereo 面 13/13 采样点 ready，D1 全局 waveform 面 ready→missing 翻转为 D1 settle 相位相关的真变动（设计内疑似，265 同链未翻转差异驱动未定位，两案并陈）**。
+- 对照表+锚点+最小修方案草案：coord/runs/OBSFACE-SELECTIVE-MISS-1/forensics.md（§2 五采样点矩阵 / §3 错位链与单测掩盖面 / §4 定性 / §5 相邻发现[mix.read 逐轨路径第二处错位候选] / §6 修复草案[读 digest 子图+单测反钉+既有 D1/D2 门 A 为回归门]）
+- 工件：主仓树 D:/Vit_DAW/coord/runs/OBSFACE-SELECTIVE-MISS-1/（PROGRESS.md+forensics.md，派发指定工件目录）；同内容随本分支提交入库（run 工件只读引用三组 run 仓库工件+wt_265rv/wt_266impl artifacts 持久化观察包原件）
+- 边界遵守：零代码改动/零栈/零 LLM；VitApp 只读 grep；run 工件目录只读访问；逐轨 mix.read 路径与 waveform 翻转驱动未扩查（锚点已记，交裁定是否另开卡）
+- 验证边界声明：本卡纯读档取证，无单测/烟测执行面；修复卡验收建议=接线单测+D1 门 A 真栈断言（现成 ps1:1100-1105）
