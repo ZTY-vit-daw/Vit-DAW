@@ -72,6 +72,13 @@
 - **次要观察（记录不扩修）**：模型澄清回复口述「22 个音符」与 executed 行实际 42 音不符（模型自行概括失误，非工具面缺陷）。
 - **计费**：9 调用 deepseek-flash（全属本腿对话）in 142,076（cache_read 68,992）/out 6,658 tok ≈**¥0.15-0.25**（预算 ¥0.5-2 内）。
 - **工件**：`coord/runs/EDU-SYMBOL-CORE-1/smokerun1/`（RUNBOOK/console×2/chat_response/summary/forensics_direct_invoke/agent_last.log/telemetry+prompt_render/fixture 工程/二进制哈希/隔离标记；commit `5c366aeb` 随 port 分支已推）。
+- **段 3b 回执（2026-11-07，裁定 A 扩域+复跑）：补丁落地并实证生效；复跑停在不同形态（closure 路由 1-turn 预算 limit_reached，executed 零）；PS1 exit 1 未达 exit 0 验收，按裁定不再有第三次 run，取证上交**。
+- **补丁**（commit `2f61434d`，主管裁定 A 授权域外最小扩域）：`agent/internal/chat/goalrunner_chat.go` `agentLoopMidiTools()` 补 `midi.analyze_transformations` 一行（第四注册面）+配对单测 `TestAgentLoopMidiCapabilityDisclosesTransformationAnalysis`（server_test.go，双层钉：允许列表含工具+`agentLoopToolContext.CatalogSummary` 渲染目录含工具行）；`go build`=0、chat 包 127.9s ok+agentloop ok、vet 告警系 main 既有文件（semantic_treatment_strategy.go 未触碰）、gofmt 干净。
+- **rerun1**：`20261107_003641`；占栈协议全链（占用登记 `a775cf96`：净空亲核 00:35:52 全零+≤60s 复核 00:36:28 全零；释放登记 `8a4db373`：**TEARDOWN_ALL_ZERO 亲核 00:42:04** 全零）；被测 agent SHA256 `2A47C6C2…4F2B8B`（含补丁）。
+- **补丁生效实证**：rerun1 `logs/agent_prompt_render.jsonl` 渲染目录含 `analyze_midi_transformations tool=midi.analyze_transformations risk=direct required=clip_id …` 披露行——run 1 根因（工具不可达）已修复。
+- **本轮失败形态（与 run 1 不同类）**：`stop_reason=limit_reached`/`limit_type=max_turns`/executed 零/回复=罐头限位话术；goal 被路由进 **minimal_audio_closure 治理路径**（workflow_data.minimal_audio_closure 在卷+14.7K user 上下文注入；run 1 同形消息未进），closure candidate-selection 轮 `MaxTurns=1`（`audio_closure_controller.go:529`）×模型单轮（86 tok）无工具调用进度注记=触限停轮；durable continuation `cont_851ad5695b09374396f474cb` 落库未终局（单回合口径未含续跑腿）。**路由判据链=域外产品路由面**（semantic entry LLM 分类非确定性：两轮 201 vs 168 tok 输出；closure 武装入口），三后续选项（①驱动加有界续跑腿②closure 路由另开卡③话术探针）交主管，详见 rerun1/evidence.md。
+- **rerun1 计费**：2 调用 deepseek-flash（semantic_entry 794/168+message_loop 13,937/86，cache_read 4,096）≈**¥0.01-0.03**。
+- **rerun1 工件**：`coord/runs/EDU-SYMBOL-CORE-1/smokerun1/rerun1/`（console×2/chat_response/summary/agent_last.log/telemetry+prompt_render/fixture 工程/二进制哈希/evidence.md）。
 
 ## 验收
 
