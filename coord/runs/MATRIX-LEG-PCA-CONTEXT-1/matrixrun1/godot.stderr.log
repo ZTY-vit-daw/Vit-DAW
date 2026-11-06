@@ -1,0 +1,4 @@
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

@@ -1,0 +1,12 @@
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+VitIpcClient: registered autostart child kernel pid=7868 path=D:/Vit_DAW_wt_261impl/VitApp/build/VitApp_artefacts/Release/VitApp.exe
+VitIpcClient: registered autostart child hub pid=8396 path=D:/Vit_DAW_wt_261impl/agent/bin/VspHub.exe
+VitIpcClient: registered autostart child agent pid=43984 path=D:/Vit_DAW_wt_261impl/agent/bin/VitAgent.exe
+start_page: VSP Hub ready.
+start_page: Agent v0.5 tools ready.
+VitIpcClient: stopped autostart child agent pid=43984
+VitIpcClient: stopped autostart child hub pid=8396
+VitIpcClient: stopped autostart child kernel pid=7868

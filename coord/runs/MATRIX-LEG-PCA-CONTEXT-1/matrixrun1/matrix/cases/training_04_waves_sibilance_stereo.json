@@ -1,0 +1,1475 @@
+{
+  "case": {
+    "id": "waves_sibilance_stereo",
+    "plugin_name": "Sibilance Stereo",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "expectation": "de_esser"
+  },
+  "capture_only": false,
+  "plugin_identifier": "VST3-Sibilance Stereo-695648d-f17650f9",
+  "plugin_resolution": {
+    "name": "Sibilance Stereo",
+    "descriptive_name": "Sibilance Stereo",
+    "manufacturer": "Waves",
+    "format": "VST3",
+    "category": "Fx|Dynamics",
+    "identifier": "VST3-Sibilance Stereo-695648d-f17650f9",
+    "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+    "uid": "-243904263",
+    "deprecated_uid": "-835559530",
+    "is_instrument": false
+  },
+  "parameters": {
+    "automation_param_surface": [
+      {
+        "label": "Dry Level",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "common_mix",
+        "param_id": "dry level",
+        "supports_automation": true,
+        "value": 0,
+        "value_text": "-INF dB"
+      },
+      {
+        "label": "Wet Level",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "common_mix",
+        "param_id": "wet level",
+        "supports_automation": true,
+        "value": 1,
+        "value_text": "+0.0 dB"
+      },
+      {
+        "label": "Bypass",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "common_bypass",
+        "param_id": "10000001",
+        "supports_automation": true,
+        "value": 0,
+        "value_text": "Off"
+      },
+      {
+        "label": "Lookahead",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "other",
+        "param_id": "0",
+        "supports_automation": true,
+        "value": 0,
+        "value_text": "Off "
+      },
+      {
+        "label": "Detection",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "other",
+        "param_id": "1",
+        "supports_automation": true,
+        "value": 0.5,
+        "value_text": "50 "
+      },
+      {
+        "label": "Threshold",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "comp_threshold",
+        "param_id": "2",
+        "supports_automation": true,
+        "value": 0.666999995708466,
+        "value_text": "-12.5 dB"
+      },
+      {
+        "label": "Range",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "other",
+        "param_id": "3",
+        "supports_automation": true,
+        "value": 0.75,
+        "value_text": "-12.0 dB"
+      },
+      {
+        "label": "Mode",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "other",
+        "param_id": "4",
+        "supports_automation": true,
+        "value": 0.5,
+        "value_text": "50 "
+      },
+      {
+        "label": "Monitor",
+        "max": 1,
+        "min": 0,
+        "normalized_role": "other",
+        "param_id": "5",
+        "supports_automation": true,
+        "value": 0,
+        "value_text": "Off "
+      }
+    ],
+    "capability_manifest": [
+      "open_ui",
+      "get_param",
+      "template_shell",
+      "quick_controls"
+    ],
+    "command_ack": {
+      "ack": {
+        "message": "Legacy command completed",
+        "stage": "completed"
+      },
+      "command": "plugin.parameters.get",
+      "legacy_command": "get_plugin_parameters",
+      "resync_hint": false,
+      "revision": 0,
+      "source": "vsp.command.response",
+      "stage": "completed",
+      "transaction_id": "tx_1793960235706682600_204"
+    },
+    "display_probe_summary": {
+      "display_domain_candidate_count": 9,
+      "high_confidence_candidate_count": 7,
+      "parameter_count": 9,
+      "parameters_with_display_probe": 9,
+      "probe_issue_count": 9,
+      "units": {
+        "dB": 4,
+        "toggle": 3
+      }
+    },
+    "parameter_count": 9,
+    "parameter_page": {
+      "limit": 512,
+      "offset": 0,
+      "total": 9
+    },
+    "parameters": [
+      {
+        "display_domain_candidate": {
+          "text": "-12~0 dB",
+          "unit": "dB",
+          "min": -12,
+          "max": 0,
+          "scale": "linear",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.9
+        },
+        "display_group": "Mix",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-INF dB",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Dry Level",
+        "normalized_role": "common_mix",
+        "normalized_value": 0,
+        "param_id": "dry level",
+        "raw_param_name": "Dry Level",
+        "value": 0,
+        "value_text": "-INF dB"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "-12~0 dB",
+          "unit": "dB",
+          "min": -12,
+          "max": 0,
+          "scale": "linear",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.9
+        },
+        "display_group": "Mix",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "+0.0 dB",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "-INF dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-6.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-2.5 dB"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "+0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Wet Level",
+        "normalized_role": "common_mix",
+        "normalized_value": 1,
+        "param_id": "wet level",
+        "raw_param_name": "Wet Level",
+        "value": 1,
+        "value_text": "+0.0 dB"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "0~1 toggle",
+          "unit": "toggle",
+          "min": 0,
+          "max": 1,
+          "scale": "enum",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.92
+        },
+        "display_group": "Utility",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "On"
+            }
+          ],
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1,
+              "label": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Bypass",
+        "normalized_role": "common_bypass",
+        "normalized_value": 0,
+        "param_id": "10000001",
+        "raw_param_name": "Bypass",
+        "value": 0,
+        "value_text": "Off"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "0~1 toggle",
+          "unit": "toggle",
+          "min": 0,
+          "max": 1,
+          "scale": "enum",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.92
+        },
+        "display_group": "Other",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "On"
+            }
+          ],
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1,
+              "label": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Lookahead",
+        "normalized_role": "other",
+        "normalized_value": 0,
+        "param_id": "0",
+        "raw_param_name": "Lookahead",
+        "value": 0,
+        "value_text": "Off"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "0~100",
+          "min": 0,
+          "max": 100,
+          "scale": "linear",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.76
+        },
+        "display_group": "Other",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "50",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "0"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "100"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Detection",
+        "normalized_role": "other",
+        "normalized_value": 0.5,
+        "param_id": "1",
+        "raw_param_name": "Detection",
+        "value": 0.5,
+        "value_text": "50"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "-80~0 dB",
+          "unit": "dB",
+          "min": -80,
+          "max": 0,
+          "scale": "linear",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.9
+        },
+        "display_group": "Dynamics",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-12.5 dB",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "-80.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-46.7 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-23.3 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-9.4 dB"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Threshold",
+        "normalized_role": "comp_threshold",
+        "normalized_value": 0.666999995708466,
+        "param_id": "2",
+        "raw_param_name": "Threshold",
+        "value": 0.666999995708466,
+        "value_text": "-12.5 dB"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "-48~0 dB",
+          "unit": "dB",
+          "min": -48,
+          "max": 0,
+          "scale": "linear",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.9
+        },
+        "display_group": "Other",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "-12.0 dB",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "-48.0 dB"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "-36.0 dB"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "-24.0 dB"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "-12.0 dB"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "0.0 dB"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Range",
+        "normalized_role": "other",
+        "normalized_value": 0.75,
+        "param_id": "3",
+        "raw_param_name": "Range",
+        "value": 0.75,
+        "value_text": "-12.0 dB"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "0~100",
+          "min": 0,
+          "max": 100,
+          "scale": "linear",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.76
+        },
+        "display_group": "Other",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "50",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "0"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "25"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "50"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "75"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "100"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Mode",
+        "normalized_role": "other",
+        "normalized_value": 0.5,
+        "param_id": "4",
+        "raw_param_name": "Mode",
+        "value": 0.5,
+        "value_text": "50"
+      },
+      {
+        "display_domain_candidate": {
+          "text": "0~1 toggle",
+          "unit": "toggle",
+          "min": 0,
+          "max": 1,
+          "scale": "enum",
+          "status": "inferred",
+          "source": "display_probe_inferred",
+          "confidence": 0.92
+        },
+        "display_group": "Other",
+        "display_probe": {
+          "mode": "read_only_value_to_string",
+          "current_text": "Off",
+          "samples": [
+            {
+              "normalized_value": 0,
+              "value": 0,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.25,
+              "value": 0.25,
+              "text": "Off"
+            },
+            {
+              "normalized_value": 0.5,
+              "value": 0.5,
+              "text": "On"
+            },
+            {
+              "normalized_value": 0.75,
+              "value": 0.75,
+              "text": "On"
+            },
+            {
+              "normalized_value": 1,
+              "value": 1,
+              "text": "On"
+            }
+          ],
+          "discrete_labels": [
+            {
+              "index": 0,
+              "value": 0,
+              "label": "Off"
+            },
+            {
+              "index": 1,
+              "value": 1,
+              "label": "On"
+            }
+          ],
+          "capabilities": [
+            "current_value_text",
+            "value_to_string_samples",
+            "discrete_labels"
+          ],
+          "issues": [
+            "empty_label"
+          ]
+        },
+        "name": "Monitor",
+        "normalized_role": "other",
+        "normalized_value": 0,
+        "param_id": "5",
+        "raw_param_name": "Monitor",
+        "value": 0,
+        "value_text": "Off"
+      }
+    ],
+    "plugin_id": "1064",
+    "plugin_item_id": "1064",
+    "quick_control_count": 4,
+    "quick_controls": [
+      {
+        "control_relevance": "musical_control",
+        "display_group": "Mix",
+        "label": "Dry Level",
+        "normalized_role": "common_mix",
+        "param_id": "dry level",
+        "widget": "slider"
+      },
+      {
+        "control_relevance": "utility_control",
+        "display_group": "Utility",
+        "label": "Bypass",
+        "normalized_role": "common_bypass",
+        "param_id": "10000001",
+        "widget": "toggle"
+      },
+      {
+        "control_relevance": "musical_control",
+        "display_group": "Dynamics",
+        "label": "Threshold",
+        "normalized_role": "comp_threshold",
+        "param_id": "2",
+        "widget": "slider"
+      },
+      {
+        "control_relevance": "musical_control",
+        "display_group": "Mix",
+        "label": "Wet Level",
+        "normalized_role": "common_mix",
+        "param_id": "wet level",
+        "widget": "slider"
+      }
+    ],
+    "recommended_group_count": 4,
+    "recommended_groups": [
+      {
+        "name": "Dynamics",
+        "parameter_count": 1,
+        "sample_ids": [
+          "2"
+        ]
+      },
+      {
+        "name": "Mix",
+        "parameter_count": 2,
+        "sample_ids": [
+          "dry level",
+          "wet level"
+        ]
+      },
+      {
+        "name": "Utility",
+        "parameter_count": 1,
+        "sample_ids": [
+          "10000001"
+        ]
+      },
+      {
+        "name": "Other",
+        "parameter_count": 5,
+        "sample_ids": [
+          "0",
+          "1",
+          "3",
+          "4",
+          "5"
+        ]
+      }
+    ],
+    "status": "ok",
+    "supports_param_grabber": true,
+    "template_role": "other",
+    "track_id": "1058",
+    "vsp": {
+      "command_ack": {
+        "ack": {
+          "message": "Legacy command completed",
+          "stage": "completed"
+        },
+        "command": "plugin.parameters.get",
+        "legacy_command": "get_plugin_parameters",
+        "resync_hint": false,
+        "revision": 0,
+        "source": "vsp.command.response",
+        "stage": "completed",
+        "transaction_id": "tx_1793960235706682600_204"
+      },
+      "transport": "vsp",
+      "version": "1.0"
+    }
+  },
+  "inspect_one_response": {
+    "status": "ok",
+    "tool": "plugin_grabber.inspect_de_esser",
+    "command_name": "plugin_grabber_inspect_de_esser",
+    "risk_level": "direct",
+    "requires_confirmation": false,
+    "result": {
+      "auxiliary_stages": [],
+      "classification": "sibilance_detector_de_esser",
+      "confidence": 0.96,
+      "control_topology": {
+        "generation": "d1t1_30adc530e0a0fe4bd1b545fc",
+        "schema_version": "de-esser-control-topology/v1"
+      },
+      "de_esser_stages": [
+        {
+          "capabilities": {
+            "frequency_selectivity": [],
+            "mode": [
+              "mode",
+              "monitor"
+            ],
+            "operating_point": [
+              "detection_amount",
+              "reduction_range",
+              "threshold"
+            ],
+            "output": [
+              "mix"
+            ],
+            "timing": [
+              "lookahead"
+            ]
+          },
+          "frequency_selectivity": [],
+          "mode": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJtb2RlIiwicm9sZSI6Im1vZGUiLCJwYXJhbV9pZCI6IjQifQ.a45a263cf4a9d9fe",
+              "current_normalized": 0.5,
+              "current_physical": 50,
+              "current_text": "50",
+              "curve": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0.25,
+                  25
+                ],
+                [
+                  0.5,
+                  50
+                ],
+                [
+                  0.75,
+                  75
+                ],
+                [
+                  1,
+                  100
+                ]
+              ],
+              "domain": {
+                "confidence": 0.76,
+                "max": 100,
+                "min": 0,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~100"
+              },
+              "name": "Mode",
+              "param_id": "4",
+              "role": "mode"
+            },
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJtb2RlIiwicm9sZSI6Im1vbml0b3IiLCJwYXJhbV9pZCI6IjUifQ.6ca689025c53dc24",
+              "current_normalized": 0,
+              "current_text": "Off",
+              "domain": {
+                "confidence": 0.92,
+                "max": 1,
+                "min": 0,
+                "scale": "enum",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~1 toggle",
+                "unit": "toggle"
+              },
+              "name": "Monitor",
+              "param_id": "5",
+              "physical_unit": "toggle",
+              "reachable_values": [
+                {
+                  "label": "Off",
+                  "normalized": 0
+                },
+                {
+                  "label": "On",
+                  "normalized": 1
+                }
+              ],
+              "role": "monitor"
+            }
+          ],
+          "operating_point": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvcGVyYXRpbmdfcG9pbnQiLCJyb2xlIjoiZGV0ZWN0aW9uX2Ftb3VudCIsInBhcmFtX2lkIjoiMSJ9.a0918f3994eb456c",
+              "current_normalized": 0.5,
+              "current_physical": 50,
+              "current_text": "50",
+              "curve": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0.25,
+                  25
+                ],
+                [
+                  0.5,
+                  50
+                ],
+                [
+                  0.75,
+                  75
+                ],
+                [
+                  1,
+                  100
+                ]
+              ],
+              "domain": {
+                "confidence": 0.76,
+                "max": 100,
+                "min": 0,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~100"
+              },
+              "name": "Detection",
+              "param_id": "1",
+              "role": "detection_amount"
+            },
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvcGVyYXRpbmdfcG9pbnQiLCJyb2xlIjoicmVkdWN0aW9uX3JhbmdlIiwicGFyYW1faWQiOiIzIn0.74cae3719a7644a8",
+              "current_normalized": 0.75,
+              "current_physical": -12,
+              "current_text": "-12.0 dB",
+              "curve": [
+                [
+                  0,
+                  -48
+                ],
+                [
+                  0.25,
+                  -36
+                ],
+                [
+                  0.5,
+                  -24
+                ],
+                [
+                  0.75,
+                  -12
+                ],
+                [
+                  1,
+                  0
+                ]
+              ],
+              "domain": {
+                "confidence": 0.9,
+                "max": 0,
+                "min": -48,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "-48~0 dB",
+                "unit": "dB"
+              },
+              "name": "Range",
+              "param_id": "3",
+              "physical_unit": "dB",
+              "role": "reduction_range"
+            },
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvcGVyYXRpbmdfcG9pbnQiLCJyb2xlIjoidGhyZXNob2xkIiwicGFyYW1faWQiOiIyIn0.63959237b3af5d0a",
+              "current_normalized": 0.666999995708466,
+              "current_physical": -12.5,
+              "current_text": "-12.5 dB",
+              "curve": [
+                [
+                  0,
+                  -80
+                ],
+                [
+                  0.25,
+                  -46.7
+                ],
+                [
+                  0.5,
+                  -23.3
+                ],
+                [
+                  0.75,
+                  -9.4
+                ],
+                [
+                  1,
+                  0
+                ]
+              ],
+              "domain": {
+                "confidence": 0.9,
+                "max": 0,
+                "min": -80,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "-80~0 dB",
+                "unit": "dB"
+              },
+              "name": "Threshold",
+              "param_id": "2",
+              "physical_unit": "dB",
+              "role": "threshold"
+            }
+          ],
+          "output": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvdXRwdXQiLCJyb2xlIjoibWl4IiwicGFyYW1faWQiOiJ3ZXQgbGV2ZWwifQ.06cd8a70acaa51ea",
+              "current_normalized": 1,
+              "current_physical": 0,
+              "current_text": "+0.0 dB",
+              "curve": [
+                [
+                  0.25,
+                  -12
+                ],
+                [
+                  0.5,
+                  -6
+                ],
+                [
+                  0.75,
+                  -2.5
+                ],
+                [
+                  1,
+                  0
+                ]
+              ],
+              "domain": {
+                "confidence": 0.9,
+                "max": 0,
+                "min": -12,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "-12~0 dB",
+                "unit": "dB"
+              },
+              "name": "Wet Level",
+              "param_id": "wet level",
+              "physical_unit": "dB",
+              "role": "mix"
+            }
+          ],
+          "scope": "main",
+          "stage_key": "de_esser_main",
+          "timing": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJ0aW1pbmciLCJyb2xlIjoibG9va2FoZWFkIiwicGFyYW1faWQiOiIwIn0.80bc8d62ac0b50c2",
+              "current_normalized": 0,
+              "current_text": "Off",
+              "domain": {
+                "confidence": 0.92,
+                "max": 1,
+                "min": 0,
+                "scale": "enum",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~1 toggle",
+                "unit": "toggle"
+              },
+              "name": "Lookahead",
+              "param_id": "0",
+              "physical_unit": "toggle",
+              "reachable_values": [
+                {
+                  "label": "Off",
+                  "normalized": 0
+                },
+                {
+                  "label": "On",
+                  "normalized": 1
+                }
+              ],
+              "role": "lookahead"
+            }
+          ]
+        }
+      ],
+      "mapping_source": "generic_structural",
+      "plugin_id": "1064",
+      "schema_version": "de-esser-control-topology/v1",
+      "status": "ok",
+      "track_id": "1058"
+    }
+  },
+  "inspect_two_response": {
+    "status": "ok",
+    "tool": "plugin_grabber.inspect_de_esser",
+    "command_name": "plugin_grabber_inspect_de_esser",
+    "risk_level": "direct",
+    "requires_confirmation": false,
+    "result": {
+      "auxiliary_stages": [],
+      "classification": "sibilance_detector_de_esser",
+      "confidence": 0.96,
+      "control_topology": {
+        "generation": "d1t1_30adc530e0a0fe4bd1b545fc",
+        "schema_version": "de-esser-control-topology/v1"
+      },
+      "de_esser_stages": [
+        {
+          "capabilities": {
+            "frequency_selectivity": [],
+            "mode": [
+              "mode",
+              "monitor"
+            ],
+            "operating_point": [
+              "detection_amount",
+              "reduction_range",
+              "threshold"
+            ],
+            "output": [
+              "mix"
+            ],
+            "timing": [
+              "lookahead"
+            ]
+          },
+          "frequency_selectivity": [],
+          "mode": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJtb2RlIiwicm9sZSI6Im1vZGUiLCJwYXJhbV9pZCI6IjQifQ.a45a263cf4a9d9fe",
+              "current_normalized": 0.5,
+              "current_physical": 50,
+              "current_text": "50",
+              "curve": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0.25,
+                  25
+                ],
+                [
+                  0.5,
+                  50
+                ],
+                [
+                  0.75,
+                  75
+                ],
+                [
+                  1,
+                  100
+                ]
+              ],
+              "domain": {
+                "confidence": 0.76,
+                "max": 100,
+                "min": 0,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~100"
+              },
+              "name": "Mode",
+              "param_id": "4",
+              "role": "mode"
+            },
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJtb2RlIiwicm9sZSI6Im1vbml0b3IiLCJwYXJhbV9pZCI6IjUifQ.6ca689025c53dc24",
+              "current_normalized": 0,
+              "current_text": "Off",
+              "domain": {
+                "confidence": 0.92,
+                "max": 1,
+                "min": 0,
+                "scale": "enum",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~1 toggle",
+                "unit": "toggle"
+              },
+              "name": "Monitor",
+              "param_id": "5",
+              "physical_unit": "toggle",
+              "reachable_values": [
+                {
+                  "label": "Off",
+                  "normalized": 0
+                },
+                {
+                  "label": "On",
+                  "normalized": 1
+                }
+              ],
+              "role": "monitor"
+            }
+          ],
+          "operating_point": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvcGVyYXRpbmdfcG9pbnQiLCJyb2xlIjoiZGV0ZWN0aW9uX2Ftb3VudCIsInBhcmFtX2lkIjoiMSJ9.a0918f3994eb456c",
+              "current_normalized": 0.5,
+              "current_physical": 50,
+              "current_text": "50",
+              "curve": [
+                [
+                  0,
+                  0
+                ],
+                [
+                  0.25,
+                  25
+                ],
+                [
+                  0.5,
+                  50
+                ],
+                [
+                  0.75,
+                  75
+                ],
+                [
+                  1,
+                  100
+                ]
+              ],
+              "domain": {
+                "confidence": 0.76,
+                "max": 100,
+                "min": 0,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~100"
+              },
+              "name": "Detection",
+              "param_id": "1",
+              "role": "detection_amount"
+            },
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvcGVyYXRpbmdfcG9pbnQiLCJyb2xlIjoicmVkdWN0aW9uX3JhbmdlIiwicGFyYW1faWQiOiIzIn0.74cae3719a7644a8",
+              "current_normalized": 0.75,
+              "current_physical": -12,
+              "current_text": "-12.0 dB",
+              "curve": [
+                [
+                  0,
+                  -48
+                ],
+                [
+                  0.25,
+                  -36
+                ],
+                [
+                  0.5,
+                  -24
+                ],
+                [
+                  0.75,
+                  -12
+                ],
+                [
+                  1,
+                  0
+                ]
+              ],
+              "domain": {
+                "confidence": 0.9,
+                "max": 0,
+                "min": -48,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "-48~0 dB",
+                "unit": "dB"
+              },
+              "name": "Range",
+              "param_id": "3",
+              "physical_unit": "dB",
+              "role": "reduction_range"
+            },
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvcGVyYXRpbmdfcG9pbnQiLCJyb2xlIjoidGhyZXNob2xkIiwicGFyYW1faWQiOiIyIn0.63959237b3af5d0a",
+              "current_normalized": 0.666999995708466,
+              "current_physical": -12.5,
+              "current_text": "-12.5 dB",
+              "curve": [
+                [
+                  0,
+                  -80
+                ],
+                [
+                  0.25,
+                  -46.7
+                ],
+                [
+                  0.5,
+                  -23.3
+                ],
+                [
+                  0.75,
+                  -9.4
+                ],
+                [
+                  1,
+                  0
+                ]
+              ],
+              "domain": {
+                "confidence": 0.9,
+                "max": 0,
+                "min": -80,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "-80~0 dB",
+                "unit": "dB"
+              },
+              "name": "Threshold",
+              "param_id": "2",
+              "physical_unit": "dB",
+              "role": "threshold"
+            }
+          ],
+          "output": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJvdXRwdXQiLCJyb2xlIjoibWl4IiwicGFyYW1faWQiOiJ3ZXQgbGV2ZWwifQ.06cd8a70acaa51ea",
+              "current_normalized": 1,
+              "current_physical": 0,
+              "current_text": "+0.0 dB",
+              "curve": [
+                [
+                  0.25,
+                  -12
+                ],
+                [
+                  0.5,
+                  -6
+                ],
+                [
+                  0.75,
+                  -2.5
+                ],
+                [
+                  1,
+                  0
+                ]
+              ],
+              "domain": {
+                "confidence": 0.9,
+                "max": 0,
+                "min": -12,
+                "scale": "linear",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "-12~0 dB",
+                "unit": "dB"
+              },
+              "name": "Wet Level",
+              "param_id": "wet level",
+              "physical_unit": "dB",
+              "role": "mix"
+            }
+          ],
+          "scope": "main",
+          "stage_key": "de_esser_main",
+          "timing": [
+            {
+              "channel": "shared",
+              "compression_stage": "de_esser_main",
+              "control_ref": "d1cr1_eyJraW5kIjoiZGVfZXNzZXJfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImQxdDFfMzBhZGM1MzBlMGEwZmU0YmQxYjU0NWZjIiwic3RhZ2Vfa2V5IjoiZGVfZXNzZXJfbWFpbiIsInNlY3Rpb24iOiJ0aW1pbmciLCJyb2xlIjoibG9va2FoZWFkIiwicGFyYW1faWQiOiIwIn0.80bc8d62ac0b50c2",
+              "current_normalized": 0,
+              "current_text": "Off",
+              "domain": {
+                "confidence": 0.92,
+                "max": 1,
+                "min": 0,
+                "scale": "enum",
+                "source": "display_probe_inferred",
+                "status": "inferred",
+                "text": "0~1 toggle",
+                "unit": "toggle"
+              },
+              "name": "Lookahead",
+              "param_id": "0",
+              "physical_unit": "toggle",
+              "reachable_values": [
+                {
+                  "label": "Off",
+                  "normalized": 0
+                },
+                {
+                  "label": "On",
+                  "normalized": 1
+                }
+              ],
+              "role": "lookahead"
+            }
+          ]
+        }
+      ],
+      "mapping_source": "generic_structural",
+      "plugin_id": "1064",
+      "schema_version": "de-esser-control-topology/v1",
+      "status": "ok",
+      "track_id": "1058"
+    }
+  },
+  "result": {
+    "id": "waves_sibilance_stereo",
+    "plugin_name": "Sibilance Stereo",
+    "status": "passed",
+    "classification": "sibilance_detector_de_esser",
+    "generation": "d1t1_30adc530e0a0fe4bd1b545fc",
+    "stage_count": 1,
+    "binding_count": 7,
+    "stable_two_reads": true
+  }
+}
