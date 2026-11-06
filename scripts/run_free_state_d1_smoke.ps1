@@ -103,6 +103,18 @@ param(
     # action face (breach parks a governed card, zero mutation; the cancel leg
     # retires it), and the D1 queue node leaving not_started.
     [switch]$D1LoudnessSettle,
+    # D2-STEREO-THIN-1: opt-in D2 stereo/mono translation-check leg. Appends
+    # after the default D1 runner (and after -LoudnessWatch/-D1LoudnessSettle
+    # when those are on). Two faces: (P) the bare-phrase semantic-entry probe
+    # (LLM, one /agent/chat turn — asserts the phrase passes the FS0 arbitrator,
+    # i.e. is NOT semantic_entry_unresolved; evidence for the 263-lesson entry
+    # baseline: no vocabulary is built when bare phrasing passes); (A-D)
+    # deterministic gates, zero LLM (the explicit check phrase routes through
+    # the capability canary before any semantic entry): the check turn
+    # (stop_reason=d2_stereo_checked, three-state verdict, disclosure-only
+    # action face, zero mutation, no card), the d2_stereo_check verdict record
+    # on disk, and the D2 queue node leaving not_started.
+    [switch]$D2StereoCheck,
     # Pass-through to dev_agent_smoke's -LlmModelOverride (VIT_AGENT_LLM_MODEL
     # env injection; 238-253/225 precedent: deepseek-flash for budget-bound
     # real-stack runs). Empty keeps the child agent's default engine.
@@ -145,6 +157,12 @@ if ($LoudnessWatch -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProb
 # finish first, the settle leg appends).
 if ($D1LoudnessSettle -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe -or $StopSemanticsProbe -or $ImmediateStopProbe -or $ExpectProcessorSelection -ne "")) {
     throw "-D1LoudnessSettle owns the post-run tail (D1 settle gates run after a default D1 runner exits 0) and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, -ContinuationAdoptionProbe, -StopSemanticsProbe, -ImmediateStopProbe, or -ExpectProcessorSelection"
+}
+# -D2StereoCheck shares the same post-runner window and the same tail-owning
+# exclusions (it may run alongside -LoudnessWatch and -D1LoudnessSettle: the
+# D2 leg appends after both).
+if ($D2StereoCheck -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe -or $StopSemanticsProbe -or $ImmediateStopProbe -or $ExpectProcessorSelection -ne "")) {
+    throw "-D2StereoCheck owns the post-run tail (D2 stereo gates run after a default D1 runner exits 0) and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, -ContinuationAdoptionProbe, -StopSemanticsProbe, -ImmediateStopProbe, or -ExpectProcessorSelection"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
 # AGENT-1/AGENT-2 domain-route env discipline: the launcher owns
@@ -1229,6 +1247,221 @@ elseif ($D1LoudnessSettle) {
     }
     try { $settleGatesSkip | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $settleGatesPath -Encoding UTF8 } catch { }
     Write-Host ("[d1-settle] BRANCH-SKIP (zero-mutation): settle gates unreachable on this branch, recorded skip-with-reason (phase_reachable=false); gates=" + $settleGatesPath) -ForegroundColor Yellow
+}
+# ------------------- D2 stereo/mono translation-check gates (opt-in; D2-STEREO-THIN-1)
+# Face P (LLM, budget-bound): the bare-phrase semantic-entry probe. The phrase
+# carries no capability-entry marker and no check-request vocabulary word, so
+# it must flow through the FS0 semantic_entry arbitrator. "Passes" = the turn
+# is NOT semantic_entry_unresolved/invalid (the arbitrator classified it). Per
+# the 263 lesson this probe is the evidence for the no-vocabulary entry
+# baseline; an unresolved outcome is recorded honestly and handed up (it does
+# NOT fail this leg's machinery gates below, which are marker-routed and
+# deterministic).
+# Gates A-D (zero LLM; the explicit check phrase routes through the capability
+# canary before any semantic entry):
+#   A. explicit check turn: stop_reason=d2_stereo_checked, the d2_stereo_check
+#      payload carries a three-state verdict + the disclosure-only action face,
+#      and the project was not mutated;
+#   B. d2_stereo_check verdict record on disk (stereo_check_verdicts.json in
+#      the project's workdir);
+#   C. action-face honesty (v1 pinned branch): no verdict kind may park a card
+#      (needs_confirmation=false, no interaction requests) — the honest action
+#      boundary is disclosed, never a fabricated write;
+#   D. the D2 queue node left not_started (mix_queue_view).
+if ($D2StereoCheck) {
+    Write-Host ""
+    Write-Host "== Phase D2-STEREO: stereo/mono translation-check gates ==" -ForegroundColor Cyan
+    $d2Uri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+    $d2InvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+    $d2Failures = New-Object System.Collections.Generic.List[string]
+    $d2Probe = @{
+        conversation_id = "conv_d2_probe_" + $stamp
+        message         = "帮我检查一下这首歌用单声道播放会不会丢内容"
+        sent_vocabulary = $false
+        stop_reason     = ""
+        entry_route     = ""
+        entry_confidence = ""
+        passed          = $false
+    }
+    $d2Report = @{
+        probe_passed            = $false
+        check_stop_reason       = ""
+        stereo_face             = ""
+        verdict_kind            = ""
+        action_face             = ""
+        mutation_performed      = ""
+        card_parked             = $false
+        verdict_record_on_disk  = $false
+        verdict_store_path      = ""
+        d2_node_state           = ""
+        failures                = @()
+    }
+
+    # Face P: bare-phrase semantic-entry probe (LLM leg).
+    Write-Host "[d2-stereo] face P: bare-phrase semantic-entry probe (LLM)"
+    try {
+        $d2ProbeResp = Invoke-D1ToolJson -Uri $d2Uri -Body @{
+            conversation_id = $d2Probe.conversation_id
+            message         = "帮我检查一下这首歌用单声道播放会不会丢内容"
+            context         = @{ agent_mode = "chat" }
+        } -TimeoutSec 300
+        $d2ProbePath = Join-Path $artifactDir "d2_probe_chat.json"
+        Save-D1JsonEvidence -Object $d2ProbeResp -Path $d2ProbePath
+        $d2Probe.stop_reason = [string]$d2ProbeResp.stop_reason
+        $d2ProbeWorkflow = $d2ProbeResp.workflow_data
+        if ($null -ne $d2ProbeWorkflow) {
+            $d2ProbeDecision = $d2ProbeWorkflow.decision
+            if ($null -ne $d2ProbeDecision) {
+                $d2Probe.entry_route = [string]$d2ProbeDecision.route
+                $d2Probe.entry_confidence = [string]$d2ProbeDecision.confidence
+            }
+        }
+        $d2Probe.passed = ($d2Probe.stop_reason -ne "semantic_entry_unresolved" -and $d2Probe.stop_reason -ne "semantic_entry_invalid")
+        if ($d2Probe.passed) {
+            Write-Host ("   [ok] bare phrase passed semantic_entry (stop_reason=" + $d2Probe.stop_reason + ", route=" + $d2Probe.entry_route + ", conf=" + $d2Probe.entry_confidence + ") — no-vocabulary entry baseline holds (263 lesson)") -ForegroundColor Green
+        }
+        else {
+            Write-Host ("   [EVIDENCE] bare phrase did NOT pass semantic_entry (stop_reason=" + $d2Probe.stop_reason + ") — recorded for supervisor ruling; vocabulary build is a follow-up, machinery gates below are unaffected") -ForegroundColor Yellow
+        }
+    }
+    catch {
+        $d2Probe.stop_reason = "probe_error: " + $_.Exception.Message
+        Write-Host ("   [EVIDENCE] probe turn errored: " + $d2Probe.stop_reason) -ForegroundColor Yellow
+    }
+    $d2Report.probe_passed = $d2Probe.passed
+
+    # Gate A: the explicit check turn (deterministic, marker-routed, zero LLM).
+    Write-Host "[d2-stereo] gate A: explicit check chat turn"
+    $d2Resp = Invoke-D1ToolJson -Uri $d2Uri -Body @{
+        conversation_id = "conv_d2_check_" + $stamp
+        message         = "d2 翻译检查"
+        context         = @{ agent_mode = "chat" }
+    } -TimeoutSec 180
+    $d2ChatPath = Join-Path $artifactDir "d2_check_chat.json"
+    Save-D1JsonEvidence -Object $d2Resp -Path $d2ChatPath
+    $d2Report.check_stop_reason = [string]$d2Resp.stop_reason
+    if ($d2Report.check_stop_reason -eq "d2_stereo_checked") {
+        Write-Host "   [ok] stop_reason=d2_stereo_checked" -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: chat stop_reason was '" + $d2Report.check_stop_reason + "' (expected d2_stereo_checked); evidence=" + $d2ChatPath)
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d2Data = $d2Resp.workflow_data
+    $d2Observation = $null
+    if ($null -ne $d2Data) { $d2Observation = $d2Data.observation }
+    $d2Report.stereo_face = [string]$d2Observation.stereo_status
+    $d2Payload = $null
+    if ($null -ne $d2Data) { $d2Payload = $d2Data.d2_stereo_check }
+    if ($null -ne $d2Payload) {
+        $d2Report.verdict_kind = [string]$d2Payload.verdict
+        $d2Report.action_face = [string]$d2Payload.action_face
+        $verdictKnown = ($d2Report.verdict_kind -eq "risk_found" -or $d2Report.verdict_kind -eq "no_risk" -or $d2Report.verdict_kind -eq "unmeasurable")
+        if ($verdictKnown -and $d2Report.action_face -eq "disclosure_only_v1" -and -not [string]::IsNullOrWhiteSpace([string]$d2Payload.action_face_reason)) {
+            Write-Host ("   [ok] d2_stereo_check payload: verdict=" + $d2Report.verdict_kind + " (fixture-dependent, unasserted), action_face=disclosure_only_v1, stereo_face=" + $d2Report.stereo_face) -ForegroundColor Green
+        }
+        else {
+            $d2Failures.Add("D2-STEREO FAIL: d2_stereo_check payload incomplete (verdict=" + $d2Report.verdict_kind + ", action_face=" + $d2Report.action_face + ")")
+            Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+        }
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: workflow_data.d2_stereo_check missing from the chat response")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d2Report.mutation_performed = [string]$d2Data.mutation_performed
+    if ($d2Report.mutation_performed -eq "False") {
+        Write-Host "   [ok] stereo check turn performed no project mutation" -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: mutation_performed=" + $d2Report.mutation_performed + " on the read-only check turn")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+
+    # Gate B: the d2_stereo_check verdict record on disk.
+    Write-Host "[d2-stereo] gate B: d2_stereo_check verdict record on disk"
+    try {
+        $d2StoreCandidates = @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project") -Filter "stereo_check_verdicts.json" -File -Recurse -ErrorAction SilentlyContinue)
+        if ($d2StoreCandidates.Count -gt 0) {
+            $d2Report.verdict_store_path = $d2StoreCandidates[0].FullName
+            $d2StoreJson = Get-Content -LiteralPath $d2Report.verdict_store_path -Raw | ConvertFrom-Json
+            Copy-Item -LiteralPath $d2Report.verdict_store_path -Destination (Join-Path $artifactDir "d2_verdict_store.json") -Force
+            foreach ($record in @($d2StoreJson.verdicts)) {
+                if ([string]$record.trigger_kind -eq "d2_stereo_check") {
+                    $d2Report.verdict_record_on_disk = $true
+                    break
+                }
+            }
+        }
+    }
+    catch { }
+    if ($d2Report.verdict_record_on_disk) {
+        Write-Host "   [ok] verdict store carries a d2_stereo_check trigger record" -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: no d2_stereo_check trigger record found in any stereo_check_verdicts.json under the project workdir")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+
+    # Gate C: action-face honesty — the v1 pinned no-card branch (every verdict
+    # kind discloses, none parks a card).
+    Write-Host ("[d2-stereo] gate C: action face (verdict=" + $d2Report.verdict_kind + ", v1 pinned no-card)")
+    $d2CardParked = ($d2Resp.needs_confirmation -eq $true) -or ($null -ne $d2Resp.interaction_requests)
+    $d2Report.card_parked = $d2CardParked
+    if (-not $d2CardParked -and $d2Report.mutation_performed -eq "False") {
+        Write-Host "   [ok] no verdict kind parks a card in v1 (disclosure-only boundary, zero mutation)" -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: v1 stereo check must park no action card (parked=" + $d2CardParked + ", mutation=" + $d2Report.mutation_performed + ")")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+
+    # Gate D: the D2 queue node left not_started.
+    Write-Host "[d2-stereo] gate D: mix_queue_view D2 node state"
+    $d2QueueResp = Invoke-D1ToolJson -Uri $d2InvokeUri -Body @{
+        tool      = "mix_queue_view"
+        args      = @{}
+        confirmed = $true
+        source    = "free_state_d1_smoke"
+    } -TimeoutSec 60
+    $d2QueuePath = Join-Path $artifactDir "d2_queue_view.json"
+    Save-D1JsonEvidence -Object $d2QueueResp -Path $d2QueuePath
+    $d2QueueNodes = $null
+    if ($null -ne $d2QueueResp.result) { $d2QueueNodes = $d2QueueResp.result.view.nodes }
+    if ($null -ne $d2QueueNodes) {
+        foreach ($node in @($d2QueueNodes)) {
+            if ([string]$node.node_id -eq "D2") { $d2Report.d2_node_state = [string]$node.state }
+        }
+    }
+    if (($d2Report.d2_node_state -eq "in_progress") -or ($d2Report.d2_node_state -eq "needs_confirmation")) {
+        Write-Host ("   [ok] D2 node state=" + $d2Report.d2_node_state) -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: D2 queue node state was '" + $d2Report.d2_node_state + "' (expected in_progress or needs_confirmation, not not_started); evidence=" + $d2QueuePath)
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+
+    $d2Report.failures = @($d2Failures.ToArray())
+    $d2GatesPath = Join-Path $artifactDir "d2_gates.json"
+    $d2GatesReport = @{
+        schema_version = "d2_stereo_check_gates.v0"
+        run_stamp      = $stamp
+        runner_exit    = $runnerExit
+        probe          = $d2Probe
+        report         = $d2Report
+        gate_results   = @{
+            check_turn      = ($d2Report.check_stop_reason -eq "d2_stereo_checked" -and $d2Report.verdict_kind -ne "" -and $d2Report.action_face -eq "disclosure_only_v1" -and $d2Report.mutation_performed -eq "False")
+            verdict_on_disk = $d2Report.verdict_record_on_disk
+            action_face     = (-not $d2Report.card_parked -and $d2Report.mutation_performed -eq "False")
+            d2_node_lit     = (($d2Report.d2_node_state -eq "in_progress") -or ($d2Report.d2_node_state -eq "needs_confirmation"))
+        }
+        failures       = @($d2Failures.ToArray())
+    }
+    try { $d2GatesReport | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $d2GatesPath -Encoding UTF8 } catch { }
+    if ($d2Failures.Count -gt 0) {
+        throw ("D2-STEREO-CHECK gates failed (" + [string]$d2Failures.Count + " failure(s)); evidence=" + $d2GatesPath)
+    }
+    Write-Host ("[d2-stereo] PASS: probe recorded + check turn + verdict on disk + no-card action face + D2 node lit; gates=" + $d2GatesPath) -ForegroundColor Green
 }
 if ($AdmissionOnly) {
     Write-Host ("D1-S1 ADMISSION_ONLY PASS: real-stack proposal/admission smoke completed without Apply; report=" + $report) -ForegroundColor Green
