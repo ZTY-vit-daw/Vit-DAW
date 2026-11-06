@@ -1,0 +1,59 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261106_113025\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_258impl
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=9036 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=9036
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_258impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=9036
+ok: ZMQ SUB listening: 5556 pid=9036
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+[lw] binary face: kernel=F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A agent=B012294033B576AAF1847A31A0D413412652604C3133A3F824DCADEEBB38EE92
+[lw] D1 project binding live after 0s: D:\Vit_DAW_wt_258impl\artifacts\free_state_d1_s1\20261106_113023\project\spv1_p01.vit
+[lw] watch configured before the run (digest=0079aa999954...); runner will reuse the bound project
+[lw] running the D1 python runner (reuse_existing_project=True, log=D:\Vit_DAW_wt_258impl\artifacts\free_state_d1_s1\20261106_113023\runner_stdout.log)
+D1-S1 PASS: report=D:\Vit_DAW_wt_258impl\artifacts\free_state_d1_s1\20261106_113023\d1_smoke_report.json
+[lw] runner exit=0
+
+== Phase LW: loudness watch post-settle gates ==
+[lw] gate 1: observe #1 mix_request_observation scope=full_project
+   [FAIL] LW FAIL: loudness_watch disclosure missing from the mix_request_observation response (watch hook never registered: no settle/project_change trigger fired during the run)
+   [FAIL] LW FAIL: loudness_watch verdicts_path is empty; verdict-store/dedupe/config-off gates skipped by the empty-path guard (no deadline spin)
+LOUDNESS-WATCH gates failed (2 failure(s)); evidence=D:\Vit_DAW_wt_258impl\artifacts\free_state_d1_s1\20261106_113023\l
+oudness_watch_gates.json
+所在位置 D:\Vit_DAW_wt_258impl\scripts\run_free_state_d1_smoke.ps1:938 字符: 9
++         throw ("LOUDNESS-WATCH gates failed (" + [string]$lwFailures. ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (LOUDNESS-WATCH ...atch_gates.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : LOUDNESS-WATCH gates failed (2 failure(s)); evidence=D:\Vit_DAW_wt_258impl\artifacts\fre 
+   e_state_d1_s1\20261106_113023\loudness_watch_gates.json
+ 

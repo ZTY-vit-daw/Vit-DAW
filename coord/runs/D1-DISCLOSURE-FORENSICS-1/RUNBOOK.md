@@ -33,3 +33,17 @@
 
 - 占用登记：coord/resources/PC-RUNTIME-STACK.md（净空亲核→登记推 main→重读确认→≤60s 即时复核→启栈→finally 拆栈核净→释放登记）；与 263 卡（C4-ABLATION-1）ablation run 互斥——占栈前 fetch 重读其占用状态，对方已登记则等待。
 - 工件：coord/runs/D1-DISCLOSURE-FORENSICS-1/verifyrun1/（随 port/d1-disclosure-forensics-1 入库）；大件留盘 worktree artifacts/。
+
+## verifyrun 终态（2026-11-06 11:39 收口）
+
+| run | stamp | 结果 | 形态 | 门组 |
+|---|---|---|---|---|
+| 首次启动 | 11:27 | **启动腿形式失败（零 LLM）** | 外层 ps1 无 -SkipBuild 强制 cmake 内核构建，fresh worktree 无 VitApp/build 目录→throw（栈未起） | 未起栈 |
+| verifyrun1 | 20261106_113023 | **runner exit 0（D1-S1 PASS）+PS1_EXIT=1（LW 相位 throw）** | resp0=**improvement_proposal_confirmation_required（admission.boundary=admitted，G1-G8 全 pass，proposal_present=true）**→driver 确认→resp1=semantic_treatment_capability_boundary（渐进披露审计 partial，armrun2 同型诚实边界）——**runner 判 pass/branch=zero_mutation_boundary**（256 合法化分支），target_ref=track 1032（轨道标识可见修复亲证）+selected_domains=[reverb]（提案面达成）+forward/journal mutation=0 | runner 门 ✓；LW 四门 ✗（watch hook 懒注册无触发器：0-mutation 分支无 project_change/settle——**非 LW 面回退，本卡零改 LW**）；D1-SETTLE 四门+queue view D 门=**未执行到**（ps1 相位序 LW→D1-SETTLE，LW throw 拦断） |
+
+- **两 verifyrun 形态上游修复真栈亲证**：①轨道标识披露——终局轮模型成功填写提案目标 track 1032（对照 verifyrun1 的「未披露任何轨道标识」）；②证据新鲜度准入——**admitted 全门过**（对照 verifyrun2 的 G7 单项 fail/冻结 rev2）；本 run 无 pcactl 并发漂移（G7 在 rev2 一致基准下过——漂移治愈面由单测+守卫测试覆盖，真栈漂移复现属随机外部事件不可编排）。
+- **被测 agent**=wt_258impl 现场构建 bin/VitAgent.exe SHA256 B012294033B576AAF1847A31A0D413412652604C3133A3F824DCADEEBB38EE92（38,302,208B 11:30:05，含 impl 1b9321e9）；kernel F9E3DA0A 同款只读复用（binary face 行亲证两者）。
+- **LW/D1-SETTLE 门组的分支结构性**：254/256 门组字面全过仅在 1-mutation 分支可达（watch hook 需 project_change/settle 触发懒注册；verdict store 需 settle 落盘；133 run2 参照=1-mutation 分支）。256 的分支容忍只覆盖 runner 断言面（D1-S1 场景），未覆盖 ps1 的 LW/D1-SETTLE 相位门。**处置三选项交主管**：①接受 zero_mutation 分支的 D1 点亮判定+LW/settle 相位门分支化（脚本面卡）；②再派单 run 赌 1-mutation 分支（模型随机性，133 序列 8 run 仅 1 次 mutation）；③本卡收口「披露/准入修复面 pass+D1 场景 runner 面 点亮」，LW/settle 全门组点亮另卡。
+- **计费**：d1_s1 会话 6 调用全 deepseek-flash in 84,597/out 8,413 ≈¥0.1-0.2（预算 ¥1-3 内，§8 单 run 无重跑兑现——首启形式失败零 LLM 不构成有效运行）。
+- **TEARDOWN_ALL_ZERO 亲核 11:39:23**（VitAgent 47952/VitApp 9036/Godot 44212 亲停；五口 TCP 0+UDP 4444/4445=0+四类进程 0）。
+- **结论**：修复面目标 1/2 达成且真栈生效（两形态上游消解+D1-S1 runner 面 PASS）；验收腿字面门组（LW 四门+D1 settle 四门+queue view）在本分支结构性未全达——**运行面验收交主管裁定**。
