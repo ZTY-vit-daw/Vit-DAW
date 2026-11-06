@@ -25,3 +25,4 @@
 - 构造验证（零真栈零 LLM）：probe_270 attempt3（20261107_001930）**exit 0，5/5 ALL PASS**——leg1/leg3=pre 基线行对 UTF-8 无 BOM 中文桩读取乱码实证（GBK CP936 误读形态），leg2/leg4=post 行 clean_parse 逐字节正确读回（try/catch 同脚本 :629-:633 原形制），leg5=静态扫描 post 快照 7 处 Get-Content 全带 -Encoding（268 四处+本卡两处零回退全覆盖，268 leg1 形制由 leg2/4 同构覆盖未重做）；第三处同族=无（全文件扫描）。工件：coord/runs/SMOKE-ENC-HYGIENE-2/construct/（RESULTS.md 证据链+probe_270.ps1+pre/post 快照+attempt1/2 失败留档+attempt3 全套）
 - 执行侧自验完成 → done（待主管验收；本卡零真栈构造验证，无需真栈烟测；attempt1=提取 pattern 歧义、attempt2=桩漏最外层 `}`，均为 probe/桩面问题已留档，非被测脚本问题）
 - （主管回填）
+- 验收（2026-11-07 凌晨，主管）：**pass**——两行修补（:445/:630 -Encoding UTF8）+构造验证 5/5+**主管交叉复跑 5/5 ALL PASS 亲跑**（pre GBK 乱码实证/post 正确对照/全库扫描 postfix 未编码=0 且 pre 残留恰 2 处对照成立）；268 四处零回退；第三处同族=无；probe 三轮留档（前两轮失败均 probe 自身问题如实归档）=freeflash 车道第二单质量合格（零断线）。合入随本批。
