@@ -1,0 +1,82 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_011212\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_266impl
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=48756 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=48756
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_266impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=48756
+ok: ZMQ SUB listening: 5556 pid=48756
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+[lw] binary face: kernel=F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A agent=F4B5A2150CB0936A19D37A9A5E13D632CA3825E1E79CB5AA63A303BF3EC7603D
+[lw] D1 project binding live after 0s: D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_011211\project\spv1_p01.vit
+[lw] watch configured before the run (digest=0079aa999954...); runner will reuse the bound project
+[lw] running the D1 python runner (reuse_existing_project=True, log=D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_011211\runner_stdout.log)
+D1-S1 PASS: report=D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_011211\d1_smoke_report.json
+[lw] runner exit=0
+
+== Phase LW: loudness watch post-settle gates ==
+[lw] gate 1: observe #1 mix_request_observation scope=full_project
+   [ok] observe #1 carries the loudness_watch disclosure
+[lw] gate 2: verdict store on disk (pinned schema + round-borne trigger record)
+   [ok] verdict store schema pinned, round-trigger record(s)=project_change (records=1)
+[lw] gate 3: dedupe (observe #2 advances checks_total, record count stable, keys unique)
+   [ok] dedupe held (checks 2->3, records 2=2, keys unique)
+[lw] gate 4: configure off -> observe #3 must not advance checks_total (silent zero cost)
+   [ok] config-off silent (checks_total stays 3)
+[lw] E1 extraction: extract_e1.py <verdict store copy>
+   [ok] E1 extract: settle/project_change samples=1
+   [ok] LW response surfaces clean of fixed-orchestration markers
+[lw] PASS: disclosure + verdict store/round trigger + dedupe + config-off silence + E1 all green; gates=D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_011211\loudness_watch_gates.json
+
+== Phase D1-SETTLE: loudness/peak settle gates ==
+[d1-settle] gate A: explicit check chat turn
+   [ok] stop_reason=d1_loudness_settled
+   [FAIL] D1-SETTLE FAIL: observation loudness_peak_status was 'missing' (expected present)
+   [ok] settle payload: checked=true, verdict=breach, config basis disclosed
+   [ok] settle turn performed no project mutation
+[d1-settle] gate B: d1_settle verdict record on disk
+   [ok] verdict store carries a d1_settle trigger record
+[d1-settle] gate C: action face (verdict=breach)
+   [ok] breach parked a governed mix_tick_confirmation card (face=chat_response_interaction_requests) with zero mutation
+   [ok] cancel leg retired the pending card (mix_tick_rejected)
+[d1-settle] gate D: mix.report queue view D1 node state
+   [ok] D1 node state=needs_confirmation
+D1-LOUDNESS-SETTLE gates failed (1 failure(s)); evidence=D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_0112
+11\d1_settle_gates.json
+所在位置 D:\Vit_DAW_wt_266impl\scripts\run_free_state_d1_smoke.ps1:1303 字符: 9
++         throw ("D1-LOUDNESS-SETTLE gates failed (" + [string]$settleF ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (D1-LOUDNESS-SET...ttle_gates.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : D1-LOUDNESS-SETTLE gates failed (1 failure(s)); evidence=D:\Vit_DAW_wt_266impl\artifacts 
+   \free_state_d1_s1\20261107_011211\d1_settle_gates.json
+ 
