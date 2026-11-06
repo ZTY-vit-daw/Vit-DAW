@@ -1,0 +1,130 @@
+2026-11-07T01:58:46 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-07T01:58:46 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-07T01:58:46 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-07T01:58:46 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-07T01:58:46 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-07T01:58:46 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-07T01:58:46 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-07T01:58:46 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:58:46 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-07T01:58:46 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:58:46 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:58:46 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-11-07T01:58:46 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T01:58:47 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T01:58:47 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T01:58:47 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T01:58:47 [INFO] [media_refs] ms=0 conversation=dev_range_context_20261107_015847 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-07T01:58:47 [INFO] [chat.artifacts] conversation=dev_range_context_20261107_015847 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-11-07T01:58:47 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-07T01:58:47 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-07T01:58:47 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_015843\\agent_drafts\\draft_20261106T175847_72bd8e1c\\Unsaved.vit" uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-07T01:58:47 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-07T01:58:47 [INFO] [timing] http.chat total_ms=571 conversation=dev_range_context_20261107_015847 message_len=20
+2026-11-07T01:58:48 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T01:58:48 [INFO] [timing] kernel.send_command ms=9 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-07T01:58:48 [INFO] [timing] harness.invoke total_ms=16 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="0/18f2a99" action="property_changed:vit_project_uuid"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="0/18f2a99" action="property_changed:vit_project_parent_uuid"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="0/18f2a99" action="property_changed:modifiedBy"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="0/18f2a99" action="property_changed:lastSignificantChange"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-07T01:58:48 [DEBUG] [shadow] live delta uid="0/18f2a99" action="property_changed:lastSignificantChange"
+2026-11-07T01:58:49 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-11-07T01:58:49 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-11-07T01:58:49 [INFO] [shadow] initialized tracks=1 project_path="D:\\Vit_DAW_wt_277impl\\coord\\runs\\ARR-SRCLOAD-1\\smokerun1\\arr_srcload_fixture_project.vit" replayed_deltas=3
+2026-11-07T01:58:49 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-11-07T01:58:52 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:58:52 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:58:52 [INFO] [timing] message_loop.llm ms=1090 goal=goal_ab05989fef5493ee conversation=arr_srcload_smoke_20261107_015848 turn=1 messages=3 chars=45888 message_chars=0:system:32611,1:user:17,2:user:13260 err=false
+2026-11-07T01:58:58 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:58:58 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:58:59 [INFO] [timing] harness.invoke total_ms=6087 tool=plugin.semantic_search command=plugin_semantic_search status=ok confirmed=false err=false
+2026-11-07T01:58:59 [INFO] [timing] message_loop.tool ms=6088 goal=goal_ab05989fef5493ee tool=plugin.semantic_search confirmed=false stopped=false status=
+2026-11-07T01:59:02 [INFO] [timing] message_loop.llm ms=2093 goal=goal_ab05989fef5493ee conversation=arr_srcload_smoke_20261107_015848 turn=3 messages=5 chars=51554 message_chars=0:system:32611,1:user:17,2:assistant:168,3:user:1656,4:user:17102 err=false
+2026-11-07T01:59:04 [WARN] VSP realtime publish pending failures=12 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:04 [WARN] VSP realtime publish pending failures=12 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:06 [INFO] [timing] harness.invoke total_ms=4073 tool=plugin.search command=plugin_search status=ok confirmed=false err=false
+2026-11-07T01:59:06 [INFO] [timing] message_loop.tool ms=4074 goal=goal_ab05989fef5493ee tool=plugin.search confirmed=false stopped=false status=
+2026-11-07T01:59:07 [INFO] [timing] message_loop.llm ms=1849 goal=goal_ab05989fef5493ee conversation=arr_srcload_smoke_20261107_015848 turn=4 messages=7 chars=67441 message_chars=0:system:32611,1:user:17,2:assistant:168,3:user:1656,4:assistant:139,5:user:6655,6:user:26195 err=false
+2026-11-07T01:59:08 [WARN] [harness] invoke pre_journal_validation_failed stage=pca_processor_load_gate tool=rack.add_node command=rack_add_node confirmed=false arg_keys=cmd,plugin_identifier,plugin_path,track_id,x,y,zone_id error=pca_load_gate: missing non-forgeable exact selection authorization
+2026-11-07T01:59:08 [INFO] [timing] harness.invoke total_ms=7 tool=rack.add_node command=rack_add_node status=error confirmed=false err=true
+2026-11-07T01:59:08 [INFO] [timing] message_loop.tool ms=7 goal=goal_ab05989fef5493ee tool=rack.add_node confirmed=false stopped=false status=
+2026-11-07T01:59:10 [INFO] [timing] message_loop.llm ms=2015 goal=goal_ab05989fef5493ee conversation=arr_srcload_smoke_20261107_015848 turn=5 messages=9 chars=70884 message_chars=0:system:32611,1:user:17,2:assistant:168,3:user:1656,4:assistant:139,5:user:6655,6:assistant:345,7:user:922,8:user:28371 err=false
+2026-11-07T01:59:10 [INFO] [continuation.arm] conversation=arr_srcload_smoke_20261107_015848 goal=goal_ab05989fef5493ee status=waiting_clarification stop=needs_clarification limit= continuation=true durable=cont_7515e4a11a902704d724ef82 lifecycle=waiting_interaction scheduled=false budget_stop=false requires_user_interaction=true owes_outcome=false settle_checkpoint=false
+2026-11-07T01:59:10 [INFO] [timing] agent_loop_chat total_ms=20918 conversation=arr_srcload_smoke_20261107_015848 goal=goal_ab05989fef5493ee mode=default status=waiting_clarification stop=needs_clarification completed_steps=2 executed=3
+2026-11-07T01:59:10 [INFO] [media_refs] ms=0 conversation=arr_srcload_smoke_20261107_015848 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-07T01:59:10 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_015843\agent_drafts\draft_20261106T175847_72bd8e1c\Unsaved.vit revision=2
+2026-11-07T01:59:10 [INFO] [chat.artifacts] conversation=arr_srcload_smoke_20261107_015848 response_artifacts=0 request_artifacts=0 executed=3 reply_len=264
+2026-11-07T01:59:10 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_015843\agent_drafts\draft_20261106T175847_72bd8e1c\Unsaved.vit revision=2 commit=c_20261106T175910_66ccf53b rebound=1 total_ms=28
+2026-11-07T01:59:10 [INFO] [workspace] parent history recovery skipped parent=vitproj_fa0649b9936c44049a00e135f74881e7 target=vitproj_2ab62762b5a84c578edada7c46873c5f reason=parent project path not found for UUID vitproj_fa0649b9936c44049a00e135f74881e7
+2026-11-07T01:59:10 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2ab62762b5a84c578edada7c46873c5f
+2026-11-07T01:59:10 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_277impl\\coord\\runs\\ARR-SRCLOAD-1\\smokerun1\\arr_srcload_fixture_project.vit" uuid=vitproj_2ab62762b5a84c578edada7c46873c5f recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-07T01:59:10 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2ab62762b5a84c578edada7c46873c5f
+2026-11-07T01:59:10 [INFO] [timing] http.chat total_ms=21476 conversation=arr_srcload_smoke_20261107_015848 message_len=39
+2026-11-07T01:59:10 [WARN] VSP realtime publish pending failures=15 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:10 [WARN] VSP realtime publish pending failures=15 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:16 [WARN] VSP realtime publish pending failures=18 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:16 [WARN] VSP realtime publish pending failures=18 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:22 [WARN] VSP realtime publish pending failures=21 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:22 [WARN] VSP realtime publish pending failures=21 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:28 [WARN] VSP realtime publish pending failures=24 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:28 [WARN] VSP realtime publish pending failures=24 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:34 [WARN] VSP realtime publish pending failures=27 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:34 [WARN] VSP realtime publish pending failures=27 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:40 [WARN] VSP realtime publish pending failures=30 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:40 [WARN] VSP realtime publish pending failures=30 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:46 [WARN] VSP realtime publish pending failures=33 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:46 [WARN] VSP realtime publish pending failures=33 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:52 [WARN] VSP realtime publish pending failures=36 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:52 [WARN] VSP realtime publish pending failures=36 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:58 [WARN] VSP realtime publish pending failures=39 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T01:59:58 [WARN] VSP realtime publish pending failures=39 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:04 [WARN] VSP realtime publish pending failures=42 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:04 [WARN] VSP realtime publish pending failures=42 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:10 [WARN] VSP realtime publish pending failures=45 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:10 [WARN] VSP realtime publish pending failures=45 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:16 [WARN] VSP realtime publish pending failures=48 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:16 [WARN] VSP realtime publish pending failures=48 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:22 [WARN] VSP realtime publish pending failures=51 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:22 [WARN] VSP realtime publish pending failures=51 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:24 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=50 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:28 [WARN] VSP realtime publish pending failures=54 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:28 [WARN] VSP realtime publish pending failures=54 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:34 [WARN] VSP realtime publish pending failures=57 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:34 [WARN] VSP realtime publish pending failures=57 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:38 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.transport_publisher
+2026-11-07T02:00:38 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.realtime_publisher
+2026-11-07T02:00:40 [WARN] VSP realtime publish pending failures=4 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:40 [WARN] VSP realtime publish pending failures=4 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:44 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=60 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:46 [WARN] VSP realtime publish pending failures=7 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:46 [WARN] VSP realtime publish pending failures=7 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:52 [WARN] VSP realtime publish pending failures=10 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:52 [WARN] VSP realtime publish pending failures=10 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:58 [WARN] VSP realtime publish pending failures=13 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:00:58 [WARN] VSP realtime publish pending failures=13 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:04 [WARN] VSP realtime publish pending failures=16 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:04 [WARN] VSP realtime publish pending failures=16 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:04 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=70 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:10 [WARN] VSP realtime publish pending failures=19 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:10 [WARN] VSP realtime publish pending failures=19 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:16 [WARN] VSP realtime publish pending failures=22 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:16 [WARN] VSP realtime publish pending failures=22 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:22 [WARN] VSP realtime publish pending failures=25 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T02:01:22 [WARN] VSP realtime publish pending failures=25 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

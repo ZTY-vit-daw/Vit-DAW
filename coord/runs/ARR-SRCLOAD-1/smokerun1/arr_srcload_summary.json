@@ -1,0 +1,55 @@
+{
+  "card": "ARR-SRCLOAD-1",
+  "leg": "smokerun1 chat-driven instrument load -> clip -> non-silent render",
+  "stamp": "20261107_015848",
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "instrument_names": [
+        "One",
+        "Twin 3",
+        "Surge XT",
+        "COSMOS Sample Finder Stereo",
+        "Clavinet Stereo",
+        "Electric200 Stereo",
+        "Electric88 Stereo",
+        "Flow Motion Stereo",
+        "Electric Grand 80 Stereo",
+        "Grand Rhapsody Piano Stereo"
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_277impl\\coord\\runs\\ARR-SRCLOAD-1\\smokerun1\\arr_srcload_fixture_project.vit"
+    },
+    "chat": {
+      "conversation_id": "arr_srcload_smoke_20261107_015848",
+      "stop_reason": "needs_clarification",
+      "goal_status": "waiting_clarification",
+      "needs_confirmation": false,
+      "plan_id": "",
+      "workflow": null,
+      "workflow_plugin_kind": null,
+      "reply_excerpt": "加载被安全校验拦截了：需要你对确切的插件做出明确选择授权。请确认是否就用 Waves 的「Grand Rhapsody Piano Stereo」加载到 Track 1（这是当前唯一的轨道），并请在插件浏览器里明确选中它后回复确认。",
+      "log_delta_tools": [
+        "plugin.semantic_search",
+        "plugin.search",
+        "rack.add_node"
+      ]
+    },
+    "load": {
+      "tool": "rack.add_node",
+      "status": "error",
+      "zone_id": null,
+      "plugin_name": null,
+      "plugin_id": null,
+      "plugin_instance_ready": null,
+      "plugin_load_state": null
+    }
+  },
+  "exit_code": 4,
+  "exit_class": "command_defect",
+  "fail_phase": "load",
+  "fail_reason": "rack_add_node executed but status='error'"
+}
