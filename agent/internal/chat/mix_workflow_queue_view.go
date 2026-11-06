@@ -80,9 +80,11 @@ type mixWorkflowNodeDef struct {
 // face; future decision records under pre_master.loudness_settle.v0 map
 // here); D2 (翻译检查) is owned by the D2-STEREO-THIN-1 stereo check face
 // (same annotation-face advance; future decision records under
-// pre_master.stereo_check.v0 map here); nodes without capability IDs
-// (C5/D3/D4/E/F1) have no runtime yet — they stay not_started until real
-// work lands (the view renders real state only).
+// pre_master.stereo_check.v0 map here); D3 (参考曲对比) is owned by the
+// D3-REF-ALIGN-THIN-1 reference-alignment face (same annotation-face advance;
+// future decision records under pre_master.ref_align.v0 map here); nodes
+// without capability IDs (C5/D4/E/F1) have no runtime yet — they stay
+// not_started until real work lands (the view renders real state only).
 var mixWorkflowQueueNodes = []mixWorkflowNodeDef{
 	{"A1", "project_prep", "工程准备", "工程接收与整理", []string{"project_prep.import_intake.v0"}},
 	{"A2", "project_prep", "工程准备", "技术完整性检查", []string{"project_prep.technical_integrity.v0"}},
@@ -100,7 +102,7 @@ var mixWorkflowQueueNodes = []mixWorkflowNodeDef{
 	{"C5", "fine_mix", "细混处理", "总线处理", nil},
 	{"D1", "pre_master", "母带前检查", "全局响度与峰值", []string{d1LoudnessSettleCapabilityID}},
 	{"D2", "pre_master", "母带前检查", "翻译检查", []string{d2StereoCheckCapabilityID}},
-	{"D3", "pre_master", "母带前检查", "参考曲对比", nil},
+	{"D3", "pre_master", "母带前检查", "参考曲对比", []string{d3RefAlignCapabilityID}},
 	{"D4", "pre_master", "母带前检查", "版本输出", nil},
 	{"E1", "mastering", "母带", "母带 EQ", nil},
 	{"E2", "mastering", "母带", "母带动态与响度", nil},

@@ -115,6 +115,23 @@ param(
     # action face, zero mutation, no card), the d2_stereo_check verdict record
     # on disk, and the D2 queue node leaving not_started.
     [switch]$D2StereoCheck,
+    # D3-REF-ALIGN-THIN-1: opt-in D3 reference-alignment leg (tier 1 = builtin
+    # reference standards). Appends after the default D1 runner (and after
+    # -LoudnessWatch/-D1LoudnessSettle/-D2StereoCheck when those are on). Two
+    # faces: (P) the bare-phrase semantic-entry probe (LLM, one /agent/chat
+    # turn — asserts the phrase passes the FS0 arbitrator; evidence for the
+    # 263-lesson entry baseline: no vocabulary is built when bare phrasing
+    # passes); (A-D) deterministic gates, zero LLM (the explicit check phrase
+    # carries the d3 marker and routes through the capability canary before
+    # any semantic entry): the check turn (stop_reason=d3_ref_align_checked,
+    # three-state verdict, profile basis disclosed, zero mutation), the
+    # d3_ref_align verdict record on disk (ref_align_verdicts.json), the
+    # action-face honesty gate (unlike D2's pinned no-card branch: a gap with
+    # an addressable level target MUST park the governed mix_tick card with
+    # zero mutation and the cancel leg retires it; every non-addressable /
+    # aligned / unmeasurable outcome MUST disclose without a card), and the
+    # D3 queue node leaving not_started.
+    [switch]$D3RefAlign,
     # Pass-through to dev_agent_smoke's -LlmModelOverride (VIT_AGENT_LLM_MODEL
     # env injection; 238-253/225 precedent: deepseek-flash for budget-bound
     # real-stack runs). Empty keeps the child agent's default engine.
@@ -163,6 +180,12 @@ if ($D1LoudnessSettle -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementP
 # D2 leg appends after both).
 if ($D2StereoCheck -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe -or $StopSemanticsProbe -or $ImmediateStopProbe -or $ExpectProcessorSelection -ne "")) {
     throw "-D2StereoCheck owns the post-run tail (D2 stereo gates run after a default D1 runner exits 0) and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, -ContinuationAdoptionProbe, -StopSemanticsProbe, -ImmediateStopProbe, or -ExpectProcessorSelection"
+}
+# -D3RefAlign shares the same post-runner window and the same tail-owning
+# exclusions (it may run alongside -LoudnessWatch/-D1LoudnessSettle/
+# -D2StereoCheck: the D3 leg appends after all three).
+if ($D3RefAlign -and ($MultiRoundProbe -or $AdmissionOnly -or $SettlementProbe -ne "" -or $ExpectHonestRefusal -or $ContinuationAdoptionProbe -or $StopSemanticsProbe -or $ImmediateStopProbe -or $ExpectProcessorSelection -ne "")) {
+    throw "-D3RefAlign owns the post-run tail (D3 ref-align gates run after a default D1 runner exits 0) and cannot be combined with -MultiRoundProbe, -AdmissionOnly, -SettlementProbe, -ExpectHonestRefusal, -ContinuationAdoptionProbe, -StopSemanticsProbe, -ImmediateStopProbe, or -ExpectProcessorSelection"
 }
 $multiroundTierEnv = [string]$env:VIT_FREE_STATE_D2_MULTI_ROUND_BUDGET
 # AGENT-1/AGENT-2 domain-route env discipline: the launcher owns
@@ -1555,6 +1578,298 @@ if ($D2StereoCheck) {
         throw ("D2-STEREO-CHECK gates failed (" + [string]$d2Failures.Count + " failure(s)); evidence=" + $d2GatesPath)
     }
     Write-Host ("[d2-stereo] PASS: probe recorded + check turn + verdict on disk + no-card action face + D2 node lit; gates=" + $d2GatesPath) -ForegroundColor Green
+}
+# ------------------- D3 reference-alignment gates (opt-in; D3-REF-ALIGN-THIN-1)
+# Face P (LLM, budget-bound): the bare-phrase semantic-entry probe. The phrase
+# names no capability-entry marker and no check-request vocabulary word, so it
+# must flow through the FS0 semantic_entry arbitrator. "Passes" = the turn is
+# NOT semantic_entry_unresolved/invalid (263-lesson no-vocabulary baseline
+# evidence; an unresolved outcome is recorded honestly and handed up — it does
+# NOT fail the machinery gates below, which are marker-routed and
+# deterministic).
+# Gates A-D (zero LLM; the explicit check phrase carries the d3 marker and
+# routes through the capability canary before any semantic entry):
+#   A. explicit check turn: stop_reason=d3_ref_align_checked, the d3_ref_align
+#      payload carries a three-state verdict, the resolved builtin profile
+#      (spotify named by the phrase; fresh fixture has no render bindings, so
+#      basis=intent_named), approximate measurement grade, and zero mutation;
+#   B. d3_ref_align verdict record on disk (ref_align_verdicts.json in the
+#      project's workdir, UTF-8 read);
+#   C. action-face honesty (card-bearing face, unlike D2's pinned no-card):
+#      a gap with an addressable level target parks the governed
+#      mix_tick_confirmation card (needs_confirmation, zero mutation before
+#      confirm) and the cancel leg retires it (mix_tick_rejected); aligned /
+#      unmeasurable / unaddressable outcomes disclose action_face
+#      none_needed / disclosure_only_v1 and park no card;
+#   D. the D3 queue node left not_started (mix.report three-view).
+if ($D3RefAlign) {
+    Write-Host ""
+    Write-Host "== Phase D3-REF-ALIGN: reference-alignment gates ==" -ForegroundColor Cyan
+    $d3Uri = $AgentHttp.TrimEnd("/") + "/agent/chat"
+    $d3InvokeUri = $AgentHttp.TrimEnd("/") + "/agent/invoke"
+    $d3Failures = New-Object System.Collections.Generic.List[string]
+    $d3CheckConv = "conv_d3_check_" + $stamp
+    $d3Probe = @{
+        conversation_id  = "conv_d3_probe_" + $stamp
+        message          = "帮我看看这首歌跟 spotify 的标准差多少"
+        sent_vocabulary  = $false
+        stop_reason      = ""
+        entry_route      = ""
+        entry_confidence = ""
+        passed           = $false
+    }
+    $d3Report = @{
+        probe_passed           = $false
+        check_stop_reason      = ""
+        verdict_kind           = ""
+        profile_id             = ""
+        profile_basis          = ""
+        measurement_grade      = ""
+        action_face            = ""
+        action_reason_present  = $false
+        mutation_performed     = ""
+        card_parked            = $false
+        card_kind              = ""
+        cancel_stop_reason     = ""
+        verdict_record_on_disk = $false
+        verdict_store_path     = ""
+        d3_node_state          = ""
+        failures               = @()
+    }
+
+    # Face P: bare-phrase semantic-entry probe (LLM leg).
+    Write-Host "[d3-ref] face P: bare-phrase semantic-entry probe (LLM)"
+    try {
+        $d3ProbeResp = Invoke-D1ToolJson -Uri $d3Uri -Body @{
+            conversation_id = $d3Probe.conversation_id
+            message         = "帮我看看这首歌跟 spotify 的标准差多少"
+            context         = @{ agent_mode = "chat" }
+        } -TimeoutSec 300
+        $d3ProbePath = Join-Path $artifactDir "d3_probe_chat.json"
+        Save-D1JsonEvidence -Object $d3ProbeResp -Path $d3ProbePath
+        $d3Probe.stop_reason = [string]$d3ProbeResp.stop_reason
+        # The semantic_entry decision map only exists on the unresolved-path
+        # response; a resolved phrase flows into the ordinary loop and carries
+        # no decision face (D2 run1 lesson: StrictMode property access must be
+        # guarded; "passed" is decided by stop_reason alone).
+        $d3ProbeWorkflow = $d3ProbeResp.workflow_data
+        if ($null -ne $d3ProbeWorkflow -and $null -ne $d3ProbeWorkflow.PSObject.Properties['decision']) {
+            $d3ProbeDecision = $d3ProbeWorkflow.decision
+            if ($null -ne $d3ProbeDecision) {
+                $d3Probe.entry_route = [string]$d3ProbeDecision.route
+                $d3Probe.entry_confidence = [string]$d3ProbeDecision.confidence
+            }
+        }
+        $d3Probe.passed = ($d3Probe.stop_reason -ne "semantic_entry_unresolved" -and $d3Probe.stop_reason -ne "semantic_entry_invalid")
+        if ($d3Probe.passed) {
+            Write-Host ("   [ok] bare phrase passed semantic_entry (stop_reason=" + $d3Probe.stop_reason + ", route=" + $d3Probe.entry_route + ", conf=" + $d3Probe.entry_confidence + ") — no-vocabulary entry baseline holds (263 lesson)") -ForegroundColor Green
+        }
+        else {
+            Write-Host ("   [EVIDENCE] bare phrase did NOT pass semantic_entry (stop_reason=" + $d3Probe.stop_reason + ") — recorded for supervisor ruling; vocabulary build is a follow-up, machinery gates below are unaffected") -ForegroundColor Yellow
+        }
+    }
+    catch {
+        $d3Probe.stop_reason = "probe_error: " + $_.Exception.Message
+        Write-Host ("   [EVIDENCE] probe turn errored: " + $d3Probe.stop_reason) -ForegroundColor Yellow
+    }
+    $d3Report.probe_passed = $d3Probe.passed
+
+    # Gate A: the explicit check turn (deterministic, marker-routed, zero LLM).
+    Write-Host "[d3-ref] gate A: explicit check chat turn"
+    $d3Resp = Invoke-D1ToolJson -Uri $d3Uri -Body @{
+        conversation_id = $d3CheckConv
+        message         = "d3 参考对齐 spotify"
+        context         = @{ agent_mode = "chat" }
+    } -TimeoutSec 180
+    $d3ChatPath = Join-Path $artifactDir "d3_check_chat.json"
+    Save-D1JsonEvidence -Object $d3Resp -Path $d3ChatPath
+    $d3Report.check_stop_reason = [string]$d3Resp.stop_reason
+    if ($d3Report.check_stop_reason -eq "d3_ref_align_checked") {
+        Write-Host "   [ok] stop_reason=d3_ref_align_checked" -ForegroundColor Green
+    }
+    else {
+        $d3Failures.Add("D3-REF-ALIGN FAIL: chat stop_reason was '" + $d3Report.check_stop_reason + "' (expected d3_ref_align_checked); evidence=" + $d3ChatPath)
+        Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d3Data = $d3Resp.workflow_data
+    $d3Payload = $null
+    if ($null -ne $d3Data) { $d3Payload = $d3Data.d3_ref_align }
+    if ($null -ne $d3Payload) {
+        $d3Report.verdict_kind = [string]$d3Payload.verdict
+        $d3Report.profile_id = [string]$d3Payload.profile_id
+        $d3Report.profile_basis = [string]$d3Payload.profile_basis
+        $d3Report.measurement_grade = [string]$d3Payload.measurement_grade
+        $d3Report.action_face = [string]$d3Payload.action_face
+        $d3Report.action_reason_present = -not [string]::IsNullOrWhiteSpace([string]$d3Payload.action_face_reason)
+        $verdictKnown = ($d3Report.verdict_kind -eq "aligned" -or $d3Report.verdict_kind -eq "gap_found" -or $d3Report.verdict_kind -eq "unmeasurable")
+        $faceKnown = ($d3Report.action_face -eq "gain_card_v1" -or $d3Report.action_face -eq "none_needed" -or $d3Report.action_face -eq "disclosure_only_v1")
+        # The phrase names spotify and the fresh fixture carries no render
+        # bindings, so the tier-1 resolver must have selected builtin:spotify.
+        if ($verdictKnown -and $faceKnown -and $d3Report.profile_id -eq "builtin:spotify" -and $d3Report.profile_basis -ne "" -and $d3Report.measurement_grade -eq "approximate") {
+            Write-Host ("   [ok] d3_ref_align payload: verdict=" + $d3Report.verdict_kind + " (fixture-dependent, unasserted), action_face=" + $d3Report.action_face + ", profile=" + $d3Report.profile_id + " (" + $d3Report.profile_basis + ")") -ForegroundColor Green
+        }
+        else {
+            $d3Failures.Add("D3-REF-ALIGN FAIL: d3_ref_align payload incomplete (verdict=" + $d3Report.verdict_kind + ", action_face=" + $d3Report.action_face + ", profile=" + $d3Report.profile_id + ", basis=" + $d3Report.profile_basis + ", grade=" + $d3Report.measurement_grade + ")")
+            Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+        }
+    }
+    else {
+        $d3Failures.Add("D3-REF-ALIGN FAIL: workflow_data.d3_ref_align missing from the chat response")
+        Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d3Report.mutation_performed = [string]$d3Data.mutation_performed
+    if ($d3Report.mutation_performed -eq "False") {
+        Write-Host "   [ok] ref-align check turn performed no project mutation" -ForegroundColor Green
+    }
+    else {
+        $d3Failures.Add("D3-REF-ALIGN FAIL: mutation_performed=" + $d3Report.mutation_performed + " on the read-only check turn")
+        Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+    }
+
+    # Gate B: the d3_ref_align verdict record on disk.
+    Write-Host "[d3-ref] gate B: d3_ref_align verdict record on disk"
+    $d3StoreSearchDiagnosis = ""
+    try {
+        $d3StoreCandidates = @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project") -Filter "ref_align_verdicts.json" -File -Recurse -Force -ErrorAction SilentlyContinue)
+        $d3StoreSearchDiagnosis = "candidates=" + $d3StoreCandidates.Count
+        if ($d3StoreCandidates.Count -gt 0) {
+            $d3Report.verdict_store_path = $d3StoreCandidates[0].FullName
+            # -Encoding UTF8 is load-bearing: the Go-written store is BOM-less
+            # UTF-8 with Chinese summary text (265 run3 lesson, 268 codified).
+            $d3StoreJson = Get-Content -LiteralPath $d3Report.verdict_store_path -Raw -Encoding UTF8 | ConvertFrom-Json
+            Copy-Item -LiteralPath $d3Report.verdict_store_path -Destination (Join-Path $artifactDir "d3_verdict_store.json") -Force
+            foreach ($record in @($d3StoreJson.verdicts)) {
+                if ([string]$record.trigger_kind -eq "d3_ref_align") {
+                    $d3Report.verdict_record_on_disk = $true
+                    break
+                }
+            }
+            if (-not $d3Report.verdict_record_on_disk) {
+                $d3StoreSearchDiagnosis += "; store parse ok but no d3_ref_align trigger record (schema=" + [string]$d3StoreJson.schema_version + ", verdicts=" + @($d3StoreJson.verdicts).Count + ")"
+            }
+        }
+        else {
+            $d3StoreSearchDiagnosis += "; project dir=" + (Test-Path -LiteralPath (Join-Path $artifactDir "project")) + ", direct glob=" + @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project\.vit_agent") -Filter "ref_align_verdicts.json" -File -Recurse -Force -ErrorAction SilentlyContinue).Count
+        }
+    }
+    catch {
+        $d3StoreSearchDiagnosis = "search threw: " + $_.Exception.Message
+    }
+    if ($d3Report.verdict_record_on_disk) {
+        Write-Host ("   [ok] verdict store carries a d3_ref_align trigger record (" + $d3StoreSearchDiagnosis + ")") -ForegroundColor Green
+    }
+    else {
+        $d3Failures.Add("D3-REF-ALIGN FAIL: no d3_ref_align trigger record found in any ref_align_verdicts.json under the project workdir [" + $d3StoreSearchDiagnosis + "]")
+        Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+    }
+
+    # Gate C: action-face honesty — the card-bearing face. A gap with an
+    # addressable level target parks the governed mix_tick_confirmation card
+    # (zero mutation before confirm) and the cancel leg retires it; any other
+    # outcome parks no card and discloses which face it took. Property access
+    # is guarded (StrictMode; 265 run1 lesson).
+    Write-Host ("[d3-ref] gate C: action face (verdict=" + $d3Report.verdict_kind + ", action_face=" + $d3Report.action_face + ")")
+    $d3NeedsConfirmation = ($null -ne $d3Resp.PSObject.Properties['needs_confirmation']) -and ($d3Resp.PSObject.Properties['needs_confirmation'].Value -eq $true)
+    $d3HasInteractionRequests = ($null -ne $d3Resp.PSObject.Properties['interaction_requests']) -and ($null -ne $d3Resp.PSObject.Properties['interaction_requests'].Value)
+    $d3CardParked = $d3NeedsConfirmation -or $d3HasInteractionRequests
+    $d3Report.card_parked = $d3CardParked
+    if ($d3Report.action_face -eq "gain_card_v1") {
+        $cardSeen = $false
+        if ($d3NeedsConfirmation -and ($null -ne $d3Resp.interaction_requests)) {
+            foreach ($request in @($d3Resp.interaction_requests)) {
+                if ([string]$request.kind -eq "mix_tick_confirmation") {
+                    $cardSeen = $true
+                    $d3Report.card_kind = "mix_tick_confirmation"
+                }
+            }
+        }
+        if ($cardSeen -and $d3Report.mutation_performed -eq "False") {
+            Write-Host "   [ok] addressable gap parked a governed mix_tick_confirmation card with zero mutation" -ForegroundColor Green
+            # Cancel leg: retire the card through the same chat surface.
+            $d3CancelResp = Invoke-D1ToolJson -Uri $d3Uri -Body @{
+                conversation_id = $d3CheckConv
+                message         = "取消"
+                context         = @{ agent_mode = "chat" }
+            } -TimeoutSec 60
+            $d3CancelPath = Join-Path $artifactDir "d3_check_cancel.json"
+            Save-D1JsonEvidence -Object $d3CancelResp -Path $d3CancelPath
+            $d3Report.cancel_stop_reason = [string]$d3CancelResp.stop_reason
+            if ($d3Report.cancel_stop_reason -eq "mix_tick_rejected") {
+                Write-Host "   [ok] cancel leg retired the pending card (mix_tick_rejected)" -ForegroundColor Green
+            }
+            else {
+                $d3Failures.Add("D3-REF-ALIGN FAIL: cancel leg stop_reason was '" + $d3Report.cancel_stop_reason + "' (expected mix_tick_rejected); evidence=" + $d3CancelPath)
+                Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+            }
+        }
+        else {
+            $d3Failures.Add("D3-REF-ALIGN FAIL: action_face=gain_card_v1 must park a governed card with zero mutation (card=" + $cardSeen + ", mutation=" + $d3Report.mutation_performed + ")")
+            Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+        }
+    }
+    else {
+        if (-not $d3CardParked -and $d3Report.mutation_performed -eq "False") {
+            Write-Host ("   [ok] " + $d3Report.action_face + " outcome parks no card (honest disclosure, zero mutation); reason_present=" + $d3Report.action_reason_present) -ForegroundColor Green
+        }
+        else {
+            $d3Failures.Add("D3-REF-ALIGN FAIL: non-card action_face (" + $d3Report.action_face + ") must park no card (parked=" + $d3CardParked + ", mutation=" + $d3Report.mutation_performed + ")")
+            Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+        }
+    }
+
+    # Gate D: the D3 queue node left not_started. The queue view rides the
+    # mix.report catalog tool (M1-5 three-view: result.mix_workflow_queue —
+    # 265 lessons: no standalone mix_queue_view invoke tool exists).
+    Write-Host "[d3-ref] gate D: mix.report queue view D3 node state"
+    $d3QueueResp = Invoke-D1ToolJson -Uri $d3InvokeUri -Body @{
+        tool      = "mix.report"
+        args      = @{}
+        confirmed = $true
+        source    = "free_state_d1_smoke"
+    } -TimeoutSec 60
+    $d3QueuePath = Join-Path $artifactDir "d3_queue_view.json"
+    Save-D1JsonEvidence -Object $d3QueueResp -Path $d3QueuePath
+    $d3QueueNodes = $null
+    if ($null -ne $d3QueueResp.PSObject.Properties['result'] -and $null -ne $d3QueueResp.result) {
+        $d3QueueMap = $d3QueueResp.result
+        if ($null -ne $d3QueueMap.PSObject.Properties['mix_workflow_queue'] -and $null -ne $d3QueueMap.mix_workflow_queue) {
+            $d3QueueNodes = $d3QueueMap.mix_workflow_queue.nodes
+        }
+    }
+    if ($null -ne $d3QueueNodes) {
+        foreach ($node in @($d3QueueNodes)) {
+            if ([string]$node.node_id -eq "D3") { $d3Report.d3_node_state = [string]$node.state }
+        }
+    }
+    if (($d3Report.d3_node_state -eq "in_progress") -or ($d3Report.d3_node_state -eq "needs_confirmation")) {
+        Write-Host ("   [ok] D3 node state=" + $d3Report.d3_node_state) -ForegroundColor Green
+    }
+    else {
+        $d3Failures.Add("D3-REF-ALIGN FAIL: D3 queue node state was '" + $d3Report.d3_node_state + "' (expected in_progress or needs_confirmation, not not_started); evidence=" + $d3QueuePath)
+        Write-Host ("   [FAIL] " + $d3Failures[$d3Failures.Count - 1]) -ForegroundColor Red
+    }
+
+    $d3Report.failures = @($d3Failures.ToArray())
+    $d3GatesPath = Join-Path $artifactDir "d3_gates.json"
+    $d3GatesReport = @{
+        schema_version = "d3_ref_align_gates.v0"
+        run_stamp      = $stamp
+        runner_exit    = $runnerExit
+        probe          = $d3Probe
+        report         = $d3Report
+        gate_results   = @{
+            check_turn      = ($d3Report.check_stop_reason -eq "d3_ref_align_checked" -and $d3Report.verdict_kind -ne "" -and $d3Report.profile_id -eq "builtin:spotify" -and $d3Report.measurement_grade -eq "approximate" -and $d3Report.mutation_performed -eq "False")
+            verdict_on_disk = $d3Report.verdict_record_on_disk
+            action_face     = ((($d3Report.action_face -eq "gain_card_v1") -and $d3Report.card_parked -and $d3Report.cancel_stop_reason -eq "mix_tick_rejected") -or (($d3Report.action_face -ne "gain_card_v1") -and (-not $d3Report.card_parked)))
+            d3_node_lit     = (($d3Report.d3_node_state -eq "in_progress") -or ($d3Report.d3_node_state -eq "needs_confirmation"))
+        }
+        failures       = @($d3Failures.ToArray())
+    }
+    try { $d3GatesReport | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $d3GatesPath -Encoding UTF8 } catch { }
+    if ($d3Failures.Count -gt 0) {
+        throw ("D3-REF-ALIGN gates failed (" + [string]$d3Failures.Count + " failure(s)); evidence=" + $d3GatesPath)
+    }
+    Write-Host ("[d3-ref] PASS: probe recorded + check turn + verdict on disk + honest action face + D3 node lit; gates=" + $d3GatesPath) -ForegroundColor Green
 }
 if ($AdmissionOnly) {
     Write-Host ("D1-S1 ADMISSION_ONLY PASS: real-stack proposal/admission smoke completed without Apply; report=" + $report) -ForegroundColor Green
