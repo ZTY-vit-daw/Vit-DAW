@@ -1,0 +1,16 @@
+﻿{
+    "configure_ok":  false,
+    "project_poll_seconds":  -1,
+    "prepared":  false,
+    "config_digest":  "",
+    "runner_stdout_log":  "",
+    "agent_sha256":  "B012294033B576AAF1847A31A0D413412652604C3133A3F824DCADEEBB38EE92",
+    "agent_exe":  "D:\\Vit_DAW_wt_258impl\\agent\\bin\\VitAgent.exe",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "ui_port_wait_seconds":  90,
+    "enabled":  true,
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "config_error":  "",
+    "project_path_seen":  "",
+    "project_open_ok":  false
+}
