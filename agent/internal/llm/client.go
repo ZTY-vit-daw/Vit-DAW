@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -165,11 +166,12 @@ func (c *Client) CompleteRequest(ctx context.Context, cfg config.EngineConfig, l
 	}
 	client := c.HTTPClient
 	if client == nil {
-		timeout := llmReq.Timeout
-		if timeout <= 0 && !llmReq.NoTimeout {
-			timeout = 60 * time.Second
-		}
-		client = &http.Client{Timeout: timeout}
+		// M3-LLM-TIMEOUT-ADAPT-1: the no-Timeout default slot now consults
+		// VIT_AGENT_LLM_TIMEOUT_SEC (falling back to the historical 60s on
+		// unset/invalid/out-of-range, recorded non-silently). Explicit
+		// req.Timeout, NoTimeout and TimeoutIsTotalBudget semantics below
+		// are untouched.
+		client = attemptHTTPClient(llmReq, os.Getenv(llmTimeoutEnvVar))
 	}
 	if llmReq.Timeout > 0 && llmReq.TimeoutIsTotalBudget {
 		// FIX-ASK-SILENT-GAP-1 ②: the deadline spans every remaining retry
