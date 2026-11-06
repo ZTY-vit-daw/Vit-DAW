@@ -148,6 +148,17 @@ param(
     # (skips the choreo-pending leg whose vocabulary arm is disabled by
     # design, and invalidates any lexicon_hit). Off = behavior unchanged.
     [switch]$LlmRouteAblationHook,
+    # B4-ABLATION-1 (264): B4 low-end relation ablation leg. Sets
+    # VIT_LOW_END_RELATION_ABLATION=1 in the same env-before-agent-start
+    # window (agent inherits it for its whole lifetime; never persisted, dies
+    # with this run) so the agent's B4 family lexicon short-circuit AND the
+    # B4 canary dispatch branch are both disabled (257 matrix §六 B4 拆法);
+    # the b4 masking-frontier phrase then falls through to the LLM turn where
+    # scripts/b4_low_end_relation_agent_smoke.py -AblationHook judges the
+    # harness reproduction (tool_chain_ok/boundary_ok per round, 263
+    # rounds-per-group pattern; any lexicon_hit = invalid run, py exit 4).
+    # Off = behavior unchanged.
+    [switch]$B4AblationSmoke,
     # M3-CHAT-AUTH-STAMP-1 (223): chat-chain authority stamp smoke. Two-phase
     # leg with a REAL agent process restart in between (orchestrated here):
     # phase "before" switches full access through /agent/authority (durable
@@ -1321,7 +1332,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1402,6 +1413,32 @@ if ($AutomationLLMRouteSmoke -and -not $ScenarioMode) {
         Write-Ok ("automation LLM route ablation hook: VIT_AUTOMATION_INTENT_ABLATION=" + $env:VIT_AUTOMATION_INTENT_ABLATION)
     }
     Write-Ok ("automation LLM route telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " payload_capture=" + $env:VIT_AGENT_LLM_PAYLOAD_CAPTURE)
+}
+
+# B4-ABLATION-1 (264): same env-before-agent-start window as the automation
+# leg above — telemetry + (optional) engine override + the B4 ablation hook,
+# all set only for this leg so other legs keep their default behavior. The
+# hook env is read natively by agent internal/chat (capability_owner.go
+# lowEndRelationAblationBypassed); never written to any config file, dies with
+# this run.
+if ($B4AblationSmoke -and -not $ScenarioMode) {
+    $B4AblationTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($B4AblationTelemetryRoot)) {
+        $B4AblationTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\b4_ablation_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $B4AblationTelemetryRoot -Force | Out-Null
+    $B4AblationLogsDir = Join-Path $B4AblationTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $B4AblationLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $B4AblationLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $B4AblationLogsDir "agent_prompt_render.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_PAYLOAD_CAPTURE" -Value $B4AblationLogsDir
+    if (-not [string]::IsNullOrWhiteSpace($LlmModelOverride)) {
+        Set-Item -LiteralPath "env:VIT_AGENT_LLM_MODEL" -Value $LlmModelOverride.Trim()
+        Write-Ok ("B4 ablation engine override: VIT_AGENT_LLM_MODEL=" + $env:VIT_AGENT_LLM_MODEL)
+    }
+    Set-Item -LiteralPath "env:VIT_LOW_END_RELATION_ABLATION" -Value "1"
+    Write-Ok ("B4 ablation hook: VIT_LOW_END_RELATION_ABLATION=" + $env:VIT_LOW_END_RELATION_ABLATION)
+    Write-Ok ("B4 ablation telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " payload_capture=" + $env:VIT_AGENT_LLM_PAYLOAD_CAPTURE)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -8804,6 +8841,49 @@ if ($AutomationLLMRouteSmoke) {
     }
     else {
         throw ("automation LLM route verification failed with exit code $llmRouteExit (console: " + $llmRouteConsolePath + ")")
+    }
+}
+
+if ($B4AblationSmoke) {
+    Write-Step "B4 low-end relation ablation (B4-ABLATION-1)"
+    $b4AblationScript = Join-Path $RepoRoot "scripts\b4_low_end_relation_agent_smoke.py"
+    if (-not (Test-Path -LiteralPath $b4AblationScript)) {
+        throw ("B4 ablation script missing: " + $b4AblationScript)
+    }
+    $b4AblationArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($b4AblationArtifactsDir)) {
+        $b4AblationArtifactsDir = $env:VIT_AGENT_LLM_TELEMETRY_PATH
+        if (-not [string]::IsNullOrWhiteSpace($b4AblationArtifactsDir)) {
+            $b4AblationArtifactsDir = Split-Path -Parent (Split-Path -Parent $b4AblationArtifactsDir)
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace($b4AblationArtifactsDir)) {
+        throw "B4 ablation requires the run artifacts dir (telemetry env block sets it before agent start)"
+    }
+    if ([string]::IsNullOrWhiteSpace($env:VIT_LOW_END_RELATION_ABLATION)) {
+        throw "B4 ablation requires the hook env (VIT_LOW_END_RELATION_ABLATION unset after the env block)"
+    }
+    $b4AblationRoundsDir = Join-Path $b4AblationArtifactsDir "rounds"
+    $b4AblationSummaryPath = Join-Path $b4AblationArtifactsDir "b4_ablation_summary.json"
+    $b4AblationConsolePath = Join-Path $b4AblationArtifactsDir "b4_ablation_console.txt"
+    $b4AblationPythonArgs = @($b4AblationScript, "--agent-http", $AgentHttp, "-AblationHook", "--rounds-dir", $b4AblationRoundsDir, "--output", $b4AblationSummaryPath, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--prompt-render-path", $env:VIT_AGENT_PROMPT_RENDER_PATH, "--payload-capture-path", (Join-Path $env:VIT_AGENT_LLM_PAYLOAD_CAPTURE "agent_llm_payload_capture.jsonl"), "--agent-log", $AgentLog)
+    & python @b4AblationPythonArgs > $b4AblationConsolePath 2>&1
+    $b4AblationExit = $LASTEXITCODE
+    Get-Content -LiteralPath $b4AblationConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $b4AblationSummaryPath)) {
+        throw ("B4 ablation produced no summary artifact (exit code " + $b4AblationExit + "; console: " + $b4AblationConsolePath + ")")
+    }
+    if ($b4AblationExit -eq 0) {
+        Write-Ok ("B4 ablation executed to completion (judgment face in summary: " + $b4AblationSummaryPath + ")")
+    }
+    elseif ($b4AblationExit -eq 4) {
+        throw ("B4 ablation INVALID: lexicon_hit seen, the hook did not reach the agent (configuration failure) - see " + $b4AblationSummaryPath)
+    }
+    elseif ($b4AblationExit -eq 3) {
+        throw ("B4 ablation environment interrupt (agent/stack unavailable; raw evidence on disk) - see " + $b4AblationSummaryPath)
+    }
+    else {
+        throw ("B4 ablation failed with exit code $b4AblationExit (console: " + $b4AblationConsolePath + ")")
     }
 }
 

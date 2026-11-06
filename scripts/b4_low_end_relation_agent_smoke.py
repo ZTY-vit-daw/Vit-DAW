@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import time
 import urllib.request
 from pathlib import Path
@@ -229,6 +230,195 @@ def assert_read_only(turn_label: str, response: dict[str, Any]) -> list[str]:
 
 B4_QUESTION = "分析一下当前工程的低频关系"
 
+# ---------------------------------------------------------------------------
+# B4-ABLATION-1 (card 264): ablation mode. The ps1 wrapper sets
+# VIT_LOW_END_RELATION_ABLATION=1 on the agent (B4 lexicon short-circuit +
+# canary dispatch disabled, 257 matrix §六 B4 拆法), so the same B4 phrase that
+# the default mode above proves lexically routed now falls through to the LLM
+# turn. This mode (a) runs the phrase ×N rounds (fresh conversation each, the
+# 263 C4-ABLATION-1 rounds-per-group pattern), (b) judges every round purely on
+# the LLM-turn evidence, and (c) treats any lexicon_hit verdict as an invalid
+# run (the hook not reaching the agent is a configuration failure, never a
+# model sample). Default off keeps the behavior byte-for-byte unchanged.
+# ---------------------------------------------------------------------------
+
+# Observation-family tool markers: a B4 capability reproduction must execute at
+# least one real observation/analysis tool (the canary path's chain is
+# mix.observe -> band analysis -> masking/frequency views -> report).
+ABLATION_OBSERVATION_TOOL_MARKERS = (
+    "mix.observe",
+    "mix.derive",
+    "mix.summary",
+    "ccb.observation",
+    "audio_analysis",
+    "masking",
+    "frequency",
+)
+
+# Honest-boundary wording for the analysis domain (mirrors the 220/230 verdict
+# family's boundary lexicon, retargeted from plugin/space to analysis/data).
+ABLATION_BOUNDARY_REPLY_PATTERN = re.compile(
+    r"(没有|未|无法|不支持|缺|不存在|需要先|尚无|暂无|先要|请先).{0,32}(分析|数据|音频|工程|轨道|插件|低频|结果|analysis|audio|project|track)",
+    re.IGNORECASE,
+)
+
+ABLATION_SUCCESS_VERDICTS = {"tool_chain_ok", "boundary_ok"}
+
+
+def classify_ablation_round(response: dict[str, Any]) -> tuple[str, list[str], str]:
+    """Mechanical verdict for one LLM-turn round. Priority order is fixed
+    before any round runs (§8): invalid-hook detection first (it voids the
+    run), then entry-layer interception, then the read-only red line, then the
+    success forms, then honest non-success filing."""
+    tools = execution_tools(response)
+    workflow = str(response.get("workflow", ""))
+    stop_reason = str(response.get("stop_reason", ""))
+    goal_status = str(response.get("goal_status", ""))
+    reply = str(response.get("reply", ""))
+    detail = json.dumps(
+        {
+            "workflow": workflow,
+            "stop_reason": stop_reason,
+            "goal_status": goal_status,
+            "tools": tools,
+            "reply_head": reply[:200],
+        },
+        ensure_ascii=False,
+    )
+    # 1. lexicon_hit: the B4 canary still took over -> the hook is not live on
+    #    the agent; the whole run is a configuration failure (exit 4).
+    if (
+        workflow == "capability_runtime_v1"
+        or canary_stage(response) != ""
+        or isinstance(workflow_data(response).get("low_end_summary"), dict)
+    ):
+        return "lexicon_hit", tools, detail
+    # 2. Entry-layer interception (251 form): semantic_entry arbiter unresolved.
+    if stop_reason == "semantic_entry_unresolved" or workflow == "semantic_entry":
+        return "semantic_entry_intercepted", tools, detail
+    # 3. Red line: B4 is read-only observation; any write attempt is recorded
+    #    as-is (never a success, never silently dropped).
+    if forbidden_write_tools(tools):
+        return "write_attempt", tools, detail
+    observed = [name for name in tools if any(marker in name for marker in ABLATION_OBSERVATION_TOOL_MARKERS)]
+    if goal_status == "completed":
+        # 4. Capability reproduced: autonomous observation chain + substantive
+        #    report (>= 40 chars of reply substance).
+        if observed and len(reply.strip()) >= 40:
+            return "tool_chain_ok", tools, detail
+        if observed:
+            return "weak_report", tools, detail
+        # 5. Honest boundary: completed, no observation chain, boundary
+        #    wording, no fabricated chain.
+        if ABLATION_BOUNDARY_REPLY_PATTERN.search(reply):
+            return "boundary_ok", tools, detail
+        # 6. No route: plain-text advice, tools never touched.
+        if not tools:
+            return "no_route", tools, detail
+        return "other_completed", tools, detail
+    return f"error_{goal_status or 'unknown'}", tools, detail
+
+
+def run_ablation_mode(args: argparse.Namespace) -> int:
+    run_stamp = time.strftime("%Y%m%d_%H%M%S")
+    artifact_dir = Path(args.rounds_dir).resolve().parent if args.rounds_dir else None
+    if artifact_dir is None:
+        artifact_dir = Path(args.repo_root).resolve() / "VitApp" / "Workspace" / "Artifacts" / "smoke" / f"b4_ablation_{run_stamp}"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    rounds_dir = Path(args.rounds_dir).resolve() if args.rounds_dir else artifact_dir / "rounds"
+    rounds_dir.mkdir(parents=True, exist_ok=True)
+
+    health = wait_agent(args.agent_http, args.timeout_sec)
+
+    sub_bass_audio = Path(args.repo_root).resolve() / "test_100hz_10s.wav"
+    secondary_audio = Path(args.repo_root).resolve() / "test_target_3s.wav"
+    for fixture_audio in (sub_bass_audio, secondary_audio):
+        if not fixture_audio.is_file():
+            raise RuntimeError(f"fixture audio not found: {fixture_audio}")
+    fixture = prepare_fixture(
+        args.agent_http, artifact_dir / "fixture_project.vit", sub_bass_audio, secondary_audio, args.timeout_sec
+    )
+    mix_state_before = track_mix_state(args.agent_http, args.timeout_sec)
+
+    rounds: list[dict[str, Any]] = []
+    verdict_counts: dict[str, int] = {}
+    stop_loss: dict[str, Any] | None = None
+    rounds_run = 0
+    for index in range(1, args.rounds + 1):
+        conversation_id = f"b4_ablation_{run_stamp}_r{index}"
+        record: dict[str, Any] = {"round": index, "phrase": B4_QUESTION, "conversation": conversation_id}
+        try:
+            response = chat(args.agent_http, conversation_id, B4_QUESTION, args.timeout_sec)
+        except Exception as exc:  # noqa: BLE001 - round-level transport failure is a verdict, not a crash.
+            record["verdict"] = "error_timeout"
+            record["detail"] = f"chat transport failure: {exc}"[:800]
+            response = None
+        if response is not None:
+            (rounds_dir / f"r{index}_response.json").write_text(
+                json.dumps(response, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            verdict, tools, detail = classify_ablation_round(response)
+            record["verdict"] = verdict
+            record["tools"] = tools
+            record["detail"] = detail
+        rounds.append(record)
+        rounds_run = index
+        verdict_counts[record["verdict"]] = verdict_counts.get(record["verdict"], 0) + 1
+        print(f"[b4-ablation] round {index}/{args.rounds} verdict={record['verdict']} tools={record.get('tools', [])}")
+        if record["verdict"] == "lexicon_hit":
+            break
+        # Stop-loss (263 RUNBOOK precedent): 3 consecutive same-type
+        # non-success verdicts stop the group, evidence preserved, no more
+        # rounds spent.
+        if len(rounds) >= 3:
+            tail = [row["verdict"] for row in rounds[-3:]]
+            if len(set(tail)) == 1 and tail[0] not in ABLATION_SUCCESS_VERDICTS and tail[0] != "lexicon_hit":
+                stop_loss = {"after_round": index, "verdict": tail[0], "rounds_saved": args.rounds - index}
+                print(f"[b4-ablation] stop-loss: 3 consecutive {tail[0]} rounds; remaining rounds not spent")
+                break
+
+    mix_state_after = track_mix_state(args.agent_http, args.timeout_sec)
+    mutated_tracks = mix_state_diff(mix_state_before, mix_state_after)
+    successes = sum(1 for row in rounds if row["verdict"] in ABLATION_SUCCESS_VERDICTS)
+    lexicon_hit_seen = verdict_counts.get("lexicon_hit", 0) > 0
+
+    summary: dict[str, Any] = {
+        "schema_version": "b4_ablation.v1",
+        "scenario": "B4-ABLATION-1: b13b masking-frontier phrase family under the low-end ablation hook (LLM-turn evidence only)",
+        "ablation_hook": True,
+        "hook_env": "VIT_LOW_END_RELATION_ABLATION=1 (set by the ps1 wrapper on the agent)",
+        "phrase": B4_QUESTION,
+        "rounds_requested": args.rounds,
+        "rounds_run": rounds_run,
+        "rounds": rounds,
+        "verdict_counts": verdict_counts,
+        "successes": successes,
+        "success_verdicts": sorted(ABLATION_SUCCESS_VERDICTS),
+        "group_pass": successes >= 4 and rounds_run == args.rounds,
+        "stop_loss": stop_loss,
+        "lexicon_hit_seen": lexicon_hit_seen,
+        "read_only_verified": not mutated_tracks,
+        "mix_state_mutations": mutated_tracks,
+        "fixture": fixture,
+        "health": health,
+        "artifact_dir": str(artifact_dir),
+        "telemetry_path": args.telemetry_path or "",
+        "prompt_render_path": args.prompt_render_path or "",
+        "payload_capture_path": args.payload_capture_path or "",
+        "agent_log": args.agent_log or "",
+        "started_at": run_stamp,
+    }
+    output_path = Path(args.output).resolve() if args.output else artifact_dir / "b4_ablation_summary.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(json.dumps({key: summary[key] for key in ("rounds_run", "verdict_counts", "successes", "group_pass", "stop_loss", "lexicon_hit_seen", "read_only_verified")}, ensure_ascii=False))
+    print(f"[b4-ablation] summary: {output_path}")
+    if lexicon_hit_seen:
+        print("[b4-ablation] INVALID: lexicon_hit verdict seen -- the hook did not reach the agent (configuration failure)")
+        return 4
+    return 0
+
+
 
 def main() -> int:
     parser = argparse.ArgumentParser()
@@ -236,7 +426,24 @@ def main() -> int:
     parser.add_argument("--agent-http", default="http://127.0.0.1:7878")
     parser.add_argument("--timeout-sec", type=float, default=180.0)
     parser.add_argument("--dad-timeout-sec", type=float, default=240.0)
+    # B4-ABLATION-1: ablation mode — the ps1 wrapper sets
+    # VIT_LOW_END_RELATION_ABLATION=1 on the agent (B4 lexicon short-circuit +
+    # canary dispatch disabled), so this driver judges the LLM-turn evidence of
+    # the same B4 phrase over N rounds (default 5, the 263 rounds-per-group
+    # pattern). Default off keeps the canary-path flow byte-for-byte unchanged.
+    parser.add_argument("-AblationHook", "--ablation-hook", dest="ablation_hook", action="store_true",
+                        help="B4 ablation mode: agent B4 lexicon+dispatch disarmed via env; every round judged as an LLM sample")
+    parser.add_argument("--rounds", type=int, default=5,
+                        help="rounds per ablation group (default 5)")
+    parser.add_argument("--output", default="", help="ablation summary output path")
+    parser.add_argument("--rounds-dir", default="", help="per-round response artifact dir")
+    parser.add_argument("--telemetry-path", default="", help="provenance: agent telemetry jsonl path (recorded in summary)")
+    parser.add_argument("--prompt-render-path", default="", help="provenance: prompt render jsonl path (recorded in summary)")
+    parser.add_argument("--payload-capture-path", default="", help="provenance: payload capture jsonl path (recorded in summary)")
+    parser.add_argument("--agent-log", default="", help="provenance: agent log path (recorded in summary)")
     args = parser.parse_args()
+    if args.ablation_hook:
+        return run_ablation_mode(args)
 
     repo = Path(args.repo_root).resolve()
     run_stamp = time.strftime("%Y%m%d_%H%M%S")

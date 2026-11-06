@@ -109,7 +109,11 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 	if capabilityID == panLayoutCapabilityID {
 		return s.handlePanLayoutRuntimeCanary(ctx, conversationID, req, goal), true
 	}
-	if capabilityID == lowEndRelationCapabilityID {
+	// B4-ABLATION-1: with the test-only hook armed the B4 dispatch branch is
+	// disabled (257 matrix §六 B4 拆法) — a resolved B4 request falls through
+	// to the LLM turn instead of the canary runtime. Default unset keeps the
+	// dispatch byte-for-byte.
+	if capabilityID == lowEndRelationCapabilityID && !lowEndRelationAblationBypassed() {
 		return s.handleLowEndRelationRuntimeCanary(ctx, conversationID, req, goal), true
 	}
 	if capabilityID == frequencyCleanupCapabilityID {
