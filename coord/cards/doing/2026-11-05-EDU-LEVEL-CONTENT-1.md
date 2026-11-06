@@ -34,6 +34,13 @@
 - 领取基线：origin/main `9eebccdf`；worktree `git status --short` 空、`git diff --stat` 空（净树领取）
 - 文件域=coord/levels/（新目录）+本卡面；零 agent 代码零内核；零真栈腿不占栈（纯文档设计）；零 LLM 计费
 
+### 定稿轮（2026-11-07）
+
+- **前置齐备**（按主管定稿轮派发指令 2026-11-07）：①PD-1 裁定 18 用户确认=按现文生效（2026-11-07 凌晨；main rulings 文本的确认态回写属决策侧账务，本回执如实标注此差异）；②276 段 3 终验合入（rulings `2026-11-07-EDU-SYMBOL-CORE-1-pass` + merge `be76f431`；edu 包以 main 为准逐文件核对=与先行稿对齐表零漂移）；③写入降级=用户裁定不下、`confirm_downgrade: none`（默认不降级）。
+- owner/worktree 续用先行稿轮：GLM 主会话 L2-worker 子代理（ZCode / PC）；worktree=`D:/Vit_DAW_wt_279impl` @ `port/edu-level-content-1`（已 ff 至最新 main）；卡面协调提交走独立分支 `coord/279-edu-level-content-1`（worktree `D:/Vit_DAW_wt_279coord`，PROTOCOL §2.1-2 卡面提交直推 main）
+- 领取基线：origin/main `24f7280a`；impl worktree `git status --short` 空、`git diff --stat` 空（净树领取）
+- 文件域=coord/levels/first-run-twinkle/ 内容工件+本卡面；零 agent 代码零内核零真栈零 LLM 计费；机械复算=edu 包只读复制到中立临时目录（276 附录 A 先例）
+
 ## 回执
 
 ### 先行稿轮（2026-11-06，GLM 主会话 L2-worker 子代理）
