@@ -1,0 +1,38 @@
+﻿{
+    "probe":  {
+                  "passed":  true,
+                  "stop_reason":  "limit_reached",
+                  "entry_route":  "",
+                  "conversation_id":  "conv_d2_probe_20261106_232316",
+                  "entry_confidence":  "",
+                  "message":  "帮我检查一下这首歌用单声道播放会不会丢内容",
+                  "sent_vocabulary":  false
+              },
+    "runner_exit":  0,
+    "gate_results":  {
+                         "d2_node_lit":  true,
+                         "verdict_on_disk":  true,
+                         "check_turn":  true,
+                         "action_face":  true
+                     },
+    "schema_version":  "d2_stereo_check_gates.v0",
+    "report":  {
+                   "d2_node_state":  "in_progress",
+                   "verdict_kind":  "unmeasurable",
+                   "mutation_performed":  "False",
+                   "failures":  [
+
+                                ],
+                   "stereo_face":  "missing",
+                   "verdict_store_path":  "D:\\Vit_DAW_wt_265rv\\artifacts\\free_state_d1_s1\\20261106_232316\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\stereo_check_verdicts.json",
+                   "check_stop_reason":  "d2_stereo_checked",
+                   "probe_passed":  true,
+                   "verdict_record_on_disk":  true,
+                   "card_parked":  false,
+                   "action_face":  "disclosure_only_v1"
+               },
+    "run_stamp":  "20261106_232316",
+    "failures":  [
+
+                 ]
+}

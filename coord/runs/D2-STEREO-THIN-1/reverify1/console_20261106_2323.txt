@@ -1,0 +1,56 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261106_232317\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_265rv
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=49684 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=49684
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_265rv\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=49684
+ok: ZMQ SUB listening: 5556 pid=49684
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 PASS: report=D:\Vit_DAW_wt_265rv\artifacts\free_state_d1_s1\20261106_232316\d1_smoke_report.json
+
+== Phase D2-STEREO: stereo/mono translation-check gates ==
+[d2-stereo] face P: bare-phrase semantic-entry probe (LLM)
+   [ok] bare phrase passed semantic_entry (stop_reason=limit_reached, route=, conf=) — no-vocabulary entry baseline holds (263 lesson)
+[d2-stereo] gate A: explicit check chat turn
+   [ok] stop_reason=d2_stereo_checked
+   [ok] d2_stereo_check payload: verdict=unmeasurable (fixture-dependent, unasserted), action_face=disclosure_only_v1, stereo_face=missing
+   [ok] stereo check turn performed no project mutation
+[d2-stereo] gate B: d2_stereo_check verdict record on disk
+   [ok] verdict store carries a d2_stereo_check trigger record (candidates=1)
+[d2-stereo] gate C: action face (verdict=unmeasurable, v1 pinned no-card)
+   [ok] no verdict kind parks a card in v1 (disclosure-only boundary, zero mutation)
+[d2-stereo] gate D: mix.report queue view D2 node state
+   [ok] D2 node state=in_progress
+[d2-stereo] PASS: probe recorded + check turn + verdict on disk + no-card action face + D2 node lit; gates=D:\Vit_DAW_wt_265rv\artifacts\free_state_d1_s1\20261106_232316\d2_gates.json
+D1-S1 PASS: real-stack public-only smoke completed; report=D:\Vit_DAW_wt_265rv\artifacts\free_state_d1_s1\20261106_232316\d1_smoke_report.json
