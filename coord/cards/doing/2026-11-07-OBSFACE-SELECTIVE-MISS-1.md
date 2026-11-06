@@ -24,4 +24,9 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+### 领取（2026-11-07，取证腿）
+
+- Owner：GLM 主会话 freeflash 子代理（**取证腿**——纯读档零 LLM 零代码改动：三组 digest 对照+kernel C++ 只读勘察+定性，产出 forensics.md，kernel 面只读）
+- 机器/worktree：PC / `D:/Vit_DAW_wt_272impl` @ 分支 `port/obsface-selective-miss-1`
+- 领取基线：`git rev-parse HEAD`=`37fd7c97c26f221ab92f04dfe5b2518e5c556769`（=origin/main 当日最新）；worktree 全新检出，`git status --short` 空、`git diff --stat` 空（无领取前 diff）
+- 领取动作：卡面 todo→doing（git mv），本记录回填
