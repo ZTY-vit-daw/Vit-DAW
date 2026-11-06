@@ -1,0 +1,38 @@
+﻿{
+    "leg1_postfix_settle_pass":  {
+                                     "exit":  0,
+                                     "gates_all_green":  true
+                                 },
+    "leg2_prefix_settle_pass":  {
+                                    "exit":  1,
+                                    "gate_b_ansi_fail":  true,
+                                    "store_on_disk":  true,
+                                    "strict_crash":  true,
+                                    "leg_ok":  true
+                                },
+    "leg3_postfix_breach_response":  {
+                                         "exit":  0,
+                                         "gates_all_green":  true
+                                     },
+    "leg4_postfix_breach_durable":  {
+                                        "exit":  0,
+                                        "gates_all_green":  true
+                                    },
+    "leg5_prefix_breach_durable":  {
+                                       "exit":  1,
+                                       "card_miss_or_crash":  true,
+                                       "leg_ok":  true
+                                   },
+    "leg6_postfix_zero_mut_utf8":  {
+                                       "exit":  0,
+                                       "skip_face":  true
+                                   },
+    "leg7_prefix_zero_mut_utf8":  {
+                                      "exit":  1,
+                                      "full_gate_misroute":  true
+                                  },
+    "leg8_prefix_zero_mut_ascii":  {
+                                       "exit":  0,
+                                       "skip_face":  true
+                                   }
+}

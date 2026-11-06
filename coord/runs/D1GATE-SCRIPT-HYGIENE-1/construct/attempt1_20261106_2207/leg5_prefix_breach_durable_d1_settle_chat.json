@@ -1,0 +1,19 @@
+﻿{
+    "stop_reason":  "d1_loudness_settled",
+    "goal_status":  "completed",
+    "workflow_data":  {
+                          "observation":  {
+                                              "loudness_peak_status":  "present"
+                                          },
+                          "d1_settle":  {
+                                            "checked":  true,
+                                            "config_basis":  "内置流媒体目标（ebu_r128，watch 未配置，一次性判断不写配置面）",
+                                            "verdict":  "breach"
+                                        },
+                          "mutation_performed":  "False",
+                          "pending_action":  {
+                                                 "kind":  "track_gain",
+                                                 "delta_db":  -1.5
+                                             }
+                      }
+}

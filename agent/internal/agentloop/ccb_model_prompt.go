@@ -48,6 +48,7 @@ func messageLoopNeutralFamilyTurnDirectives(state *runState) string {
 	prefix += messageLoopFreeStateObservationSaturationDirective(state)
 	prefix += messageLoopPluginCandidateDirective(state)
 	prefix += messageLoopCandidateFrontierDirective(state)
+	prefix += messageLoopFreeStateDuplicateViewSetClosureDirective(state)
 	prefix += messageLoopFreeStateTerminalTurnDirective(state)
 	// GLM ruling (D2-2): the single-round prohibitions stay byte-identical on
 	// the default tier; only an explicitly admitted multi-round experiment
@@ -289,12 +290,94 @@ func messageLoopCandidateFrontierDirective(state *runState) string {
 			}
 			return messageLoopFreeStateJoinPromptSentences("The selected closure candidate has returned only partial target evidence. This does not rule out the candidate and does not complete the open improvement task, and no_candidate_found, diagnostic_complete, or satisfied would not be supported by it.", messageLoopFreeStateWindowBudgetSentence(state), "A different cataloged target-level track.* view, another unresolved candidate track, and a needs_experiment turn with one improvement_proposal.v1 citing the returned observation are all still legal choices; each further observation consumes one checkpoint.") + "\n\n"
 		}
-		return messageLoopFreeStateJoinPromptSentences("A target-level observation for the closure candidate has just returned in this turn.", messageLoopFreeStateWindowBudgetSentence(state), "Use needs_action only when the returned target evidence supports a deterministic governed action; when it plausibly relates to the user's listening goal but cannot prove an objective defect, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.") + "\n\n"
+		return messageLoopFreeStateClosureGuidance(state, "A target-level observation for the closure candidate has just returned in this turn.")
 	}
 	if selected == "" {
 		return messageLoopFreeStateJoinPromptSentences("A closure candidate frontier is now available: "+strings.Join(rows, "; ")+". The runtime resolves this frontier only through target-level evidence: request track.* observation(s) targeted at one listed track ID. Which candidate track and which track.* view(s) you request remain your own evidence-driven choice — a track-level view from any diagnostic dimension is admissible on a candidate track. Candidate evidence is not itself permission to select a processor.", messageLoopFreeStateWindowBudgetSentence(state)) + "\n\n"
 	}
 	return messageLoopFreeStateJoinPromptSentences("The closure selected candidate "+selected+" and has already recorded its target-level observation; the minimal observation loop is closed.", messageLoopFreeStateWindowBudgetSentence(state), "Use needs_action only when that evidence supports a deterministic governed action; when it supports only a bounded improvement hypothesis, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.") + "\n\n"
+}
+
+// messageLoopFreeStateClosureGuidance renders the shared closure sentence
+// family: the frozen budget sentence (BOUNDARY-1 §2.3a, which itself carries
+// "The evidence you hold is sufficient for a bounded proposal") plus the
+// frozen needs_action/needs_experiment/blocked handoff guidance, joined behind
+// a caller-supplied machine-fact lead-in. MIXTICK-CONFIRM-CONTRACT-1 ruling A
+// (2026-11-06) reuses these exact fragments for the duplicate-view-set early
+// entry so the wording family and its needles never fork; only the lead-in
+// fact differs between call sites.
+func messageLoopFreeStateClosureGuidance(state *runState, leadIn string) string {
+	return messageLoopFreeStateJoinPromptSentences(
+		leadIn,
+		messageLoopFreeStateWindowBudgetSentence(state),
+		"Use needs_action only when the returned target evidence supports a deterministic governed action; when it plausibly relates to the user's listening goal but cannot prove an objective defect, use needs_experiment with one bounded improvement_proposal.v1 citing the returned observation. Use blocked only for a concrete capability, freshness, authorization, or observation boundary.",
+	) + "\n\n"
+}
+
+// messageLoopFreeStateDuplicateViewSetClosureDirective implements ruling A of
+// MIXTICK-CONFIRM-CONTRACT-1 (2026-11-06): when the model's latest
+// needs_observation decision requests a CCB view set that the observation
+// ledger already returned usable evidence for — the exact machine condition
+// under which the view-set dedup gate refuses the repeat — the closure
+// guidance (the :292 sentence family) enters turn_directives immediately,
+// instead of waiting for the 180s drain-slice continuation to disclose it
+// (262 forensics: T32 proved that sentence flips a repeated-view deadlock
+// into a bounded proposal in one turn). The "already usable" condition reuses
+// the gate's own predicate (messageLoopFreeStateAlreadyObservedIssue) on the
+// requested view set — no second view-set judgment exists here. Disclosure
+// only: no evaluator, admission gate, or refusal path reads this row.
+func messageLoopFreeStateDuplicateViewSetClosureDirective(state *runState) string {
+	if state == nil || !messageLoopFreeStateActive(state) {
+		return ""
+	}
+	if !strings.EqualFold(messageLoopTaskContractKind(state), "improvement") {
+		return ""
+	}
+	if messageLoopFreeStateDiagnosticOnly(state) {
+		return ""
+	}
+	if messageLoopFreeStateTerminalTurnLocked(state) {
+		return ""
+	}
+	ctx := messageLoopFreeStateContext(state)
+	if experiment := messageLoopMapValue(ctx["experiment"]); len(experiment) > 0 &&
+		strings.EqualFold(strings.TrimSpace(messageLoopText(experiment["status"])), "running") {
+		return ""
+	}
+	decision := messageLoopMapValue(ctx["latest_decision"])
+	if decision == nil {
+		return ""
+	}
+	if !strings.EqualFold(strings.TrimSpace(messageLoopText(decision["status"])), FreeStateNeedsObservation) {
+		return ""
+	}
+	requested := messageLoopStringList(decision["requested_view_ids"])
+	if len(requested) == 0 {
+		return ""
+	}
+	// Same-source predicate as the dedup-gate call site
+	// (free_state_reasoning.go:1024): a non-empty issue means the ledger
+	// already holds usable evidence for this exact view set. The latest
+	// decision discloses requested_view_ids but not the per-call target_ref,
+	// so the predicate runs with the unbound (nil) target — the project-level
+	// branches that own the 262 failure family are target-blind. The
+	// re-observation metadata mirrors freeStateReObservationMetadata from the
+	// recorded decision so an admitted re-observation stays silent here, same
+	// as it stays unrefused at the gate.
+	meta := map[string]any{}
+	if reason := strings.TrimSpace(messageLoopText(decision["priority_reason"])); reason != "" {
+		meta["priority_reason"] = reason
+	}
+	if questions := messageLoopStringList(decision["unresolved_questions"]); len(questions) > 0 {
+		meta["new_unresolved_questions"] = questions
+	}
+	if freeStateBool(decision["declared_contradiction"]) {
+		meta["declared_contradiction"] = true
+	}
+	if messageLoopFreeStateAlreadyObservedIssue(state, requested, nil, meta) == "" {
+		return ""
+	}
+	return messageLoopFreeStateClosureGuidance(state, "The CCB view set requested in the latest needs_observation decision has already returned usable evidence in the observation ledger; the runtime refuses to repeat it.")
 }
 
 // messageLoopFreeStateGatePathDirective is the TIMING-2 GATE PATH pre-disclosure:
