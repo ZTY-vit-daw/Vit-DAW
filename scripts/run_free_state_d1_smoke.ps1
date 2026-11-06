@@ -1308,8 +1308,12 @@ if ($D2StereoCheck) {
         $d2ProbePath = Join-Path $artifactDir "d2_probe_chat.json"
         Save-D1JsonEvidence -Object $d2ProbeResp -Path $d2ProbePath
         $d2Probe.stop_reason = [string]$d2ProbeResp.stop_reason
+        # The semantic_entry decision map only exists on the unresolved-path
+        # response; a resolved phrase flows into the ordinary loop and carries
+        # no decision face (run1 lesson: StrictMode property access must be
+        # guarded, "passed" is decided by stop_reason alone).
         $d2ProbeWorkflow = $d2ProbeResp.workflow_data
-        if ($null -ne $d2ProbeWorkflow) {
+        if ($null -ne $d2ProbeWorkflow -and $null -ne $d2ProbeWorkflow.PSObject.Properties['decision']) {
             $d2ProbeDecision = $d2ProbeWorkflow.decision
             if ($null -ne $d2ProbeDecision) {
                 $d2Probe.entry_route = [string]$d2ProbeDecision.route
@@ -1380,8 +1384,10 @@ if ($D2StereoCheck) {
 
     # Gate B: the d2_stereo_check verdict record on disk.
     Write-Host "[d2-stereo] gate B: d2_stereo_check verdict record on disk"
+    $d2StoreSearchDiagnosis = ""
     try {
-        $d2StoreCandidates = @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project") -Filter "stereo_check_verdicts.json" -File -Recurse -ErrorAction SilentlyContinue)
+        $d2StoreCandidates = @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project") -Filter "stereo_check_verdicts.json" -File -Recurse -Force -ErrorAction SilentlyContinue)
+        $d2StoreSearchDiagnosis = "candidates=" + $d2StoreCandidates.Count
         if ($d2StoreCandidates.Count -gt 0) {
             $d2Report.verdict_store_path = $d2StoreCandidates[0].FullName
             $d2StoreJson = Get-Content -LiteralPath $d2Report.verdict_store_path -Raw | ConvertFrom-Json
@@ -1392,21 +1398,34 @@ if ($D2StereoCheck) {
                     break
                 }
             }
+            if (-not $d2Report.verdict_record_on_disk) {
+                $d2StoreSearchDiagnosis += "; store parse ok but no d2_stereo_check trigger record (schema=" + [string]$d2StoreJson.schema_version + ", verdicts=" + @($d2StoreJson.verdicts).Count + ")"
+            }
+        }
+        else {
+            $d2StoreSearchDiagnosis += "; project dir=" + (Test-Path -LiteralPath (Join-Path $artifactDir "project")) + ", direct glob=" + @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project\.vit_agent") -Filter "stereo_check_verdicts.json" -File -Recurse -Force -ErrorAction SilentlyContinue).Count
         }
     }
-    catch { }
+    catch {
+        $d2StoreSearchDiagnosis = "search threw: " + $_.Exception.Message
+    }
     if ($d2Report.verdict_record_on_disk) {
-        Write-Host "   [ok] verdict store carries a d2_stereo_check trigger record" -ForegroundColor Green
+        Write-Host ("   [ok] verdict store carries a d2_stereo_check trigger record (" + $d2StoreSearchDiagnosis + ")") -ForegroundColor Green
     }
     else {
-        $d2Failures.Add("D2-STEREO FAIL: no d2_stereo_check trigger record found in any stereo_check_verdicts.json under the project workdir")
+        $d2Failures.Add("D2-STEREO FAIL: no d2_stereo_check trigger record found in any stereo_check_verdicts.json under the project workdir [" + $d2StoreSearchDiagnosis + "]")
         Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
     }
 
     # Gate C: action-face honesty — the v1 pinned no-card branch (every verdict
-    # kind discloses, none parks a card).
+    # kind discloses, none parks a card). Property access is guarded: a
+    # no-card response may omit needs_confirmation/interaction_requests
+    # entirely (run1 lesson: StrictMode throws on missing properties, and the
+    # `or` short-circuit order decides whether the right operand evaluates).
     Write-Host ("[d2-stereo] gate C: action face (verdict=" + $d2Report.verdict_kind + ", v1 pinned no-card)")
-    $d2CardParked = ($d2Resp.needs_confirmation -eq $true) -or ($null -ne $d2Resp.interaction_requests)
+    $d2NeedsConfirmation = ($null -ne $d2Resp.PSObject.Properties['needs_confirmation']) -and ($d2Resp.PSObject.Properties['needs_confirmation'].Value -eq $true)
+    $d2HasInteractionRequests = ($null -ne $d2Resp.PSObject.Properties['interaction_requests']) -and ($null -ne $d2Resp.PSObject.Properties['interaction_requests'].Value)
+    $d2CardParked = $d2NeedsConfirmation -or $d2HasInteractionRequests
     $d2Report.card_parked = $d2CardParked
     if (-not $d2CardParked -and $d2Report.mutation_performed -eq "False") {
         Write-Host "   [ok] no verdict kind parks a card in v1 (disclosure-only boundary, zero mutation)" -ForegroundColor Green
