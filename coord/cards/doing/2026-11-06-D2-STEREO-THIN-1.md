@@ -27,4 +27,6 @@ D2=全局立体声关系（not_built，capability IDs=nil）：观察面已由 M
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-06T19:07+08:00 / origin/main=50e6f859（领取时最新；卡面 dispatch 基线 bc33eb2e 之后仅协调笔 6f4231b9+0db83f8b，agent/scripts 零 diff 亲证 git diff bc33eb2e..origin/main -- agent/ scripts/ 为空；另注：50e6f859 合并说明提及"265 领取协调提交并入"但 diff 实只含 262 卡移动，本卡此刻在远端 todo 无 owner 亲核）/ owner=GLM-5.3（PC，ZCode 执行会话 265impl） / 分支=port/d2-stereo-thin-1（worktree=D:\Vit_DAW_wt_265impl，实现基线=50e6f859） / 领取提交=本提交（仅含本卡状态，fast-forward → main）
+- 回执：（执行侧回填）
+- 验收：（主管回填）
