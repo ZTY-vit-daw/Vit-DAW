@@ -24,4 +24,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-06 晚窗 / origin/main=46497e3bc0b32110e71c42b706cad8eb63206c20 / owner=GLM-5.3 PC 主会话 L2-worker 子代理 / 分支 port/msgloop-feedback-loss-1 / worktree D:/Vit_DAW_wt_267impl / 领取提交=（回填后 commit hash 见回执节）
+- 回执：（执行侧回填）
+- 验收：（主管回填）
