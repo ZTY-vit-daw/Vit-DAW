@@ -60,10 +60,15 @@ func TestD1S1AdmissionBindsFreshObservedTarget(t *testing.T) {
 }
 
 func TestD1S1AdmissionRequiresTargetObservationID(t *testing.T) {
+	// EXPADMIT-EVIDENCE-RULE-1: the citation rule accepts any fresh
+	// same-revision observation of the target (G7's resolution family through
+	// the durable ledger), but a citation that resolves to no ledger row at
+	// all keeps its refusal — this loop carries no ledger, so the bare
+	// receipt id establishes nothing.
 	loop := d1LoopForTest(t, "7")
 	proposal := experimentTestProposal()
 	proposal.EvidenceRefs = []string{"receipt-before"}
-	if _, err := freeStateExperimentAdmission(loop, proposal); err == nil || !strings.Contains(err.Error(), "observation ID") {
+	if _, err := freeStateExperimentAdmission(loop, proposal); err == nil || !strings.Contains(err.Error(), "must cite a fresh revision-bound observation") {
 		t.Fatalf("receipt-only proposal was admitted: err=%v", err)
 	}
 }
