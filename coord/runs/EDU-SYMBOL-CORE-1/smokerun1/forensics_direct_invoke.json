@@ -1,0 +1,1940 @@
+{
+  "status": "ok",
+  "agent_action_id": "act_dce16d49a1de4cc4",
+  "tool": "midi.analyze_transformations",
+  "command_name": "analyze_midi_transformations",
+  "risk_level": "direct",
+  "requires_confirmation": false,
+  "result": {
+    "analysis_id": "analyze_midi_transformations_36005a872f0db336",
+    "analyzed_note_count": 42,
+    "clip_id": "1010",
+    "clip_origin": {
+      "start_beats_global": 0
+    },
+    "findings": [
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          2,
+          0
+        ],
+        "inversion_axis_semitones": 131,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 2,
+            "bar_start": 1,
+            "length_beats": 4,
+            "note_ids": [
+              "note_bd0b6fc44d394d9da2206cd04b517172",
+              "note_6bdcb37d40ea4eb6b333c5f144275b06",
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e"
+            ],
+            "role": "prototype",
+            "start_beats": 2
+          },
+          {
+            "bar_end": 4,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c"
+            ],
+            "role": "match",
+            "start_beats": 10
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 7 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 2,
+            "bar_start": 2,
+            "length_beats": 4,
+            "note_ids": [
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e",
+              "note_3022636f39e1474da13bec505ed0cdd8"
+            ],
+            "role": "prototype",
+            "start_beats": 4
+          },
+          {
+            "bar_end": 4,
+            "bar_start": 4,
+            "length_beats": 4,
+            "note_ids": [
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c",
+              "note_019d3a8a99744764b5da80fbeff3d763"
+            ],
+            "role": "match",
+            "start_beats": 12
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -7
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          2,
+          0
+        ],
+        "inversion_axis_semitones": 134,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 2,
+            "bar_start": 1,
+            "length_beats": 4,
+            "note_ids": [
+              "note_bd0b6fc44d394d9da2206cd04b517172",
+              "note_6bdcb37d40ea4eb6b333c5f144275b06",
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e"
+            ],
+            "role": "prototype",
+            "start_beats": 2
+          },
+          {
+            "bar_end": 5,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4"
+            ],
+            "role": "match",
+            "start_beats": 16
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": 1,
+        "interval_pattern": [
+          0,
+          -1,
+          0,
+          -2,
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，上移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 3,
+            "length_beats": 8,
+            "note_ids": [
+              "note_2c460a4efba34b0297939a34d1126e5c",
+              "note_8a8206c0d0a04598a5a568e1f182114c",
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c",
+              "note_019d3a8a99744764b5da80fbeff3d763"
+            ],
+            "role": "prototype",
+            "start_beats": 8
+          },
+          {
+            "bar_end": 6,
+            "bar_start": 5,
+            "length_beats": 8,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4",
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8",
+              "note_874d9282beae476799c2f0230944eebb"
+            ],
+            "role": "match",
+            "start_beats": 16
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": 2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，上移 3 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c"
+            ],
+            "role": "prototype",
+            "start_beats": 10
+          },
+          {
+            "bar_end": 5,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4"
+            ],
+            "role": "match",
+            "start_beats": 16
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": 3
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -1,
+          0
+        ],
+        "kind": "repeat",
+        "label": "原样重复",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 3,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_2c460a4efba34b0297939a34d1126e5c",
+              "note_8a8206c0d0a04598a5a568e1f182114c",
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc"
+            ],
+            "role": "prototype",
+            "start_beats": 8
+          },
+          {
+            "bar_end": 6,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4",
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8"
+            ],
+            "role": "match",
+            "start_beats": 18
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 5 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 2,
+            "bar_start": 2,
+            "length_beats": 4,
+            "note_ids": [
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e",
+              "note_3022636f39e1474da13bec505ed0cdd8"
+            ],
+            "role": "prototype",
+            "start_beats": 4
+          },
+          {
+            "bar_end": 6,
+            "bar_start": 6,
+            "length_beats": 4,
+            "note_ids": [
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8",
+              "note_874d9282beae476799c2f0230944eebb"
+            ],
+            "role": "match",
+            "start_beats": 20
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -5
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，上移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 4,
+            "length_beats": 4,
+            "note_ids": [
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c",
+              "note_019d3a8a99744764b5da80fbeff3d763"
+            ],
+            "role": "prototype",
+            "start_beats": 12
+          },
+          {
+            "bar_end": 6,
+            "bar_start": 6,
+            "length_beats": 4,
+            "note_ids": [
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8",
+              "note_874d9282beae476799c2f0230944eebb"
+            ],
+            "role": "match",
+            "start_beats": 20
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": 2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          2,
+          0
+        ],
+        "inversion_axis_semitones": 134,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 2,
+            "bar_start": 1,
+            "length_beats": 4,
+            "note_ids": [
+              "note_bd0b6fc44d394d9da2206cd04b517172",
+              "note_6bdcb37d40ea4eb6b333c5f144275b06",
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e"
+            ],
+            "role": "prototype",
+            "start_beats": 2
+          },
+          {
+            "bar_end": 7,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327"
+            ],
+            "role": "match",
+            "start_beats": 24
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": 1,
+        "interval_pattern": [
+          0,
+          -1,
+          0,
+          -2,
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，上移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 3,
+            "length_beats": 8,
+            "note_ids": [
+              "note_2c460a4efba34b0297939a34d1126e5c",
+              "note_8a8206c0d0a04598a5a568e1f182114c",
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c",
+              "note_019d3a8a99744764b5da80fbeff3d763"
+            ],
+            "role": "prototype",
+            "start_beats": 8
+          },
+          {
+            "bar_end": 8,
+            "bar_start": 7,
+            "length_beats": 8,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327",
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251",
+              "note_4e1bb340f7a34d498f0aa3694b0058a4"
+            ],
+            "role": "match",
+            "start_beats": 24
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": 2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，上移 3 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c"
+            ],
+            "role": "prototype",
+            "start_beats": 10
+          },
+          {
+            "bar_end": 7,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327"
+            ],
+            "role": "match",
+            "start_beats": 24
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": 3
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0,
+          -1,
+          0,
+          -2
+        ],
+        "kind": "repeat",
+        "label": "原样重复",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 6,
+            "bar_start": 5,
+            "length_beats": 8,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4",
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8",
+              "note_874d9282beae476799c2f0230944eebb"
+            ],
+            "role": "prototype",
+            "start_beats": 16
+          },
+          {
+            "bar_end": 8,
+            "bar_start": 7,
+            "length_beats": 8,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327",
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251",
+              "note_4e1bb340f7a34d498f0aa3694b0058a4"
+            ],
+            "role": "match",
+            "start_beats": 24
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": 1,
+        "interval_pattern": [
+          0,
+          -1,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，上移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 6,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4",
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8"
+            ],
+            "role": "prototype",
+            "start_beats": 18
+          },
+          {
+            "bar_end": 7,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327"
+            ],
+            "role": "match",
+            "start_beats": 24
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": 2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -1,
+          0
+        ],
+        "kind": "repeat",
+        "label": "原样重复",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 3,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_2c460a4efba34b0297939a34d1126e5c",
+              "note_8a8206c0d0a04598a5a568e1f182114c",
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc"
+            ],
+            "role": "prototype",
+            "start_beats": 8
+          },
+          {
+            "bar_end": 8,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327",
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251"
+            ],
+            "role": "match",
+            "start_beats": 26
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": -1,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，下移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 5,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4"
+            ],
+            "role": "prototype",
+            "start_beats": 16
+          },
+          {
+            "bar_end": 8,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327",
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251"
+            ],
+            "role": "match",
+            "start_beats": 26
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": -2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 5 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 3,
+            "bar_start": 2,
+            "length_beats": 6,
+            "note_ids": [
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e",
+              "note_3022636f39e1474da13bec505ed0cdd8",
+              "note_2c460a4efba34b0297939a34d1126e5c",
+              "note_8a8206c0d0a04598a5a568e1f182114c"
+            ],
+            "role": "prototype",
+            "start_beats": 4
+          },
+          {
+            "bar_end": 9,
+            "bar_start": 8,
+            "length_beats": 6,
+            "note_ids": [
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251",
+              "note_4e1bb340f7a34d498f0aa3694b0058a4",
+              "note_2be100d27a834aee9975a1bc45881161",
+              "note_583318c903e44b5ea62287c4d04be870"
+            ],
+            "role": "match",
+            "start_beats": 28
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -5
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，上移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 4,
+            "length_beats": 4,
+            "note_ids": [
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c",
+              "note_019d3a8a99744764b5da80fbeff3d763"
+            ],
+            "role": "prototype",
+            "start_beats": 12
+          },
+          {
+            "bar_end": 8,
+            "bar_start": 8,
+            "length_beats": 4,
+            "note_ids": [
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251",
+              "note_4e1bb340f7a34d498f0aa3694b0058a4"
+            ],
+            "role": "match",
+            "start_beats": 28
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": 2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          7,
+          0,
+          2,
+          0,
+          -2,
+          -2,
+          0,
+          -1,
+          0,
+          -2,
+          0,
+          -2
+        ],
+        "kind": "repeat",
+        "label": "原样重复",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 1,
+            "length_beats": 16,
+            "note_ids": [
+              "note_57e9019f270c45a39b77f25a8b57151e",
+              "note_f92bbabbceff48b8a381fd39d9ca03d4",
+              "note_bd0b6fc44d394d9da2206cd04b517172",
+              "note_6bdcb37d40ea4eb6b333c5f144275b06",
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e",
+              "note_3022636f39e1474da13bec505ed0cdd8",
+              "note_2c460a4efba34b0297939a34d1126e5c",
+              "note_8a8206c0d0a04598a5a568e1f182114c",
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c",
+              "note_019d3a8a99744764b5da80fbeff3d763"
+            ],
+            "role": "prototype",
+            "start_beats": 0
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 9,
+            "length_beats": 16,
+            "note_ids": [
+              "note_2be100d27a834aee9975a1bc45881161",
+              "note_583318c903e44b5ea62287c4d04be870",
+              "note_645f31cf64f14f7288a5a373df3da815",
+              "note_7731f8e1a9ab4ec884e187bf8fe6cc8a",
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924",
+              "note_189a878706624826b98a0d1f6c33f0fb",
+              "note_085a75627ade4ccbbe090bdbfbbe7b02",
+              "note_a5d1c44e24984cb1b8e1582acae5be4e",
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555",
+              "note_36d9cb70f43d4c429506e13d10adbbb0"
+            ],
+            "role": "match",
+            "start_beats": 32
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "inversion_axis_semitones": 131,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c"
+            ],
+            "role": "prototype",
+            "start_beats": 10
+          },
+          {
+            "bar_end": 10,
+            "bar_start": 9,
+            "length_beats": 4,
+            "note_ids": [
+              "note_645f31cf64f14f7288a5a373df3da815",
+              "note_7731f8e1a9ab4ec884e187bf8fe6cc8a",
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924"
+            ],
+            "role": "match",
+            "start_beats": 34
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "inversion_axis_semitones": 134,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 5,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4"
+            ],
+            "role": "prototype",
+            "start_beats": 16
+          },
+          {
+            "bar_end": 10,
+            "bar_start": 9,
+            "length_beats": 4,
+            "note_ids": [
+              "note_645f31cf64f14f7288a5a373df3da815",
+              "note_7731f8e1a9ab4ec884e187bf8fe6cc8a",
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924"
+            ],
+            "role": "match",
+            "start_beats": 34
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "inversion_axis_semitones": 134,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 7,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327"
+            ],
+            "role": "prototype",
+            "start_beats": 24
+          },
+          {
+            "bar_end": 10,
+            "bar_start": 9,
+            "length_beats": 4,
+            "note_ids": [
+              "note_645f31cf64f14f7288a5a373df3da815",
+              "note_7731f8e1a9ab4ec884e187bf8fe6cc8a",
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924"
+            ],
+            "role": "match",
+            "start_beats": 34
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，上移 7 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 4,
+            "length_beats": 4,
+            "note_ids": [
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c",
+              "note_019d3a8a99744764b5da80fbeff3d763"
+            ],
+            "role": "prototype",
+            "start_beats": 12
+          },
+          {
+            "bar_end": 10,
+            "bar_start": 10,
+            "length_beats": 4,
+            "note_ids": [
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924",
+              "note_189a878706624826b98a0d1f6c33f0fb"
+            ],
+            "role": "match",
+            "start_beats": 36
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": 7
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，上移 5 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 6,
+            "bar_start": 6,
+            "length_beats": 4,
+            "note_ids": [
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8",
+              "note_874d9282beae476799c2f0230944eebb"
+            ],
+            "role": "prototype",
+            "start_beats": 20
+          },
+          {
+            "bar_end": 10,
+            "bar_start": 10,
+            "length_beats": 4,
+            "note_ids": [
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924",
+              "note_189a878706624826b98a0d1f6c33f0fb"
+            ],
+            "role": "match",
+            "start_beats": 36
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": 5
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，上移 5 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 9,
+            "bar_start": 8,
+            "length_beats": 6,
+            "note_ids": [
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251",
+              "note_4e1bb340f7a34d498f0aa3694b0058a4",
+              "note_2be100d27a834aee9975a1bc45881161",
+              "note_583318c903e44b5ea62287c4d04be870"
+            ],
+            "role": "prototype",
+            "start_beats": 28
+          },
+          {
+            "bar_end": 11,
+            "bar_start": 10,
+            "length_beats": 6,
+            "note_ids": [
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924",
+              "note_189a878706624826b98a0d1f6c33f0fb",
+              "note_085a75627ade4ccbbe090bdbfbbe7b02",
+              "note_a5d1c44e24984cb1b8e1582acae5be4e"
+            ],
+            "role": "match",
+            "start_beats": 36
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": 5
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": 1,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，上移 1 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 4,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc",
+              "note_84b2f9ced6fc4ad0ac99f2e0bee5a651",
+              "note_acfe7c855eec49feace7ee55fa06552c"
+            ],
+            "role": "prototype",
+            "start_beats": 10
+          },
+          {
+            "bar_end": 11,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_085a75627ade4ccbbe090bdbfbbe7b02",
+              "note_a5d1c44e24984cb1b8e1582acae5be4e",
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5"
+            ],
+            "role": "match",
+            "start_beats": 40
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": 1
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": -1,
+        "interval_pattern": [
+          0,
+          -2,
+          0,
+          -1,
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，下移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 6,
+            "bar_start": 5,
+            "length_beats": 8,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4",
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8",
+              "note_874d9282beae476799c2f0230944eebb"
+            ],
+            "role": "prototype",
+            "start_beats": 16
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 11,
+            "length_beats": 8,
+            "note_ids": [
+              "note_085a75627ade4ccbbe090bdbfbbe7b02",
+              "note_a5d1c44e24984cb1b8e1582acae5be4e",
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555",
+              "note_36d9cb70f43d4c429506e13d10adbbb0"
+            ],
+            "role": "match",
+            "start_beats": 40
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": -2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -1,
+          0
+        ],
+        "kind": "repeat",
+        "label": "原样重复",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 6,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4",
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8"
+            ],
+            "role": "prototype",
+            "start_beats": 18
+          },
+          {
+            "bar_end": 11,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_085a75627ade4ccbbe090bdbfbbe7b02",
+              "note_a5d1c44e24984cb1b8e1582acae5be4e",
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5"
+            ],
+            "role": "match",
+            "start_beats": 40
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": -1,
+        "interval_pattern": [
+          0,
+          -2,
+          0,
+          -1,
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，下移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 8,
+            "bar_start": 7,
+            "length_beats": 8,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327",
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251",
+              "note_4e1bb340f7a34d498f0aa3694b0058a4"
+            ],
+            "role": "prototype",
+            "start_beats": 24
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 11,
+            "length_beats": 8,
+            "note_ids": [
+              "note_085a75627ade4ccbbe090bdbfbbe7b02",
+              "note_a5d1c44e24984cb1b8e1582acae5be4e",
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555",
+              "note_36d9cb70f43d4c429506e13d10adbbb0"
+            ],
+            "role": "match",
+            "start_beats": 40
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": -2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -1,
+          0
+        ],
+        "kind": "repeat",
+        "label": "原样重复",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 8,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327",
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251"
+            ],
+            "role": "prototype",
+            "start_beats": 26
+          },
+          {
+            "bar_end": 11,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_085a75627ade4ccbbe090bdbfbbe7b02",
+              "note_a5d1c44e24984cb1b8e1582acae5be4e",
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5"
+            ],
+            "role": "match",
+            "start_beats": 40
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          2,
+          0
+        ],
+        "inversion_axis_semitones": 131,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 2,
+            "bar_start": 1,
+            "length_beats": 4,
+            "note_ids": [
+              "note_bd0b6fc44d394d9da2206cd04b517172",
+              "note_6bdcb37d40ea4eb6b333c5f144275b06",
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e"
+            ],
+            "role": "prototype",
+            "start_beats": 2
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555"
+            ],
+            "role": "match",
+            "start_beats": 42
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match",
+          "diatonic_scale_degree_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "diatonic_steps": -1,
+        "interval_pattern": [
+          0,
+          -1,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（调内，下移 1 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 3,
+            "bar_start": 3,
+            "length_beats": 4,
+            "note_ids": [
+              "note_2c460a4efba34b0297939a34d1126e5c",
+              "note_8a8206c0d0a04598a5a568e1f182114c",
+              "note_3ba5b9f77bb44377818ad583f4a0b5ba",
+              "note_58fe8a3ee50c4bfbb8d61845fcf05bdc"
+            ],
+            "role": "prototype",
+            "start_beats": 8
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555"
+            ],
+            "role": "match",
+            "start_beats": 42
+          }
+        ],
+        "sequence_quality": "diatonic",
+        "shift_semitones": -1
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 3 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 5,
+            "bar_start": 5,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3f025e6e778e439d923eb9ff2599c268",
+              "note_18451ec238de42e5bd289a88bf1e0ff5",
+              "note_e0c77378b4cd41eba667d4e538ee2081",
+              "note_6772f066bc824685b47957055d7eb9f4"
+            ],
+            "role": "prototype",
+            "start_beats": 16
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555"
+            ],
+            "role": "match",
+            "start_beats": 42
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -3
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2,
+          0
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 3 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 7,
+            "bar_start": 7,
+            "length_beats": 4,
+            "note_ids": [
+              "note_4541c14ae58c45ec9633e4c1e474acdb",
+              "note_6964a8a82ea54673a6fe0e1793b6ff04",
+              "note_b39e0da0e39144a79afeb8fa3e1cecab",
+              "note_20ca0e38504543a98cafb439b0050327"
+            ],
+            "role": "prototype",
+            "start_beats": 24
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555"
+            ],
+            "role": "match",
+            "start_beats": 42
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -3
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          2,
+          0
+        ],
+        "inversion_axis_semitones": 131,
+        "kind": "inversion",
+        "label": "倒影",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 10,
+            "bar_start": 9,
+            "length_beats": 4,
+            "note_ids": [
+              "note_645f31cf64f14f7288a5a373df3da815",
+              "note_7731f8e1a9ab4ec884e187bf8fe6cc8a",
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924"
+            ],
+            "role": "prototype",
+            "start_beats": 34
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 11,
+            "length_beats": 4,
+            "note_ids": [
+              "note_de27d1cb344d4d4f9c3335dac3fbcb22",
+              "note_f35f3f575dea446695066ec008f845a5",
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555"
+            ],
+            "role": "match",
+            "start_beats": 42
+          }
+        ],
+        "shift_semitones": 0
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 7 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 2,
+            "bar_start": 2,
+            "length_beats": 4,
+            "note_ids": [
+              "note_aa9f4e45eff442c39b71695d4ccfca44",
+              "note_d4fc6b27968844fe854c162e32f10d8e",
+              "note_3022636f39e1474da13bec505ed0cdd8"
+            ],
+            "role": "prototype",
+            "start_beats": 4
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 12,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555",
+              "note_36d9cb70f43d4c429506e13d10adbbb0"
+            ],
+            "role": "match",
+            "start_beats": 44
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -7
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 6,
+            "bar_start": 6,
+            "length_beats": 4,
+            "note_ids": [
+              "note_161b4ffb651246c780ba837fad62c403",
+              "note_c31f2f7f00b24bfaad4bca522cd285a8",
+              "note_874d9282beae476799c2f0230944eebb"
+            ],
+            "role": "prototype",
+            "start_beats": 20
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 12,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555",
+              "note_36d9cb70f43d4c429506e13d10adbbb0"
+            ],
+            "role": "match",
+            "start_beats": 44
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 2 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 8,
+            "bar_start": 8,
+            "length_beats": 4,
+            "note_ids": [
+              "note_c5663c9d51d24b6f874505659343f922",
+              "note_4bb04a98973d40108830b03e5dc9c251",
+              "note_4e1bb340f7a34d498f0aa3694b0058a4"
+            ],
+            "role": "prototype",
+            "start_beats": 28
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 12,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555",
+              "note_36d9cb70f43d4c429506e13d10adbbb0"
+            ],
+            "role": "match",
+            "start_beats": 44
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -2
+      },
+      {
+        "basis": [
+          "interval_pattern_exact_match",
+          "rhythm_exact_match"
+        ],
+        "confidence": "high",
+        "confidence_score": 0.99,
+        "interval_pattern": [
+          0,
+          -2
+        ],
+        "kind": "sequence",
+        "label": "模进（移调，下移 7 半音）",
+        "requires_confirmation": false,
+        "segments": [
+          {
+            "bar_end": 10,
+            "bar_start": 10,
+            "length_beats": 4,
+            "note_ids": [
+              "note_a250ebc07a0346548265ef7a53c2b9d2",
+              "note_bea3e8fe373247b4a0a73ecc4154e924",
+              "note_189a878706624826b98a0d1f6c33f0fb"
+            ],
+            "role": "prototype",
+            "start_beats": 36
+          },
+          {
+            "bar_end": 12,
+            "bar_start": 12,
+            "length_beats": 4,
+            "note_ids": [
+              "note_3a6d81618af1435d85945ef501ea6d27",
+              "note_778baeb6f3f94d4fba1da86730865555",
+              "note_36d9cb70f43d4c429506e13d10adbbb0"
+            ],
+            "role": "match",
+            "start_beats": 44
+          }
+        ],
+        "sequence_quality": "chromatic",
+        "shift_semitones": -7
+      }
+    ],
+    "limitations": [
+      "单声部假设：多轨合并导入的 clip 未分离声部，声部交织可能产生伪匹配或漏配"
+    ],
+    "llm_context": {
+      "compact_facts": [
+        {
+          "finding_count": 38
+        },
+        {
+          "analyzed_note_count": 42
+        },
+        {
+          "transformations": "inversion,repeat,retrograde,sequence"
+        },
+        {
+          "diatonic_enabled": true
+        },
+        {
+          "bar_coordinates": true
+        }
+      ],
+      "do_not_include_raw_package": true,
+      "evidence_refs": [
+        "clip:1010/notes:note_bd0b6fc44d394d9da2206cd04b517172-note_d4fc6b27968844fe854c162e32f10d8e+note_3ba5b9f77bb44377818ad583f4a0b5ba-note_acfe7c855eec49feace7ee55fa06552c",
+        "clip:1010/notes:note_aa9f4e45eff442c39b71695d4ccfca44-note_3022636f39e1474da13bec505ed0cdd8+note_84b2f9ced6fc4ad0ac99f2e0bee5a651-note_019d3a8a99744764b5da80fbeff3d763",
+        "clip:1010/notes:note_bd0b6fc44d394d9da2206cd04b517172-note_d4fc6b27968844fe854c162e32f10d8e+note_3f025e6e778e439d923eb9ff2599c268-note_6772f066bc824685b47957055d7eb9f4",
+        "clip:1010/notes:note_2c460a4efba34b0297939a34d1126e5c-note_019d3a8a99744764b5da80fbeff3d763+note_3f025e6e778e439d923eb9ff2599c268-note_874d9282beae476799c2f0230944eebb",
+        "clip:1010/notes:note_3ba5b9f77bb44377818ad583f4a0b5ba-note_acfe7c855eec49feace7ee55fa06552c+note_3f025e6e778e439d923eb9ff2599c268-note_6772f066bc824685b47957055d7eb9f4",
+        "clip:1010/notes:note_2c460a4efba34b0297939a34d1126e5c-note_58fe8a3ee50c4bfbb8d61845fcf05bdc+note_e0c77378b4cd41eba667d4e538ee2081-note_c31f2f7f00b24bfaad4bca522cd285a8",
+        "clip:1010/notes:note_aa9f4e45eff442c39b71695d4ccfca44-note_3022636f39e1474da13bec505ed0cdd8+note_161b4ffb651246c780ba837fad62c403-note_874d9282beae476799c2f0230944eebb",
+        "clip:1010/notes:note_84b2f9ced6fc4ad0ac99f2e0bee5a651-note_019d3a8a99744764b5da80fbeff3d763+note_161b4ffb651246c780ba837fad62c403-note_874d9282beae476799c2f0230944eebb",
+        "clip:1010/notes:note_bd0b6fc44d394d9da2206cd04b517172-note_d4fc6b27968844fe854c162e32f10d8e+note_4541c14ae58c45ec9633e4c1e474acdb-note_20ca0e38504543a98cafb439b0050327",
+        "clip:1010/notes:note_2c460a4efba34b0297939a34d1126e5c-note_019d3a8a99744764b5da80fbeff3d763+note_4541c14ae58c45ec9633e4c1e474acdb-note_4e1bb340f7a34d498f0aa3694b0058a4",
+        "clip:1010/notes:note_3ba5b9f77bb44377818ad583f4a0b5ba-note_acfe7c855eec49feace7ee55fa06552c+note_4541c14ae58c45ec9633e4c1e474acdb-note_20ca0e38504543a98cafb439b0050327",
+        "clip:1010/notes:note_3f025e6e778e439d923eb9ff2599c268-note_874d9282beae476799c2f0230944eebb+note_4541c14ae58c45ec9633e4c1e474acdb-note_4e1bb340f7a34d498f0aa3694b0058a4",
+        "clip:1010/notes:note_e0c77378b4cd41eba667d4e538ee2081-note_c31f2f7f00b24bfaad4bca522cd285a8+note_4541c14ae58c45ec9633e4c1e474acdb-note_20ca0e38504543a98cafb439b0050327",
+        "clip:1010/notes:note_2c460a4efba34b0297939a34d1126e5c-note_58fe8a3ee50c4bfbb8d61845fcf05bdc+note_b39e0da0e39144a79afeb8fa3e1cecab-note_4bb04a98973d40108830b03e5dc9c251",
+        "clip:1010/notes:note_3f025e6e778e439d923eb9ff2599c268-note_6772f066bc824685b47957055d7eb9f4+note_b39e0da0e39144a79afeb8fa3e1cecab-note_4bb04a98973d40108830b03e5dc9c251",
+        "clip:1010/notes:note_aa9f4e45eff442c39b71695d4ccfca44-note_8a8206c0d0a04598a5a568e1f182114c+note_c5663c9d51d24b6f874505659343f922-note_583318c903e44b5ea62287c4d04be870",
+        "clip:1010/notes:note_84b2f9ced6fc4ad0ac99f2e0bee5a651-note_019d3a8a99744764b5da80fbeff3d763+note_c5663c9d51d24b6f874505659343f922-note_4e1bb340f7a34d498f0aa3694b0058a4",
+        "clip:1010/notes:note_57e9019f270c45a39b77f25a8b57151e-note_019d3a8a99744764b5da80fbeff3d763+note_2be100d27a834aee9975a1bc45881161-note_36d9cb70f43d4c429506e13d10adbbb0",
+        "clip:1010/notes:note_3ba5b9f77bb44377818ad583f4a0b5ba-note_acfe7c855eec49feace7ee55fa06552c+note_645f31cf64f14f7288a5a373df3da815-note_bea3e8fe373247b4a0a73ecc4154e924",
+        "clip:1010/notes:note_3f025e6e778e439d923eb9ff2599c268-note_6772f066bc824685b47957055d7eb9f4+note_645f31cf64f14f7288a5a373df3da815-note_bea3e8fe373247b4a0a73ecc4154e924",
+        "clip:1010/notes:note_4541c14ae58c45ec9633e4c1e474acdb-note_20ca0e38504543a98cafb439b0050327+note_645f31cf64f14f7288a5a373df3da815-note_bea3e8fe373247b4a0a73ecc4154e924",
+        "clip:1010/notes:note_84b2f9ced6fc4ad0ac99f2e0bee5a651-note_019d3a8a99744764b5da80fbeff3d763+note_a250ebc07a0346548265ef7a53c2b9d2-note_189a878706624826b98a0d1f6c33f0fb",
+        "clip:1010/notes:note_161b4ffb651246c780ba837fad62c403-note_874d9282beae476799c2f0230944eebb+note_a250ebc07a0346548265ef7a53c2b9d2-note_189a878706624826b98a0d1f6c33f0fb",
+        "clip:1010/notes:note_c5663c9d51d24b6f874505659343f922-note_583318c903e44b5ea62287c4d04be870+note_a250ebc07a0346548265ef7a53c2b9d2-note_a5d1c44e24984cb1b8e1582acae5be4e",
+        "clip:1010/notes:note_3ba5b9f77bb44377818ad583f4a0b5ba-note_acfe7c855eec49feace7ee55fa06552c+note_085a75627ade4ccbbe090bdbfbbe7b02-note_f35f3f575dea446695066ec008f845a5",
+        "clip:1010/notes:note_3f025e6e778e439d923eb9ff2599c268-note_874d9282beae476799c2f0230944eebb+note_085a75627ade4ccbbe090bdbfbbe7b02-note_36d9cb70f43d4c429506e13d10adbbb0",
+        "clip:1010/notes:note_e0c77378b4cd41eba667d4e538ee2081-note_c31f2f7f00b24bfaad4bca522cd285a8+note_085a75627ade4ccbbe090bdbfbbe7b02-note_f35f3f575dea446695066ec008f845a5",
+        "clip:1010/notes:note_4541c14ae58c45ec9633e4c1e474acdb-note_4e1bb340f7a34d498f0aa3694b0058a4+note_085a75627ade4ccbbe090bdbfbbe7b02-note_36d9cb70f43d4c429506e13d10adbbb0",
+        "clip:1010/notes:note_b39e0da0e39144a79afeb8fa3e1cecab-note_4bb04a98973d40108830b03e5dc9c251+note_085a75627ade4ccbbe090bdbfbbe7b02-note_f35f3f575dea446695066ec008f845a5",
+        "clip:1010/notes:note_bd0b6fc44d394d9da2206cd04b517172-note_d4fc6b27968844fe854c162e32f10d8e+note_de27d1cb344d4d4f9c3335dac3fbcb22-note_778baeb6f3f94d4fba1da86730865555",
+        "clip:1010/notes:note_2c460a4efba34b0297939a34d1126e5c-note_58fe8a3ee50c4bfbb8d61845fcf05bdc+note_de27d1cb344d4d4f9c3335dac3fbcb22-note_778baeb6f3f94d4fba1da86730865555",
+        "clip:1010/notes:note_3f025e6e778e439d923eb9ff2599c268-note_6772f066bc824685b47957055d7eb9f4+note_de27d1cb344d4d4f9c3335dac3fbcb22-note_778baeb6f3f94d4fba1da86730865555",
+        "clip:1010/notes:note_4541c14ae58c45ec9633e4c1e474acdb-note_20ca0e38504543a98cafb439b0050327+note_de27d1cb344d4d4f9c3335dac3fbcb22-note_778baeb6f3f94d4fba1da86730865555",
+        "clip:1010/notes:note_645f31cf64f14f7288a5a373df3da815-note_bea3e8fe373247b4a0a73ecc4154e924+note_de27d1cb344d4d4f9c3335dac3fbcb22-note_778baeb6f3f94d4fba1da86730865555",
+        "clip:1010/notes:note_aa9f4e45eff442c39b71695d4ccfca44-note_3022636f39e1474da13bec505ed0cdd8+note_3a6d81618af1435d85945ef501ea6d27-note_36d9cb70f43d4c429506e13d10adbbb0",
+        "clip:1010/notes:note_161b4ffb651246c780ba837fad62c403-note_874d9282beae476799c2f0230944eebb+note_3a6d81618af1435d85945ef501ea6d27-note_36d9cb70f43d4c429506e13d10adbbb0",
+        "clip:1010/notes:note_c5663c9d51d24b6f874505659343f922-note_4e1bb340f7a34d498f0aa3694b0058a4+note_3a6d81618af1435d85945ef501ea6d27-note_36d9cb70f43d4c429506e13d10adbbb0",
+        "clip:1010/notes:note_a250ebc07a0346548265ef7a53c2b9d2-note_189a878706624826b98a0d1f6c33f0fb+note_3a6d81618af1435d85945ef501ea6d27-note_36d9cb70f43d4c429506e13d10adbbb0"
+      ],
+      "limitation_notes": [
+        "单声部假设：多轨合并导入的 clip 未分离声部，声部交织可能产生伪匹配或漏配"
+      ],
+      "suggested_next_step": "可用 marker 标注原型/匹配段并循环播放对比；如需逐音判定学生片段，按 note_ids 与原型段做音程序列比对。",
+      "summary_md": "检出 38 条变换族结构关系（分析 42 音）。\n倒影：原型 第 1-2 小节 → 匹配 第 3-4 小节。\n模进（移调，下移 7 半音）：原型 第 2 小节 → 匹配 第 4 小节。\n倒影：原型 第 1-2 小节 → 匹配 第 5 小节。\n模进（调内，上移 2 半音）：原型 第 3-4 小节 → 匹配 第 5-6 小节。\n模进（移调，上移 3 半音）：原型 第 3-4 小节 → 匹配 第 5 小节。\n原样重复：原型 第 3 小节 → 匹配 第 5-6 小节。\n模进（移调，下移 5 半音）：原型 第 2 小节 → 匹配 第 6 小节。\n模进（移调，上移 2 半音）：原型 第 4 小节 → 匹配 第 6 小节。\n倒影：原型 第 1-2 小节 → 匹配 第 7 小节。\n模进（调内，上移 2 半音）：原型 第 3-4 小节 → 匹配 第 7-8 小节。\n模进（移调，上移 3 半音）：原型 第 3-4 小节 → 匹配 第 7 小节。\n原样重复：原型 第 5-6 小节 → 匹配 第 7-8 小节。\n模进（调内，上移 2 半音）：原型 第 5-6 小节 → 匹配 第 7 小节。\n原样重复：原型 第 3 小节 → 匹配 第 7-8 小节。\n模进（调内，下移 2 半音）：原型 第 5 小节 → 匹配 第 7-8 小节。\n模进（移调，下移 5 半音）：原型 第 2-3 小节 → 匹配 第 8-9 小节。\n模进（移调，上移 2 半音）：原型 第 4 小节 → 匹配 第 8 小节。\n原样重复：原型 第 1-4 小节 → 匹配 第 9-12 小节。\n倒影：原型 第 3-4 小节 → 匹配 第 9-10 小节。\n倒影：原型 第 5 小节 → 匹配 第 9-10 小节。\n倒影：原型 第 7 小节 → 匹配 第 9-10 小节。\n模进（移调，上移 7 半音）：原型 第 4 小节 → 匹配 第 10 小节。\n模进（移调，上移 5 半音）：原型 第 6 小节 → 匹配 第 10 小节。\n模进（移调，上移 5 半音）：原型 第 8-9 小节 → 匹配 第 10-11 小节。\n模进（调内，上移 1 半音）：原型 第 3-4 小节 → 匹配 第 11 小节。\n模进（调内，下移 2 半音）：原型 第 5-6 小节 → 匹配 第 11-12 小节。\n原样重复：原型 第 5-6 小节 → 匹配 第 11 小节。\n模进（调内，下移 2 半音）：原型 第 7-8 小节 → 匹配 第 11-12 小节。\n原样重复：原型 第 7-8 小节 → 匹配 第 11 小节。\n倒影：原型 第 1-2 小节 → 匹配 第 11-12 小节。\n模进（调内，下移 1 半音）：原型 第 3 小节 → 匹配 第 11-12 小节。\n模进（移调，下移 3 半音）：原型 第 5 小节 → 匹配 第 11-12 小节。\n模进（移调，下移 3 半音）：原型 第 7 小节 → 匹配 第 11-12 小节。\n倒影：原型 第 9-10 小节 → 匹配 第 11-12 小节。\n模进（移调，下移 7 半音）：原型 第 2 小节 → 匹配 第 12 小节。\n模进（移调，下移 2 半音）：原型 第 6 小节 → 匹配 第 12 小节。\n模进（移调，下移 2 半音）：原型 第 8 小节 → 匹配 第 12 小节。\n模进（移调，下移 7 半音）：原型 第 10 小节 → 匹配 第 12 小节。"
+    },
+    "music_context_echo": {
+      "tempo_bpm": 120,
+      "tempo_setting_count": 1,
+      "time_sig_setting_count": 1,
+      "time_signature": "4/4",
+      "time_signature_denominator": 4,
+      "time_signature_numerator": 4
+    },
+    "schema_version": "midi.analyze_transformations.v0",
+    "status": "ok",
+    "time_unit": "beats",
+    "track_id": ""
+  },
+  "project_history": {
+    "active_branch": "main",
+    "active_node_id": "",
+    "active_worktree": "",
+    "available": true,
+    "branches": {},
+    "commit_count": 0,
+    "detached": false,
+    "draft": false,
+    "head": "",
+    "initialized": true,
+    "project_label": "edu_transform_fixture_project",
+    "project_path": "D:\\Vit_DAW_wt_276impl\\coord\\runs\\EDU-SYMBOL-CORE-1\\smokerun1\\edu_transform_fixture_project.vit",
+    "project_uuid": "vitproj_0f89a11d768d4f68add6728afcacb551",
+    "recent_checkpoints": [],
+    "refs": {},
+    "root_project_path": "",
+    "unsaved": false,
+    "warnings": [],
+    "worktree_count": 1,
+    "worktrees": [
+      {
+        "created_at": "2026-11-06T16:26:08.594553Z",
+        "is_root": true,
+        "label": "主工作树",
+        "name": "main",
+        "path": "D:\\Vit_DAW_wt_276impl\\coord\\runs\\EDU-SYMBOL-CORE-1\\smokerun1",
+        "project_file_path": "D:\\Vit_DAW_wt_276impl\\coord\\runs\\EDU-SYMBOL-CORE-1\\smokerun1\\edu_transform_fixture_project.vit",
+        "project_path": "D:\\Vit_DAW_wt_276impl\\coord\\runs\\EDU-SYMBOL-CORE-1\\smokerun1\\edu_transform_fixture_project.vit",
+        "root_project_path": "D:\\Vit_DAW_wt_276impl\\coord\\runs\\EDU-SYMBOL-CORE-1\\smokerun1\\edu_transform_fixture_project.vit"
+      }
+    ]
+  }
+}

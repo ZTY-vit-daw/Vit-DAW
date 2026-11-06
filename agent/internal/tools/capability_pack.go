@@ -266,6 +266,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 				"midi.create_clip", "midi.insert_clip", "midi.import_file",
 				"midi.apply_note_patch", "midi.write_clip_notes", "midi.read_notes", "midi.read_clip_notes", "midi.read_clip_data",
 				"midi.insert_notes", "midi.delete_notes", "midi.move_notes", "midi.resize_notes", "midi.quantize", "midi.transpose", "midi.set_velocity", "midi.replace_region",
+				"midi.analyze_transformations",
 				"clip.select",
 			},
 			Examples: []string{

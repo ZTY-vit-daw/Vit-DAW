@@ -232,6 +232,12 @@ type freeStateReasoningLoop struct {
 	// proposal parks on the confirmation face with this disclosure for the
 	// user to adjudicate; no experiment admission is constructed and the
 	// terminal lock never clears (parking is not re-entry).
+	// EXPADMIT-EVIDENCE-RULE-1 extends the same latch family to the
+	// admission-refusal park: a chat-side experiment admission refusal
+	// (validateD1FreshObservedTarget & co.) latches the same disclosure with
+	// the freeStateAdmissionRefusedParkGateID marker instead of rewriting the
+	// loop blocked/terminal. That latch is per-refusal: a later successful
+	// admission clears it, and a later refusal re-latches it.
 	TerminalAdjudication map[string]any `json:"terminal_adjudication,omitempty"`
 	LastError            string         `json:"last_error,omitempty"`
 	CreatedAt            time.Time      `json:"created_at"`
@@ -254,6 +260,13 @@ func freeStateLoopActive(loop freeStateReasoningLoop) bool {
 // parking disclosure schema riding the loop and the confirmation face's
 // workflow_data.
 const freeStateTerminalAdjudicationSchema = "free_state_terminal_adjudication.v1"
+
+// freeStateAdmissionRefusedParkGateID is the content-free structural marker the
+// EXPADMIT-EVIDENCE-RULE-1 admission-refusal park puts in the disclosure's
+// failed_gate_ids: the chat-side experiment admission validator refused the
+// proposal (the G1-G8 gate audit itself passed). It follows the closed gate-id
+// vocabulary shape and discloses no track, view, or dose content.
+const freeStateAdmissionRefusedParkGateID = "D1_experiment_admission_refused"
 
 // freeStateTerminalAdjudicationDisclosure builds the 方案乙 parking
 // disclosure from mechanical runtime state only: the failed gate ids plus the
@@ -1683,19 +1696,45 @@ func (s *Server) recordFreeStateDecision(conversationID string, res agentloop.Re
 			(strings.EqualFold(strings.TrimSpace(decision.Status), agentloop.FreeStateNeedsAction) && s.hasTaskSemanticContract(loop.GoalID))) {
 		if loop.Experiment == nil {
 			if err := s.startFreeStateExperiment(&loop, decision, res.GoalID, res.RunID); err != nil {
-				loop.Status = "blocked"
-				loop.LastError = "free-state experiment admission failed: " + err.Error()
-				blocked := decision
-				blocked.Status = agentloop.FreeStateBlocked
-				blocked.EvidenceStatus = "insufficient"
-				blocked.StopReason = "free_state_experiment_admission_invalid"
-				blocked.Limitations = append(blocked.Limitations, loop.LastError)
-				loop.LatestDecision = &blocked
+				// EXPADMIT-EVIDENCE-RULE-1 admission-refusal park (方案乙 family
+				// precedent): an admission refusal no longer terminalizes the
+				// turn. The historical rewrite (blocked /
+				// free_state_experiment_admission_invalid) made the response face
+				// settle terminal-done and the turn-close guard closed the honest
+				// proposal as an orphan without ever building its confirmation
+				// card (262 verifyrun1: proposal_valid=true, zero confirmation
+				// interaction). Parking keeps the decision's own shape and the
+				// case's presentation status, so a needs_experiment decision
+				// still reaches improvementProposalResponse, where the latched
+				// TerminalAdjudication disclosure forces the confirmation card
+				// (never full-access auto-authorization): the user's confirm /
+				// cancel is the adjudication of the refused admission — confirm
+				// routes to the bounded domain-controlled path, cancel leaves the
+				// project untouched. No experiment admission is constructed; the
+				// refusal stands honestly in the admission receipt and the loop's
+				// LastError. The orphan close guard stays the last-resort owner
+				// for shapes that arm no interaction.
+				loop.LastError = "free-state experiment admission refused (parked for adjudication): " + err.Error()
+				refused := decision
+				refused.Status = agentloop.FreeStateBlocked
+				refused.EvidenceStatus = "insufficient"
+				refused.StopReason = "free_state_experiment_admission_invalid"
+				refused.Limitations = append(refused.Limitations, loop.LastError)
+				s.recordFreeStateAdmissionReceipt(&loop, &refused, auditContext)
+				loop.TerminalAdjudication = freeStateTerminalAdjudicationDisclosure(loop, []string{freeStateAdmissionRefusedParkGateID})
+				if s.logger != nil {
+					s.logger.Warn("[free-state-experiment] admission refused; proposal parked for user adjudication (%s) conversation=%s: %v",
+						freeStateAdmissionRefusedParkGateID, conversationID, err)
+				}
 			} else {
 				// A validated admission is the auditable FS7 -> FS8 boundary.
 				// Keep the proposal boundary visible until the experiment runtime
 				// exists, then advance the closure host before scheduling any
-				// post-action verification continuation.
+				// post-action verification continuation. A stale admission-park
+				// latch cannot survive a later successful admission: the park's
+				// "no admission constructed" disclosure would then misdescribe a
+				// loop that carries a live experiment.
+				loop.TerminalAdjudication = nil
 				if s != nil && s.audioClosures != nil {
 					if closure, tracked := s.audioClosures.ActiveForConversation(conversationID); tracked && !closure.Terminal() {
 						advanced := s.advanceAudioClosurePhase(closure, audioclosure.PhaseGuardEvidence{
