@@ -52,4 +52,5 @@
 
 ## 验收
 
-- （主管回填）
+- **段 1 验收（2026-11-06 晚窗，主管）：pass**——5 新文件 +1164 行零既有改动零内核零栈；主管交叉复跑 wt_276impl `go test ./internal/edu -count=1` ok+vet 干净；实现抽查合格（fail-closed 错误族+零值选项语义+JSON 字段对齐 256 草案+仓库注释风格一致）。**sequence 双语义设计决策（chromatic/diatonic）追认**：小星星 A↔B 调内模进半音差非恒定，纯 chromatic 检不出——引入 diatonic 档理由充分，`sequence_quality` 字段入段 2 schema 定稿；两处 fixture/断言自查修正（边界例真倒影+chromatic 断言过强）诚实且人工复核在案。**段 2/3 未发**（按用户边界：265 检查过后放行自主派发），就绪态=命令面 schema 可直接定稿。
+- （整卡验收：段 3 完成后主管回填）
