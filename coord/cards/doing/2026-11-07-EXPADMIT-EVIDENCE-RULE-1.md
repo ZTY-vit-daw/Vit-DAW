@@ -25,4 +25,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取（实现腿）：2026-11-07T00:11+08:00 / origin/main=f7204a25 / owner=GLM 主会话 L2-worker 子代理（PC，ZCode） / 分支=port/expadmit-evidence-rule-1（worktree=D:\Vit_DAW_wt_269impl，基线=f7204a25，领取时 status 净空、diff --stat 空） / 领取提交=本提交（仅含本卡状态，fast-forward → main）
+- 回执（实现腿）：（待回填）
+- 验收：（主管回填）
