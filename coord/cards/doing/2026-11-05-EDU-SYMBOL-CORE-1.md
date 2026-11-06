@@ -30,7 +30,11 @@
 
 ## 领取
 
-- （执行侧回填：会话 / worktree / 分支 / 领取基线 HEAD + status + diff --stat）
+- 2026-11-06 / **段 1/N 领取**（变换族检测核+判定器+黄金用例单测，全新包 `agent/internal/edu/`；段 1 不做三处注册/命令面/真栈烟测）
+- origin/main hash：`84f86f9e01b9cef764e5ae8fce6060fe0a8345b3`
+- owner：GLM 主会话 L2-worker 子代理（GLM-5.3 / PC）
+- worktree：`D:/Vit_DAW_wt_276impl`；分支：`port/edu-symbol-core-1`（自 origin/main 新建）
+- 领取基线：HEAD=`84f86f9e01b9cef764e5ae8fce6060fe0a8345b3`；`git status --short`=空；`git diff --stat`=空（worktree 全净，无领取前已有 diff）
 
 ## 回执
 
