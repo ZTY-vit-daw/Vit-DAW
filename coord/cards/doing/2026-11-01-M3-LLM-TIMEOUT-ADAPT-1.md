@@ -46,7 +46,23 @@
 
 ## 回执
 
-- （执行侧回填）
+- 执行完成：2026-11-06；实现 commit=`6c0af013`（分支 `port/m3-llm-timeout-adapt-1`，已推送 origin；基线 7864930a）；领取 commit=主仓 main `132a7c0c`+`9eebccdf`。
+- diff 清单（4 files，+272/-5）：
+  - `agent/internal/llm/timeout.go`（新增）：`resolveDefaultAttemptTimeout`（env 值→fallback timeout 纯函数）+`attemptHTTPClient`（构造 http.Client）+`warnLLMTimeoutFallback` 包级注入点；
+  - `agent/internal/llm/client.go`：默认 fallback 位（原 ：168-172）接入 `attemptHTTPClient(llmReq, os.Getenv(...))` + `os` import；TimeoutIsTotalBudget 段零改动；
+  - `agent/internal/llm/timeout_test.go`（新增）：三组测试；
+  - `scripts/dev_agent_smoke.ps1`：param 块新增 `[string]$LlmTimeoutSec = ""`（LLM 参数簇、LlmRouteGroups 后）+ agent 启动前 env 注入（`if ($RestartAgent)` 之前，与 WriteLease/telemetry 同窗口）。
+- 测试命令与退出码（均在 worktree `agent/` 下）：
+  - `go build ./...` → exit 0；
+  - `go test ./internal/llm/ -count=1` → exit 0（PASS 6.561s；新增 TestResolveDefaultAttemptTimeout 11 子例+TestAttemptHTTPClientRedlines 5 子例+TestCompleteRequestEnvTimeoutReachesHTTPClient 2 子例全 PASS，既有测试零回归）；
+  - c1/c2 调用面回归：`go test ./internal/agentloop/ ./internal/chat/ -count=1` → exit 0（agentloop 7.657s / chat 129.960s，零回退）；
+  - ps1：`Parser::ParseFile` 语法解析 → PARSE_OK exit 0。
+- 口径取舍记录（卡面目标节 vs 修订说明）：
+  1. 「建议界 1–3600s」按硬界实现：`<1` 或 `>3600` 视为越界→回落 60s+记录（0/负数/3601 均有测试钉）；
+  2. 「telemetry/日志记一次」取 stderr 日志径（`warnLLMTimeoutFallback` 写 stderr），不扩 telemetryRecord 结构（避免持久化面新增字段与兼容负担）；每次适配决策记录一次（非进程级 once）——无全局可变状态、坏 env 每请求可见，回执如实申报此取舍，主管可裁定是否需改 telemetry 面；
+  3. 行为级传导证明采用 >48KB payload（attempts=1）+httptest 挂 2s handler 对照（env=1s 切断失败 / env 未设 2s 内成功），零真实网络零 LLM 计费；sub-test 表观 2.00s 含 `backend.Close()` 等待 handler 睡满，client 侧实际 ~1s 收到 timeout 错误（err!=nil 断言已证）；
+  4. 红线核对：显式 req.Timeout 优先级不变（env 只触 no-Timeout 槽位）、NoTimeout 不变（Timeout=0）、TimeoutIsTotalBudget 段逐字未动；`CompleteImageUnderstanding` 的 10 分钟固定 fallback 不在卡面标的内，未动（如实声明越界边界=未触碰）。
+- 诚实边界：纯适配卡按验收标准单测面收口（无真栈腿义务）；ps1 参数透传未经真栈端到端验证（语法+模式先例核对），主管复跑时可用 `-LlmTimeoutSec 300` 验证 agent 日志/env 继承。
 
 ## 验收
 
