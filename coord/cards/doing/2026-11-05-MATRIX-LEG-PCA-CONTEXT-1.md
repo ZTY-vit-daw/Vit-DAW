@@ -17,3 +17,5 @@
 ## 领取/回执/验收
 
 - （执行侧回填）/（执行侧回填）/（主管回填）
+
+- 领取：2026-11-06 18:11 +0800 / origin/main=964c8026（发卡基线 929d6cd9 后仅增 259 领取协调提交，chat 测试域与本卡 scripts/*.py 不相交）/ owner=ZCode GLM-5.3 执行会话·PC / 分支 port/matrix-leg-pca-context-1 / worktree D:/Vit_DAW_wt_261impl / 领取提交=本笔（hash 见 git log）
