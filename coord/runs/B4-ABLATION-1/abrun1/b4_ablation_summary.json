@@ -1,0 +1,102 @@
+{
+  "schema_version": "b4_ablation.v1",
+  "scenario": "B4-ABLATION-1: b13b masking-frontier phrase family under the low-end ablation hook (LLM-turn evidence only)",
+  "ablation_hook": true,
+  "hook_env": "VIT_LOW_END_RELATION_ABLATION=1 (set by the ps1 wrapper on the agent)",
+  "phrase": "分析一下当前工程的低频关系",
+  "rounds_requested": 5,
+  "rounds_run": 5,
+  "rounds": [
+    {
+      "round": 1,
+      "phrase": "分析一下当前工程的低频关系",
+      "conversation": "b4_ablation_20261106_192348_r1",
+      "verdict": "tool_chain_ok",
+      "tools": [
+        "mix.observe"
+      ],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [\"mix.observe\"], \"reply_head\": \"结论\\n当前工程只有 3 条轨道，低频关系的主要矛盾在“贝斯频段”：超低频 低频 Tone 在 低频 频段占绝对主导，两条 Secondary 轨以约 12 dB 的差距跟在后面，三个低频/中低频带同时存在重叠候选；另外两个 Secondary 轨的峰值已到 0 dBFS，低频再叠加容易直接顶到顶部。\\n\\n证据\\n• 频段占用（来自工程多轨频段分析）：低频 频段 超低频 低频 Tone 76.6 dB（\"}"
+    },
+    {
+      "round": 2,
+      "phrase": "分析一下当前工程的低频关系",
+      "conversation": "b4_ablation_20261106_192348_r2",
+      "verdict": "tool_chain_ok",
+      "tools": [
+        "mix.observe"
+      ],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [\"mix.observe\"], \"reply_head\": \"结论\\n当前工程共 3 条轨：超低频 低频 Tone（贝斯类，100 Hz 素材）与 Secondary A、Secondary B（各 3 秒素材，两者能量几乎完全一致）。低频关系的主要矛盾在 低频 频段：贝斯轨在该频段占据绝对主导，两条 Secondary 轨以约 12 dB 差距叠在其后，构成最明显的低频重叠；其次才是低中频，这一块由两条 Secondary 互相挤压，而不是贝斯造成的。因此，\"}"
+    },
+    {
+      "round": 3,
+      "phrase": "分析一下当前工程的低频关系",
+      "conversation": "b4_ablation_20261106_192348_r3",
+      "verdict": "tool_chain_ok",
+      "tools": [
+        "mix.observe"
+      ],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [\"mix.observe\"], \"reply_head\": \"结论\\n当前工程只有 3 条轨道，低频的主要矛盾集中在“低频 频段”：超低频 低频 Tone 在这一段占据绝对主导，两条 Secondary 轨以大约 12 dB 的差距跟在后面，属于典型的低频重叠候选；同时 Secondary A/B 在 低中频 上反而领先贝斯约 27 dB，形成一组低中频遮蔽候选。另外两条 Secondary 轨峰值已经到 0 dBFS、余量为 0，0–3 秒三条轨低频同时叠加\"}"
+    },
+    {
+      "round": 4,
+      "phrase": "分析一下当前工程的低频关系",
+      "conversation": "b4_ablation_20261106_192348_r4",
+      "verdict": "tool_chain_ok",
+      "tools": [
+        "mix.observe"
+      ],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [\"mix.observe\"], \"reply_head\": \"结论\\n当前工程只有 3 条轨道（超低频 低频 Tone、Secondary A、Secondary B），低频的主要矛盾集中在 低频（低频）频段：超低频 低频 Tone 以接近绝对优势占据该频段，两条 Secondary 以约 12 dB 的差距跟在后面，构成低频重叠候选。同时两条 Secondary 的峰值已经顶到 0 dBFS，低频再叠加几乎没有余量。三条轨只在 0–3 秒有真实的时间重叠，之\"}"
+    },
+    {
+      "round": 5,
+      "phrase": "分析一下当前工程的低频关系",
+      "conversation": "b4_ablation_20261106_192348_r5",
+      "verdict": "tool_chain_ok",
+      "tools": [
+        "mix.observe"
+      ],
+      "detail": "{\"workflow\": \"\", \"stop_reason\": \"done\", \"goal_status\": \"completed\", \"tools\": [\"mix.observe\"], \"reply_head\": \"结论\\n当前工程只有 3 条轨道，低频关系的主要矛盾集中在“贝斯频段”：超低频 低频 Tone 在 低频 区占绝对主导，两条 Secondary 轨以约 12 dB 的差距跟随，属于典型的低频重叠候选；同时两条 Secondary 在低中频反而领先，中低频的挤压更多来自它们而不是贝斯轨。另外两条 Secondary 的峰值已到 0 dBFS、余量为 0，低频再叠加很容易直接顶到天花板，这是比“低频糊\"}"
+    }
+  ],
+  "verdict_counts": {
+    "tool_chain_ok": 5
+  },
+  "successes": 5,
+  "success_verdicts": [
+    "boundary_ok",
+    "tool_chain_ok"
+  ],
+  "group_pass": true,
+  "stop_loss": null,
+  "lexicon_hit_seen": false,
+  "read_only_verified": true,
+  "mix_state_mutations": [],
+  "fixture": {
+    "project_path": "D:\\Vit_DAW_wt_264impl\\VitApp\\Workspace\\Artifacts\\smoke\\b4_ablation_20261106_192330\\fixture_project.vit",
+    "created": [
+      {
+        "track_id": "1007",
+        "track_name": "Sub Bass Tone"
+      },
+      {
+        "track_id": "1012",
+        "track_name": "Secondary A"
+      },
+      {
+        "track_id": "1017",
+        "track_name": "Secondary B"
+      }
+    ],
+    "track_count": 3
+  },
+  "health": {
+    "service": "VitAgent",
+    "status": "ok"
+  },
+  "artifact_dir": "D:\\Vit_DAW_wt_264impl\\VitApp\\Workspace\\Artifacts\\smoke\\b4_ablation_20261106_192330",
+  "telemetry_path": "D:\\Vit_DAW_wt_264impl\\VitApp\\Workspace\\Artifacts\\smoke\\b4_ablation_20261106_192330\\logs\\agent_llm_telemetry.jsonl",
+  "prompt_render_path": "D:\\Vit_DAW_wt_264impl\\VitApp\\Workspace\\Artifacts\\smoke\\b4_ablation_20261106_192330\\logs\\agent_prompt_render.jsonl",
+  "payload_capture_path": "D:\\Vit_DAW_wt_264impl\\VitApp\\Workspace\\Artifacts\\smoke\\b4_ablation_20261106_192330\\logs\\agent_llm_payload_capture.jsonl",
+  "agent_log": "D:\\Vit_DAW_wt_264impl\\VitApp\\Workspace\\Logs\\agent_last.log",
+  "started_at": "20261106_192348"
+}
