@@ -1,6 +1,8 @@
 # PC 真实运行栈占用记录
 本记录是共享卡池协作的资源登记面，操作协议见 [PROTOCOL.md](../PROTOCOL.md) §2.2。
 初始化“未核查”只表示尚未核对当前进程；不声明栈空闲，不接管任何现存进程。
+- 2026-11-07 00:22–00:27 +0800 释放 / **EDU-SYMBOL-CORE-1(276) 段 3 真栈烟测腿 smokerun1——收口：单 run `20261107_002241`（PS1 **exit 1**=py exit 3=LLM 行为未达类，§8 预写③如实兑现，单 run 无重跑）；**取证结论=chat 披露层域外缺口，命令面本身健康**——chat 回合模型诚实申报「工具目录里没有 midi.analyze_transformations」（根因锚点 goalrunner_chat.go:4935 agentLoopMidiTools 硬编码白名单缺新工具=第四处注册面，卡面三处注册前提未覆盖；capability_pack 注册行被 :4375→:4408→capability_pack.go:85 求交遮蔽）；拆栈前零 LLM 只读探针 /agent/invoke 直调命令 status=ok+38 findings 黄金三条精确命中（模进 8→16 shift2/steps1/bar 3-4→5-6+repeat 16→24 bar 5-6→7-8+A 段再现 0→32）+analyzed_note_count=42——段 1/2 面真栈全绿；修复三选项（A 最小扩域一行/B 另开小卡/C 双列表重构）交主管，见 smokerun1/evidence.md；计费 9 调用 deepseek-flash in 142,076（cache_read 68,992）/out 6,658 tok ≈¥0.15-0.25（预算内）；owner 亲拆 VitAgent/VitApp，**TEARDOWN_ALL_ZERO 亲核 00:27:21**（六口 TCP+UDP 4444/4445+四类进程全零）；工件 coord/runs/EDU-SYMBOL-CORE-1/smokerun1/（随 port/edu-symbol-core-1 推送）；被测 agent SHA256 FD34516D…CD30E0；kernel=wt_228 F9E3DA0A 只读复用；当前空闲**
+
 - 2026-11-07 00:19 +0800 占用 / **EDU-SYMBOL-CORE-1(276) 段 3 真栈烟测腿 smokerun1——占用登记：owner=ZCode GLM-5.3 L2 PC 执行子代理（276impl 段 3）；被测=wt_276impl @ port/edu-symbol-core-1（edu 段1+2 实现在卷+段3 冒测扩展 65b45ba6；origin/main b8a3d060 合入为 ee9be3c1，build+全量 go test 零失败；其后 main 增量 b82c6345 仅 coord 卡面零代码交集）；agent=worktree 现场构建（-RestartAgent）；kernel=wt_228 VitApp.exe F9E3DA0A 同款只读复用（零内核改动面）；引擎=本机默认无注入（config defaultModel=deepseek-flash 亲读）；预期 LLM 参与=1 chat 回合；净空亲核 00:19:27 全零（六口 TCP 5555/5556/5557/7878/8787/18787+UDP 4444/4445+VitApp/VitAgent/VspHub/Godot 四类进程）；§8 RUNBOOK 跑前成文 @ port 分支 65b45ba6（单 run 无重跑，预算 ≈¥0.5-2，失败分类 ①-④ 预写）；工件 coord/runs/EDU-SYMBOL-CORE-1/smokerun1/；仅登记记录变更**
 
 
