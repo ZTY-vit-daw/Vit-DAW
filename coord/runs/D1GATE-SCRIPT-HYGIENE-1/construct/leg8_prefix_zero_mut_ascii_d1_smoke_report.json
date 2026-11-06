@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "selected_domains": [
+    "reverb"
+  ],
+  "stub": true,
+  "notes": "stub report (ascii control leg)",
+  "validation": {
+    "status": "pass",
+    "branch": "zero_mutation_boundary",
+    "action_domain": "reverb",
+    "boundary_stop_reason": "capability_blocked",
+    "forward_mutation_count": 0,
+    "journal_mutation_count": 0
+  }
+}

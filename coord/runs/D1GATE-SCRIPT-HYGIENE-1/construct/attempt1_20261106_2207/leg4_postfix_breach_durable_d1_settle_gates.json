@@ -1,0 +1,31 @@
+﻿{
+    "runner_exit":  0,
+    "gate_results":  {
+                         "settle_turn":  true,
+                         "d1_node_lit":  true,
+                         "verdict_on_disk":  true,
+                         "action_face":  true
+                     },
+    "schema_version":  "d1_loudness_settle_gates.v0",
+    "report":  {
+                   "verdict_record_on_disk":  true,
+                   "failures":  [
+
+                                ],
+                   "observation_face":  "present",
+                   "settle_checked":  true,
+                   "verdict_store_path":  "C:\\Users\\timoz\\AppData\\Local\\Temp\\vit268_probe_a2b7a7edfb81463885b6d6e8dab28d6d\\leg4_postfix_breach_durable\\artifacts\\free_state_d1_s1\\20261106_220731\\project\\.vit_agent\\loudness_watch_verdicts.json",
+                   "action_card_kind":  "mix_tick_confirmation",
+                   "d1_node_state":  "needs_confirmation",
+                   "mutation_performed":  "False",
+                   "config_basis_present":  true,
+                   "cancel_stop_reason":  "mix_tick_rejected",
+                   "verdict_kind":  "breach",
+                   "chat_stop_reason":  "d1_loudness_settled"
+               },
+    "run_stamp":  "20261106_220731",
+    "failures":  [
+
+                 ],
+    "conversation":  "conv_d1_settle_20261106_220731"
+}
