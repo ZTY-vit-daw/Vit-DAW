@@ -1,0 +1,37 @@
+# first-run-twinkle 素材清单（manifest schema v0）
+# 验收锚点：卡 EDU-LEVEL-CONTENT-1 验收标准「素材清单带哈希入档」；哈希由 tools/gen_theme_midi.py 产出时计算。
+manifest_schema: vit.level_assets.manifest.v0
+level: first-run-twinkle
+license:
+  melody: public_domain            # Ah! vous dirai-je, maman（18 世纪法国民歌，公版旋律）
+  arrangement: vit_original        # 伴奏/编曲/谱面排版=Vit 原创（doc 1 §3.4：不使用现有录音与受保护译配歌词）
+  lyrics: none                     # 本局不含歌词文本
+
+files:
+  - path: assets/theme_twinkle_v0.mid
+    sha256: 276e1ffbeba0357329169aecbb8e060694ac8aace4ad09f2ba889ba97b0c8952
+    bytes: 419
+    note_count: 42
+    produced_by:                   # MIDI 生成方式设计决策存档（公版+Vit 原创原则；可复现）
+      tool: tools/gen_theme_midi.py
+      command: python tools/gen_theme_midi.py --level level.yaml --out-dir assets
+      method: Python 标准库确定性生成器（零外部依赖/零 DAW；同输入逐字节相同）
+      format: MIDI format 0 / PPQ 480 / channel 0 / velocity 100 全曲固定（开放问题⑫定稿）
+      tempo_meta: "100 BPM + 4/4 仅为播放器显示信息；工程 tempo 由乐局 n2 显式 set_tempo 写入（import 不读 tempo meta）"
+      source_of_truth: level.yaml notes.theme（42 音全表）——MIDI 为其确定性投影，非独立数据
+  - path: assets/theme_twinkle_corrupted_v0.mid
+    sha256: 2a58dbfbe172701513a7a916a5d3f4a1306d51b57ea011d2c4e9af433e07bd33
+    bytes: 419
+    note_count: 42
+    derived_from: assets/theme_twinkle_v0.mid
+    deviations:
+      - { at_beat: 37, pitch: 68, replaces: 69 }   # §2.2 默认损坏点（starter 难度）：A'1 第 6 音 A4→A♭4
+    produced_by:
+      tool: tools/gen_theme_midi.py
+      command: python tools/gen_theme_midi.py --level level.yaml --out-dir assets
+      method: 同上（theme 生成后程序化应用 level.yaml assets.deviations；替换前断言原型音高）
+
+deferred_files:
+  - path: assets/score_twinkle_v0.pdf
+    status: deferred_286            # 开放问题⑦终态=自排 vit_original（已定）；制作延后至 286 拍谱腿需求定稿
+    note: n0 有 fallback 直导 theme 资产，本局运行不依赖谱面；未列入 level.yaml assets（校验门要求文件+sha256 在档方可列入）
