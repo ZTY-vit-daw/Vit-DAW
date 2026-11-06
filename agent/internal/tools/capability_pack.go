@@ -275,6 +275,61 @@ func defaultCapabilityPacks() []CapabilityPack {
 			},
 		},
 		{
+			// ARR-SRCLOAD-1（277 段 1，注册链②）：编曲域 pack 骨架——
+			// 音源装载（VSTi→rack Z2）+ MIDI 写入 + 试听编排次序引导。
+			// 择一决策（新增 arrangement 而非扩 midi pack）存档：
+			// coord/runs/ARR-SRCLOAD-1/recon.md §4。Tools 与
+			// goalrunner_chat.go agentLoopArrangementTools 白名单必须
+			// 对齐（第四披露面求交，276 教训）。
+			Name:        "arrangement",
+			Title:       "Arrangement: load an instrument source, write MIDI, and audition",
+			Domain:      "Arrangement workflow over user-visible tracks: instrument (VSTi) plugin loading onto MIDI tracks, beat-based MIDI clip/note writing, and audition through playback or offline render.",
+			Description: "Search an instrument plugin, load it onto the target track with rack.add_node in zone Z2, read its parameter surface, write MIDI notes, then audition through transport playback or an offline render.",
+			StateSlices: []string{
+				"daw_state_summary.tracks[] with clips[] for track/clip targeting; execution_memory.last_created_clip / active_work_target_clip / active_work_target_plugin bindings carry dependent steps",
+				"plugin index rows and semantic entries carry is_instrument; semantic search returns instruments only with type=instrument|synth or include_instruments=true (they are excluded by default)",
+				"a MIDI track renders only when it holds an instrument plugin (a plugin that takes MIDI input or produces audio without audio input); MIDI clips alone render silent",
+			},
+			Preconditions: []string{
+				"Search instrument sources with plugin.semantic_search using type:\"instrument\" (or type:\"synth\"); use plugin.search or plugin.list_available only when the plain indexed name list is enough.",
+				"Load instruments with rack.add_node and zone_id:\"Z2\" (synth zone; effects default to Z3). Do not use plugin.instantiate for arrangement loads.",
+				"After loading, call plugin.get_parameters or plugin_grabber.explain_controls to read the quick control surface before writing parameters with plugin.set_parameter.",
+				"Preset/program loading has no command yet; shape the timbre through plugin.set_parameter on the disclosed parameter surface.",
+				"Create the MIDI clip with midi.create_clip on the target track when none exists, then write notes with midi.apply_note_patch or midi.write_clip_notes using time_unit:\"beats\".",
+				"Audition after writing: transport.play (with transport.seek) for live playback, or render.start for an offline render; an all-silent render of a MIDI track usually means no instrument is loaded on that track.",
+				"Symbolic analysis (midi.analyze_transformations) can anchor edits (bars, note_ids) before region operations; detailed analysis-to-edit guidance lands with ARR-SYMLINK-1.",
+			},
+			Effects: []string{
+				"rack.add_node inserts the plugin into the track rack and persists its zone; plugin.set_parameter writes one normalized parameter value.",
+				"midi.create_clip, midi.apply_note_patch, and midi.write_clip_notes mutate the edit and run behind confirmation previews.",
+				"transport.* and render.start change playback or render-job state only; they do not edit the project.",
+			},
+			ResultHints: []string{
+				"rack_add_node returns the loaded node/plugin identity; plugin.get_parameters returns recommended_groups and quick_controls for the loaded instrument.",
+				"Note writes return inserted_count/inserted_note_ids; compare against a readback before claiming completion.",
+			},
+			Verification: []string{
+				"A load is verified by rack_add_node status plus the plugin appearing in refreshed track state or in plugin.get_parameters output.",
+				"An arrangement goal is not complete after loading only: verify the clip notes exist (midi.read_notes or refreshed state) and, when audition is requested, that playback or the offline render produced non-silent audio.",
+			},
+			Tools: []string{
+				"project.state", "track.list", "track.add",
+				"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get",
+				"plugin.load_to_rack", "rack.add_node",
+				"plugin.get_parameters", "plugin.set_parameter", "plugin_grabber.explain_controls",
+				"midi.create_clip", "midi.apply_note_patch", "midi.write_clip_notes",
+				"midi.read_notes", "midi.read_clip_notes", "midi.read_clip_data",
+				"midi.quantize", "midi.transpose", "midi.set_velocity", "midi.analyze_transformations",
+				"clip.select",
+				"transport.play", "transport.stop", "transport.return_to_zero", "transport.seek", "transport.set_tempo", "transport.toggle_click",
+				"render.start",
+			},
+			Examples: []string{
+				"\u7ed9\u8fd9\u6761 MIDI \u8f68\u52a0\u4e00\u4e2a\u94a2\u7434\u97f3\u6e90 -> plugin.semantic_search {query:\"piano\", type:\"instrument\"}, then rack.add_node {track_id, plugin_path, zone_id:\"Z2\"}, then plugin.get_parameters",
+				"\u52a0\u8f7d\u5408\u6210\u5668\u5e76\u5199\u4e00\u6bb5\u65cb\u5f8b -> rack.add_node (zone_id:\"Z2\"), midi.create_clip, then midi.apply_note_patch insert_note operations, then transport.play",
+			},
+		},
+		{
 			Name:        "media",
 			Title:       "Media pool artifacts",
 			Domain:      "User-authorized media, document, and MIDI files that should become Vit media pool artifacts.",

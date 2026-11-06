@@ -748,3 +748,72 @@ func TestRackSetNodeClipScopeStaysRiskConfirmProposalPath(t *testing.T) {
 		t.Fatalf("model summary must present clip scope binding as confirm-risk:\n%s", summary)
 	}
 }
+
+// ARR-SRCLOAD-1（277 段 1，注册链②）：编曲 pack 骨架钉——装载编排次序
+// 引导面（search type=instrument → rack.add_node Z2 → get_parameters →
+// 写 clip → 试听/渲染）与工具面必须在场；Tools 与 goalrunner_chat.go
+// agentLoopArrangementTools 白名单对齐（第四披露面求交）。
+func TestArrangementCapabilityPackSkeleton(t *testing.T) {
+	packs := DefaultCatalog().CapabilityPacks([]string{"arrangement"})
+	if len(packs) != 1 || packs[0].Name != "arrangement" {
+		t.Fatalf("arrangement capability pack missing: %+v", packs)
+	}
+	pack := packs[0]
+	for _, want := range []string{
+		"plugin.semantic_search", "plugin.load_to_rack", "rack.add_node",
+		"plugin.get_parameters", "plugin.set_parameter", "plugin_grabber.explain_controls",
+		"midi.create_clip", "midi.apply_note_patch", "midi.write_clip_notes",
+		"midi.analyze_transformations",
+		"transport.play", "transport.seek",
+		"render.start",
+	} {
+		found := false
+		for _, tool := range pack.Tools {
+			if tool == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Fatalf("arrangement pack Tools missing %q: %+v", want, pack.Tools)
+		}
+	}
+	joined := strings.Join(pack.Preconditions, "\n")
+	for _, want := range []string{"zone_id:\"Z2\"", "type:\"instrument\"", "plugin.instantiate", "render.start"} {
+		if !strings.Contains(joined, want) {
+			t.Fatalf("arrangement pack preconditions missing %q in:\n%s", want, joined)
+		}
+	}
+	// 摘要渲染面：allowed 含装载链时必须披露工具行；缺白名单时被遮蔽。
+	allowed := []string{
+		"project.state", "plugin.semantic_search", "rack.add_node", "midi.create_clip", "transport.play", "render.start",
+	}
+	summary := DefaultCatalog().ModelSummaryForCapabilityPacks([]string{"arrangement"}, allowed)
+	for _, want := range []string{
+		"Capability pack: arrangement",
+		"plugin_semantic_search tool=plugin.semantic_search",
+		"rack_add_node tool=rack.add_node",
+		"start_render tool=render.start",
+		"zone_id:\"Z2\"",
+	} {
+		if !strings.Contains(summary, want) {
+			t.Fatalf("arrangement pack summary missing %q in:\n%s", want, summary)
+		}
+	}
+	masked := DefaultCatalog().ModelSummaryForCapabilityPacks([]string{"arrangement"}, []string{"project.state"})
+	if strings.Contains(masked, "rack_add_node tool=") {
+		t.Fatal("arrangement pack summary must mask rack.add_node when the capability allowlist omits it (fourth-surface intersection)")
+	}
+}
+
+// ARR-SRCLOAD-1（277 段 1）：plugin_semantic_search 的 type 值域与
+// include_instruments 披露——语义索引默认排除 instrument，不披露值域时
+// 模型不知道要用 type=instrument 才搜得到乐器音源（实现面早已支持）。
+func TestPluginSemanticSearchUsageDisclosesInstrumentType(t *testing.T) {
+	hint := argHint("plugin_semantic_search")
+	for _, want := range []string{"type:string(effect|instrument|synth)", "include_instruments:boolean"} {
+		if !strings.Contains(hint, want) {
+			t.Fatalf("plugin_semantic_search arg hint missing %q in %q", want, hint)
+		}
+	}
+}

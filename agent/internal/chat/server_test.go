@@ -3862,3 +3862,46 @@ func TestAgentPlanFromAgentLoopResultMirrorsAgentLoopState(t *testing.T) {
 		t.Fatalf("project history = %+v", plan.ProjectHistory)
 	}
 }
+
+// ARR-SRCLOAD-1（277 段 1，注册链②）：编曲能力轮必须披露音源装载链。
+// 勘察根因（coord/runs/ARR-SRCLOAD-1/recon.md §2.2）：plugin 能力词表不含
+// 音源词，「给 MIDI 轨加钢琴音源」此前只落 midi 能力，rack.add_node 等
+// 装载工具被能力门控遮蔽。本测试三层钉（276 同款）：触发词表命中
+// arrangement + 允许列表含装载链/渲染 + prompt 披露面（agentLoopToolContext.
+// CatalogSummary）出现工具行。
+func TestAgentLoopArrangementCapabilityDisclosesLoadChain(t *testing.T) {
+	message := "给这条 MIDI 轨加一个钢琴音源"
+	caps := agentLoopCapabilityNames(message, map[string]any{})
+	sawArrangement, sawMidi := false, false
+	for _, cap := range caps {
+		switch cap {
+		case "arrangement":
+			sawArrangement = true
+		case "midi":
+			sawMidi = true
+		}
+	}
+	if !sawArrangement {
+		t.Fatalf("expected arrangement capability for instrument-source message, got %+v", caps)
+	}
+	if !sawMidi {
+		t.Fatalf("expected midi capability to stay co-triggered, got %+v", caps)
+	}
+	server := New(nil, shadow.New(nil), nil)
+	tools := toolNamesForAgentLoopCapabilities(server.harness, agentModeDefault, []string{"arrangement"})
+	toolSet := map[string]bool{}
+	for _, tool := range tools {
+		toolSet[tool] = true
+	}
+	for _, want := range []string{"plugin.semantic_search", "rack.add_node", "plugin.get_parameters", "plugin.set_parameter", "midi.create_clip", "transport.play", "render.start"} {
+		if !toolSet[want] {
+			t.Fatalf("arrangement capability allowlist must disclose %s, got %+v", want, tools)
+		}
+	}
+	toolContext := server.agentLoopToolContext(agentModeDefault, message, map[string]any{})
+	for _, want := range []string{"rack_add_node tool=rack.add_node", "plugin_semantic_search tool=plugin.semantic_search", "start_render tool=render.start", "zone_id:\"Z2\""} {
+		if !strings.Contains(toolContext.CatalogSummary, want) {
+			t.Fatalf("arrangement catalog summary (the prompt disclosure face) missing %q", want)
+		}
+	}
+}

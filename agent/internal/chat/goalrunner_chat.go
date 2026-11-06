@@ -4448,6 +4448,8 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 		case "midi":
 			add(agentLoopTrackTools()...)
 			add(agentLoopMidiTools()...)
+		case "arrangement":
+			add(agentLoopArrangementTools()...)
 		case "clip":
 			if !projectAudioRequested {
 				add(agentLoopTrackTools()...)
@@ -4557,6 +4559,17 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 		"project audio", "audio settings", "sample rate", "sample_rate", "bit depth", "bit_depth", "record format", "record_file_type", "import preflight", "preflight", "stems folder", "stems",
 	) {
 		add("project_audio")
+	}
+	// ARR-SRCLOAD-1（277 段 1，注册链②）：编曲域能力触发——音源/乐器词。
+	// 勘察锚点（coord/runs/ARR-SRCLOAD-1/recon.md §2.2）：plugin 能力词表
+	// （插件/效果器/vst/eq…）不含音源词，「给 MIDI 轨加钢琴音源」此前只落
+	// midi 能力，装载工具 rack.add_node 等被能力门控遮蔽。词表与既有
+	// mix/plugin 词无子串冲突；英文不收 arrangement/compose 防误触。
+	if agentLoopTextHasAny(text,
+		"编曲", "配器", "音源", "合成器", "乐器", "钢琴",
+		"synth", "synthesizer", "instrument", "vsti", "sampler", "piano",
+	) {
+		add("arrangement")
 	}
 	if agentLoopTextHasAny(text,
 		"marker", "markers", "section marker", "section markers", "section map", "timeline marker",
@@ -4946,6 +4959,29 @@ func agentLoopMidiTools() []string {
 		// 缺失后停 needs_clarification）。
 		"midi.analyze_transformations",
 		"clip.select",
+	}
+}
+
+// agentLoopArrangementTools 是编曲域能力轮的披露允许列表（第四披露面，
+// ARR-SRCLOAD-1 277 段 1 注册链②）。与 capability_pack.go arrangement
+// pack 的 Tools 并行：capabilityPackSummary 对两者求交，本列表缺行时
+// pack 声明的工具在 chat 能力轮不可披露也不可调用（276 教训同款）。
+// 覆盖装载链（search/semantic type=instrument → rack.add_node Z2 →
+// get_parameters → set_parameter）、MIDI 写入子面、transport 试听与
+// render.start（离线渲染此前不在任何能力白名单——勘察缺口 #7）。
+// 改动本列表时必须同步 arrangement pack.Tools（双向对齐）。
+func agentLoopArrangementTools() []string {
+	return []string{
+		"track.add", "track.list",
+		"plugin.list_available", "plugin.search", "plugin.semantic_search", "plugin.semantic_get",
+		"plugin.load_to_rack", "rack.add_node",
+		"plugin.get_parameters", "plugin.set_parameter", "plugin_grabber.explain_controls",
+		"midi.create_clip", "midi.apply_note_patch", "midi.write_clip_notes",
+		"midi.read_notes", "midi.read_clip_notes", "midi.read_clip_data",
+		"midi.quantize", "midi.transpose", "midi.set_velocity", "midi.analyze_transformations",
+		"clip.select",
+		"transport.play", "transport.stop", "transport.return_to_zero", "transport.seek", "transport.set_tempo", "transport.toggle_click",
+		"render.start",
 	}
 }
 

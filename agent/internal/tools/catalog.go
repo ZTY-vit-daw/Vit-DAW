@@ -506,7 +506,10 @@ func argHint(commandName string) string {
 	case "plugin_semantic_build_index":
 		return "optional limit:number force:boolean"
 	case "plugin_semantic_search":
-		return "query:string optional type:string manufacturer:string format:string limit:number"
+		// ARR-SRCLOAD-1（277 段 1）：type 值域与 include_instruments 披露——
+		// 语义索引默认排除 instrument（pluginsemantics/index.go:215），不披露
+		// 值域时模型搜不到乐器音源（实现面早已支持，纯披露补丁）。
+		return "query:string optional type:string(effect|instrument|synth) manufacturer:string format:string limit:number include_instruments:boolean"
 	case "plugin_semantic_get":
 		return "id:string OR query:string"
 	case "scan_plugins":
