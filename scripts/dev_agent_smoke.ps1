@@ -399,7 +399,19 @@ param(
     # than the generic wait budget when the plugin table is cold (three
     # same-shape environment failures: ~994-entry cold load blew the fixed
     # 20s). Independent knob, default preserves the previous behaviour.
-    [int]$UiPortWaitSeconds = 20
+    [int]$UiPortWaitSeconds = 20,
+    # EDU-SYMBOL-CORE-1 (276) 段 3：chat 驱动 analyze_midi_transformations
+    # 真栈烟测腿（单 run 无重跑，§8 口径跑前成文）。断言体在
+    # scripts/edu_transform_smoke.py：内核 ZMQ 面 fixture 设置（new_project
+    # + save_as_project 落 run 工件目录 + add_track + insert_midi_clip +
+    # add_midi_notes 42 音小星星，§10 隔离）→ 一个真实 LLM chat 回合
+    # （agent /agent/chat 面）驱动模型调用 midi.analyze_transformations →
+    # 对 executed_kernel_reply 携回的结果做段 1 黄金断言（乐句2↔3 调内
+    # 模进 shift2/steps1/bar 3-4→5-6 + 乐句3↔4 原样重复 shift0/bar
+    # 5-6→7-8）。退出码：0=PASS；2=环境；3=模型未调/漏 key；4=命令面
+    # 缺陷（取证上交）。腿需 agent HTTP 面在栈（-StartKernel
+    # -RestartAgent；不启 UI）。
+    [switch]$EduTransformSmoke
 )
 
 Set-StrictMode -Version Latest
@@ -1342,7 +1354,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1449,6 +1461,22 @@ if ($B4AblationSmoke -and -not $ScenarioMode) {
     Set-Item -LiteralPath "env:VIT_LOW_END_RELATION_ABLATION" -Value "1"
     Write-Ok ("B4 ablation hook: VIT_LOW_END_RELATION_ABLATION=" + $env:VIT_LOW_END_RELATION_ABLATION)
     Write-Ok ("B4 ablation telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " payload_capture=" + $env:VIT_AGENT_LLM_PAYLOAD_CAPTURE)
+}
+
+# EDU-SYMBOL-CORE-1 (276) 段 3：同 env-before-agent-start 窗口——单 chat 回合
+# 计费证据（telemetry jsonl）必须在该腿运行的 agent 进程启动前就位；本腿
+# 无引擎注入（本机默认引擎，RUNBOOK 申报）、无 payload capture（不扩面）。
+if ($EduTransformSmoke -and -not $ScenarioMode) {
+    $EduTransformTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($EduTransformTelemetryRoot)) {
+        $EduTransformTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\edu_transform_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $EduTransformTelemetryRoot -Force | Out-Null
+    $EduTransformLogsDir = Join-Path $EduTransformTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $EduTransformLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $EduTransformLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $EduTransformLogsDir "agent_prompt_render.jsonl")
+    Write-Ok ("edu transform telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -8862,6 +8890,55 @@ if ($AutomationLLMRouteSmoke) {
     }
     else {
         throw ("automation LLM route verification failed with exit code $llmRouteExit (console: " + $llmRouteConsolePath + ")")
+    }
+}
+
+if ($EduTransformSmoke) {
+    Write-Step "chat-driven analyze_midi_transformations smoke (EDU-SYMBOL-CORE-1 segment 3)"
+    $eduTransformScript = Join-Path $RepoRoot "scripts\edu_transform_smoke.py"
+    if (-not (Test-Path -LiteralPath $eduTransformScript)) {
+        throw ("edu transform smoke script missing: " + $eduTransformScript)
+    }
+    $eduTransformArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($eduTransformArtifactsDir)) {
+        $eduTransformArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\edu_transform_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $eduTransformArtifactsDir)) {
+        New-Item -ItemType Directory -Path $eduTransformArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($EduTransformSmoke is in its
+    # condition list): the setup leg's kernel-side new_project rewrites the
+    # workspace default project, so VIT_PROJECT_XML must point at a git-clean
+    # run-dir copy (217 incident lesson, same family as 218/220).
+    $eduTransformPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($eduTransformPriorProjectXml)) {
+        Write-Ok ("edu transform project isolation: VIT_PROJECT_XML=" + $eduTransformPriorProjectXml)
+    }
+    else {
+        throw "edu transform smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $eduTransformSummaryPath = Join-Path $eduTransformArtifactsDir "edu_transform_summary.json"
+    $eduTransformConsolePath = Join-Path $eduTransformArtifactsDir "edu_transform_console.txt"
+    $eduTransformProjectPath = Join-Path $eduTransformArtifactsDir "edu_transform_fixture_project.vit"
+    $eduTransformPythonArgs = @($eduTransformScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--project-path", $eduTransformProjectPath, "--output", $eduTransformSummaryPath, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--agent-log", $AgentLog)
+    & python @eduTransformPythonArgs > $eduTransformConsolePath 2>&1
+    $eduTransformExit = $LASTEXITCODE
+    Get-Content -LiteralPath $eduTransformConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $eduTransformSummaryPath)) {
+        throw ("edu transform smoke produced no summary artifact (exit code " + $eduTransformExit + "; console: " + $eduTransformConsolePath + ")")
+    }
+    if ($eduTransformExit -eq 0) {
+        Write-Ok ("edu transform smoke PASS: chat-driven analyze findings match the segment-1 golden expectations (summary: " + $eduTransformSummaryPath + ")")
+    }
+    elseif ($eduTransformExit -eq 2) {
+        throw ("edu transform smoke environment failure (raw evidence on disk) - see " + $eduTransformSummaryPath)
+    }
+    elseif ($eduTransformExit -eq 3) {
+        throw ("edu transform smoke LLM behavior miss (model did not drive the tool / omitted the instructed key; honest record, no rerun) - see " + $eduTransformSummaryPath)
+    }
+    else {
+        throw ("edu transform smoke failed with exit code $eduTransformExit (console: " + $eduTransformConsolePath + ")")
     }
 }
 
