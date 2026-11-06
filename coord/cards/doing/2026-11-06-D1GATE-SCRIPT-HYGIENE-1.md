@@ -20,4 +20,4 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-06T21:58+08:00 / origin/main=96aa9240（领取时最新；卡面 dispatch 基线 46497e3b 之后仅协调笔 96aa9240=267 卡面移动，agent/scripts 零 diff 亲证 git diff 46497e3b..96aa9240 --stat 仅 coord/cards/ 一个文件）/ owner=GLM 主会话 flash-worker 子代理（PC，ZCode 执行会话 268impl）/ 分支=port/d1gate-script-hygiene-1（worktree=D:\Vit_DAW_wt_268impl，实现基线=96aa9240）/ 领取时主仓工作树既有改动与 LOT 全部不属于本卡文件域（VitApp Workspace 运行时 XML×2、UX-AB-AUDITION 旧工件×4、未跟踪 design/缓存若干），不整理不覆盖 / 领取提交=（本 commit）
