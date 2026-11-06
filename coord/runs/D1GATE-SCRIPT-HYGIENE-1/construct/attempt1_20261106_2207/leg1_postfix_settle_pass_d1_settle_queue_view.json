@@ -1,0 +1,17 @@
+﻿{
+    "status":  "ok",
+    "result":  {
+                   "mix_workflow_queue":  {
+                                              "nodes":  [
+                                                            {
+                                                                "node_id":  "D1",
+                                                                "state":  "in_progress"
+                                                            },
+                                                            {
+                                                                "node_id":  "D2",
+                                                                "state":  "not_started"
+                                                            }
+                                                        ]
+                                          }
+               }
+}

@@ -1,0 +1,13 @@
+{
+  "status": "pass",
+  "selected_domains": [
+    "reverb"
+  ],
+  "stub": true,
+  "notes": "构造桩报告：D1 settle 门组卫生修补验证。",
+  "validation": {
+    "status": "pass",
+    "action_domain": "reverb",
+    "forward_mutation_count": 1
+  }
+}

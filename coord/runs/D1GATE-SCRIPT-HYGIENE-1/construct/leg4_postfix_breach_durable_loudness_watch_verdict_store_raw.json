@@ -1,0 +1,11 @@
+{
+ "schema_version": "loudness_watch_verdicts.v0",
+ "verdicts": [
+  {
+   "trigger_kind": "d1_settle",
+   "verdict": "pass",
+   "project_revision": "2",
+   "summary": "全局响度检查：读数未越限，判断面如实落账。"
+  }
+ ]
+}
