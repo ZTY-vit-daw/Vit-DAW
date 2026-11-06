@@ -16,4 +16,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-06T18:54+08:00 / origin/main=bc33eb2e / owner=GLM-5.3（PC，ZCode 执行会话 262impl） / 分支=port/mixtick-confirm-contract-1（worktree=D:\Vit_DAW_wt_262impl，实现基线=2a801e81） / 领取提交=本提交（仅含本卡状态，fast-forward → main）
+- 回执：（执行侧回填）
+- 验收：（主管回填）
