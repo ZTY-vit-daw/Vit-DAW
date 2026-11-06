@@ -61,9 +61,11 @@ func hasInstrumentPluginSubject(userText, lower string) bool {
 		strings.Contains(lower, "vsti") ||
 		strings.Contains(lower, "midi instrument") ||
 		strings.Contains(lower, "sampler") ||
+		strings.Contains(lower, "piano") ||
 		strings.Contains(userText, "\u5408\u6210\u5668") ||
 		strings.Contains(userText, "\u4e50\u5668") ||
 		strings.Contains(userText, "\u97f3\u6e90") ||
+		strings.Contains(userText, "\u94a2\u7434") ||
 		strings.Contains(userText, "MIDI\u4e50\u5668") ||
 		strings.Contains(userText, "MIDI \u4e50\u5668")
 }

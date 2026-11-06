@@ -411,7 +411,18 @@ param(
     # 5-6→7-8）。退出码：0=PASS；2=环境；3=模型未调/漏 key；4=命令面
     # 缺陷（取证上交）。腿需 agent HTTP 面在栈（-StartKernel
     # -RestartAgent；不启 UI）。
-    [switch]$EduTransformSmoke
+    [switch]$EduTransformSmoke,
+    # ARR-SRCLOAD-1 (277) 段 2：编曲语境音源装载真栈烟测腿（断言体在
+    # scripts/arr_srcload_smoke.py）。链：plugin_list_available is_instrument>0
+    # 预检（==0 按卡面停止条件=环境前置上交）→ 一个真实 chat 回合（编曲
+    # 话术「给这条 MIDI 轨加一个钢琴音源」；装载 RiskConfirm 门控→驱动器
+    # 以 /agent/confirm 批准一次）→ executed rack_add_node 断言
+    # status=ok+zone_id=Z2 → 内核 ZMQ 写 MIDI clip → start_render →
+    # SUB render_done/文件面等完成 → WAV 非静音断言（peak>阈值）。退出码：
+    # 0=PASS；2=环境（含 VSTi 库存空）；3=模型未发起装载；4=装载链缺陷
+    # （zone≠Z2/确认后失败/装载在场仍静音渲染——取证上交不重跑）。
+    # 腿需 agent HTTP 面在栈（-StartKernel -RestartAgent；不启 UI）。
+    [switch]$ArrSrcLoadSmoke
 )
 
 Set-StrictMode -Version Latest
@@ -1354,7 +1365,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $ArrSrcLoadSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1477,6 +1488,23 @@ if ($EduTransformSmoke -and -not $ScenarioMode) {
     Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $EduTransformLogsDir "agent_llm_telemetry.jsonl")
     Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $EduTransformLogsDir "agent_prompt_render.jsonl")
     Write-Ok ("edu transform telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
+}
+
+# ARR-SRCLOAD-1 (277) 段 2：同 env-before-agent-start 窗口——单 chat 回合
+# 计费证据（telemetry jsonl）与 prompt render（arrangement 披露面取证）必须
+# 在该腿运行的 agent 进程启动前就位；本腿无引擎注入（本机默认引擎，
+# RUNBOOK 申报）、无 payload capture（不扩面）。
+if ($ArrSrcLoadSmoke -and -not $ScenarioMode) {
+    $ArrSrcLoadTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($ArrSrcLoadTelemetryRoot)) {
+        $ArrSrcLoadTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\arr_srcload_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $ArrSrcLoadTelemetryRoot -Force | Out-Null
+    $ArrSrcLoadLogsDir = Join-Path $ArrSrcLoadTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $ArrSrcLoadLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $ArrSrcLoadLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $ArrSrcLoadLogsDir "agent_prompt_render.jsonl")
+    Write-Ok ("arr srcload telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -8939,6 +8967,56 @@ if ($EduTransformSmoke) {
     }
     else {
         throw ("edu transform smoke failed with exit code $eduTransformExit (console: " + $eduTransformConsolePath + ")")
+    }
+}
+
+if ($ArrSrcLoadSmoke) {
+    Write-Step "chat-driven instrument load smoke (ARR-SRCLOAD-1 segment 2)"
+    $arrSrcLoadScript = Join-Path $RepoRoot "scripts\arr_srcload_smoke.py"
+    if (-not (Test-Path -LiteralPath $arrSrcLoadScript)) {
+        throw ("arr srcload smoke script missing: " + $arrSrcLoadScript)
+    }
+    $arrSrcLoadArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($arrSrcLoadArtifactsDir)) {
+        $arrSrcLoadArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\arr_srcload_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $arrSrcLoadArtifactsDir)) {
+        New-Item -ItemType Directory -Path $arrSrcLoadArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($ArrSrcLoadSmoke is in its
+    # condition list): the setup leg's kernel-side new_project rewrites the
+    # workspace default project, so VIT_PROJECT_XML must point at a git-clean
+    # run-dir copy (217 incident lesson, same family as 218/220/276).
+    $arrSrcLoadPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($arrSrcLoadPriorProjectXml)) {
+        Write-Ok ("arr srcload project isolation: VIT_PROJECT_XML=" + $arrSrcLoadPriorProjectXml)
+    }
+    else {
+        throw "arr srcload smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $arrSrcLoadSummaryPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_summary.json"
+    $arrSrcLoadConsolePath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_console.txt"
+    $arrSrcLoadProjectPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_fixture_project.vit"
+    $arrSrcLoadRenderPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_render.wav"
+    $arrSrcLoadPythonArgs = @($arrSrcLoadScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--project-path", $arrSrcLoadProjectPath, "--render-path", $arrSrcLoadRenderPath, "--output", $arrSrcLoadSummaryPath, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--agent-log", $AgentLog)
+    & python @arrSrcLoadPythonArgs > $arrSrcLoadConsolePath 2>&1
+    $arrSrcLoadExit = $LASTEXITCODE
+    Get-Content -LiteralPath $arrSrcLoadConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $arrSrcLoadSummaryPath)) {
+        throw ("arr srcload smoke produced no summary artifact (exit code " + $arrSrcLoadExit + "; console: " + $arrSrcLoadConsolePath + ")")
+    }
+    if ($arrSrcLoadExit -eq 0) {
+        Write-Ok ("arr srcload smoke PASS: chat-driven instrument load (Z2) -> clip -> non-silent offline render (summary: " + $arrSrcLoadSummaryPath + ")")
+    }
+    elseif ($arrSrcLoadExit -eq 2) {
+        throw ("arr srcload smoke environment failure (raw evidence on disk; exit 2 includes the empty-VSTi-inventory precondition hand-over) - see " + $arrSrcLoadSummaryPath)
+    }
+    elseif ($arrSrcLoadExit -eq 3) {
+        throw ("arr srcload smoke LLM behavior miss (model did not drive a load; honest record, no rerun) - see " + $arrSrcLoadSummaryPath)
+    }
+    else {
+        throw ("arr srcload smoke failed with exit code $arrSrcLoadExit (console: " + $arrSrcLoadConsolePath + ")")
     }
 }
 
