@@ -139,6 +139,16 @@ param(
     # spent. Root cause context: the 242 budget overrun was the automatic
     # inter-group progression.
     [string]$LlmRouteGroups = "",
+    # M3-LLM-TIMEOUT-ADAPT-1 (239): per-run LLM default-timeout passthrough.
+    # Injected as VIT_AGENT_LLM_TIMEOUT_SEC in the env-before-agent-start
+    # window (agent inherits it for its whole lifetime; never persisted, dies
+    # with this run). The agent's internal/llm client consumes it natively for
+    # the no-Timeout default slot only (unset/invalid/out-of-range falls back
+    # to the historical 60s, recorded non-silently; explicit req.Timeout,
+    # NoTimeout and TimeoutIsTotalBudget semantics untouched). Kept for future
+    # reasoning-class engine runs (238 showed the 60s wall cuts reasoning
+    # attempts mid-inference); empty = behavior unchanged.
+    [string]$LlmTimeoutSec = "",
     # C4-ABLATION-1: ablation mode for the LLM route leg. Sets
     # VIT_AUTOMATION_INTENT_ABLATION=1 in the same env-before-agent-start
     # window as the telemetry/engine envs above (agent inherits it for its
@@ -1625,6 +1635,17 @@ if ($ScenarioMode -and ($Scenario -eq "note_time" -or $Scenario -eq "context_lay
         Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value $ScenarioTelemetryFile
     }
 }
+# M3-LLM-TIMEOUT-ADAPT-1 (239): per-run LLM default timeout passthrough. Must
+# be set before agent start so the script-started agent inherits it (a reused
+# agent will not pick it up); empty = untouched (agent keeps its internal
+# 60s default, or any caller-provided env wins by simply not passing the
+# parameter). Same env-before-agent-start window as the lease/telemetry envs
+# above; never persisted, dies with this run.
+if (-not [string]::IsNullOrWhiteSpace($LlmTimeoutSec)) {
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TIMEOUT_SEC" -Value $LlmTimeoutSec.Trim()
+    Write-Ok ("llm timeout adapt passthrough: VIT_AGENT_LLM_TIMEOUT_SEC=" + $env:VIT_AGENT_LLM_TIMEOUT_SEC)
+}
+
 if ($RestartAgent) {
     $listener = Get-TcpListener -Port $httpPort
 }
