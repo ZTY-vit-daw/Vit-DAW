@@ -50,3 +50,4 @@ D3=参考曲对齐（not_built）：观察面已建（M1-4：RLM reference_level
   - 计费 19 调用 deepseek-flash in+cache ≈179.8k tok ≈**¥0.1-0.3**（预算 ≈¥1-3 内；两腿合计仍低于单腿预算上沿）。
   - **D3 验证腿就此闭合：exit 0 达成，终验签署留主管。**工件 coord/runs/D3-REF-ALIGN-THIN-1/verifyrun2/（12 件，port 0b581d2f 已推）。
 - 卡面完整性注记（执行侧 2026-11-07 01:4x，发现即报）：本 doing/ 卡面在本笔前仅存 ruling 单行（395 字符）——dd043f73 在 doing/ 建档时只落了裁定行、30c3cd02 又删除了 done/ 全本（44 行），完整卡面（领取/回执/验收+verifyrun1 回执）一度仅存 git 历史（e2ef051f/a25e72d2）。本笔以 a25e72d2 done/ 全本为底**原样重建** doing/ 卡面（零改写），ruling 行（dd043f73 原文）与本回执追加在后；提交说明如实记录。请主管复核重建。
+- **终验（2026-11-07 凌晨，主管）：pass——266 收口**——verifyrun2 exit 0 门组全绿（细节回执在档）；D3=判据+建议薄层点亮（not_built→in_progress）；fixture 如实产 aligned 不硬凑 gap=诚实断言典范；挂账项两现开卡 272。
