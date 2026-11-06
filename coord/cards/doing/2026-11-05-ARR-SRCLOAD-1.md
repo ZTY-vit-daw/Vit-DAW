@@ -28,7 +28,12 @@
 
 ## 领取
 
-- （执行侧回填）
+- 2026-11-07 / **段 1/N 领取**（装载链勘察[读档零 LLM]+pack 骨架+usage 披露补丁+注册链②；段 1 零真栈零内核——装载链实现+烟测腿留段 2/3，勘察结论先交主管过目）
+- origin/main hash：`9e5af73ced275dae3567e77b7a0c522fa02bb273`
+- owner：GLM 主会话 L2-worker 子代理（GLM-5.3 / PC）
+- worktree：`D:/Vit_DAW_wt_277impl`；分支：`port/arr-srcload-1`（自 origin/main 新建）
+- 领取基线：HEAD=`9e5af73ced275dae3567e77b7a0c522fa02bb273`；worktree `git status --short`=空；`git diff --stat`=空（新 worktree 自 origin/main 检出，全净，无领取前已有 diff）
+- 前置核对：276（EDU-SYMBOL-CORE-1，注册链①）已终验合入 `be76f431`（review pass `9e5af73c`）✓；doing 两卡（EDU-LEVEL-CONTENT-1 / EXPADMIT-EVIDENCE-RULE-1）文件域与本卡不相交 ✓
 
 ## 回执
 
