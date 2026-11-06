@@ -1,0 +1,500 @@
+﻿{
+    "conversation_id":  "conv_d1_settle_20261107_011211",
+    "task_id":  "task_a6690352b9434db4",
+    "goal_id":  "goal_a56ab2e8d1903c7f",
+    "run_id":  "run_22d3c22042e108ae",
+    "original_intent":  "全局响度检查",
+    "reply":  "D1 全局响度与峰值检查（loudness settle，schema d1d3.premaster.observation.v0）。\n全局观察（mix.observe digest）：峰值/响度域值缺席（缺失如实保留）。\n判断口径：工程 loudness watch 配置（builtin:ebu_r128）。\n判断结果：近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 16 处越界（近似级）。\n修复建议（待确认，未改工程）：近似口径：clip 1021 的 integrated_lufs -32.5 超出阈值 -23.5（-9.0 dB），建议先把所在轨道推高 9.0 dB（待确认后执行，非合规承诺）。\n确认后我会通过 mix.propose_tick → mix.apply_tick 执行这一步；确认前不会修改工程。\n检查结果已记入 loudness watch verdict 记录；D1 节点状态可在队列视图查看。",
+    "agent_mode":  "default",
+    "needs_confirmation":  true,
+    "workflow":  "capability_runtime_v1",
+    "workflow_data":  {
+                          "canary_stage":  "d1_settle",
+                          "capability_id":  "pre_master.loudness_settle.v0",
+                          "d1_settle":  {
+                                            "breach_count":  16,
+                                            "capability_id":  "pre_master.loudness_settle.v0",
+                                            "checked":  true,
+                                            "config_basis":  "工程 loudness watch 配置（builtin:ebu_r128）",
+                                            "measured_clips":  19,
+                                            "peak_check":  "no_breach_seen",
+                                            "suggestion":  {
+                                                               "basis":  "近似口径：clip 1021 的 integrated_lufs -32.5 超出阈值 -23.5（-9.0 dB），建议先把所在轨道推高 9.0 dB（待确认后执行，非合规承诺）",
+                                                               "delta_db":  9.007504957261126,
+                                                               "metric":  "integrated_lufs",
+                                                               "operation":  "track_gain_adjust",
+                                                               "track_id":  "1017"
+                                                           },
+                                            "verdict":  "breach",
+                                            "verdict_summary":  "近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 16 处越界（近似级）。"
+                                        },
+                          "mutation_performed":  false,
+                          "observation":  {
+                                              "schema_version":  "d1d3.premaster.observation.v0",
+                                              "observation_id":  "obs_20261106T171721_b88a5b18ef6f",
+                                              "loudness_peak_status":  "missing",
+                                              "rlm_status":  "ready",
+                                              "rlm_mode":  "coarse",
+                                              "rlm_selected_metric":  "rms_dbfs",
+                                              "rlm_reference_level":  -25.151,
+                                              "rlm_summary":  {
+                                                                  "candidate_count":  6,
+                                                                  "eligible_track_count":  6,
+                                                                  "missing_metric_count":  0,
+                                                                  "not_calibratable_count":  0,
+                                                                  "reference_basis":  "median",
+                                                                  "selected_unit":  "dBFS",
+                                                                  "track_count":  6
+                                                              },
+                                              "rlm_limitations":  [
+                                                                      "rlm_strict_active_or_lufs_missing_coarse_reference"
+                                                                  ],
+                                              "stereo_status":  "missing",
+                                              "track_stereo":  [
+                                                                   {
+                                                                       "track_id":  "1007",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1012",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1017",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1022",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1027",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1032",
+                                                                       "status":  "missing",
+                                                                       "mono_risk":  false
+                                                                   }
+                                                               ],
+                                              "tracks_considered":  6,
+                                              "tracks_skipped":  0,
+                                              "mono_risk_tracks":  0,
+                                              "user_intent":  "全局响度检查",
+                                              "render_binding_count":  0,
+                                              "reference_track_gap":  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补",
+                                              "limitations":  [
+                                                                  "全局 stereo_relation 缺席（依赖声学证据，缺失原样保留不升级）",
+                                                                  "当前无 render→delivery 绑定（render_profile_bind 写端不在本只读 pack，绑定面如实为空）",
+                                                                  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补"
+                                                              ]
+                                          },
+                          "observation_carrier":  "pre_master.observation.v0",
+                          "pending_action":  {
+                                                 "operation":  "track_gain_adjust",
+                                                 "track_id":  "1017",
+                                                 "clip_id":  "1021",
+                                                 "delta_db":  9.007504957261126,
+                                                 "metric":  "integrated_lufs",
+                                                 "measured":  -32.507504957261126,
+                                                 "threshold":  -23.5,
+                                                 "basis":  "近似口径：clip 1021 的 integrated_lufs -32.5 超出阈值 -23.5（-9.0 dB），建议先把所在轨道推高 9.0 dB（待确认后执行，非合规承诺）"
+                                             },
+                          "read_only":  true,
+                          "schema":  "d1d3.premaster.observation.v0",
+                          "session_id":  "cap_v1_d1d3_conv_d1_settle_20261107_011211_1"
+                      },
+    "interaction_requests":  [
+                                 {
+                                     "id":  "interaction_c4960c2a898ba3c0",
+                                     "kind":  "mix_tick_confirmation",
+                                     "source":  "vit_agent",
+                                     "workflow":  "mix_tick",
+                                     "stage":  "pending_confirmation",
+                                     "title":  "混音单步待确认",
+                                     "body":  "将 Track 1017 的电平调整 +9.01 dB，正在等待你确认；确认前不会修改工程。",
+                                     "status":  "waiting_for_user",
+                                     "conversation_id":  "conv_d1_settle_20261107_011211",
+                                     "goal_id":  "goal_a56ab2e8d1903c7f",
+                                     "run_id":  "run_22d3c22042e108ae",
+                                     "payload":  {
+                                                     "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                     "delta_db":  9.007504957261126,
+                                                     "display":  {
+                                                                     "body":  "将 Track 1017 的电平调整 +9.01 dB，正在等待你确认；确认前不会修改工程。",
+                                                                     "summary":  "将 Track 1017 的电平调整 +9.01 dB",
+                                                                     "title":  "混音单步待确认"
+                                                                 },
+                                                     "observation_id":  "obs_20261106T171721_b88a5b18ef6f",
+                                                     "operation":  "track_gain_adjust",
+                                                     "request_context":  {
+                                                                             "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                             "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                             "run_id":  "run_22d3c22042e108ae"
+                                                                         },
+                                                     "track_id":  "1017",
+                                                     "typed_event":  {
+                                                                         "event_type":  "PendingCandidate",
+                                                                         "schema_version":  "vit_agent_protocol.v0",
+                                                                         "source":  {
+                                                                                        "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                        "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                                        "legacy_kind":  "PendingMixTickCandidate",
+                                                                                        "legacy_schema":  "mix_tick.pending.v0",
+                                                                                        "metadata":  {
+                                                                                                         "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                         "mix_session_id":  "d1_settle_obs_20261106T171721_b88a5b18ef6f",
+                                                                                                         "target_scope":  "selected_track"
+                                                                                                     },
+                                                                                        "run_id":  "run_22d3c22042e108ae"
+                                                                                    },
+                                                                         "state":  {
+                                                                                       "action_kind":  "gain_balance",
+                                                                                       "candidate_action":  {
+                                                                                                                "action_kind":  "gain_balance",
+                                                                                                                "confidence":  "medium",
+                                                                                                                "delta_db":  9.007504957261126,
+                                                                                                                "evidence":  {
+                                                                                                                                 "breach_delta_db":  -9.007504957261126,
+                                                                                                                                 "capability_id":  "pre_master.loudness_settle.v0",
+                                                                                                                                 "clip_id":  "1021",
+                                                                                                                                 "config_basis":  "工程 loudness watch 配置（builtin:ebu_r128）",
+                                                                                                                                 "measured":  -32.507504957261126,
+                                                                                                                                 "metric":  "integrated_lufs",
+                                                                                                                                 "source":  "d1_loudness_settle",
+                                                                                                                                 "threshold":  -23.5,
+                                                                                                                                 "verdict_kind":  "breach",
+                                                                                                                                 "verdict_summary":  "近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 16 处越界（近似级）。"
+                                                                                                                             },
+                                                                                                                "evidence_refs":  [
+                                                                                                                                      "obs_20261106T171721_b88a5b18ef6f"
+                                                                                                                                  ],
+                                                                                                                "observation_id":  "obs_20261106T171721_b88a5b18ef6f",
+                                                                                                                "operation":  "track_gain_adjust",
+                                                                                                                "processor_type":  "utility",
+                                                                                                                "track_id":  "1017"
+                                                                                                            },
+                                                                                       "candidate_type":  "mix_tick",
+                                                                                       "confidence":  "medium",
+                                                                                       "domain":  "mix",
+                                                                                       "evidence_refs":  [
+                                                                                                             "obs_20261106T171721_b88a5b18ef6f"
+                                                                                                         ],
+                                                                                       "id":  "pending_mix_tick_conv_d1_settle_20261107_011211_goal_a56ab2e8d1903c7f_track_gain_adjust_1017_obs_20261106T171721_b88a5b18ef6f",
+                                                                                       "kind":  "PendingCandidate",
+                                                                                       "processor_type":  "utility",
+                                                                                       "rationale":  "d1_loudness_settle",
+                                                                                       "required_permission_domains":  [
+                                                                                                                           "mix.commit"
+                                                                                                                       ],
+                                                                                       "risk":  "undoable_commit",
+                                                                                       "source":  {
+                                                                                                      "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                      "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                                                      "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                      "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                      "metadata":  {
+                                                                                                                       "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                                       "mix_session_id":  "d1_settle_obs_20261106T171721_b88a5b18ef6f",
+                                                                                                                       "target_scope":  "selected_track"
+                                                                                                                   },
+                                                                                                      "run_id":  "run_22d3c22042e108ae"
+                                                                                                  },
+                                                                                       "status":  "waiting_user",
+                                                                                       "summary":  "将 Track 1017 的电平调整 +9.01 dB。",
+                                                                                       "target_ref":  "track:1017"
+                                                                                   },
+                                                                         "state_id":  "pending_mix_tick_conv_d1_settle_20261107_011211_goal_a56ab2e8d1903c7f_track_gain_adjust_1017_obs_20261106T171721_b88a5b18ef6f",
+                                                                         "state_kind":  "PendingCandidate",
+                                                                         "status":  "waiting_user"
+                                                                     },
+                                                     "typed_state":  {
+                                                                         "action_kind":  "gain_balance",
+                                                                         "candidate_action":  {
+                                                                                                  "action_kind":  "gain_balance",
+                                                                                                  "confidence":  "medium",
+                                                                                                  "delta_db":  9.007504957261126,
+                                                                                                  "evidence":  {
+                                                                                                                   "breach_delta_db":  -9.007504957261126,
+                                                                                                                   "capability_id":  "pre_master.loudness_settle.v0",
+                                                                                                                   "clip_id":  "1021",
+                                                                                                                   "config_basis":  "工程 loudness watch 配置（builtin:ebu_r128）",
+                                                                                                                   "measured":  -32.507504957261126,
+                                                                                                                   "metric":  "integrated_lufs",
+                                                                                                                   "source":  "d1_loudness_settle",
+                                                                                                                   "threshold":  -23.5,
+                                                                                                                   "verdict_kind":  "breach",
+                                                                                                                   "verdict_summary":  "近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 16 处越界（近似级）。"
+                                                                                                               },
+                                                                                                  "evidence_refs":  [
+                                                                                                                        "obs_20261106T171721_b88a5b18ef6f"
+                                                                                                                    ],
+                                                                                                  "observation_id":  "obs_20261106T171721_b88a5b18ef6f",
+                                                                                                  "operation":  "track_gain_adjust",
+                                                                                                  "processor_type":  "utility",
+                                                                                                  "track_id":  "1017"
+                                                                                              },
+                                                                         "candidate_type":  "mix_tick",
+                                                                         "confidence":  "medium",
+                                                                         "domain":  "mix",
+                                                                         "evidence_refs":  [
+                                                                                               "obs_20261106T171721_b88a5b18ef6f"
+                                                                                           ],
+                                                                         "id":  "pending_mix_tick_conv_d1_settle_20261107_011211_goal_a56ab2e8d1903c7f_track_gain_adjust_1017_obs_20261106T171721_b88a5b18ef6f",
+                                                                         "kind":  "PendingCandidate",
+                                                                         "processor_type":  "utility",
+                                                                         "rationale":  "d1_loudness_settle",
+                                                                         "required_permission_domains":  [
+                                                                                                             "mix.commit"
+                                                                                                         ],
+                                                                         "risk":  "undoable_commit",
+                                                                         "source":  {
+                                                                                        "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                        "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                                        "legacy_kind":  "PendingMixTickCandidate",
+                                                                                        "legacy_schema":  "mix_tick.pending.v0",
+                                                                                        "metadata":  {
+                                                                                                         "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                         "mix_session_id":  "d1_settle_obs_20261106T171721_b88a5b18ef6f",
+                                                                                                         "target_scope":  "selected_track"
+                                                                                                     },
+                                                                                        "run_id":  "run_22d3c22042e108ae"
+                                                                                    },
+                                                                         "status":  "waiting_user",
+                                                                         "summary":  "将 Track 1017 的电平调整 +9.01 dB。",
+                                                                         "target_ref":  "track:1017"
+                                                                     }
+                                                 },
+                                     "actions":  [
+                                                     {
+                                                         "id":  "approve",
+                                                         "label":  "确认执行",
+                                                         "style":  "primary",
+                                                         "recommended":  true
+                                                     },
+                                                     {
+                                                         "id":  "cancel",
+                                                         "label":  "取消",
+                                                         "style":  "secondary"
+                                                     }
+                                                 ],
+                                     "type":  "mix_tick_confirmation",
+                                     "data":  {
+                                                  "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                  "delta_db":  9.007504957261126,
+                                                  "display":  {
+                                                                  "body":  "将 Track 1017 的电平调整 +9.01 dB，正在等待你确认；确认前不会修改工程。",
+                                                                  "summary":  "将 Track 1017 的电平调整 +9.01 dB",
+                                                                  "title":  "混音单步待确认"
+                                                              },
+                                                  "observation_id":  "obs_20261106T171721_b88a5b18ef6f",
+                                                  "operation":  "track_gain_adjust",
+                                                  "request_context":  {
+                                                                          "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                          "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                          "run_id":  "run_22d3c22042e108ae"
+                                                                      },
+                                                  "track_id":  "1017",
+                                                  "typed_event":  {
+                                                                      "event_type":  "PendingCandidate",
+                                                                      "schema_version":  "vit_agent_protocol.v0",
+                                                                      "source":  {
+                                                                                     "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                     "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                                     "legacy_kind":  "PendingMixTickCandidate",
+                                                                                     "legacy_schema":  "mix_tick.pending.v0",
+                                                                                     "metadata":  {
+                                                                                                      "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                      "mix_session_id":  "d1_settle_obs_20261106T171721_b88a5b18ef6f",
+                                                                                                      "target_scope":  "selected_track"
+                                                                                                  },
+                                                                                     "run_id":  "run_22d3c22042e108ae"
+                                                                                 },
+                                                                      "state":  {
+                                                                                    "action_kind":  "gain_balance",
+                                                                                    "candidate_action":  {
+                                                                                                             "action_kind":  "gain_balance",
+                                                                                                             "confidence":  "medium",
+                                                                                                             "delta_db":  9.007504957261126,
+                                                                                                             "evidence":  {
+                                                                                                                              "breach_delta_db":  -9.007504957261126,
+                                                                                                                              "capability_id":  "pre_master.loudness_settle.v0",
+                                                                                                                              "clip_id":  "1021",
+                                                                                                                              "config_basis":  "工程 loudness watch 配置（builtin:ebu_r128）",
+                                                                                                                              "measured":  -32.507504957261126,
+                                                                                                                              "metric":  "integrated_lufs",
+                                                                                                                              "source":  "d1_loudness_settle",
+                                                                                                                              "threshold":  -23.5,
+                                                                                                                              "verdict_kind":  "breach",
+                                                                                                                              "verdict_summary":  "近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 16 处越界（近似级）。"
+                                                                                                                          },
+                                                                                                             "evidence_refs":  [
+                                                                                                                                   "obs_20261106T171721_b88a5b18ef6f"
+                                                                                                                               ],
+                                                                                                             "observation_id":  "obs_20261106T171721_b88a5b18ef6f",
+                                                                                                             "operation":  "track_gain_adjust",
+                                                                                                             "processor_type":  "utility",
+                                                                                                             "track_id":  "1017"
+                                                                                                         },
+                                                                                    "candidate_type":  "mix_tick",
+                                                                                    "confidence":  "medium",
+                                                                                    "domain":  "mix",
+                                                                                    "evidence_refs":  [
+                                                                                                          "obs_20261106T171721_b88a5b18ef6f"
+                                                                                                      ],
+                                                                                    "id":  "pending_mix_tick_conv_d1_settle_20261107_011211_goal_a56ab2e8d1903c7f_track_gain_adjust_1017_obs_20261106T171721_b88a5b18ef6f",
+                                                                                    "kind":  "PendingCandidate",
+                                                                                    "processor_type":  "utility",
+                                                                                    "rationale":  "d1_loudness_settle",
+                                                                                    "required_permission_domains":  [
+                                                                                                                        "mix.commit"
+                                                                                                                    ],
+                                                                                    "risk":  "undoable_commit",
+                                                                                    "source":  {
+                                                                                                   "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                   "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                                                   "legacy_kind":  "PendingMixTickCandidate",
+                                                                                                   "legacy_schema":  "mix_tick.pending.v0",
+                                                                                                   "metadata":  {
+                                                                                                                    "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                                    "mix_session_id":  "d1_settle_obs_20261106T171721_b88a5b18ef6f",
+                                                                                                                    "target_scope":  "selected_track"
+                                                                                                                },
+                                                                                                   "run_id":  "run_22d3c22042e108ae"
+                                                                                               },
+                                                                                    "status":  "waiting_user",
+                                                                                    "summary":  "将 Track 1017 的电平调整 +9.01 dB。",
+                                                                                    "target_ref":  "track:1017"
+                                                                                },
+                                                                      "state_id":  "pending_mix_tick_conv_d1_settle_20261107_011211_goal_a56ab2e8d1903c7f_track_gain_adjust_1017_obs_20261106T171721_b88a5b18ef6f",
+                                                                      "state_kind":  "PendingCandidate",
+                                                                      "status":  "waiting_user"
+                                                                  },
+                                                  "typed_state":  {
+                                                                      "action_kind":  "gain_balance",
+                                                                      "candidate_action":  {
+                                                                                               "action_kind":  "gain_balance",
+                                                                                               "confidence":  "medium",
+                                                                                               "delta_db":  9.007504957261126,
+                                                                                               "evidence":  {
+                                                                                                                "breach_delta_db":  -9.007504957261126,
+                                                                                                                "capability_id":  "pre_master.loudness_settle.v0",
+                                                                                                                "clip_id":  "1021",
+                                                                                                                "config_basis":  "工程 loudness watch 配置（builtin:ebu_r128）",
+                                                                                                                "measured":  -32.507504957261126,
+                                                                                                                "metric":  "integrated_lufs",
+                                                                                                                "source":  "d1_loudness_settle",
+                                                                                                                "threshold":  -23.5,
+                                                                                                                "verdict_kind":  "breach",
+                                                                                                                "verdict_summary":  "近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 16 处越界（近似级）。"
+                                                                                                            },
+                                                                                               "evidence_refs":  [
+                                                                                                                     "obs_20261106T171721_b88a5b18ef6f"
+                                                                                                                 ],
+                                                                                               "observation_id":  "obs_20261106T171721_b88a5b18ef6f",
+                                                                                               "operation":  "track_gain_adjust",
+                                                                                               "processor_type":  "utility",
+                                                                                               "track_id":  "1017"
+                                                                                           },
+                                                                      "candidate_type":  "mix_tick",
+                                                                      "confidence":  "medium",
+                                                                      "domain":  "mix",
+                                                                      "evidence_refs":  [
+                                                                                            "obs_20261106T171721_b88a5b18ef6f"
+                                                                                        ],
+                                                                      "id":  "pending_mix_tick_conv_d1_settle_20261107_011211_goal_a56ab2e8d1903c7f_track_gain_adjust_1017_obs_20261106T171721_b88a5b18ef6f",
+                                                                      "kind":  "PendingCandidate",
+                                                                      "processor_type":  "utility",
+                                                                      "rationale":  "d1_loudness_settle",
+                                                                      "required_permission_domains":  [
+                                                                                                          "mix.commit"
+                                                                                                      ],
+                                                                      "risk":  "undoable_commit",
+                                                                      "source":  {
+                                                                                     "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                     "goal_id":  "goal_a56ab2e8d1903c7f",
+                                                                                     "legacy_kind":  "PendingMixTickCandidate",
+                                                                                     "legacy_schema":  "mix_tick.pending.v0",
+                                                                                     "metadata":  {
+                                                                                                      "conversation_id":  "conv_d1_settle_20261107_011211",
+                                                                                                      "mix_session_id":  "d1_settle_obs_20261106T171721_b88a5b18ef6f",
+                                                                                                      "target_scope":  "selected_track"
+                                                                                                  },
+                                                                                     "run_id":  "run_22d3c22042e108ae"
+                                                                                 },
+                                                                      "status":  "waiting_user",
+                                                                      "summary":  "将 Track 1017 的电平调整 +9.01 dB。",
+                                                                      "target_ref":  "track:1017"
+                                                                  }
+                                              }
+                                 }
+                             ],
+    "goal_status":  "completed",
+    "goal_summary":  "全局响度检查",
+    "stop_reason":  "d1_loudness_settled",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261106T171727_61e05dd2",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261106T171554_99f6d603"
+                                         },
+                            "commit_count":  6,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "全局响度检查",
+                                                              "logical_message_id":  "n_20261106T171719_91d19f5c",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261106T171719_91d19f5c",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "D1 全局响度与峰值检查（loudness settle，schema d1d3.premaster.observation.v0）。\n全局观察（mix.observe digest）：峰值/响度域值缺席（缺失如实保留）。\n判断口径：工程 loudness watch 配置（builtin:ebu_r128）。\n判断结果：近似口径（approximate）：integrated 为 RMS 偏移近似值（approximate_rms_lufs_v1，未加 K 加权/门控），非 BS.1770 认证口径；peak 为 sample 精度必要条件检查。peak 未见 breach（inter-sample 峰不可见，不构成 TP 合规判定）。检出 16 处越界（近似级）。\n修复建议（待确认，未改工程）：近似口径：clip 1021 的 integrated_lufs -32.5 超出阈值 -23.5（-9.0 dB），建议先把所在轨道推高 9.0 dB（待确认后执行，非合规承诺）。\n确认后我会通过 mix.propose_tick → mix.apply_tick 执行这一步；确认前不会修改工程。\n检查结果已记入 loudness watch verdict 记录；D1 节点状态可在队列视图查看。",
+                                                              "logical_message_id":  "n_20261106T171727_61e05dd2",
+                                                              "message_kind":  "proposal",
+                                                              "node_id":  "n_20261106T171727_61e05dd2",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261106T171554_99f6d603",
+                            "initialized":  true,
+                            "project_label":  "spv1_p01",
+                            "project_path":  "D:\\Vit_DAW_wt_266impl\\artifacts\\free_state_d1_s1\\20261107_011211\\project\\spv1_p01.vit",
+                            "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261106T171554_99f6d603"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261106T171554_99f6d603",
+                                                  "created_at":  "2026-11-06T17:17:27.378131Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261106T171554_99f6d603",
+                                                  "path":  "D:\\Vit_DAW_wt_266impl\\artifacts\\free_state_d1_s1\\20261107_011211\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_266impl\\artifacts\\free_state_d1_s1\\20261107_011211\\project\\spv1_p01.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_266impl\\artifacts\\free_state_d1_s1\\20261107_011211\\project\\spv1_p01.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_266impl\\artifacts\\free_state_d1_s1\\20261107_011211\\project\\spv1_p01.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "proposal",
+    "turn_id":  "run_22d3c22042e108ae",
+    "logical_message_id":  "n_20261106T171727_61e05dd2"
+}

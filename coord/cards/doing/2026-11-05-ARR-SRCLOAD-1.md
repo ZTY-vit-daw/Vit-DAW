@@ -51,7 +51,18 @@
 - **端测边界声明（AGENTS §5）**：本段零真栈——pack/披露改动仅单测+编译级验证；装载链真栈验证（chat 驱动装载→写 clip→渲染非静音）留段 2/3 烟测腿；既有九 pack 行为零变化由对照单测钉（九 pack 定义零 diff）+全包回归绿背书。
 - **段 2 就绪**：勘察结论交主管过目（recon.md §6 留题：VSTi 索引预检/装载双通道路由分流/plugingrabber 词表缺钢琴单独词[域外微补丁建议随段 2 处置]/渲染静音断言脚本面）；过目通过后段 2 开装载链烟测腿（真栈按 PC-RUNTIME-STACK.md 登记协议，当前栈被 269 verifyrun1 占用中）。
 
+### 段 2（装载链烟测腿，2026-11-07 01:58–02:01）——py exit 4=预写④装载链缺陷，取证上交待主管裁定
+
+- **单 run `20261107_015840`**：占栈协议全链（登记 `7b6469b0` 01:58 推 main+281 候栈让位注记→≤60s 复核 01:58:20→启栈→run→**TEARDOWN_ALL_ZERO 亲核 02:01:26**→释放登记随本笔）；kernel=wt_228 `F9E3DA0A…0D67A` 只读复用；agent=wt_277impl 现场构建 SHA256 `62F444B7…D28B3`；工件 `coord/runs/ARR-SRCLOAD-1/smokerun1/`（11 件）@ `port/arr-srcload-1` `88f41837`；计费 6 LLM 调用 ≈¥0.01-0.05（预算 ≈¥1-3 内）。
+- **§8 口径**：RUNBOOK 跑前成文（单 run 无重跑/预算/失败分类四列）；**分类④命中即停已兑现**——不重跑、零 Go 生产码改动。
+- **链路结果**：预检 **PASS**（994 插件 17 件 instrument：Grand Rhapsody Piano/Surge XT 等）；**段 1 注册链②真栈全实证**（arrangement pack 全文进 system prompt + rack_add_node/render.start 工具行在场=缺口 #6/#7 修复生效；模型正确走 search→semantic type=instrument 命中钢琴首件→组调 rack.add_node 含 zone_id）；**装载 FAIL @治理边界**：`pca_load_gate: missing non-forgeable exact selection authorization`（harness.go:2242 enforceAgentProcessorLoadGate；CAP-BOUNDARY-1 曾钉同一拒绝为正确行为）→ 模型诚实 needs_clarification 停泊；写 clip/渲染非静音未到达。
+- **根因（evidence.md）**：设计级缺口——agent-loop 能力轮披露面完整但**无授权桥**；不可伪造选择授权（semanticPluginSelectionAuthorization）只在工作流确认期（plugin_grabber_workflow.go:1044-1065 盖 Authorize*）/UI 浏览器选中/full-access 轮三条既有路径产生，本 run 消息路由进能力轮故无授权可盖。**非段 1 注册缺陷、非内核缺陷**。
+- **四处置选项交主管**（evidence.md）：A 编曲装载话术优先路由装载工作流；B 能力轮补确认期授权桥（search 唯一命中→pending plan→confirm 期盖授权，治理等价）；C 烟测驱动器供 UI 选中上下文（最小改但只验「选中后」形态）；D full-access 轮先拿装载→clip→渲染非静音出声实证（通路现成，授权面形态另案）。
+- **段 2 顺带交付**：已授权域外微补丁落地（plugingrabber 词表补钢琴/piano，`commands_test.go` 正负例钉）；烟测扩展 `scripts/arr_srcload_smoke.py`+`dev_agent_smoke.ps1 -ArrSrcLoadSmoke`（透传缝四处预声明）；prep commit `37598d75`。
+- **段 3 就绪度**：待主管对④裁定（A/B/C/D 择一或组合）后定——出声实证腿（装载→clip→渲染非静音）在 D 路径下可最快复用本驱动器（一次 full-access chat 改参即可）；B 路径则需新实现卡。
+
 ## 验收
 
 - （主管回填）
 - **段 1 验收（2026-11-07 凌晨，主管）：pass+段 2 留题四项过目全部通过**——勘察锚点全有效（停止条件未触发）+两条新缺口（#6 音源词遮蔽/#7 render.start 白名单）发现即修；择一决策（新增 arrangement pack 不扩 midi）理由充分追认；主管交叉复跑三层测试钉全绿。留题处置：①VSTi 索引预检=段 2 前置合理 ②双通道分流验证=段 2 烟测覆盖面 ③plugingrabber 词表缺钢琴词=**域外微补丁授权**（276 第四披露面同族一行级，段 2 顺带）④渲染静音断言=段 2 内设计。段 2（装载链烟测腿）排栈队列。
+- **段 2 验收+四选项裁定（2026-11-07 凌晨，主管）：pass（取证+实证）+D 先行+B 开卡 273**——段 1 注册链②真栈全实证（arrangement 轮+pack 进 prompt+缺口 #6/#7 修复实栈生效+模型正确 search→rAdd）；FAIL 环节=PCA 装载门治理边界正确拦截（能力轮披露面完整但无授权桥=设计级缝，与 261 G5 同族——模型诚实停泊未绕门）；**裁定**：①D 先行=复用驱动器 full-access 改参单 run 拿「装载→clip→渲染非静音」出声实证（物理链先证通）=段 3a ②B 开卡 273（能力轮确认期授权桥——装载工作流同款治理等价）=治本收口 ③A（话术优先路由装载工作流）触判断权域挂 PD 备选 ④C 弃（只验选中后形态）。域外微补丁（钢琴词）已按授权落地追认。

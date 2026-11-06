@@ -1,0 +1,56 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_013015\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_266impl
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=33056 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=33056
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_266impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=33056
+ok: ZMQ SUB listening: 5556 pid=33056
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 PASS: report=D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_013013\d1_smoke_report.json
+
+== Phase D3-REF-ALIGN: reference-alignment gates ==
+[d3-ref] face P: bare-phrase semantic-entry probe (LLM)
+   [ok] bare phrase passed semantic_entry (stop_reason=limit_reached, route=, conf=) — no-vocabulary entry baseline holds (263 lesson)
+[d3-ref] gate A: explicit check chat turn
+   [ok] stop_reason=d3_ref_align_checked
+   [ok] d3_ref_align payload: verdict=aligned (fixture-dependent, unasserted), action_face=none_needed, profile=builtin:spotify (intent_named)
+   [ok] ref-align check turn performed no project mutation
+[d3-ref] gate B: d3_ref_align verdict record on disk
+   [ok] verdict store carries a d3_ref_align trigger record (candidates=1)
+[d3-ref] gate C: action face (verdict=aligned, action_face=none_needed)
+   [ok] none_needed outcome parks no card (honest disclosure, zero mutation); reason_present=True
+[d3-ref] gate D: mix.report queue view D3 node state
+   [ok] D3 node state=in_progress
+[d3-ref] PASS: probe recorded + check turn + verdict on disk + honest action face + D3 node lit; gates=D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_013013\d3_gates.json
+D1-S1 PASS: real-stack public-only smoke completed; report=D:\Vit_DAW_wt_266impl\artifacts\free_state_d1_s1\20261107_013013\d1_smoke_report.json
