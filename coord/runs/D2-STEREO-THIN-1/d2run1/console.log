@@ -1,0 +1,55 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261106_194408\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_265impl
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=21916 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=21916
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_265impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=21916
+ok: ZMQ SUB listening: 5556 pid=21916
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 PASS: report=D:\Vit_DAW_wt_265impl\artifacts\free_state_d1_s1\20261106_194406\d1_smoke_report.json
+
+== Phase D2-STEREO: stereo/mono translation-check gates ==
+[d2-stereo] face P: bare-phrase semantic-entry probe (LLM)
+   [EVIDENCE] probe turn errored: probe_error: 在此对象上找不到属性“decision”。请确认该属性存在。
+[d2-stereo] gate A: explicit check chat turn
+   [ok] stop_reason=d2_stereo_checked
+   [ok] d2_stereo_check payload: verdict=unmeasurable (fixture-dependent, unasserted), action_face=disclosure_only_v1, stereo_face=missing
+   [ok] stereo check turn performed no project mutation
+[d2-stereo] gate B: d2_stereo_check verdict record on disk
+   [FAIL] D2-STEREO FAIL: no d2_stereo_check trigger record found in any stereo_check_verdicts.json under the project workdir
+[d2-stereo] gate C: action face (verdict=unmeasurable, v1 pinned no-card)
+D:\Vit_DAW_wt_265impl\scripts\run_free_state_d1_smoke.ps1 : 在此对象上找不到属性“interaction_requests”。请确认该属性存在。
+    + CategoryInfo          : NotSpecified: (:) [run_free_state_d1_smoke.ps1], PropertyNotFoundException
+    + FullyQualifiedErrorId : PropertyNotFoundStrict,run_free_state_d1_smoke.ps1
+ 

@@ -1,0 +1,48 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261106_203641\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_265impl
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=43376 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=43376
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_265impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=295
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=43376
+ok: ZMQ SUB listening: 5556 pid=43376
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 FAIL: D1 durable continuation did not drain within the smoke timeout; report=D:\Vit_DAW_wt_265impl\artifacts\free_state_d1_s1\20261106_203639\d1_smoke_report.json
+D1-S1 smoke failed; report=D:\Vit_DAW_wt_265impl\artifacts\free_state_d1_s1\20261106_203639\d1_smoke_report.json
+ËùÔÚÎ»ÖÃ D:\Vit_DAW_wt_265impl\scripts\run_free_state_d1_smoke.ps1:641 ×Ö·û: 5
++     throw "D1-S1 smoke failed; report=$report"
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (D1-S1 smoke fai...oke_report.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : D1-S1 smoke failed; report=D:\Vit_DAW_wt_265impl\artifacts\free_state_d1_s1\20261106_203 
+   639\d1_smoke_report.json
+ 
