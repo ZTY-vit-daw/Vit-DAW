@@ -38,6 +38,7 @@ var directCommands = map[string]bool{
 	"get_wave_input_devices":                true,
 	"get_midi_clip_notes":                   true,
 	"get_midi_clip_data":                    true,
+	"analyze_midi_transformations":          true,
 	"get_plugin_parameters":                 true,
 	"plugin_grabber_explain_controls":       true,
 	"plugin_grabber_inspect_compressor":     true,

@@ -25,6 +25,7 @@ import (
 	"vit-daw-agent/internal/artifacts"
 	"vit-daw-agent/internal/browsercapture"
 	"vit-daw-agent/internal/com"
+	"vit-daw-agent/internal/edu"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/journal"
 	"vit-daw-agent/internal/kernel"
@@ -2813,6 +2814,19 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(result, err), true
 	case "mix_propose_tick":
 		result, err := h.proposeMixTick(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "analyze_midi_transformations":
+		// Agent-local 只读分析（EDU-SYMBOL-CORE-1）：计算在 internal/edu，
+		// 数据取自既有内核只读命令（get_project_state/get_midi_clip_data/
+		// get_midi_clip_notes），零内核改动。
+		send := func(ctx context.Context, kernelCmd map[string]any) (map[string]any, error) {
+			if h.kernel == nil {
+				return nil, fmt.Errorf("analyze_midi_transformations requires a connected kernel")
+			}
+			reply, _, err := h.kernel.SendCommand(ctx, kernelCmd)
+			return reply, err
+		}
+		result, err := edu.AnalyzeTransformationsCommand(ctx, send, cmd)
 		return resultWithErr(result, err), true
 	case "mix_apply_tick":
 		result, err := h.applyMixTick(ctx, cmd)

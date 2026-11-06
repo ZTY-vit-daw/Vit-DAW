@@ -476,6 +476,41 @@ func TestCoreMutationToolsExposeBindingMetadata(t *testing.T) {
 	}
 }
 
+// EDU-SYMBOL-CORE-1 段2：agent-local 只读符号分析命令注册核对
+// （catalog spec 行 + argHint 披露 + midi capability pack Tools 三处）。
+func TestAnalyzeMidiTransformationsIsCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	analyze, ok := catalog.LookupTool("midi.analyze_transformations")
+	if !ok {
+		t.Fatal("midi.analyze_transformations missing")
+	}
+	if analyze.CommandName != "analyze_midi_transformations" || analyze.MutatesProject || analyze.RequiresConfirmation || analyze.RiskLevel != RiskDirect {
+		t.Fatalf("analyze metadata = %+v", analyze)
+	}
+	if analyze.Category != "midi" {
+		t.Fatalf("analyze category = %q, want midi", analyze.Category)
+	}
+	hint := argHint("analyze_midi_transformations")
+	for _, want := range []string{"clip_id:string", "range_beats", "transformations", "min_match_notes", "key:"} {
+		if !strings.Contains(hint, want) {
+			t.Fatalf("analyze arg hint missing %q in %q", want, hint)
+		}
+	}
+	packs := catalog.CapabilityPacks([]string{"midi"})
+	if len(packs) != 1 || packs[0].Name != "midi" {
+		t.Fatalf("midi capability pack missing: %+v", packs)
+	}
+	found := false
+	for _, tool := range packs[0].Tools {
+		if tool == "midi.analyze_transformations" {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("midi.analyze_transformations missing from midi pack Tools")
+	}
+}
+
 func TestMixTickToolsAreAgentLayerCataloged(t *testing.T) {
 	catalog := DefaultCatalog()
 	propose, ok := catalog.LookupTool("mix.propose_tick")
