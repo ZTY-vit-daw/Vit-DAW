@@ -1,0 +1,16 @@
+﻿{
+    "stop_reason":  "d1_loudness_settled",
+    "goal_status":  "completed",
+    "needs_confirmation":  false,
+    "workflow_data":  {
+                          "observation":  {
+                                              "loudness_peak_status":  "present"
+                                          },
+                          "d1_settle":  {
+                                            "checked":  true,
+                                            "config_basis":  "内置流媒体目标（ebu_r128，watch 未配置，一次性判断不写配置面）",
+                                            "verdict":  "pass"
+                                        },
+                          "mutation_performed":  "False"
+                      }
+}

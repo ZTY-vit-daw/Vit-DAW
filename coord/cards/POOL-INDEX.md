@@ -19,10 +19,11 @@
 | 264 | B4-ABLATION-1 | done 已验收（**A 态确认**） |
 | 265 | D2-STEREO-THIN-1 | done 条件 pass（exit 0 补跑腿挂今夜非高峰） |
 | 266 | D3-REF-ALIGN-THIN-1 | 待领（勘察毕；PD-2 裁定 B 待用户确认） |
-| 267 | MSGLOOP-FEEDBACK-LOSS-1 | 新卡（262 域外①），自主批次在派 |
+| 267 | MSGLOOP-FEEDBACK-LOSS-1 | **done 取证型 pass**（前提推翻+重定性；累积弹回史挂 262 验证腿读数） |
 | 268 | D1GATE-SCRIPT-HYGIENE-1 | 新卡（265 域外②），自主批次在派 |
-| 276 | EDU-SYMBOL-CORE-1 | doing（段 1 pass；段 2=自主批次在派） |
-| 239 | M3-LLM-TIMEOUT-ADAPT-1 | 可领（P2 排后小卡） |
+| 276 | EDU-SYMBOL-CORE-1 | doing（段 1+2 pass；段 3 真栈烟测=栈腿串行第三） |
+| 279 | EDU-LEVEL-CONTENT-1 | doing（**先行稿轮 pass**；定稿待 PD-1+276 终验） |
+| 239 | M3-LLM-TIMEOUT-ADAPT-1 | done 已验收 pass |
 
 ### 未成卡 backlog
 

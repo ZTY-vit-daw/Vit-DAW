@@ -655,7 +655,14 @@ if ($runnerExit -ne 0) {
 # silent skip).
 $d1ValidationBranch = ""
 try {
-    $d1ReportRaw = Get-Content -LiteralPath $report -Raw
+    # -Encoding UTF8 is load-bearing (same family as the 265 D2 gate B
+    # lesson): the python runner writes this report BOM-less UTF-8 with
+    # ensure_ascii=False (Chinese reply/notes ride along); the ANSI-default
+    # read mangles multi-byte sequences, ConvertFrom-Json throws, and the
+    # swallowed error resets the branch to "" — routing a legal zero-mutation
+    # run into the full-gate path where the settle gates can only fail
+    # structurally (268 constructed-verification leg evidence).
+    $d1ReportRaw = Get-Content -LiteralPath $report -Raw -Encoding UTF8
     if (-not [string]::IsNullOrWhiteSpace($d1ReportRaw)) {
         $d1ValidationBranch = [string](Get-D1JsonProperty -Object (Get-D1JsonProperty -Object ($d1ReportRaw | ConvertFrom-Json) -Name "validation") -Name "branch")
     }
@@ -1108,7 +1115,12 @@ if ($D1LoudnessSettle -and -not $zeroMutationBranch) {
         $settleStoreCandidates = @(Get-ChildItem -LiteralPath (Join-Path $artifactDir "project") -Filter "loudness_watch_verdicts.json" -File -Recurse -ErrorAction SilentlyContinue)
         if ($settleStoreCandidates.Count -gt 0) {
             $settleReport.verdict_store_path = $settleStoreCandidates[0].FullName
-            $settleStoreJson = Get-Content -LiteralPath $settleReport.verdict_store_path -Raw | ConvertFrom-Json
+            # -Encoding UTF8 is load-bearing: the Go-written store is BOM-less
+            # UTF-8 with Chinese summary text; the ANSI-default read mangles
+            # multi-byte sequences and ConvertFrom-Json throws, which the
+            # catch below silently folds into "no d1_settle record" (265 D2
+            # gate B lesson, same root cause on this gate family).
+            $settleStoreJson = Get-Content -LiteralPath $settleReport.verdict_store_path -Raw -Encoding UTF8 | ConvertFrom-Json
             Copy-Item -LiteralPath $settleReport.verdict_store_path -Destination (Join-Path $artifactDir "d1_settle_verdict_store.json") -Force
             foreach ($record in @($settleStoreJson.verdicts)) {
                 if ([string]$record.trigger_kind -eq "d1_settle") {
@@ -1128,19 +1140,62 @@ if ($D1LoudnessSettle -and -not $zeroMutationBranch) {
     }
 
     # Gate C: action-face honesty, branched by the actual verdict kind.
+    # Reading face (265 D2 gate C pattern + 262 L3 anchor): the parked card is
+    # read through guarded properties — a no-card response may omit
+    # needs_confirmation/interaction_requests entirely (StrictMode throws on
+    # missing properties, and the `or` short-circuit order decides whether the
+    # right operand evaluates) — and when the response face is silent the
+    # durable confirmation surface is authoritative: goal_status can read
+    # completed while the answerable mix_tick park lives only in
+    # /agent/runtime/status continuations[].pending_interaction (262 L3:
+    # a settle that reads only the goal/status face loses the confirmation
+    # face). Assertion semantics unchanged: a breach must park a governed
+    # mix_tick_confirmation card, a non-breach must park nothing.
     Write-Host ("[d1-settle] gate C: action face (verdict=" + $settleReport.verdict_kind + ")")
-    if ($settleReport.verdict_kind -eq "breach") {
-        $cardSeen = $false
-        if ($settleResp.needs_confirmation -eq $true -and $null -ne $settleResp.interaction_requests) {
-            foreach ($request in @($settleResp.interaction_requests)) {
-                if ([string]$request.kind -eq "mix_tick_confirmation") { $cardSeen = $true; $settleReport.action_card_kind = "mix_tick_confirmation" }
+    $settleNeedsConfirmation = ($null -ne $settleResp.PSObject.Properties['needs_confirmation']) -and ($settleResp.PSObject.Properties['needs_confirmation'].Value -eq $true)
+    $settleInteractionRequests = $null
+    if ($null -ne $settleResp.PSObject.Properties['interaction_requests']) {
+        $settleInteractionRequests = $settleResp.PSObject.Properties['interaction_requests'].Value
+    }
+    $settleCardFace = ""
+    if (-not ($settleNeedsConfirmation -and ($null -ne $settleInteractionRequests))) {
+        # Durable-face walk (same shape as the run_mix_single_tick_e2e.ps1
+        # waiting_confirmation rebuild): the answerable park for THIS
+        # conversation in continuations[].pending_interaction.
+        try {
+            $settleStatusResp = Invoke-D1JsonGet -Uri ($AgentHttp.TrimEnd("/") + "/agent/runtime/status") -TimeoutSec 30
+            foreach ($continuationRow in @(Get-D1JsonProperty -Object $settleStatusResp -Name "continuations")) {
+                if ([string](Get-D1JsonProperty -Object $continuationRow -Name "conversation_id") -ne $settleConv) { continue }
+                $pendingInteraction = Get-D1JsonProperty -Object $continuationRow -Name "pending_interaction"
+                if ($null -eq $pendingInteraction) { continue }
+                if ([string](Get-D1JsonProperty -Object $pendingInteraction -Name "kind") -eq "mix_tick_confirmation") {
+                    $settleCardFace = "runtime_status_pending_interaction"
+                    break
+                }
             }
         }
+        catch { }
+    }
+    if ($settleReport.verdict_kind -eq "breach") {
+        $cardSeen = $false
+        if ($settleNeedsConfirmation -and ($null -ne $settleInteractionRequests)) {
+            foreach ($request in @($settleInteractionRequests)) {
+                if ([string]$request.kind -eq "mix_tick_confirmation") {
+                    $cardSeen = $true
+                    $settleCardFace = "chat_response_interaction_requests"
+                    $settleReport.action_card_kind = "mix_tick_confirmation"
+                }
+            }
+        }
+        if (-not $cardSeen -and $settleCardFace -eq "runtime_status_pending_interaction") {
+            $cardSeen = $true
+            $settleReport.action_card_kind = "mix_tick_confirmation"
+        }
         if ($cardSeen -and $settleReport.mutation_performed -eq "False") {
-            Write-Host "   [ok] breach parked a governed mix_tick_confirmation card with zero mutation" -ForegroundColor Green
+            Write-Host ("   [ok] breach parked a governed mix_tick_confirmation card (face=" + $settleCardFace + ") with zero mutation") -ForegroundColor Green
         }
         else {
-            $settleFailures.Add("D1-SETTLE FAIL: breach verdict must park a governed confirmation card with zero mutation (card=" + $cardSeen + ", mutation=" + $settleReport.mutation_performed + ")")
+            $settleFailures.Add("D1-SETTLE FAIL: breach verdict must park a governed confirmation card with zero mutation (card=" + $cardSeen + ", face=" + $settleCardFace + ", mutation=" + $settleReport.mutation_performed + ")")
             Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
         }
         # Cancel leg: retire the card through the same chat surface.
@@ -1161,20 +1216,23 @@ if ($D1LoudnessSettle -and -not $zeroMutationBranch) {
         }
     }
     else {
-        $noCard = ($settleResp.needs_confirmation -ne $true) -or ($null -eq $settleResp.interaction_requests)
+        $noCard = ((-not $settleNeedsConfirmation) -or ($null -eq $settleInteractionRequests)) -and ($settleCardFace -eq "")
         if ($noCard) {
             Write-Host "   [ok] non-breach verdict parked no action card" -ForegroundColor Green
         }
         else {
-            $settleFailures.Add("D1-SETTLE FAIL: non-breach verdict (" + $settleReport.verdict_kind + ") must not park an action card")
+            $settleFailures.Add("D1-SETTLE FAIL: non-breach verdict (" + $settleReport.verdict_kind + ") must not park an action card (needs_confirmation=" + $settleNeedsConfirmation + ", durable_face=" + $settleCardFace + ")")
             Write-Host ("   [FAIL] " + $settleFailures[$settleFailures.Count - 1]) -ForegroundColor Red
         }
     }
 
-    # Gate D: the D1 queue node left not_started.
-    Write-Host "[d1-settle] gate D: mix_queue_view D1 node state"
+    # Gate D: the D1 queue node left not_started. The queue view rides the
+    # mix.report catalog tool (M1-5 three-view: result.mix_workflow_queue) —
+    # there is no standalone mix_queue_view invoke tool (265 D2 gate D lesson:
+    # the 254-era guessed name returned unknown tool).
+    Write-Host "[d1-settle] gate D: mix.report queue view D1 node state"
     $queueResp = Invoke-D1ToolJson -Uri $settleInvokeUri -Body @{
-        tool      = "mix_queue_view"
+        tool      = "mix.report"
         args      = @{}
         confirmed = $true
         source    = "free_state_d1_smoke"
@@ -1182,7 +1240,12 @@ if ($D1LoudnessSettle -and -not $zeroMutationBranch) {
     $settleQueuePath = Join-Path $artifactDir "d1_settle_queue_view.json"
     Save-D1JsonEvidence -Object $queueResp -Path $settleQueuePath
     $queueNodes = $null
-    if ($null -ne $queueResp.result) { $queueNodes = $queueResp.result.view.nodes }
+    if ($null -ne $queueResp.PSObject.Properties['result'] -and $null -ne $queueResp.result) {
+        $queueMap = $queueResp.result
+        if ($null -ne $queueMap.PSObject.Properties['mix_workflow_queue'] -and $null -ne $queueMap.mix_workflow_queue) {
+            $queueNodes = $queueMap.mix_workflow_queue.nodes
+        }
+    }
     if ($null -ne $queueNodes) {
         foreach ($node in @($queueNodes)) {
             if ([string]$node.node_id -eq "D1") { $settleReport.d1_node_state = [string]$node.state }
