@@ -32,4 +32,5 @@
   - **配对单测**：新增 free_state_admission_refusal_park_test.go 7 例（同 revision 早期引用过=262 形态/跨 revision 陈旧仍拒/G7 新鲜度不削四态：异目标同 rev、stale class、无 revision、不可解析/最新引用仍过/拒绝产 park 非终局/park 确认卡 full-access 下仍挂+interaction 落库/后续成功准入清 latch）+既有 1 例断言口径更新（TestD1S1AdmissionRequiresTargetObservationID：拒绝语义保留，错误文案随②变化）；
   - **回归**：go build ./... exit 0；go test ./internal/agentloop -count=1 **ok**（4.7s）；go test ./internal/chat -count=1 **ok**（137.4s）——258 断言面（agentloop G7/disclosure+chat Revalidate 族）零回退，256 断言面=scripts 面（零栈未触）；
   - 验证腿就绪：待主管栈调度 mix_single_tick 单 run（§8 口径沿用 262 RUNBOOK；预期 observe turn 直停确认面——262 形态经②直接准入，残余拒绝经①出确认卡而非终局 done）。
-- 验收：（主管回填）
+- **实现腿验收（2026-11-07 凌晨，主管）：pass（轻验，终验待验证腿）**——②放宽实现=「任一 cited ref 解析到同目标且同 revision」resolution+新鲜度两族镜像 G7 既有判据零新造（设计正确）；①park 化选**挂确认面不回喂**（理由充分：回喂耗预算+与 262 预期终态矛盾+park 族先例同族）；**G7 门本体 free_state_gate.go 相对领取基线 0 行 diff 主管亲证**；7 例配对单测+agentloop/chat 全绿+258 断言面零回退；主管交叉复跑 agentloop ok。验证腿进栈队列（276 段 3b 后）。
+- （终验：验证腿单 run 后回填）
