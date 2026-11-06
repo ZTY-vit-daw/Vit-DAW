@@ -26,5 +26,10 @@
 ## 领取/回执/验收
 
 - 领取（实现腿）：2026-11-07T00:11+08:00 / origin/main=f7204a25 / owner=GLM 主会话 L2-worker 子代理（PC，ZCode） / 分支=port/expadmit-evidence-rule-1（worktree=D:\Vit_DAW_wt_269impl，基线=f7204a25，领取时 status 净空、diff --stat 空） / 领取提交=本提交（仅含本卡状态，fast-forward → main）
-- 回执（实现腿）：（待回填）
+- 回执（实现腿，2026-11-07T00:30+08:00，GLM 主会话 L2-worker 子代理，wt_269impl）：**完成，停止条件未触发**（拒绝终局化无在案有意设计裁定——方案乙 park 族先例 FIX-F3-G4-SEMANTICS 即同型收口）。impl commit=914e5c48（分支 port/expadmit-evidence-rule-1 已推，基线 f7204a25）。要点：
+  - **②门校验放宽**：`validateD1FreshObservedTarget` 引用绑定从「必含 LatestObservation ID」放宽为「任一 cited ref 经台账行（receipts+available_views，G7 同源 resolution 族=observation_id/receipt_id/行 evidence_refs，镜像 refMatchesLedgerRow）解析到**同目标且与已验证最新观察同 revision** 的行」；新鲜度判据零新造（新 helper freeStateLedgerRowFreshAtRevision 镜像 G7 freeStateReceiptFreshRevisionBound：非 fresh class 拒、revision 相等才过、无 revision fail-closed）；**free_state_gate.go 零改动（git diff 亲核=0 行）**；
+  - **①拒绝路径 park 化（选挂确认面）**：1684-1693 拒绝分支不再改写 blocked 终局——拒绝如实落 AdmissionReceipt（boundary=free_state_experiment_admission_invalid，较旧路径多记一笔——旧路径把 1427 的 receipt 留在原样）+LastError；决策保持 needs_experiment 形、loop 保持 awaiting_experiment，粘附 TerminalAdjudication（free_state_terminal_adjudication.v1，failed_gate_ids=[D1_experiment_admission_refused] 内容自由标记）→ improvementProposalResponse 出确认卡（full-access 也不自动授权，方案乙族同款）；后续成功准入清 stale latch；turn_close_guard 孤儿收口保留最后兜底（确认卡在=活 owner 不触发）。**选型理由**：回喂需重驱动 LLM 轮次+再循环风险，且 262 验证腿预期「直停确认面」；挂确认面确定性、零额外计费、与 terminalAdjudicationParking 先例完全同族，且是文件域内唯一不需改 improvement_proposal_workflow.go 的路径（确认面/防全访问绕过/披露挂载全部复用既有读取）；
+  - **配对单测**：新增 free_state_admission_refusal_park_test.go 7 例（同 revision 早期引用过=262 形态/跨 revision 陈旧仍拒/G7 新鲜度不削四态：异目标同 rev、stale class、无 revision、不可解析/最新引用仍过/拒绝产 park 非终局/park 确认卡 full-access 下仍挂+interaction 落库/后续成功准入清 latch）+既有 1 例断言口径更新（TestD1S1AdmissionRequiresTargetObservationID：拒绝语义保留，错误文案随②变化）；
+  - **回归**：go build ./... exit 0；go test ./internal/agentloop -count=1 **ok**（4.7s）；go test ./internal/chat -count=1 **ok**（137.4s）——258 断言面（agentloop G7/disclosure+chat Revalidate 族）零回退，256 断言面=scripts 面（零栈未触）；
+  - 验证腿就绪：待主管栈调度 mix_single_tick 单 run（§8 口径沿用 262 RUNBOOK；预期 observe turn 直停确认面——262 形态经②直接准入，残余拒绝经①出确认卡而非终局 done）。
 - 验收：（主管回填）
