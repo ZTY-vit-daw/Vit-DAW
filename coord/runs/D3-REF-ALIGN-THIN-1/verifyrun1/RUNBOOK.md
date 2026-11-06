@@ -35,3 +35,12 @@ powershell -NoProfile -ExecutionPolicy Bypass -File D:\Vit_DAW_wt_266impl\script
 ## 纪律
 
 - 零代码改动（发现必须改=停止上交）；§10 防污染（fixture 只读经 -PublicManifest 引用，工件全部落脚本自建 artifactDir）；占用/释放按 PROTOCOL §2.2（登记推送成功→≤60s 即时复核→启栈；收口 TEARDOWN_ALL_ZERO 亲核+释放登记推 main）。
+
+## verifyrun2 重跑节（§8 追加，2026-11-07 01:3x 跑前成文）
+
+- **重派授权依据**：主管验证腿裁定（卡面 doing/ 权威本，main 30c3cd02）——原 run 失败在已收口 D1-settle 门组且本卡门组未及执行，**不算断言失败重跑**；授权**单门组变量收窄**。
+- **命令（单开关，其余参数同 verifyrun1）**：`run_free_state_d1_smoke.ps1 -RepoRoot wt_266impl -PublicManifest（同上）-KernelExe wt_228 -SkipBuild -D3RefAlign`——不加 -LoudnessWatch/-D1LoudnessSettle/-D2StereoCheck（四开关叠加=上轮归因候选①，本轮收窄排除）。
+- **单 run 无重跑**（本次为第二次也是最后一次授权 run，主管明示不再授权第三次）；预算沿用 **≈¥1-3**（D3 face P 1 腿 LLM+runner 主链 LLM 腿）。
+- 失败分类沿用①-④；②取证上交后**不再有第三次 run**。
+- 被测不变：port 分支 fc0790ef 工作树（agent 代码=49a85a25 态，agent 二进制 F4B5A215 复核未变；kernel wt_228 F9E3DA0A 复核未变）；引擎=本机默认无注入。
+- **挂账观察项（主管裁定：记录不追查）**：D1 观察面选择性缺失形态（kernel digest 无 peak/rms/crest 而 stereo 在场）是否再现——本轮单开关 run 的 D3 check turn 观察面若再现该形态，记录证据即可（工件+d1 观察 JSON），不定性不扩查。
