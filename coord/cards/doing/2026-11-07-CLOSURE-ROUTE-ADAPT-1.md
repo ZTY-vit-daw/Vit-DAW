@@ -46,3 +46,4 @@
 ### 验收（主管）
 
 - （主管回填）
+- **勘察腿验收+裁定（2026-11-07 凌晨，主管）：pass+案 B 先行**——根因链钉死（LLM 分类摇摆×capability_routing.go:308 无条件派 closure×ModeDiagnostic 1-turn clamp[38ecd24b 基线期冻结]）；**裁定**：①案 B 获准（诊断闭包轮承认 base 预算 5-turn 同源——依据=同语义双预算欠账+229 automation 轮 48/80 预算面先例+结构性判据零判断权触碰[mode/phase 字段，禁话术判断入预算]）②**测试意图修订授权**（TestAudioClosureBudgetDiagnosticRoundKeepsClamp 以 276 卷内证据=one-probe-one-verdict 假设被打破为依据改意图+注明修订依据，禁静默改期望值）③案 A（纯分析身份派 OrdinaryConversation）**挂 PD-3 用户裁定**（判断权归属域）④案 C 不做（B 超集+触 227 定案边界）⑤276 遗留 continuation=fixture 内状态无收口义务记录⑥276 evidence frontier 笔误以本卡勘误为权威修正。续跑腿=验证腿便车兜底。
