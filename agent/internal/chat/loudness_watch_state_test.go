@@ -29,6 +29,7 @@ func loudnessWatchConfigCopyForTest(config loudnesswatch.Config) *loudnesswatch.
 // at zero, and the persisted form must not gain the key (zero behavior change,
 // AGENTS.md §11).
 func TestLoudnessWatchAbsentFieldRestoresDisabled(t *testing.T) {
+	isolateUnboundMixboardRootForTest(t)
 	restarted := New(nil, nil, nil)
 	restarted.mu.Lock()
 	restarted.restoreProjectAgentRuntimeStateLocked(projectAgentRuntimeState{})
@@ -64,6 +65,7 @@ func TestLoudnessWatchAbsentFieldRestoresDisabled(t *testing.T) {
 // trip -> restore on a fresh server -> read back equal, including the custom
 // pointer thresholds.
 func TestLoudnessWatchConfigRoundTripThroughRestore(t *testing.T) {
+	isolateUnboundMixboardRootForTest(t)
 	server := New(nil, nil, nil)
 	resp := server.invokeLoudnessWatchConfigure(map[string]any{
 		"enabled":        true,
@@ -126,6 +128,7 @@ func TestLoudnessWatchInvalidRecordsDropAndCount(t *testing.T) {
 
 	for name, record := range map[string]loudnesswatch.Config{"bad_schema": badSchema, "bad_trigger": badTrigger, "unknown_builtin": unknownBuiltin} {
 		t.Run(name, func(t *testing.T) {
+			isolateUnboundMixboardRootForTest(t)
 			restarted := New(nil, nil, nil)
 			restarted.mu.Lock()
 			restarted.restoreProjectAgentRuntimeStateLocked(projectAgentRuntimeState{LoudnessWatchConfig: loudnessWatchConfigCopyForTest(record)})
@@ -159,6 +162,7 @@ func TestLoudnessWatchInvalidRecordsDropAndCount(t *testing.T) {
 // Test ⑥ (card acceptance list, chat half): realtime mode survives the round
 // trip and the status face discloses the honest unavailable reason.
 func TestLoudnessWatchRealtimeStatusDisclosure(t *testing.T) {
+	isolateUnboundMixboardRootForTest(t)
 	server := New(nil, nil, nil)
 	resp := server.invokeLoudnessWatchConfigure(map[string]any{
 		"enabled":        true,
@@ -201,6 +205,7 @@ func TestLoudnessWatchRealtimeStatusDisclosure(t *testing.T) {
 // Configure face: partial merge, fail-closed rejections, and the returned
 // effective config.
 func TestLoudnessWatchConfigureFace(t *testing.T) {
+	isolateUnboundMixboardRootForTest(t)
 	server := New(nil, nil, nil)
 	if resp := server.invokeLoudnessWatchConfigure(map[string]any{"enabled": true}); resp.Status != "error" {
 		t.Fatalf("enabled-only on an empty config has no profile source and must fail closed: %+v", resp)

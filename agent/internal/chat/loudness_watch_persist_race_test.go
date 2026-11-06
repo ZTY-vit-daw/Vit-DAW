@@ -89,6 +89,7 @@ func assertLoudnessWatchEnabledForTest(t *testing.T, s *Server, want bool, label
 // the continuation scheduler's durable-snapshot replay. The replay must not
 // resurrect the stale enabled=true, and the following persist must keep false.
 func TestLoudnessWatchExplicitOffSurvivesSchedulerDiskReplay(t *testing.T) {
+	isolateUnboundMixboardRootForTest(t)
 	s := newChatServerForTest(t, nil, nil, nil)
 	dir := t.TempDir()
 	const projectUUID = "vitproj_lw_explicit_off_replay"
@@ -146,6 +147,7 @@ func TestLoudnessWatchExplicitConfigSurvivesDeferredSyncAfterReplay(t *testing.T
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
+			isolateUnboundMixboardRootForTest(t)
 			s := newChatServerForTest(t, nil, nil, nil)
 			dir := t.TempDir()
 			const projectUUID = "vitproj_lw_explicit_defer"

@@ -64,6 +64,16 @@ func TestRecordFreeStateSettlementPersistsAcrossSessions(t *testing.T) {
 	server.recordFreeStateSettlement(loop, mixboard.FreeStateConclusionKindExperimentSettle, "improved", "user preferred B; treatment candidate retained",
 		&mixboard.FreeStateJudgmentOutcome{EvidenceID: "evid-1", Preference: "b", HeardDifference: "yes"}, "")
 
+	// The conclusion write routes through the process-global projectstore
+	// binding (mixboard.NewStore("") -> DefaultRoot). A foreign async
+	// Activate between this test's Activate and the write would redirect the
+	// write and surface as the confusing "conclusion dir not created" below;
+	// pin the binding so any drift fails with its actual cause instead
+	// (CHAT-TEST-ISOLATION-1 G2 order-sensitivity hardening).
+	if current, ok := projectstore.Current(); !ok || current.Agent != roots.Agent {
+		t.Fatalf("projectstore binding drifted mid-test: got %+v (ok=%t), want agent root %s", current, ok, roots.Agent)
+	}
+
 	// The record lands in the project-keyed conclusion directory beside the
 	// decision ledger, not in a conversation-keyed location.
 	conclusionDir := filepath.Join(roots.Agent, "mixboard", "decisions", "free_state_conclusions")
