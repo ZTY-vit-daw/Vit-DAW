@@ -364,7 +364,11 @@ func (s *Server) handleAutomationChoreoChat(ctx context.Context, conversationID 
 	if response, handled := s.handlePendingAutomationChoreoChat(ctx, conversationID, req, mode); handled {
 		return response, true
 	}
-	if !automationIntentArmed(message) {
+	if !automationIntentArmed(message) || automationIntentAblationBypassed() {
+		// C4-ABLATION-1: the test-only ablation hook disarms the vocabulary
+		// gate so armed phrases too fall through to the LLM turn; the
+		// governance chain above (pending confirmation/write/readback) is
+		// deliberately NOT bypassed.
 		return ChatResponse{}, false
 	}
 	intent := parseAutomationIntent(message)

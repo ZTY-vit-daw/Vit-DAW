@@ -2,6 +2,7 @@ package chat
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -74,6 +75,19 @@ var automationTreatmentVerbs = []string{
 	"混响", "均衡", "压缩", "激励", "响一点",
 	"动起来", // M3-TIMEWINDOW-INTENT-ARM-1: narrow form only — bare "动" would mis-arm "别动"
 	"treat", "process", "adjust", "improve", "fix", "brighten", "eq", "compress", "reverb",
+}
+
+// automationIntentAblationEnv is the C4-ABLATION-1 test-only hook: when set
+// to exactly "1" the pre-model lexicon arming is bypassed — every
+// time-varying phrase falls through to the LLM turn (the ablation face of
+// the A-F scaffolding endstate ruling; 257 matrix §六 C4 拆法). The
+// governance chain (pending confirmation card / write / readback) is not
+// bypassed. Default unset keeps production behavior byte-for-byte; the env
+// is never set by production startup paths.
+const automationIntentAblationEnv = "VIT_AUTOMATION_INTENT_ABLATION"
+
+func automationIntentAblationBypassed() bool {
+	return strings.TrimSpace(os.Getenv(automationIntentAblationEnv)) == "1"
 }
 
 // automationIntent is the parsed routing decision of one phrase.

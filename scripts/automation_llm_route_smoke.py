@@ -1525,8 +1525,20 @@ def main() -> None:
     # inter-group progression; -Groups 1 reruns group 1 only).
     parser.add_argument("-Groups", "--groups", dest="groups", default="1,2,3",
                         help="comma-separated group ids to run (default 1,2,3 = all)")
+    # C4-ABLATION-1: ablation mode — the ps1 wrapper sets
+    # VIT_AUTOMATION_INTENT_ABLATION=1 on the agent (pre-model lexicon arming
+    # bypassed), so this driver (a) skips the choreo-pending non-interference
+    # leg (its vocabulary arm is disabled by design under the hook), (b)
+    # judges every group purely on the LLM-turn success forms, and (c) treats
+    # any lexicon_hit verdict as an invalid run (the hook not reaching the
+    # agent is a configuration failure, never a model sample). Default off
+    # keeps the behavior byte-for-byte unchanged.
+    parser.add_argument("-AblationHook", "--ablation-hook", dest="ablation_hook", action="store_true",
+                        help="C4 ablation mode: agent vocabulary gate disarmed via env; every phrase judged as an LLM sample")
     args = parser.parse_args()
     selected_groups = parse_groups(args.groups)
+    if args.ablation_hook and 4 in selected_groups:
+        raise SystemExit("[FAIL] -AblationHook is incompatible with group 4 (its judged face requires the armed clarify exit, which the hook disables by design)")
 
     import tempfile
     project_path = Path(args.project_path).resolve() if args.project_path else Path(tempfile.gettempdir()) / f"automation_llm_route_{int(time.time())}.vit"
@@ -1544,6 +1556,7 @@ def main() -> None:
         "project_path": str(project_path),
         "llm_participation": "real (user engine config; every classified round below is a real billed LLM turn unless marked lexicon_hit)",
         "started_at": datetime.now(timezone.utc).isoformat(),
+        "ablation_hook": bool(args.ablation_hook),
         "groups_requested": selected_groups,
         "groups": {},
         "rounds": [],
@@ -1687,9 +1700,11 @@ def main() -> None:
                     break
                 attempt += 1
                 # the last LLM sample of each group runs inside a choreo-pending
-                # window: arm BEFORE the round, settle AFTER it (card subject 3)
+                # window: arm BEFORE the round, settle AFTER it (card subject 3).
+                # C4-ABLATION-1: under the ablation hook the vocabulary arm is
+                # disabled by design, so the leg is structurally n/a — skip it.
                 pending_conv = None
-                if llm_samples == args.rounds_per_group - 1:
+                if llm_samples == args.rounds_per_group - 1 and not args.ablation_hook:
                     pending_conv = f"choreo_pending_g{group}"
                     arm = chat(args.agent_http, pending_conv, CHOREO_ARM_PHRASE, chat_context)
                     require(looks_lexicon_hit(arm),
@@ -1750,7 +1765,10 @@ def main() -> None:
                     consecutive_same_failure = {}
 
             verdicts = [r["verdict"] for r in group_rounds]
-            success_types = {"tool_chain_ok", "boundary_ok"} | ({"lexicon_hit"} if group == 3 else set())
+            # C4-ABLATION-1: under the ablation hook lexicon_hit is never a
+            # success form — it means the hook did not reach the agent.
+            group3_extra = set() if args.ablation_hook else ({"lexicon_hit"} if group == 3 else set())
+            success_types = {"tool_chain_ok", "boundary_ok"} | group3_extra
             successes = sum(1 for v in verdicts if v in success_types)
             group_result = {
                 "phrase": phrase,
@@ -1762,6 +1780,8 @@ def main() -> None:
                 "lexicon_overflow": lexicon_overflow,
                 "choreo_pending_leg": None,
             }
+            if args.ablation_hook:
+                group_result["choreo_pending_leg"] = {"verdict": "skipped_ablation_hook", "group": group}
             if pending_leg is not None:
                 group_result["choreo_pending_leg"] = {k: pending_leg[k] for k in ("verdict", "group")}
             summary["groups"][f"group_{group}"] = group_result
@@ -1811,7 +1831,15 @@ def main() -> None:
         # ledger rows and the attributed receipt reached the engine's received
         # request messages (measurement only).
         summary["payload_automation_surfaces"] = scan_payload_automation_surfaces(payload_capture_path)
-        summary["status"] = "ENV_INTERRUPT" if exit_code == 3 else ("GUIDANCE_MISSING" if exit_code == 2 else "COMPLETED")
+        # C4-ABLATION-1: under the ablation hook a deterministic takeover is
+        # a configuration failure (the env never reached the agent), never a
+        # model sample — the run is invalid regardless of the group tallies.
+        if args.ablation_hook and any(row.get("verdict") == "lexicon_hit" for row in summary["rounds"]):
+            summary["ablation_hook_invalid"] = True
+            exit_code = 4
+        summary["status"] = ("INVALID_ABLATION_HOOK" if exit_code == 4
+                             else "ENV_INTERRUPT" if exit_code == 3
+                             else ("GUIDANCE_MISSING" if exit_code == 2 else "COMPLETED"))
         summary["finished_at"] = datetime.now(timezone.utc).isoformat()
     except Exception as exc:  # noqa: BLE001 - smoke failure reporting.
         summary["status"] = "ERROR"
