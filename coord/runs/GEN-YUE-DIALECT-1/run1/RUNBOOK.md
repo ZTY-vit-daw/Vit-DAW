@@ -63,3 +63,12 @@
 - run4（-SkipLeg1，run_20261107_195542）：**dialect 全链真栈 PASS**——leg2 invoke→yue_local→task 9e4f260d16495bd6→7×running→done→multipart（replay 9,239B + wav 11,012,908B 双工件落 run 专属 dir）；limitations 披露精确（prompt 无自由通道）；墙钟 21s（预估 21-40s 内）；leg0 注册披露三次 PASS；转谱 done，**回读 Ins 声部=纯休止（Z4|/Z2|/Z| 共 8 行无一音高）**。
 - exit 1 =**驱动断言解析器误报**（非被测面缺陷）：SheetSage2 在 V: 头块后输出 `K:C` 调号行，大写 C 命中音高字母正则→误判器乐；修复=跳过 `^[A-Za-z]:` 指令行；**修复后本地七案例验证全过**（run4 实测回读 PASS + 259 P1 回读 PASS + 259 P2 器乐对照正确 FAIL[offender=真实低音声部行] + 合成正/负/形状三例）。
 - run5：-SkipLeg1 同场景重跑取干净 exit 0 单 run 工件；生成消耗=第 2 次（预算 2 上限内；chat 腿生成槽未消耗如实入账）；被测面（dialect+引擎）run4 已绿，run5 仅为脚本层修复后的完整单 run 证据。
+
+## run5 终局（20:02–20:04）——复验条款裁定输入
+
+- run5（run_20261107_200252，断言修复版，-SkipLeg1）：dialect 全链再次 PASS（job 82984d83d18fdcce，21s，双工件 9,551B replay + 11,519,788B wav）；leg0 注册披露四次 PASS；**leg2 复验断言真实失败（非解析器误报）**：
+  - 输入面亲证（replay 回显）：Ins 声部全休止原样接收（Z2|/Z4|×n，K:/段落注释非音符）；
+  - 回读面（SheetSage2）：outro 段 Ins 出现真实音高行 `c'8z4c'4z16|b4z8b12z8|…`、`g8z4g4z16|…`、`Z|z8b8z16|`（稀疏、多休止——可能为弱伴奏渗漏或人声泛音归属，无法区分）；
+  - **两新样本 1/1 分裂**：run4 回读 Ins=纯休止（PASS）/ run5 回读 Ins=有音高（FAIL）；同 seed=11 同谱（引擎声学层重跑非逐字节确定=已知边界）；
+- **结论（如实）**：259 单次实证「仅人声模式→转谱回读无器乐」**不能升级为确定性断言**——该性质在 (渲染,转谱) 联合层面是概率性的。按 §8 预写 leg2_instrumental_detected 类：取证上交主管裁定，不硬凑不弱化；生成预算 2/2 尽，不再消耗。
+- 今晚收口：真栈烟测整体 exit 0 未达成（chat 腿=域外双缺陷在案；leg2=复验断言样本 2 失败）；被测面（yue_local dialect 全链）四 run 连续绿；卡留 doing/ 待主管处置。

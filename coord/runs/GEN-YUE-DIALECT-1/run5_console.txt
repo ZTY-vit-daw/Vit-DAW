@@ -1,0 +1,58 @@
+run_root=D:\Vit_DAW_wt_278impl\coord\runs\GEN-YUE-DIALECT-1\run_20261107_200252
+head=e0473ed48c75656896ec91bdfa3b1fc74e484a2c
+git_status=?? coord/runs/GEN-YUE-DIALECT-1/run5_console.txt
+
+== Prereq: ports 7878/5555/5556 (VitApp stack) and 8087 (YuE2 engine) must be free
+port_free=7878
+port_free=5555
+port_free=5556
+port_free=8087
+
+== VRAM precheck (desktop baseline; engine needs ~3.4GB, task peak ceiling 6.3GB)
+vram_before_mib=1723
+
+== Build VitAgent from the worktree (must contain the yue_local dialect)
+agent_binary=D:\Vit_DAW_wt_278impl\coord\runs\GEN-YUE-DIALECT-1\run_20261107_200252\bin\VitAgent.yuedialect.exe size=39187456 mtime=2026-11-07T20:02:54.0929495+08:00
+
+== Run-scoped genapi provider config (never touches ~/.vit)
+genapi_config=D:\Vit_DAW_wt_278impl\coord\runs\GEN-YUE-DIALECT-1\run_20261107_200252\genapi_providers.json
+
+== Start kernel (prebuilt unchanged binary; hash recorded per AGENTS 9)
+kernel_binary=D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe size=31790592 mtime=2026-10-28T21:26:38.9937636+08:00 sha256=C1E32DFE5338A9E11444A9F86C41454AB50B299DE5EA44FB0DDF21C411246F83
+kernel_pid=27584
+ok: kernel up, pid=27584
+
+== Start agent (isolated draft root + run-scoped genapi config)
+agent_pid=26512
+ok: agent up, pid=26512
+
+== Kernel warm-up dwell 30s
+
+== Full project access (auto-apply; gen.generate is RiskConfirm)
+authority_mode=full_project_access
+
+== Start YuE2 engine (independent process; self-managed per card 278)
+engine_pid=25236
+vram_engine_up_mib=1893
+ok: engine up, pid=25236 vram=1893MiB
+
+== VRAM sampler (2s interval) while the driver runs
+
+== Run the smoke driver (leg0 registration / leg1 chat / leg2 a-cappella re-verify)
+YUE_DIALECT_VERDICT leg2_instrumental_detected
+driver_exit=1
+vram_peak_mib=0
+
+== Teardown (agent, kernel, YuE2 engine â€?all independent stops)
+stopped_agent_pid=26512
+stopped_kernel_pid=27584
+stopped_engine_pid=25236
+port_released=7878
+port_released=5555
+port_released=5556
+port_released=8087
+vram_after_mib=1792
+finished=2026-11-07T20:03:57.6908207+08:00
+
+YUE_DIALECT_STACK_VERDICT driver_failed driver_exit=1
+PS1_EXIT=1
