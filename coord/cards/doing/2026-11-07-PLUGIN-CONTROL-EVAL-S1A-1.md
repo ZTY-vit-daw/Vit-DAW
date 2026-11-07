@@ -23,4 +23,5 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 22:14 +0800 / origin/main=d4bd3496bd07e3e949588eb71d6de9d9a82f8817 / owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 307 s1a runner；发卡人置 doing/ 并声明「卡面回填领取信息推协调提交即视领取」）/ 分支=port/plugin-control-eval-s1a-1 / worktree=D:/Vit_DAW_wt_307s1a / 领取提交=本协调提交（coord/307-claim→main，hash 见 git log）。领取基线：fresh worktree 自 origin/main d4bd3496，`git status --short` 与 `git diff --stat` 均空（clean）。冻结面：plan.json 取自 origin/port/plugin-control-eval-prep-1（A_star 段 caps/口径），runner 三件取自 origin/port/plugin-control-eval-runner-1@ccf8c78c（300 验收 pass 但尚未合入 main——按本卡面「复用 300 runner」快照入本卡 worktree 分支，含 P 工件引用）；缝实现=已合入 main 的 1775c10b（305 验收 pass）。执行侧声明：源码零改动（agent/ 与 VitApp/ 只读；300 runner 三件原样快照不加改）；工件根=coord/runs/PLUGIN-CONTROL-EVAL-S1A-1/。
+- （执行侧回填回执）/（主管回填验收）
