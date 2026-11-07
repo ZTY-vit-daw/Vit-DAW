@@ -21,12 +21,45 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
 CASES = ["T1", "T2", "T3", "T4", "T5", "T6"]
 CAPS_A = {"rounds": 18, "max_llm_calls": 216,
           "max_input_tokens": 8640000, "max_output_tokens": 1728000}
+
+# tool-face extraction (device finding 2026-11-07: the seam set (S1-S4) does
+# not remove typed plugin_grabber adapter tools from the ordinary catalog;
+# per-round tool faces are recorded so each round's adapter-vs-bare choice
+# is on the record for supervisor interpretation)
+HARNESS_TOOL_RE = re.compile(r"harness\.invoke total_ms=\d+ tool=([A-Za-z0-9_.\-]+)")
+LOOP_TOOL_RE = re.compile(r"message_loop\.tool ms=\d+ goal=\S+ tool=([A-Za-z0-9_.\-]+)")
+TYPED_ADAPTER_RE = re.compile(
+    r"^(plugin_grabber[._](inspect|apply|explain)|apply_(reverb|delay|eq|compressor|"
+    r"limiter|de_esser|gate_expander|transient_shaper|multiband))")
+BARE_WRITE_RE = re.compile(r"^(plugin\.set_parameter|set_plugin_param)$")
+BARE_READ_RE = re.compile(r"^(plugin\.get_parameters|get_plugin_parameters)$")
+
+
+def tool_faces(delta: str) -> dict:
+    loop_calls = LOOP_TOOL_RE.findall(delta or "")
+    harness_calls = HARNESS_TOOL_RE.findall(delta or "")
+    all_calls = loop_calls + harness_calls
+    return {
+        "loop_tool_sequence": loop_calls,
+        "harness_tool_sequence": harness_calls,
+        "typed_adapter_calls": [c for c in all_calls if TYPED_ADAPTER_RE.match(c)],
+        "typed_apply_calls": [c for c in all_calls
+                              if TYPED_ADAPTER_RE.match(c) and
+                              ("apply" in c or c.startswith("plugin_grabber.apply"))],
+        "bare_write_calls": [c for c in all_calls if BARE_WRITE_RE.match(c)],
+        "bare_read_calls": [c for c in all_calls if BARE_READ_RE.match(c)],
+        "write_path": ("typed_adapter" if any(TYPED_ADAPTER_RE.match(c) and "apply" in c
+                                              for c in all_calls)
+                       else ("bare" if any(BARE_WRITE_RE.match(c) for c in all_calls)
+                             else "none_observed")),
+    }
 
 
 def main() -> int:
@@ -49,11 +82,13 @@ def main() -> int:
             rec = json.loads(rec_path.read_text(encoding="utf-8"))
             u = rec.get("usage") or {}
             v = rec.get("verdict") or {}
+            faces = tool_faces(rec.get("agent_log_delta"))
             rows.append({
                 "case": case, "arm": "A", "repeat": repeat,
                 "raw_arm_field": rec.get("arm"),
                 "conversation_id": rec.get("conversation_id"),
                 "first_action": rec.get("first_action"),
+                "tool_faces": faces,
                 "final_verdict": v.get("final_verdict"),
                 "failure_tags": v.get("failure_tags") or [],
                 "failure_detail": v.get("detail"),
@@ -88,6 +123,11 @@ def main() -> int:
             "verdicts": verdicts,
             "failure_tags": sorted({t for r in c_rows for t in r["failure_tags"]}),
             "behavior_tags": sorted({t for r in c_rows for t in r["behavior_tags"]}),
+            "write_paths": [r["tool_faces"]["write_path"] for r in c_rows],
+            "typed_adapter_used_rounds": sum(1 for r in c_rows
+                                             if r["tool_faces"]["typed_adapter_calls"]),
+            "bare_write_used_rounds": sum(1 for r in c_rows
+                                          if r["tool_faces"]["bare_write_calls"]),
             "llm_calls": sum(r["llm_calls"] for r in c_rows),
         }
 
@@ -109,6 +149,7 @@ def main() -> int:
             "A_pass": f"{a_pass}/{len(a_rows)}" if a_rows else "n/a",
             "A_verdicts": [r["final_verdict"] for r in a_rows],
             "A_failure_tags": sorted({t for r in a_rows for t in r["failure_tags"]}),
+            "A_write_paths": [r["tool_faces"]["write_path"] for r in a_rows],
             "P_verdict": p_row.get("final_verdict"),
             "P_failure_tags": p_row.get("failure_tags") or [],
             "P_llm_calls": p_row.get("llm_calls"),
@@ -142,11 +183,12 @@ def main() -> int:
                         encoding="utf-8")
 
     # console table
-    hdr = (f"{'case':4} {'rep':3} {'verdict':8} {'fail_tags':28} "
+    hdr = (f"{'case':4} {'rep':3} {'verdict':8} {'write_path':13} {'fail_tags':28} "
            f"{'mut':3} {'calls':5} {'in_tok':8} {'out_tok':7} {'stop':24}")
     print(hdr)
     for r in rows:
         print(f"{r['case']:4} {r['repeat']:<3} {str(r['final_verdict']):8} "
+              f"{r['tool_faces']['write_path']:13} "
               f"{','.join(r['failure_tags'])[:28]:28} "
               f"{str(r['mutation_count']):3} {r['llm_calls']:<5} "
               f"{r['input_tokens']:<8} {r['output_tokens']:<7} "

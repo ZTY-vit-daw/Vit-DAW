@@ -1,0 +1,80 @@
+{
+  "schema_version": "plugin_control_eval_s1a_seam_verify.v1",
+  "a_capture": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_222801\\logs\\agent_llm_payload_capture.jsonl",
+  "a_rows": 5,
+  "a_request_payloads": 5,
+  "p_rows": 38,
+  "checks": {
+    "S2_five_fields_absent": {
+      "detail": {
+        "normalized_role": {
+          "a_count": 0,
+          "p_control_count": 70,
+          "a_contexts": []
+        },
+        "display_group": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "control_relevance": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "template_role": {
+          "a_count": 0,
+          "p_control_count": 36,
+          "a_contexts": []
+        },
+        "alias": {
+          "a_keyform_count": 0,
+          "a_plain_count": 0,
+          "p_keyform_count": 0,
+          "a_plain_contexts": []
+        }
+      },
+      "method_weak_fields": []
+    },
+    "S3_bare_tool_description": {
+      "a_prod_tail_count": 0,
+      "a_prod_tail_contexts": [],
+      "a_bare_count": 0,
+      "p_prod_tail_count": 0,
+      "note": "bare_count>0 proves live-stack bare disclosure when the tool is disclosed; absence is only informational (bounded disclosure may omit the tool)"
+    },
+    "S4_typed_routing_rules_absent": {
+      "a_count": 0,
+      "a_contexts": [],
+      "p_control_count": 24
+    },
+    "S1_no_typed_takeover": {
+      "conversation_id": "pce_p_T1_r0_1794061695",
+      "tool_calls": [
+        "mix.observe"
+      ],
+      "typed_apply_calls": [],
+      "capture_sources": {
+        "ordinary_agent_semantic_entry": 1,
+        "message_loop": 3,
+        "message_loop_repair": 1
+      },
+      "semantic_entry_present": true,
+      "message_loop_present": true,
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe"
+        ]
+      },
+      "final_verdict": "pass"
+    },
+    "model_face": {
+      "response_models": {},
+      "note": "deepseek-flash expected (product default)"
+    }
+  },
+  "verdict": "pass",
+  "failures": []
+}

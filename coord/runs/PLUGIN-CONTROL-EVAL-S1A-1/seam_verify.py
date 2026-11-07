@@ -43,6 +43,10 @@ TYPED_APPLY_RE = re.compile(
     r"^(plugin_grabber_apply|apply_(reverb|delay|eq|compressor|limiter|"
     r"de_esser|gate_expander|transient_shaper|multiband))")
 TOOL_CALL_RE = re.compile(r"harness\.invoke total_ms=\d+ tool=([A-Za-z0-9_.\-]+)")
+LOOP_TOOL_RE = re.compile(r"message_loop\.tool ms=\d+ goal=\S+ tool=([A-Za-z0-9_.\-]+)")
+TYPED_ADAPTER_RE = re.compile(
+    r"^(plugin_grabber[._](inspect|apply|explain)|apply_(reverb|delay|eq|compressor|"
+    r"limiter|de_esser|gate_expander|transient_shaper|multiband))")
 
 
 def load_capture(path: Path) -> list[dict]:
@@ -175,8 +179,18 @@ def main() -> int:
         sources = {}
         for r in conv_rows:
             sources[str(r.get("source") or "?")] = sources.get(str(r.get("source") or "?"), 0) + 1
+        # informational (non-gating, corpus evidence): typed plugin_grabber
+        # adapter calls on the ordinary loop face. The four seams (S1-S4) do
+        # not remove typed adapter tools from the ordinary catalog; rounds
+        # where the model self-selects them are recorded for supervisor
+        # interpretation (see RUNBOOK known-boundary notes + card receipt).
+        loop_calls = LOOP_TOOL_RE.findall(delta)
+        adapter_calls = [c for c in (loop_calls + calls) if TYPED_ADAPTER_RE.match(c)]
         s1 = {"conversation_id": conv, "tool_calls": calls,
-              "typed_apply_calls": typed, "capture_sources": sources,
+              "typed_apply_calls": typed,
+              "loop_tool_sequence": loop_calls,
+              "typed_adapter_calls_informational": adapter_calls,
+              "capture_sources": sources,
               "semantic_entry_present": sources.get("ordinary_agent_semantic_entry", 0) > 0,
               "message_loop_present": (sources.get("message_loop", 0) +
                                        sources.get("message_loop_repair", 0)) > 0,

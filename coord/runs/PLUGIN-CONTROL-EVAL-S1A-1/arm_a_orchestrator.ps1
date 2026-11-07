@@ -184,7 +184,7 @@ try {
     if ($s0Exit -ne 0) { throw ("s0 refreeze failed exit=" + $s0Exit + " (fixture_failure per RUNBOOK; forensics in s0 dir)") }
     $freezePath = Join-Path $S0Dir "case_freeze.json"
     if (-not (Test-Path -LiteralPath $freezePath)) { throw "s0 completed but case_freeze.json missing" }
-    $freeze = Get-Content -LiteralPath $freezePath -Raw | ConvertFrom-Json
+    $freeze = Get-Content -LiteralPath $freezePath -Raw -Encoding UTF8 | ConvertFrom-Json
     if (-not $freeze.s0_all_verified) { throw "s0_all_verified=false -- refusing model rounds (plan gate)" }
     $allowanceArr = @($freeze.allowance_set.T4)
     $Allowance = ($allowanceArr -join ",")
@@ -271,7 +271,7 @@ try {
             $roundDirR = Join-Path $RoundsDir ($case_id + "_r" + $repeat)
             $recordPath = Join-Path $roundDirR "round_record.json"
             if ($rExit -eq 0 -and (Test-Path -LiteralPath $recordPath)) {
-                $rec = Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json
+                $rec = Get-Content -LiteralPath $recordPath -Raw -Encoding UTF8 | ConvertFrom-Json
                 $u = $rec.usage
                 $totals["llm_calls"] += [int]($u.llm_calls)
                 $totals["input_tokens"] += [int]($u.input_tokens)

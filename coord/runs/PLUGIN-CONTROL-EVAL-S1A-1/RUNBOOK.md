@@ -49,3 +49,10 @@
 - s0/dryround=确定性腿（零 LLM）：证明夹具/接口/目标可达性与缝开态管线可用，不产生模型能力结论。
 - 18 任务轮=agent HTTP/ZMQ 真栈腿（产品 chat 链路在缝开 env 下的普通工具循环）；渲染面（webui DOM）与用户旅程不涉及（实验腿不适用 AGENTS §5 渲染面门槛，无 E2E-WEBUI/JOURNEY 覆盖主张）。
 - 单轮=单样本；3 repeat 是重复样本非稳定性证明（plan §6 口径：比例主张需另行规定样本数）。
+
+## 附录 A：跑中追加（2026-11-07 22:35 +0800，run2 取证后；上文冻结文本未动）
+
+- **run1（arm_a_20261107_222543）**：s0 T3（Abbey Road Plates，案例序首个 Waves shell 插件）rack_add_node「Timed out waiting for JUCE command handling」fixture_failure（T1/T2/T4/T5/T6 verified；零 LLM）。签名#1；判冷载时序类（T4/T5 同 shell 族后到即 verified）。按 §8 允许的第二次尝试重跑。
+- **run2（arm_a_20261107_222801）**：s0 六案全 verified（T3 过——冷载假设成立）；dryround 缝开 pass 零 LLM；**装置验证门 pass**（S2 五字段 A=0 vs P 对照 70/30/30/36；S4 骨架规则 A=0 vs P=24；S1 semantic_entry+message_loop 在场）；probe（T1_r0）与 T1_r1 两轮 verdict=pass 后，**编排脚本自身缺陷中断**：PS5.1 Get-Content 默认 GBK 读 UTF-8 round_record.json 致 ConvertFrom-Json 失败（我的工件缺陷，非冻结 runner/非源码；修复=-Encoding UTF8）。已耗 LLM=probe 5 轮调用+T1_r1 5 轮调用（计入实耗报告，不占 18 名额；两轮工件原样在卷）。
+- **装置观察（重大口径项，上交主管）**：probe 与 T1_r1 的模型写入均走 **typed 适配器** `plugin_grabber.inspect_reverb → plugin_grabber.apply_reverb_controls`（message_loop.tool 面；prompt render 含 plugin_grabber 工具材料 60 处）。四缝（S1-S4）不移除普通工具目录中的 typed plugin_grabber 工具——305 缝范围与 305 验收裁定未把工具目录列入缝面；本卡冻结验证门（五字段+无 typed 接管路由）按卡面口径**通过**。A 数据解读=「无骨架引导下模型自选工具面（含 typed 适配器可用）」，非「仅裸参数工具」；逐轮 write_path（typed_adapter/bare/none）由 consolidate_a.py 提取入成绩表，主管裁量 A 数据定性与是否另立 S5 缝卡。
+- 追加工件改动（非门语义变更）：seam_verify.py 增 informational typed_adapter 计数（不参与门判定）；consolidate_a.py 增 tool_faces 提取；arm_a_orchestrator.ps1 修 -Encoding UTF8。run3 重跑全段（s0+dryround+probe+18 轮，新 run 目录）。

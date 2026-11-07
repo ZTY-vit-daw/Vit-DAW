@@ -1,0 +1,81 @@
+{
+  "case_id": "T1",
+  "arm": "P-dry",
+  "repeat": 0,
+  "conversation_id": "dryround_no_llm",
+  "message": "请把 Pro-R 混响的 Mix 设为 35%。",
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "started_at": "2026-11-07T22:28:14+0800",
+  "exchanges": [
+    {
+      "turn": 1,
+      "sent": "请把 Pro-R 混响的 Mix 设为 35%。",
+      "response": {
+        "dry": true,
+        "note": "LLM never invoked; scripted known-op replaces the chat leg"
+      }
+    }
+  ],
+  "confirmations": [],
+  "stop_reason": "dry_scripted",
+  "mutation_audit": [
+    {
+      "param_id": "6",
+      "kind": "value_changed",
+      "before": {
+        "value_text": "100%",
+        "normalized_value": 1
+      },
+      "after": {
+        "value_text": "35.0%",
+        "normalized_value": 0.349999994039536
+      }
+    }
+  ],
+  "usage": {
+    "available": false,
+    "llm_calls": 0,
+    "note": "dry round"
+  },
+  "tool_calls": 0,
+  "first_action": {
+    "kind": "scripted_known_op",
+    "tool": "set_plugin_param"
+  },
+  "verdict": {
+    "case_id": "T1",
+    "arm": "P-dry",
+    "final_verdict": "pass",
+    "failure_tags": [],
+    "checks": {
+      "target_display_in_tolerance": {
+        "ok": true,
+        "detail": {
+          "display": 35.0,
+          "target": 35.0,
+          "tolerance": 2.0,
+          "value_text": "35.0%"
+        }
+      },
+      "non_target_unchanged": {
+        "ok": true,
+        "detail": []
+      }
+    },
+    "mutation_count": 1,
+    "changes": [
+      {
+        "param_id": "6",
+        "kind": "value_changed",
+        "before": {
+          "value_text": "100%",
+          "normalized_value": 1
+        },
+        "after": {
+          "value_text": "35.0%",
+          "normalized_value": 0.349999994039536
+        }
+      }
+    ]
+  }
+}
