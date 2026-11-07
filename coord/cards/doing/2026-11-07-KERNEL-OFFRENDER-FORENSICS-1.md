@@ -29,4 +29,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 / origin/main=a93dd97cefda1ac16ead33b6d7e9645ee8947605（worktree 领取基线全净，status 空、无 diff）/ owner=GLM L2-worker 子代理(ZCode/PC，会话 KERNEL-OFFRENDER-FORENSICS-1) / 分支 port/kernel-offrender-forensics-1 + 协调分支 coord/297-claim / worktree D:/Vit_DAW_wt_297forensic / 零栈零 LLM（源码级取证，无栈占用需求）
+- 回执：（执行侧回填）
+- 验收：（主管回填）
