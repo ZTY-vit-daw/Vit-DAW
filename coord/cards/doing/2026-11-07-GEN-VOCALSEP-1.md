@@ -25,3 +25,7 @@
 - 领取：2026-11-07 22:41 / origin/main=9180ff89 / owner=ZCode GLM-5.3 L2 执行子代理（PC，306 领卡会话）/ 分支 port/gen-vocalsep-1 / worktree D:/Vit_DAW_wt_306vsep / 领取基线：HEAD 9180ff89，status 全净，diff --stat 空；doing 三卡（ARRLOOP-AUTHBRIDGE-1/CLOSURE-ROUTE-ADAPT-1/PLUGIN-CONTROL-EVAL-S1A-1）文件域与本卡不相交已核对；零真栈先行，307 现持栈占用（GPU 腿无栈面冲突）
 - 回执：（执行侧回填）
 - 验收：（主管回填）
+
+## 状态（2026-11-07 深夜）
+
+- 已领取（181f94d0）后暂停：**候用户部署**（[裁定 2026-11-07](../../decisions/2026-11-07-deployment-tasks-to-user.md)）——用户部署 demucs 包+htdemucs.pt（fbaipublicfiles 直链→~/.cache/torch/hub/checkpoints/）+选定 python 环境后，新代理接续（工作树 wt_306vsep 续用）。
