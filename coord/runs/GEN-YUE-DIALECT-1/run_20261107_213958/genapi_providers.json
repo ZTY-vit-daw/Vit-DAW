@@ -1,0 +1,12 @@
+{
+  "providers": [
+    {
+      "id": "yue-local",
+      "dialect": "yue_local",
+      "base_url": "http://127.0.0.1:8087",
+      "api_key": "",
+      "download_dir": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\downloads",
+      "extra_params": { "seed": 11 }
+    }
+  ]
+}
