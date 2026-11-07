@@ -21,4 +21,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 晚窗 +0800 ｜ origin/main=`5c5ef23ec76727970ebca73830214783293c3c18` ｜ owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 303runner）｜ 分支=`port/gen-chat-routing-1` ｜ worktree=`D:/Vit_DAW_wt_303grt` ｜ 领取提交=coord/303-claim（hash 见 git log）。领取基线：fresh worktree 自 origin/main，`git status --short` 与 `git diff --stat` 均空（clean）。前置核对：卡在 todo/ ✓ 派发已确认 ✓ 278 工件在库（run2=coord/runs/GEN-YUE-DIALECT-1/run_20261107_193711、run3=run_20261107_194419，只读取证）✓；doing 五卡文件域核对——ARRLOOP-AUTHBRIDGE-1 同文件 goalrunner_chat.go 但不同段（执行器桥 vs 本卡词典段）且其改动仅在未合入 port 分支，本卡基线 origin/main 无重叠文本 ✓；B3-ABLATION-1（275）=ps1/py 面（其 Go 钩在 port/b3-ablation-1 未合入，非本卡基线）✓；PLUGIN-CONTROL-EVAL-RUNNER-1（300）=scripts eval 面 ✓。
+- 回执：（执行侧回填）
+- 验收：（主管回填）
