@@ -21,4 +21,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 18:26 +0800 ｜ origin/main=f5b30165599acd9b3c3f68e9cbb0412bda3bff44（晚于发车核对点 a93dd97c 一笔=297 领取，纯 coord/，`git diff --stat a93dd97c..f5b30165 -- agent/ scripts/ docs/` 为空=文件域等价）｜ owner=GLM 主会话 L2-worker 子代理（ZCode/PC）｜ 分支=port/capabilitypack-keyadvert-1 ｜ worktree=D:/Vit_DAW_wt_295ad ｜ 领取基线：HEAD=f5b30165、status 全净、diff --stat 空（fresh worktree）｜ 前置核对：卡在 todo/ ✓ 派发已确认 ✓ 依赖 292 ruling pass+5c8712a6 已在 main ✓ doing 四卡（ARRLOOP-AUTHBRIDGE-1/B3-ABLATION-1/CLOSURE-ROUTE-ADAPT-1/PLUGIN-CONTROL-EVAL-PREP-1）文件域与本卡（tools/capability_pack.go±同包测试）不相交 ✓
+- 回执：（执行侧回填）
+- 验收：（主管回填）
