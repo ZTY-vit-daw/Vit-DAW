@@ -70,6 +70,17 @@
 - **边界声明（AGENTS §5）**：本腿**零栈**——仅单测+build（假内核注入缝），真栈烟测重发腿（-EduJamSmoke 重跑 smokerun2）候主管在 277 段 3a 释放后另派或并入本腿候指令；修复边界如实声明：门通过后内核再切换工程=B5 真实换工程语义（settle+新工程快照 restore），不属本竞态类；内核 uuid 仅作核对真值不作恢复/落盘基址（与 FIX-START-STATE-RECOVERY-1 用户裁定不冲突——不扫描草稿、不绕激活身份源）；pre-existing vet 警告（semantic_treatment_strategy.go unreachable，273/274 域）未触碰
 - **烟测重发腿预期变化**（供派腿参考）：B1 enter 可能先收 1-N 次门拒绝回话（by-design，chat_responses.json 留痕+summary.phases.enter_attempts），激活轮询/重试耗尽才 exit 2；其余 Phase B2-B5/Phase C 断言面不变
 
+### 段 4：烟测重发腿 smokerun2（2026-11-07，**py exit 4=§8 预写确定性面缺陷类（新面，与 smokerun1 不同）；smokerun1 缺陷面实证已修复**，单 run 无重跑兑现；取证上交，卡留 doing/）
+
+- **run**：`smokerun2_20261107_1006`（10:06:29 启动，driver stamp 20261107_100646）；完整命令/退出码/二进制哈希/工件清单见 `coord/runs/EDU-LEVEL-RUNTIME-B/smokerun2_20261107_1006/evidence.md`；py exit 4 → PS1 exit 1（dev_agent_smoke.ps1:9019 throw，预期映射）；agent=现场构建 SHA256 `9956E455…B8A2D0F`（含修复 b81449de，run 前后同哈希）；kernel=wt_228 `F9E3DA0A…0D67A` 只读复用；一次 wrapper 假启动（bash 路径未引号反斜杠被吞，ps1 未找到）栈零启动不计 run，console_ps1.txt 首段留痕（266 verifyrun1 同型先例）
+- **修复腿验证（smokerun1 根面已消灭）**：A2 激活前置步生效（activated=true 绑定 fixture 工程）→ **B1 enter 一次通过（enter_attempts=1，零门拒绝重试）**（edu_jam_entered/first-run-twinkle/n0/project_uuid=fixture）→ **B2「写好了」被乐局面拦截**（turn 2 workflow=edu_jam 非 semantic_entry，会话在激活后存活，形态 i 拦截面内闭环）→ **edu-jam 会话零 LLM 行**（telemetry 仅 strip-silence chat 子腿 1 行=登记预申报形态）
+- **新失败面**：B2 n0 判定 `stop=edu_jam_attempt_failed`——`✗ structure:clip_exists — clip "melody_imported" exists=false`（✓ event:human_replied；attempt=0）；期望 edu_jam_node_done。B3-B5/Phase C 未及；n1 fixture↔卡 notes.theme 对账未到达
+- **根因**（证据链完整，281 文件域内观察组装轨寻址面）：`observeEduJam`（edu_jam_chat.go:840-846）对 `get_project_state` 的 tracks **原始行数组**直接按 `slot.TrackIndex-1` 下标寻址；真实内核（CommandDispatcher.cpp:3737 `te::getAllTracks` 按轨树文档序）tracks 前部有 5 条服务轨——fixture 工程文件实证顺序 Arranger(1002)→Chord(1003)→Marker(1004)→Tempo(1005)→Master(1006)→用户轨 1007/1010/1013（edu_jam_fixture_project.vit:40-48；Go 侧同形状钉死=shadow_test.go:127-131+shadow.go:749 is_audio_track 过滤，本 run 日志 `[shadow] initialized tracks=3` agent_last.log:194；生产同型过滤先例 capability_routing.go:530）→ `melody_imported(track_index=1)`→tracks[0]=**Arranger 轨**无 clips→clip_exists=false；所有槽观察同错位（n1 即使 n0 过关也会失败）。**单测为何没拦**：edu_jam_chat_test.go 假内核 eduJamFakeTrack 只回 3 条用户轨（合成回复形状与真实内核不符，下标在合成形状下恰好正确）；smokerun1 激活竞态先掩盖本面
+- **修复候选（交主管，本腿不扩修）**：①过滤后寻址（tracks 行按 is_audio_track/track_type 含 audio|hybrid 过滤后再 1 基下标；假内核补 5 服务轨前缀配真实形状单测）②寻址改轨身份（slot 绑 track_id）——改动面大交裁定；A2/enter 门真栈一次通过无需改动
+- **计费（如实）**：1 行 deepseek-flash（strip-silence chat 子腿 in 706+cache 512/out 430 tok）≪¥0.01
+- **栈纪律**：占用登记 `62c4af5f`（10:05 推 main；净空两轮亲核 10:03:55/10:04:49+登记后 ≤60s 即时复核 10:05:45 全零；277 已 09:55:23 释放在卷）；PS1 throw 后残留 VitAgent 11380/VitApp 20960 **owner 10:07:19 亲拆**；**TEARDOWN_ALL_ZERO 亲核 10:07:32**（六口 TCP listen=0+UDP 4444/4445=0+五类进程全零）；释放登记随本笔
+- **边界声明（AGENTS §5）**：本腿真栈烟测（真实内核+agent HTTP/ZMQ 面）；渲染面/用户旅程面不在覆盖内（不变）
+
 ## 验收
 
 - （主管回填）

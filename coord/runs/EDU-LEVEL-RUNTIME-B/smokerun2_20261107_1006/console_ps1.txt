@@ -1,0 +1,69 @@
+-File 形式参数的实际参数“D:Vit_DAW_wt_281implscriptsdev_agent_smoke.ps1”不存在。请提供现有“.ps1”文件的路径，作为 -File 形式参数的一个实际参数。
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+PS1_EXIT=127
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_100634\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun2_20261107_1006\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: edu jam env: telemetry=D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun2_20261107_1006\logs\agent_llm_telemetry.jsonl levels_dir=D:\Vit_DAW_wt_281impl\coord\levels
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_281impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_281impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_281impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_281impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=20960 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_281impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=20960
+ok: ZMQ SUB listening: 5556 pid=20960
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== chat-driven edu jam mount smoke (EDU-LEVEL-RUNTIME-B, deterministic zero-LLM)
+ok: edu jam project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun2_20261107_1006\default_project.xml
+[edu-jam] fixture verified: track=1007 clip=1016 notes=42
+[edu-jam] workspace activation: {"activated": true, "project_path": "D:\\Vit_DAW_wt_281impl\\coord\\runs\\EDU-LEVEL-RUNTIME-B\\smokerun2_20261107_1006\\edu_jam_fixture_project.vit"}
+[edu-jam] FAIL exit=4 phase=n0: n0 advance wrong: stop=edu_jam_attempt_failed data={"attempt": 0, "current_node": "n0_photo_score_open", "leaves": ["structure:clip_exists=false", "event:human_replied=true"], "level_id": "first-run-twinkle", "node": "n0_photo_score_open", "schema_version": "vit.edu_jam_session.v0", "status": "active"}
+edu jam smoke failed with exit code 4 (console: D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun2_20261107
+_1006\edu_jam_console.txt)
+所在位置 D:\Vit_DAW_wt_281impl\scripts\dev_agent_smoke.ps1:9019 字符: 9
++         throw ("edu jam smoke failed with exit code $eduJamExit (cons ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (edu jam smoke f...am_console.txt):String) [], RuntimeException
+    + FullyQualifiedErrorId : edu jam smoke failed with exit code 4 (console: D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEV 
+   EL-RUNTIME-B\smokerun2_20261107_1006\edu_jam_console.txt)
+ 
+PS1_EXIT=1
