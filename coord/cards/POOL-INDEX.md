@@ -1,28 +1,38 @@
 # 共享卡池统一索引（POOL-INDEX）
 
 - 维护：GLM 主管决策流（主线）/ 2026-11-06 建立（用户指令「按三线执行计划整理任务池」）
-- **权威规则**：领取凭证=**卡文件名（卡 ID）**；数字池序仅排序辅助。两线编号空间：主线（混音/自由态/A-F/仪器）258–266 已用、267+ 继续；三线（乐局/编曲/生成）276–291（原 260–275，2026-11-06 撞号协调改号，[映射表](../reports/2026-11-05-nov-three-line-execution-plan.md)）、292+ 继续；267–275 区间留空不再分配（消歧缓冲）。
+- **权威规则**：领取凭证=**卡文件名（卡 ID）**；数字池序仅排序辅助。编号空间（2026-11-07 早窗主管裁定修订）：主线（混音/自由态/A-F/仪器）**258–275 封块**（269–274 为 11-07 凌晨连续发卡已成事实追认，275=B3-ABLATION 本次启用；原「267–275 留空」缓冲规则作废——消歧目的已被 11-07 凌晨发卡突破，回改成本>收益，[映射表](../reports/2026-11-05-nov-three-line-execution-plan.md)在案可查旧号）；三线（乐局/编曲/生成）**276–291**（原 260–275，2026-11-06 撞号协调改号）；**292 起两线共用递增序列，发卡时以本索引登记先后为准**。
 - 状态口径：todo=可领取（含挂起待触发）；doing=执行中（worktree+分支登记）；done=执行侧自验完成待主管验收；archive=裁定退出执行的历史记录（不再领取）。
 
 ## 一、主线（混音/自由态/A-F/仪器）——GLM 主管决策流管辖
 
 ### A-F 进度计量（终局裁定口径：A=已证可拆 / H=harness 形态已测 / F=固定层推测）
 
-**A=1（B4，2026-11-06 [264 裁定](../rulings/2026-11-06-B4-ABLATION-1-pass.md)）｜ C4=H（263 维持）｜ B1-B3/C1-C3/D1=F ｜ C5/D2-D4/E/F=not_built**
+**A=1（B4，2026-11-06 [264 裁定](../rulings/2026-11-06-B4-ABLATION-1-pass.md)）｜ C4=H（263 维持）｜ B1-B3/C1-C3/D1=F（B3 拆减卡 275 已发）｜ D2/D3=判据薄层已点亮（265/266，族本体未建）｜ C5/D4/E/F=not_built**
 
 ### 活跃/待领
 
 | 池序 | 卡 ID | 状态 |
 |---|---|---|
-| 262 | MIXTICK-CONFIRM-CONTRACT-1 | 取证 pass+裁定 A；实现/验证腿=自主批次在派 |
+| 262 | MIXTICK-CONFIRM-CONTRACT-1 | done 已验收 pass 收口（G6 全链闭合） |
 | 263 | C4-ABLATION-1 | done 已验收（维持 H，词表=入口识别薄层） |
 | 264 | B4-ABLATION-1 | done 已验收（**A 态确认**） |
-| 265 | D2-STEREO-THIN-1 | done 条件 pass（exit 0 补跑腿挂今夜非高峰） |
-| 266 | D3-REF-ALIGN-THIN-1 | 待领（勘察毕；PD-2 裁定 B 待用户确认） |
+| 265 | D2-STEREO-THIN-1 | done 已验收 pass 收口（exit 0+1-mutation 主链首通） |
+| 266 | D3-REF-ALIGN-THIN-1 | done 已验收 pass 终验收口（exit 0+D3 点亮） |
 | 267 | MSGLOOP-FEEDBACK-LOSS-1 | **done 取证型 pass**（前提推翻+重定性；累积弹回史挂 262 验证腿读数） |
-| 268 | D1GATE-SCRIPT-HYGIENE-1 | 新卡（265 域外②），自主批次在派 |
-| 276 | EDU-SYMBOL-CORE-1 | doing（段 1+2 pass；段 3 真栈烟测=栈腿串行第三） |
-| 279 | EDU-LEVEL-CONTENT-1 | **done 待验收**（定稿轮交付 2026-11-07：level.yaml+MIDI 素材+MANIFEST+persona；机械复算全绿；开放项⑨真栈校准移交 280） |
+| 268 | D1GATE-SCRIPT-HYGIENE-1 | done 已验收 pass（主管亲跑复验） |
+| 269 | EXPADMIT-EVIDENCE-RULE-1 | done 已验收 pass 收口（契约链整程真栈走通） |
+| 270 | SMOKE-ENC-HYGIENE-2 | done 已验收 pass（主管亲跑） |
+| 271 | CLOSURE-ROUTE-ADAPT-1 | doing（实现轻验 pass；验证腿候便车搭后续 run） |
+| 272 | OBSFACE-SELECTIVE-MISS-1 | done 取证型 pass（前提改写=agent 侧接线错位非 kernel；转卡 274） |
+| 273 | ARRLOOP-AUTHBRIDGE-1 | doing（11-07 早窗重发；零栈段在派，验证腿候栈第 3 位） |
+| 274 | D1D3-DIGEST-WIRING-1 | doing（11-07 早窗发车；零栈先行，真栈回归门搭后续 run） |
+| 275 | B3-ABLATION-1 | todo 可领（零栈腿先行；ps1 腿候 281 合入+273 定形后错峰） |
+| 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
+| 277 | ARR-SRCLOAD-1 | doing（段 1/2 pass；段 3a full-access 出声实证候栈第 2 位；授权桥缝转 273） |
+| 279 | EDU-LEVEL-CONTENT-1 | done 已验收 pass 整卡（首个乐局卡定稿+319 项复算） |
+| 280 | EDU-LEVEL-RUNTIME-A | done 已验收 pass（runtime_slots+语义定案两裁定） |
+| 281 | EDU-LEVEL-RUNTIME-B | doing（段 1 轻验 pass；烟测腿 11-07 早窗在派=栈首占） |
 | 239 | M3-LLM-TIMEOUT-ADAPT-1 | done 已验收 pass |
 
 ### 未成卡 backlog
@@ -31,7 +41,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 ## 二、三线（乐局/编曲/生成）——按 [11 月三线执行排序](../reports/2026-11-05-nov-three-line-execution-plan.md)（领卡顺序权威）
 
-- **首波可领**：276 EDU-SYMBOL-CORE（注册链①）+ 279 EDU-LEVEL-CONTENT（设计先行稿，定稿须 276 验收后+裁定 18 终局确认）；277 在 276 验收提交后领取；
+- **首波收口**：276/279/280 已终验合入；277（段 3a 候栈第 2 位）+281（烟测腿在派=栈首占）在飞；278 等注册链②段 3a 收口后领取；
 - 注册链串行：276→277→278→282→283；其余依赖见计划文档卡序表；
 - 外部依赖（用户动作）：裁定 18 终局+写入降级（279 定稿前）/裁定 15 问询通用化（282 前）/Audiveris+music21 部署（286 前）/Suno key（288 前，可选）；
 - 真栈窗口与主线按日协调（§9 一次一个 owner，登记 coord/resources/PC-RUNTIME-STACK.md）。
@@ -55,5 +65,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 ## 维护规则
 
 1. 各线发卡后在本索引登记行；卡状态流转（领取/完成/验收）由执行侧回执+主管验收更新；
-2. 新卡编号遵守两线区间（主线 267+/三线 292+），267–275 空号不分配；
+2. 新卡编号遵守编号空间裁定（主线 258–275 封块已满/三线 276–291 已分配；**292 起两线共用递增**，发卡登记本索引认领池序）；
 3. 挂起卡触发条件达成时由管辖线主管移入各自活跃段。
