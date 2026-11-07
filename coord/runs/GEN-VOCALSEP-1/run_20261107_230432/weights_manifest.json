@@ -1,0 +1,12 @@
+{
+ "htdemucs.yaml": {
+  "path": "C:\\Users\\timoz\\.cache\\huggingface\\hub\\models--adefossez--HTDemucs\\snapshots\\cbc8a9b1a87023b7fd74e7b3412e6321c0eab003\\htdemucs.yaml",
+  "bytes": 21,
+  "sha256": "239c445d0b14454d541ad8bd9bb271c9e536d267e8a4625208744cbb2e7bb66c"
+ },
+ "955717e8.safetensors": {
+  "path": "C:\\Users\\timoz\\.cache\\huggingface\\hub\\models--adefossez--HTDemucs\\snapshots\\cbc8a9b1a87023b7fd74e7b3412e6321c0eab003\\955717e8.safetensors",
+  "bytes": 84025440,
+  "sha256": "d9fa14133cfcc034a6758923bb3a8ca9f8dfd0b582134643bbf83f72c17576dd"
+ }
+}

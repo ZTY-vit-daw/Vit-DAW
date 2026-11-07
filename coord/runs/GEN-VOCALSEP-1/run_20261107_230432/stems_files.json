@@ -1,0 +1,50 @@
+[
+ {
+  "file": "D:\\Vit_DAW_wt_306vsep\\coord\\runs\\GEN-VOCALSEP-1\\run_20261107_230432\\stems\\yue-local-46797cf8bea5cde6\\vocals.wav",
+  "bytes": 11012904,
+  "sr": 48000,
+  "ch": 2,
+  "dur_s": 57.36,
+  "sha256": "87aa561a35593b9b"
+ },
+ {
+  "file": "D:\\Vit_DAW_wt_306vsep\\coord\\runs\\GEN-VOCALSEP-1\\run_20261107_230432\\stems\\yue-local-46797cf8bea5cde6\\no_vocals.wav",
+  "bytes": 11012904,
+  "sr": 48000,
+  "ch": 2,
+  "dur_s": 57.36,
+  "sha256": "40912322c5a1d3a2"
+ },
+ {
+  "file": "D:\\Vit_DAW_wt_306vsep\\coord\\runs\\GEN-VOCALSEP-1\\run_20261107_230432\\stems\\yue-local-82984d83d18fdcce\\vocals.wav",
+  "bytes": 11519784,
+  "sr": 48000,
+  "ch": 2,
+  "dur_s": 60.0,
+  "sha256": "90572272fcd25c21"
+ },
+ {
+  "file": "D:\\Vit_DAW_wt_306vsep\\coord\\runs\\GEN-VOCALSEP-1\\run_20261107_230432\\stems\\yue-local-82984d83d18fdcce\\no_vocals.wav",
+  "bytes": 11519784,
+  "sr": 48000,
+  "ch": 2,
+  "dur_s": 60.0,
+  "sha256": "9353050024b86ac3"
+ },
+ {
+  "file": "D:\\Vit_DAW_wt_306vsep\\coord\\runs\\GEN-VOCALSEP-1\\run_20261107_230432\\stems\\yue-local-9e4f260d16495bd6\\vocals.wav",
+  "bytes": 11012904,
+  "sr": 48000,
+  "ch": 2,
+  "dur_s": 57.36,
+  "sha256": "d6d28b9c2d0c805a"
+ },
+ {
+  "file": "D:\\Vit_DAW_wt_306vsep\\coord\\runs\\GEN-VOCALSEP-1\\run_20261107_230432\\stems\\yue-local-9e4f260d16495bd6\\no_vocals.wav",
+  "bytes": 11012904,
+  "sr": 48000,
+  "ch": 2,
+  "dur_s": 57.36,
+  "sha256": "c1b4c7e1c32a36c2"
+ }
+]

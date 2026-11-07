@@ -1,0 +1,10 @@
+=== RUN 195542 23:08:40
+{"track": "yue-local-9e4f260d16495bd6", "infer_wall_s": 16.56, "realtime_factor": 0.289, "energy_frac_vocals": 0.4475566443914799, "recon_rmse_ratio": 0.036191065188102944, "voc_lf_frac_lt150hz": 0.00020897065405733883, "quiet20_leak_db": -21.926130317606386}
+EXIT=0 TOTAL_WALL=24s
+=== RUN 200252 23:09:04
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+{"track": "yue-local-82984d83d18fdcce", "infer_wall_s": 18.19, "realtime_factor": 0.303, "energy_frac_vocals": 0.30438419940874545, "recon_rmse_ratio": 0.017091903770821527, "voc_lf_frac_lt150hz": 7.524613465648144e-05, "quiet20_leak_db": -28.539848461974174}
+EXIT=0 TOTAL_WALL=26s
+=== RUN 213958 23:09:30
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+EXIT=127 TOTAL_WALL=14s

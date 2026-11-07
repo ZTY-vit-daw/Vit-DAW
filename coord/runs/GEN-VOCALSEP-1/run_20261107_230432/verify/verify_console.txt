@@ -1,0 +1,5 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Selected model is a bag of 1 models. You will see that many progress bars per track.
+Separated tracks will be stored in D:\Vit_DAW_wt_306vsep\coord\runs\GEN-VOCALSEP-1\run_20261107_230432\verify\htdemucs
+Separating track tmp\verify_slice10s.wav
+  0%|                                                                                   | 0.0/11.7 [00:00<?, ?seconds/s] 50%|█████████████████████████████████████                                     | 5.85/11.7 [00:02<00:02,  1.97seconds/s]100%|██████████████████████████████████████████████████████████████████████████| 11.7/11.7 [00:04<00:00,  2.43seconds/s]100%|██████████████████████████████████████████████████████████████████████████| 11.7/11.7 [00:04<00:00,  2.34seconds/s]

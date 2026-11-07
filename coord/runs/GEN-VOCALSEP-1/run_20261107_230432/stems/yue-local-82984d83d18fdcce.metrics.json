@@ -1,0 +1,30 @@
+{
+ "track": "yue-local-82984d83d18fdcce",
+ "sr": 44100,
+ "rms_mix": 0.1612420678138733,
+ "rms_vocals": 0.08895890414714813,
+ "rms_no_vocals": 0.1327401101589203,
+ "energy_frac_vocals": 0.30438419940874545,
+ "energy_frac_no_vocals": 0.6777157882217223,
+ "recon_rmse_ratio": 0.017091903770821527,
+ "voc_lf_frac_lt150hz": 7.524613465648144e-05,
+ "no_vocals_lf_frac_lt150hz": 0.7936280965805054,
+ "quiet20_vocals_rms": 0.22544243931770325,
+ "quiet20_no_vocals_rms": 6.0259857177734375,
+ "quiet20_leak_db": -28.539848461974174,
+ "input": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_200252\\downloads\\yue-local-82984d83d18fdcce.wav",
+ "src_sr": 48000,
+ "model_sr": 44100,
+ "write_sr": 48000,
+ "duration_s": 59.998666666666665,
+ "model_load_s": 5.51,
+ "infer_wall_s": 18.19,
+ "realtime_factor": 0.303,
+ "device": "cpu",
+ "shifts": 1,
+ "model": "htdemucs",
+ "outputs": {
+  "vocals": "stems\\yue-local-82984d83d18fdcce\\vocals.wav",
+  "no_vocals": "stems\\yue-local-82984d83d18fdcce\\no_vocals.wav"
+ }
+}

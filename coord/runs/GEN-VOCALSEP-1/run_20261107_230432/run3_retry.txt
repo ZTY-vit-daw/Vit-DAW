@@ -1,0 +1,2 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+{"track": "yue-local-46797cf8bea5cde6", "infer_wall_s": 17.21, "realtime_factor": 0.3, "energy_frac_vocals": 0.2717276616278045, "recon_rmse_ratio": 0.01340531535678998, "voc_lf_frac_lt150hz": 4.339362567407079e-05, "quiet20_leak_db": -47.34419393686924}
