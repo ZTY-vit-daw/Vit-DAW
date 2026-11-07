@@ -67,6 +67,6 @@ if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
 
 ## 领取 / 回执 / 验收
 
-- 领取：未领取；待主管确认后由明确执行 owner 按协议记录时间、origin/main、模型/机器/会话、分支、worktree 与领取提交。
+- 领取：2026-11-07 18:20 +0800 ｜ origin/main=b352ba898c0f5016962d7c4b5e5d3d5fbfdd8014（与本地 main 一致）｜ owner=GLM 主会话 L2-worker 子代理（ZCode/PC）｜ 分支=port/plugin-control-eval-prep-1 ｜ worktree=D:/Vit_DAW_wt_299prep ｜ 领取基线：HEAD=b352ba89、status 全净、diff --stat 空（fresh worktree）｜ 前置核对：卡在 todo/ ✓ 派发确认=已确认（池序 299，HEAD 提交即派发登记）✓ doing 三卡（ARRLOOP-AUTHBRIDGE-1/B3-ABLATION-1/CLOSURE-ROUTE-ADAPT-1）文件域与本卡（仅 coord/reports/、coord/runs/PLUGIN-CONTROL-EVAL-PREP-1/ 新建三件+本卡）不相交 ✓ 领取提交见回执。
 - 回执：待执行侧填写工件链接、commit hash、检查命令/退出码、未决项和建议后续卡；端测边界明确写“本卡为零运行的实验准备，无模型成绩、无真栈结论”。
 - 验收：待 PC 主管决策流裁定；执行 done 不代替最终验收。
