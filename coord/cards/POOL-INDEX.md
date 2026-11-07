@@ -36,7 +36,8 @@
 | 297 | KERNEL-OFFRENDER-FORENSICS-1 | done 已验收 pass（候选②fail-silent 守卫唯一不可排除；转卡 301 复现；PD-7=by-design 钉死） |
 | 300 | PLUGIN-CONTROL-EVAL-RUNNER-1 | doing（晚窗在派；含 S0+S1-P 授权——deepseek-flash 单模型，用户裁定） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | todo 可领（守卫留痕+M0-M3 复现；C++ 最小插桩+栈） |
-| 298 | VSTI-PARAM-PROBE-1 | todo 可领（音源参数控制探针=准入后置链②，与 297 可并行；不写 attestation 库） |
+| 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
+| 302 | VSTI-WRITEGUARD-1 | todo 可领（de-esser 守卫 instrument 分类修，298 转卡；零栈先行） |
 | 299 | PLUGIN-CONTROL-EVAL-PREP-1 | done 已验收 pass（PREP 收口：模型=deepseek-flash 双证+A/B 四锚点污染定位；RUNNER 不含缝可先行，缝+模型矩阵候用户裁定） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
 | 277 | ARR-SRCLOAD-1 | done 已验收 pass 收口（装载链四环节实证；渲染静音=域外内核缺陷转卡 297；**注册链③解锁**） |
