@@ -472,7 +472,7 @@ func defaultCapabilityPacks() []CapabilityPack {
 			},
 			ResultHints: []string{
 				"digest contains the default acoustic summary and available_detail readiness.",
-				"catalog entries are stable keys such as observation.digest, project.tracks.summary, project.rankings.level, project.risks.headroom, and track.{id}.slow.time_energy.summary.",
+				"catalog entries are stable keys such as observation.digest, project.tracks.summary, project.rankings.level, and project.risks.headroom; track.<id>.slow.time_energy.summary is keyed by the observation's own target id (track.current.* on full_project observations), so another track's time_energy needs its own per-track observation instead of a full_project catalog key.",
 				"relationship package types include rank_tracks, focus_vs_project, a_vs_b, group_overlap, and before_after.",
 			},
 			Verification: []string{
