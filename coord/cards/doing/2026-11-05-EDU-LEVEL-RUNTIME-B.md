@@ -49,6 +49,16 @@
 - **端测边界声明（AGENTS §5）**：段 1 仅单测+build（假内核注入缝 eduJamKernelSendOverride）；真栈烟测腿（-EduJamSmoke：fixture 42 音主题→HTTP chat 驱动 enter→n0→n1 judge→状态→exit，全确定性**零 LLM** 并断言 telemetry 零行）**已备妥未执行——候栈**（277 ARR-SRCLOAD-1 smokerun1 占栈中，卡面让位记录 7b6469b0 已见）；人格渲染层=占位（问询/enter 文本直出，rulings §五-19 终审前）
 - **运行口径（§8，烟测腿跑前成文）**：单 run 无重跑；exit 0=PASS / 2=环境（栈/传输/fixture）/ 4=确定性面缺陷（取证上交）；n1 judge 过兼作 fixture↔卡 notes.theme 对账
 
+### 段 2：真栈烟测腿 smokerun1（2026-11-07，**py exit 4=§8 预写确定性面缺陷类**，单 run 无重跑兑现；取证上交，卡留 doing/）
+
+- **run**：`smokerun1_20261107_0924`（09:24:02 启动）；完整命令/退出码/二进制哈希/工件清单见 `coord/runs/EDU-LEVEL-RUNTIME-B/smokerun1_20261107_0924/evidence.md`（工件随 `port/edu-level-runtime-b` `bfaf6955` 已推）；py exit 4 → PS1 exit 1（dev_agent_smoke.ps1:9019 throw，预期映射）；agent=现场构建 SHA256 `B73212AC…95C`；kernel=wt_228 `F9E3DA0A…D67A` 只读复用
+- **过程**：Phase A fixture（ZMQ new_project+save_as_project 落 run 目录+3 轨+42 音回读计数）PASS → B1 enter PASS（workflow=edu_jam/stop=edu_jam_entered/level=first-run-twinkle/n0_photo_score_open，回复含「乐局开始」）→ **B2 n0「写好了」未被乐局面拦截**（workflow=semantic_entry/stop=semantic_entry_unresolved conf 0.20）→ B3-B5 与 Phase C 零 LLM 断言未及；n1 judge 的 fixture↔卡 notes.theme 对账未到达
+- **根因**（agent_last.log 时序+代码锚点，全在 turn 1 的 623ms 请求窗口内）：fixture 经内核落盘后 agent 工作区尚未激活（此前=脚本临时草稿）→ turn 1 enter 经挂载点正常开局、`storeEduJamSession` 写内存会话表（edu_jam_chat.go:262；projectUUID 走 kernel 回退 :945-964）→ **同请求内**工作区管理器激活 fixture 工作区（log 09:24:15 `[workspace] activated … conversations=0`）→ 新工程盘上无 runtime state → `restoreProjectAgentRuntimeStateLocked` 执行 `s.eduJamSessions = s.restoreEduJamSessionsLocked(空)`（server.go:7899）**整表空覆盖在途会话** → turn 2 查无会话按设计放行（edu_jam_chat.go:401-404）→ semantic_entry LLM 分类 unresolved。**定性=enter 允许 pre-activation 开局 × 激活空态 restore 整表覆盖的组合竞态，281 文件域内确定性接线缺陷**；非环境非模型随机（分类是放行下游后果）。9 单测全在单一预置工作区状态下跑，未建模请求内激活切换
+- **计费（如实）**：telemetry 2 行 deepseek-flash（默认 strip silence **chat** 子腿 1 行——**申报更正**：登记文「-NoChatSmoke 保全 run 零 LLM」不完整，该开关只关 9391 行 chat 路由腿；+烟测会话 semantic_entry 分类 1 行）≪¥0.01；烟测会话域若跑达 Phase C 也会以 1≠0 失败（缺陷下游如实记）
+- **栈纪律**：占用登记 `24a8247b`（09:23，净空 09:17+09:22:47 两轮亲核+登记后 60s 即时复核 09:23:44 全零）；owner 亲拆 VitAgent 1704/VitApp 20740；**TEARDOWN_ALL_ZERO 亲核 09:24:55**（六口 TCP listen=0+UDP 4444/4445=0+VitApp/VitAgent/vsphub/Godot/python 全零）；释放登记随本笔
+- **处置（交主管）**：修复候选 A=激活路径对 EduJamSessions merge 不整表覆盖（需定义同 conversation 冲突规则）/B=enter fail-closed 要求工作区已激活且绑定=内核当前工程（冒测腿需先触发激活再 enter）/C=查无会话回退盘上快照/内核绑定再判；均应配「enter→激活→推进」竞态建模单测。段 1 验收（挂载设计/词形/拉回/持久化面）不被本腿推翻——缺陷在激活交互面
+- **边界声明（AGENTS §5）**：本腿为真栈烟测（真实内核+agent HTTP/ZMQ 面）；渲染面/用户旅程面不在覆盖内（不变）
+
 ## 验收
 
 - （主管回填）
