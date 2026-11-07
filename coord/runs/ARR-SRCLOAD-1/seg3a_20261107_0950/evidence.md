@@ -78,7 +78,7 @@ RUNBOOK.md（跑前 §8）/ arr_srcload_summary.json / chat_response.json /
 arr_srcload_console.txt / ps1_console.txt / agent_last.log（自 Workspace/Logs 复制）/
 logs/agent_llm_telemetry.jsonl / logs/agent_prompt_render.jsonl /
 arr_srcload_fixture_project.vit / default_project.xml / gui_project_isolation.json /
-.vit_agent/（journal）/ .vit_history/（会话图）。
+.vit_agent/（journal）/ .vit_history/（会话图）——后两者为运行时状态，按仓库 .gitignore（**/.vit_agent/ 等）在盘保留不入库。
 
 ## 8. 交主管裁定项（非执行侧自决）
 
