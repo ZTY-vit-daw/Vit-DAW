@@ -8,7 +8,7 @@
 
 ### A-F 进度计量（终局裁定口径：A=已证可拆 / H=harness 形态已测 / F=固定层推测）
 
-**A=1（B4，2026-11-06 [264 裁定](../rulings/2026-11-06-B4-ABLATION-1-pass.md)）｜ C4=H（263 维持）｜ B1-B3/C1-C3/D1=F（B3 拆减卡 275 已发）｜ D2/D3=判据薄层已点亮（265/266，族本体未建）｜ C5/D4/E/F=not_built**
+**A=1（B4，2026-11-06 [264 裁定](../rulings/2026-11-06-B4-ABLATION-1-pass.md)）｜ C4=H（263 维持）｜ B1-B3/C1-C3/D1=F（B3 已拆未过维持 F——275 判定型负结果，263 组 3 同型）｜ D2/D3=判据薄层已点亮（265/266，族本体未建）｜ C5/D4/E/F=not_built**
 
 ### 活跃/待领
 
@@ -27,7 +27,7 @@
 | 272 | OBSFACE-SELECTIVE-MISS-1 | done 取证型 pass（前提改写=agent 侧接线错位非 kernel；转卡 274） |
 | 273 | ARRLOOP-AUTHBRIDGE-1 | doing（11-07 早窗重发；零栈段在派，验证腿候栈第 3 位） |
 | 274 | D1D3-DIGEST-WIRING-1 | done 已验收 pass 合入（相邻两处转卡 292/293） |
-| 275 | B3-ABLATION-1 | doing（段 1 零栈腿回执在案候轻验；ps1 腿候合并窗口与栈窗口） |
+| 275 | B3-ABLATION-1 | done 已验收 pass 收口（判定型负结果：B3 维持 F 不判 A；263 组 3 同型，B4=A 族内对照素材） |
 | 292 | MIXBOARD-TRACKKEY-1 | done 已验收 pass 合入（四处同型候选记录→PD） |
 | 293 | WE-MISMATCH-FORENSICS-1 | done 已验收 pass（取证型：设计内披露+物化链无罪+前提证伪；转卡 294；加固挂 PD-6） |
 | 294 | FIXTURE-WE-HYGIENE-1 | done 已验收 pass（三处剔除+离线四情景验证；三休眠行记录接受） |
