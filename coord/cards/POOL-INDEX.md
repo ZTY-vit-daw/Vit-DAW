@@ -31,11 +31,15 @@
 | 292 | MIXBOARD-TRACKKEY-1 | done 已验收 pass 合入（四处同型候选记录→PD） |
 | 293 | WE-MISMATCH-FORENSICS-1 | done 已验收 pass（取证型：设计内披露+物化链无罪+前提证伪；转卡 294；加固挂 PD-6） |
 | 294 | FIXTURE-WE-HYGIENE-1 | done 已验收 pass（三处剔除+离线四情景验证；三休眠行记录接受） |
-| 295 | CAPABILITYPACK-KEYADVERT-1 | todo 可领（提示词键宣传对账，292 勘察①转卡；零栈） |
-| 296 | D1D3-REGRESS-STACK-1 | todo 可领（274+292 真栈回归门；候栈排队） |
-| 297 | KERNEL-OFFRENDER-FORENSICS-1 | todo 可领（内核离线渲染数字静音取证，277 转卡；含 PD-7 查证） |
-| 298 | VSTI-PARAM-PROBE-1 | todo 可领（音源参数控制探针=准入后置链②，与 297 可并行；不写 attestation 库） |
-| 299 | PLUGIN-CONTROL-EVAL-PREP-1 | doing（Codex 辅助流发卡+主管确认 2026-11-07 午后；效果器能力评估 PREP=零栈零 LLM 只读；S1 付费轮待 PREP 后另批） |
+| 295 | CAPABILITYPACK-KEYADVERT-1 | done 已验收 pass 合入（A 案宣传面修正） |
+| 296 | D1D3-REGRESS-STACK-1 | todo（rework 重跑一次：D2 断言修正预收；基线=现 main 含 295 修；排 300 之后；blocked 两现开取证卡） |
+| 297 | KERNEL-OFFRENDER-FORENSICS-1 | done 已验收 pass（候选②fail-silent 守卫唯一不可排除；转卡 301 复现；PD-7=by-design 钉死） |
+| 300 | PLUGIN-CONTROL-EVAL-RUNNER-1 | doing（晚窗在派；含 S0+S1-P 授权——deepseek-flash 单模型，用户裁定） |
+| 301 | KERNEL-OFFRENDER-REPRO-1 | todo 可领（守卫留痕+M0-M3 复现；C++ 最小插桩+栈） |
+| 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
+| 303 | GEN-CHAT-ROUTING-1 | done 已验收 pass 合入（token 边界+生成域扩表+b1/b2/b3 同面顺带修；278 末腿放行） |
+| 302 | VSTI-WRITEGUARD-1 | todo 可领（de-esser 守卫 instrument 分类修，298 转卡；零栈先行） |
+| 299 | PLUGIN-CONTROL-EVAL-PREP-1 | done 已验收 pass（PREP 收口：模型=deepseek-flash 双证+A/B 四锚点污染定位；RUNNER 不含缝可先行，缝+模型矩阵候用户裁定） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
 | 277 | ARR-SRCLOAD-1 | done 已验收 pass 收口（装载链四环节实证；渲染静音=域外内核缺陷转卡 297；**注册链③解锁**） |
 | 279 | EDU-LEVEL-CONTENT-1 | done 已验收 pass 整卡（首个乐局卡定稿+319 项复算） |
@@ -49,7 +53,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 ## 二、三线（乐局/编曲/生成）——按 [11 月三线执行排序](../reports/2026-11-05-nov-three-line-execution-plan.md)（领卡顺序权威）
 
-- **首波收口**：276/277/279/280 已终验合入（277 早窗收口）；281（修复 1+2 完成，smokerun3 在派=栈占用）在飞；**278 注册链③已解锁可领**（P1 大卡，建议下窗口首排）；
+- **首波收口**：276/277/279/280/281 已终验合入；**278 晚窗段收口**（dialect+注册+invoke 实证；复验条款 B 收口；chat 末腿候 303）；注册链④（282 等裁定 15）；
 - 注册链串行：276→277→278→282→283；其余依赖见计划文档卡序表；
 - 外部依赖（用户动作）：裁定 18 终局+写入降级（279 定稿前）/裁定 15 问询通用化（282 前）/Audiveris+music21 部署（286 前）/Suno key（288 前，可选）；
 - 真栈窗口与主线按日协调（§9 一次一个 owner，登记 coord/resources/PC-RUNTIME-STACK.md）。

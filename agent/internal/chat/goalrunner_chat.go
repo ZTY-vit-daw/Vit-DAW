@@ -4485,6 +4485,9 @@ func toolNamesForAgentLoopCapabilities(h *harness.Harness, mode string, capabili
 			add(agentLoopProjectMarkerTools()...)
 		case "workspace":
 			add(agentLoopWorkspaceTools()...)
+		case "generation":
+			// GEN-CHAT-ROUTING-1：生成域披露允许列表（276 第四处注册面同型扩表）。
+			add(agentLoopGenerationTools()...)
 		}
 	}
 	if len(seen) == 0 || (len(seen) == 1 && seen["daw.invoke"]) {
@@ -4644,6 +4647,14 @@ func agentLoopCapabilityNames(userText string, requestContext map[string]any) []
 	) {
 		add("plugin")
 	}
+	// GEN-CHAT-ROUTING-1 (278 run3 取证)：生成类话术天然携带 mix/midi/transport
+	// 词汇（style_tags 里的 vocal/drums/BPM），所以一旦 capabilities 非空、工具集
+	// 被收窄到既有包，gen.generate 就被滤掉——模型诚实申报「工具集里没有」并
+	// 拒绝假装生成。generation 只做加法：既有包的命中与收窄行为零变化，
+	// 仅在生成意图在场时补披露生成包（276 EDU-SYMBOL-CORE-1 第四处注册面同型）。
+	if agentLoopGenerationIntent(text) {
+		add("generation")
+	}
 	if seen["static_mix_pan_layout"] {
 		delete(seen, "static_mix_static_balance")
 		delete(seen, "static_mix_gain_staging")
@@ -4683,15 +4694,36 @@ func (route agentLoopCapabilityRoute) allowsNaturalMixKeywords() bool {
 	return !route.clipFadeGain
 }
 
+// agentLoopGenerationIntent reports whether the user text asks the agent to
+// GENERATE audio (sing a score through a generation engine, make an AI cover,
+// synthesize a vocal/drums take) rather than to mix existing material.
+// Generation requests naturally also contain mix/midi/transport vocabulary
+// ("female vocal ... drums, 108 BPM" inside style tags), which keeps those
+// existing packs armed exactly as before — this intent only adds the
+// generation pack so the narrowed toolset stops filtering gen.generate out
+// (278 run3: the model honestly reported the tool was absent and refused to
+// fake generation). Vocabulary is deliberately generation-specific; bare
+// mix words (vocal/drums/bpm alone) are NOT generation triggers, so
+// non-generation turns keep their pre-fix capability sets byte-for-byte.
+func agentLoopGenerationIntent(text string) bool {
+	return agentLoopTextHasAny(text,
+		"gen.generate", "gen.providers", "genapi",
+		"生成", "翻唱", "唱出来", "唱一段", "唱一下", "唱一首", "唱首歌", "清唱", "歌声合成", "人声合成",
+		"sing ", "sing a", "sung", "ai cover", "cover version", "vocal synthesis", "singing synthesis", "generate audio", "generation",
+	)
+}
+
 func agentLoopStaticMixGainStagingIntent(text string) bool {
 	text = strings.ToLower(strings.TrimSpace(text))
 	if text == "" {
 		return false
 	}
-	if agentLoopTextHasAny(text, "b1", "b 1", "b1.1", "b 1.1", "b1-1", "b1_1", "b1.2", "b 1.2", "b1-2", "b 1-2", "b1_2") {
+	// GEN-CHAT-ROUTING-1：裸 B 码走词边界（ABC 谱 "b12z8" 不得命中 "b1"）；
+	// 复合变体（"b 1"/"b1.1"…）与短语维持 Contains 原语义。
+	if capabilityMarkerPresent(text, "b1") || agentLoopTextHasAny(text, "b 1", "b1.1", "b 1.1", "b1-1", "b1_1", "b1.2", "b 1.2", "b1-2", "b 1-2", "b1_2") {
 		return true
 	}
-	hasB1 := agentLoopTextHasAny(text, "b1", "b 1", "static_mix.gain_staging", "gain staging", "gain-staging", "gainstage")
+	hasB1 := capabilityMarkerPresent(text, "b1") || agentLoopTextHasAny(text, "b 1", "static_mix.gain_staging", "gain staging", "gain-staging", "gainstage")
 	hasGainHealth := agentLoopTextHasAny(text,
 		"gain staging", "gain structure", "gain health", "headroom", "level health", "level check", "level scan", "level audit", "input level", "source level", "peak check", "rms check", "loudness check",
 		"\u589e\u76ca\u7ed3\u6784", "\u589e\u76ca\u6574\u7406", "\u589e\u76ca\u9636\u6bb5", "\u7535\u5e73\u7ed3\u6784", "\u7535\u5e73\u5065\u5eb7", "\u7535\u5e73\u68c0\u67e5", "\u7535\u5e73\u626b\u63cf", "\u7535\u5e73\u5ba1\u8ba1", "\u8f93\u5165\u7535\u5e73", "\u6e90\u7535\u5e73", "\u97f3\u91cf\u68c0\u67e5", "\u97f3\u91cf\u626b\u63cf", "\u97f3\u91cf\u5ba1\u8ba1", "\u54cd\u5ea6\u68c0\u67e5", "\u5cf0\u503c\u68c0\u67e5", "\u4f59\u91cf",
@@ -4710,7 +4742,7 @@ func agentLoopStaticMixStaticBalanceIntent(text string) bool {
 	if text == "" {
 		return false
 	}
-	if agentLoopTextHasAny(text, "b2", "b 2", "static_mix.static_balance", "static balance", "静态平衡", "靜態平衡") {
+	if capabilityMarkerPresent(text, "b2") || agentLoopTextHasAny(text, "b 2", "static_mix.static_balance", "static balance", "静态平衡", "靜態平衡") {
 		return true
 	}
 	projectWide := agentLoopTextHasAny(text, "全工程", "整个工程", "整個工程", "整体", "整體", "多轨", "多軌", "all tracks", "whole project", "full project", "multitrack")
@@ -4723,8 +4755,8 @@ func agentLoopStaticMixPanLayoutIntent(text string) bool {
 	if text == "" {
 		return false
 	}
-	if agentLoopTextHasAny(text,
-		"b3", "b 3", "static_mix.pan_layout", "pan layout", "static pan layout",
+	if capabilityMarkerPresent(text, "b3") || agentLoopTextHasAny(text,
+		"b 3", "static_mix.pan_layout", "pan layout", "static pan layout",
 		"声像布局", "聲像佈局", "声场布局", "聲場佈局", "静态声像", "靜態聲像",
 	) {
 		return true
@@ -5004,6 +5036,21 @@ func agentLoopMixTools() []string {
 		"mix.observe", "mix.read", "mix.derive", "mix.request_observation",
 		"mix.propose_tick", "mix.apply_tick", "mix.rollback_tick",
 		"project.undo", "project.redo",
+	}
+}
+
+// agentLoopGenerationTools is the generation-domain disclosure allowlist —
+// the chat capability gate keeps a per-pack parallel allowlist (the "fourth
+// registration face", same family as the EDU-SYMBOL-CORE-1
+// midi.analyze_transformations line): capabilityPackSummary intersects this
+// list, so a missing row silently filters the tool out of every narrowed
+// turn. gen.generate is RiskConfirm — disclosure only makes it callable;
+// execution still goes through the pending-confirmation chain, and the PCA
+// gate / load chain are untouched.
+func agentLoopGenerationTools() []string {
+	return []string{
+		"gen.generate", // config-driven generation through the genapi adapter (278 GEN-YUE-DIALECT-1)
+		"gen.providers",
 	}
 }
 
