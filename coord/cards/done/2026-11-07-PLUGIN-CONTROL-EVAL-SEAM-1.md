@@ -45,4 +45,4 @@
   - **域外观察两件（只锚点不扩修）**：① message_loop.go:4422 verified-entry 裁剪的规则段起始标记 "- For an actionable generic static-EQ listening goal" 在现行骨架文本中不存在（骨架实为 "- An actionable abstract static-EQ…"），该裁剪半段恒 no-op（示例段半段仍活跃）——unset 路径行为属生产现状，本卡不动，测试 TestSeamS4ClosedVerifiedEntryTrimUnchanged 注释留档；② harness.go 基线（origin/main 78bfb2bb）本就非 gofmt-clean（identityReconcileMu 块对齐），非本卡引入。
   - **S2 结构性残留声明**：五字段已剥，但 quick_controls 的「选择哪些参数」与 recommended_groups 的组名仍是内核语义结构（组名源自同一人工词表）——卡面字段清单为五字段故按最小忠实实现，如 A 臂需结构级净化请主管裁定扩域。
   - **端测边界声明（零栈）**：本卡全部验证为 Go 单测/包级回归+编译（AGENTS §7 等级：单元契约级）；未跑真栈烟测、未启栈、零 LLM 调用零计费、无 run ID；缝开态的端侧有效性（含 dryround）留待真栈窗口。渲染面/用户旅程不涉及。
-
+- 验收（2026-11-07 深夜，主管）：**pass**——四缝实现采信（S1 授权/范围保留仅重写分类=S2 治理不弱化；S2 五字段摄取点剥离+原生面保留+快照缓存仅键 param_id 写守卫不弱化）；主管交叉复跑四包 TestSeam 全绿+合并后 build 0；A 臂三面亲证合格。**三项域外交付处置**：①message_loop :4422 死标记半段（恒 no-op）=生产现状记录，P3 观察不立卡；②harness 基线非 gofmt-clean=前存非本卡引入；③S2 结构性残留（quick_controls 选择面+recommended_groups 组名）=**A 臂按「raw+最小结构残留」口径执行**（结果解读声明项，不扩缝——若 A 臂结果异常再议）。分支已 merge 合入 main。S1-A 臂即派（卡 307）。L1 台账 48h 窗口。
