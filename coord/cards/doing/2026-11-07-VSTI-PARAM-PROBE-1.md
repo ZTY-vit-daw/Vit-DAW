@@ -23,4 +23,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 18:37 +0800 / origin/main=`3f222128126494ee8c8e6cd5790558a3ac6c6097` / owner=GLM-5.3 L2-worker 执行子代理（ZCode PC 会话，sess 子代理；池序 298） / 分支=`port/vsti-param-probe-1` / worktree=`D:/Vit_DAW_wt_298probe` / 领取基线：HEAD=`3f222128`（worktree 自 origin/main 新建检出），`git status --short`=空、`git diff --stat`=空（全净，无领取前已有 diff）；候栈排队第 2 位（296 优先已核对：其已领取卡但栈登记面仍空闲=281 10:42 释放后无新占用，登记前将再次 fetch 重读+≤60s 复核）。
+- 回执：（待执行侧回填）
+- 验收：（主管回填）
