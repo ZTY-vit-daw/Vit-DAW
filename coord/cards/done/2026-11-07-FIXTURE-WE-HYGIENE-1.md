@@ -31,4 +31,4 @@
   - **报告与工件**：报告 [coord/reports/2026-11-07-fixture-we-hygiene.md](../../reports/2026-11-07-fixture-we-hygiene.md)；工件 `coord/runs/FIXTURE-WE-HYGIENE-1/`——均在分支 **port/fixture-we-hygiene-1** commit `87a8ec25`（基线 66313d86，12 文件，源码零改动红线亲证）。
   - **端测边界声明（零栈）**：验证边界=读侧函数离线复放（双控制精确复现 265/266 ground truth）+结构/哈希/manifest 静态核验；未跑真实栈回归——266 D1 门 A 回归门维持 274/293 backlog 记法，随后续真栈 run（296 D1D3-REGRESS-STACK-1）在卫生后 fixture 上验证。零栈零端口占用，无栈登记需求（卡面零栈口径）。
   - 过程纪律自述：领取推送一次被拒（origin/main 前进至 6f2f1ec5，277 栈登记），按 §2.1.3 自新 main 建 `coord/294-claim-reapply` 重新应用后推成（`8fb5e0e4`）；未用任何 reset/force 类命令。
-- 验收：（主管回填）
+- 验收（2026-11-07 早窗，主管）：**pass**——外科三处（WE 槽 _1055/twe (1007,1055)/声学包条目）+前态哈希三重门换入+overlay 离线四情景 exit 0（v1/v2 控制情景精确复现 265/266 ground truth=rig 保真证；v4 桥脱落最坏情形零 _1055 身份=裸槽浮出路径消灭）+manifest 54 stems 复验全过；**三条同族休眠 L3 offline 行（band_energy/loudness/stereo 各一 (1007,1055)）=记录接受**（无读面暴露；293 教训在卷——若 296 回归现同型异常浮出再开补剔）；fixture 位于 temp/ gitignore 域确认（不入版本=权威位管理口径维持）；副本前态备份保留可逆。fixture 卫生面收口。L1 台账 48h 窗口。
