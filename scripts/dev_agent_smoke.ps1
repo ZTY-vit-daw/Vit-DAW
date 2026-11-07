@@ -423,7 +423,18 @@ param(
     # exit 4 取证）。退出码：0=PASS；2=环境；4=确定性面缺陷。腿需 agent HTTP
     # 面在栈（-StartKernel -RestartAgent；不启 UI）；VIT_EDU_LEVELS_DIR 由
     # 本腿 env 块指向 $RepoRoot\coord\levels（agent 进程 cwd 不在仓库根）。
-    [switch]$EduJamSmoke
+    [switch]$EduJamSmoke,
+    # VSTI-PARAM-PROBE-1（298 域）：音源参数控制探针（确定性零 LLM）。内核
+    # ZMQ 装载（Grand Rhapsody Piano Stereo + Surge XT，plugin_identifier
+    # 解析）→ get_plugin_parameters 全量参数面（范围/装载时缺省值/枚举标签
+    # 落工件）→ set_plugin_param normalized 写-读-恢复往返（认证线同款
+    # 1e-4 快照容差）→ agent HTTP 控制面（/agent/authority full_project_access
+    # → plugin.get_parameters → plugin.set_parameter 写读恢复→权威还原）→
+    # delete_track 自含清理。退出码：0=PASS；2=环境；4=确定性面缺陷/卡面
+    # 停止条件（参数面不可用取证）。腿需 agent HTTP+内核 ZMQ 在栈
+    # （-StartKernel -RestartAgent；不启 UI）；项目隔离经共享 GUI-leg 块
+    # （本开关已入其条件）；计费预期 0 LLM 行（本腿无 chat）。
+    [switch]$VstiParamProbeSmoke
 )
 
 Set-StrictMode -Version Latest
@@ -1366,7 +1377,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $VstiParamProbeSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1506,6 +1517,23 @@ if ($EduJamSmoke -and -not $ScenarioMode) {
     Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $EduJamLogsDir "agent_llm_telemetry.jsonl")
     Set-Item -LiteralPath "env:VIT_EDU_LEVELS_DIR" -Value (Join-Path $RepoRoot "coord\levels")
     Write-Ok ("edu jam env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " levels_dir=" + $env:VIT_EDU_LEVELS_DIR)
+}
+
+# VSTI-PARAM-PROBE-1（298）：同 env-before-agent-start 窗口。telemetry+prompt
+# render 落本腿 run 工件目录——本腿自身零 LLM（断言面=agent HTTP/ZMQ 接口面，
+# 无 chat 调用），telemetry 仅为计费证据面（预期本腿 0 行；默认 strip-silence
+# 子腿若有行也落本 run 目录如实计数）。
+if ($VstiParamProbeSmoke -and -not $ScenarioMode) {
+    $VstiProbeTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($VstiProbeTelemetryRoot)) {
+        $VstiProbeTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\vsti_param_probe_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $VstiProbeTelemetryRoot -Force | Out-Null
+    $VstiProbeLogsDir = Join-Path $VstiProbeTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $VstiProbeLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $VstiProbeLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $VstiProbeLogsDir "agent_prompt_render.jsonl")
+    Write-Ok ("vsti param probe telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -9017,6 +9045,61 @@ if ($EduJamSmoke) {
     }
     else {
         throw ("edu jam smoke failed with exit code $eduJamExit (console: " + $eduJamConsolePath + ")")
+    }
+}
+
+if ($VstiParamProbeSmoke) {
+    Write-Step "vsti param probe smoke (VSTI-PARAM-PROBE-1, deterministic zero-LLM)"
+    $vstiProbeScript = Join-Path $RepoRoot "scripts/vsti_param_probe_smoke.py"
+    if (-not (Test-Path -LiteralPath $vstiProbeScript)) {
+        throw ("vsti param probe script missing: " + $vstiProbeScript)
+    }
+    $vstiProbeArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($vstiProbeArtifactsDir)) {
+        $vstiProbeArtifactsDir = Join-Path $RepoRoot ("VitApp/Workspace/Artifacts/smoke/vsti_param_probe_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $vstiProbeArtifactsDir)) {
+        New-Item -ItemType Directory -Path $vstiProbeArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($VstiParamProbeSmoke is in its
+    # condition list): rack_add_node persists the project through saveProject,
+    # so VIT_PROJECT_XML must point at the git-clean run-dir copy (217 lesson).
+    $vstiProbePriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($vstiProbePriorProjectXml)) {
+        Write-Ok ("vsti param probe project isolation: VIT_PROJECT_XML=" + $vstiProbePriorProjectXml)
+    }
+    else {
+        throw "vsti param probe requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    # Same-source fingerprint binary: pcactl from this worktree (read-only
+    # `fingerprint` subcommand; the attestation store is never opened).
+    Push-Location (Join-Path $RepoRoot "agent")
+    try {
+        & go build -o bin/pcactl.exe ./cmd/pcactl
+        if ($LASTEXITCODE -ne 0) { throw "pcactl build failed" }
+    }
+    finally { Pop-Location }
+    $vstiProbeSummaryPath = Join-Path $vstiProbeArtifactsDir "vsti_param_probe_summary.json"
+    $vstiProbeConsolePath = Join-Path $vstiProbeArtifactsDir "vsti_param_probe_console.txt"
+    $vstiProbePythonArgs = @($vstiProbeScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--repo-root", $RepoRoot, "--artifacts-dir", $vstiProbeArtifactsDir, "--output", $vstiProbeSummaryPath)
+    & python @vstiProbePythonArgs > $vstiProbeConsolePath 2>&1
+    $vstiProbeExit = $LASTEXITCODE
+    Get-Content -LiteralPath $vstiProbeConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $vstiProbeSummaryPath)) {
+        throw ("vsti param probe produced no summary artifact (exit code " + $vstiProbeExit + "; console: " + $vstiProbeConsolePath + ")")
+    }
+    if ($vstiProbeExit -eq 0) {
+        Write-Ok ("vsti param probe PASS: instrument parameter control evidenced on both faces (summary: " + $vstiProbeSummaryPath + ")")
+    }
+    elseif ($vstiProbeExit -eq 2) {
+        throw ("vsti param probe environment failure (raw evidence on disk) - see " + $vstiProbeSummaryPath)
+    }
+    elseif ($vstiProbeExit -eq 4) {
+        throw ("vsti param probe deterministic defect / card stop condition (forensic hand-over, no rerun) - see " + $vstiProbeSummaryPath)
+    }
+    else {
+        throw ("vsti param probe failed with exit code $vstiProbeExit (console: " + $vstiProbeConsolePath + ")")
     }
 }
 
