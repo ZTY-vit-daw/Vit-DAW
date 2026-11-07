@@ -587,29 +587,59 @@ def main() -> int:
                 before_row = next((row for row in parameter_rows(before_write)
                                    if str(row.get("param_id") or row.get("id")) == param_id), {})
                 before_norm = finite_float(before_row.get("normalized_value"))
-                write_reply = invoke(args.agent_http, "set_plugin_param",
-                                     {"track_id": track_id, "plugin_id": plugin_id,
-                                      "param_id": param_id, "value": want},
-                                     args.timeout_sec, confirmed=True)
+                write_reply: dict[str, Any] = {}
+                write_invocation_error = ""
+                try:
+                    write_reply = invoke(args.agent_http, "set_plugin_param",
+                                         {"track_id": track_id, "plugin_id": plugin_id,
+                                          "param_id": param_id, "value": want},
+                                         args.timeout_sec, confirmed=True)
+                except RuntimeError as exc:
+                    # HTTP 400 rejections (typed-family guards etc.) are
+                    # agent-face findings: record and continue so the other
+                    # plugin's kernel-face evidence is still collected.
+                    write_invocation_error = str(exc)[:600]
                 after_write = surface_for(kernel, track_id, plugin_id)
                 after_row = next((row for row in parameter_rows(after_write)
                                   if str(row.get("param_id") or row.get("id")) == param_id), {})
                 after_norm = finite_float(after_row.get("normalized_value"))
-                ok_write_status = str(write_reply.get("status", "")).lower() in {"ok", "success", "completed"}
+                ok_write_status = (not write_invocation_error
+                                   and str(write_reply.get("status", "")).lower() in {"ok", "success", "completed"})
                 ok_changed = (before_norm is not None and after_norm is not None
                               and abs(after_norm - before_norm) > APPLY_TOLERANCE)
                 ok_contract = (after_norm is not None and abs(after_norm - want) <= APPLY_TOLERANCE) if range_is_unit else None
-                restore_reply = invoke(args.agent_http, "set_plugin_param",
-                                       {"track_id": track_id, "plugin_id": plugin_id,
-                                        "param_id": param_id, "value": target["load_normalized"]},
-                                       args.timeout_sec, confirmed=True)
-                restore_surface = surface_for(kernel, track_id, plugin_id)
-                restore_row = next((row for row in parameter_rows(restore_surface)
-                                    if str(row.get("param_id") or row.get("id")) == param_id), {})
-                restore_norm = finite_float(restore_row.get("normalized_value"))
-                ok_agent_restore = (str(restore_reply.get("status", "")).lower() in {"ok", "success", "completed"}
+                restore_reply: dict[str, Any] = {}
+                restore_invocation_error = ""
+                restore_norm = None
+                if ok_write_status:
+                    try:
+                        restore_reply = invoke(args.agent_http, "set_plugin_param",
+                                               {"track_id": track_id, "plugin_id": plugin_id,
+                                                "param_id": param_id, "value": target["load_normalized"]},
+                                               args.timeout_sec, confirmed=True)
+                    except RuntimeError as exc:
+                        restore_invocation_error = str(exc)[:400]
+                    restore_surface = surface_for(kernel, track_id, plugin_id)
+                    restore_row = next((row for row in parameter_rows(restore_surface)
+                                        if str(row.get("param_id") or row.get("id")) == param_id), {})
+                    restore_norm = finite_float(restore_row.get("normalized_value"))
+                ok_agent_restore = (ok_write_status and not restore_invocation_error
+                                    and str(restore_reply.get("status", "")).lower() in {"ok", "success", "completed"}
                                     and restore_norm is not None
                                     and abs(restore_norm - target["load_normalized"]) <= SNAPSHOT_TOLERANCE)
+                # Param-independence probe for guard-class rejections: retry a
+                # second target once so "plugin-level block" vs "param-specific
+                # ownership" is evidenced, not assumed.
+                guard_retry = None
+                if not ok_write_status and len(targets) > 1:
+                    second = targets[1]
+                    try:
+                        guard_retry = invoke(args.agent_http, "set_plugin_param",
+                                             {"track_id": track_id, "plugin_id": plugin_id,
+                                              "param_id": second["param_id"], "value": 0.6},
+                                             args.timeout_sec, confirmed=True)
+                    except RuntimeError as exc:
+                        guard_retry = {"invocation_error": str(exc)[:600]}
                 record["agent_face"] = {
                     "param_id": param_id,
                     "range": [target["min"], target["max"]],
@@ -617,25 +647,38 @@ def main() -> int:
                     "declared_contract": "catalog: value = normalized 0.0-1.0",
                     "before_normalized": before_norm,
                     "written_value": want,
-                    "write_status": write_reply.get("status"),
-                    "write_error": write_reply.get("error"),
+                    "write_status": write_reply.get("status") if not write_invocation_error else "rejected",
+                    "write_error": write_reply.get("error") or write_invocation_error,
+                    "write_rejection_result": write_reply.get("result") if write_invocation_error else None,
                     "after_kernel_normalized": after_norm,
                     "contract_level_pass": ok_contract,
-                    "restore_status": restore_reply.get("status"),
+                    "restore_status": (restore_reply.get("status") if not restore_invocation_error
+                                       else ("skipped" if not ok_write_status else "rejected")),
                     "restore_kernel_normalized": restore_norm,
+                    "guard_param_independence_retry": guard_retry,
                 }
-                if not (gate(f"E.write_status.{plugin['key']}", ok_write_status,
-                             f"agent-face set status={write_reply.get('status')!r} err={str(write_reply.get('error'))[:200]}")
-                        and gate(f"E.write_effect.{plugin['key']}", ok_changed,
+                if not ok_write_status:
+                    # Deterministic agent-face finding (e.g. typed-family
+                    # fail-closed guard on an instrument): record, keep the
+                    # run going for the remaining plugin, exit 4 at the end.
+                    summary.setdefault("agent_face_findings", []).append({
+                        "plugin": plugin["key"], "param_id": param_id,
+                        "error": record["agent_face"]["write_error"],
+                    })
+                    gate(f"E.write_status.{plugin['key']}", False,
+                         f"agent-face set rejected: {record['agent_face']['write_error'][:300]}")
+                else:
+                    gate(f"E.write_status.{plugin['key']}", True, "agent-face set accepted")
+                    if not (gate(f"E.write_effect.{plugin['key']}", ok_changed,
                                  f"kernel readback moved {before_norm} -> {after_norm} (want {want})")
-                        and gate(f"E.restore.{plugin['key']}", ok_agent_restore,
-                                 f"agent-face restore readback={restore_norm} baseline={target['load_normalized']}")):
-                    return fail(EXIT_DEFECT, "agent_face",
-                                f"agent-face control leg failed: {json.dumps(record['agent_face'], ensure_ascii=False)[:400]}")
-                if range_is_unit and not gate(f"E.normalized_contract.{plugin['key']}", bool(ok_contract),
-                                              f"unit-range param readback={after_norm} want={want}"):
-                    return fail(EXIT_DEFECT, "agent_face",
-                                "agent-face set_plugin_param violated its declared normalized-value contract")
+                            and gate(f"E.restore.{plugin['key']}", ok_agent_restore,
+                                     f"agent-face restore readback={restore_norm} baseline={target['load_normalized']}")):
+                        return fail(EXIT_DEFECT, "agent_face",
+                                    f"agent-face control leg failed: {json.dumps(record['agent_face'], ensure_ascii=False)[:400]}")
+                    if range_is_unit and not gate(f"E.normalized_contract.{plugin['key']}", bool(ok_contract),
+                                                  f"unit-range param readback={after_norm} want={want}"):
+                        return fail(EXIT_DEFECT, "agent_face",
+                                    "agent-face set_plugin_param violated its declared normalized-value contract")
 
                 post_e_surface = surface_for(kernel, track_id, plugin_id)
                 post_e_mismatches = snapshot_mismatches(snapshot_before,
@@ -646,7 +689,8 @@ def main() -> int:
                     return fail(EXIT_DEFECT, "agent_face",
                                 f"agent-face leg left the surface dirty: {post_e_mismatches[:20]}")
 
-                record["status"] = "captured"
+                record["status"] = ("captured_with_agent_face_finding"
+                                    if summary.get("agent_face_findings") else "captured")
             finally:
                 if track_id:
                     deleted = None
@@ -664,6 +708,19 @@ def main() -> int:
                             f"delete_track failed for {plugin['key']}: {record.get('cleanup_delete_track_status')}")
             save_summary()
 
+        if summary.get("agent_face_findings"):
+            save_summary()
+            findings = summary["agent_face_findings"]
+            print(f"[vsti-param-probe] FAIL exit=4 phase=agent_face: generic agent-face write "
+                  f"rejected for {len(findings)} plugin(s) (deterministic finding, forensic "
+                  f"hand-over, kernel-face evidence collected); summary: {args.output}", flush=True)
+            summary["fail_phase"] = "agent_face"
+            summary["fail_reason"] = (
+                "generic set_plugin_param over the agent HTTP face rejected (typed-family "
+                "fail-closed guard): VSTi not writable through the agent generic control face; "
+                "kernel ZMQ face roundtrip evidence collected in the same summary")
+            save_summary()
+            return EXIT_DEFECT
         save_summary()
         print(f"[vsti-param-probe] PASS; summary: {args.output}", flush=True)
         return EXIT_PASS
