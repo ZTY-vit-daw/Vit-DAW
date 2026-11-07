@@ -21,4 +21,19 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+## 领取
+
+- 2026-11-07 / 段 1 领取（本轮零栈先行：实现+配对单测；真栈验证腿候栈——栈队列第 3 位：281 烟测→277 段 3a→273 验证）
+- origin/main hash：`24a8247b3bb632d2dc1c67d8b5cc6928a61a3d37`（领取时 fetch 重读；任务书基准 09f284d8 已被 281 占栈登记笔 [纯 coord/ 变更] 推进，无代码面差异）
+- owner：GLM 主会话 L2-worker 子代理（GLM-5.3 / ZCode / PC）
+- 分支：`port/arrloop-authbridge-1`（自 origin/main 新建）；worktree：`D:/Vit_DAW_wt_273impl`
+- 领取基线：HEAD=`24a8247b3bb632d2dc1c67d8b5cc6928a61a3d37`；worktree `git status --short`=空；`git diff --stat`=空（新 worktree 自 origin/main 检出全净，无领取前已有 diff）
+- 前置核对：卡仍在 todo/ ✓ 派发已确认 ✓；doing 四卡（ARR-SRCLOAD-1[impl 已完在 port/arr-srcload-1 分支]、EDU-LEVEL-RUNTIME-B、CLOSURE-ROUTE-ADAPT-1、D1D3-DIGEST-WIRING-1）文件域与本卡不相交 ✓（goalrunner_chat.go 与 277 触发词面同文件不同段，277 段 1 已验收待合入，合入归主管）
+
+## 回执
+
+（段 1 执行侧回填）
+
+## 验收
+
+- （主管回填）
