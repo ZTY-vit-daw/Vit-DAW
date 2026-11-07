@@ -231,22 +231,53 @@ func TestD1D3AssembleReportMissingSurfaces(t *testing.T) {
 	}
 }
 
-func TestD1D3AssembleReportPresentSurfaces(t *testing.T) {
-	observe := map[string]any{
-		"observation_id":                   "obs-1",
-		"peak_dbfs":                        -0.8,
-		"rms_dbfs":                         -14.2,
-		"crest_db":                         12.5,
-		"waveform":                         map[string]any{"status": "ready", "headroom_db": -0.8},
-		"project_loudness_ranking_excerpt": []any{map[string]any{"track_id": "vocal", "value": -9.0}},
-		"project_headroom_risk_excerpt":    []any{map[string]any{"track_id": "kick"}},
-		"missing_metrics":                  []any{"integrated_lufs"},
-		"stereo_status":                    "ready",
-		"correlation_estimate":             0.82,
-		"correlation_state":                "healthy",
-		"balance_db":                       0.4,
-		"available_detail":                 map[string]any{"stereo_relation": "ready"},
+// d1d3RealObservationResponse 是 mix.observe 的 harness 响应真实形状夹具
+// （D1D3-DIGEST-WIRING-1 反钉蓝本=265 run 实盘观察包
+// obs_20261106T152825_863f2de0d657，coord/runs/D2-STEREO-THIN-1 链路）：
+// digest 嵌套在 out["digest"] 子图，顶层只有 status/mix_session_id/
+// observation_id/observation/catalog/mixboard 等载体键——面键（peak_dbfs/
+// stereo_status/waveform/rankings）顶层从不存在（harness requestMixObservation
+// out map 形状；272 取证：按顶层读=结构性恒 missing）。数值与行形状取实盘原值
+//（ranking 行的 track_id/name/role_guess/rank/value 字段面如实），行数精简。
+func d1d3RealObservationResponse() map[string]any {
+	return map[string]any{
+		"status":         "ready",
+		"mix_session_id": "cap_v1_d1d3_test",
+		"observation_id": "obs_20261106T152825_863f2de0d657",
+		"observation":    map[string]any{"observation_id": "obs_20261106T152825_863f2de0d657"},
+		"catalog":        map[string]any{"keys": []any{}},
+		"mixboard":       map[string]any{"path": "/tmp/mixboard"},
+		"digest": map[string]any{
+			"schema_version": "mix_observation_digest.v1",
+			"status":         "ready",
+			"scope":          "full_project",
+			"peak_dbfs":      -15.873,
+			"rms_dbfs":       -30.255,
+			"crest_db":       14.383,
+			"waveform": map[string]any{
+				"status": "ready", "peak_dbfs": -15.873, "rms_dbfs": -30.255, "headroom_db": 15.873, "crest_db": 14.383,
+			},
+			"stereo_status":       "ready",
+			"correlation_estimate": 0.689,
+			"correlation_state":   "coherent",
+			"balance_db":          -1.475,
+			"balance_state":       "centered",
+			"project_loudness_ranking_excerpt": []any{
+				map[string]any{"track_id": "1032", "name": "vocals", "role_guess": "vocal", "rank": 1, "metric": "rms_dbfs", "value": -19.843, "focused": false},
+			},
+			"project_headroom_risk_excerpt": []any{
+				map[string]any{"track_id": "1032", "name": "vocals", "role_guess": "vocal", "rank": 1, "headroom_db": 5.22, "risk": "low", "focused": false},
+			},
+			"project_peak_risk_ranking_excerpt": []any{
+				map[string]any{"track_id": "1032", "name": "vocals", "role_guess": "vocal", "rank": 1, "peak_dbfs": -5.22, "headroom_db": 5.22, "risk": "low", "focused": false},
+			},
+			"missing_metrics":  []any{"before_after_delta", "ab_result"},
+			"available_detail": map[string]any{"stereo_relation": "ready", "catalog": "ready"},
+		},
 	}
+}
+
+func TestD1D3AssembleReportPresentSurfaces(t *testing.T) {
 	reference := -18.0
 	rows := []d1d3TrackStereoRow{
 		{TrackID: "vocal", Status: "read", CorrelationEstimate: &reference, MonoRisk: false},
@@ -257,15 +288,27 @@ func TestD1D3AssembleReportPresentSurfaces(t *testing.T) {
 		Summary:        rlm.Summary{TrackCount: 3, EligibleTrackCount: 3, CandidateCount: 3},
 		Limitations:    []string{"rlm_x"},
 		RenderBindings: []rlm.RenderBindingDisclosure{{RenderID: "render-1", ProfileID: "streaming_-14", Status: rlm.RenderBindingStatusBound}}}
-	report := d1d3AssemblePreMasterReport(observe, nil, 3, rows, rlmProj, "d1 响度")
-	if report.LoudnessPeakStatus != "present" || report.GlobalPeakDBFS == nil || *report.GlobalPeakDBFS != -0.8 {
-		t.Fatalf("D1 全局面错误: %#v", report)
+	report := d1d3AssemblePreMasterReport(d1d3RealObservationResponse(), nil, 3, rows, rlmProj, "d1 响度")
+	if report.ObservationID != "obs_20261106T152825_863f2de0d657" {
+		t.Fatalf("observation_id 未按顶层读取: %q", report.ObservationID)
 	}
-	if len(report.LoudnessRanking) != 1 || len(report.HeadroomRisk) != 1 || len(report.MissingMetrics) != 1 {
+	if report.LoudnessPeakStatus != "present" || report.GlobalPeakDBFS == nil || *report.GlobalPeakDBFS != -15.873 {
+		t.Fatalf("D1 全局面错误（digest 子图未接线）: %#v", report)
+	}
+	if report.GlobalRMSDBFS == nil || *report.GlobalRMSDBFS != -30.255 || report.GlobalCrestDB == nil || *report.GlobalCrestDB != 14.383 {
+		t.Fatalf("D1 全局 rms/crest 错误: %#v", report)
+	}
+	if report.Waveform["status"] != "ready" || report.Waveform["headroom_db"] != 15.873 {
+		t.Fatalf("D1 waveform 面错误: %#v", report.Waveform)
+	}
+	if len(report.LoudnessRanking) != 1 || len(report.HeadroomRisk) != 1 || len(report.PeakRisk) != 1 || len(report.MissingMetrics) != 2 {
 		t.Fatalf("D1 ranking/missing 面丢失: %#v", report)
 	}
-	if report.StereoStatus != "present" || report.CorrelationEstimate == nil || *report.CorrelationEstimate != 0.82 {
+	if report.StereoStatus != "present" || report.CorrelationEstimate == nil || *report.CorrelationEstimate != 0.689 {
 		t.Fatalf("D2 全局 stereo 面错误: %#v", report)
+	}
+	if report.CorrelationState != "coherent" || report.BalanceDB == nil || *report.BalanceDB != -1.475 || report.BalanceState != "centered" {
+		t.Fatalf("D2 stereo 细节面错误: %#v", report)
 	}
 	if report.StereoSourceStatus != "ready" {
 		t.Fatalf("D2 可用性标注丢失: %#v", report)
@@ -281,6 +324,124 @@ func TestD1D3AssembleReportPresentSurfaces(t *testing.T) {
 	}
 	if report.UserIntent != "d1 响度" {
 		t.Fatalf("D3 user intent 未入报告: %q", report.UserIntent)
+	}
+}
+
+// 266 形态反钉（D1D3-DIGEST-WIRING-1）：D1 settle 相位 digest.waveform
+// status=missing 值全 null 而 rankings 在场（实盘蓝本=266v1 settle
+// obs_20261106T171721_b88a5b18ef6f，coord/runs/D3-REF-ALIGN-THIN-1 v1）——
+// D1 门 A 断言（run_free_state_d1_smoke.ps1 loudness_peak_status=present）的
+// 驱动是 rankings 面在场，waveform 缺失如实披露不升级不虚构。
+func TestD1D3AssembleReportSettleWaveformMissingKeepsRankingsPresent(t *testing.T) {
+	observe := d1d3RealObservationResponse()
+	digest := mapValue(observe["digest"])
+	digest["waveform"] = map[string]any{"status": "missing", "peak_dbfs": nil, "rms_dbfs": nil, "headroom_db": nil, "crest_db": nil}
+	delete(digest, "peak_dbfs")
+	delete(digest, "rms_dbfs")
+	delete(digest, "crest_db")
+	report := d1d3AssemblePreMasterReport(observe, nil, 0, nil, rlm.Projection{}, "d1 settle")
+	if report.LoudnessPeakStatus != "present" {
+		t.Fatalf("settle 形态 rankings 在场时 D1 面必须 present（266 门 A 语义）: %#v", report)
+	}
+	if len(report.LoudnessRanking) != 1 {
+		t.Fatalf("rankings 面丢失: %#v", report)
+	}
+	if report.Waveform["status"] != "missing" {
+		t.Fatalf("waveform 缺失必须如实披露（不虚构实值）: %#v", report.Waveform)
+	}
+	if report.StereoStatus != "present" || report.CorrelationEstimate == nil {
+		t.Fatalf("settle 形态 stereo 面（266 实盘 ready）错误: %#v", report)
+	}
+}
+
+// 顶层形状防回退（D1D3-DIGEST-WIRING-1）：真实响应顶层从不存在面键——喂顶层
+// 形状（旧单测的假形状）必须投影 missing，杜绝顶层/digest 双形状自洽假绿。
+func TestD1D3AssembleReportTopLevelFaceKeysStayMissing(t *testing.T) {
+	// 旧假形状：面键直接挂在响应顶层（历史上曾把该形状钉进单测造成假绿）。
+	topLevelShape := map[string]any{
+		"status":         "ready",
+		"observation_id": "obs-top",
+		"peak_dbfs":      -0.8,
+		"rms_dbfs":       -14.2,
+		"crest_db":       12.5,
+		"waveform":       map[string]any{"status": "ready", "headroom_db": -0.8},
+		"stereo_status":  "ready",
+		"correlation_estimate": 0.82,
+		"balance_db":           0.4,
+		"available_detail":     map[string]any{"stereo_relation": "ready"},
+		"project_loudness_ranking_excerpt": []any{map[string]any{"track_id": "vocal", "value": -9.0}},
+		"project_headroom_risk_excerpt":    []any{map[string]any{"track_id": "kick"}},
+		"missing_metrics":                  []any{"integrated_lufs"},
+	}
+	report := d1d3AssemblePreMasterReport(topLevelShape, nil, 0, nil, rlm.Projection{}, "d1 响度")
+	if report.LoudnessPeakStatus != "missing" {
+		t.Fatalf("顶层形状不得判 present（真实响应顶层无面键）: %#v", report)
+	}
+	if report.StereoStatus != "missing" {
+		t.Fatalf("顶层形状 stereo 面不得判 present: %#v", report)
+	}
+	if report.GlobalPeakDBFS != nil || len(report.Waveform) != 0 || len(report.LoudnessRanking) != 0 {
+		t.Fatalf("顶层形状不得漏进投影面值: %#v", report)
+	}
+	joined := strings.Join(report.Limitations, "\n")
+	if !strings.Contains(joined, "全局 stereo_relation 缺席") {
+		t.Fatalf("stereo 缺席 limitation 未如实记录: %#v", report.Limitations)
+	}
+}
+
+// 拍平面兜底（D1D3-DIGEST-WIRING-1）：digest 子图缺席而 out["acoustic_digest"]
+// 拍平面在场时按其真实键名消费——stereo 键名 stereo_relation_status（harness
+// mixObservationAcousticDigest，非 stereo_status）。键名差异在此归一。
+func TestD1D3AssembleReportAcousticDigestFlattenedFallback(t *testing.T) {
+	observe := map[string]any{
+		"status":         "ready",
+		"observation_id": "obs-flat",
+		"acoustic_digest": map[string]any{
+			"status":               "ready",
+			"stereo_relation_status": "ready",
+			"correlation_estimate":   0.42,
+			"balance_db":             0.887,
+			"peak_dbfs":              -6.2,
+			"waveform":               map[string]any{"status": "ready", "peak_dbfs": -6.2},
+			"missing_metrics":        []any{"ab_result"},
+		},
+	}
+	report := d1d3AssemblePreMasterReport(observe, nil, 0, nil, rlm.Projection{}, "d1 响度")
+	if report.StereoStatus != "present" || report.CorrelationEstimate == nil || *report.CorrelationEstimate != 0.42 {
+		t.Fatalf("拍平面 stereo_relation_status 键名差异未归一: %#v", report)
+	}
+	if report.BalanceDB == nil || *report.BalanceDB != 0.887 {
+		t.Fatalf("拍平面 balance_db 未消费: %#v", report)
+	}
+	if report.GlobalPeakDBFS == nil || *report.GlobalPeakDBFS != -6.2 {
+		t.Fatalf("拍平面全局 peak 未消费: %#v", report)
+	}
+	if len(report.MissingMetrics) != 1 {
+		t.Fatalf("拍平面 missing_metrics 未消费: %#v", report)
+	}
+}
+
+// 视图无污染契约：d1d3DigestView 的键名归一不得写回响应本体（digest 子图与
+// 拍平面在响应内保持原样）。
+func TestD1D3DigestViewDoesNotMutateResponse(t *testing.T) {
+	observe := map[string]any{
+		"digest":          map[string]any{"status": "ready"},
+		"acoustic_digest": map[string]any{"stereo_relation_status": "ready", "peak_dbfs": -3.0},
+	}
+	view := d1d3DigestView(observe)
+	if view["stereo_status"] != "ready" || view["peak_dbfs"] != -3.0 {
+		t.Fatalf("视图归一错误: %#v", view)
+	}
+	digest := mapValue(observe["digest"])
+	flattened := mapValue(observe["acoustic_digest"])
+	if _, polluted := digest["stereo_status"]; polluted {
+		t.Fatal("视图归一污染了响应 digest 子图")
+	}
+	if _, polluted := digest["peak_dbfs"]; polluted {
+		t.Fatal("视图归一污染了响应 digest 子图")
+	}
+	if _, polluted := flattened["stereo_status"]; polluted {
+		t.Fatal("视图归一污染了响应拍平面")
 	}
 }
 
