@@ -349,10 +349,17 @@ def readback_parameters(fixture: dict[str, Any], timeout: float,
     return result
 
 
+_GOVERNANCE_GATE_RE = re.compile(
+    r"typed_(?:eq|compressor|limiter|de_esser|gate_expander|transient_shaper|multiband)"
+    r"_(?:surface_unavailable|control_required)")
+
+
 def governance_blocked(text: str) -> bool:
-    markers = ("typed_limiter_surface_unavailable", "typed_limiter_control_required",
-               "typed_gate_expander_control_required")
-    return any(marker in text for marker in markers)
+    """True when a set_plugin_param rejection is a typed-topology governance
+    gate (goalrunner_chat.go guard*OwnedGenericParameterWrite family). These
+    rejections mean the product prescribes the typed control face for this
+    plugin -- the known-op routes there instead."""
+    return bool(_GOVERNANCE_GATE_RE.search(text))
 
 
 def resolve_discrete_label(before_rows: dict[str, dict[str, Any]], pid: str,
