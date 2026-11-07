@@ -16,6 +16,10 @@
 //	                   (/suno/submit/music + /suno/fetch/{task_id}), the
 //	                   unofficial reverse-proxied web platform adapter. The
 //	                   relay runs the reverse proxy; we speak its API.
+//	yue_local         YuE2 local engine (yue2.cpp REST on 127.0.0.1):
+//	                   POST /synth -> job id, poll /job?id=, result
+//	                   /job?id=&result=1 -> multipart (JSON replay + audio).
+//	                   The ABC dialect score is the primary input face.
 //
 // Artifacts land as local files; landing them on the timeline goes through
 // the existing GeneratedAssetService ingest path (assets.register_job +
@@ -50,16 +54,17 @@ type GenerationRequest struct {
 	TempoBPM        float64 // target tempo
 	MusicalKey      string  // target key, e.g. "C minor"
 	Count           int     // requested candidate count
+	ABC             string  // dialect score notation (ABC; yue_local primary input face)
 }
 
 func (r GenerationRequest) essentiallyEmpty() bool {
-	return strings.TrimSpace(r.Prompt) == "" && strings.TrimSpace(r.Lyrics) == ""
+	return strings.TrimSpace(r.Prompt) == "" && strings.TrimSpace(r.Lyrics) == "" && strings.TrimSpace(r.ABC) == ""
 }
 
 // Artifact is one downloaded generation product.
 type Artifact struct {
-	Kind            string // "audio"
-	Format          string // wav / mp3 / ogg / flac / mid
+	Kind            string // "audio" or "replay" (JSON sidecar)
+	Format          string // wav / mp3 / ogg / flac / mid / json
 	LocalPath       string // absolute path of the downloaded file
 	SourceURL       string // provider URL the file came from (when applicable)
 	Bytes           int64

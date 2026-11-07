@@ -1,13 +1,16 @@
 package genapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"net/textproto"
 	"os"
 	"path/filepath"
 	"strings"
@@ -509,8 +512,8 @@ func TestExampleConfigParsesAndValidates(t *testing.T) {
 	if err := json.Unmarshal([]byte(ExampleConfig), &fc); err != nil {
 		t.Fatalf("example config must parse: %v", err)
 	}
-	if len(fc.Providers) != 3 {
-		t.Fatalf("example config must ship three dialect examples, got %d", len(fc.Providers))
+	if len(fc.Providers) != 4 {
+		t.Fatalf("example config must ship four dialect examples, got %d", len(fc.Providers))
 	}
 	for i := range fc.Providers {
 		if err := fc.Providers[i].Validate(); err != nil {
@@ -659,5 +662,240 @@ func TestMissingPromptFailsBeforeHTTP(t *testing.T) {
 	var ge *Error
 	if !errors.As(err, &ge) || ge.Class != ClassConfigError {
 		t.Fatalf("empty request must fail config-side: %v", err)
+	}
+}
+
+// yueMultipartResult renders the YuE2 result document: multipart/mixed with
+// one application/json replay part and one audio/wav part (the exact engine
+// shape proven in YUE2-PC-DEPLOY-1).
+func yueMultipartResult(replay map[string]any, audio []byte) (header http.Header, body []byte) {
+	var buf bytes.Buffer
+	writer := multipart.NewWriter(&buf)
+	if err := writer.SetBoundary("yue2-batch-boundary"); err != nil {
+		panic(err)
+	}
+	replayPart, err := writer.CreatePart(textproto.MIMEHeader{"Content-Type": {"application/json"}})
+	if err != nil {
+		panic(err)
+	}
+	if err := json.NewEncoder(replayPart).Encode(replay); err != nil {
+		panic(err)
+	}
+	audioPart, err := writer.CreatePart(textproto.MIMEHeader{"Content-Type": {"audio/wav"}})
+	if err != nil {
+		panic(err)
+	}
+	if _, err := audioPart.Write(audio); err != nil {
+		panic(err)
+	}
+	if err := writer.Close(); err != nil {
+		panic(err)
+	}
+	return http.Header{"Content-Type": {writer.FormDataContentType()}}, buf.Bytes()
+}
+
+func TestYueLocalFullFlowAndRequestShape(t *testing.T) {
+	dir := t.TempDir()
+	audio := wavFixture(2048)
+	const jobID = "e215a29a16796d8f"
+	polls := 0
+	resultFetched := false
+	var submitBody map[string]any
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/synth":
+			if err := json.NewDecoder(r.Body).Decode(&submitBody); err != nil {
+				t.Errorf("bad /synth body: %v", err)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"id": jobID})
+		case r.Method == http.MethodGet && r.URL.Path == "/job":
+			if r.URL.Query().Get("result") == "1" {
+				if r.URL.Query().Get("id") != jobID {
+					t.Errorf("result fetch without job id: %s", r.URL.RawQuery)
+				}
+				resultFetched = true
+				hdr, body := yueMultipartResult(map[string]any{"seed": 11, "duration": 60.0}, audio)
+				for k, vs := range hdr {
+					for _, v := range vs {
+						w.Header().Add(k, v)
+					}
+				}
+				_, _ = w.Write(body)
+				return
+			}
+			polls++
+			if polls < 3 {
+				_, _ = w.Write([]byte(`{"status":"running"}`))
+				return
+			}
+			_, _ = w.Write([]byte(`{"status":"done"}`))
+		default:
+			t.Errorf("unexpected call %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	cfg := baseProvider("yue_local", server.URL)
+	cfg.APIKey = "" // local engine: no auth
+	cfg.PollIntervalSeconds = 0.01
+	cfg.DownloadDir = filepath.Join(dir, "cache")
+	req := GenerationRequest{
+		Prompt:          "rendered genctx prompt (no free-prompt channel)",
+		Lyrics:          "[Verse]\nye se luo zai chuang tai",
+		StyleTags:       "a cappella, Mandarin female vocal",
+		ABC:             "X:1\nM:4/4\nV: Vocal\nV: Ins\nK:C\nV: Vocal\nc4|\nV: Ins\nZ|",
+		DurationSeconds: 60,
+		TempoBPM:        106,
+		MusicalKey:      "C",
+		Count:           2,
+	}
+	limitations := cfg.Limitations(req)
+	res, err := Generate(context.Background(), cfg, req)
+	if err != nil {
+		t.Fatalf("generate failed: %v", err)
+	}
+
+	// Request shape: score face forwarded, baseline pinned, prompt not sent.
+	if submitBody["abc"] != req.ABC || submitBody["lyrics"] != req.Lyrics || submitBody["style"] != req.StyleTags {
+		t.Fatalf("score face not forwarded verbatim: %#v", submitBody)
+	}
+	if submitBody["cot"] != "full" || submitBody["steps"] != float64(32) || submitBody["output_format"] != "wav16" {
+		t.Fatalf("validated baseline not pinned: %#v", submitBody)
+	}
+	if submitBody["duration"] != 60.0 {
+		t.Fatalf("duration not mapped: %#v", submitBody)
+	}
+	for _, absent := range []string{"prompt", "tempo", "key", "count", "title", "instrumental"} {
+		if _, ok := submitBody[absent]; ok {
+			t.Fatalf("field %q must not be silently forwarded: %#v", absent, submitBody)
+		}
+	}
+
+	if res.TaskID != jobID || !resultFetched {
+		t.Fatalf("job identity lost: task=%s resultFetched=%v", res.TaskID, resultFetched)
+	}
+	if len(res.Artifacts) != 2 {
+		t.Fatalf("expected audio + replay artifacts, got %#v", res.Artifacts)
+	}
+	var audioArt, replayArt *Artifact
+	for i := range res.Artifacts {
+		switch res.Artifacts[i].Kind {
+		case "audio":
+			audioArt = &res.Artifacts[i]
+		case "replay":
+			replayArt = &res.Artifacts[i]
+		}
+	}
+	if audioArt == nil || replayArt == nil {
+		t.Fatalf("artifact kinds mismatch: %#v", res.Artifacts)
+	}
+	if audioArt.Format != "wav" {
+		t.Fatalf("audio artifact not sniffed as wav: %#v", audioArt)
+	}
+	rawAudio, rerr := os.ReadFile(audioArt.LocalPath)
+	if rerr != nil || !bytes.HasPrefix(rawAudio, []byte("RIFF")) {
+		t.Fatalf("audio artifact unreadable or not RIFF: err=%v bytes=%d", rerr, len(rawAudio))
+	}
+	rawReplay, rerr := os.ReadFile(replayArt.LocalPath)
+	if rerr != nil || !bytes.Contains(rawReplay, []byte(`"seed"`)) {
+		t.Fatalf("replay sidecar unreadable or missing seed: err=%v", rerr)
+	}
+	if !strings.HasSuffix(replayArt.LocalPath, ".replay.json") {
+		t.Fatalf("replay sidecar naming: %s", replayArt.LocalPath)
+	}
+
+	// Status trail: running -> done -> multipart harvest markers.
+	joined := strings.Join(res.StatusSeen, ",")
+	if !strings.Contains(joined, "running") || !strings.Contains(joined, "done") ||
+		!strings.Contains(joined, "result_replay_json") || !strings.Contains(joined, "result_audio_wav") {
+		t.Fatalf("status trail incomplete: %#v", res.StatusSeen)
+	}
+
+	// Limitations disclosure: unexpressible normalized fields are named.
+	joinedLim := strings.Join(limitations, "\n")
+	for _, n := range []string{"prompt:", "tempo_bpm:", "musical_key:", "count:"} {
+		if !strings.Contains(joinedLim, n) {
+			t.Fatalf("limitation %q missing from %#v", n, limitations)
+		}
+	}
+}
+
+func TestYueLocalFailStatusClassified(t *testing.T) {
+	dir := t.TempDir()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/synth":
+			_, _ = w.Write([]byte(`{"id":"deadbeef"}`))
+		case r.URL.Path == "/job":
+			_, _ = w.Write([]byte(`{"status":"error","fail_reason":"pipeline exploded"}`))
+		default:
+			t.Errorf("unexpected call %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	cfg := baseProvider("yue_local", server.URL)
+	cfg.APIKey = ""
+	cfg.PollIntervalSeconds = 0.01
+	cfg.DownloadDir = filepath.Join(dir, "cache")
+	_, err := Generate(context.Background(), cfg, GenerationRequest{Lyrics: "[Verse]\ntest lyrics"})
+	var ge *Error
+	if !errors.As(err, &ge) || ge.Class != ClassProviderError {
+		t.Fatalf("engine failure status must classify provider_error: %v", err)
+	}
+	if !strings.Contains(err.Error(), "pipeline exploded") {
+		t.Fatalf("fail reason not surfaced: %v", err)
+	}
+}
+
+func TestYueLocalScoreOnlyRequestIsValid(t *testing.T) {
+	// P2-style instrumental requests carry no lyrics and no prompt: the ABC
+	// score alone is a legitimate input face (YUE2-PC-DEPLOY-1 P2 leg).
+	dir := t.TempDir()
+	audio := wavFixture(128)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/synth":
+			_, _ = w.Write([]byte(`{"id":"100"}`))
+		case r.URL.Path == "/job":
+			if r.URL.Query().Get("result") == "1" {
+				hdr, body := yueMultipartResult(map[string]any{"seed": 1}, audio)
+				for k, vs := range hdr {
+					for _, v := range vs {
+						w.Header().Add(k, v)
+					}
+				}
+				_, _ = w.Write(body)
+				return
+			}
+			_, _ = w.Write([]byte(`{"status":"done"}`))
+		default:
+			t.Errorf("unexpected call %s %s", r.Method, r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	cfg := baseProvider("yue_local", server.URL)
+	cfg.APIKey = ""
+	cfg.PollIntervalSeconds = 0.01
+	cfg.DownloadDir = filepath.Join(dir, "cache")
+	res, err := Generate(context.Background(), cfg, GenerationRequest{
+		ABC:       "X:1\nK:C\nV: Ins\nc4|",
+		StyleTags: "instrumental, solo acoustic piano",
+	})
+	if err != nil {
+		t.Fatalf("score-only request must pass the emptiness guard: %v", err)
+	}
+	if len(res.Artifacts) == 0 {
+		t.Fatalf("expected artifacts: %#v", res.Artifacts)
+	}
+	sawAudio := false
+	for _, a := range res.Artifacts {
+		if a.Kind == "audio" {
+			sawAudio = true
+		}
+	}
+	if !sawAudio {
+		t.Fatalf("expected an audio artifact: %#v", res.Artifacts)
 	}
 }

@@ -56,6 +56,13 @@ const ExampleConfig = `{
       "generate_path": "/generate",
       "api_key": "",
       "model": "facebook/musicgen-small"
+    },
+    {
+      "id": "yue-local",
+      "dialect": "yue_local",
+      "base_url": "http://127.0.0.1:8087",
+      "api_key": "",
+      "extra_params": { "seed": 1234 }
     }
   ]
 }`
