@@ -1,0 +1,30 @@
+{
+  "card": "VSTI-PARAM-PROBE-1",
+  "driver": "vsti_param_probe_smoke.py",
+  "plugins": [],
+  "gates": [
+    {
+      "gate": "A.inventory_nonempty",
+      "pass": true,
+      "detail": "plugin_list_available: 994 plugins, 17 instruments"
+    },
+    {
+      "gate": "A.subject_present.grand_rhapsody",
+      "pass": true,
+      "detail": "Grand Rhapsody Piano Stereo identifier present with is_instrument"
+    },
+    {
+      "gate": "A.subject_present.surge_xt",
+      "pass": true,
+      "detail": "Surge XT identifier present with is_instrument"
+    }
+  ],
+  "phases": [
+    "stack-ready"
+  ],
+  "llm_legs": 0,
+  "plugin_count": 994,
+  "instrument_count": 17,
+  "fail_phase": "fingerprint",
+  "fail_reason": "fingerprint grand_rhapsody: pcactl fingerprint output not JSON: {\n  \"binary_fingerprint\": \"sha256:ee6b1a818fb6392e9c28c1b053ead872c6d12ab654daf079293461721da7bb90\",\n  \"path\": \"C:\\\\Program Files\\\\Common Files\\\\VST3\\\\WaveShell1-VST3 17.1_x64.vst3\"\n}\n"
+}

@@ -1,0 +1,802 @@
+{
+  "card": "VSTI-PARAM-PROBE-1",
+  "driver": "vsti_param_probe_smoke.py",
+  "plugins": [
+    {
+      "key": "grand_rhapsody",
+      "label": "Grand Rhapsody Piano Stereo",
+      "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+      "binary_fingerprint": "sha256:ee6b1a818fb6392e9c28c1b053ead872c6d12ab654daf079293461721da7bb90",
+      "load": {
+        "rack_add_node_status": "ok",
+        "plugin_id": "1046",
+        "plugin_name": "Grand Rhapsody Piano Stereo",
+        "resolved_identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+        "zone_id": "Z2",
+        "plugin_instance_ready": true,
+        "plugin_load_state": "name=Grand Rhapsody Piano Stereo id=1046 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+        "graph_last_diff_kind": "node_add",
+        "graph_last_diff_summary": "Added rack node Grand Rhapsody Piano Stereo"
+      },
+      "parameter_count": 41,
+      "surface_signature": "probe_ed083d70555b4e8e",
+      "recommended_groups": [
+        {
+          "name": "Tone",
+          "parameter_ids": [
+            "27",
+            "35"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "8",
+            "12",
+            "20",
+            "23",
+            "26",
+            "29",
+            "32"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "9",
+            "10",
+            "11",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "21",
+            "22",
+            "24",
+            "25",
+            "28",
+            "30",
+            "31",
+            "33",
+            "34",
+            "36",
+            "37",
+            "38"
+          ]
+        }
+      ],
+      "quick_controls": [
+        {
+          "param_id": "27",
+          "raw_param_id": "27",
+          "label": "Sustain Resonance",
+          "widget": "slider",
+          "normalized_role": "instrument_sustain",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        },
+        {
+          "param_id": "8",
+          "raw_param_id": "8",
+          "label": "Reverb His-gain",
+          "widget": "slider",
+          "normalized_role": "common_gain",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.655434787273407
+        },
+        {
+          "param_id": "dry level",
+          "raw_param_id": "dry level",
+          "label": "Dry Level",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        },
+        {
+          "param_id": "wet level",
+          "raw_param_id": "wet level",
+          "label": "Wet Level",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 1.0
+        },
+        {
+          "param_id": "12",
+          "raw_param_id": "12",
+          "label": "Reverb Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.289000004529953
+        },
+        {
+          "param_id": "20",
+          "raw_param_id": "20",
+          "label": "Mic3 Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.75
+        },
+        {
+          "param_id": "23",
+          "raw_param_id": "23",
+          "label": "Mic2 Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.75
+        },
+        {
+          "param_id": "26",
+          "raw_param_id": "26",
+          "label": "Comp Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        }
+      ],
+      "template_role": "instrument",
+      "inventory_diff_observations": {
+        "name_term_hit_counts": {},
+        "name_term_hits": {},
+        "discrete_enum_params": [
+          {
+            "param_id": "0",
+            "name": "Mic3 Solo",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "1",
+            "name": "Mic1 Solo",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "2",
+            "name": "Mic2 Solo",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "4",
+            "name": "Mic3 Mute",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "5",
+            "name": "Mic2 Mute",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "6",
+            "name": "Mic1 Mute",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "14",
+            "name": "Eq Lowf",
+            "num_steps": 4,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "35 Hz "
+              },
+              {
+                "index": 1,
+                "value": 0.333333343267441,
+                "label": "60 Hz "
+              },
+              {
+                "index": 2,
+                "value": 0.666666686534882,
+                "label": "110 Hz "
+              },
+              {
+                "index": 3,
+                "value": 1.0,
+                "label": "220 Hz "
+              }
+            ]
+          },
+          {
+            "param_id": "16",
+            "name": "Eq Midf",
+            "num_steps": 7,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "0.36 kHz "
+              },
+              {
+                "index": 1,
+                "value": 0.16666667163372,
+                "label": "0.7 kHz "
+              },
+              {
+                "index": 2,
+                "value": 0.333333343267441,
+                "label": "1.6 kHz "
+              },
+              {
+                "index": 3,
+                "value": 0.5,
+                "label": "3.2 kHz "
+              },
+              {
+                "index": 4,
+                "value": 0.666666686534882,
+                "label": "4.8 kHz "
+              },
+              {
+                "index": 5,
+                "value": 0.833333373069763,
+                "label": "7.2 kHz "
+              },
+              {
+                "index": 6,
+                "value": 1.0,
+                "label": "10 kHz "
+              }
+            ]
+          },
+          {
+            "param_id": "19",
+            "name": "Mic3 Inv",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "22",
+            "name": "Mic2 Inv",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "25",
+            "name": "Mic1 Inv",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "30",
+            "name": "Formant",
+            "num_steps": 25,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "-12 "
+              },
+              {
+                "index": 1,
+                "value": 0.04166666790843,
+                "label": "-11 "
+              },
+              {
+                "index": 2,
+                "value": 0.08333333581686,
+                "label": "-10 "
+              },
+              {
+                "index": 3,
+                "value": 0.125,
+                "label": "-9 "
+              },
+              {
+                "index": 4,
+                "value": 0.16666667163372,
+                "label": "-8 "
+              },
+              {
+                "index": 5,
+                "value": 0.208333343267441,
+                "label": "-7 "
+              },
+              {
+                "index": 6,
+                "value": 0.25,
+                "label": "-6 "
+              },
+              {
+                "index": 7,
+                "value": 0.291666686534882,
+                "label": "-5 "
+              }
+            ]
+          },
+          {
+            "param_id": "33",
+            "name": "Limit",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "34",
+            "name": "Soft Pedal",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "35",
+            "name": "Sustain Pedal",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "36",
+            "name": "Reverb Type",
+            "num_steps": 10,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Medium Stage "
+              },
+              {
+                "index": 1,
+                "value": 0.111111111938953,
+                "label": "Empty Hall "
+              },
+              {
+                "index": 2,
+                "value": 0.222222223877907,
+                "label": "Echo Verb BPM "
+              },
+              {
+                "index": 3,
+                "value": 0.333333343267441,
+                "label": "Multi Effect BPM "
+              },
+              {
+                "index": 4,
+                "value": 0.444444447755814,
+                "label": "Recording Studio "
+              },
+              {
+                "index": 5,
+                "value": 0.555555582046509,
+                "label": "Cathedral "
+              },
+              {
+                "index": 6,
+                "value": 0.666666686534882,
+                "label": "Flange Reverb "
+              },
+              {
+                "index": 7,
+                "value": 0.777777791023254,
+                "label": "Diffused Chorus "
+              }
+            ]
+          },
+          {
+            "param_id": "37",
+            "name": "RevOn/Off",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          }
+        ],
+        "discrete_enum_param_count": 17
+      },
+      "inventory_artifact": "D:\\Vit_DAW_wt_298probe\\coord\\runs\\VSTI-PARAM-PROBE-1\\probe1_20261107_1914\\grand_rhapsody_parameters.json",
+      "roundtrip_targets": [
+        {
+          "param_id": "10",
+          "name": "Reverb Time",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.446153849363327,
+          "load_value": 0.446153849363327,
+          "load_value_text": "1.84 sec"
+        },
+        {
+          "param_id": "11",
+          "name": "Reverb Pre-del",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.096000000834465,
+          "load_value": 0.096000000834465,
+          "load_value_text": "48 ms"
+        },
+        {
+          "param_id": "12",
+          "name": "Reverb Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.289000004529953,
+          "load_value": 0.289000004529953,
+          "load_value_text": "28.9 %"
+        }
+      ],
+      "roundtrip": [
+        {
+          "param_id": "10",
+          "name": "Reverb Time",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.446153849363327,
+          "load_default_value_text": "1.84 sec",
+          "applied_target_normalized": 0.72,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.720000028610229,
+            "new_normalised_value": 0.720000028610229,
+            "new_value_text": "2.91 sec",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.720000028610229,
+          "after_value_text": "2.91 sec",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.446153849363327,
+            "new_value_text": "1.84 sec"
+          },
+          "restore_readback_normalized": 0.446153849363327
+        },
+        {
+          "param_id": "11",
+          "name": "Reverb Pre-del",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.096000000834465,
+          "load_default_value_text": "48 ms",
+          "applied_target_normalized": 0.72,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.720000028610229,
+            "new_normalised_value": 0.720000028610229,
+            "new_value_text": "360 ms",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.720000028610229,
+          "after_value_text": "360 ms",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.096000000834465,
+            "new_value_text": "48 ms"
+          },
+          "restore_readback_normalized": 0.096000000834465
+        },
+        {
+          "param_id": "12",
+          "name": "Reverb Mix",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.289000004529953,
+          "load_default_value_text": "28.9 %",
+          "applied_target_normalized": 0.72,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.720000028610229,
+            "new_normalised_value": 0.720000028610229,
+            "new_value_text": "72.0 %",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.720000028610229,
+          "after_value_text": "72.0 %",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.289000004529953,
+            "new_value_text": "28.9 %"
+          },
+          "restore_readback_normalized": 0.289000004529953
+        }
+      ],
+      "full_snapshot_restored": true,
+      "full_snapshot_param_count": 41,
+      "cleanup_delete_track_status": "ok"
+    }
+  ],
+  "gates": [
+    {
+      "gate": "A.inventory_nonempty",
+      "pass": true,
+      "detail": "plugin_list_available: 994 plugins, 17 instruments"
+    },
+    {
+      "gate": "A.subject_present.grand_rhapsody",
+      "pass": true,
+      "detail": "Grand Rhapsody Piano Stereo identifier present with is_instrument"
+    },
+    {
+      "gate": "A.subject_present.surge_xt",
+      "pass": true,
+      "detail": "Surge XT identifier present with is_instrument"
+    },
+    {
+      "gate": "B.add_track.grand_rhapsody",
+      "pass": true,
+      "detail": "add_track reply: {'status': 'ok', 'message': 'Track added', 'track_id': '1040', 'track_name': 'Track 7'}"
+    },
+    {
+      "gate": "B.rack_add_node.grand_rhapsody",
+      "pass": true,
+      "detail": "rack_add_node: {'status': 'ok', 'message': 'Rack node added', 'track_id': '1040', 'rack_item_id': '1045', 'plugin_id': '1046', 'plugin_item_id': '1046', 'plugin_name': 'Grand Rhapsody Piano Stereo', 'plugin_identifier': 'VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d', 'zone_id': 'Z2', 'clip_scope': 'track', 't"
+    },
+    {
+      "gate": "B.instance_face.grand_rhapsody",
+      "pass": true,
+      "detail": "instance_ready=True load_state=name=Grand Rhapsody Piano Stereo id=1046 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error="
+    },
+    {
+      "gate": "C.parameters_available.grand_rhapsody",
+      "pass": true,
+      "detail": "parameter surface rows=41"
+    },
+    {
+      "gate": "D.targets_selected.grand_rhapsody",
+      "pass": true,
+      "detail": "continuous writable targets: ['10', '11', '12']"
+    },
+    {
+      "gate": "D.apply.grand_rhapsody.10",
+      "pass": true,
+      "detail": "apply reply normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.readback.grand_rhapsody.10",
+      "pass": true,
+      "detail": "surface readback normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.restore.grand_rhapsody.10",
+      "pass": true,
+      "detail": "restore readback=0.446153849363327 baseline=0.446153849363327"
+    },
+    {
+      "gate": "D.apply.grand_rhapsody.11",
+      "pass": true,
+      "detail": "apply reply normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.readback.grand_rhapsody.11",
+      "pass": true,
+      "detail": "surface readback normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.restore.grand_rhapsody.11",
+      "pass": true,
+      "detail": "restore readback=0.096000000834465 baseline=0.096000000834465"
+    },
+    {
+      "gate": "D.apply.grand_rhapsody.12",
+      "pass": true,
+      "detail": "apply reply normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.readback.grand_rhapsody.12",
+      "pass": true,
+      "detail": "surface readback normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.restore.grand_rhapsody.12",
+      "pass": true,
+      "detail": "restore readback=0.289000004529953 baseline=0.289000004529953"
+    },
+    {
+      "gate": "D.full_snapshot.grand_rhapsody",
+      "pass": true,
+      "detail": "snapshot params=41 mismatches=[]"
+    },
+    {
+      "gate": "E.authority.grand_rhapsody",
+      "pass": true,
+      "detail": "authority mode now full_project_access"
+    },
+    {
+      "gate": "E.agent_get_parameters.grand_rhapsody",
+      "pass": true,
+      "detail": "agent-face get rows=41 status='ok'"
+    }
+  ],
+  "phases": [
+    "stack-ready"
+  ],
+  "llm_legs": 0,
+  "plugin_count": 994,
+  "instrument_count": 17,
+  "fingerprints": {
+    "grand_rhapsody": "sha256:ee6b1a818fb6392e9c28c1b053ead872c6d12ab654daf079293461721da7bb90",
+    "surge_xt": "sha256:49794ad99d899a869b97416024283d74baf2c517bac15db0fde511bc99624e20"
+  },
+  "authority_baseline_mode": "manual_confirmation",
+  "fail_phase": "exception",
+  "fail_reason": "unexpected driver exception: HTTP 400 from POST http://127.0.0.1:7878/agent/invoke: {\"status\":\"error\",\"tool\":\"plugin.set_parameter\",\"command_name\":\"set_plugin_param\",\"risk_level\":\"undoable\",\"requires_confirmation\":false,\"result\":{\"message\":\"typed_de_esser_surface_unavailable: cannot prove this parameter is outside the typed De-esser surface: unresolved_de_esser_surface: no provable supported De-esser stage/control-path topology\",\"param_id\":\"10\",\"parameters_changed\":false,\"plugin_",
+  "authority_restored_mode": "manual_confirmation"
+}

@@ -1,0 +1,2150 @@
+{
+  "card": "VSTI-PARAM-PROBE-1",
+  "driver": "vsti_param_probe_smoke.py",
+  "plugins": [
+    {
+      "key": "grand_rhapsody",
+      "label": "Grand Rhapsody Piano Stereo",
+      "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+      "binary_fingerprint": "sha256:ee6b1a818fb6392e9c28c1b053ead872c6d12ab654daf079293461721da7bb90",
+      "load": {
+        "rack_add_node_status": "ok",
+        "plugin_id": "1046",
+        "plugin_name": "Grand Rhapsody Piano Stereo",
+        "resolved_identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+        "zone_id": "Z2",
+        "plugin_instance_ready": true,
+        "plugin_load_state": "name=Grand Rhapsody Piano Stereo id=1046 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+        "graph_last_diff_kind": "node_add",
+        "graph_last_diff_summary": "Added rack node Grand Rhapsody Piano Stereo"
+      },
+      "parameter_count": 41,
+      "surface_signature": "probe_ed083d70555b4e8e",
+      "recommended_groups": [
+        {
+          "name": "Tone",
+          "parameter_ids": [
+            "27",
+            "35"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "8",
+            "12",
+            "20",
+            "23",
+            "26",
+            "29",
+            "32"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "0",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "9",
+            "10",
+            "11",
+            "13",
+            "14",
+            "15",
+            "16",
+            "17",
+            "18",
+            "19",
+            "21",
+            "22",
+            "24",
+            "25",
+            "28",
+            "30",
+            "31",
+            "33",
+            "34",
+            "36",
+            "37",
+            "38"
+          ]
+        }
+      ],
+      "quick_controls": [
+        {
+          "param_id": "27",
+          "raw_param_id": "27",
+          "label": "Sustain Resonance",
+          "widget": "slider",
+          "normalized_role": "instrument_sustain",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        },
+        {
+          "param_id": "8",
+          "raw_param_id": "8",
+          "label": "Reverb His-gain",
+          "widget": "slider",
+          "normalized_role": "common_gain",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.655434787273407
+        },
+        {
+          "param_id": "dry level",
+          "raw_param_id": "dry level",
+          "label": "Dry Level",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        },
+        {
+          "param_id": "wet level",
+          "raw_param_id": "wet level",
+          "label": "Wet Level",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 1.0
+        },
+        {
+          "param_id": "12",
+          "raw_param_id": "12",
+          "label": "Reverb Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.289000004529953
+        },
+        {
+          "param_id": "20",
+          "raw_param_id": "20",
+          "label": "Mic3 Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.75
+        },
+        {
+          "param_id": "23",
+          "raw_param_id": "23",
+          "label": "Mic2 Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.75
+        },
+        {
+          "param_id": "26",
+          "raw_param_id": "26",
+          "label": "Comp Mix",
+          "widget": "slider",
+          "normalized_role": "common_mix",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        }
+      ],
+      "template_role": "instrument",
+      "inventory_diff_observations": {
+        "name_term_hit_counts": {},
+        "name_term_hits": {},
+        "discrete_enum_params": [
+          {
+            "param_id": "0",
+            "name": "Mic3 Solo",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "1",
+            "name": "Mic1 Solo",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "2",
+            "name": "Mic2 Solo",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "4",
+            "name": "Mic3 Mute",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "5",
+            "name": "Mic2 Mute",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "6",
+            "name": "Mic1 Mute",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "14",
+            "name": "Eq Lowf",
+            "num_steps": 4,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "35 Hz "
+              },
+              {
+                "index": 1,
+                "value": 0.333333343267441,
+                "label": "60 Hz "
+              },
+              {
+                "index": 2,
+                "value": 0.666666686534882,
+                "label": "110 Hz "
+              },
+              {
+                "index": 3,
+                "value": 1.0,
+                "label": "220 Hz "
+              }
+            ]
+          },
+          {
+            "param_id": "16",
+            "name": "Eq Midf",
+            "num_steps": 7,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "0.36 kHz "
+              },
+              {
+                "index": 1,
+                "value": 0.16666667163372,
+                "label": "0.7 kHz "
+              },
+              {
+                "index": 2,
+                "value": 0.333333343267441,
+                "label": "1.6 kHz "
+              },
+              {
+                "index": 3,
+                "value": 0.5,
+                "label": "3.2 kHz "
+              },
+              {
+                "index": 4,
+                "value": 0.666666686534882,
+                "label": "4.8 kHz "
+              },
+              {
+                "index": 5,
+                "value": 0.833333373069763,
+                "label": "7.2 kHz "
+              },
+              {
+                "index": 6,
+                "value": 1.0,
+                "label": "10 kHz "
+              }
+            ]
+          },
+          {
+            "param_id": "19",
+            "name": "Mic3 Inv",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "22",
+            "name": "Mic2 Inv",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "25",
+            "name": "Mic1 Inv",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "30",
+            "name": "Formant",
+            "num_steps": 25,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "-12 "
+              },
+              {
+                "index": 1,
+                "value": 0.04166666790843,
+                "label": "-11 "
+              },
+              {
+                "index": 2,
+                "value": 0.08333333581686,
+                "label": "-10 "
+              },
+              {
+                "index": 3,
+                "value": 0.125,
+                "label": "-9 "
+              },
+              {
+                "index": 4,
+                "value": 0.16666667163372,
+                "label": "-8 "
+              },
+              {
+                "index": 5,
+                "value": 0.208333343267441,
+                "label": "-7 "
+              },
+              {
+                "index": 6,
+                "value": 0.25,
+                "label": "-6 "
+              },
+              {
+                "index": 7,
+                "value": 0.291666686534882,
+                "label": "-5 "
+              }
+            ]
+          },
+          {
+            "param_id": "33",
+            "name": "Limit",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "34",
+            "name": "Soft Pedal",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "35",
+            "name": "Sustain Pedal",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          },
+          {
+            "param_id": "36",
+            "name": "Reverb Type",
+            "num_steps": 10,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Medium Stage "
+              },
+              {
+                "index": 1,
+                "value": 0.111111111938953,
+                "label": "Empty Hall "
+              },
+              {
+                "index": 2,
+                "value": 0.222222223877907,
+                "label": "Echo Verb BPM "
+              },
+              {
+                "index": 3,
+                "value": 0.333333343267441,
+                "label": "Multi Effect BPM "
+              },
+              {
+                "index": 4,
+                "value": 0.444444447755814,
+                "label": "Recording Studio "
+              },
+              {
+                "index": 5,
+                "value": 0.555555582046509,
+                "label": "Cathedral "
+              },
+              {
+                "index": 6,
+                "value": 0.666666686534882,
+                "label": "Flange Reverb "
+              },
+              {
+                "index": 7,
+                "value": 0.777777791023254,
+                "label": "Diffused Chorus "
+              }
+            ]
+          },
+          {
+            "param_id": "37",
+            "name": "RevOn/Off",
+            "num_steps": 2,
+            "enum_labels_sample": [
+              {
+                "index": 0,
+                "value": 0.0,
+                "label": "Off "
+              },
+              {
+                "index": 1,
+                "value": 1.0,
+                "label": "On "
+              }
+            ]
+          }
+        ],
+        "discrete_enum_param_count": 17
+      },
+      "inventory_artifact": "D:\\Vit_DAW_wt_298probe\\coord\\runs\\VSTI-PARAM-PROBE-1\\probe1_20261107_1920\\grand_rhapsody_parameters.json",
+      "roundtrip_targets": [
+        {
+          "param_id": "10",
+          "name": "Reverb Time",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.446153849363327,
+          "load_value": 0.446153849363327,
+          "load_value_text": "1.84 sec"
+        },
+        {
+          "param_id": "11",
+          "name": "Reverb Pre-del",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.096000000834465,
+          "load_value": 0.096000000834465,
+          "load_value_text": "48 ms"
+        },
+        {
+          "param_id": "12",
+          "name": "Reverb Mix",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.289000004529953,
+          "load_value": 0.289000004529953,
+          "load_value_text": "28.9 %"
+        }
+      ],
+      "roundtrip": [
+        {
+          "param_id": "10",
+          "name": "Reverb Time",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.446153849363327,
+          "load_default_value_text": "1.84 sec",
+          "applied_target_normalized": 0.72,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.720000028610229,
+            "new_normalised_value": 0.720000028610229,
+            "new_value_text": "2.91 sec",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.720000028610229,
+          "after_value_text": "2.91 sec",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.446153849363327,
+            "new_value_text": "1.84 sec"
+          },
+          "restore_readback_normalized": 0.446153849363327
+        },
+        {
+          "param_id": "11",
+          "name": "Reverb Pre-del",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.096000000834465,
+          "load_default_value_text": "48 ms",
+          "applied_target_normalized": 0.72,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.720000028610229,
+            "new_normalised_value": 0.720000028610229,
+            "new_value_text": "360 ms",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.720000028610229,
+          "after_value_text": "360 ms",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.096000000834465,
+            "new_value_text": "48 ms"
+          },
+          "restore_readback_normalized": 0.096000000834465
+        },
+        {
+          "param_id": "12",
+          "name": "Reverb Mix",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.289000004529953,
+          "load_default_value_text": "28.9 %",
+          "applied_target_normalized": 0.72,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.720000028610229,
+            "new_normalised_value": 0.720000028610229,
+            "new_value_text": "72.0 %",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.720000028610229,
+          "after_value_text": "72.0 %",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.289000004529953,
+            "new_value_text": "28.9 %"
+          },
+          "restore_readback_normalized": 0.289000004529953
+        }
+      ],
+      "full_snapshot_restored": true,
+      "full_snapshot_param_count": 41,
+      "agent_face": {
+        "param_id": "10",
+        "range": [
+          0.0,
+          1.0
+        ],
+        "range_is_unit_interval": true,
+        "declared_contract": "catalog: value = normalized 0.0-1.0",
+        "before_normalized": 0.446153849363327,
+        "written_value": 0.65,
+        "write_status": "rejected",
+        "write_error": "HTTP 400 from POST http://127.0.0.1:7878/agent/invoke: {\"status\":\"error\",\"tool\":\"plugin.set_parameter\",\"command_name\":\"set_plugin_param\",\"risk_level\":\"undoable\",\"requires_confirmation\":false,\"result\":{\"message\":\"typed_de_esser_surface_unavailable: cannot prove this parameter is outside the typed De-esser surface: unresolved_de_esser_surface: no provable supported De-esser stage/control-path topology\",\"param_id\":\"10\",\"parameters_changed\":false,\"plugin_",
+        "write_rejection_result": null,
+        "after_kernel_normalized": 0.446153849363327,
+        "contract_level_pass": false,
+        "restore_status": null,
+        "restore_kernel_normalized": null,
+        "guard_param_independence_retry": {
+          "invocation_error": "HTTP 400 from POST http://127.0.0.1:7878/agent/invoke: {\"status\":\"error\",\"tool\":\"plugin.set_parameter\",\"command_name\":\"set_plugin_param\",\"risk_level\":\"undoable\",\"requires_confirmation\":false,\"result\":{\"message\":\"typed_de_esser_surface_unavailable: cannot prove this parameter is outside the typed De-esser surface: unresolved_de_esser_surface: no provable supported De-esser stage/control-path topology\",\"param_id\":\"11\",\"parameters_changed\":false,\"plugin_"
+        }
+      },
+      "status": "captured_with_agent_face_finding",
+      "cleanup_delete_track_status": "ok"
+    },
+    {
+      "key": "surge_xt",
+      "label": "Surge XT",
+      "identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+      "binary_fingerprint": "sha256:49794ad99d899a869b97416024283d74baf2c517bac15db0fde511bc99624e20",
+      "load": {
+        "rack_add_node_status": "ok",
+        "plugin_id": "1053",
+        "plugin_name": "Surge XT",
+        "resolved_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+        "zone_id": "Z2",
+        "plugin_instance_ready": true,
+        "plugin_load_state": "name=Surge XT id=1053 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\Surge Synth Team\\Surge XT.vst3\\Contents\\x86_64-win\\Surge XT.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+        "graph_last_diff_kind": "node_add",
+        "graph_last_diff_summary": "Added rack node Surge XT"
+      },
+      "parameter_count": 776,
+      "surface_signature": "probe_85be1b9ff951c4fc",
+      "recommended_groups": [
+        {
+          "name": "Tone",
+          "parameter_ids": [
+            "856649291",
+            "456251615",
+            "1243907205",
+            "1109929470",
+            "1406380009",
+            "600629919",
+            "643940465",
+            "627352114",
+            "627352115",
+            "627352116",
+            "627352117",
+            "627352118",
+            "627352119",
+            "627352120",
+            "939040635",
+            "1217754326",
+            "1435009160",
+            "195956606",
+            "1531444146",
+            "222678801",
+            "222678802",
+            "222678803",
+            "222678804",
+            "222678805",
+            "222678806",
+            "222678807",
+            "742527130",
+            "1568286615",
+            "1463638311",
+            "1938766941",
+            "271464179",
+            "1965489136",
+            "1965489137",
+            "1965489138",
+            "1965489139",
+            "1965489140",
+            "1965489141",
+            "1965489142",
+            "546013625",
+            "1918818904",
+            "371918427",
+            "247329706",
+            "1098519332",
+            "361479542",
+            "371918428",
+            "247329707",
+            "1098519333",
+            "361479543",
+            "371918429",
+            "247329708",
+            "1098519334",
+            "361479544",
+            "1945359057",
+            "8095466",
+            "1540685744",
+            "358627755",
+            "2005836581",
+            "2058397191",
+            "1798853437",
+            "166454303",
+            "874858726",
+            "1669861066",
+            "454164972",
+            "1601163268",
+            "1552838566",
+            "538873470",
+            "2020534944",
+            "1214887911",
+            "2009890251",
+            "1961716781",
+            "1908656014",
+            "1795718580",
+            "9744797",
+            "804747137",
+            "1503982701",
+            "535738613",
+            "349773982",
+            "1144776322",
+            "1099309388",
+            "1423242294",
+            "689803167",
+            "1484805507",
+            "694636075",
+            "163262327",
+            "1029832352",
+            "1824834692",
+            "289962762",
+            "1050766008",
+            "1369861537",
+            "17380229",
+            "2032773097",
+            "1938269689",
+            "1709890722",
+            "357409414",
+            "1628099784",
+            "678289722",
+            "2049919907",
+            "697438599",
+            "1223426471",
+            "1565793403",
+            "242465444",
+            "1037467784",
+            "818753158",
+            "305813436",
+            "582494629",
+            "1377496969",
+            "414079845",
+            "1193317117",
+            "922523814",
+            "1717526154",
+            "1047686385",
+            "521019377",
+            "1236973722",
+            "2031976062",
+            "643013072",
+            "1408523058",
+            "1577002907",
+            "224521599",
+            "1744152972",
+            "796280800",
+            "1047393700",
+            "265457599",
+            "1756912298",
+            "307226912",
+            "773023184",
+            "333949107",
+            "333949108",
+            "333949109",
+            "333949110",
+            "333949111",
+            "333949112",
+            "333949113",
+            "299108796",
+            "707220149",
+            "1785541449",
+            "2050037247",
+            "1660526865",
+            "2076759442",
+            "2076759443",
+            "2076759444",
+            "2076759445",
+            "2076759446",
+            "2076759447",
+            "2076759448",
+            "102595291",
+            "1057752438",
+            "1814170600",
+            "1645363934",
+            "400546898",
+            "1672086129",
+            "1672086130",
+            "1672086131",
+            "1672086132",
+            "1672086133",
+            "1672086134",
+            "1672086135",
+            "2053565434",
+            "1408284727",
+            "175404922",
+            "587358891",
+            "1438548517",
+            "164966037",
+            "175404923",
+            "587358892",
+            "1438548518",
+            "164966038",
+            "175404924",
+            "587358893",
+            "1438548519",
+            "164966039",
+            "1434824880",
+            "1311107243",
+            "1030151567",
+            "1661639532",
+            "1712433574",
+            "1213925320",
+            "1927936156",
+            "1316865598",
+            "369300101",
+            "1164302441",
+            "45340747",
+            "1307760261",
+            "708366695",
+            "667956189",
+            "1023462591",
+            "709329286",
+            "1504331626",
+            "1552892556",
+            "1615253007",
+            "1924801299",
+            "1651669820",
+            "299188512",
+            "1210579694",
+            "664821332",
+            "1991699005",
+            "639217697",
+            "805906381",
+            "1552325013",
+            "184244542",
+            "979246882",
+            "401233068",
+            "292345046",
+            "524273727",
+            "1319276067",
+            "2144043403",
+            "1179848727",
+            "864302912",
+            "1659305252",
+            "1739370090",
+            "2067352408",
+            "1204332097",
+            "1999334437",
+            "1334696777",
+            "807372441",
+            "1544361282",
+            "191879974",
+            "930023464",
+            "1694876122",
+            "1884390467",
+            "531909159",
+            "525350151",
+            "434896155",
+            "76936004",
+            "871938344",
+            "120676838",
+            "1322399836",
+            "416965189",
+            "1211967529",
+            "542127760",
+            "227616370",
+            "597041883",
+            "1392044223",
+            "137454447",
+            "1115120051",
+            "937071068",
+            "1732073408"
+          ]
+        },
+        {
+          "name": "Dynamics",
+          "parameter_ids": [
+            "974101959",
+            "1324634248"
+          ]
+        },
+        {
+          "name": "Mix",
+          "parameter_ids": [
+            "dry level",
+            "wet level",
+            "1336600346",
+            "1298982072",
+            "92522431",
+            "720711763",
+            "326778877",
+            "326778878",
+            "326778879",
+            "326778880",
+            "1224911995",
+            "1285869018",
+            "1788975242",
+            "1788975274",
+            "954746817",
+            "792055704",
+            "894308759",
+            "93445952",
+            "749340914",
+            "677311166",
+            "677311167",
+            "677311168",
+            "677311169",
+            "1575444284",
+            "780310393",
+            "1283416617",
+            "1283416649",
+            "661343810",
+            "1142587993"
+          ]
+        },
+        {
+          "name": "Modulation",
+          "parameter_ids": [
+            "650467177",
+            "164559267",
+            "1996210649",
+            "1591537336",
+            "1235992486",
+            "1264621637",
+            "1293250788",
+            "1321879939",
+            "1350509090",
+            "1379138241",
+            "1407767392",
+            "1436396543",
+            "1465025694",
+            "1493654845",
+            "1333420489",
+            "1362049640",
+            "453953672",
+            "2115529410",
+            "1485676472",
+            "1081003159",
+            "1586524775",
+            "1615153926",
+            "1643783077",
+            "1672412228",
+            "1701041379",
+            "1729670530",
+            "1758299681",
+            "1786928832",
+            "1815557983",
+            "1844187134",
+            "1462503208",
+            "1491132359"
+          ]
+        },
+        {
+          "name": "Utility",
+          "parameter_ids": [
+            "341421301"
+          ]
+        },
+        {
+          "name": "Other",
+          "parameter_ids": [
+            "825615485",
+            "825615486",
+            "825615487",
+            "825615488",
+            "825615489",
+            "825615490",
+            "825615491",
+            "825615492",
+            "595200762",
+            "595200763",
+            "595200764",
+            "595200765",
+            "1746267673",
+            "1730096175",
+            "220886277",
+            "1166337147",
+            "240235375",
+            "145909210",
+            "885066848",
+            "885066849",
+            "885066850",
+            "885066851",
+            "885066852",
+            "885066853",
+            "885066854",
+            "885066855",
+            "885066856",
+            "885066857",
+            "1667268591",
+            "1667268592",
+            "174538361",
+            "885096639",
+            "885096640",
+            "885096641",
+            "885096642",
+            "885096643",
+            "885096644",
+            "885096645",
+            "885096646",
+            "885096647",
+            "885096648",
+            "1668192112",
+            "1668192113",
+            "203167512",
+            "885126430",
+            "885126431",
+            "885126432",
+            "885126433",
+            "885126434",
+            "885126435",
+            "885126436",
+            "885126437",
+            "885126438",
+            "885126439",
+            "1669115633",
+            "1669115634",
+            "231796663",
+            "885156221",
+            "885156222",
+            "885156223",
+            "885156224",
+            "885156225",
+            "885156226",
+            "885156227",
+            "885156228",
+            "885156229",
+            "885156230",
+            "1670039154",
+            "1670039155",
+            "260425814",
+            "885186012",
+            "885186013",
+            "885186014",
+            "885186015",
+            "885186016",
+            "885186017",
+            "885186018",
+            "885186019",
+            "885186020",
+            "885186021",
+            "1670962675",
+            "1670962676",
+            "289054965",
+            "885215803",
+            "885215804",
+            "885215805",
+            "885215806",
+            "885215807",
+            "885215808",
+            "885215809",
+            "885215810",
+            "885215811",
+            "885215812",
+            "1671886196",
+            "1671886197",
+            "317684116",
+            "885245594",
+            "885245595",
+            "885245596",
+            "885245597",
+            "885245598",
+            "885245599",
+            "885245600",
+            "885245601",
+            "885245602",
+            "885245603",
+            "1672809717",
+            "1672809718",
+            "346313267",
+            "885275385",
+            "885275386",
+            "885275387",
+            "885275388",
+            "885275389",
+            "885275390",
+            "885275391",
+            "885275392",
+            "885275393",
+            "885275394",
+            "1673733238",
+            "1673733239",
+            "374942418",
+            "885305176",
+            "885305177",
+            "885305178",
+            "885305179",
+            "885305180",
+            "885305181",
+            "885305182",
+            "885305183",
+            "885305184",
+            "885305185",
+            "1674656759",
+            "1674656760",
+            "1010597960",
+            "1665854030",
+            "1665854031",
+            "1665854032",
+            "1665854033",
+            "1665854034",
+            "1665854035",
+            "1665854036",
+            "1665854037",
+            "1665854038",
+            "1665854039",
+            "101867457",
+            "101867458",
+            "1039227111",
+            "1665883821",
+            "1665883822",
+            "1665883823",
+            "1665883824",
+            "1665883825",
+            "1665883826",
+            "1665883827",
+            "1665883828",
+            "1665883829",
+            "1665883830",
+            "102790978",
+            "102790979",
+            "1067856262",
+            "1665913612",
+            "1665913613",
+            "1665913614",
+            "1665913615",
+            "1665913616",
+            "1665913617",
+            "1665913618",
+            "1665913619",
+            "1665913620",
+            "1665913621",
+            "103714499",
+            "103714500",
+            "1096485413",
+            "1665943403",
+            "1665943404",
+            "1665943405",
+            "1665943406",
+            "1665943407",
+            "1665943408",
+            "1665943409",
+            "1665943410",
+            "1665943411",
+            "1665943412",
+            "104638020",
+            "104638021",
+            "1125114564",
+            "1665973194",
+            "1665973195",
+            "1665973196",
+            "1665973197",
+            "1665973198",
+            "1665973199",
+            "1665973200",
+            "1665973201",
+            "1665973202",
+            "1665973203",
+            "105561541",
+            "105561542",
+            "1153743715",
+            "1666002985",
+            "1666002986",
+            "1666002987",
+            "1666002988",
+            "1666002989",
+            "1666002990",
+            "1666002991",
+            "1666002992",
+            "1666002993",
+            "1666002994",
+            "106485062",
+            "106485063",
+            "1182372866",
+            "1666032776",
+            "1666032777",
+            "1666032778",
+            "1666032779",
+            "1666032780",
+            "1666032781",
+            "1666032782",
+            "1666032783",
+            "1666032784",
+            "1666032785",
+            "107408583",
+            "107408584",
+            "1564195625",
+            "1087715150",
+            "867473890",
+            "994712943",
+            "918034829",
+            "1282981710",
+            "1635703364",
+            "1095463778",
+            "1553223533",
+            "1553223004",
+            "495256997",
+            "1013001228",
+            "97439073",
+            "1515144793",
+            "177936595",
+            "1313557029",
+            "1515144825",
+            "177936627",
+            "1313557061",
+            "183903250",
+            "487135832",
+            "1355052742",
+            "1537728286",
+            "1475289878",
+            "1069823024",
+            "1566357437",
+            "1815319063",
+            "873309519",
+            "1859420608",
+            "1888049759",
+            "1809659291",
+            "1806888821",
+            "308980490",
+            "1980287499",
+            "1231937413",
+            "1580584980",
+            "1795727229",
+            "1235707781",
+            "549679324",
+            "546908854",
+            "659512779",
+            "1575614186",
+            "1035423908",
+            "1384071475",
+            "535747262",
+            "1264336932",
+            "1437183005",
+            "1434412535",
+            "1010045068",
+            "1170940873",
+            "838910403",
+            "1187557970",
+            "1423250943",
+            "1292966083",
+            "177203038",
+            "174432568",
+            "1360577357",
+            "766267560",
+            "642396898",
+            "991044465",
+            "163270976",
+            "1321595234",
+            "1064706719",
+            "1061936249",
+            "1711109646",
+            "361594247",
+            "445883393",
+            "794530960",
+            "1050774657",
+            "1350224385",
+            "1952210400",
+            "1949439930",
+            "2061641935",
+            "2104404582",
+            "249369888",
+            "598017455",
+            "1938278338",
+            "1378853536",
+            "692230433",
+            "689459963",
+            "264690576",
+            "1699731269",
+            "52856383",
+            "401503950",
+            "678298371",
+            "1407482687",
+            "1579734114",
+            "1576963644",
+            "615222865",
+            "1295057956",
+            "2003826526",
+            "204990445",
+            "1565802052",
+            "1436111838",
+            "319754147",
+            "316983677",
+            "965755154",
+            "890384643",
+            "1807313021",
+            "8476940",
+            "305822085",
+            "1464740989",
+            "1207257828",
+            "1204487358",
+            "1316287443",
+            "485711330",
+            "1610799516",
+            "1959447083",
+            "1193325766",
+            "1493370140",
+            "534960088",
+            "532189618",
+            "707454663",
+            "1119317870",
+            "621328424",
+            "969975991",
+            "521028026",
+            "1333135784",
+            "1422463769",
+            "1419693299",
+            "1057986952",
+            "714644557",
+            "424814919",
+            "773462486",
+            "1408531707",
+            "1361764935",
+            "683041837",
+            "1754977571",
+            "1123795662",
+            "721521324",
+            "1633513999",
+            "1439189859",
+            "898950273",
+            "1682306252",
+            "1682305723",
+            "845789286",
+            "608327915",
+            "1450748770",
+            "1221741786",
+            "2032017236",
+            "807998404",
+            "1221741818",
+            "2032017268",
+            "807998436",
+            "312985969",
+            "616218551",
+            "1061649735",
+            "1032169661",
+            "681115927",
+            "72750671",
+            "1060798812",
+            "1021145112",
+            "2023720814",
+            "62469249",
+            "91098400",
+            "1938742010",
+            "1935971540",
+            "1945929961",
+            "1686884492",
+            "592005574",
+            "940653141",
+            "1924809948",
+            "1586240070",
+            "678762043",
+            "675991573",
+            "148978602",
+            "1282211179",
+            "395492069",
+            "744139636",
+            "664829981",
+            "1614869221",
+            "1566265724",
+            "1563495254",
+            "499510891",
+            "877537866",
+            "198978564",
+            "547626131",
+            "1552333662",
+            "1643498372",
+            "306285757",
+            "303515287",
+            "850043180",
+            "472864553",
+            "2465059",
+            "351112626",
+            "292353695",
+            "1672127523",
+            "1193789438",
+            "1191018968",
+            "1200575469",
+            "68191240",
+            "1953435202",
+            "154599121",
+            "1179857376",
+            "1700756674",
+            "2081293119",
+            "2078522649",
+            "1551107758",
+            "1811001575",
+            "1756921697",
+            "2105569264",
+            "2067361057",
+            "1729385825",
+            "821313152",
+            "818542682",
+            "1901640047",
+            "1406328262",
+            "1560408192",
+            "1909055759",
+            "807381090",
+            "1758014976",
+            "1708816833",
+            "1706046363",
+            "104688688",
+            "1001654949",
+            "1363894687",
+            "1712542254",
+            "1694884771",
+            "1786644127",
+            "448836866",
+            "446066396",
+            "455220977",
+            "596981636",
+            "1167381182",
+            "1516028749",
+            "434904804",
+            "1815273278",
+            "1336340547",
+            "1333570077",
+            "805753266",
+            "192308323",
+            "970867677",
+            "1319515244",
+            "1322408485",
+            "1843902429",
+            "241557081",
+            "238786611",
+            "2060764360",
+            "613759245",
+            "110794247",
+            "459441814",
+            "227625019",
+            "1462218503",
+            "1129060762",
+            "1126290292",
+            "263813001",
+            "209085932",
+            "2061764390",
+            "262928309",
+            "1115128700",
+            "1490847654"
+          ]
+        }
+      ],
+      "quick_controls": [
+        {
+          "param_id": "1945359057",
+          "raw_param_id": "1945359057",
+          "label": "A Filter 1 Cutoff",
+          "widget": "knob",
+          "normalized_role": "instrument_cutoff",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.484615385532379
+        },
+        {
+          "param_id": "1109929470",
+          "raw_param_id": "1109929470",
+          "label": "A Link Resonance",
+          "widget": "knob",
+          "normalized_role": "instrument_resonance",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        },
+        {
+          "param_id": "2005836581",
+          "raw_param_id": "2005836581",
+          "label": "A Amp EG Attack",
+          "widget": "slider",
+          "normalized_role": "instrument_attack",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.0
+        },
+        {
+          "param_id": "1669861066",
+          "raw_param_id": "1669861066",
+          "label": "A Amp EG Release",
+          "widget": "slider",
+          "normalized_role": "instrument_release",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.230769231915474
+        },
+        {
+          "param_id": "1798853437",
+          "raw_param_id": "1798853437",
+          "label": "A Amp EG Decay",
+          "widget": "slider",
+          "normalized_role": "instrument_decay",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.461538463830948
+        },
+        {
+          "param_id": "874858726",
+          "raw_param_id": "874858726",
+          "label": "A Amp EG Sustain",
+          "widget": "slider",
+          "normalized_role": "instrument_sustain",
+          "display_group": "Tone",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 1.0
+        },
+        {
+          "param_id": "1336600346",
+          "raw_param_id": "1336600346",
+          "label": "Global Volume",
+          "widget": "slider",
+          "normalized_role": "common_gain",
+          "display_group": "Mix",
+          "host_controllable": true,
+          "control_relevance": "musical_control",
+          "control_priority": 100,
+          "value": 0.957796990871429
+        },
+        {
+          "param_id": "341421301",
+          "raw_param_id": "341421301",
+          "label": "FX Chain Bypass",
+          "widget": "toggle",
+          "normalized_role": "common_bypass",
+          "display_group": "Utility",
+          "host_controllable": true,
+          "control_relevance": "utility_control",
+          "control_priority": 75,
+          "value": 0.004999999888241
+        }
+      ],
+      "template_role": "instrument",
+      "inventory_diff_observations": {
+        "name_term_hit_counts": {
+          "scene": 158,
+          "voice": 6
+        },
+        "name_term_hits": {
+          "scene": [
+            {
+              "param_id": "1746267673",
+              "name": "Active Scene",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "0"
+            },
+            {
+              "param_id": "1730096175",
+              "name": "Scene Mode",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "Single"
+            },
+            {
+              "param_id": "692230433",
+              "name": "A Scene LFO 1 Type",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "Sine"
+            },
+            {
+              "param_id": "1407767392",
+              "name": "A Scene LFO 1 Rate",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "1.000 Hz"
+            },
+            {
+              "param_id": "689459963",
+              "name": "A Scene LFO 1 Phase",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "0.00 %"
+            },
+            {
+              "param_id": "264690576",
+              "name": "A Scene LFO 1 Amplitude",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "100.00 %"
+            },
+            {
+              "param_id": "1699731269",
+              "name": "A Scene LFO 1 Deform",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "0.00 %"
+            },
+            {
+              "param_id": "52856383",
+              "name": "A Scene LFO 1 Trigger Mode",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "Keytrigger"
+            },
+            {
+              "param_id": "401503950",
+              "name": "A Scene LFO 1 Unipolar",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "Off"
+            },
+            {
+              "param_id": "678298371",
+              "name": "A Scene LFO 1 Delay",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "0.0 ms"
+            },
+            {
+              "param_id": "1628099784",
+              "name": "A Scene LFO 1 Attack",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "0.0 ms"
+            },
+            {
+              "param_id": "1407482687",
+              "name": "A Scene LFO 1 Hold",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "0.0 ms"
+            }
+          ],
+          "voice": [
+            {
+              "param_id": "627352120",
+              "name": "A Osc 1 Unison Voices",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "1 voice"
+            },
+            {
+              "param_id": "222678807",
+              "name": "A Osc 2 Unison Voices",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "1 voice"
+            },
+            {
+              "param_id": "1965489142",
+              "name": "A Osc 3 Unison Voices",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "1 voice"
+            },
+            {
+              "param_id": "333949113",
+              "name": "B Osc 1 Unison Voices",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "1 voice"
+            },
+            {
+              "param_id": "2076759448",
+              "name": "B Osc 2 Unison Voices",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "1 voice"
+            },
+            {
+              "param_id": "1672086135",
+              "name": "B Osc 3 Unison Voices",
+              "is_discrete": false,
+              "num_steps": 0,
+              "value_text": "1 voice"
+            }
+          ]
+        },
+        "discrete_enum_params": [],
+        "discrete_enum_param_count": 0
+      },
+      "inventory_artifact": "D:\\Vit_DAW_wt_298probe\\coord\\runs\\VSTI-PARAM-PROBE-1\\probe1_20261107_1920\\surge_xt_parameters.json",
+      "roundtrip_targets": [
+        {
+          "param_id": "1001654949",
+          "name": "B Scene LFO 2 Deform",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.5,
+          "load_value": 0.5,
+          "load_value_text": "0.00 %"
+        },
+        {
+          "param_id": "1010045068",
+          "name": "A LFO 3 Amplitude",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 1.0,
+          "load_value": 1.0,
+          "load_value_text": "100.00 %"
+        },
+        {
+          "param_id": "1010597960",
+          "name": "FX A4 FX Type",
+          "min": 0.0,
+          "max": 1.0,
+          "load_normalized": 0.004999999888241,
+          "load_value": 0.004999999888241,
+          "load_value_text": "Off"
+        }
+      ],
+      "roundtrip": [
+        {
+          "param_id": "1001654949",
+          "name": "B Scene LFO 2 Deform",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.5,
+          "load_default_value_text": "0.00 %",
+          "applied_target_normalized": 0.28,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.280000001192093,
+            "new_normalised_value": 0.280000001192093,
+            "new_value_text": "-44.00 %",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.280000001192093,
+          "after_value_text": "-44.00 %",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.5,
+            "new_value_text": "0.00 %"
+          },
+          "restore_readback_normalized": 0.5
+        },
+        {
+          "param_id": "1010045068",
+          "name": "A LFO 3 Amplitude",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 1.0,
+          "load_default_value_text": "100.00 %",
+          "applied_target_normalized": 0.28,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.280000001192093,
+            "new_normalised_value": 0.280000001192093,
+            "new_value_text": "28.00 %",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.280000001192093,
+          "after_value_text": "28.00 %",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 1.0,
+            "new_value_text": "100.00 %"
+          },
+          "restore_readback_normalized": 1.0
+        },
+        {
+          "param_id": "1010597960",
+          "name": "FX A4 FX Type",
+          "range": [
+            0.0,
+            1.0
+          ],
+          "load_default_normalized": 0.004999999888241,
+          "load_default_value_text": "Off",
+          "applied_target_normalized": 0.72,
+          "apply_reply": {
+            "status": "ok",
+            "new_value": 0.720000028610229,
+            "new_normalised_value": 0.720000028610229,
+            "new_value_text": "Combulator",
+            "value_interpretation": "normalised"
+          },
+          "apply_readback_normalized": 0.720000028610229,
+          "after_value_text": "Combulator",
+          "restore_reply": {
+            "status": "ok",
+            "new_normalised_value": 0.004999999888241,
+            "new_value_text": "Off"
+          },
+          "restore_readback_normalized": 0.004999999888241
+        }
+      ],
+      "full_snapshot_restored": true,
+      "full_snapshot_param_count": 776,
+      "agent_face": {
+        "param_id": "1001654949",
+        "range": [
+          0.0,
+          1.0
+        ],
+        "range_is_unit_interval": true,
+        "declared_contract": "catalog: value = normalized 0.0-1.0",
+        "before_normalized": 0.5,
+        "written_value": 0.35,
+        "write_status": "ok",
+        "write_error": "",
+        "write_rejection_result": null,
+        "after_kernel_normalized": 0.349999994039536,
+        "contract_level_pass": true,
+        "restore_status": "ok",
+        "restore_kernel_normalized": 0.5,
+        "guard_param_independence_retry": null
+      },
+      "status": "captured_with_agent_face_finding",
+      "cleanup_delete_track_status": "ok"
+    }
+  ],
+  "gates": [
+    {
+      "gate": "A.inventory_nonempty",
+      "pass": true,
+      "detail": "plugin_list_available: 994 plugins, 17 instruments"
+    },
+    {
+      "gate": "A.subject_present.grand_rhapsody",
+      "pass": true,
+      "detail": "Grand Rhapsody Piano Stereo identifier present with is_instrument"
+    },
+    {
+      "gate": "A.subject_present.surge_xt",
+      "pass": true,
+      "detail": "Surge XT identifier present with is_instrument"
+    },
+    {
+      "gate": "B.add_track.grand_rhapsody",
+      "pass": true,
+      "detail": "add_track reply: {'status': 'ok', 'message': 'Track added', 'track_id': '1040', 'track_name': 'Track 7'}"
+    },
+    {
+      "gate": "B.rack_add_node.grand_rhapsody",
+      "pass": true,
+      "detail": "rack_add_node: {'status': 'ok', 'message': 'Rack node added', 'track_id': '1040', 'rack_item_id': '1045', 'plugin_id': '1046', 'plugin_item_id': '1046', 'plugin_name': 'Grand Rhapsody Piano Stereo', 'plugin_identifier': 'VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d', 'zone_id': 'Z2', 'clip_scope': 'track', 't"
+    },
+    {
+      "gate": "B.instance_face.grand_rhapsody",
+      "pass": true,
+      "detail": "instance_ready=True load_state=name=Grand Rhapsody Piano Stereo id=1046 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error="
+    },
+    {
+      "gate": "C.parameters_available.grand_rhapsody",
+      "pass": true,
+      "detail": "parameter surface rows=41"
+    },
+    {
+      "gate": "D.targets_selected.grand_rhapsody",
+      "pass": true,
+      "detail": "continuous writable targets: ['10', '11', '12']"
+    },
+    {
+      "gate": "D.apply.grand_rhapsody.10",
+      "pass": true,
+      "detail": "apply reply normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.readback.grand_rhapsody.10",
+      "pass": true,
+      "detail": "surface readback normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.restore.grand_rhapsody.10",
+      "pass": true,
+      "detail": "restore readback=0.446153849363327 baseline=0.446153849363327"
+    },
+    {
+      "gate": "D.apply.grand_rhapsody.11",
+      "pass": true,
+      "detail": "apply reply normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.readback.grand_rhapsody.11",
+      "pass": true,
+      "detail": "surface readback normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.restore.grand_rhapsody.11",
+      "pass": true,
+      "detail": "restore readback=0.096000000834465 baseline=0.096000000834465"
+    },
+    {
+      "gate": "D.apply.grand_rhapsody.12",
+      "pass": true,
+      "detail": "apply reply normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.readback.grand_rhapsody.12",
+      "pass": true,
+      "detail": "surface readback normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.restore.grand_rhapsody.12",
+      "pass": true,
+      "detail": "restore readback=0.289000004529953 baseline=0.289000004529953"
+    },
+    {
+      "gate": "D.full_snapshot.grand_rhapsody",
+      "pass": true,
+      "detail": "snapshot params=41 mismatches=[]"
+    },
+    {
+      "gate": "E.authority.grand_rhapsody",
+      "pass": true,
+      "detail": "authority mode now full_project_access"
+    },
+    {
+      "gate": "E.agent_get_parameters.grand_rhapsody",
+      "pass": true,
+      "detail": "agent-face get rows=41 status='ok'"
+    },
+    {
+      "gate": "E.write_status.grand_rhapsody",
+      "pass": false,
+      "detail": "agent-face set rejected: HTTP 400 from POST http://127.0.0.1:7878/agent/invoke: {\"status\":\"error\",\"tool\":\"plugin.set_parameter\",\"command_name\":\"set_plugin_param\",\"risk_level\":\"undoable\",\"requires_confirmation\":false,\"result\":{\"message\":\"typed_de_esser_surface_unavailable: cannot prove this parameter is outside the typed De-"
+    },
+    {
+      "gate": "E.full_snapshot.grand_rhapsody",
+      "pass": true,
+      "detail": "post-agent-leg snapshot mismatches=[]"
+    },
+    {
+      "gate": "B.add_track.surge_xt",
+      "pass": true,
+      "detail": "add_track reply: {'status': 'ok', 'message': 'Track added', 'track_id': '1047', 'track_name': 'Track 7'}"
+    },
+    {
+      "gate": "B.rack_add_node.surge_xt",
+      "pass": true,
+      "detail": "rack_add_node: {'status': 'ok', 'message': 'Rack node added', 'track_id': '1047', 'rack_item_id': '1052', 'plugin_id': '1053', 'plugin_item_id': '1053', 'plugin_name': 'Surge XT', 'plugin_identifier': 'VST3-Surge XT-1e1bcfb-190e4fbd', 'zone_id': 'Z2', 'clip_scope': 'track', 'template_role': 'instrument', 'plugin_i"
+    },
+    {
+      "gate": "B.instance_face.surge_xt",
+      "pass": true,
+      "detail": "instance_ready=True load_state=name=Surge XT id=1053 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\Surge Synth Team\\Surge XT.vst3\\Contents\\x86_64-win\\Surge XT.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error="
+    },
+    {
+      "gate": "C.parameters_available.surge_xt",
+      "pass": true,
+      "detail": "parameter surface rows=776"
+    },
+    {
+      "gate": "D.targets_selected.surge_xt",
+      "pass": true,
+      "detail": "continuous writable targets: ['1001654949', '1010045068', '1010597960']"
+    },
+    {
+      "gate": "D.apply.surge_xt.1001654949",
+      "pass": true,
+      "detail": "apply reply normalized=0.280000001192093 want=0.28"
+    },
+    {
+      "gate": "D.readback.surge_xt.1001654949",
+      "pass": true,
+      "detail": "surface readback normalized=0.280000001192093 want=0.28"
+    },
+    {
+      "gate": "D.restore.surge_xt.1001654949",
+      "pass": true,
+      "detail": "restore readback=0.5 baseline=0.5"
+    },
+    {
+      "gate": "D.apply.surge_xt.1010045068",
+      "pass": true,
+      "detail": "apply reply normalized=0.280000001192093 want=0.28"
+    },
+    {
+      "gate": "D.readback.surge_xt.1010045068",
+      "pass": true,
+      "detail": "surface readback normalized=0.280000001192093 want=0.28"
+    },
+    {
+      "gate": "D.restore.surge_xt.1010045068",
+      "pass": true,
+      "detail": "restore readback=1.0 baseline=1.0"
+    },
+    {
+      "gate": "D.apply.surge_xt.1010597960",
+      "pass": true,
+      "detail": "apply reply normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.readback.surge_xt.1010597960",
+      "pass": true,
+      "detail": "surface readback normalized=0.720000028610229 want=0.72"
+    },
+    {
+      "gate": "D.restore.surge_xt.1010597960",
+      "pass": true,
+      "detail": "restore readback=0.004999999888241 baseline=0.004999999888241"
+    },
+    {
+      "gate": "D.full_snapshot.surge_xt",
+      "pass": true,
+      "detail": "snapshot params=776 mismatches=[]"
+    },
+    {
+      "gate": "E.authority.surge_xt",
+      "pass": true,
+      "detail": "authority mode now full_project_access"
+    },
+    {
+      "gate": "E.agent_get_parameters.surge_xt",
+      "pass": true,
+      "detail": "agent-face get rows=512 status='ok'"
+    },
+    {
+      "gate": "E.write_status.surge_xt",
+      "pass": true,
+      "detail": "agent-face set accepted"
+    },
+    {
+      "gate": "E.write_effect.surge_xt",
+      "pass": true,
+      "detail": "kernel readback moved 0.5 -> 0.349999994039536 (want 0.35)"
+    },
+    {
+      "gate": "E.restore.surge_xt",
+      "pass": true,
+      "detail": "agent-face restore readback=0.5 baseline=0.5"
+    },
+    {
+      "gate": "E.normalized_contract.surge_xt",
+      "pass": true,
+      "detail": "unit-range param readback=0.349999994039536 want=0.35"
+    },
+    {
+      "gate": "E.full_snapshot.surge_xt",
+      "pass": true,
+      "detail": "post-agent-leg snapshot mismatches=[]"
+    }
+  ],
+  "phases": [
+    "stack-ready"
+  ],
+  "llm_legs": 0,
+  "plugin_count": 994,
+  "instrument_count": 17,
+  "fingerprints": {
+    "grand_rhapsody": "sha256:ee6b1a818fb6392e9c28c1b053ead872c6d12ab654daf079293461721da7bb90",
+    "surge_xt": "sha256:49794ad99d899a869b97416024283d74baf2c517bac15db0fde511bc99624e20"
+  },
+  "authority_baseline_mode": "manual_confirmation",
+  "agent_face_findings": [
+    {
+      "plugin": "grand_rhapsody",
+      "param_id": "10",
+      "error": "HTTP 400 from POST http://127.0.0.1:7878/agent/invoke: {\"status\":\"error\",\"tool\":\"plugin.set_parameter\",\"command_name\":\"set_plugin_param\",\"risk_level\":\"undoable\",\"requires_confirmation\":false,\"result\":{\"message\":\"typed_de_esser_surface_unavailable: cannot prove this parameter is outside the typed De-esser surface: unresolved_de_esser_surface: no provable supported De-esser stage/control-path topology\",\"param_id\":\"10\",\"parameters_changed\":false,\"plugin_"
+    }
+  ],
+  "fail_phase": "agent_face",
+  "fail_reason": "generic set_plugin_param over the agent HTTP face rejected (typed-family fail-closed guard): VSTi not writable through the agent generic control face; kernel ZMQ face roundtrip evidence collected in the same summary",
+  "authority_restored_mode": "manual_confirmation"
+}
