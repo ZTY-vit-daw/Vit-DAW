@@ -1,10 +1,13 @@
 package genapi
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
@@ -22,6 +25,12 @@ type dialect struct {
 	generatePath string
 	pollPath     string
 	pollMethod   string
+	// resultPath, when set, marks YuE2-style result semantics: the terminal
+	// artifact lives on a SEPARATE endpoint returning a multipart/mixed
+	// document (application/json replay part + audio part) instead of URL or
+	// base64 fields inside the poll JSON. The poll done-branch fetches it and
+	// never calls harvest.
+	resultPath   string
 	taskIDFields []string
 	statusField  string
 	doneStatuses []string
@@ -88,6 +97,24 @@ var dialectRegistry = map[string]dialect{
 		pollInterval: 5,
 		timeoutSecs:  600,
 		buildRequest: sunoRequestBuilder,
+	},
+	// YuE2 local engine (yue2.cpp REST, YUE2-PC-DEPLOY-1 local deployment;
+	// no auth, bound to 127.0.0.1): POST /synth -> {"id":"<hex>"}, poll
+	// GET /job?id=<hex> -> {"status":"running"|"done"}, result
+	// GET /job?id=<hex>&result=1 -> multipart/mixed with one application/json
+	// replay part (deterministic reproduction substrate) and one audio part.
+	"yue_local": {
+		generatePath: "/synth",
+		pollPath:     "/job?id={task_id}",
+		pollMethod:   http.MethodGet,
+		resultPath:   "/job?id={task_id}&result=1",
+		taskIDFields: []string{"id"},
+		statusField:  "status",
+		doneStatuses: []string{"done"},
+		failStatuses: []string{"error", "failed", "fail"},
+		pollInterval: 3,
+		timeoutSecs:  600,
+		buildRequest: yueRequestBuilder,
 	},
 }
 
@@ -162,6 +189,39 @@ func sunoRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) ma
 	}
 	if req.Instrumental {
 		body["make_instrumental"] = true
+	}
+	for k, v := range cfg.ExtraParams {
+		body[k] = v
+	}
+	return body
+}
+
+// yueRequestBuilder maps the normalized request onto the YuE2 local engine
+// surface. The primary input face is the ABC dialect score (dual voices +
+// in-bar quoted chords + % section comments — naive ABC loses the melody,
+// YUE2-ABC-ADHERENCE-1) plus lyrics and an English style-tag string; free
+// prompt text, tempo/key/count/title have no request field and surface as
+// limitations instead of being silently dropped. cot/steps/output_format are
+// pinned to the locally validated baseline (cot=full, steps=32, wav16) and
+// can be overridden per provider via extra_params (e.g. seed,
+// synth_batch_size, semantic_tokens replay).
+func yueRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) map[string]any {
+	body := map[string]any{
+		"cot":           "full",
+		"steps":         32,
+		"output_format": "wav16",
+	}
+	if s := strings.TrimSpace(req.StyleTags); s != "" {
+		body["style"] = s
+	}
+	if l := strings.TrimSpace(req.Lyrics); l != "" {
+		body["lyrics"] = l
+	}
+	if a := strings.TrimSpace(req.ABC); a != "" {
+		body["abc"] = a
+	}
+	if req.DurationSeconds > 0 {
+		body["duration"] = req.DurationSeconds
 	}
 	for k, v := range cfg.ExtraParams {
 		body[k] = v
@@ -267,15 +327,40 @@ func (p ProviderConfig) resolved() *clientConfig {
 // Limitations reports normalized fields this dialect cannot express, so
 // callers can disclose instead of silently dropping them.
 func (p ProviderConfig) Limitations(req GenerationRequest) []string {
-	if p.Dialect != "suno_relay" {
-		return nil
-	}
 	var out []string
-	if req.DurationSeconds > 0 {
-		out = append(out, "duration_seconds: the suno relay surface has no duration parameter")
+	if strings.TrimSpace(req.ABC) != "" && p.Dialect != "yue_local" {
+		out = append(out, fmt.Sprintf("abc: dialect %s has no score channel; the ABC score was not forwarded", p.Dialect))
 	}
-	if req.TempoBPM > 0 {
-		out = append(out, "tempo_bpm: the suno relay surface has no tempo parameter")
+	switch p.Dialect {
+	case "suno_relay":
+		if req.DurationSeconds > 0 {
+			out = append(out, "duration_seconds: the suno relay surface has no duration parameter")
+		}
+		if req.TempoBPM > 0 {
+			out = append(out, "tempo_bpm: the suno relay surface has no tempo parameter")
+		}
+	case "yue_local":
+		if strings.TrimSpace(req.Prompt) != "" {
+			out = append(out, "prompt: yue_local has no free-prompt channel; the ABC score + lyrics + style tags are the input face (genctx auto blocks do not reach the engine)")
+		}
+		if strings.TrimSpace(p.Model) != "" {
+			out = append(out, "model: the yue_local engine serves one model per process (fixed at engine start); the config model field is not forwarded")
+		}
+		if req.TempoBPM > 0 {
+			out = append(out, "tempo_bpm: yue_local has no tempo parameter; put Q: in the ABC score (soft control, ~19-21% dose response in local probes) or a BPM tag in the style string")
+		}
+		if strings.TrimSpace(req.MusicalKey) != "" {
+			out = append(out, "musical_key: yue_local has no key parameter; put K: in the ABC score (hard control, 100% key match in local probes)")
+		}
+		if req.Instrumental {
+			out = append(out, "instrumental: yue_local has no instrumental switch; rest the Vocal part in the ABC score and use an instrumental style")
+		}
+		if req.Count > 1 {
+			out = append(out, "count: the local engine runs --max-batch=1 (one song per request); use synth_batch_size via provider extra_params for acoustic variations")
+		}
+		if strings.TrimSpace(req.Title) != "" {
+			out = append(out, "title: yue_local has no title field")
+		}
 	}
 	return out
 }
@@ -403,7 +488,15 @@ func (c *clientConfig) poll(ctx context.Context, taskID string, res *Result) ([]
 			return nil, &Error{Class: klass, ProviderMessage: fmt.Sprintf("provider task %s reported failure (%s): %s", taskID, status, reason)}
 		}
 		if done := status == "" || containsFold(c.DoneStatuses, status); done {
-			artifacts, perr := c.harvest(ctx, decoded, raw, res)
+			var artifacts []Artifact
+			var perr error
+			if strings.TrimSpace(c.dialect.resultPath) != "" {
+				// YuE2-style result semantics: the artifact lives on a
+				// separate multipart endpoint, not in this poll JSON.
+				artifacts, perr = c.fetchMultipartResult(ctx, taskID, res)
+			} else {
+				artifacts, perr = c.harvest(ctx, decoded, raw, res)
+			}
 			if perr != nil {
 				// Done but no artifacts yet is a real terminal mismatch for
 				// a done-marked status; for empty-status JSON it may just be
@@ -423,6 +516,68 @@ func (c *clientConfig) poll(ctx context.Context, taskID string, res *Result) ([]
 			return nil, &Error{Class: ClassTimeoutError, Retryable: true, ProviderMessage: fmt.Sprintf("generation deadline exceeded while task %s was %s", taskID, status)}
 		}
 	}
+}
+
+// fetchMultipartResult downloads the terminal-result document of a
+// YuE2-style dialect (GET resultPath -> multipart/mixed carrying one
+// application/json replay part and one audio part). The audio part goes
+// through the standard sniff/cap/save path; the replay JSON is stored as a
+// sidecar artifact (kind "replay") because replaying its semantic_tokens is
+// the engine's only byte-exact reproduction substrate.
+func (c *clientConfig) fetchMultipartResult(ctx context.Context, taskID string, res *Result) ([]Artifact, error) {
+	endpoint := c.joinURL(c.dialect.resultPath, taskID)
+	resp, raw, err := c.call(ctx, http.MethodGet, endpoint, nil, "")
+	if err != nil {
+		return nil, err
+	}
+	mediaType, params, merr := mime.ParseMediaType(resp.Header.Get("Content-Type"))
+	if merr != nil || !strings.HasPrefix(mediaType, "multipart/") {
+		return nil, &Error{Class: ClassParseError, ProviderMessage: fmt.Sprintf("result endpoint %s did not return multipart: %.120s", endpoint, printable(raw))}
+	}
+	reader := multipart.NewReader(bytes.NewReader(raw), params["boundary"])
+	var artifacts []Artifact
+	for {
+		part, perr := reader.NextPart()
+		if perr == io.EOF {
+			break
+		}
+		if perr != nil {
+			return nil, &Error{Class: ClassParseError, ProviderMessage: fmt.Sprintf("read multipart result from %s: %v", endpoint, perr)}
+		}
+		payload, rerr := io.ReadAll(io.LimitReader(part, maxBodyBytes))
+		_ = part.Close()
+		if rerr != nil {
+			return nil, &Error{Class: ClassParseError, ProviderMessage: fmt.Sprintf("read multipart part: %v", rerr)}
+		}
+		contentType := strings.ToLower(part.Header.Get("Content-Type"))
+		switch {
+		case strings.Contains(contentType, "json"):
+			name := joinDownload(c.downloadDir(), sanitizeFileStem(c.stem(taskID, 0))+".replay.json")
+			if werr := writeExclusively(name, payload); werr != nil {
+				return nil, &Error{Class: ClassConfigError, ProviderMessage: werr.Error()}
+			}
+			artifacts = append(artifacts, Artifact{
+				Kind:      "replay",
+				Format:    "json",
+				LocalPath: name,
+				SourceURL: endpoint,
+				Bytes:     int64(len(payload)),
+			})
+			if res != nil {
+				res.StatusSeen = append(res.StatusSeen, "result_replay_json")
+			}
+		case strings.HasPrefix(contentType, "audio/"):
+			artifact, aerr := c.artifactFromRaw(ctx, payload, c.stem(taskID, 0), Artifact{})
+			if aerr != nil {
+				return nil, aerr
+			}
+			artifacts = append(artifacts, artifact)
+			if res != nil {
+				res.StatusSeen = append(res.StatusSeen, "result_audio_"+artifact.Format)
+			}
+		}
+	}
+	return artifacts, nil
 }
 
 // harvest extracts artifacts from a completed JSON document: URLs first,

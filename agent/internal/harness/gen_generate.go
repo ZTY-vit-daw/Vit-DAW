@@ -50,6 +50,7 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 		TempoBPM:        floatValueFromMap(cmd, "tempo_bpm", "tempo"),
 		MusicalKey:      firstString(cmd, "musical_key", "key"),
 		Count:           intValueFromMap(cmd, "count"),
+		ABC:             firstString(cmd, "abc", "abc_notation", "score_abc"),
 	}
 
 	limitations := provider.Limitations(req)
@@ -141,6 +142,11 @@ func (h *Harness) genIngestArtifacts(ctx context.Context, provider genapi.Provid
 
 	var ingested []map[string]any
 	for i, artifact := range result.Artifacts {
+		// Only audio artifacts ride the timeline; sidecars like the YuE2
+		// replay JSON (kind "replay") stay on disk as evidence.
+		if artifact.Kind != "audio" {
+			continue
+		}
 		absPath := artifact.LocalPath
 		if expanded, err := filepath.Abs(absPath); err == nil {
 			absPath = expanded

@@ -1,0 +1,85 @@
+{
+ "schema_version": "yue_dialect_smoke.v1",
+ "agent_base": "http://127.0.0.1:7878",
+ "engine_base": "http://127.0.0.1:8087",
+ "run_root": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_195542",
+ "download_dir": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_195542\\downloads",
+ "started": "2026-11-07T19:56:16",
+ "engine_health": {
+  "ok": true,
+  "body": "{'status': 'ok'}"
+ },
+ "leg0": {
+  "outcome": "pass",
+  "entry": {
+   "api_key_from": "config_file",
+   "auth_style": "none",
+   "base_url": "http://127.0.0.1:8087",
+   "dialect": "yue_local",
+   "download_dir": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_195542\\downloads",
+   "has_api_key": false,
+   "id": "yue-local",
+   "model": "",
+   "poll_interval_seconds": 0,
+   "timeout_seconds": 0
+  },
+  "config_path": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_195542\\genapi_providers.json"
+ },
+ "leg2": {
+  "invoke_status": "ok",
+  "wall_seconds": 21,
+  "task_id": "9e4f260d16495bd6",
+  "dialect": "yue_local",
+  "limitations": [
+   "prompt: yue_local has no free-prompt channel; the ABC score + lyrics + style tags are the input face (genctx auto blocks do not reach the engine)"
+  ],
+  "status_seen": [
+   "running",
+   "running",
+   "running",
+   "running",
+   "running",
+   "running",
+   "running",
+   "done",
+   "result_replay_json",
+   "result_audio_wav"
+  ],
+  "raw_head": "{\"status\":\"ok\",\"agent_action_id\":\"act_364061a5137235ae\",\"tool\":\"gen.generate\",\"command_name\":\"genapi_generate\",\"risk_level\":\"confirm\",\"requires_confirmation\":false,\"result\":{\"artifacts\":[{\"bytes\":9239,\"duration_seconds\":0,\"format\":\"json\",\"kind\":\"replay\",\"local_path\":\"D:\\\\Vit_DAW_wt_278impl\\\\coord\\\\runs\\\\GEN-YUE-DIALECT-1\\\\run_20261107_195542\\\\downloads\\\\yue-local-9e4f260d16495bd6.replay.json\",\"source_url\":\"http://127.0.0.1:8087/job?id=9e4f260d16495bd6\\u0026result=1\",\"title\":\"yue-local json\"},{\"bytes\":11012908,\"duration_seconds\":0,\"format\":\"wav\",\"kind\":\"audio\",\"local_path\":\"D:\\\\Vit_DAW_wt_278im",
+  "artifacts": [
+   {
+    "bytes": 9239,
+    "duration_seconds": 0,
+    "format": "json",
+    "kind": "replay",
+    "local_path": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_195542\\downloads\\yue-local-9e4f260d16495bd6.replay.json",
+    "source_url": "http://127.0.0.1:8087/job?id=9e4f260d16495bd6&result=1",
+    "title": "yue-local json"
+   },
+   {
+    "bytes": 11012908,
+    "duration_seconds": 0,
+    "format": "wav",
+    "kind": "audio",
+    "local_path": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_195542\\downloads\\yue-local-9e4f260d16495bd6.wav",
+    "source_url": "response:body",
+    "title": "yue-local wav"
+   }
+  ],
+  "wav": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_195542\\downloads\\yue-local-9e4f260d16495bd6.wav",
+  "transcribe_job": {
+   "id": "9d6c6747a9310d32"
+  },
+  "transcribe_status": "done",
+  "reverify": {
+   "ins_lines_checked": 1,
+   "ins_rest_only": false,
+   "offender_line": "K:C",
+   "abc_back_head": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=105\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" snm=\"Inst.\"\nK:C\n% verse\nV: Vocal\nZ|z4e4e4e4d4c4A4c4-|\"Dm7\"c4z16A4c4e4-|\"G7\"e4f8d12z8|\nV: Ins\nZ4|\nV: Vocal\n\"Em7\"b8g8g4g8a4|\"A7\"z16z4g4a4c'4-|\"Dm7\"c'4a8z8g4a4c'4-|\"G7sus4\"c'4a8z8e4g4b4-|\nV: Ins\nZ4|\nV: Vocal\n\"Cmaj7\"b12z8g4a4b4-|\"Am7\"b12c'12z8|\nV: Ins\nZ2|\n% chorus\nV: Vocal\n\"Dm7\"e'8c'"
+  },
+  "outcome": "leg2_instrumental_detected"
+ },
+ "outcome": "leg2_instrumental_detected",
+ "exit_code": 1,
+ "finished": "2026-11-07T19:56:43"
+}

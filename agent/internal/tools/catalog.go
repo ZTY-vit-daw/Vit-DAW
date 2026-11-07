@@ -463,6 +463,12 @@ func argHint(commandName string) string {
 		return "url:string optional max_bytes:number timeout_ms:number"
 	case "browser_search":
 		return "query:string optional max_results:number"
+	case "genapi_generate":
+		// abc = ABC dialect score (dual voices + in-bar quoted chords + %
+		// section comments) — the yue_local dialect's primary input face.
+		return "provider_id:string optional prompt:string lyrics:string style_tags:string abc:string duration_seconds:number tempo_bpm:number musical_key:string title:string instrumental:boolean count:number track_id:string take_stack_id:string start_time:number scene:string"
+	case "genapi_providers":
+		return "no args"
 	case "import_audio", "import_media_to_track":
 		return "track_id:string file_path:string optional start_time:number asset_query:string"
 	case "move_clip":
@@ -1223,7 +1229,7 @@ func defaultSpecs() []CommandSpec {
 		spec("render_profile_list", "render.profile.list", "render", "List render-to-delivery-profile bindings with assertion semantics (loudness target bands, not one-sided thresholds; unresolvable bindings stay visible) and the available built-in delivery profiles.", RiskDirect, false, false, false, false),
 		spec("loudness_watch_configure", "loudness.watch.configure", "render", "Configure the project-level loudness watch (agent runtime state; no kernel write). All params optional: omitted keys keep current values, omitting enabled never flips the switch. profile_source is builtin:<id> (ebu_r128 / aes_td1004 / apple_music / spotify / gy_282_2014) or custom with an explicit threshold object (integrated_lufs band, true_peak_max_dbtp, optional short_term/momentary maxima); unknown ids and invalid thresholds fail closed with the offending field named. trigger_mode: after_processing (default) | periodic (periodic_interval_seconds >= 60, default 300) | realtime (stored as requested, but reports unavailable reason=no_realtime_producer because no realtime loudness producer exists yet).", RiskDirect, true, false, false, false),
 		spec("loudness_watch_status", "loudness.watch.status", "render", "Read-only loudness watch disclosure: effective config, realtime availability (unavailable/no_realtime_producer when realtime mode is configured), restore-drop counter, and recorded verdicts (empty until the watch trigger wiring lands).", RiskDirect, false, false, false, false),
-		spec("genapi_generate", "gen.generate", "gen", "Generate audio through a configured generation-API provider (unified adapter template: user fills provider dialect/base_url/api_key/model in the genapi provider config). Submit, poll and download are one call; artifacts land on disk and, when track_id is given, ride the existing assets.ingest_generated_asset path onto the timeline as candidate takes. Errors come back classified (auth/quota/rate_limit/provider/timeout/network/response_parse).", RiskConfirm, true, false, true, true),
+		spec("genapi_generate", "gen.generate", "gen", "Generate audio through a configured generation-API provider (unified adapter template: user fills provider dialect/base_url/api_key/model in the genapi provider config). Submit, poll and download are one call; artifacts land on disk and, when track_id is given, ride the existing assets.ingest_generated_asset path onto the timeline as candidate takes. The yue_local dialect (local YuE2 engine) takes an ABC dialect score via abc plus lyrics and English style tags — score-level hard control. Errors come back classified (auth/quota/rate_limit/provider/timeout/network/response_parse).", RiskConfirm, true, false, true, true),
 		spec("genapi_providers", "gen.providers", "gen", "List configured generation-API providers (id, dialect, base_url, model, auth style, key presence) with the config path; never echoes api keys.", RiskDirect, false, false, false, false),
 	}
 	return withDefaultBindingSpecs(specs)

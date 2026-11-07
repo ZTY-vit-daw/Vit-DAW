@@ -1,0 +1,69 @@
+{
+ "schema_version": "yue_dialect_smoke.v1",
+ "agent_base": "http://127.0.0.1:7878",
+ "engine_base": "http://127.0.0.1:8087",
+ "run_root": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958",
+ "download_dir": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\downloads",
+ "started": "2026-11-07T21:40:37",
+ "engine_health": {
+  "ok": true,
+  "body": "{'status': 'ok'}"
+ },
+ "leg0": {
+  "outcome": "pass",
+  "entry": {
+   "api_key_from": "config_file",
+   "auth_style": "none",
+   "base_url": "http://127.0.0.1:8087",
+   "dialect": "yue_local",
+   "download_dir": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\downloads",
+   "has_api_key": false,
+   "id": "yue-local",
+   "model": "",
+   "poll_interval_seconds": 0,
+   "timeout_seconds": 0
+  },
+  "config_path": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\genapi_providers.json"
+ },
+ "leg1": {
+  "conversation_id": "yue_dialect_20261107_214037",
+  "goal_id": "goal_841baf81794c2513",
+  "goal_status": "completed",
+  "chat_goal_status": "completed",
+  "stop_reason": "done",
+  "wall_seconds": 52,
+  "chat_http_head": "{\"conversation_id\":\"yue_dialect_20261107_214037\",\"task_id\":\"task_f96c3a4bad30d42e\",\"goal_id\":\"goal_841baf81794c2513\",\"run_id\":\"run_3ab8f20763a19ddc\",\"slice_id\":\"slice_86ff3a46c74a8c19\",\"original_intent\":\"请用 YuE2 把下面这段谱唱出来。provider 用 \\\"yue-local\\\"，ABC 谱必须逐字原样传入（不要改写、不要截断），歌词和风格在下面，duration_seconds=60，不要传 track_id。\\n\\nABC 谱：\\nX:1\\nT:\\nM:4/4\\nL:1/32\\nQ:1/4=106\\nV: Vocal clef=treble name=\\\"Vocal Melody\\\" snm=\\\"Vocal\\\"\\nV: Ins clef=treble name=\\\"Ins Melody\\\" snm=\\\"Inst.\\\"\\nK:C\\n% intro\\nV: Vocal\\nZ|z",
+  "route_hijack_markers": [],
+  "generation_tool_traces": [
+   "genapi_generate"
+  ],
+  "fresh_files": [
+   "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\downloads\\yue-local-46797cf8bea5cde6.replay.json",
+   "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\downloads\\yue-local-46797cf8bea5cde6.wav"
+  ],
+  "wav": {
+   "path": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\downloads\\yue-local-46797cf8bea5cde6.wav",
+   "bytes": 11012908,
+   "duration_seconds": 57.358666666666664
+  },
+  "replay": {
+   "path": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_213958\\downloads\\yue-local-46797cf8bea5cde6.replay.json",
+   "keys": [
+    "abc",
+    "duration",
+    "lm_seed",
+    "lyrics",
+    "output_format",
+    "seed",
+    "semantic_tokens",
+    "style"
+   ],
+   "has_abc": true,
+   "abc_head": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=106\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" "
+  },
+  "outcome": "pass"
+ },
+ "outcome": "finished",
+ "exit_code": 0,
+ "finished": "2026-11-07T21:41:30"
+}
