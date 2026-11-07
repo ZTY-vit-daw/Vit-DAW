@@ -490,15 +490,45 @@ def write_param(agent_http: str, fixture: dict[str, Any], pid: str,
     return {"face": "set_plugin_param"}
 
 
-def known_write(agent_http: str, fixture: dict[str, Any], param_id: str,
-                normalized: float, timeout: float,
-                before_rows: Optional[dict[str, dict[str, Any]]] = None) -> dict[str, Any]:
-    """Deterministic write (face selection per write_param; the
-    full-project-access authority set in run_s0 satisfies the
-    broadMixWriteCommand governance gate so writes direct-execute with zero
-    LLM and zero confirmation cards)."""
-    return write_param(agent_http, fixture, param_id, normalized, timeout,
-                       before_rows=before_rows)
+def kernel_face_write(fixture: dict[str, Any], pid: str, normalized: float,
+                      timeout: float) -> dict[str, Any]:
+    """Kernel ZMQ normalized write (staticeq_vsp.go legacy shape). Used ONLY
+    as the S0 known-op reachability leg for cases whose agent write faces are
+    governance-blocked AND misconvert (T4 forensics in the row): the kernel
+    face proves the target is physically reachable on the live instance; the
+    agent-face behaviors are recorded verbatim for the supervisor."""
+    reply = kernel_command({"cmd": "set_plugin_param",
+                            "track_id": fixture["track_id"],
+                            "plugin_id": fixture["plugin_id"],
+                            "param_id": pid, "value": float(normalized)}, timeout)
+    if reply.get("status") != "ok":
+        raise FixtureError(f"kernel set_plugin_param rejected: {str(reply)[:400]}")
+    return {"face": "kernel_zmq.set_plugin_param", "normalized": float(normalized)}
+
+
+def agent_face_forensics(agent_http: str, fixture: dict[str, Any], pid: str,
+                         normalized: float, timeout: float,
+                         before_rows: dict[str, dict[str, Any]],
+                         target_ms: Optional[float]) -> dict[str, Any]:
+    """Record both agent write faces' behavior verbatim (generic gate +
+    typed apply with its own claimed readback) without asserting anything."""
+    record: dict[str, Any] = {"param_id": pid}
+    generic = invoke(agent_http, "set_plugin_param", {
+        "track_id": fixture["track_id"], "plugin_id": fixture["plugin_id"],
+        "param_id": pid, "value": float(normalized)}, timeout)
+    record["generic_response"] = {
+        "status": generic.get("status"),
+        "error": str(generic.get("error") or "")[:500],
+        "rejection_code": (result_of(generic).get("rejection_code")
+                           if isinstance(result_of(generic), dict) else None),
+    }
+    try:
+        typed = typed_apply_write(agent_http, fixture, case_family(fixture["case_id"]),
+                                  pid, None, None, timeout, ms=target_ms)
+        record["typed_apply"] = typed
+    except FixtureError as error:
+        record["typed_apply_error"] = str(error)[:500]
+    return record
 
 
 # ---------------------------------------------------------------------------
@@ -637,6 +667,17 @@ def _s0_case_body(case_id: str, spec: dict[str, Any], fixture: dict[str, Any],
         # carries the face evidence)
         write_faces: list[dict[str, Any]] = []
         for write in spec["writes"]:
+            if write.get("kernel_face"):
+                # agent faces recorded verbatim (gate + typed apply), then
+                # the kernel normalized write proves physical reachability
+                forensics = agent_face_forensics(
+                    agent_http, fixture, write["param_id"], write["normalized"],
+                    timeout, rows_index(before), write.get("ms"))
+                face = kernel_face_write(fixture, write["param_id"],
+                                         write["normalized"], timeout)
+                write_faces.append({"param_id": write["param_id"],
+                                    "agent_face_forensics": forensics, **face})
+                continue
             face = write_param(agent_http, fixture, write["param_id"],
                                write["normalized"], timeout,
                                before_rows=rows_index(before),
@@ -693,8 +734,10 @@ def _s0_case_body(case_id: str, spec: dict[str, Any], fixture: dict[str, Any],
             raise FixtureError(f"{case_id}: unexpected side changes: {side}")
 
         # restore + readback (validates recovery to the frozen initial state)
+        kernel_restore = {str(w["param_id"]) for w in spec["writes"]
+                          if w.get("kernel_face")}
         restore_changed_rows(fixture, rows_index(before), rows_index(after),
-                             agent_http, timeout)
+                             agent_http, timeout, kernel_restore)
         restored = readback_parameters(fixture, timeout, agent_http)
         (out_dir / f"{case_id}_restored.json").write_text(
             json.dumps(restored, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -716,10 +759,12 @@ def _s0_case_body(case_id: str, spec: dict[str, Any], fixture: dict[str, Any],
 def restore_changed_rows(fixture: dict[str, Any],
                           before: dict[str, dict[str, Any]],
                           after: dict[str, dict[str, Any]],
-                          agent_http: str, timeout: float) -> None:
+                          agent_http: str, timeout: float,
+                          kernel_restore_ids: Optional[set[str]] = None) -> None:
     """Write back the pre-op value for every row that changed, on the same
     faces the rounds rely on (governance-gated rows restore through the
-    typed apply face with their disclosed step label / display value)."""
+    typed apply face with their disclosed step label / display value;
+    kernel-face known-op rows restore through the kernel face)."""
     for change in diff_rows(before, after):
         pid = str(change.get("param_id"))
         row = before.get(pid)
@@ -727,6 +772,9 @@ def restore_changed_rows(fixture: dict[str, Any],
             continue
         norm = _num(row.get("normalized_value"))
         if norm is None:
+            continue
+        if kernel_restore_ids and pid in kernel_restore_ids:
+            kernel_face_write(fixture, pid, norm, timeout)
             continue
         text = str(row.get("value_text") or "")
         display = display_number(text)
@@ -1114,7 +1162,14 @@ def evaluate_round(case_id: str, before: dict[str, Any], after: dict[str, Any],
               {"outside": outside, "allowance": sorted(allowed)})
         verdict["final_verdict"] = "pass" if mode_ok and ms_ok and not outside else "fail"
         if mode_ok and not ms_ok:
-            tags.append("value_encoding_error")
+            if display is not None and abs(display - 352.0) <= 3.0:
+                # S0 forensics signature: apply_delay_controls value_ms=250
+                # lands 352 ms claiming exact (physical-inversion defect) --
+                # a right request mislanded is an execution-layer failure,
+                # not a model value-encoding error
+                tags.append("execution_or_interface_error")
+            else:
+                tags.append("value_encoding_error")
         if not mode_ok:
             tags.append("parameter_semantics_error")
         if outside:

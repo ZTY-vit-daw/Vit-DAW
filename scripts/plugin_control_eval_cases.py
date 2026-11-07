@@ -94,7 +94,19 @@ KNOWN_OP: dict[str, dict[str, Any]] = {
         "expect": [{"param_id": "1", "label_needle": "7", "normalized_needle": 0.7}],
     },
     "T4": {
-        "writes": [{"param_id": "0", "normalized": 0.25, "ms": 250.0}],
+        # kernel_face known-op: S0 runs 1-5 forensics established that both
+        # agent write faces cannot reach 250ms on H-Delay (generic face hard-
+        # blocked by the gate/expander surface guard with
+        # unresolved_gate_expander_surface; typed apply_delay_controls
+        # value_ms=250 lands normalized 0.35065 = 352 ms while reporting
+        # apply_status=exact -- a physical-inversion defect in the
+        # transactional-probe path). The kernel face write (0.25 -> ~251 ms
+        # per the disclosed probe samples) proves the target is physically
+        # reachable on the live instance; both agent-face behaviors are
+        # recorded verbatim in the S0 row for the supervisor. The P arm
+        # measures the product path as-is (gates included).
+        "writes": [{"param_id": "0", "normalized": 0.25, "ms": 250.0,
+                    "kernel_face": True}],
         "expect": [
             {"param_id": "4", "label_needle": "Host"},
             {"param_id": "0", "display_contains": "25", "normalized_needle": 0.25},
