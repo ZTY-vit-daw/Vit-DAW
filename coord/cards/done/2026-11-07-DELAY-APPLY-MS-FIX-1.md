@@ -29,3 +29,4 @@
   - **负锚复放**：`eqNormalizedFromCurve(250, 实测样)` 复钉 ∈[0.3500,0.3515]（=352ms 修复前缺陷形态）+ `compressorCurveFitTracksSamples` 钉不信任（11%>5%）+ `compressorPhysicalTarget` 修复后落 0.248-0.250 + apply 级 250ms→display 249ms（248.5-251.5 窗）status=exact；诚实面=几何真值 fake（样点间指数内插、样点本身不变，模拟厂商曲线偏离折线）：落点 ~245ms → per-control/overall 均 `approximate`（事务仍过、normalized 落点精确）；`352 ms` 回读对 250ms 请求的单测直钉 approximate。
   - **端测边界声明（零栈）**：纯单测+编译，零真栈（卡面约定）；真栈 H-Delay 250ms 实盘落点验证挂后续栈 run 顺带。
 - （主管回填）
+- 验收（2026-11-07 深夜，主管）：**pass**——双层缺陷机理采信（幂拟合 ~11% span 残差实测+物理回读无人核对，全工件数值钉死）；修法合格（分段折线反演+value_text 物理回读超差降级 approximate=诚实状态面）；负锚复放（352ms 形态复钉→修复 0.248-0.250+几何真值偏差 approximate 降级事务仍过）；主管交叉复跑绿。实现 03fd0fd7 合入 main。L1 台账 48h 窗口。

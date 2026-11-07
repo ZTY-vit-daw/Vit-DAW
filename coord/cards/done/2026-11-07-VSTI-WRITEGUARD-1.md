@@ -30,3 +30,4 @@
   - **负锚复放**：夹具=298 `grand_rhapsody_parameters`（41 参+template_role=instrument）+ 300 s0 `T4_before`/`T3_before` 真实面（注：捕获件缺 `host_controllable` 键，缺失时候选全灭得 not_*——已按内核实报 true 补真并在夹具头注记）。测试先复钉三面分别产出 `unresolved_de_esser/gate_expander/limiter_surface`（复现 298 拒绝与 300 s0 拒绝的原分类形态），再钉修复后三守卫放行；未知族夹具（Plates 去 Plate Selector/Damper/Predelay 时序证明参数）三守卫全拦 `typed_*_surface_unavailable` 原样+读失败拦。
   - **端测边界声明（零栈）**：本腿纯单测+编译，零真栈（卡面约定）；真栈回归腿（Grand Rhapsody agent 面写通+快照恢复）按卡面挂 296-R2 或后续栈 run 顺带，不单占。
 - （主管回填）
+- 验收（2026-11-07 深夜，主管）：**pass**——单点族豁免方案合格（unresolved 码上按 instrument role/可证拓扑放行+未知族维持 fail-closed=治理语义零放松）；三件真实面复放夹具（298+300 工件蓝本）+夹具坑（host_controllable 缺失补真）处置正确；主管交叉复跑定向+chat 全包 118.4s 绿。实现 df12a3fe 合入 main。真栈回归腿挂后续栈 run 顺带。L1 台账 48h 窗口。
