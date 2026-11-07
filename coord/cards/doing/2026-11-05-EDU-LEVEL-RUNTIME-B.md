@@ -59,6 +59,17 @@
 - **处置（交主管）**：修复候选 A=激活路径对 EduJamSessions merge 不整表覆盖（需定义同 conversation 冲突规则）/B=enter fail-closed 要求工作区已激活且绑定=内核当前工程（冒测腿需先触发激活再 enter）/C=查无会话回退盘上快照/内核绑定再判；均应配「enter→激活→推进」竞态建模单测。段 1 验收（挂载设计/词形/拉回/持久化面）不被本腿推翻——缺陷在激活交互面
 - **边界声明（AGENTS §5）**：本腿为真栈烟测（真实内核+agent HTTP/ZMQ 面）；渲染面/用户旅程面不在覆盖内（不变）
 
+### 段 3：修复腿（2026-11-07，裁定 B 形态零栈先行，commit `b81449de` @ `port/edu-level-runtime-b`，基线同步 merge `5232093b`；**真栈烟测重发腿候主管调度，本腿未占栈**）
+
+- **修复实现**（3 文件，+269/−18；commit `b81449de`）：
+  - `agent/internal/chat/edu_jam_chat.go`：`eduJamEnsureWorkspaceActivation` 两步门替代原 `eduJamProjectUUID`——①同步触发 `activateCurrentProjectWorkspace`（幂等，同身份 fast-path）；②双源核对：`activeWorkspaceUUID` 必须 == 内核 `get_project_state` 直读 uuid（不经 shadow 惯性，与 observeEduJam 同读面）；无法确保 → fail-closed 拒绝开局，回话「工程还没打开好，稍等再开始乐局（…）」，stop_reason=`edu_jam_workspace_activation_incomplete`+WorkflowData.gate_reason 四细分（workspace_not_activated / kernel_read_face_unavailable / kernel_identity_unavailable / workspace_identity_lagging_kernel）。**删除 kernel 回退绑定路径（pre-activation 开局入口）**；server.go 恢复面零改动（restore 整表覆盖语义保持——按裁定不启用候选 A）
+  - `agent/internal/chat/edu_jam_chat_test.go`：竞态建模单测 `TestEduJamEnterActivationRacePreClosedPostSurvives`（复刻 smokerun1 时序，两方向）；`TestEduJamEnterFailClosedWithoutProjectBinding` 契约随门演进（stop_reason 更新+gate_reason 断言）
+  - `scripts/edu_jam_smoke.py`：A2 激活前置步（GET /agent/ui/state 轮询 nudge 至工程身份=fixture，上限 20s）+ B1 enter 有界重试（≤6 次，门拒绝=by-design 重试类；耗尽=**exit 2 环境类非 face defect**）；ps1 无需透传改动（零新参数）
+- **竞态单测断言摘录**（两方向）：①pre-activation enter（内核=fixture、工作区仍绑旧草稿）→ handled=true+stop=`edu_jam_workspace_activation_incomplete`+回话含「工程还没打开好/稍等」+gate_reason=`workspace_identity_lagging_kernel`+会话表断言为空——随后空态整表覆盖（`s.eduJamSessions = s.restoreEduJamSessionsLocked(nil)`，server.go:7899 同型覆盖行）发生**无会话可丢**；②激活完成（绑定追上内核）→ enter 成功且 session.ProjectUUID==激活工作区 uuid → 边界 restore 重放（projectAgentRuntimeStateLocked 快照模拟盘上态）后 turn 2「写好了」仍查得会话并在拦截面闭环（n0 `edu_jam_node_done`，不重演放行→semantic_entry 路径）
+- **测试命令与退出码**（全 0）：`go test ./internal/chat -run 'TestEduJam' -count=1`（10 例 PASS：9 既有+1 新竞态）；`go test ./internal/chat ./internal/edu -count=1`（chat 150.6s ok+edu ok 全包零回退）；`go build ./...` exit 0
+- **边界声明（AGENTS §5）**：本腿**零栈**——仅单测+build（假内核注入缝），真栈烟测重发腿（-EduJamSmoke 重跑 smokerun2）候主管在 277 段 3a 释放后另派或并入本腿候指令；修复边界如实声明：门通过后内核再切换工程=B5 真实换工程语义（settle+新工程快照 restore），不属本竞态类；内核 uuid 仅作核对真值不作恢复/落盘基址（与 FIX-START-STATE-RECOVERY-1 用户裁定不冲突——不扫描草稿、不绕激活身份源）；pre-existing vet 警告（semantic_treatment_strategy.go unreachable，273/274 域）未触碰
+- **烟测重发腿预期变化**（供派腿参考）：B1 enter 可能先收 1-N 次门拒绝回话（by-design，chat_responses.json 留痕+summary.phases.enter_attempts），激活轮询/重试耗尽才 exit 2；其余 Phase B2-B5/Phase C 断言面不变
+
 ## 验收
 
 - （主管回填）
