@@ -1,0 +1,93 @@
+{
+  "card": "ARR-SRCLOAD-1",
+  "leg": "seg3a full-access chat-driven instrument load -> clip -> non-silent render",
+  "stamp": "20261107_095334",
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "instrument_names": [
+        "One",
+        "Twin 3",
+        "Surge XT",
+        "COSMOS Sample Finder Stereo",
+        "Clavinet Stereo",
+        "Electric200 Stereo",
+        "Electric88 Stereo",
+        "Flow Motion Stereo",
+        "Electric Grand 80 Stereo",
+        "Grand Rhapsody Piano Stereo"
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_277impl\\coord\\runs\\ARR-SRCLOAD-1\\seg3a_20261107_0950\\arr_srcload_fixture_project.vit"
+    },
+    "authority": {
+      "baseline_mode": "manual_confirmation",
+      "switch_response": {
+        "authority_mode": "full_project_access",
+        "persisted": true,
+        "status": "ok",
+        "workspace_ready": true
+      },
+      "verified_mode": "full_project_access",
+      "pca_promoted_instrument_inventory": {
+        "available": true,
+        "semantic_instrument_count": 17,
+        "stores": {
+          "processor_control_attestations.v1.json": {
+            "exists": true,
+            "promoted_total": 116,
+            "promoted_instruments": 0
+          },
+          "processor_control_attestations.v2.json": {
+            "exists": true,
+            "promoted_total": 89,
+            "promoted_instruments": 0
+          }
+        },
+        "promoted_instrument_identifiers": [],
+        "promoted_instrument_total": 0
+      }
+    },
+    "chat": {
+      "conversation_id": "arr_srcload_smoke_20261107_095334",
+      "stop_reason": "done",
+      "goal_status": "completed",
+      "needs_confirmation": false,
+      "plan_id": "",
+      "workflow": null,
+      "workflow_plugin_kind": null,
+      "reply_excerpt": "已成功加载插件「Grand Rhapsody Piano Stereo」。",
+      "log_delta_tools": [
+        "plugin.semantic_search",
+        "plugin.search",
+        "rack.add_node"
+      ]
+    },
+    "load": {
+      "tool": "rack.add_node",
+      "status": "ok",
+      "zone_id": "Z2",
+      "plugin_name": "Grand Rhapsody Piano Stereo",
+      "plugin_id": "1013",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=Grand Rhapsody Piano Stereo id=1013 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "admission_path_inference": "no promoted instrument admission existed at run time; the gate admitted this load through its certification-token fallback (operator token armed on this machine) — recorded as evidence, authorization-surface disposition stays with card 273"
+    },
+    "clip": {
+      "clip_id": "1014",
+      "note_count": 16,
+      "track_plugin_names": [
+        "New Rack",
+        "Volume & Pan Plugin",
+        "Level Meter"
+      ]
+    }
+  },
+  "exit_code": 4,
+  "exit_class": "command_defect",
+  "fail_phase": "clip",
+  "fail_reason": "loaded plugin 'Grand Rhapsody Piano Stereo' not visible on track 1007: ['New Rack', 'Volume & Pan Plugin', 'Level Meter']"
+}

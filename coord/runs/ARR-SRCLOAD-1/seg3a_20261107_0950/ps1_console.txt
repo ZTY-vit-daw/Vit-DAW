@@ -1,0 +1,63 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_095318\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_277impl\coord\runs\ARR-SRCLOAD-1\seg3a_20261107_0950\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: arr srcload telemetry capture: telemetry=D:\Vit_DAW_wt_277impl\coord\runs\ARR-SRCLOAD-1\seg3a_20261107_0950\logs\agent_llm_telemetry.jsonl prompt_render=D:\Vit_DAW_wt_277impl\coord\runs\ARR-SRCLOAD-1\seg3a_20261107_0950\logs\agent_prompt_render.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_277impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_277impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_277impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_277impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=19676 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_277impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=19676
+ok: ZMQ SUB listening: 5556 pid=19676
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=completed message=已执行片段清理：1038 已删除 3 个静音区域。
+ok: Strip Silence chat confirmation executed apply
+strip.chat.cleanup status=ok ids=1038
+
+== chat-driven instrument load smoke (ARR-SRCLOAD-1 segment 3a full-access leg)
+ok: arr srcload project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_277impl\coord\runs\ARR-SRCLOAD-1\seg3a_20261107_0950\default_project.xml
+[arr-srcload] precheck ok: instruments=17; fixture track=1007
+[arr-srcload] full access promoted (baseline='manual_confirmation', persisted=True); promoted instruments on default paths=0
+[arr-srcload] load ok: Grand Rhapsody Piano Stereo zone=Z2 instance_ready=True
+[arr-srcload] FAIL exit=4 phase=clip: loaded plugin 'Grand Rhapsody Piano Stereo' not visible on track 1007: ['New Rack', 'Volume & Pan Plugin', 'Level Meter']
+arr srcload smoke failed with exit code 4 (console: D:\Vit_DAW_wt_277impl\coord\runs\ARR-SRCLOAD-1\seg3a_20261107_0950\
+arr_srcload_console.txt)
+所在位置 D:\Vit_DAW_wt_277impl\scripts\dev_agent_smoke.ps1:9034 字符: 9
++         throw ("arr srcload smoke failed with exit code $arrSrcLoadEx ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (arr srcload smo...ad_console.txt):String) [], RuntimeException
+    + FullyQualifiedErrorId : arr srcload smoke failed with exit code 4 (console: D:\Vit_DAW_wt_277impl\coord\runs\ARR 
+   -SRCLOAD-1\seg3a_20261107_0950\arr_srcload_console.txt)
+ 
