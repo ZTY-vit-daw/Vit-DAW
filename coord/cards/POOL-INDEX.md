@@ -38,7 +38,7 @@
 | 277 | ARR-SRCLOAD-1 | done 已验收 pass 收口（装载链四环节实证；渲染静音=域外内核缺陷转卡 297；**注册链③解锁**） |
 | 279 | EDU-LEVEL-CONTENT-1 | done 已验收 pass 整卡（首个乐局卡定稿+319 项复算） |
 | 280 | EDU-LEVEL-RUNTIME-A | done 已验收 pass（runtime_slots+语义定案两裁定） |
-| 281 | EDU-LEVEL-RUNTIME-B | doing（段 1 轻验 pass；烟测腿 11-07 早窗在派=栈首占） |
+| 281 | EDU-LEVEL-RUNTIME-B | done 已验收 pass 收口（smokerun3 双 0 全相绿；整链合入 a7c23dfe；**乐局线 276→279→280→281 全贯通**） |
 | 239 | M3-LLM-TIMEOUT-ADAPT-1 | done 已验收 pass |
 
 ### 未成卡 backlog
