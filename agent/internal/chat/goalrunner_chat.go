@@ -29,6 +29,7 @@ import (
 	"vit-daw-agent/internal/staticbalance"
 	"vit-daw-agent/internal/toolpolicy"
 	"vit-daw-agent/internal/tools"
+	plugingrabber "vit-daw-agent/internal/workflows/plugingrabber"
 )
 
 const agentLoopConfirmationWorkflow = "agentloop_confirmation"
@@ -1246,6 +1247,45 @@ func (e pluginGrabberWorkflowExecutor) blockTransientShaperOwnedGenericParameter
 	return executorpkg.Result{ToolCallID: toolCallID, Tool: resp.Tool, CommandName: resp.CommandName, Status: resp.Status, Error: resp.Error, Result: resp.Result, Response: resp}, true
 }
 
+// genericWriteGuardFamilyExemption (VSTI-WRITEGUARD-1): the typed generic-write
+// guards fail closed whenever their recognizer cannot prove a surface is
+// outside the guarded family ("unresolved_*_surface"). Two additional proof
+// channels settle the recurring non-dynamics false rejections without
+// weakening that stance for genuinely ambiguous surfaces:
+//  1. the kernel's own instrument classification (template_role=instrument) —
+//     298 probe evidence: VSTi parameter surfaces (Grand Rhapsody et al.) are
+//     never de-esser/gate-expander/limiter topologies; only naming overlap
+//     trips the candidate matcher;
+//  2. a provable time-effect topology (delay/reverb recognizer) — 300 S0
+//     forensics: H-Delay and the Plates reverb trip dynamics candidates on
+//     timing/output naming overlap while being provably delay/reverb surfaces.
+//
+// Unknown surfaces (no instrument role, no provable topology) and read
+// failures keep the fail-closed block.
+func (s *Server) genericWriteGuardFamilyExemption(ctx context.Context, trackID, pluginID string) bool {
+	client := s.eqKernelClient()
+	if client == nil {
+		return false
+	}
+	reply, _, err := client.SendCommand(ctx, map[string]any{"cmd": "get_plugin_parameters",
+		"track_id": trackID, "plugin_id": pluginID, "include_parameters": true})
+	if err != nil || !kernelReplyOK(reply) {
+		return false
+	}
+	s.observePluginParametersReply(reply)
+	digest := plugingrabber.BuildParameterDigest(reply)
+	if strings.EqualFold(strings.TrimSpace(digest.TemplateRole), "instrument") {
+		return true
+	}
+	if summary, _ := plugingrabber.BuildDelaySummaryWithBoundary(digest); summary != nil {
+		return true
+	}
+	if summary, _ := plugingrabber.BuildReverbSummaryWithBoundary(digest); summary != nil {
+		return true
+	}
+	return false
+}
+
 func (s *Server) guardTransientShaperOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
 	if !pluginSetParameterInvokeRequest(req) {
 		return harness.InvokeResponse{}, false
@@ -1325,6 +1365,13 @@ func (s *Server) guardGateExpanderOwnedGenericParameterWrite(ctx context.Context
 		case "not_gate_expander", "unsupported_broadband_compressor", "unsupported_limiter", "unsupported_multiband_dynamics", "unsupported_spectral_dynamics", "unsupported_de_esser", "unsupported_transient_shaper", "unsupported_clipper":
 			return harness.InvokeResponse{}, false
 		default:
+			// VSTI-WRITEGUARD-1: unresolved gate/expander classification is not
+			// proof of ownership when the surface is provably outside every
+			// dynamics family (VSTi instrument role or proven delay/reverb
+			// topology); genuinely unknown families stay fail-closed below.
+			if gateExpanderControlFailureCode(err) == "unresolved_gate_expander_surface" && s.genericWriteGuardFamilyExemption(ctx, trackID, pluginID) {
+				return harness.InvokeResponse{}, false
+			}
 			return gateExpanderGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_gate_expander_surface_unavailable", "cannot prove this parameter is outside the typed gate/expander surface: "+err.Error()), true
 		}
 	}
@@ -1379,6 +1426,13 @@ func (s *Server) guardLimiterOwnedGenericParameterWrite(ctx context.Context, req
 		case "not_limiter", "unsupported_broadband_compressor", "unsupported_clipper", "unsupported_multiband_dynamics", "unsupported_gate_expander":
 			return harness.InvokeResponse{}, false
 		default:
+			// VSTI-WRITEGUARD-1: unresolved limiter classification is not proof
+			// of ownership when the surface is provably outside every dynamics
+			// family (VSTi instrument role or proven delay/reverb topology);
+			// genuinely unknown families stay fail-closed below.
+			if limiterControlFailureCode(err) == "unresolved_limiter_surface" && s.genericWriteGuardFamilyExemption(ctx, trackID, pluginID) {
+				return harness.InvokeResponse{}, false
+			}
 			return limiterGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_limiter_surface_unavailable", "cannot prove this parameter is outside the typed limiter surface: "+err.Error()), true
 		}
 	}
@@ -1449,6 +1503,13 @@ func (s *Server) guardDeEsserOwnedGenericParameterWrite(ctx context.Context, req
 		case "not_de_esser", "unsupported_broadband_compressor", "unsupported_limiter", "unsupported_multiband_dynamics", "unsupported_gate_expander", "unsupported_spectral_dynamics", "unsupported_clipper":
 			return harness.InvokeResponse{}, false
 		default:
+			// VSTI-WRITEGUARD-1: unresolved De-esser classification is not
+			// proof of ownership when the surface is provably outside every
+			// dynamics family (VSTi instrument role or proven delay/reverb
+			// topology); genuinely unknown families stay fail-closed below.
+			if deEsserControlFailureCode(err) == "unresolved_de_esser_surface" && s.genericWriteGuardFamilyExemption(ctx, trackID, pluginID) {
+				return harness.InvokeResponse{}, false
+			}
 			return deEsserGenericWriteBlockedResponse(trackID, pluginID, paramID, "typed_de_esser_surface_unavailable", "cannot prove this parameter is outside the typed De-esser surface: "+err.Error()), true
 		}
 	}
