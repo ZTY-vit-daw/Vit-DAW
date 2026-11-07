@@ -349,15 +349,119 @@ def readback_parameters(fixture: dict[str, Any], timeout: float,
     return result
 
 
-def known_write(agent_http: str, fixture: dict[str, Any], param_id: str,
-                normalized: float, timeout: float) -> dict[str, Any]:
-    """Deterministic write on the same agent tool face the model uses. The
-    full-project-access authority (server-side /agent/authority grant, PCA-
-    FULLACCESS-1 precedent) satisfies the broadMixWriteCommand governance gate
-    so the write direct-executes with zero LLM and zero confirmation cards."""
-    require_ok(invoke(agent_http, "set_plugin_param", {
+def governance_blocked(text: str) -> bool:
+    markers = ("typed_limiter_surface_unavailable", "typed_limiter_control_required",
+               "typed_gate_expander_control_required")
+    return any(marker in text for marker in markers)
+
+
+def resolve_discrete_label(before_rows: dict[str, dict[str, Any]], pid: str,
+                           normalized: float) -> Optional[str]:
+    row = before_rows.get(pid, {})
+    labels = (row.get("display_probe") or {}).get("discrete_labels") or []
+    fallback: Optional[str] = None
+    for label_row in labels:
+        if not isinstance(label_row, dict):
+            continue
+        value = _num(label_row.get("value"))
+        if value is None:
+            continue
+        if abs(value - normalized) <= 1e-6:
+            return str(label_row.get("label"))
+        if abs(value - normalized) <= 0.051 and fallback is None:
+            fallback = str(label_row.get("label"))
+    return fallback
+
+
+def typed_apply_write(agent_http: str, fixture: dict[str, Any], family: str,
+                      pid: str, label: Optional[str], display: Optional[float],
+                      timeout: float) -> dict[str, Any]:
+    """Typed-apply fallback for plugins whose generic set_plugin_param is
+    governance-blocked (guardLimiterOwnedGenericParameterWrite: the product
+    prescribes the typed control face when a typed topology is unresolved --
+    e.g. Abbey Road Plates' Damper, bound as the reverb tail decay control,
+    pgtdc spot precedent apply_status=exact)."""
+    inspect_tool = (f"plugin_grabber.inspect_{family}"
+                    if family in {"reverb", "delay"} else None)
+    apply_tool = (f"plugin_grabber.apply_{family}_controls"
+                  if family in {"reverb", "delay"} else None)
+    if not inspect_tool or not apply_tool:
+        raise FixtureError(f"no typed apply face for family {family!r}")
+    insp = require_ok(invoke(agent_http, inspect_tool, {
+        "track_id": fixture["track_id"], "plugin_id": fixture["plugin_id"]},
+        timeout), inspect_tool)
+    stage = insp.get(f"{family}_stage") if isinstance(insp.get(f"{family}_stage"), dict) else {}
+    binding: dict[str, Any] = {}
+    for section_rows in stage.values():
+        if not isinstance(section_rows, list):
+            continue
+        for row in section_rows:
+            if isinstance(row, dict) and str(row.get("param_id")) == str(pid):
+                binding = row
+                break
+        if binding:
+            break
+    if not binding or not str(binding.get("control_ref") or ""):
+        raise FixtureError(f"typed inspect {family} has no binding for param {pid}")
+    control: dict[str, Any] = {"control_ref": binding.get("control_ref")}
+    if label is not None:
+        control["enum_label"] = label
+    elif display is not None:
+        control["display_value"] = display
+    else:
+        raise FixtureError(f"typed apply needs a label or display value for {pid}")
+    applied = require_ok(invoke(agent_http, apply_tool, {
         "track_id": fixture["track_id"], "plugin_id": fixture["plugin_id"],
-        "param_id": param_id, "value": normalized}, timeout), "set_plugin_param")
+        "controls": [control]}, timeout), apply_tool)
+    if str(applied.get("status")) not in {"exact", "quantized"}:
+        raise FixtureError(f"typed apply status={applied.get('status')!r} "
+                           f"(control={control})")
+    return {"face": apply_tool, "control": control,
+            "apply_status": applied.get("status")}
+
+
+def write_param(agent_http: str, fixture: dict[str, Any], pid: str,
+                normalized: Optional[float], timeout: float,
+                before_rows: Optional[dict[str, dict[str, Any]]] = None,
+                family: Optional[str] = None,
+                target_display: Optional[float] = None) -> dict[str, Any]:
+    """Deterministic write on the agent tool faces the model itself has:
+    generic set_plugin_param first; when product governance blocks the
+    generic face (typed topology gates), route through the typed apply face
+    with the equivalent display-domain operation. Discrete targets resolve
+    their step label from the disclosed label table; continuous targets use
+    the caller-provided target display value (nonlinear domains cannot be
+    derived from normalized alone)."""
+    resp = invoke(agent_http, "set_plugin_param", {
+        "track_id": fixture["track_id"], "plugin_id": fixture["plugin_id"],
+        "param_id": pid, "value": float(normalized)}, timeout)
+    if str(resp.get("status", "")).lower() not in {"ok", "success", "completed"}:
+        blob = json.dumps(resp, ensure_ascii=False)
+        if governance_blocked(blob):
+            label: Optional[str] = None
+            if before_rows is not None:
+                label = resolve_discrete_label(before_rows, pid, float(normalized))
+            display = target_display
+            if label is None and display is None:
+                display = display_number(
+                    (before_rows or {}).get(pid, {}).get("value_text"))
+            return typed_apply_write(agent_http, fixture, family or
+                                     case_family(fixture["case_id"]), pid,
+                                     label, display, timeout)
+        require_ok(resp, "set_plugin_param")
+        return {"face": "set_plugin_param"}
+    return {"face": "set_plugin_param"}
+
+
+def known_write(agent_http: str, fixture: dict[str, Any], param_id: str,
+                normalized: float, timeout: float,
+                before_rows: Optional[dict[str, dict[str, Any]]] = None) -> dict[str, Any]:
+    """Deterministic write (face selection per write_param; the
+    full-project-access authority set in run_s0 satisfies the
+    broadMixWriteCommand governance gate so writes direct-execute with zero
+    LLM and zero confirmation cards)."""
+    return write_param(agent_http, fixture, param_id, normalized, timeout,
+                       before_rows=before_rows)
 
 
 # ---------------------------------------------------------------------------
@@ -385,7 +489,17 @@ def run_s0(agent_http: str, timeout: float, out_dir: Path) -> int:
             print(f"  FIXTURE FAILURE: {error}", flush=True)
             exit_code = 1
             continue
-        except (OSError, ValueError, RuntimeError) as error:
+        except RuntimeError as error:
+            # tool-level rejection (not transport): an interface finding of
+            # the write/read faces -- fixture/interface family per plan s0,
+            # never an environment interrupt and never a model failure
+            row = {"case_id": case_id, "status": "fixture_failure",
+                   "error": f"interface: {error}"}
+            report["cases"].append(row)
+            print(f"  FIXTURE/INTERFACE FAILURE: {error}", flush=True)
+            exit_code = 1
+            continue
+        except (OSError, ValueError) as error:
             row = {"case_id": case_id, "status": "environment_interrupt",
                    "error": str(error)}
             report["cases"].append(row)
@@ -452,9 +566,14 @@ def s0_case(case_id: str, agent_http: str, timeout: float, out_dir: Path,
             return row
 
         # scripted correct operation (deterministic writes)
+        write_faces: list[dict[str, Any]] = []
         for write in spec["writes"]:
-            known_write(agent_http, fixture, write["param_id"], write["normalized"],
-                        timeout)
+            face = write_param(agent_http, fixture, write["param_id"],
+                               write["normalized"], timeout,
+                               before_rows=rows_index(before),
+                               target_display=write.get("display"))
+            write_faces.append({"param_id": write["param_id"], **face})
+        row["write_faces"] = write_faces
         after = readback_parameters(fixture, timeout, agent_http)
         (out_dir / f"{case_id}_after.json").write_text(
             json.dumps(after, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -530,17 +649,20 @@ def restore_changed_rows(fixture: dict[str, Any],
                           before: dict[str, dict[str, Any]],
                           after: dict[str, dict[str, Any]],
                           agent_http: str, timeout: float) -> None:
-    """Write back the pre-op normalized value for every row that changed
-    (same agent tool face the rounds rely on); discrete rows get their exact
-    stepped value re-written so labels snap back."""
+    """Write back the pre-op value for every row that changed, on the same
+    faces the rounds rely on (governance-gated rows restore through the
+    typed apply face with their disclosed step label / display value)."""
     for change in diff_rows(before, after):
         pid = str(change.get("param_id"))
         row = before.get(pid)
         if not row:
             continue
         norm = _num(row.get("normalized_value"))
-        if norm is not None:
-            known_write(agent_http, fixture, pid, norm, timeout)
+        if norm is None:
+            continue
+        write_param(agent_http, fixture, pid, norm, timeout,
+                    before_rows=before,
+                    target_display=display_number(row.get("value_text")))
 
 
 # ---------------------------------------------------------------------------

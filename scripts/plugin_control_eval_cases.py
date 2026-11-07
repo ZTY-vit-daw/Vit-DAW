@@ -94,7 +94,7 @@ KNOWN_OP: dict[str, dict[str, Any]] = {
         "expect": [{"param_id": "1", "label_needle": "7", "normalized_needle": 0.7}],
     },
     "T4": {
-        "writes": [{"param_id": "0", "normalized": 0.25}],
+        "writes": [{"param_id": "0", "normalized": 0.25, "display": 250.0}],
         "expect": [
             {"param_id": "4", "label_needle": "Host"},
             {"param_id": "0", "display_contains": "25", "normalized_needle": 0.25},
