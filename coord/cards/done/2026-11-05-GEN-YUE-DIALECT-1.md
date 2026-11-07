@@ -73,3 +73,18 @@
 ## 验收
 
 - **晚窗段验收+复验条款裁定（2026-11-07 晚窗，主管）：段 pass+复验条款选 B 收口**——①dialect/注册/invoke 全链实证采信（生成×2 真实 21s 墙钟+VRAM 4.6GB 线内+注册披露四连 PASS+go 全绿）；②**复验条款（259 挂账）前提推翻采信**：同谱同 seed 1/1 分裂=「无器乐回读」为 (渲染,转谱) 联合概率性质——裁定 **B=谱面层确定性成立+声学层不承诺**（诚实边界收口；A 统计口径断言留论文需要时另批预算）——记良性互动一笔（证据推翻 259 挂账前提）；③域外双缺陷（canary 误劫持/capabilities 词典缺生成）**转卡 303 GEN-CHAT-ROUTING-1**，chat 驱动腿候 303 合入后作本卡末腿。卡留 doing。L1 台账 48h 窗口。
+
+## 末腿回执（run6，2026-11-07 21:38–21:43，接手代理：前代理 21:17 限额中断后续做）
+
+- **结果：真栈烟测末腿 PS1 exit 0 = PASS，卡面验收标准「真栈烟测 exit 0」全部达成**；run ID=coord/runs/GEN-YUE-DIALECT-1/run_20261107_213958（run6_console.txt+全工件随 port/gen-yue-dialect-1 7aa0f10c 已推）
+- 被测：wt_278impl @ port/gen-yue-dialect-1，HEAD=f66c0cee（origin/main c16daea0 merge 进分支，含 303 双修 afda4b4e+295 修；merge 后 `go test ./internal/chat ./internal/genapi -count=1` 全绿=exit 0 亲证）；agent=worktree 现场构建 21:40:02（39,192,576B）；kernel=主检出预构建 VitApp.exe 只读复用（SHA256 C1E32DFE…随 prereq）；YuE2 引擎自管启停（8087，不入 PC-RUNTIME-STACK）
+- **leg0 注册披露五连 PASS**：yue-local/dialect=yue_local/base_url=127.0.0.1:8087 在列
+- **leg1 chat 驱动一回合「用 YuE2 把下面这段谱唱出来」三合一全过（52s 墙钟，goal_841baf81794c2513 completed/stop_reason=done）**：
+  - 路由不劫持（run2 形实盘复放）：无前缀自然话术+ABC 谱 outro `b32|Z|` 原样在场（chat 响应 original_intent 亲证），route_hijack_markers=[]——零「不能形成可执行候选」零 turn.failed=**303 缺陷①修复实盘验证通过**
+  - gen 工具披露含生成（run3 形实盘复放）：风格串 vocal/drums/108 BPM 在场，mix 观察步与生成步共存——daw_action 轨迹=observe_b1_gain_staging→b1_gain_staging_project_state→**genapi_providers→genapi_generate**（真实工具步，仅认 item_id/command_name，裸文本扫描假阳性已排除）=**303 缺陷②修复实盘验证通过**
+  - 产物面：run 专属 downloads 新落双工件——wav 11,012,908B=RIFF 时长 **57.36s（45-75s 窗内）**+replay 含 abc 逐字（`b32|Z|` 原样+style 全串+lyrics+duration=60.0）；生成恰 1 次（预算 1，60s 歌引擎侧 21s 级）
+  - 对话摘录（reply）：「YuE2（yue-local）已按你的原始 ABC 谱生成完成，音频已落盘。任务号：46797cf8bea5cde6…ABC 谱逐字原样传入，未改写、未截断…该引擎没有自由 prompt 通道…未传 track_id…只把文件写入磁盘，没有上轨」——诚实边界（限制披露+未上轨声明）与 run3 同型良好
+- 计费/资源：LLM=1 chat goal flash 级 ≈¥0.05-0.15（≪RUNBOOK ¥0.5 上界）；VRAM 原始采样峰 5171MiB ≪6451 线（ps1 峰值解析逗号 bug 沿 run5 注记，13 样本在工件）；墙钟：栈+引擎+build+chat 全程 21:39:58–21:41:35≈97s
+- 栈协议：净空亲核 21:38:31 全零→占用登记 6d1b43c8 推 main→21:39:40 ≤60s 复核全零→启动→run→脚本自拆（agent 25416/kernel 29456/engine 21684）→**TEARDOWN_ALL_ZERO 亲核 21:43:33**（七口 TCP+UDP 4444/4445+五类进程全零）→释放登记（见 PC-RUNTIME-STACK run6 收口条）
+- 端测边界更新（AGENTS §5）：chat 驱动腿已覆盖（run6）；渲染面/用户旅程仍不涉（本卡无 webui 改动，Godot 未起，chat 经 HTTP 面——先例 reply_gen_toolgate 维持）
+- 卡处置：末腿 PASS=卡面四目标全部落定（目标 1/2 完成+目标 3 裁定 B 收口+目标 4 末腿 PASS），mv done/ 待主管终验归档
