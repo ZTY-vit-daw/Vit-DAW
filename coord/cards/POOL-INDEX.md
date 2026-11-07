@@ -37,7 +37,7 @@
 | 300 | PLUGIN-CONTROL-EVAL-RUNNER-1 | doing（晚窗在派；含 S0+S1-P 授权——deepseek-flash 单模型，用户裁定） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | todo 可领（守卫留痕+M0-M3 复现；C++ 最小插桩+栈） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
-| 303 | GEN-CHAT-ROUTING-1 | todo 可领（canary 误劫持+capabilities 词典缺生成双修，278 转卡；零栈先行——278 末腿前置） |
+| 303 | GEN-CHAT-ROUTING-1 | done 已验收 pass 合入（token 边界+生成域扩表+b1/b2/b3 同面顺带修；278 末腿放行） |
 | 302 | VSTI-WRITEGUARD-1 | todo 可领（de-esser 守卫 instrument 分类修，298 转卡；零栈先行） |
 | 299 | PLUGIN-CONTROL-EVAL-PREP-1 | done 已验收 pass（PREP 收口：模型=deepseek-flash 双证+A/B 四锚点污染定位；RUNNER 不含缝可先行，缝+模型矩阵候用户裁定） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |

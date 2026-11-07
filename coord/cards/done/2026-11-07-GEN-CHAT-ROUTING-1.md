@@ -30,4 +30,4 @@
   - **测试**（worktree D:/Vit_DAW_wt_303grt @ 28252e19）：① `go build ./...` exit 0；② `go test ./internal/chat -count=1` ok 129.7s exit 0；③ `go test ./internal/tools -count=1` ok 0.4s exit 0；④ 新测试 -v 6/6 PASS；⑤ pristine 树同测试 FAIL exit 1（修复前必败钉）。
   - **端测边界声明（零栈）**：本卡零真栈——全部验证为单测/离线复放；真实栈 chat 驱动腿（canary 不劫持+gen.generate 真实披露→YuE2 生成链）按卡面搭 278 末腿（278 卡 doing 待主管调度）。gen.generate 披露不改变治理链：RiskConfirm 确认流与 PCA 门未触碰。
   - **域外观测（不扩修，锚点备查）**：`agentLoopTextHasAny` 全词典仍为 Contains——本卡只边界化了 B 码裸码族；其余词典词为多字词/短语，误命中面低，如后续取证到同类误触发再转卡。
-- 验收：（主管回填）
+- 验收（2026-11-07 晚窗，主管）：**pass**——方案 A（token 边界匹配）论证合格（纯收窄假阳性不可能引入新命中，词表成员零增删=词法后继裁定族红线核过）；勘察顺带发现 goalrunner b1/b2/b3 裸码同面误触发（run2 连带删 mix 包）一并修=「同暴露面」授权范围内追认；run2/run3 逐字 fixture+pristine 树 FAIL 双形状钉+主管交叉复跑（4 配对新测+chat 全包 133s ok+tools ok）；275/264 钩不破坏经 temp merge 亲证（冲突解法在卷供合 275 用）。实现 28252e19 合入 main。278 末腿放行（先 merge origin/main 拾本修）。域外观测（agentLoopTextHasAny 其余 Contains）记录备查。L1 台账 48h 窗口。
