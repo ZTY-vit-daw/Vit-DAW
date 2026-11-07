@@ -1051,6 +1051,23 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 			return out, nil
 		}
 	}
+	// ARRLOOP-AUTHBRIDGE-1: capability-wheel processor-load authorization
+	// bridge. The harness PCA load gate runs before the harness's own
+	// confirmation pause, so an agent-loop load call would dead-end as a
+	// forged-selection rejection and never reach a user confirmation. The
+	// bridge produces that confirmation phase executor-side (the same
+	// user-in-the-loop chain as the load workflow confirm phase) and stamps
+	// the server-minted exact selection authorization on the confirmed
+	// resume, using the same Authorize* family the workflow confirm phase
+	// uses. The gate itself stays unchanged and re-verifies at dispatch.
+	if bridged, handled, bridgedResult := e.agentLoopProcessorLoadBridge(in, toolCallID); handled {
+		if e.server != nil {
+			e.server.emitToolItemCompleted(in, bridgedResult, nil)
+		}
+		return bridgedResult, nil
+	} else {
+		in = bridged
+	}
 	out, err := e.base.RunToolCall(ctx, in)
 	if e.server != nil {
 		if strings.TrimSpace(out.ToolCallID) == "" {
@@ -1059,6 +1076,160 @@ func (e pluginGrabberWorkflowExecutor) RunToolCall(ctx context.Context, in execu
 		e.server.emitToolItemCompleted(in, out, err)
 	}
 	return out, err
+}
+
+type agentLoopProcessorLoadSelection struct {
+	toolName   string
+	trackID    string
+	pluginPath string
+	identifier string
+}
+
+// agentLoopProcessorLoadBridge 是能力轮装载类动作的确认期授权桥（ARRLOOP-
+// AUTHBRIDGE-1，方案 B）。治理契约：
+//   - 未确认的装载调用→合成确认暂停（needs_confirmation），不派发不执行——
+//     用户在环（确认卡→用户确认→恢复）与装载工作流确认期同款；确认卡只在
+//     服务端可授权（精确身份解析为唯一当前已晋升 PCA 准入）时出现，否则
+//     如实报错，不虚构可确认的装载；
+//   - 已确认的装载调用→服务端盖章 harness.AuthorizeConfirmedAgentLoopLoad
+//     （与装载工作流确认期同族 Authorize* 盖章；PCA 事实全部取自晋升目录，
+//     不取自请求），并把派发路径钉到已晋升安装路径；
+//   - 显式 full access→不拦不停不盖：装载门自身的 full-access 回落照旧解析
+//     （分支序与 semanticTopologyLoadAuthorization 一致）。
+// 判断权归属不动：本桥只产生执行层授权；PCA 门判据零改动，门在派发时仍
+// 重新核验（精确匹配+指纹新鲜+准入现势）。
+func (e pluginGrabberWorkflowExecutor) agentLoopProcessorLoadBridge(in executorpkg.Input, toolCallID string) (executorpkg.Input, bool, executorpkg.Result) {
+	selection, ok := agentLoopProcessorLoadSelectionFromCall(in.ToolCall)
+	if !ok || explicitFullAccessRequestContext(in.Context) {
+		return in, false, executorpkg.Result{}
+	}
+	if !in.Confirmed {
+		if _, _, err := harness.AuthorizeConfirmedAgentLoopLoad(in.Context, selection.trackID, selection.pluginPath, selection.identifier); err != nil {
+			return in, true, agentLoopLoadBridgeErrorResult(in, toolCallID, selection, err)
+		}
+		return in, true, agentLoopLoadBridgePauseResult(in, toolCallID, selection)
+	}
+	stamped, admittedPath, err := harness.AuthorizeConfirmedAgentLoopLoad(in.Context, selection.trackID, selection.pluginPath, selection.identifier)
+	if err != nil {
+		return in, true, agentLoopLoadBridgeErrorResult(in, toolCallID, selection, err)
+	}
+	in.Context = stamped
+	agentLoopPinConfirmedLoadAdmittedPath(&in.ToolCall, admittedPath)
+	return in, false, executorpkg.Result{}
+}
+
+// agentLoopProcessorLoadSelectionFromCall 识别能力轮装载类工具调用并提取精确身份
+// 三元组。命令族与 harness 装载门的装载形态对齐（门不管的形态本桥也不
+// 管；plugin.instantiate 会被 base executor 改写成丢弃 identifier 的
+// load_to_rack 形态，故不纳入桥管理，维持装载门既有如实拒绝）。身份不全
+// （缺 track/path/identifier 任一）的调用不归桥管理——交回 harness 既有校
+// 验（必填目标 ID/装载门）如实拒绝，不代答。
+func agentLoopProcessorLoadSelectionFromCall(call planner.ToolCall) (agentLoopProcessorLoadSelection, bool) {
+	req := harness.InvokeRequest{Tool: call.Tool, Args: cloneStringAnyMap(call.Args), Command: cloneStringAnyMap(call.Command)}
+	isLoad := false
+	for _, name := range invokeCommandNames(req) {
+		if agentLoopProcessorLoadCommand(name) {
+			isLoad = true
+			break
+		}
+	}
+	if !isLoad {
+		return agentLoopProcessorLoadSelection{}, false
+	}
+	merged := map[string]any{}
+	for key, value := range call.Command {
+		merged[key] = value
+	}
+	for key, value := range call.Args {
+		if _, exists := merged[key]; !exists {
+			merged[key] = value
+		}
+	}
+	selection := agentLoopProcessorLoadSelection{
+		toolName:   firstNonEmpty(strings.TrimSpace(call.Tool), "rack_add_node"),
+		trackID:    firstStringFromMap(merged, "track_id", "target_track_id", "selected_track_id", "selected_plugin_track_id"),
+		pluginPath: firstStringFromMap(merged, "plugin_path", "path", "file_path", "plugin_file", "source_path"),
+		identifier: firstStringFromMap(merged, "plugin_identifier", "identifier", "file_or_identifier"),
+	}
+	if selection.trackID == "" || selection.pluginPath == "" || selection.identifier == "" {
+		return agentLoopProcessorLoadSelection{}, false
+	}
+	return selection, true
+}
+
+// agentLoopProcessorLoadCommand 与 harness 装载门管理的 rack 装载命令族对
+// 齐：本桥只管理门也管理、且不会被 base executor 二次改写的装载形态。
+func agentLoopProcessorLoadCommand(name string) bool {
+	switch strings.ToLower(strings.TrimSpace(name)) {
+	case "rack_add_node", "rack.add_node", "plugin.load_to_rack":
+		return true
+	default:
+		return false
+	}
+}
+
+// agentLoopLoadBridgePauseResult 合成装载确认卡（与 typedPluginApply
+// ConfirmationResponse 同款 needs_confirmation 形态）：确认卡指名精确身份
+// （SEMANTIC-CARD-COPY-1 合同：不出现「当前轨道」类指代），mutation 未发生。
+func agentLoopLoadBridgePauseResult(in executorpkg.Input, toolCallID string, selection agentLoopProcessorLoadSelection) executorpkg.Result {
+	pluginLabel := selection.pluginPath
+	if idx := strings.LastIndexAny(pluginLabel, `/\`); idx >= 0 && idx+1 < len(pluginLabel) {
+		pluginLabel = pluginLabel[idx+1:]
+	}
+	preview := fmt.Sprintf("将装载插件 %s（identifier: %s）到轨道 %s。本次只装载插件，不会写入任何参数；确认后执行装载，装载门仍会校验该插件的当前 PCA 准入身份。", pluginLabel, selection.identifier, selection.trackID)
+	return executorpkg.Result{
+		ToolCallID:           toolCallID,
+		Tool:                 firstNonEmpty(strings.TrimSpace(in.ToolCall.Tool), "rack_add_node"),
+		CommandName:          "rack_add_node",
+		Status:               "needs_confirmation",
+		RequiresConfirmation: true,
+		Preview:              preview,
+		Result: map[string]any{
+			"status":                "needs_confirmation",
+			"mutation_performed":    false,
+			"confirmation_required": true,
+			"plugin_identifier":     selection.identifier,
+			"plugin_path":           selection.pluginPath,
+			"track_id":              selection.trackID,
+		},
+	}
+}
+
+// agentLoopLoadBridgeErrorResult 是桥的 fail-closed 出口：装载选择无法解析
+// 为唯一当前已晋升准入时如实报错（确认也无法授权），不派发不执行。
+func agentLoopLoadBridgeErrorResult(in executorpkg.Input, toolCallID string, selection agentLoopProcessorLoadSelection, err error) executorpkg.Result {
+	return executorpkg.Result{
+		ToolCallID:  toolCallID,
+		Tool:        firstNonEmpty(strings.TrimSpace(in.ToolCall.Tool), "rack_add_node"),
+		CommandName: "rack_add_node",
+		Status:      "error",
+		Error:       "装载授权解析失败：" + err.Error(),
+		Result: map[string]any{
+			"status":            "error",
+			"error_code":        "pca_load_gate_unauthorized_selection",
+			"mutation_performed": false,
+			"plugin_identifier": selection.identifier,
+			"track_id":          selection.trackID,
+		},
+	}
+}
+
+// agentLoopPinConfirmedLoadAdmittedPath 把已确认装载的派发路径钉到服务端核
+// 验过的已晋升安装路径（与装载门 identifier-only 入口的路径改写同语义）：
+// 模型给出的路径可能只是同一身份的分隔符/大小写变体，钉定后确认卡所见身
+// 份与实际派发二进制不可能分叉。
+func agentLoopPinConfirmedLoadAdmittedPath(call *planner.ToolCall, admittedPath string) {
+	if call == nil || strings.TrimSpace(admittedPath) == "" {
+		return
+	}
+	if args := cloneStringAnyMap(call.Args); args != nil {
+		args["plugin_path"] = admittedPath
+		call.Args = args
+	}
+	if command := cloneStringAnyMap(call.Command); command != nil {
+		command["plugin_path"] = admittedPath
+		call.Command = command
+	}
 }
 
 func (e pluginGrabberWorkflowExecutor) blockEQOwnedGenericParameterWrite(ctx context.Context, in executorpkg.Input, toolCallID string) (executorpkg.Result, bool) {

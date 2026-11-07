@@ -2190,6 +2190,62 @@ func AuthorizeProcessorCertificationLoad(requestContext map[string]any, trackID,
 	return out
 }
 
+// AuthorizeConfirmedAgentLoopLoad mints the in-process authorization for one
+// exact processor load the user confirmed through the agent-loop
+// capability-wheel confirmation phase (ARRLOOP-AUTHBRIDGE-1). It is the
+// confirm-phase authorization production face for capability-wheel load
+// actions and adds no new mechanism: the stamped value is the same
+// semanticPluginSelectionAuthorization object the load workflow's confirm
+// phase (pendingPlanExecutionContext / semanticTopologyLoadAuthorization)
+// stamps, and enforceAgentProcessorLoadGate keeps verifying it unchanged.
+// No PCA fact comes from the request: subject key, family, binary
+// fingerprint, and attestation id are resolved here from the promoted
+// attestation catalog for the exact track/path/identifier triple the user
+// confirmed, so an unadmitted, ambiguous, or stale binary fails closed before
+// dispatch. The returned admitted path is the server-verified install
+// location the caller must dispatch, mirroring the identifier-only rewrite
+// the gate's full-access entry performs.
+func AuthorizeConfirmedAgentLoopLoad(requestContext map[string]any, trackID, pluginPath, pluginIdentifier string) (map[string]any, string, error) {
+	trackID = strings.TrimSpace(trackID)
+	pluginPath = strings.TrimSpace(pluginPath)
+	pluginIdentifier = strings.TrimSpace(pluginIdentifier)
+	if trackID == "" || pluginPath == "" || pluginIdentifier == "" {
+		return nil, "", fmt.Errorf("pca_load_gate: confirmed agent-loop load requires an exact track_id, plugin_path, and plugin_identifier")
+	}
+	records, err := promotedProcessorAuthorizationRecords(pluginIdentifier, pluginPath)
+	if err != nil {
+		return nil, "", err
+	}
+	matches := make([]semanticPluginSelectionAuthorization, 0, 1)
+	seen := map[string]bool{}
+	for _, record := range records {
+		fingerprint, err := processorattestation.FingerprintPath(record.PluginPath)
+		if err != nil {
+			continue
+		}
+		if !strings.EqualFold(fingerprint, record.BinaryFingerprint) {
+			continue
+		}
+		record.TrackID = trackID
+		key := strings.Join([]string{strings.ToLower(record.PluginPath), strings.ToLower(record.ProcessorFamily), strings.ToLower(record.SubjectKey)}, "\x00")
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		matches = append(matches, record)
+	}
+	if len(matches) == 0 {
+		return nil, "", fmt.Errorf("pca_load_gate: confirmed agent-loop load has no current promoted admission for %q", pluginIdentifier)
+	}
+	if len(matches) > 1 {
+		return nil, "", fmt.Errorf("pca_load_gate: confirmed agent-loop load requires one exact processor identity; %q resolves to %d promoted identities", pluginIdentifier, len(matches))
+	}
+	resolved := matches[0]
+	out := cloneAnyMap(requestContext)
+	out[semanticPluginSelectionAuthorizationContextKey] = resolved
+	return out, resolved.PluginPath, nil
+}
+
 // AGENT-SENDROUTE-SEMANTICS-1: a confirmed send-topology pending plan is a
 // concrete structural request (share phrasing plus >=2 named source tracks
 // resolved by the chat workflow), not a broad mix request. The chat workflow
