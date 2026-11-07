@@ -57,3 +57,9 @@
   - 处置：本卡文件域不含 goalrunner_chat.go，不扩修（AGENTS §11）；chat 腿暂停交付，锚点+复现（run3 工件）上交决策侧（276 裁定 A 先例=最小一行扩 agentLoop 工具表+配对单测）；
   - 驱动副作用修正：goal 终态后 runtime 复位 idle 导致轮询空转（run3 wall 439s），驱动改为 chat 响应 goal_status 权威兜底；
 - **run4 计划：-SkipLeg1 跑确定性面（leg0+leg2）**——leg2=复验条款主体（a cappella 生成+转谱回读无器乐断言，卡面验收标准核心），不依赖 chat 披露层；生成预算消耗=1（a cappella 腿，预算 2 以内）；chat 腿生成未消耗如实入账。
+
+## run4 结果补记（19:55–20:0x）与 run5 计划
+
+- run4（-SkipLeg1，run_20261107_195542）：**dialect 全链真栈 PASS**——leg2 invoke→yue_local→task 9e4f260d16495bd6→7×running→done→multipart（replay 9,239B + wav 11,012,908B 双工件落 run 专属 dir）；limitations 披露精确（prompt 无自由通道）；墙钟 21s（预估 21-40s 内）；leg0 注册披露三次 PASS；转谱 done，**回读 Ins 声部=纯休止（Z4|/Z2|/Z| 共 8 行无一音高）**。
+- exit 1 =**驱动断言解析器误报**（非被测面缺陷）：SheetSage2 在 V: 头块后输出 `K:C` 调号行，大写 C 命中音高字母正则→误判器乐；修复=跳过 `^[A-Za-z]:` 指令行；**修复后本地七案例验证全过**（run4 实测回读 PASS + 259 P1 回读 PASS + 259 P2 器乐对照正确 FAIL[offender=真实低音声部行] + 合成正/负/形状三例）。
+- run5：-SkipLeg1 同场景重跑取干净 exit 0 单 run 工件；生成消耗=第 2 次（预算 2 上限内；chat 腿生成槽未消耗如实入账）；被测面（dialect+引擎）run4 已绿，run5 仅为脚本层修复后的完整单 run 证据。

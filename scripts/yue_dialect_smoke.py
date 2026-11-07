@@ -336,7 +336,10 @@ def leg1_chat(agent_base, run_root, download_dir, report, budget):
 def ins_lines_rest_only(abc_text):
     """True when every Ins-voice content line in the transcription is
     rest-only (no pitched notes). Chord annotations and % comments stripped
-    first — rests are z/Z plus meter decoration."""
+    first — rests are z/Z plus meter decoration. ABC directive lines
+    (X:/T:/M:/L:/Q:/K:/C:/w: …) are structure, not notes: SheetSage2 emits
+    K: AFTER the V: header block, and "K:C" contains the pitch letter C
+    (run4 false positive — fixed by skipping ^[A-Za-z]: directives)."""
     current_voice = None
     checked_lines = 0
     for raw_line in abc_text.splitlines():
@@ -345,6 +348,8 @@ def ins_lines_rest_only(abc_text):
             current_voice = line
             continue
         if current_voice is None or "Ins" not in current_voice:
+            continue
+        if re.match(r"^[A-Za-z]:", line):  # ABC directive (K:, Q:, M:, ...)
             continue
         stripped = re.sub(r'"[^"]*"', "", line)  # in-bar chord annotations
         stripped = stripped.split("%", 1)[0]  # comments
