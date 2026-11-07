@@ -90,5 +90,6 @@
 
 ## 验收
 
-- （主管回填）
+- **段 3a-fix+段 3a-r2 验收（2026-11-07 早窗，主管）：pass**——断言修（4f636414）真栈首触全过（rack.nodes[] 可见性+graph diff 三方一致+实例面）；装载链四环节+渲染链至 render_done 实证闭合；渲染产物 8.0s 数字静音（全零字节独立核验）=缺陷面收窄至内核离线渲染执行路径（活栈只读探针：轨标志干净+rack 图 MIDI/音频针脚全接+audio_reachable=true 与全零并存——三候选锚点 TransportAudioService.cpp:1185-1223/VitProductionCoordinator.cpp:811/62-89/PluginRackControlService.cpp:3530-3655 在卷）。
+- **整卡终验（2026-11-07 早窗，主管）：pass（裁量收口+渲染静音面转移）**——卡内域交付全 pass：段 1 勘察+注册链②+缺口 #6/#7 即修；段 2 取证（授权缝发现→273 治本）；段 3a/3a-fix/3a-r2 装载链实证（full-access 晋升→chat 直执→门放行→内核真装载→clip 回读）。渲染非静音未达成=**域外内核缺陷**（§11 上交路径）：锚点+最小复现（run 本身）+活栈探针数据齐——**转卡 297 KERNEL-OFFRENDER-FORENSICS-1**；instrument 晋升 0/17+cert-token 回落发现挂 PD-4；.vit 主文件不回写（rack/clip 仅 journal revision=4，重开丢）记 **PD-7** 观察项（journal→主文件回写时机语义待查证，FIX-START-STATE-RECOVERY-1 先例域）。注册链③（278）解锁。L1 台账 48h 窗口。
 - **段 1 验收（2026-11-07 凌晨，主管）：pass+段 2 留题四项过目全部通过**——勘察锚点全有效（停止条件未触发）+两条新缺口（#6 音源词遮蔽/#7 render.start 白名单）发现即修；择一决策（新增 arrangement pack 不扩 midi）理由充分追认；主管交叉复跑三层测试钉全绿。留题处置：①VSTi 索引预检=段 2 前置合理 ②双通道分流验证=段 2 烟测覆盖面 ③plugingrabber 词表缺钢琴词=**域外微补丁授权**（276 第四披露面同族一行级，段 2 顺带）④渲染静音断言=段 2 内设计。段 2（装载链烟测腿）排栈队列。

@@ -33,8 +33,9 @@
 | 294 | FIXTURE-WE-HYGIENE-1 | doing（早窗在派） |
 | 295 | CAPABILITYPACK-KEYADVERT-1 | todo 可领（提示词键宣传对账，292 勘察①转卡；零栈） |
 | 296 | D1D3-REGRESS-STACK-1 | todo 可领（274+292 真栈回归门；候栈排队） |
+| 297 | KERNEL-OFFRENDER-FORENSICS-1 | todo 可领（内核离线渲染数字静音取证，277 转卡；含 PD-7 查证） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
-| 277 | ARR-SRCLOAD-1 | doing（段 1/2 pass；段 3a full-access 出声实证候栈第 2 位；授权桥缝转 273） |
+| 277 | ARR-SRCLOAD-1 | done 已验收 pass 收口（装载链四环节实证；渲染静音=域外内核缺陷转卡 297；**注册链③解锁**） |
 | 279 | EDU-LEVEL-CONTENT-1 | done 已验收 pass 整卡（首个乐局卡定稿+319 项复算） |
 | 280 | EDU-LEVEL-RUNTIME-A | done 已验收 pass（runtime_slots+语义定案两裁定） |
 | 281 | EDU-LEVEL-RUNTIME-B | doing（段 1 轻验 pass；烟测腿 11-07 早窗在派=栈首占） |
@@ -46,7 +47,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 ## 二、三线（乐局/编曲/生成）——按 [11 月三线执行排序](../reports/2026-11-05-nov-three-line-execution-plan.md)（领卡顺序权威）
 
-- **首波收口**：276/279/280 已终验合入；277（段 3a 候栈第 2 位）+281（烟测腿在派=栈首占）在飞；278 等注册链②段 3a 收口后领取；
+- **首波收口**：276/277/279/280 已终验合入（277 早窗收口）；281（修复 1+2 完成，smokerun3 在派=栈占用）在飞；**278 注册链③已解锁可领**（P1 大卡，建议下窗口首排）；
 - 注册链串行：276→277→278→282→283；其余依赖见计划文档卡序表；
 - 外部依赖（用户动作）：裁定 18 终局+写入降级（279 定稿前）/裁定 15 问询通用化（282 前）/Audiveris+music21 部署（286 前）/Suno key（288 前，可选）；
 - 真栈窗口与主线按日协调（§9 一次一个 owner，登记 coord/resources/PC-RUNTIME-STACK.md）。
