@@ -220,12 +220,28 @@ try {
     if ($auth.authority_mode -ne "full_project_access") { throw ("authority switch refused: " + ($auth | ConvertTo-Json -Compress)) }
 
     Write-Step "Start YuE2 engine (independent process; self-managed per card 278)"
-    $engineStartScript = Join-Path $EngineRoot "start_engine.ps1"
-    if (-not (Test-Path -LiteralPath $engineStartScript -PathType Leaf)) { throw ("engine start script missing: " + $engineStartScript) }
-    & powershell -NoProfile -ExecutionPolicy Bypass -File $engineStartScript | Out-Null
+    # Launch yue-server DIRECTLY (verbatim mirror of E:\AI\YuE2\start_engine.ps1
+    # arguments). Never `& powershell -File start_engine.ps1 | Out-Null`: the
+    # engine child inherits the pipe write handle and the pipeline never sees
+    # EOF — the wrapper blocks forever (attempt 1, 2026-11-07 19:26 run,
+    # zero legs executed, teardown all-zero).
+    $engineExe = Join-Path $EngineRoot "engine\yue-server.exe"
+    if (-not (Test-Path -LiteralPath $engineExe -PathType Leaf)) { throw ("engine binary missing: " + $engineExe) }
+    $engineLogs = Join-Path $EngineRoot "logs"
+    New-Item -ItemType Directory -Force -Path $engineLogs | Out-Null
+    $engineProc = Start-Process -FilePath $engineExe -ArgumentList @(
+        '--model', (Join-Path $EngineRoot 'models\YuE2-3B-Q8_0.gguf'),
+        '--vae', (Join-Path $EngineRoot 'models\YuE2-Vae-F32.gguf'),
+        '--transcriber', (Join-Path $EngineRoot 'models\SheetSage2-Q8_0.gguf'),
+        '--tokenizer', (Join-Path $EngineRoot 'models\yue2-mothersuperior-realaudio-tokenizer-v4-Q8_0.gguf'),
+        '--host', '127.0.0.1', '--port', '8087', '--max-seq', '24576'
+    ) -WorkingDirectory (Split-Path -Parent $engineExe) -WindowStyle Hidden `
+        -RedirectStandardOutput (Join-Path $engineLogs "engine.log") `
+        -RedirectStandardError (Join-Path $engineLogs "engine.err.log") -PassThru
+    if ($engineProc.HasExited) { throw ("yue-server exited immediately with code " + $engineProc.ExitCode) }
     if (-not (Wait-HttpReady -BaseUrl "http://127.0.0.1:8087" -TimeoutSeconds $EngineStartBudgetSeconds)) { throw "YuE2 engine /health did not become ready" }
-    $engineProc = Get-Process -Name yue-server -ErrorAction SilentlyContinue | Select-Object -First 1
-    if ($engineProc) { $engineProcId = $engineProc.Id; Add-Prereq ("engine_pid=" + $engineProcId) }
+    $engineProcId = $engineProc.Id
+    Add-Prereq ("engine_pid=" + $engineProcId)
     $vramEngineUp = Get-VramUsedMiB
     Add-Prereq ("vram_engine_up_mib=" + $vramEngineUp)
     Write-Ok ("engine up, pid=" + $engineProcId + " vram=" + $vramEngineUp + "MiB")
