@@ -39,8 +39,8 @@
 | 305 | PLUGIN-CONTROL-EVAL-SEAM-1 | done 已验收 pass 合入（四缝+A 臂三面亲证；S2 残留=A 口径声明项） |
 | 307 | PLUGIN-CONTROL-EVAL-S1A-1 | done 已验收 pass（A=P=5/6 同构；两装置发现→S5/S2b 开卡 308；T4 疑似规则缺陷批次前修） |
 | 308 | PLUGIN-CONTROL-EVAL-SEAM2-1 | todo 可领（S5 工具目录裁剪+S2b 渲染面剥离→A-pure 前置；零栈） |
-| 306 | GEN-VOCALSEP-1 | todo 可领（生成产物人声分离，用户听感裁定方向；P3；三 wav 样本在盘） |
-| 301 | KERNEL-OFFRENDER-REPRO-1 | todo 可领（守卫留痕+M0-M3 复现；C++ 最小插桩+栈） |
+| 306 | GEN-VOCALSEP-1 | done 已验收 pass（三 vocals stem 候用户试听终审；集成腿候后续卡） |
+| 301 | KERNEL-OFFRENDER-REPRO-1 | done 已验收 pass（**候选②排除+定性 WaveShell 插件兼容**；M3 证活渲染管线；转卡 309） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
 | 303 | GEN-CHAT-ROUTING-1 | done 已验收 pass 合入（token 边界+生成域扩表+b1/b2/b3 同面顺带修；278 末腿放行） |
 | 302 | VSTI-WRITEGUARD-1 | done 已验收 pass 合入（单点族豁免+未知族 fail-closed 维持） |
@@ -84,3 +84,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 1. 各线发卡后在本索引登记行；卡状态流转（领取/完成/验收）由执行侧回执+主管验收更新；
 2. 新卡编号遵守编号空间裁定（主线 258–275 封块已满/三线 276–291 已分配；**292 起两线共用递增**，发卡登记本索引认领池序）；
 3. 挂起卡触发条件达成时由管辖线主管移入各自活跃段。
+| 309 | WAVESHELL-OFFRENDER-FIX-1 | todo 可领（WaveShell 离线渲染兼容修=M1 对照+根因+修法+自检断言；C++ 取证先行） |
