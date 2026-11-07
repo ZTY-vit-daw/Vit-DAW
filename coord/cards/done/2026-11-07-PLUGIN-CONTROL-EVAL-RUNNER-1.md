@@ -47,4 +47,4 @@ S0 正确操作腿失败→夹具/接口取证上交（不进模型轮）；S1-P
   - **真栈登记**：占用 963f7ba0（20:12）→释放随本批 coord/300-close 推 main；TEARDOWN_ALL_ZERO 亲核 21:00:01（六口 TCP+UDP 4444/4445+五类进程全零）；kernel=wt_228 F9E3DA0A 只读复用，agent=wt_300runner 现场构建（SHA256 随各 run_report）。
   - **端测边界声明**：S0/dryround=确定性腿（零 LLM，agent invoke+内核 ZMQ 面）；S1-P=agent HTTP 真栈腿（产品 chat 链路：语义入口→typed 接管→执行→独立回读）；**渲染面（webui DOM）与用户旅程不涉及**（实验腿不适用 AGENTS §5 渲染面门槛，无 E2E-WEBUI/JOURNEY 覆盖主张）。单轮=单样本，不证稳定性（plan §6 口径）。
   - 工件分支=`port/plugin-control-eval-runner-1`（ccf8c78c 已推）；工件根=`coord/runs/PLUGIN-CONTROL-EVAL-RUNNER-1/`（RUNBOOK+case_freeze+8 run 目录，17MB，每 run 新目录不覆盖）。
-- 验收：（主管回填）
+- 验收（2026-11-07 晚窗，主管）：**pass**——runner+S0+S1-P 全交付合格（selftest 45 绿+S0 六案例零 LLM 遥测亲证+P 六轮全评估）；**P 基线采信=5/6**（T4 败因=故意多写非目标参数的纪律问题，目标本身达标 249ms±10——非能力失败）；预算 38/72 调用 caps 内；模型面亲证（raw.model=deepseek-flash 无别名+零采样参数如实记）。**解读边界声明：T2/T3/T4 首动作均 typed 接管=产品语义机器承重，P=产品上限非模型裸能力——A/B 纯臂问题开放，缝卡 305 即发**。域外双缺陷：①typed 守卫 gate_expander/limiter 误拒=**302 卡面扩域**（同族分类修）；②apply_delay_controls ms 反演=**转卡 304**。单轮=单样本不证稳定性（plan §6 口径维持）。L1 台账 48h 窗口。

@@ -7,6 +7,7 @@
 ## 目标
 
 1. **守卫分类修**：de-esser 守卫默认分支对 instrument 族插件的正确分类（不落 `unresolved_de_esser_surface`——按 298 采证的 template_role=instrument 通道或插件族判据分流；非 VSTi 插件行为零变化）；
+   **【2026-11-07 晚窗主管扩域】+300 S0 取证同族面一并修**：typed 守卫对 H-Delay/Plates 类的 `unresolved_gate_expander_surface`/`typed_limiter_surface_unavailable` 误拒（goalrunner_chat.go:1302-1340/1356-1394，300 s0 run2 T3+run5/6 T4 forensics 为负锚）——同分类缺陷族，同一张卡收口；
 2. 配对单测：instrument 写面通过+效果器原守卫行为不变+未知族维持 fail-closed 三方向钉死（298 工件拒绝回执为负锚蓝本）；
 3. 回归：`go test ./internal/chat -count=1` 全绿+build 0；真栈回归腿（Grand Rhapsody agent 面写通+快照恢复）搭 296-R2 或后续栈 run 顺带，不单占。
 
