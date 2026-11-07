@@ -26,5 +26,11 @@
 ## 领取/回执/验收
 
 - 领取：2026-11-07 22:42 +0800 / origin/main=9180ff89b0c97594295c26fde54306358136afb7 / owner=ZCode GLM-5.3 L2-worker PC 子代理（301repro）/ 分支 port/kernel-offrender-repro-1 / worktree D:/Vit_DAW_wt_301repro（领取基线：HEAD=9180ff89，status 全净，diff --stat 空）/ 领取提交=本笔 coord/301-claim
-- 回执：（执行侧回填）
+- 回执：2026-11-07 23:1x 自验完成，mv done/ 待主管终验。**实现/工件=port/kernel-offrender-repro-1 @ 3e2300e1（prep 48d01d48+run 收口）已推**；evidence=coord/runs/KERNEL-OFFRENDER-REPRO-1/evidence.md（四腿全证据+引擎 patch 全文）。摘要：
+  1. **插桩落地**：引擎树两守卫 +25 行一次性留痕（每守卫×live/render 相位各一 shot，TRACKTION_LOG→内核日志；只加日志不改行为）；插桩内核 `CC9FDACC…`（wt_228 同源配置新目录构建 exit 0；VitApp 源 vs wt_228 零 diff；wt_228 基线不动）；引擎树 diff 保留在位，处置交主管。
+  2. **M0a2=seg3a_r2 逐项复现**（277 ps1/agent 62F444B7 逐位复用，唯一实质变量=内核）：装载链全绿→渲染 8.0s **data sha256 与 seg3a_r2 逐位同款的数字静音**，py exit 4 @render。
+  3. **核心判决：三腿 VIT301_GUARD 全零**——两条静音腿中守卫零命中（日志管线有效性三重亲证：同宏设备枚举行在卷+插桩串只在二进制+出声腿全链健康）→ **297 候选②（守卫 fail-silent 早退）实证排除**；卡面停止条件「M0 守卫未命中」分支兑现，但 M2/M3 **有差异**故未走并陈：
+  4. **M2 直挂 GR 仍静音（非 rack 特有）+M3 直挂 Surge XT 出声（-13.63 dBFS）→ 定性=插件特异性（WaveShell1-VST3 离线渲染静音，非 VSTi 通用，非 rack/合路/MIDI 馈入）**——兼容性缺陷方向（黑名单/预热策略），供主管定修复卡；M1 实时对照未跑（卡面可选，遗留问题=GR 实时是否出声，建议归修复卡）。
+  5. 跑序异常如实分账：M0a1=agent 构建面错配（main 无 277 arrangement pack 能力面）exit 3 配置中止，attempt-2 修正（非原样重跑，298 先例）；四腿 TEARDOWN_ALL_ZERO 亲核（22:58:35/23:03:44/23:06:43/23:09:47）；计费合计 ≈¥0.1-0.2 flash（M0 两腿）+M2/M3 零 LLM（¥1-3 预算内）；栈登记六笔（6baa4646/0fe253dd/152a3368/ad9cb7fd+收口笔）全链在 PC-RUNTIME-STACK.md。
+  6. 端测边界：agent HTTP/ZMQ 面真栈烟测+wav 物理计量+内核日志留痕；不覆盖 webui 渲染面与 Godot 旅程（本卡无该域改动）。渲染路径实例状态断言建议：守卫面已证清白，断言价值转移为渲染前 WaveShell non-realtime 自检/黑名单面，交主管裁量。
 - 验收：（主管回填）
