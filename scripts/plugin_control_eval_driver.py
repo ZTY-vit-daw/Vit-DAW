@@ -1330,7 +1330,8 @@ def run_dryround(agent_http: str, timeout: float, out_dir: Path) -> int:
         before_rb = readback_parameters(fixture, timeout, agent_http)
         (out_dir / "dry_readback_before.json").write_text(
             json.dumps(before_rb, ensure_ascii=False, indent=2), encoding="utf-8")
-        known_write(agent_http, fixture, "6", 0.35, timeout)
+        write_param(agent_http, fixture, "6", 0.35, timeout,
+                    before_rows=rows_index(before_rb))
         after = readback_parameters(fixture, timeout, agent_http)
         (out_dir / "dry_readback_after.json").write_text(
             json.dumps(after, ensure_ascii=False, indent=2), encoding="utf-8")
