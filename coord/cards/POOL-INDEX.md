@@ -35,13 +35,13 @@
 | 296 | D1D3-REGRESS-STACK-1 | todo（rework 重跑一次：D2 断言修正预收；基线=现 main 含 295 修；排 300 之后；blocked 两现开取证卡） |
 | 297 | KERNEL-OFFRENDER-FORENSICS-1 | done 已验收 pass（候选②fail-silent 守卫唯一不可排除；转卡 301 复现；PD-7=by-design 钉死） |
 | 300 | PLUGIN-CONTROL-EVAL-RUNNER-1 | done 已验收 pass（**P 基线 5/6 落地**；T4=纪律非能力；typed 承重声明→305 缝卡；守卫误拒扩 302 域+ms 反演转卡 304） |
-| 304 | DELAY-APPLY-MS-FIX-1 | todo 可领（apply_delay_controls 毫秒反演修，300 转卡；零栈） |
+| 304 | DELAY-APPLY-MS-FIX-1 | done 已验收 pass 合入（分段反演+物理回读诚实降级） |
 | 305 | PLUGIN-CONTROL-EVAL-SEAM-1 | doing（晚窗在跑·限额后重派） |
 | 306 | GEN-VOCALSEP-1 | todo 可领（生成产物人声分离，用户听感裁定方向；P3；三 wav 样本在盘） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | todo 可领（守卫留痕+M0-M3 复现；C++ 最小插桩+栈） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
 | 303 | GEN-CHAT-ROUTING-1 | done 已验收 pass 合入（token 边界+生成域扩表+b1/b2/b3 同面顺带修；278 末腿放行） |
-| 302 | VSTI-WRITEGUARD-1 | todo 可领（守卫分类修扩域：instrument+gate_expander/limiter 同族面；零栈先行） |
+| 302 | VSTI-WRITEGUARD-1 | done 已验收 pass 合入（单点族豁免+未知族 fail-closed 维持） |
 | 299 | PLUGIN-CONTROL-EVAL-PREP-1 | done 已验收 pass（PREP 收口：模型=deepseek-flash 双证+A/B 四锚点污染定位；RUNNER 不含缝可先行，缝+模型矩阵候用户裁定） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
 | 277 | ARR-SRCLOAD-1 | done 已验收 pass 收口（装载链四环节实证；渲染静音=域外内核缺陷转卡 297；**注册链③解锁**） |
