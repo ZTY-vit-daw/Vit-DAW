@@ -61,6 +61,15 @@
 - **段 2 顺带交付**：已授权域外微补丁落地（plugingrabber 词表补钢琴/piano，`commands_test.go` 正负例钉）；烟测扩展 `scripts/arr_srcload_smoke.py`+`dev_agent_smoke.ps1 -ArrSrcLoadSmoke`（透传缝四处预声明）；prep commit `37598d75`。
 - **段 3 就绪度**：待主管对④裁定（A/B/C/D 择一或组合）后定——出声实证腿（装载→clip→渲染非静音）在 D 路径下可最快复用本驱动器（一次 full-access chat 改参即可）；B 路径则需新实现卡。
 
+### 段 3a（D 路径 full-access 出声实证腿，2026-11-07 09:53–09:55）——py exit 4 @clip（装载环节实证成立；渲染非静音未到达；断言形状缺陷取证上交）
+
+- **单 run `seg3a_20261107_0950`**：占栈协议全链（登记 `f325d341` 09:52 推 main+重读确认→≤60s 复核 09:53:03→启栈→run→PS1 throw 后 owner 亲拆残留 VitAgent 45128/VitApp 19676→**TEARDOWN_ALL_ZERO 亲核 09:55:23**→释放登记随本笔）；kernel=wt_228 `F9E3DA0A…0D67A` 09:51 亲核只读复用；agent=wt_277impl 现场构建 SHA256 `62F444B7…D28B3`（Go 树自段 2 零改动同哈希如实记）；prep `0fd5e239`（--full-access 改参+RUNBOOK）；工件 `coord/runs/ARR-SRCLOAD-1/seg3a_20261107_0950/`（随 port/arr-srcload-1 `79413c4e`+`ea2c0963`）；计费 5 行 deepseek-flash ≪¥0.1（预算 ≈¥1-3 内）。
+- **§8 口径**：RUNBOOK 跑前成文（单 run 无重跑/预算/失败分类 0-2-3-4 含「full-access 轮仍被门拦=前提推翻→4」分支）；**单 run 已兑现**——exit 4 后未二次启动栈。
+- **链路结果（较段 2 前进到渲染前一步）**：预检 PASS（17 instrument）→ full-access 晋升 PASS（baseline=manual→POST /agent/authority→full_project_access persisted+GET 复核；261 G5 先例路径）→ **chat 单回合装载直执 PASS**：stop_reason=done / **needs_confirmation=false**（免确认卡直执）/ 模型走 plugin.semantic_search→plugin.search→rack.add_node（组调 identifier+path+track+zone 全精确，未被 PCA autonomy 附录「any other identifier is rejected」劝退）→ **装载门放行且内核执行**：rack.add_node status=ok、zone_id=Z2、plugin_id=1013、**plugin_instance_ready=true、load_state enabled=true processing=true load_error 空**、graph diff `node_add rack_item_id=1012 track_id=1007`（Grand Rhapsody Piano 实例在跑）→ clip 1014 写入 16 音回读一致 → **FAIL @装载可见性断言**：track.plugins 顶层=[New Rack, Volume & Pan Plugin, Level Meter] 不含钢琴名 → start_render/非静音未到达。
+- **exit 4 根因（evidence.md §3）**：**驱动器断言形状缺陷（域内）非装载失败**——rack_add_node 把音源装为轨上 rack 容器内部节点（内核预期形状），段 2 遗留断言按「顶层插件行」书写且从未被触达（段 2 死于更早的门拒），本 run 首次触达即暴露。装载环节本身实证成立。
+- **admission-path 如实分账（evidence.md §4）**：跑前+跑时双证 instrument 晋升 0/17（v1 116/v2 89 全效果器）→ 本 run 装载放行**必经**门内 certification-token 回落（`~/.vit/pca_certauth.token` armed，门自身既设路由非绕门；agent 日志零行 pca_load_gate）。「通路现成」按此修正：**物理通路=现成（本 run 实证）；授权形态=cert-token 回落**，治本归 273。
+- **交主管**：①exit 4 定性与断言修形（rack 节点查询形状）后是否再派一跑拿渲染非静音实证（§8 纪律下执行侧不重跑）；②admission-path 表述修正采认；③段 3 未收口（渲染非静音未获证），**卡留 doing/**。
+
 ## 验收
 
 - （主管回填）
