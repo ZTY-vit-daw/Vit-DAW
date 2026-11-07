@@ -7,6 +7,7 @@
 ## 目标
 
 1. **守卫分类修**：de-esser 守卫默认分支对 instrument 族插件的正确分类（不落 `unresolved_de_esser_surface`——按 298 采证的 template_role=instrument 通道或插件族判据分流；非 VSTi 插件行为零变化）；
+   **【2026-11-07 晚窗主管扩域】+300 S0 取证同族面一并修**：typed 守卫对 H-Delay/Plates 类的 `unresolved_gate_expander_surface`/`typed_limiter_surface_unavailable` 误拒（goalrunner_chat.go:1302-1340/1356-1394，300 s0 run2 T3+run5/6 T4 forensics 为负锚）——同分类缺陷族，同一张卡收口；
 2. 配对单测：instrument 写面通过+效果器原守卫行为不变+未知族维持 fail-closed 三方向钉死（298 工件拒绝回执为负锚蓝本）；
 3. 回归：`go test ./internal/chat -count=1` 全绿+build 0；真栈回归腿（Grand Rhapsody agent 面写通+快照恢复）搭 296-R2 或后续栈 run 顺带，不单占。
 
@@ -21,4 +22,5 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 21:07 +0800 / origin/main=`db9bd088fecaf3959065cb22b864b8eaf58895e4` / owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 302/304 同批 runner；与 304 DELAY-APPLY-MS-FIX-1 主管合并派发，实现合并进同一 port 分支） / 分支=`port/vsti-writeguard-1` / worktree=`D:/Vit_DAW_wt_302wg` / 领取基线：HEAD=`db9bd088`（fresh worktree 自 origin/main），`git status --short`=空、`git diff --stat`=空（全净）。前置核对：doing 四卡（GEN-YUE-DIALECT=genapi 域、ARRLOOP-AUTHBRIDGE=harness 授权面、CLOSURE-ROUTE-ADAPT=chat 路由/closure 预算面、B3-ABLATION=canary 钩）文件域与本卡（goalrunner_chat.go 守卫分类段 1220-1460±测试）不相交；305 仍在 todo/（其 typed 接管面=goalrunner_chat.go:260-307，与本卡守卫面不同段，push 冲突按 §2.1.3 重放）。
+- （执行侧回填回执）/（主管回填）
