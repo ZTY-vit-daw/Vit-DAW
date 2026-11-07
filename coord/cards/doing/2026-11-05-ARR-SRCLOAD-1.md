@@ -80,6 +80,14 @@
 - **红线核对**：断言语义未放松（旧核对面 status ok+zone Z2 全保持，新增面全为增严）；文件域=脚本+卡面（dev_agent_smoke.ps1 核后零改动——透传缝与断言形状无耦合）；零真栈零 LLM（计费 0）；无 git reset/clean，主工作树未触。
 - **状态**：卡留 doing/，**停下候栈**——seg3a_r2 重跑腿（拿渲染非静音实证）由主管在 281 smokerun2 释放后另派。
 
+### 段 3a-r2（seg3a 重跑腿，2026-11-07 10:21–10:29）——py exit 4 @render：装载/clip/修形断言全过，渲染产物数字静音（8.0s 全零字节）→卡面停止条件「渲染静音且排查超本卡域」触发，取证上交卡留 doing/
+
+- **单 run `seg3a_r2_20261107_1020`**：占栈协议全链（登记 `6f2f1ec5` 10:21 推 main+重读确认→≤60s 复核 10:20:37 ALL_ZERO→启栈→run→PS1 throw 后 owner 亲拆残留 VitAgent 20700/VitApp 40760→**TEARDOWN_ALL_ZERO 亲核 10:29:42**→释放登记随本笔）；RUNBOOK §8 跑前成文（prep `014dab79`）；agent=现场构建 SHA256 `62F444B7…D28B3`（Go 树自段 2 零改动同哈希如实记）；kernel=wt_228 `F9E3DA0A…0D67A` 10:17 亲核只读复用；工件 `coord/runs/ARR-SRCLOAD-1/seg3a_r2_20261107_1020/`（evidence.md 证据链）；计费 4 行 deepseek-flash（含 strip-silence 默认子腿 1 行）≪¥0.1（预算 ≈¥1-3 内）。
+- **链路结果（较 seg3a 前进到最后一断言）**：预检 PASS（17 instrument）→full-access 晋升 PASS（persisted）→chat 单回合 PASS（done/免卡直执/semantic_search→search→rack.add_node）→**装载 PASS 且断言修 `4f636414` 真栈首触全过**（rack_visibility 按 rack.nodes[] matched_by=id+节点 Z2/enabled/instance_ready+graph diff 三方一致+load_state enabled/processing/load_error 空——seg3a exit 4 缺陷闭合）→clip 1014 十六音回读一致→start_render→render_done→**FAIL：wav 8.0s（=edit 长度 16 拍@120BPM）数字静音，1,411,200 数据字节全零（独立 wave 模块核验+data sha256），peak/rms=0/-120dBFS**。
+- **缺陷面收窄（evidence.md §3/§4，活栈拆栈前只读探针）**：轨标量面干净（mute/solo/fader/输出解析全正常）+rack 图模型自证全链在场（edges 含 MIDI 针脚 RACK_INPUT|0→1013|0+音频 L/R→RACK_OUTPUT+audio_reachable_from_rack_input=true）——「接线完整可达」与「渲染全零」并存，缺陷面=**内核离线渲染执行路径**（te::EditRenderer 离线图 MIDI 馈入/VSTi 离线处理/合路面三候选，均内核 C++ 域，零内核改动红线内不修）。
+- **次级观察（持久化面）**：主 .vit mtime 停留 10:21:11 fixture 态，rack/clip 后续只落 journal（revision=4 checkpoint）未回写主文件——重开将丢 rack+clip；渲染输入=活 edit 不受影响；单独记录不扩修。
+- **交主管**：①exit 4 处置（卡面停止条件已触发：内核取证/修复新卡 vs 277 以「装载链实证+渲染链至 render_done」收口裁量）；②断言修 4f636414 采认；③.vit 回写观察处置。**渲染非静音未获证，段 3 未收口，卡留 doing/**。
+
 ## 验收
 
 - （主管回填）
