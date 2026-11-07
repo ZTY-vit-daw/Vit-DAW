@@ -1,0 +1,39 @@
+# GEN-YUE-DIALECT-1 run1 RUNBOOK（§8 跑前口径，成文于启动前）
+
+- 卡：278 GEN-YUE-DIALECT-1（注册链③）；执行 owner=GLM 主会话 L2-worker 子代理（ZCode/PC）
+- 被测：wt_278impl @ port/gen-yue-dialect-1 8ff2e4d6（impl 已推）；agent=worktree 现场构建（含 yue_local dialect 全部改动）；kernel=D:\Vit_DAW 主检出预构建 VitApp.exe（本卡零内核改动，SHA256/mtime 随 prereq 记录，§9 SkipBuild 同款纪律）
+- YuE2 引擎：E:\AI\YuE2\（YUE2-PC-DEPLOY-1 部署），由烟测脚本自管启停（独立进程，不入 PC-RUNTIME-STACK——卡面+任务派发明示）；8087 端口净空预检在脚本内
+- 场景：scripts/run_yue_dialect_smoke.ps1（栈编排）→ scripts/yue_dialect_smoke.py（断言体）
+  - leg0 注册披露：/agent/invoke gen.providers 列出 yue-local（dialect=yue_local）——确定性，零 LLM 零生成
+  - leg1 chat 驱动生成：「用 YuE2 把这段谱唱出来」→ LLM 调 gen.generate → 产物落 run 专属 download dir（wav+replay.json；唯一写入者=本 dialect 调用）→ RIFF 断言 + replay 含 abc 断言
+  - leg2 a cappella 复验（259 挂账）：P1 谱（Ins 全休止）确定性 invoke 生成 → SheetSage2 /transcribe 回读 → Ins 声部全休止无器乐断言
+
+## 运行次数与预算
+
+- 运行次数：**单 run 无重跑**。环境中断类（见③）允许 owner 亲拆重建栈一次；二次即停。
+- 生成预算：**恰好 2 次生成**（leg1 一次 + leg2 一次，60s 歌请求）+ 1 次转谱；卡面「烟测预算含两次生成」兑现，不追加。
+- LLM 预算：仅 leg1 一个 chat goal（工具计划+终局回复），参照 276/281 单回合实证 ≈¥0.15-0.25，上界声明 ≈¥0.5；leg0/leg2 零 LLM。
+- 墙钟预算：两次生成 21-40s/次（60s 歌 ≈0.55×实时，YUE2-PC-DEPLOY-1）+ chat 链 LLM 延迟 + 转谱 30-60s + 栈/引擎起停；脚本内超时上限=chat 420s/leg2 invoke 300s/transcribe job 300s/引擎启动 300s；整程预估 6-10 分钟。
+- 显存预算：引擎任务峰值 ≤6.3GB（YUE2-PC-DEPLOY-1 实测上界）；vram sampler 2s 间隔全程采样，峰值>6451MiB=vram_over_budget。
+
+## 成功条件
+
+- run_yue_dialect_smoke.ps1 **exit 0** = 三腿全过：leg0 注册披露在 + leg1 goal completed 且双工件落 run 专属 dir（RIFF+replay 含 abc）+ leg2 转谱回读 Ins 声部零音高断言通过。
+
+## 失败分类（预写）
+
+1. **PASS**：exit 0（上节条件全兑现）。
+2. **功能面失败**（取证上交，不重跑）：leg0_registration（注册披露缺失）/ leg1_chat_goal（goal 未 completed）/ leg1_no_artifacts / leg1_bad_artifacts（产物形状坏）/ leg2_invoke（dialect 调用失败）/ leg2_transcribe（转谱链断）/ **leg2_instrumental_detected（转谱回读检出器乐=259 单次实证被推翻——如实上交主管裁定，不硬凑不弱化）** / leg2_shape_mismatch（转谱结果形状与预期差大→按卡面停止条件取证分列）。
+3. **环境中断**（允许重建栈一次）：端口占用/引擎不可达或起不来/内核或 agent 起不来/vram_over_budget；环境中断不产生功能结论。
+4. **超时**：各腿预算尽——按②取证上交。
+
+## 止损线
+
+- 同一失败形态跨 run 出现两次 → 停止投入上交；不得弱化断言、不得把未发生的成功改写成成功。
+- 生成产物 schema 与预期差异大 → 取证分列（leg2_shape_mismatch 路径），不硬凑。
+
+## 栈协议
+
+- VitApp 栈（kernel+agent，7878/5555/5556）按 PC-RUNTIME-STACK 六步：净空亲核→登记推 main→≤60s 复核→启动→测试→TEARDOWN_ALL_ZERO 亲核释放。
+- 当前在卷：296 占用（2026-11-07 18:39 登记，run1 进行中）+298 候栈排队第 2——本腿排队第 3，等 296/298 释放并 fetch 重读后方可登记。
+- YuE2 引擎进程不登记 PC-RUNTIME-STACK（独立进程自管，启停记录落本 run 工件 prereq）。
