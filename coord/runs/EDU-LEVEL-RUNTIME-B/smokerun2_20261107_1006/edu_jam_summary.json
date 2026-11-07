@@ -1,0 +1,27 @@
+{
+  "card": "EDU-LEVEL-RUNTIME-B",
+  "leg": "smokerun1 chat-driven jam mount (deterministic, zero LLM)",
+  "stamp": "20261107_100646",
+  "phases": {
+    "fixture": {
+      "track_ids": [
+        "1007",
+        "1010",
+        "1013"
+      ],
+      "clip_id": "1016",
+      "project_path": "D:\\Vit_DAW_wt_281impl\\coord\\runs\\EDU-LEVEL-RUNTIME-B\\smokerun2_20261107_1006\\edu_jam_fixture_project.vit",
+      "note_count": 42,
+      "verified": true
+    },
+    "activation": {
+      "activated": true,
+      "project_path": "D:\\Vit_DAW_wt_281impl\\coord\\runs\\EDU-LEVEL-RUNTIME-B\\smokerun2_20261107_1006\\edu_jam_fixture_project.vit"
+    },
+    "enter_attempts": 1
+  },
+  "exit_code": 4,
+  "exit_class": "face_defect",
+  "fail_phase": "n0",
+  "fail_reason": "n0 advance wrong: stop=edu_jam_attempt_failed data={\"attempt\": 0, \"current_node\": \"n0_photo_score_open\", \"leaves\": [\"structure:clip_exists=false\", \"event:human_replied=true\"], \"level_id\": \"first-run-twinkle\", \"node\": \"n0_photo_score_open\", \"schema_version\": \"vit.edu_jam_session.v0\", \"status\": \"active\"}"
+}

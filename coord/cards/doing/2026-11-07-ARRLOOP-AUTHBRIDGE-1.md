@@ -32,8 +32,22 @@
 
 ## 回执
 
-（段 1 执行侧回填）
+### 段 1（实现+配对单测，2026-11-07）——零真栈零 LLM；验证腿候栈（栈队列第 3 位：281 烟测→277 段 3a→273 验证）
+
+- **实现 commit**：`499484fc` @ `port/arrloop-authbridge-1`（已推远端）；diff=4 文件 +613/-0：
+  - `agent/internal/harness/harness.go`：新盖章函数 `AuthorizeConfirmedAgentLoopLoad(requestContext, trackID, pluginPath, pluginIdentifier) (context, admittedPath, error)`——与既有 Authorize* 家族并排，盖**同一个** `semanticPluginSelectionAuthorization` 具体值（同一 context key，不可由 JSON/模型伪造）；PCA 事实全部取自晋升目录（复用 `promotedProcessorAuthorizationRecords` 双 store 解析；唯一精确匹配+指纹现势；缺身份/无晋升/歧义/过期指纹四形态 fail-closed）；返回已晋升安装路径供派发钉定。**PCA 门本体（enforceAgentProcessorLoadGate）零改动**。
+  - `agent/internal/chat/goalrunner_chat.go`：能力轮执行器桥（`pluginGrabberWorkflowExecutor.RunToolCall` base 派发前）：未确认装载→合成确认卡（needs_confirmation，指名精确 track/path/identifier，SEMANTIC-CARD-COPY-1 合同，不派发；确认卡仅当服务端可授权时出现，否则如实报错不虚构）；已确认装载→盖章+路径钉定后走 base executor→装载门照旧核验；显式 full-access→桥旁路（门自身回落解析，分支序与 `semanticTopologyLoadAuthorization` 一致）；free-state 屏障/typed apply 确认/EQ fallback 拦截等既有面全部前置不动。
+  - 测试：`agentloop_confirmed_load_authorize_test.go`（harness 4 件）+ `agentloop_load_authbridge_test.go`（chat 5 件），fixture 全隔离（t.TempDir()+t.Setenv 三 store/库路径定向，零源码树/真实工程写入）。
+- **治理等价性说明（对 evidence 选项 B 草案的一处必要精化，请主管过目）**：草案原文「确认期 server 盖 AuthorizeSemanticPluginSelectionLoad」——该裸章（空 BinaryFingerprint/SubjectKey/ProcessorFamily）**过不了装载门的指纹检查**（harness.go:2298 `auth.BinaryFingerprint == ""` → "binary fingerprint changed before load"；既有 topology 单测注释亦如实承认装载腿死于门下）。故桥盖的是**全字段章**（AuthorizeProcessorSelectionLoad 同值形态，数据自晋升目录服务端解析）——这正是装载工作流确认期 receipt 路径（`pendingPlanExecutionContext`/`semanticTopologyLoadAuthorization` 的 found 分支）所盖的同款章。等价性四点：同一 context key+同一具体值类型；同一门判据零改动（精确匹配+指纹+准入现势全在门内重验）；用户确认触发（非 standing authority）；判断权归属不动（纯执行层授权产生）。
+- **测试（全部退出码 0）**：`go build ./...`=0；`go test ./internal/chat ./internal/harness -count=1`=ok（chat 125.8s / harness 18.8s）；新增 9 件全过：
+  - harness 4：`TestAuthorizeConfirmedAgentLoopLoadPassesGateForPromotedIdentity`（未盖章→门拦"missing non-forgeable exact selection authorization"+内核零派发 → 盖章→**过门** status=ok+内核恰一次且 path/identifier 精确）/`...PinsAdmittedPathForSeparatorVariants`（分隔符变体→钉已晋升路径→过门）/`...FailsClosed`（缺三元组/无晋升/同路径双族歧义/过期指纹四拒）/`...StampBindsExactTrack`（确认后换轨→门拒"exact identifier, path, or track changed"）。
+  - chat 5：`TestAgentLoopLoadBridgeParksUnconfirmedLoadForUserConfirmation`（**未确认→仍拦**：needs_confirmation 停泊+mutation_performed=false+内核零派发+确认卡指名身份）/`TestAgentLoopLoadBridgeStampedConfirmedLoadPassesGate`（**确认→盖章→过门→executed**：内核 rack_add_node 恰一次+已晋升路径+精确 identifier/track）/`...FailsClosedWithoutPromotedAdmission`（无准入：未确认与已确认两方向均拒+零派发）/`...LeavesExplicitFullAccessPathUnchanged`（full-access 面零扰动）/`...LeavesNonManagedShapesToExistingPaths`（身份不全→既有校验如实拒；只读工具不经桥）。
+- **端测边界声明（AGENTS §5）**：本段零真栈——授权桥仅单测+编译级验证（fixture 内造真实临时二进制+晋升准入过门，非本机真实插件库存）；编曲话术常规路径真栈验证（search→rAdd 确认卡→用户确认→过门→executed）留验证腿。**验证腿候栈**（栈队列第 3 位）。
+- **验证腿前置提醒（主管排栈参考）**：真机上音源（VSTi）若无已晋升 PCA 准入，桥会正确 fail-closed（"no current promoted admission"）——真栈腿能否「过门」取决于本机晋升目录是否含目标 instrument 准入；与 277 段 3a（D 路径 full-access）面临同一前置（authorizeFullProjectAccessLoad 同样要求晋升准入）。建议 3a 结果先出，若 3a 也卡在无晋升准入，需主管裁定是否补 instrument 准入晋升（域外）再排 273 验证腿。
+- **停止条件**：未触发（能力轮确认期与装载工作流确认期无语义冲突——桥即工作流确认期语义在执行器面的复刻）。
+- **工件**：无 run 工件（零真栈）；实现+测试即本段工件（分支 `port/arrloop-authbridge-1`）。
 
 ## 验收
 
-- （主管回填）
+- **段 1 轻验（2026-11-07 早窗，主管）：pass（终验待验证腿）**——盖章形态精化**追认**：裸章死于 harness.go:2298 指纹检查（主管亲读门代码验）；桥=服务端晋升目录解析盖全字段章，与既有 G5 full-access 路径同构（差异仅=用户确认触发 vs standing grant），四点等价性成立——执行侧修正卡面技术细节，记良性互动一笔。9 配对单测主管交叉复跑全绿（未确认停泊零派发/确认盖章过门/FailsClosed 四拒/确认后换轨门拒/full-access 零扰动/非托管形态走既有路径）。验证腿候栈第 3 位，**前置=277 段 3a 结果先出**：若 full-access 轮同样卡在无晋升准入，instrument 准入晋升（域外）须先裁定再排 273 验证腿。
+- **PD-4 终局（2026-11-07 午前，用户裁定）**：[准入后置于控制实现](../../decisions/2026-11-07-pca-admission-after-control.md)——instrument 晋升不做数据面补齐；验证腿正向面（确认→盖章→过门）挂链末端=297 渲染取证→298 VSTI-PARAM-PROBE-1 控制实证→带证据准入（届时另卡）→本卡验证腿。fail-closed 负向面已单测覆盖（段 1），不阻塞本卡段 1 验收效力。

@@ -1,0 +1,40 @@
+{
+  "card": "EDU-LEVEL-RUNTIME-B",
+  "leg": "smokerun1 chat-driven jam mount (deterministic, zero LLM)",
+  "stamp": "20261107_104138",
+  "phases": {
+    "fixture": {
+      "track_ids": [
+        "1007",
+        "1010",
+        "1013"
+      ],
+      "clip_id": "1016",
+      "project_path": "D:\\Vit_DAW_wt_281impl\\coord\\runs\\EDU-LEVEL-RUNTIME-B\\smokerun3_20261107_1041\\edu_jam_fixture_project.vit",
+      "note_count": 42,
+      "verified": true
+    },
+    "activation": {
+      "activated": true,
+      "project_path": "D:\\Vit_DAW_wt_281impl\\coord\\runs\\EDU-LEVEL-RUNTIME-B\\smokerun3_20261107_1041\\edu_jam_fixture_project.vit"
+    },
+    "enter_attempts": 1,
+    "chat": {
+      "conversation_id": "edu_jam_smoke_20261107_104138",
+      "turns": 5,
+      "flow": [
+        "开始乐局",
+        "写好了(n0)",
+        "写好了(n1 judge)",
+        "乐局状态",
+        "结束乐局"
+      ]
+    },
+    "zero_llm": {
+      "telemetry_available": true,
+      "llm_rows": 0
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "pass"
+}

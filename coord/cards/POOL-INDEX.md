@@ -26,13 +26,23 @@
 | 271 | CLOSURE-ROUTE-ADAPT-1 | doing（实现轻验 pass；验证腿候便车搭后续 run） |
 | 272 | OBSFACE-SELECTIVE-MISS-1 | done 取证型 pass（前提改写=agent 侧接线错位非 kernel；转卡 274） |
 | 273 | ARRLOOP-AUTHBRIDGE-1 | doing（11-07 早窗重发；零栈段在派，验证腿候栈第 3 位） |
-| 274 | D1D3-DIGEST-WIRING-1 | doing（11-07 早窗发车；零栈先行，真栈回归门搭后续 run） |
-| 275 | B3-ABLATION-1 | todo 可领（零栈腿先行；ps1 腿候 281 合入+273 定形后错峰） |
+| 274 | D1D3-DIGEST-WIRING-1 | done 已验收 pass 合入（相邻两处转卡 292/293） |
+| 275 | B3-ABLATION-1 | doing（段 1 零栈腿回执在案候轻验；ps1 腿候合并窗口与栈窗口） |
+| 292 | MIXBOARD-TRACKKEY-1 | done 已验收 pass 合入（四处同型候选记录→PD） |
+| 293 | WE-MISMATCH-FORENSICS-1 | done 已验收 pass（取证型：设计内披露+物化链无罪+前提证伪；转卡 294；加固挂 PD-6） |
+| 294 | FIXTURE-WE-HYGIENE-1 | done 已验收 pass（三处剔除+离线四情景验证；三休眠行记录接受） |
+| 295 | CAPABILITYPACK-KEYADVERT-1 | done 已验收 pass 合入（A 案宣传面修正） |
+| 296 | D1D3-REGRESS-STACK-1 | todo（rework 重跑一次：D2 断言修正预收；基线=现 main 含 295 修；排 300 之后；blocked 两现开取证卡） |
+| 297 | KERNEL-OFFRENDER-FORENSICS-1 | done 已验收 pass（候选②fail-silent 守卫唯一不可排除；转卡 301 复现；PD-7=by-design 钉死） |
+| 300 | PLUGIN-CONTROL-EVAL-RUNNER-1 | doing（晚窗在派；含 S0+S1-P 授权——deepseek-flash 单模型，用户裁定） |
+| 301 | KERNEL-OFFRENDER-REPRO-1 | todo 可领（守卫留痕+M0-M3 复现；C++ 最小插桩+栈） |
+| 298 | VSTI-PARAM-PROBE-1 | todo 可领（音源参数控制探针=准入后置链②，与 297 可并行；不写 attestation 库） |
+| 299 | PLUGIN-CONTROL-EVAL-PREP-1 | done 已验收 pass（PREP 收口：模型=deepseek-flash 双证+A/B 四锚点污染定位；RUNNER 不含缝可先行，缝+模型矩阵候用户裁定） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
-| 277 | ARR-SRCLOAD-1 | doing（段 1/2 pass；段 3a full-access 出声实证候栈第 2 位；授权桥缝转 273） |
+| 277 | ARR-SRCLOAD-1 | done 已验收 pass 收口（装载链四环节实证；渲染静音=域外内核缺陷转卡 297；**注册链③解锁**） |
 | 279 | EDU-LEVEL-CONTENT-1 | done 已验收 pass 整卡（首个乐局卡定稿+319 项复算） |
 | 280 | EDU-LEVEL-RUNTIME-A | done 已验收 pass（runtime_slots+语义定案两裁定） |
-| 281 | EDU-LEVEL-RUNTIME-B | doing（段 1 轻验 pass；烟测腿 11-07 早窗在派=栈首占） |
+| 281 | EDU-LEVEL-RUNTIME-B | done 已验收 pass 收口（smokerun3 双 0 全相绿；整链合入 a7c23dfe；**乐局线 276→279→280→281 全贯通**） |
 | 239 | M3-LLM-TIMEOUT-ADAPT-1 | done 已验收 pass |
 
 ### 未成卡 backlog
@@ -41,7 +51,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 
 ## 二、三线（乐局/编曲/生成）——按 [11 月三线执行排序](../reports/2026-11-05-nov-three-line-execution-plan.md)（领卡顺序权威）
 
-- **首波收口**：276/279/280 已终验合入；277（段 3a 候栈第 2 位）+281（烟测腿在派=栈首占）在飞；278 等注册链②段 3a 收口后领取；
+- **首波收口**：276/277/279/280 已终验合入（277 早窗收口）；281（修复 1+2 完成，smokerun3 在派=栈占用）在飞；**278 注册链③已解锁可领**（P1 大卡，建议下窗口首排）；
 - 注册链串行：276→277→278→282→283；其余依赖见计划文档卡序表；
 - 外部依赖（用户动作）：裁定 18 终局+写入降级（279 定稿前）/裁定 15 问询通用化（282 前）/Audiveris+music21 部署（286 前）/Suno key（288 前，可选）；
 - 真栈窗口与主线按日协调（§9 一次一个 owner，登记 coord/resources/PC-RUNTIME-STACK.md）。

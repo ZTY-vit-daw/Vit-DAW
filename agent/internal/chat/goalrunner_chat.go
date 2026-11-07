@@ -181,6 +181,15 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		if queueResp, queueHandled := s.handleMixWorkflowQueueChat(ctx, conversationID, mode, userText); queueHandled {
 			return queueResp, true
 		}
+		// EDU-LEVEL-RUNTIME-B: the edu jam deterministic face (enter / status /
+		// advance-check / closure confirm / exit) — same posture as the queue
+		// face above: zero controller ownership, zero routing change (the jam
+		// is an orthogonal overlay, never a routing candidate). Not-handled
+		// turns only count pullback turns and may inject the pullback goal
+		// into chatContext; the jam never steals a conversational turn.
+		if jamResp, jamHandled := s.handleEduJamChat(ctx, conversationID, mode, userText, chatContext); jamHandled {
+			return jamResp, true
+		}
 	} // AGENT-SENDROUTE-SEMANTICS-1: concrete send-structure requests (share
 	// phrasing plus >=2 named source tracks) are deterministic agent faces —
 	// intercept before semantic-entry classification, same posture as the mix

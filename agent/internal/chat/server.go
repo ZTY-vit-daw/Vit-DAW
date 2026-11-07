@@ -30,6 +30,7 @@ import (
 	"vit-daw-agent/internal/config"
 	"vit-daw-agent/internal/contextruntime"
 	"vit-daw-agent/internal/contextruntime/carriers"
+	"vit-daw-agent/internal/edu"
 	"vit-daw-agent/internal/harness"
 	"vit-daw-agent/internal/history"
 	"vit-daw-agent/internal/kernel"
@@ -127,6 +128,10 @@ type Server struct {
 	semanticDynamicAuditions           map[string]*semanticDynamicAuditionRecord
 	pendingTreatments                  map[string]agentloop.MixTreatmentPending
 	freeStateLoops                     map[string]freeStateReasoningLoop
+	// eduJamSessions 是乐局会话态（EDU-LEVEL-RUNTIME-B，freeStateLoop 同型
+	// 会话级覆盖层）；eduJamKernelSendOverride 是乐局读面的测试注入缝。
+	eduJamSessions           map[string]eduJamSession
+	eduJamKernelSendOverride edu.KernelSendFunc
 	loudnessWatchConfig                *loudnesswatch.Config
 	loudnessWatchRestoreDropped        int
 	noteSessionMu                      sync.Mutex
@@ -226,6 +231,12 @@ type projectAgentRuntimeState struct {
 	PendingPanLayoutPlans     map[string]agentloop.PendingPanLayoutPlan     `json:"pending_pan_layout_plans,omitempty"`
 	PendingTreatments         map[string]agentloop.MixTreatmentPending      `json:"pending_treatments,omitempty"`
 	FreeStateLoops            map[string]freeStateReasoningLoop             `json:"free_state_reasoning_loops,omitempty"`
+	// EduJamSessions carries the edu jam session overlay (EDU-LEVEL-RUNTIME-B,
+	// freeStateLoop-precedent landing). Absent on all pre-existing records:
+	// restore leaves zero sessions. Restored sessions re-validate fail-closed
+	// (unknown schema / unloadable level card / jam-state restore rejection
+	// drop the session, counted and logged, never executed).
+	EduJamSessions            map[string]eduJamSession                      `json:"edu_jam_sessions,omitempty"`
 	AudioClosures             map[string]audioclosure.State                 `json:"minimal_audio_closures,omitempty"`
 	ControllerOwners          map[string]orchestrationcontroller.Owner      `json:"orchestration_controller_owners,omitempty"`
 	// RenderProfileBindings carries the render -> delivery-profile binding set
@@ -7680,6 +7691,7 @@ func (s *Server) projectAgentRuntimeStateLocked() projectAgentRuntimeState {
 		PendingMixTicks:       s.pendingMixTicks,
 		PendingTreatments:     s.pendingTreatments,
 		FreeStateLoops:        s.freeStateLoops,
+		EduJamSessions:        s.eduJamSessions,
 		AuthorityMode:         normalizeAuthorityModeOrDefault(s.authorityMode),
 	}
 	if s.audioClosures != nil {
@@ -7882,6 +7894,9 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	s.pendingMixTicks = nonNilMap(state.PendingMixTicks)
 	s.pendingTreatments = nonNilMap(state.PendingTreatments)
 	s.freeStateLoops = foldStaleRestoredFreeStateLoops(nonNilMap(state.FreeStateLoops), now, s.logger)
+	// 乐局会话 restore：无记录（所有既有工程）→ 空覆盖层零行为变化；有记录逐
+	// 会话 fail-closed 重校验（见 restoreEduJamSessionsLocked）。
+	s.eduJamSessions = s.restoreEduJamSessionsLocked(state.EduJamSessions)
 	// AUTHORITY-LOST-1: restoring the durable snapshot must not undo an
 	// in-process explicit selection. A switch (or turn binding) that raced a
 	// persist failure or a not-yet-activated workspace keeps its in-memory
