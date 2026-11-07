@@ -22,4 +22,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 18:33 +0800 / origin/main=ae537693（领取时最新，a93dd97c 后又前进 297/295/278 三笔零栈协调笔）/ owner=GLM 主会话 L2-worker 子代理（ZCode/PC，会话 296regress）/ 分支=port/d1d3-regress-stack-1（worktree=D:\Vit_DAW_wt_296regress）+coord/296-claim（worktree=D:\Vit_DAW_wt_296coord）/ 领取基线：HEAD=ae537693（两 worktree 自 origin/main 新建）、status --short 空、diff --stat 空（零领取前 diff）；在飞卡文件域核对：299=plugin-control 预研（S1 真栈轮不随卡授权）、297=VitApp C++ 内核（零栈先行，复现腿候栈）、295=tools/capability_pack、278=外置引擎烟测自管启停、273=harness（停候栈）、275/271=agent——与本卡文件域（scripts 冒测断言块±工件+卡面）不相交
+- 回执：（执行侧回填）
+- 验收：（主管回填）
