@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<EDIT appVersion="Unknown" projectID="0/a696bc" creationTime="0" modifiedBy="VitHeadlessServer"
+      vit_project_uuid="vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb" lastSignificantChange="1a1b5eeb1ab">
+  <TRANSPORT endToEnd="1" position="0.0"/>
+  <TEMPOSEQUENCE>
+    <TEMPO startBeat="0.0" bpm="120.0" curve="1.0"/>
+    <TIMESIG numerator="4" denominator="4" startBeat="0.0"/>
+  </TEMPOSEQUENCE>
+  <VIDEO/>
+  <CLICKTRACK level="0.6000000238418579"/>
+  <MASTERVOLUME>
+    <PLUGIN type="volume" id="1001" enabled="1" volume="0.6376281516">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+  </MASTERVOLUME>
+  <RACKS>
+    <RACK id="1040" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1041" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-Pro-R-4bc24482-78c01fa6"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="78c01fa6" uid="7fe57fc1" filename="C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-R.vst3"
+                name="Pro-R" manufacturer="FabFilter" id="1043" enabled="1" remapOnTempoChange="1"
+                process="1" state="677.VMjLgvo....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9LCNy3hQEwFVFkjKt3hK1MjKt3hKDUEaYcVUGEldAgGUqE0Qi8FMwjkKt3hKtPUQt3hKt3hKtX2St3hKt3hKt3hK2jFaYw1aO4hKt3xJLkGS4cyPt3hclAkKt3hYq3hKt3RN4UlRtcDTPsxQvjCdxXmM0LjKt3xLO4hKtX1JHc2a2QDQR8DQxUGSogEZ43hKt3hKt3hKt3BTZ8jLGETPt3hKt3hKt3hcO4hKt3hKt3hKt3hZwjGNQAkKt3hKt3hKt3xMC4hKt3hKt3hKt3xa3HVYDQjKt3hKt3hKt3xJt3hKt3hKt3hKt.kVOIyQAEjKt3hKt3hKtX2St3hKt3hKt3hKtnVL4giTP4hKt3hK0I0PXcyPt3hKt3hKt3hYq3hKt3RNCIySoUETt3hKt3xPt3hK2LjKt3BRP4hKtX1Jt3hKtjSZO8lSQAkKt3hZtTmVz7jMC4hKt3hKt3hKlshKt3hKtnVL4gSTP4hKt3hKt3hKtbyPt3hKt3hKt3hYq3hKt3hKpESd3DETt3hKt3hKt3hK2LjKt3hKt3hKtX1Jt3hKt3hZwjGNQAkKt3hKt3hKt3xMC4hKt3hKt3hKlsBT3kDQwLjKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3RPt3hK4LjKt3hKtDjKt3hKD4hKt3hK77RRC8Vav8lak4Fc9vSREQVZzMzatQmbuwFakImOwHiKFkEUYoVPt3hKt3hKt3hKtvyKIUDYoQ2Pu4Fcx8FarUlb9vyKVMEUy.Ea0cVZtMEcgQWY9.."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1043" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1043" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1043" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1043" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1043" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1043" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1047" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1048" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-Pro-R-4bc24482-78c01fa6"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="78c01fa6" uid="7fe57fc1" filename="C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-R.vst3"
+                name="Pro-R" manufacturer="FabFilter" id="1050" enabled="1" remapOnTempoChange="1"
+                process="1" state="677.VMjLgvo....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9LCNy3hQEwFVFkjKt3hK1MjKt3hKDUEaYcVUGEldAgGUqE0Qi8FMwjkKt3hKtPUQt3hKt3hKtX2St3hKlshPt3hK2jFaYw1aO4hKt3xJLkGS4cyPt3hYxAkKt3hYq3hKt3RN4UlRtcDTPsxQvjCdxXmM0LjKt3xLO4hKtX1JHc2a2QDQR8DQxUGSogEZ43hKt3hKt3hKt3BTZ8jLGETPt3hKt3hKt3hcO4hKt3hKt3hKt3hZwjGNQAkKt3hKt3hKt3xMC4hKt3hKt3hKt3xa3HVYDQjKt3hKt3hKt3xJt3hKt3hKt3hKt.kVOIyQAEjKt3hKt3hKtX2St3hKt3hKt3hKtnVL4giTP4hKt3hK0I0PXcyPt3hKt3hKt3hYq3hKt3RNCIySoUETt3hKt3xPt3hK2LjKt3BRP4hKtX1Jt3hKtjSZO8lSQAkKt3hZtTmVz7jMC4hKt3hKt3hKlshKt3hKtnVL4gSTP4hKt3hKt3hKtbyPt3hKt3hKt3hYq3hKt3hKpESd3DETt3hKt3hKt3hK2LjKt3hKt3hKtX1Jt3hKt3hZwjGNQAkKt3hKt3hKt3xMC4hKt3hKt3hKlsBT3kDQwLjKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3hKt3RPt3hK4LjKt3hKtDjKt3hKD4hKt3hK77RRC8Vav8lak4Fc9vSREQVZzMzatQmbuwFakImOwHiKFkEUYoVPt3hKt3hKt3hKtvyKIUDYoQ2Pu4Fcx8FarUlb9vyKVMEUy.Ea0cVZtMEcgQWY9.."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1050" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1050" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1050" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1050" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1050" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1050" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+    <RACK id="1054" name="New Rack">
+      <WINDOWSTATE windowPos=""/>
+      <OUTPUT name="midi output"/>
+      <OUTPUT name="output 1 (left)"/>
+      <OUTPUT name="output 2 (right)"/>
+      <INPUT name="midi input"/>
+      <INPUT name="input 1 (left)"/>
+      <INPUT name="input 2 (right)"/>
+      <MODIFIERS/>
+      <MACROPARAMETERS id="1055" remapOnTempoChange="1"/>
+      <PLUGININSTANCE x="0.3199999928474426" y="0.3199999928474426" plugin_identifier="VST3-Abbey Road Plates Stereo-695648d-5e0a41d9"
+                      vit_zone_id="Z3" vit_clip_scope="track" vit_template_role="other">
+        <PLUGIN type="vst" uniqueId="5e0a41d9" uid="681ca409" filename="C:\Program Files\Common Files\VST3\WaveShell1-VST3 17.1_x64.vst3"
+                name="Abbey Road Plates Stereo" manufacturer="Waves" id="1057"
+                enabled="1" remapOnTempoChange="1" process="1" state="3830.VMjLgztC...O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9HyM1.iKt3hYBwlPt3hKL4hKt3BTt.0cDU0TMcUV5UDQt3halgFVAAiX5c2PTgWUwH1ZQICTtUUagE2YUMESQslXqUkQHESUrIVdqESXzASZHkGRn8jRtHzSPkzUYkWUFMlYyPEVyUkUOgFRBgzQUwVXqkzUZkVTUQlcUY0Sn4RUQ0TTqgTNt4BRlY2PTgWUwH1ZQcjTqUjQYsVRs8jRtHDRlY2PTIWUxj0azv1TmAiUYkCQpgEZUYEYlgDLgcVTFgjTUw1XqkTaXYlKEE1YQcUV4cWdKA0cVMVaqwVXNUjUgsFMoIjYtHDR23RQgAyXVoEcMU0Xn0jdgMWPs8DT2QTUScWdKA0cVMVaqwVXSUUaXMDNVElczjlPl4hPHciKEEFLiYkVzkUUYgWSWoUczv1S2IVZKc2LB0DdyHUS1YWdKA0cVMVaqwVXVUEahk2ZwDFczjlPl4hPHcCQ5gkdqw1Xq0TUYoWUGIVNLUUTTUUQTUVQD8TcDoGV5sFaisVSUkkdUcjX43lKHYlKB8DS3XEVpACUYQWUx.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DbtflRl4lPHAmKnojRtIDRv4BZJYlaBgDbtflRl4lPHAmKnojYtglPv4BZJYlaBgDbtflRl4lPHAmKnojYtIDRv4lYJYlaBgDbtflRl4lPHAmKnojYtIDRv4BZJojaBgDbtflRl4lPHAmKnojYtIDRv4BZJYlanIDbtflRl4lPHAmKnojYtIDRv4BZJYlaBgDbtYlRl4lPHAmKnojYtIDRv4BZJYlaBgDbtflRJ4lPHAmKnojYtIDRv4BZJYlaBgDbtflRl4FZBAmKnojYtIDRv4BZJYlaBgDbtflRl4lPHAmalojYtIDRv4BZJYlaBgDbtflRl4lPHAmKnojRtIDRv4BZJYlaBgDbtflRl4lPHAmKnojYtglPv4BZJYlaBgDbtflRl4lPHAmKnojYtIDRv4lYJYlaBgDbtflRl4lPHAmKnojYtIDRv4BZJojaBgDbtflRl4lPHAmKnojYtIDRv4BZJYlanIDbtflRl4lPHAmKnojYtIDRv4BZJYlaBgDbtYlRl4lPHAmKnojYtIDRv4BZJYlaBgDbtflRJ4lPHAmKnojYtIDRv4BZJYlaBgDbtflRl4FZBAmKnojYtIDRv4BZJYlaBgDbtflRl4lPHAmalojYtIDRv4BZJYlaBgDbtflRl4lPHAmKnojRtIDRv4BZJYlaBgDbtflRl4lPHAmKnojYtglPv4BZJYlaBgDbtflRl4lPHAmKnojYtIDRv4lYJYlaBgDbtflRl4lPHAmKnojYtIDRv4BZJojaBgDbtflRl4lPHAmKnojYtIDRv4BZJYlanIDbtflRl4lPHAmKnojYtIDRv4BZJYlaBgDbtYlRl4lPHAmKnojYtIDRv4BZJYlaBgDbtflRJ4lPHAmKnojYtIDRv4BZJYlaBgDbtflRl4FZBAmKnojYtIDRv4BZJYlaBgDbtflRl4lPHAmalojYtIDRv4BZJYlaBgDbtflRl4lPHAmKnojRtIDRv4BZJYlaBgDbtflRl4lPHAmKnojYtglPv4BZJYlaBgDbtflRl4lPHAmKnojYtIDR14lYMYlKCgjctHDSl4xPHcmKnwDcXMDS14xPLYmKCwjctLDS14xPLYmKC4zLlMDRyQzPMYmKBwjYDMDS14lYJYlaBgDbtflRl4xPHgmKBwjYtLDR14hPLojKCgjctHDSl4xPHYmKBwjYtLDR14hPLYlKoIjctHDSl4xPHYmKBwjYtLDR14hPLYlKCgjct4BSl4xPHYmKBwjYtIDRyA0PNQGSS4DMpMkSzn1TNQiZS4DMpMkSyPUdMQiKRwjYLMDR14BdMIiZowDclMkSzn1TNQiZS4DMpMkSzfUdLECRoIjLtHDSzY1PLYmKCwjctLDS14xPLYmKCwjctLTS5A0TLYlKCgjcyfFSzn1TNQiZS4DMpMkSzn1TNQiZS4zLlMkSl4xPHAmKRwjYHMDR14hTLgmKSwDcpMDS14xPLYmKCwjctLDS14xTNYmZoIDdyfFS14xPLYmKCwjctLDS14xPLYmKSwjLhkVSl4xPHYmKRwTdtH0R2QzPHYmKBwjYtLDR14BZLY2LRwjctLDS14xPLYmKCwjctLDS1QzPMgGQoIjctHDSlQ0PLYlKCgDdtHESlQzPHYmKnojYtj1R1Y1PLYmKCwjctLDS14xPLYmKCwjctLESwf0TMojKCgjctHDSl4xPHYmKBwjYtLDR14hPLQGRCwjctLDS14xPLYmKCwjctLDS14xTLcGQoIzM2HDUmkzUXMWUFM1ZIIiX43lKHYlKB8DT2Y0XssFagMUPWkUZqwVVu0jQV0zcDE0YQcEVlcCZOojKBgzM2HDU3UULhsVTGE0YQcEV43lKHcyMBQEdUEiXqEUaOojc4sDTIcUV4UkQiMzYVMFcyYjUMcGQUgWUVkUNt4xSBs1QhcVSxHlYXUUV30zUZUGMV8DZDkFRlgDUjYWQwHVdvjFR1gjPHU2LoIDOujzPu0Fbu4VYtQmO7jTQjkFcC8lazI2arwVYx4CLtvyKIUDYoQ2Pu4Fcx8FarUlb9vyKVMEUy.Ea0cVZtMEcgQWY9.."
+                base64:layout="99.LETVOUEU..P.BjjSPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..OUEUPUEUSA..ADfPUME.AHPZtQVY3AP.ED......rEVduUGc.DPAEvDHRA..">
+          <MODIFIERASSIGNMENTS/>
+        </PLUGIN>
+      </PLUGININSTANCE>
+      <CONNECTION src="0" dst="1057" srcPin="1" dstPin="1"/>
+      <CONNECTION src="0" dst="1057" srcPin="2" dstPin="2"/>
+      <CONNECTION src="1057" dst="0" srcPin="1" dstPin="1"/>
+      <CONNECTION src="1057" dst="0" srcPin="2" dstPin="2"/>
+      <CONNECTION src="0" dst="1057" srcPin="0" dstPin="0"/>
+      <CONNECTION src="1057" dst="0" srcPin="0" dstPin="0"/>
+    </RACK>
+  </RACKS>
+  <MASTERPLUGINS/>
+  <INPUTDEVICES>
+    <INPUTDEVICE deviceID="all_midi_in" name="All MIDI Ins"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293b" name="Input 1"/>
+    <INPUTDEVICE deviceID="wavein_d7bd293c" name="Input 2"/>
+    <INPUTDEVICE deviceID="midiin_4b684aa" name="SG Device I/O"/>
+    <INPUTDEVICE deviceID="midiin_1683015f" name="StudioRack"/>
+  </INPUTDEVICES>
+  <TRACKCOMPS/>
+  <SCENES/>
+  <PITCHSEQUENCE>
+    <PITCH startBeat="0.0" pitch="60"/>
+  </PITCHSEQUENCE>
+  <VIT_AUDIO_SETTINGS migration_state="stored" defaulted_origin="new_project" schema_version="vit_project_audio_settings.v1"
+                      sample_rate_hz="44100" record_file_type="WAV/BWF" record_bit_depth="16"
+                      pcm_format="int16" internal_processing_format="unknown" import_sample_rate_policy="ask"
+                      import_bit_depth_policy="keep_source" media_copy_policy="reference_original"
+                      channel_import_policy="preserve_interleaved" render_default_sample_rate_hz="44100"
+                      render_default_bit_depth="16" render_default_file_type="WAV"
+                      dither_policy="unknown"/>
+  <ARRANGERTRACK name="Arranger" id="1002"/>
+  <CHORDTRACK name="Chord" id="1003"/>
+  <MARKERTRACK id="1004" name="Marker"/>
+  <TEMPOTRACK name="Global" id="1005">
+    <MODIFIERS/>
+  </TEMPOTRACK>
+  <MASTERTRACK name="Master" id="1006">
+    <MODIFIERS/>
+  </MASTERTRACK>
+  <TRACK id="1007" name="bass" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="bass" start="0.0" length="20.0" offset="0.0" id="1011"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff55ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1008" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1009" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1012" name="drums" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="drums" start="0.0" length="20.0" offset="0.0" id="1016"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff00" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1013" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1014" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1017" name="guitar" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="guitar" start="0.0" length="20.0" offset="0.0" id="1021"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ff55" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1018" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1019" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1022" name="other" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="other" start="0.0" length="20.0" offset="0.0" id="1026"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffaa" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1023" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1024" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1027" name="piano" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="piano" start="0.0" length="20.0" offset="0.0" id="1031"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00ffff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1028" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1029" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1032" name="vocals" vit_import_role="stem" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+         vit_import_media_copy_policy="reference_original">
+    <MODIFIERS/>
+    <CLIPSLOTS/>
+    <AUDIOCLIP name="vocals" start="0.0" length="20.0" offset="0.0" id="1036"
+               source="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+               sync="0" elastiqueMode="0" pan="0.0" colour="ff00aaff" proxyAllowed="1"
+               resamplingQuality="lagrange" vit_import_source_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+               vit_import_insert_file="D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav"
+               vit_import_media_copy_policy="reference_original">
+      <LOOPINFO rootNote="-1" numBeats="40.0" oneShot="0" denominator="4" numerator="4"
+                bpm="0.0" inMarker="0" outMarker="-1"/>
+      <AUTOMATIONCURVES/>
+    </AUDIOCLIP>
+    <PLUGIN type="volume" id="1033" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1034" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+  </TRACK>
+  <TRACK id="1051">
+    <MODIFIERS/>
+    <OUTPUTDEVICES>
+      <DEVICE name="(default audio output)"/>
+    </OUTPUTDEVICES>
+    <CLIPSLOTS/>
+    <PLUGIN type="rack" rackType="1054" id="1056" enabled="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="volume" id="1052" enabled="1" remapOnTempoChange="1">
+      <MODIFIERASSIGNMENTS/>
+    </PLUGIN>
+    <PLUGIN type="level" id="1053" enabled="1"/>
+  </TRACK>
+</EDIT>

@@ -1,0 +1,8 @@
+﻿python.exe : Traceback (most recent call last):
+所在位置 D:\Vit_DAW_wt_300runner\scripts\plugin_control_eval.ps1:191 字符: 5
++     & python @driverArgs 2>&1 | Tee-Object -FilePath $driverLog | Out ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

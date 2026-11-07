@@ -1,0 +1,836 @@
+{
+  "case_id": "T3",
+  "arm": "P",
+  "repeat": 1,
+  "conversation_id": "pce_p_T3_r1_1794056082",
+  "message": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+  "fixture": {
+    "track_id": "1051",
+    "plugin_id": "1057",
+    "plugin_identifier": "VST3-Abbey Road Plates Stereo-695648d-5e0a41d9",
+    "fixture_digest": "c3a1fc472e19e10c"
+  },
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "started_at": "2026-11-07T20:54:44+0800",
+  "exchanges": [
+    {
+      "turn": 1,
+      "sent": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+      "response": {
+        "conversation_id": "pce_p_T3_r1_1794056082",
+        "task_id": "task_1f651edf9bd1d8d5",
+        "goal_id": "goal_68f7153755c36988",
+        "run_id": "run_166f1c6c4ed7c9d0",
+        "slice_id": "slice_aa471d7541311c9e",
+        "original_intent": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+        "reply": "已完成：Track 7 上 Abbey Road Plates Stereo 的 Damper 已从档位 2 改为 7，写入状态为精确（exact），回读显示档位值为 7。\n\n说明：插件级音频探针因该轨道没有音频片段而未能运行，这不影响参数写入与回读验证。如需还原，把 Damper 调回 2 即可，或让我回滚这一步。",
+        "agent_mode": "default",
+        "needs_confirmation": false,
+        "executed_kernel_reply": [
+          {
+            "agent_action_id": "",
+            "command_name": "plugin_grabber_inspect_reverb",
+            "elapsed_ms": 9,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "auxiliary_stages": [],
+              "classification": "predelay_decay_reverb",
+              "confidence": 0.9,
+              "control_topology": {
+                "generation": "rv1t1_0002b7271b503fd7f3ec6011",
+                "schema_version": "reverb-control-topology/v1"
+              },
+              "mapping_source": "generic_structural",
+              "plugin_id": "1057",
+              "reverb_stage": {
+                "capabilities": {
+                  "character": [
+                    "reverb_mode"
+                  ],
+                  "output": [
+                    "dry",
+                    "output_gain",
+                    "wet"
+                  ],
+                  "tail": [
+                    "decay"
+                  ],
+                  "timing": [
+                    "pre_delay"
+                  ]
+                },
+                "character": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoiY2hhcmFjdGVyIiwicm9sZSI6InJldmVyYl9tb2RlIiwicGFyYW1faWQiOiIwIn0.71522235d68f5fa7",
+                    "current_normalized": 0,
+                    "current_text": "Plate A",
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: Plate A / Plate B / Plate C / Plate D",
+                      "unit": "enum"
+                    },
+                    "name": "Plate Selector",
+                    "param_id": "0",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "Plate A",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "Plate B",
+                        "normalized": 0.333333343267441
+                      },
+                      {
+                        "label": "Plate C",
+                        "normalized": 0.666666686534882
+                      },
+                      {
+                        "label": "Plate D",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "reverb_mode"
+                  }
+                ],
+                "output": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6ImRyeSIsInBhcmFtX2lkIjoiZHJ5IGxldmVsIn0.1d4bf896cf525522",
+                    "current_normalized": 0,
+                    "current_text": "-INF dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -12
+                      ],
+                      [
+                        0.5,
+                        -6
+                      ],
+                      [
+                        0.75,
+                        -2.5
+                      ],
+                      [
+                        1,
+                        0
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 0,
+                      "min": -12,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-12~0 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Dry Level",
+                    "param_id": "dry level",
+                    "physical_unit": "dB",
+                    "role": "dry"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6Im91dHB1dF9nYWluIiwicGFyYW1faWQiOiIxMSJ9.39ca240aaef5debb",
+                    "current_normalized": 0.71399998664856,
+                    "current_physical": 0,
+                    "current_text": "0.0 dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -29.9
+                      ],
+                      [
+                        0.5,
+                        -12
+                      ],
+                      [
+                        0.75,
+                        1.5
+                      ],
+                      [
+                        1,
+                        18
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 18,
+                      "min": -29.9,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-29.9~18 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Output Level Left",
+                    "param_id": "11",
+                    "physical_unit": "dB",
+                    "role": "output_gain"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6Im91dHB1dF9nYWluIiwicGFyYW1faWQiOiIxMiJ9.905ee92feabe1a3a",
+                    "current_normalized": 0.71399998664856,
+                    "current_physical": 0,
+                    "current_text": "0.0 dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -29.9
+                      ],
+                      [
+                        0.5,
+                        -12
+                      ],
+                      [
+                        0.75,
+                        1.5
+                      ],
+                      [
+                        1,
+                        18
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 18,
+                      "min": -29.9,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-29.9~18 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Output Level Right",
+                    "param_id": "12",
+                    "physical_unit": "dB",
+                    "role": "output_gain"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6Im91dHB1dF9nYWluIiwicGFyYW1faWQiOiIxMyJ9.470fc933b2dbd57e",
+                    "current_normalized": 1,
+                    "current_text": "On",
+                    "domain": {
+                      "confidence": 0.92,
+                      "max": 1,
+                      "min": 0,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "0~1 toggle",
+                      "unit": "toggle"
+                    },
+                    "name": "Output Link",
+                    "param_id": "13",
+                    "physical_unit": "toggle",
+                    "reachable_values": [
+                      {
+                        "label": "Off",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "On",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "output_gain"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6IndldCIsInBhcmFtX2lkIjoiMTAifQ.31f45e384e47c8ba",
+                    "current_normalized": 1,
+                    "current_physical": 100,
+                    "current_text": "100 %",
+                    "curve": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0.25,
+                        25
+                      ],
+                      [
+                        0.5,
+                        50
+                      ],
+                      [
+                        0.75,
+                        75
+                      ],
+                      [
+                        1,
+                        100
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 100,
+                      "min": 0,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "0~100 %",
+                      "unit": "%"
+                    },
+                    "name": "Dry/Wet",
+                    "param_id": "10",
+                    "physical_unit": "%",
+                    "role": "wet"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoib3V0cHV0Iiwicm9sZSI6IndldCIsInBhcmFtX2lkIjoid2V0IGxldmVsIn0.c01532f7c363c1d7",
+                    "current_normalized": 1,
+                    "current_physical": 0,
+                    "current_text": "+0.0 dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -12
+                      ],
+                      [
+                        0.5,
+                        -6
+                      ],
+                      [
+                        0.75,
+                        -2.5
+                      ],
+                      [
+                        1,
+                        0
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 0,
+                      "min": -12,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-12~0 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Wet Level",
+                    "param_id": "wet level",
+                    "physical_unit": "dB",
+                    "role": "wet"
+                  }
+                ],
+                "stage_key": "reverb",
+                "tail": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.868409500971303f",
+                    "current_normalized": 0.200000002980232,
+                    "current_physical": 2,
+                    "current_text": "2",
+                    "curve": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0.25,
+                        3
+                      ],
+                      [
+                        0.5,
+                        5
+                      ],
+                      [
+                        0.75,
+                        8
+                      ],
+                      [
+                        1,
+                        10
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: 0 / 1 / 2 / 3 / 4 / 5 / 6 / 7",
+                      "unit": "enum"
+                    },
+                    "name": "Damper",
+                    "param_id": "1",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "0",
+                        "normalized": 0,
+                        "physical": 0
+                      },
+                      {
+                        "label": "1",
+                        "normalized": 0.100000001490116,
+                        "physical": 1
+                      },
+                      {
+                        "label": "2",
+                        "normalized": 0.200000002980232,
+                        "physical": 2
+                      },
+                      {
+                        "label": "3",
+                        "normalized": 0.300000011920929,
+                        "physical": 3
+                      },
+                      {
+                        "label": "4",
+                        "normalized": 0.400000005960464,
+                        "physical": 4
+                      },
+                      {
+                        "label": "5",
+                        "normalized": 0.5,
+                        "physical": 5
+                      },
+                      {
+                        "label": "6",
+                        "normalized": 0.600000023841858,
+                        "physical": 6
+                      },
+                      {
+                        "label": "7",
+                        "normalized": 0.699999988079071,
+                        "physical": 7
+                      },
+                      {
+                        "label": "8",
+                        "normalized": 0.800000011920929,
+                        "physical": 8
+                      },
+                      {
+                        "label": "9",
+                        "normalized": 0.900000035762787,
+                        "physical": 9
+                      },
+                      {
+                        "label": "10",
+                        "normalized": 1,
+                        "physical": 10
+                      }
+                    ],
+                    "role": "decay"
+                  }
+                ],
+                "timing": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "reverb",
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGltaW5nIiwicm9sZSI6InByZV9kZWxheSIsInBhcmFtX2lkIjoiNCJ9.8d3646043d8403e7",
+                    "current_normalized": 0,
+                    "current_physical": 0,
+                    "current_text": "0 ms",
+                    "curve": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0.25,
+                        125
+                      ],
+                      [
+                        0.5,
+                        250
+                      ],
+                      [
+                        0.75,
+                        375
+                      ],
+                      [
+                        1,
+                        500
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 500,
+                      "min": 0,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "0~500 ms",
+                      "unit": "ms"
+                    },
+                    "name": "Predelay",
+                    "param_id": "4",
+                    "physical_unit": "ms",
+                    "role": "pre_delay"
+                  }
+                ]
+              },
+              "schema_version": "reverb-control-topology/v1",
+              "status": "ok",
+              "tail_evidence": "plate_damper_family",
+              "track_id": "1051"
+            },
+            "status": "ok",
+            "tool": "plugin_grabber.inspect_reverb",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.inspect_reverb",
+              "command_name": "plugin_grabber_inspect_reverb",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          },
+          {
+            "agent_action_id": "",
+            "command_name": "plugin_grabber_apply_reverb_controls",
+            "elapsed_ms": 5,
+            "error": "unit_role_mismatch: decay cannot be written with display against observed domain unit \"enum\"",
+            "preview": "",
+            "result": {
+              "failed_control_index": 0,
+              "message": "unit_role_mismatch: decay cannot be written with display against observed domain unit \"enum\"",
+              "rejection_code": "unit_role_mismatch",
+              "status": "rejected"
+            },
+            "status": "error",
+            "tool": "plugin_grabber.apply_reverb_controls",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.apply_reverb_controls",
+              "command_name": "plugin_grabber_apply_reverb_controls",
+              "status": "failed",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "unit_role_mismatch: decay cannot be written with display against observed domain unit \"enum\""
+            }
+          },
+          {
+            "agent_action_id": "",
+            "command_name": "plugin_grabber_apply_reverb_controls",
+            "elapsed_ms": 219,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "atomic": true,
+              "controls": [
+                {
+                  "actual_readback": [
+                    {
+                      "channel": "shared",
+                      "normalized": 0.699999988079071,
+                      "param_id": "1",
+                      "physical": null,
+                      "role": "decay",
+                      "value_text": "7"
+                    }
+                  ],
+                  "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.868409500971303f",
+                  "requested": {
+                    "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.868409500971303f",
+                    "enum_label": "7"
+                  },
+                  "role": "decay",
+                  "section": "tail",
+                  "stage_key": "reverb",
+                  "status": "exact"
+                }
+              ],
+              "fxm_probe": {
+                "family": "reverb",
+                "plugin_id": "1057",
+                "reason": "probe_send_failed: timefx_dual_tap_probe requires an audio clip on the target track",
+                "status": "failed",
+                "track_id": "1051"
+              },
+              "plugin_id": "1057",
+              "restore_ref": "rvrr1_eyJraW5kIjoicmV2ZXJiX3Jlc3RvcmVfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJ2YWx1ZXMiOlt7InBhcmFtX2lkIjoiMSIsIm5vcm1hbGl6ZWQiOjAuMjAwMDAwMDAyOTgwMjMyLCJyb2xlIjoiZGVjYXkifV19.888a5b202a5adb57",
+              "rollback": {
+                "on_failure": "full_preimage",
+                "verified": true
+              },
+              "status": "exact",
+              "topology_generation": "rv1t1_0002b7271b503fd7f3ec6011",
+              "track_id": "1051",
+              "writes": [
+                {
+                  "actual_label": "7",
+                  "actual_normalized": 0.699999988079071,
+                  "channel": "shared",
+                  "param_id": "1",
+                  "quantized": false,
+                  "requested_label": "7",
+                  "requested_normalized": 0.699999988079071,
+                  "role": "decay"
+                }
+              ]
+            },
+            "status": "ok",
+            "tool": "plugin_grabber.apply_reverb_controls",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.apply_reverb_controls",
+              "command_name": "plugin_grabber_apply_reverb_controls",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          }
+        ],
+        "project_result_cards": [
+          {
+            "executions": [
+              {
+                "agent_action_id": "",
+                "command_name": "plugin_grabber_apply_reverb_controls",
+                "elapsed_ms": 219,
+                "error": "",
+                "observed_state": true,
+                "preview": "",
+                "result": {
+                  "atomic": true,
+                  "controls": [
+                    {
+                      "actual_readback": [
+                        {
+                          "channel": "shared",
+                          "normalized": 0.699999988079071,
+                          "param_id": "1",
+                          "physical": null,
+                          "role": "decay",
+                          "value_text": "7"
+                        }
+                      ],
+                      "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.868409500971303f",
+                      "requested": {
+                        "control_ref": "rvcr1_eyJraW5kIjoicmV2ZXJiX2NvbnRyb2xfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJzdGFnZV9rZXkiOiJyZXZlcmIiLCJzZWN0aW9uIjoidGFpbCIsInJvbGUiOiJkZWNheSIsInBhcmFtX2lkIjoiMSJ9.868409500971303f",
+                        "enum_label": "7"
+                      },
+                      "role": "decay",
+                      "section": "tail",
+                      "stage_key": "reverb",
+                      "status": "exact"
+                    }
+                  ],
+                  "fxm_probe": {
+                    "family": "reverb",
+                    "plugin_id": "1057",
+                    "reason": "probe_send_failed: timefx_dual_tap_probe requires an audio clip on the target track",
+                    "status": "failed",
+                    "track_id": "1051"
+                  },
+                  "plugin_id": "1057",
+                  "restore_ref": "rvrr1_eyJraW5kIjoicmV2ZXJiX3Jlc3RvcmVfcmVmLnYxIiwidHJhY2tfaWQiOiIxMDUxIiwicGx1Z2luX2lkIjoiMTA1NyIsImdlbmVyYXRpb24iOiJydjF0MV8wMDAyYjcyNzFiNTAzZmQ3ZjNlYzYwMTEiLCJ2YWx1ZXMiOlt7InBhcmFtX2lkIjoiMSIsIm5vcm1hbGl6ZWQiOjAuMjAwMDAwMDAyOTgwMjMyLCJyb2xlIjoiZGVjYXkifV19.888a5b202a5adb57",
+                  "rollback": {
+                    "on_failure": "full_preimage",
+                    "verified": true
+                  },
+                  "status": "exact",
+                  "topology_generation": "rv1t1_0002b7271b503fd7f3ec6011",
+                  "track_id": "1051",
+                  "writes": [
+                    {
+                      "actual_label": "7",
+                      "actual_normalized": 0.699999988079071,
+                      "channel": "shared",
+                      "param_id": "1",
+                      "quantized": false,
+                      "requested_label": "7",
+                      "requested_normalized": 0.699999988079071,
+                      "role": "decay"
+                    }
+                  ]
+                },
+                "status": "ok",
+                "tool": "plugin_grabber.apply_reverb_controls",
+                "tool_call_id": "tool_step_1",
+                "undo_label": "",
+                "verification": {
+                  "tool_call_id": "tool_step_1",
+                  "tool": "plugin_grabber.apply_reverb_controls",
+                  "command_name": "plugin_grabber_apply_reverb_controls",
+                  "status": "not_required",
+                  "postcondition": "no_observable_daw_postcondition",
+                  "message": "tool result recorded; no additional DAW state postcondition is required"
+                }
+              }
+            ],
+            "id": "project_result_tool_step_1",
+            "kind": "project_result",
+            "target": {
+              "can_audition": true,
+              "plugin_id": "1057",
+              "track_id": "1051"
+            },
+            "type": "project_result"
+          }
+        ],
+        "goal_status": "completed",
+        "goal_summary": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+        "completed_steps": 2,
+        "stop_reason": "done",
+        "project_history": {
+          "active_branch": "main",
+          "active_node_id": "n_20261107T125500_a792f154",
+          "active_worktree": "",
+          "available": true,
+          "branches": {
+            "main": "c_20261107T125442_3d71699a"
+          },
+          "commit_count": 4,
+          "conversation_messages": [
+            {
+              "content": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+              "logical_message_id": "n_20261107T125444_8ab83013",
+              "message_kind": "user",
+              "node_id": "n_20261107T125444_8ab83013",
+              "role": "user"
+            },
+            {
+              "content": "已完成：Track 7 上 Abbey Road Plates Stereo 的 Damper 已从档位 2 改为 7，写入状态为精确（exact），回读显示档位值为 7。\n\n说明：插件级音频探针因该轨道没有音频片段而未能运行，这不影响参数写入与回读验证。如需还原，把 Damper 调回 2 即可，或让我回滚这一步。",
+              "logical_message_id": "n_20261107T125500_a792f154",
+              "message_kind": "execution_receipt",
+              "node_id": "n_20261107T125500_a792f154",
+              "role": "assistant"
+            }
+          ],
+          "detached": false,
+          "draft": false,
+          "head": "c_20261107T125442_3d71699a",
+          "initialized": true,
+          "project_label": "Unsaved",
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit",
+          "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+          "refs": {
+            "refs/heads/main": "c_20261107T125442_3d71699a"
+          },
+          "root_project_path": "",
+          "unsaved": false,
+          "warnings": [],
+          "worktrees": [
+            {
+              "commit_id": "c_20261107T125442_3d71699a",
+              "created_at": "2026-11-07T12:55:00.3998575Z",
+              "is_root": true,
+              "label": "主工作树",
+              "name": "main",
+              "origin_commit_id": "c_20261107T125442_3d71699a",
+              "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201",
+              "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit",
+              "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit",
+              "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit"
+            }
+          ]
+        },
+        "lifecycle": "durable",
+        "persistence": "project_history",
+        "message_kind": "execution_receipt",
+        "turn_id": "turn_a7f16176612b116a",
+        "logical_message_id": "n_20261107T125500_a792f154"
+      }
+    }
+  ],
+  "confirmations": [],
+  "stop_reason": "goal_completed",
+  "first_action": null,
+  "agent_log_delta": "\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"1056\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:plugin_identifier\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:vit_zone_id\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:vit_clip_scope\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:vit_template_role\"\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"1057\" action=\"property_changed:state\"\n2026-11-07T20:54:44 [WARN] [shadow] delta seq gap #3 last=132 current=134\n2026-11-07T20:54:44 [DEBUG] [shadow] live delta uid=\"0/a696bc\" action=\"property_changed:lastSignificantChange\"\n2026-11-07T20:54:44 [WARN] [telemetry] delta seq gap last=132 current=134\n2026-11-07T20:54:45 [INFO] [shadow] initialized tracks=7 project_path=\"\" replayed_deltas=4\n2026-11-07T20:54:45 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=11\n2026-11-07T20:54:47 [WARN] VSP realtime publish pending failures=21 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:54:47 [WARN] VSP realtime publish pending failures=21 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:54:48 [INFO] [timing] message_loop.llm ms=1880 goal=goal_68f7153755c36988 conversation=pce_p_T3_r1_1794056082 turn=1 messages=3 chars=75203 message_chars=0:system:52673,1:user:37,2:user:22493 err=false\n2026-11-07T20:54:50 [INFO] [timing] message_loop.tool ms=9 goal=goal_68f7153755c36988 tool=plugin_grabber_inspect_reverb confirmed=false stopped=false status=\n2026-11-07T20:54:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:54:52 [INFO] [timing] message_loop.llm ms=2428 goal=goal_68f7153755c36988 conversation=pce_p_T3_r1_1794056082 turn=3 messages=5 chars=91470 message_chars=0:system:52673,1:user:37,2:assistant:236,3:user:2417,4:user:36107 err=false\n2026-11-07T20:54:53 [WARN] VSP realtime publish pending failures=24 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:54:53 [WARN] VSP realtime publish pending failures=24 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:54:54 [INFO] [timing] message_loop.tool ms=5 goal=goal_68f7153755c36988 tool=plugin_grabber.apply_reverb_controls confirmed=false stopped=false status=\n2026-11-07T20:54:58 [INFO] [timing] message_loop.llm ms=3440 goal=goal_68f7153755c36988 conversation=pce_p_T3_r1_1794056082 turn=5 messages=7 chars=90830 message_chars=0:system:52673,1:user:37,2:assistant:236,3:user:2417,4:assistant:520,5:user:1787,6:user:33160 err=false\n2026-11-07T20:54:58 [INFO] [timing] message_loop.tool ms=219 goal=goal_68f7153755c36988 tool=plugin_grabber.apply_reverb_controls confirmed=false stopped=false status=\n2026-11-07T20:54:58 [DEBUG] [shadow] live delta uid=\"1057\" action=\"property_changed:state\"\n2026-11-07T20:54:58 [DEBUG] [shadow] live delta uid=\"0/a696bc\" action=\"property_changed:lastSignificantChange\"\n2026-11-07T20:54:58 [DEBUG] [shadow] live delta uid=\"0/a696bc\" action=\"property_changed:lastSignificantChange\"\n2026-11-07T20:54:59 [WARN] VSP realtime publish pending failures=27 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:55:00 [WARN] VSP realtime publish pending failures=27 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:55:00 [INFO] [timing] message_loop.llm ms=1859 goal=goal_68f7153755c36988 conversation=pce_p_T3_r1_1794056082 turn=6 messages=9 chars=103150 message_chars=0:system:52673,1:user:37,2:assistant:236,3:user:2417,4:assistant:520,5:user:1787,6:assistant:535,7:user:3190,8:user:41755 err=false\n2026-11-07T20:55:00 [INFO] [continuation.arm] conversation=pce_p_T3_r1_1794056082 goal=goal_68f7153755c36988 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false\n2026-11-07T20:55:00 [INFO] [timing] agent_loop_chat total_ms=15321 conversation=pce_p_T3_r1_1794056082 goal=goal_68f7153755c36988 mode=default status=completed stop=done completed_steps=2 executed=3\n2026-11-07T20:55:00 [INFO] [media_refs] ms=0 conversation=pce_p_T3_r1_1794056082 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=true artifacts=0\n2026-11-07T20:55:00 [INFO] [vit_checkpoint] async checkpoint launched project=C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit revision=11\n2026-11-07T20:55:00 [INFO] [chat.artifacts] conversation=pce_p_T3_r1_1794056082 response_artifacts=0 request_artifacts=0 executed=3 reply_len=343",
+  "tool_calls": 0,
+  "usage": {
+    "available": true,
+    "llm_calls": 7,
+    "input_tokens": 103406,
+    "output_tokens": 2250,
+    "cache_read_tokens": 52352,
+    "cache_creation_tokens": 0,
+    "max_input_in_one_call": 30229,
+    "max_output_in_one_call": 584,
+    "errors": 0
+  },
+  "mutation_audit": [
+    {
+      "param_id": "1",
+      "kind": "value_changed",
+      "before": {
+        "value_text": "2",
+        "normalized_value": 0.200000002980232
+      },
+      "after": {
+        "value_text": "7",
+        "normalized_value": 0.699999988079071
+      }
+    }
+  ],
+  "boundary_check": {
+    "case_track_present": true,
+    "track_count": null
+  },
+  "behavior_tags": [],
+  "verdict": {
+    "case_id": "T3",
+    "arm": "P",
+    "final_verdict": "pass",
+    "failure_tags": [],
+    "checks": {
+      "label_exact": {
+        "ok": true,
+        "detail": {
+          "label": "7",
+          "want": "7"
+        }
+      },
+      "normalized_in_tolerance": {
+        "ok": true,
+        "detail": {
+          "normalized": 0.699999988079071,
+          "needle": 0.7
+        }
+      },
+      "non_target_unchanged": {
+        "ok": true,
+        "detail": []
+      }
+    },
+    "mutation_count": 1,
+    "changes": [
+      {
+        "param_id": "1",
+        "kind": "value_changed",
+        "before": {
+          "value_text": "2",
+          "normalized_value": 0.200000002980232
+        },
+        "after": {
+          "value_text": "7",
+          "normalized_value": 0.699999988079071
+        }
+      }
+    ]
+  },
+  "finished_at": "2026-11-07T20:55:00+0800"
+}

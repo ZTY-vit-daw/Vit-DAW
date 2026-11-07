@@ -1,0 +1,36 @@
+{
+  "schema_version": "plugin_control_eval_case_freeze.v1",
+  "cases_digest": "e1a98a8d00819377becbd50bb34f3f8b5cf8debb0f573e6fc57006ccd23c6a7e",
+  "s0_all_verified": false,
+  "allowance_set": {},
+  "known_op_expectations_observed": {
+    "T1": {
+      "6": {
+        "value_text": "35.0%",
+        "normalized_value": 0.349999994039536
+      }
+    },
+    "T2": {
+      "1": {
+        "value_text": "50.00%",
+        "normalized_value": 0
+      }
+    },
+    "T3": {
+      "1": {
+        "value_text": "7",
+        "normalized_value": 0.699999988079071
+      }
+    },
+    "T4": null,
+    "T5": {
+      "2": {
+        "value_text": "60",
+        "normalized_value": 0.300000011920929
+      }
+    },
+    "T6": {
+      "param_count": 5
+    }
+  }
+}

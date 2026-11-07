@@ -1,0 +1,455 @@
+2026-11-07T20:19:05 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-07T20:19:05 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-07T20:19:05 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-07T20:19:05 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-07T20:19:05 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-07T20:19:05 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-07T20:19:05 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-07T20:19:05 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T20:19:05 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-07T20:19:05 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T20:19:05 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T20:19:05 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-11-07T20:19:05 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T20:19:05 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T20:19:06 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T20:19:06 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-07T20:19:06 [INFO] [media_refs] ms=0 conversation=dev_range_context_20261107_201906 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-07T20:19:06 [INFO] [chat.artifacts] conversation=dev_range_context_20261107_201906 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-11-07T20:19:06 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-07T20:19:06 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-07T20:19:06 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_201902\\agent_drafts\\draft_20261107T121906_4be26cd0\\Unsaved.vit" uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-07T20:19:06 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-07T20:19:06 [INFO] [timing] http.chat total_ms=581 conversation=dev_range_context_20261107_201906 message_len=20
+2026-11-07T20:19:07 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:07 [INFO] [timing] kernel.send_command ms=8 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-07T20:19:07 [INFO] [timing] harness.invoke total_ms=15 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-07T20:19:07 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-11-07T20:19:07 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-07T20:19:07 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1037" action="property_changed:id"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-07T20:19:07 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=add_audio_track err=false
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-07T20:19:07 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:07 [INFO] [timing] harness.refresh_shadow ms=17 reason=add_audio_track status=ok err=false
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-07T20:19:07 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:07 [INFO] [timing] kernel.send_command ms=56 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1037" action="node_added"
+2026-11-07T20:19:07 [INFO] [timing] harness.invoke total_ms=69 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1038" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1039" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1038" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1037" action="property_changed:name"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1037" action="property_changed:name"
+2026-11-07T20:19:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1040" action="property_changed:name"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1040" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1041" action="property_changed:id"
+2026-11-07T20:19:07 [INFO] [timing] kernel.send_command ms=29 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:07 [DEBUG] [shadow] live delta uid="1041" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1042" action="node_added"
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=46 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1043" action="property_changed:state"
+2026-11-07T20:19:08 [WARN] [shadow] delta seq gap #1 last=40 current=42
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:08 [WARN] [telemetry] delta seq gap last=40 current=42
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:08 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=set_plugin_param err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:08 [INFO] [timing] harness.refresh_shadow ms=15 reason=set_plugin_param status=ok err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:08 [INFO] [timing] kernel.send_command ms=47 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=53 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [timing] kernel.send_command ms=27 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=34 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1043" action="property_changed:state"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:08 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=set_plugin_param err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:08 [INFO] [timing] harness.refresh_shadow ms=16 reason=set_plugin_param status=ok err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:08 [INFO] [timing] kernel.send_command ms=49 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=60 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [timing] kernel.send_command ms=29 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=38 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1037" action="node_removed"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:08 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=delete_track err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:08 [INFO] [timing] harness.refresh_shadow ms=13 reason=delete_track status=ok err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:08 [INFO] [timing] kernel.send_command ms=43 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=54 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1044" action="property_changed:id"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-07T20:19:08 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=add_audio_track err=false
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:08 [INFO] [timing] harness.refresh_shadow ms=22 reason=add_audio_track status=ok err=false
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:08 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=7
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-07T20:19:08 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:08 [INFO] [timing] kernel.send_command ms=66 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1044" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1045" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1046" action="node_added"
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=82 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1045" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1044" action="property_changed:name"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1044" action="property_changed:name"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1047" action="property_changed:name"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:08 [INFO] [timing] kernel.send_command ms=32 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1047" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-07T20:19:08 [INFO] [timing] harness.invoke total_ms=51 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1048" action="property_changed:id"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1048" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1049" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="1050" action="property_changed:state"
+2026-11-07T20:19:08 [WARN] [shadow] delta seq gap #2 last=85 current=87
+2026-11-07T20:19:08 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:09 [WARN] [telemetry] delta seq gap last=85 current=87
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:09 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=set_plugin_param err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:09 [INFO] [timing] harness.refresh_shadow ms=13 reason=set_plugin_param status=ok err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:09 [INFO] [timing] kernel.send_command ms=45 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [timing] harness.invoke total_ms=54 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [timing] kernel.send_command ms=38 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [timing] harness.invoke total_ms=44 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1050" action="property_changed:state"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:09 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=set_plugin_param err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:09 [INFO] [timing] harness.refresh_shadow ms=15 reason=set_plugin_param status=ok err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:09 [INFO] [timing] kernel.send_command ms=49 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [timing] harness.invoke total_ms=58 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [timing] kernel.send_command ms=30 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [timing] harness.invoke total_ms=43 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1044" action="node_removed"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:09 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=delete_track err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:09 [INFO] [timing] harness.refresh_shadow ms=13 reason=delete_track status=ok err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:09 [INFO] [timing] kernel.send_command ms=43 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-07T20:19:09 [INFO] [timing] harness.invoke total_ms=55 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1051" action="property_changed:id"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-07T20:19:09 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=add_audio_track err=false
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:09 [INFO] [timing] harness.refresh_shadow ms=17 reason=add_audio_track status=ok err=false
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-07T20:19:09 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:09 [INFO] [timing] kernel.send_command ms=51 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1051" action="node_added"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1052" action="node_added"
+2026-11-07T20:19:09 [INFO] [timing] harness.invoke total_ms=66 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1053" action="node_added"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1052" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1051" action="property_changed:name"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:09 [DEBUG] [shadow] live delta uid="1051" action="property_changed:name"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="1054" action="property_changed:name"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:10 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=3
+2026-11-07T20:19:10 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=13
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:10 [INFO] [timing] kernel.send_command ms=9 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="1054" action="node_added"
+2026-11-07T20:19:10 [INFO] [timing] harness.invoke total_ms=37 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="1055" action="property_changed:id"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="1055" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="1056" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:10 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1057" action="property_changed:state"
+2026-11-07T20:19:11 [WARN] [shadow] delta seq gap #3 last=131 current=133
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:11 [WARN] [telemetry] delta seq gap last=131 current=133
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:11 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T20:19:11 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1057" action="property_changed:state"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:11 [INFO] [timing] kernel.send_command ms=8 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:11 [INFO] [timing] harness.invoke total_ms=13 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1057" action="property_changed:state"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:11 [INFO] [timing] kernel.send_command ms=8 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:11 [INFO] [timing] harness.invoke total_ms=19 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:11 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1051" action="node_removed"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:11 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=delete_track err=false
+2026-11-07T20:19:11 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:11 [INFO] [timing] harness.refresh_shadow ms=15 reason=delete_track status=ok err=false
+2026-11-07T20:19:11 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:11 [INFO] [timing] kernel.send_command ms=47 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-07T20:19:11 [INFO] [timing] harness.invoke total_ms=54 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-07T20:19:11 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:11 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:11 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=14
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1058" action="property_changed:id"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-07T20:19:11 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=add_audio_track err=false
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-07T20:19:11 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:11 [INFO] [timing] harness.refresh_shadow ms=19 reason=add_audio_track status=ok err=false
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-07T20:19:11 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:11 [INFO] [timing] kernel.send_command ms=56 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1058" action="node_added"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1059" action="node_added"
+2026-11-07T20:19:11 [INFO] [timing] harness.invoke total_ms=72 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1060" action="node_added"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1059" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1058" action="property_changed:name"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:11 [DEBUG] [shadow] live delta uid="1058" action="property_changed:name"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1061" action="property_changed:name"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=8 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=29 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1061" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1062" action="property_changed:id"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1062" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1063" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1064" action="property_changed:state"
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:12 [WARN] [shadow] delta seq gap #4 last=179 current=181
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:12 [WARN] [telemetry] delta seq gap last=179 current=181
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1058" action="node_removed"
+2026-11-07T20:19:12 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=delete_track err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:12 [INFO] [timing] harness.refresh_shadow ms=21 reason=delete_track status=ok err=false
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=63 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=75 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1065" action="property_changed:id"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=add_audio_track err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:12 [INFO] [timing] harness.refresh_shadow ms=23 reason=add_audio_track status=ok err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=61 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1065" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1066" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1067" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=77 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1066" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1065" action="property_changed:name"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1065" action="property_changed:name"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1068" action="property_changed:name"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=11 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=28 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1068" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1069" action="property_changed:id"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1069" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1070" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=15 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=37 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1071" action="property_changed:state"
+2026-11-07T20:19:12 [WARN] [shadow] delta seq gap #5 last=222 current=224
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=8 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:12 [WARN] [telemetry] delta seq gap last=222 current=224
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=27 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1065" action="node_removed"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:12 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=delete_track err=false
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:12 [INFO] [timing] harness.refresh_shadow ms=18 reason=delete_track status=ok err=false
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=58 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=70 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1072" action="property_changed:id"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=add_audio_track err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:12 [INFO] [timing] harness.refresh_shadow ms=27 reason=add_audio_track status=ok err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-07T20:19:12 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-07T20:19:12 [INFO] [timing] kernel.send_command ms=73 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1072" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1073" action="node_added"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1074" action="node_added"
+2026-11-07T20:19:12 [INFO] [timing] harness.invoke total_ms=95 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1073" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1072" action="property_changed:name"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:12 [DEBUG] [shadow] live delta uid="1072" action="property_changed:name"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="1075" action="property_changed:name"
+2026-11-07T20:19:13 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=3
+2026-11-07T20:19:13 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=22
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:13 [INFO] [timing] kernel.send_command ms=3 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-07T20:19:13 [INFO] [timing] harness.invoke total_ms=25 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="1075" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="1076" action="property_changed:id"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="1076" action="property_changed:remapOnTempoChange"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="1077" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-07T20:19:13 [INFO] [timing] kernel.send_command ms=5 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:13 [INFO] [timing] harness.invoke total_ms=35 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-07T20:19:13 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="1078" action="property_changed:state"
+2026-11-07T20:19:13 [WARN] [shadow] delta seq gap #6 last=265 current=267
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:13 [WARN] [telemetry] delta seq gap last=265 current=267
+2026-11-07T20:19:13 [INFO] [timing] kernel.vsp_state_snapshot ms=11 reason=delete_track err=false
+2026-11-07T20:19:13 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:13 [INFO] [timing] harness.refresh_shadow ms=25 reason=delete_track status=ok err=false
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="1072" action="node_removed"
+2026-11-07T20:19:13 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-07T20:19:13 [INFO] [timing] kernel.send_command ms=101 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-07T20:19:13 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-07T20:19:13 [INFO] [timing] harness.invoke total_ms=124 tool=track.delete command=delete_track status=ok confirmed=true err=false

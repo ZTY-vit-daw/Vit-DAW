@@ -1,0 +1,50 @@
+{
+  "schema_version": "plugin_control_eval_s0_report.v1",
+  "card": "PLUGIN-CONTROL-EVAL-RUNNER-1",
+  "cases_digest": "bdfe18a7ec23007775a2910b69e55dc5d157757f5983f65252faa041555fafd0",
+  "generated_at": "2026-11-07T20:14:39+0800",
+  "cases": [
+    {
+      "case_id": "T1",
+      "fixture": {
+        "track_id": "1037",
+        "plugin_id": "1043"
+      },
+      "fixture_digest": "46434b393c8ced28",
+      "side_changes_on_write": [],
+      "restore_verified": true,
+      "observed": {
+        "6": {
+          "value_text": "35.0%",
+          "normalized_value": 0.349999994039536
+        }
+      },
+      "status": "verified"
+    },
+    {
+      "case_id": "T2",
+      "fixture": {
+        "track_id": "1044",
+        "plugin_id": "1050"
+      },
+      "fixture_digest": "46434b393c8ced28",
+      "side_changes_on_write": [],
+      "restore_verified": true,
+      "observed": {
+        "1": {
+          "value_text": "50.00%",
+          "normalized_value": 0
+        }
+      },
+      "status": "verified"
+    },
+    {
+      "case_id": "T3",
+      "status": "environment_interrupt",
+      "error": "set_plugin_param: status='error' error='typed_limiter_surface_unavailable: cannot prove this parameter is outside the typed limiter surface: unresolved_limiter_surface: no provable supported limiter stage/control-path topology'"
+    }
+  ],
+  "allowance_set": {},
+  "freeze_version": "s0",
+  "all_verified": false
+}

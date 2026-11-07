@@ -1,0 +1,39 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-RUNNER-1",
+    "leg":  "s0",
+    "run_id":  "20261107_202800",
+    "repo_head":  "c10295ac74d78a96f6afc99b7db06bea75f3de66",
+    "branch":  "port/plugin-control-eval-runner-1",
+    "started_at":  "2026-11-07T20:28:00.4584232+08:00",
+    "sec8_decl":  "zero LLM; success = six cases verified (known-op reachable, enum/unit interpretation correct, readback+restore valid, T4 allowance frozen, T6 unsatisfiable re-confirmed); failure classes fixture_failure / environment_interrupt; stop-loss = same-signature fixture failure twice -\u003e forensic card",
+    "agent_http":  "http://127.0.0.1:7878",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        2876
+                                    ],
+                       "VitApp":  [
+                                      26252
+                                  ]
+                   },
+    "agent_sha256":  "A3234FBA9FD70FEBD2C139EABD2C074744C055D46610E534AB437BF356025823",
+    "driver_exit":  1,
+    "run_root":  "D:\\Vit_DAW_wt_300runner\\coord\\runs\\PLUGIN-CONTROL-EVAL-RUNNER-1\\s0_20261107_202800",
+    "verdict":  "driver_failed",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-07T20:28:17.9503463+08:00"
+}

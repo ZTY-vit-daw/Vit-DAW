@@ -1,0 +1,1296 @@
+{
+  "case_id": "T6",
+  "arm": "P",
+  "repeat": 1,
+  "conversation_id": "pce_p_T6_r1_1794056242",
+  "message": "请把 IR-L 混响的衰减时间设为 2 秒。",
+  "fixture": {
+    "track_id": "1072",
+    "plugin_id": "1078",
+    "plugin_identifier": "VST3-IR-L full Stereo-695648d-3d0f4252",
+    "fixture_digest": "965c4ed6917b49dc"
+  },
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "started_at": "2026-11-07T20:57:22+0800",
+  "exchanges": [
+    {
+      "turn": 1,
+      "sent": "请把 IR-L 混响的衰减时间设为 2 秒。",
+      "response": {
+        "conversation_id": "pce_p_T6_r1_1794056242",
+        "task_id": "task_37b3dd42255912bf",
+        "goal_id": "goal_71bf972ce81d1580",
+        "run_id": "run_7b86640a35d9ac5f",
+        "slice_id": "slice_367afb6b7e32cdc3",
+        "original_intent": "请把 IR-L 混响的衰减时间设为 2 秒。",
+        "reply": "结论：没法把 IR-L 的衰减时间设为 2 秒——这个插件在当前宿主环境里根本没有暴露“衰减时间/Decay/RT60”这个参数，所以没有可写入的目标。\n\n证据：Track 7 上的 IR-L full Stereo（VST3，已启用）当前可读到的参数一共只有 5 个：Dry Level、Wet Level、Wet-Dry、Gain、Bypass。其中没有任何时间类参数（如 Decay、Time、Length、RT60）。我也尝试走混响专用控制通道去解析它的控制拓扑，被明确拒绝（无法证明存在受支持的混响控制路径），这和上面的参数表一致。\n\n限制：IR-L 是卷积混响，混响长度由载入的脉冲响应（IR）本身决定，插件通常不提供可调的衰减时间参数；在这个工程里它确实只暴露了干湿、电平、旁通这几项。因此“2 秒衰减”不能通过参数写入实现。\n\n建议：\n1) 在这个插件上只能调干湿与电平（Wet-Dry / Wet Level / Gain），我可以按需要的湿声比例帮你设；\n2) 如果目标就是要 2 秒左右的尾巴，更合适的做法是换用参数型混响（例如 Pro-R，可调 Decay Rate/时间），或换一个时长接近 2 秒的 IR 载入 IR-L；\n3) 说一声你选哪条，我再动手。本轮我没有对任何参数做修改。",
+        "agent_mode": "default",
+        "needs_confirmation": false,
+        "executed_kernel_reply": [
+          {
+            "agent_action_id": "",
+            "command_name": "plugin_grabber_inspect_reverb",
+            "elapsed_ms": 2,
+            "error": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology",
+            "preview": "",
+            "result": {
+              "code": "unresolved_reverb_surface",
+              "plugin_id": "1078",
+              "status": "rejected",
+              "track_id": "1072"
+            },
+            "status": "error",
+            "tool": "plugin_grabber.inspect_reverb",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.inspect_reverb",
+              "command_name": "plugin_grabber_inspect_reverb",
+              "status": "failed",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "unresolved_reverb_surface: no provable supported reverb stage/control-path topology"
+            }
+          },
+          {
+            "agent_action_id": "act_004c70b5216d4c47",
+            "command_name": "plugin_grabber_explain_controls",
+            "elapsed_ms": 24,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "binding_targets": [
+                {
+                  "alias": "Dry Level",
+                  "normalized_role": "common_mix",
+                  "param_id": "dry level",
+                  "param_name": "Dry Level",
+                  "plugin_id": "1078",
+                  "plugin_name": "IR-L full Stereo",
+                  "plugin_type": "vst",
+                  "target_kind": "plugin_param",
+                  "template_role": ""
+                },
+                {
+                  "alias": "Wet Level",
+                  "normalized_role": "common_mix",
+                  "param_id": "wet level",
+                  "param_name": "Wet Level",
+                  "plugin_id": "1078",
+                  "plugin_name": "IR-L full Stereo",
+                  "plugin_type": "vst",
+                  "target_kind": "plugin_param",
+                  "template_role": ""
+                },
+                {
+                  "alias": "Bypass",
+                  "normalized_role": "common_bypass",
+                  "param_id": "10000001",
+                  "param_name": "Bypass",
+                  "plugin_id": "1078",
+                  "plugin_name": "IR-L full Stereo",
+                  "plugin_type": "vst",
+                  "target_kind": "plugin_param",
+                  "template_role": ""
+                },
+                {
+                  "alias": "Wet-Dry",
+                  "normalized_role": "common_mix",
+                  "param_id": "0",
+                  "param_name": "Wet-Dry",
+                  "plugin_id": "1078",
+                  "plugin_name": "IR-L full Stereo",
+                  "plugin_type": "vst",
+                  "target_kind": "plugin_param",
+                  "template_role": ""
+                },
+                {
+                  "alias": "Gain",
+                  "normalized_role": "common_gain",
+                  "param_id": "1",
+                  "param_name": "Gain",
+                  "plugin_id": "1078",
+                  "plugin_name": "IR-L full Stereo",
+                  "plugin_type": "vst",
+                  "target_kind": "plugin_param",
+                  "template_role": ""
+                }
+              ],
+              "capability_manifest": [
+                "open_ui",
+                "get_param",
+                "template_shell",
+                "quick_controls"
+              ],
+              "command_ack": {
+                "ack": {
+                  "message": "Legacy command completed",
+                  "stage": "completed"
+                },
+                "command": "legacy.command",
+                "legacy_command": "get_plugin_parameters",
+                "resync_hint": false,
+                "revision": 0,
+                "source": "vsp.command.response",
+                "stage": "completed",
+                "transaction_id": "tx_1794056256931791100_279"
+              },
+              "control_shell": {
+                "advanced_tabs": [
+                  "Template",
+                  "Link",
+                  "History",
+                  "Macro",
+                  "Freeze",
+                  "Bypass"
+                ],
+                "default_tabs": [
+                  "Parameters",
+                  "Search",
+                  "Recommended"
+                ],
+                "recommended_groups": [
+                  {
+                    "name": "Mix",
+                    "parameter_ids": [
+                      "dry level",
+                      "wet level",
+                      "0",
+                      "1"
+                    ]
+                  },
+                  {
+                    "name": "Utility",
+                    "parameter_ids": [
+                      "10000001"
+                    ]
+                  }
+                ],
+                "supports_param_grabber": true,
+                "template_role": "other"
+              },
+              "current_param_signature_hash": "probe_fd07ad1560ad2dfb",
+              "parameters": [
+                {
+                  "alias": "Dry Level",
+                  "binding_target": {
+                    "alias": "Dry Level",
+                    "normalized_role": "common_mix",
+                    "param_id": "dry level",
+                    "param_name": "Dry Level",
+                    "plugin_id": "1078",
+                    "plugin_name": "IR-L full Stereo",
+                    "plugin_type": "vst",
+                    "target_kind": "plugin_param",
+                    "template_role": ""
+                  },
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "current_text": "-INF dB",
+                    "issues": [
+                      "empty_label"
+                    ],
+                    "label": "",
+                    "mode": "read_only_value_to_string",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "text": "-INF dB",
+                        "value": 0
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "text": "-12.0 dB",
+                        "value": 0.25
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "text": "-6.0 dB",
+                        "value": 0.5
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "text": "-2.5 dB",
+                        "value": 0.75
+                      },
+                      {
+                        "normalized_value": 1,
+                        "text": "+0.0 dB",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "envelope_point_count": 0,
+                  "host_controllable": true,
+                  "id": "dry level",
+                  "is_boolean": false,
+                  "is_discrete": false,
+                  "max": 1,
+                  "min": 0,
+                  "name": "Dry Level",
+                  "normalized_role": "common_mix",
+                  "normalized_value": 0,
+                  "num_steps": 0,
+                  "param_id": "dry level",
+                  "raw_param_id": "dry level",
+                  "raw_param_name": "Dry Level",
+                  "source": "tracktion_wrapper",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "-INF dB"
+                },
+                {
+                  "alias": "Wet Level",
+                  "binding_target": {
+                    "alias": "Wet Level",
+                    "normalized_role": "common_mix",
+                    "param_id": "wet level",
+                    "param_name": "Wet Level",
+                    "plugin_id": "1078",
+                    "plugin_name": "IR-L full Stereo",
+                    "plugin_type": "vst",
+                    "target_kind": "plugin_param",
+                    "template_role": ""
+                  },
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "current_text": "+0.0 dB",
+                    "issues": [
+                      "empty_label"
+                    ],
+                    "label": "",
+                    "mode": "read_only_value_to_string",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "text": "-INF dB",
+                        "value": 0
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "text": "-12.0 dB",
+                        "value": 0.25
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "text": "-6.0 dB",
+                        "value": 0.5
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "text": "-2.5 dB",
+                        "value": 0.75
+                      },
+                      {
+                        "normalized_value": 1,
+                        "text": "+0.0 dB",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "envelope_point_count": 0,
+                  "host_controllable": true,
+                  "id": "wet level",
+                  "is_boolean": false,
+                  "is_discrete": false,
+                  "max": 1,
+                  "min": 0,
+                  "name": "Wet Level",
+                  "normalized_role": "common_mix",
+                  "normalized_value": 1,
+                  "num_steps": 0,
+                  "param_id": "wet level",
+                  "raw_param_id": "wet level",
+                  "raw_param_name": "Wet Level",
+                  "source": "tracktion_wrapper",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "+0.0 dB"
+                },
+                {
+                  "alias": "Bypass",
+                  "binding_target": {
+                    "alias": "Bypass",
+                    "normalized_role": "common_bypass",
+                    "param_id": "10000001",
+                    "param_name": "Bypass",
+                    "plugin_id": "1078",
+                    "plugin_name": "IR-L full Stereo",
+                    "plugin_type": "vst",
+                    "target_kind": "plugin_param",
+                    "template_role": ""
+                  },
+                  "control_priority": 75,
+                  "control_relevance": "utility_control",
+                  "display_group": "Utility",
+                  "display_probe": {
+                    "all_labels": [],
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples",
+                      "discrete_labels"
+                    ],
+                    "current_text": "Off",
+                    "discrete_labels": [
+                      {
+                        "index": 0,
+                        "label": "Off",
+                        "value": 0
+                      },
+                      {
+                        "index": 1,
+                        "label": "On",
+                        "value": 1
+                      }
+                    ],
+                    "issues": [
+                      "empty_label"
+                    ],
+                    "label": "",
+                    "mode": "read_only_value_to_string",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "text": "Off",
+                        "value": 0
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "text": "Off",
+                        "value": 0.25
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "text": "Off",
+                        "value": 0.5
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "text": "Off",
+                        "value": 0.75
+                      },
+                      {
+                        "normalized_value": 1,
+                        "text": "On",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "envelope_point_count": 0,
+                  "host_controllable": true,
+                  "id": "10000001",
+                  "is_boolean": false,
+                  "is_discrete": true,
+                  "max": 1,
+                  "min": 0,
+                  "name": "Bypass",
+                  "normalized_role": "common_bypass",
+                  "normalized_value": 0,
+                  "num_steps": 2,
+                  "param_id": "10000001",
+                  "raw_param_id": "10000001",
+                  "raw_param_name": "Bypass",
+                  "source": "hosted_plugin_parameter",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Off"
+                },
+                {
+                  "alias": "Wet-Dry",
+                  "binding_target": {
+                    "alias": "Wet-Dry",
+                    "normalized_role": "common_mix",
+                    "param_id": "0",
+                    "param_name": "Wet-Dry",
+                    "plugin_id": "1078",
+                    "plugin_name": "IR-L full Stereo",
+                    "plugin_type": "vst",
+                    "target_kind": "plugin_param",
+                    "template_role": ""
+                  },
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "current_text": "100 %",
+                    "issues": [
+                      "empty_label"
+                    ],
+                    "label": "",
+                    "mode": "read_only_value_to_string",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "text": "0.000 %",
+                        "value": 0
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "text": "0.462 %",
+                        "value": 0.25
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "text": "3.06 %",
+                        "value": 0.5
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "text": "17.7 %",
+                        "value": 0.75
+                      },
+                      {
+                        "normalized_value": 1,
+                        "text": "100 %",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "envelope_point_count": 0,
+                  "host_controllable": true,
+                  "id": "0",
+                  "is_boolean": false,
+                  "is_discrete": false,
+                  "max": 1,
+                  "min": 0,
+                  "name": "Wet-Dry",
+                  "normalized_role": "common_mix",
+                  "normalized_value": 1,
+                  "num_steps": 0,
+                  "param_id": "0",
+                  "raw_param_id": "0",
+                  "raw_param_name": "Wet-Dry",
+                  "source": "hosted_plugin_parameter",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "100 %"
+                },
+                {
+                  "alias": "Gain",
+                  "binding_target": {
+                    "alias": "Gain",
+                    "normalized_role": "common_gain",
+                    "param_id": "1",
+                    "param_name": "Gain",
+                    "plugin_id": "1078",
+                    "plugin_name": "IR-L full Stereo",
+                    "plugin_type": "vst",
+                    "target_kind": "plugin_param",
+                    "template_role": ""
+                  },
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "current_text": "0.0 dB",
+                    "issues": [
+                      "empty_label"
+                    ],
+                    "label": "",
+                    "mode": "read_only_value_to_string",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "text": "-50.0 dB",
+                        "value": 0
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "text": "-37.5 dB",
+                        "value": 0.25
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "text": "-25.0 dB",
+                        "value": 0.5
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "text": "-12.5 dB",
+                        "value": 0.75
+                      },
+                      {
+                        "normalized_value": 1,
+                        "text": "0.0 dB",
+                        "value": 1
+                      }
+                    ]
+                  },
+                  "envelope_point_count": 0,
+                  "host_controllable": true,
+                  "id": "1",
+                  "is_boolean": false,
+                  "is_discrete": false,
+                  "max": 1,
+                  "min": 0,
+                  "name": "Gain",
+                  "normalized_role": "common_gain",
+                  "normalized_value": 1,
+                  "num_steps": 0,
+                  "param_id": "1",
+                  "raw_param_id": "1",
+                  "raw_param_name": "Gain",
+                  "source": "hosted_plugin_parameter",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "0.0 dB"
+                }
+              ],
+              "plugin_id": "1078",
+              "plugin_item_id": "1078",
+              "quick_controls": [
+                {
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "host_controllable": true,
+                  "label": "Dry Level",
+                  "normalized_role": "common_mix",
+                  "param_id": "dry level",
+                  "raw_param_id": "dry level",
+                  "value": 0,
+                  "widget": "slider"
+                },
+                {
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "host_controllable": true,
+                  "label": "Gain",
+                  "normalized_role": "common_gain",
+                  "param_id": "1",
+                  "raw_param_id": "1",
+                  "value": 1,
+                  "widget": "slider"
+                },
+                {
+                  "control_priority": 75,
+                  "control_relevance": "utility_control",
+                  "display_group": "Utility",
+                  "host_controllable": true,
+                  "label": "Bypass",
+                  "normalized_role": "common_bypass",
+                  "param_id": "10000001",
+                  "raw_param_id": "10000001",
+                  "value": 0,
+                  "widget": "toggle"
+                },
+                {
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "host_controllable": true,
+                  "label": "Wet Level",
+                  "normalized_role": "common_mix",
+                  "param_id": "wet level",
+                  "raw_param_id": "wet level",
+                  "value": 1,
+                  "widget": "slider"
+                },
+                {
+                  "control_priority": 100,
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "host_controllable": true,
+                  "label": "Wet-Dry",
+                  "normalized_role": "common_mix",
+                  "param_id": "0",
+                  "raw_param_id": "0",
+                  "value": 1,
+                  "widget": "slider"
+                }
+              ],
+              "recommended_groups": [
+                {
+                  "name": "Mix",
+                  "parameter_ids": [
+                    "dry level",
+                    "wet level",
+                    "0",
+                    "1"
+                  ]
+                },
+                {
+                  "name": "Utility",
+                  "parameter_ids": [
+                    "10000001"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "supports_param_grabber": true,
+              "template_role": "other",
+              "track_id": "1072",
+              "vsp": {
+                "command_ack": {
+                  "ack": {
+                    "message": "Legacy command completed",
+                    "stage": "completed"
+                  },
+                  "command": "legacy.command",
+                  "legacy_command": "get_plugin_parameters",
+                  "resync_hint": false,
+                  "revision": 0,
+                  "source": "vsp.command.response",
+                  "stage": "completed",
+                  "transaction_id": "tx_1794056256931791100_279"
+                },
+                "transport": "vsp",
+                "version": "1.0"
+              }
+            },
+            "status": "ok",
+            "tool": "plugin_grabber.explain_controls",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.explain_controls",
+              "command_name": "plugin_grabber_explain_controls",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          },
+          {
+            "agent_action_id": "act_3a2c4e2b02f48cbd",
+            "command_name": "get_plugin_parameters",
+            "elapsed_ms": 29,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "automation_param_surface": [
+                {
+                  "label": "Dry Level",
+                  "max": 1,
+                  "min": 0,
+                  "normalized_role": "common_mix",
+                  "param_id": "dry level",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "-INF dB"
+                },
+                {
+                  "label": "Wet Level",
+                  "max": 1,
+                  "min": 0,
+                  "normalized_role": "common_mix",
+                  "param_id": "wet level",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "+0.0 dB"
+                },
+                {
+                  "label": "Bypass",
+                  "max": 1,
+                  "min": 0,
+                  "normalized_role": "common_bypass",
+                  "param_id": "10000001",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Off"
+                },
+                {
+                  "label": "Wet-Dry",
+                  "max": 1,
+                  "min": 0,
+                  "normalized_role": "common_mix",
+                  "param_id": "0",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "100 %"
+                },
+                {
+                  "label": "Gain",
+                  "max": 1,
+                  "min": 0,
+                  "normalized_role": "common_gain",
+                  "param_id": "1",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "0.0 dB"
+                }
+              ],
+              "capability_manifest": [
+                "open_ui",
+                "get_param",
+                "template_shell",
+                "quick_controls"
+              ],
+              "command_ack": {
+                "ack": {
+                  "message": "Legacy command completed",
+                  "stage": "completed"
+                },
+                "command": "plugin.parameters.get",
+                "legacy_command": "get_plugin_parameters",
+                "resync_hint": false,
+                "revision": 0,
+                "source": "vsp.command.response",
+                "stage": "completed",
+                "transaction_id": "tx_1794056260747295100_283"
+              },
+              "display_probe_summary": {
+                "display_domain_candidate_count": 5,
+                "high_confidence_candidate_count": 5,
+                "parameter_count": 5,
+                "parameters_with_display_probe": 5,
+                "probe_issue_count": 5,
+                "units": {
+                  "%": 1,
+                  "dB": 3,
+                  "toggle": 1
+                }
+              },
+              "parameter_count": 5,
+              "parameter_page": {
+                "limit": 512,
+                "offset": 0,
+                "total": 5
+              },
+              "parameters": [
+                {
+                  "display_domain_candidate": {
+                    "text": "-12~0 dB",
+                    "unit": "dB",
+                    "min": -12,
+                    "max": 0,
+                    "scale": "linear",
+                    "status": "inferred",
+                    "source": "display_probe_inferred",
+                    "confidence": 0.9
+                  },
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "mode": "read_only_value_to_string",
+                    "current_text": "-INF dB",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "value": 0,
+                        "text": "-INF dB"
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "value": 0.25,
+                        "text": "-12.0 dB"
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "value": 0.5,
+                        "text": "-6.0 dB"
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "value": 0.75,
+                        "text": "-2.5 dB"
+                      },
+                      {
+                        "normalized_value": 1,
+                        "value": 1,
+                        "text": "+0.0 dB"
+                      }
+                    ],
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "issues": [
+                      "empty_label"
+                    ]
+                  },
+                  "name": "Dry Level",
+                  "normalized_role": "common_mix",
+                  "normalized_value": 0,
+                  "param_id": "dry level",
+                  "raw_param_name": "Dry Level",
+                  "value": 0,
+                  "value_text": "-INF dB"
+                },
+                {
+                  "display_domain_candidate": {
+                    "text": "-12~0 dB",
+                    "unit": "dB",
+                    "min": -12,
+                    "max": 0,
+                    "scale": "linear",
+                    "status": "inferred",
+                    "source": "display_probe_inferred",
+                    "confidence": 0.9
+                  },
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "mode": "read_only_value_to_string",
+                    "current_text": "+0.0 dB",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "value": 0,
+                        "text": "-INF dB"
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "value": 0.25,
+                        "text": "-12.0 dB"
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "value": 0.5,
+                        "text": "-6.0 dB"
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "value": 0.75,
+                        "text": "-2.5 dB"
+                      },
+                      {
+                        "normalized_value": 1,
+                        "value": 1,
+                        "text": "+0.0 dB"
+                      }
+                    ],
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "issues": [
+                      "empty_label"
+                    ]
+                  },
+                  "name": "Wet Level",
+                  "normalized_role": "common_mix",
+                  "normalized_value": 1,
+                  "param_id": "wet level",
+                  "raw_param_name": "Wet Level",
+                  "value": 1,
+                  "value_text": "+0.0 dB"
+                },
+                {
+                  "display_domain_candidate": {
+                    "text": "0~1 toggle",
+                    "unit": "toggle",
+                    "min": 0,
+                    "max": 1,
+                    "scale": "enum",
+                    "status": "inferred",
+                    "source": "display_probe_inferred",
+                    "confidence": 0.92
+                  },
+                  "display_group": "Utility",
+                  "display_probe": {
+                    "mode": "read_only_value_to_string",
+                    "current_text": "Off",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "value": 0,
+                        "text": "Off"
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "value": 0.25,
+                        "text": "Off"
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "value": 0.5,
+                        "text": "Off"
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "value": 0.75,
+                        "text": "Off"
+                      },
+                      {
+                        "normalized_value": 1,
+                        "value": 1,
+                        "text": "On"
+                      }
+                    ],
+                    "discrete_labels": [
+                      {
+                        "index": 0,
+                        "value": 0,
+                        "label": "Off"
+                      },
+                      {
+                        "index": 1,
+                        "value": 1,
+                        "label": "On"
+                      }
+                    ],
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples",
+                      "discrete_labels"
+                    ],
+                    "issues": [
+                      "empty_label"
+                    ]
+                  },
+                  "name": "Bypass",
+                  "normalized_role": "common_bypass",
+                  "normalized_value": 0,
+                  "param_id": "10000001",
+                  "raw_param_name": "Bypass",
+                  "value": 0,
+                  "value_text": "Off"
+                },
+                {
+                  "display_domain_candidate": {
+                    "text": "0~100 %",
+                    "unit": "%",
+                    "min": 0,
+                    "max": 100,
+                    "scale": "linear",
+                    "status": "inferred",
+                    "source": "display_probe_inferred",
+                    "confidence": 0.9
+                  },
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "mode": "read_only_value_to_string",
+                    "current_text": "100 %",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "value": 0,
+                        "text": "0.000 %"
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "value": 0.25,
+                        "text": "0.462 %"
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "value": 0.5,
+                        "text": "3.06 %"
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "value": 0.75,
+                        "text": "17.7 %"
+                      },
+                      {
+                        "normalized_value": 1,
+                        "value": 1,
+                        "text": "100 %"
+                      }
+                    ],
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "issues": [
+                      "empty_label"
+                    ]
+                  },
+                  "name": "Wet-Dry",
+                  "normalized_role": "common_mix",
+                  "normalized_value": 1,
+                  "param_id": "0",
+                  "raw_param_name": "Wet-Dry",
+                  "value": 1,
+                  "value_text": "100 %"
+                },
+                {
+                  "display_domain_candidate": {
+                    "text": "-50~0 dB",
+                    "unit": "dB",
+                    "min": -50,
+                    "max": 0,
+                    "scale": "linear",
+                    "status": "inferred",
+                    "source": "display_probe_inferred",
+                    "confidence": 0.9
+                  },
+                  "display_group": "Mix",
+                  "display_probe": {
+                    "mode": "read_only_value_to_string",
+                    "current_text": "0.0 dB",
+                    "samples": [
+                      {
+                        "normalized_value": 0,
+                        "value": 0,
+                        "text": "-50.0 dB"
+                      },
+                      {
+                        "normalized_value": 0.25,
+                        "value": 0.25,
+                        "text": "-37.5 dB"
+                      },
+                      {
+                        "normalized_value": 0.5,
+                        "value": 0.5,
+                        "text": "-25.0 dB"
+                      },
+                      {
+                        "normalized_value": 0.75,
+                        "value": 0.75,
+                        "text": "-12.5 dB"
+                      },
+                      {
+                        "normalized_value": 1,
+                        "value": 1,
+                        "text": "0.0 dB"
+                      }
+                    ],
+                    "capabilities": [
+                      "current_value_text",
+                      "value_to_string_samples"
+                    ],
+                    "issues": [
+                      "empty_label"
+                    ]
+                  },
+                  "name": "Gain",
+                  "normalized_role": "common_gain",
+                  "normalized_value": 1,
+                  "param_id": "1",
+                  "raw_param_name": "Gain",
+                  "value": 1,
+                  "value_text": "0.0 dB"
+                }
+              ],
+              "plugin_id": "1078",
+              "plugin_item_id": "1078",
+              "quick_control_count": 5,
+              "quick_controls": [
+                {
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "label": "Dry Level",
+                  "normalized_role": "common_mix",
+                  "param_id": "dry level",
+                  "widget": "slider"
+                },
+                {
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "label": "Gain",
+                  "normalized_role": "common_gain",
+                  "param_id": "1",
+                  "widget": "slider"
+                },
+                {
+                  "control_relevance": "utility_control",
+                  "display_group": "Utility",
+                  "label": "Bypass",
+                  "normalized_role": "common_bypass",
+                  "param_id": "10000001",
+                  "widget": "toggle"
+                },
+                {
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "label": "Wet Level",
+                  "normalized_role": "common_mix",
+                  "param_id": "wet level",
+                  "widget": "slider"
+                },
+                {
+                  "control_relevance": "musical_control",
+                  "display_group": "Mix",
+                  "label": "Wet-Dry",
+                  "normalized_role": "common_mix",
+                  "param_id": "0",
+                  "widget": "slider"
+                }
+              ],
+              "recommended_group_count": 2,
+              "recommended_groups": [
+                {
+                  "name": "Mix",
+                  "parameter_count": 4,
+                  "sample_ids": [
+                    "dry level",
+                    "wet level",
+                    "0",
+                    "1"
+                  ]
+                },
+                {
+                  "name": "Utility",
+                  "parameter_count": 1,
+                  "sample_ids": [
+                    "10000001"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "supports_param_grabber": true,
+              "template_role": "other",
+              "track_id": "1072",
+              "vsp": {
+                "command_ack": {
+                  "ack": {
+                    "message": "Legacy command completed",
+                    "stage": "completed"
+                  },
+                  "command": "plugin.parameters.get",
+                  "legacy_command": "get_plugin_parameters",
+                  "resync_hint": false,
+                  "revision": 0,
+                  "source": "vsp.command.response",
+                  "stage": "completed",
+                  "transaction_id": "tx_1794056260747295100_283"
+                },
+                "transport": "vsp",
+                "version": "1.0"
+              }
+            },
+            "status": "ok",
+            "tool": "plugin.get_parameters",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin.get_parameters",
+              "command_name": "get_plugin_parameters",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          }
+        ],
+        "goal_status": "completed",
+        "goal_summary": "请把 IR-L 混响的衰减时间设为 2 秒。",
+        "completed_steps": 2,
+        "stop_reason": "done",
+        "project_history": {
+          "active_branch": "main",
+          "active_node_id": "n_20261107T125744_cd409a69",
+          "active_worktree": "",
+          "available": true,
+          "branches": {
+            "main": "c_20261107T125722_35765cb0"
+          },
+          "commit_count": 7,
+          "conversation_messages": [
+            {
+              "content": "请把 IR-L 混响的衰减时间设为 2 秒。",
+              "logical_message_id": "n_20261107T125722_a6787f21",
+              "message_kind": "user",
+              "node_id": "n_20261107T125722_a6787f21",
+              "role": "user"
+            },
+            {
+              "content": "结论：没法把 IR-L 的衰减时间设为 2 秒——这个插件在当前宿主环境里根本没有暴露“衰减时间/Decay/RT60”这个参数，所以没有可写入的目标。\n\n证据：Track 7 上的 IR-L full Stereo（VST3，已启用）当前可读到的参数一共只有 5 个：Dry Level、Wet Level、Wet-Dry、Gain、Bypass。其中没有任何时间类参数（如 Decay、Time、Length、RT60）。我也尝试走混响专用控制通道去解析它的控制拓扑，被明确拒绝（无法证明存在受支持的混响控制路径），这和上面的参数表一致。\n\n限制：IR-L 是卷积混响，混响长度由载入的脉冲响应（IR）本身决定，插件通常不提供可调的衰减时间参数；在这个工程里它确实只暴露了干湿、电平、旁通这几项。因此“2 秒衰减”不能通过参数写入实现。\n\n建议：\n1) 在这个插件上只能调干湿与电平（Wet-Dry / Wet Level / Gain），我可以按需要的湿声比例帮你设；\n2) 如果目标就是要 2 秒左右的尾巴，更合适的做法是换用参数型混响（例如 Pro-R，可调 Decay Rate/时间），或换一个时长接近 2 秒的 IR 载入 IR-L；\n3) 说一声你选哪条，我再动手。本轮我没有对任何参数做修改。",
+              "logical_message_id": "n_20261107T125744_cd409a69",
+              "message_kind": "execution_receipt",
+              "node_id": "n_20261107T125744_cd409a69",
+              "role": "assistant"
+            }
+          ],
+          "detached": false,
+          "draft": false,
+          "head": "c_20261107T125722_35765cb0",
+          "initialized": true,
+          "project_label": "Unsaved",
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit",
+          "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+          "refs": {
+            "refs/heads/main": "c_20261107T125722_35765cb0"
+          },
+          "root_project_path": "",
+          "unsaved": false,
+          "warnings": [],
+          "worktrees": [
+            {
+              "commit_id": "c_20261107T125722_35765cb0",
+              "created_at": "2026-11-07T12:57:44.3561697Z",
+              "is_root": true,
+              "label": "主工作树",
+              "name": "main",
+              "origin_commit_id": "c_20261107T125722_35765cb0",
+              "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201",
+              "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit",
+              "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit",
+              "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit"
+            }
+          ]
+        },
+        "lifecycle": "durable",
+        "persistence": "project_history",
+        "message_kind": "execution_receipt",
+        "turn_id": "turn_3cf038746e30028e",
+        "logical_message_id": "n_20261107T125744_cd409a69"
+      }
+    }
+  ],
+  "confirmations": [],
+  "stop_reason": "goal_completed",
+  "first_action": {
+    "kind": "tool_call",
+    "tool": "plugin_grabber.explain_controls",
+    "sequence": [
+      "plugin_grabber.explain_controls",
+      "plugin.get_parameters"
+    ]
+  },
+  "agent_log_delta": "\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"1075\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"MACROPARAMETERS\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"1076\" action=\"property_changed:id\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"1076\" action=\"property_changed:remapOnTempoChange\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"1077\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"CONNECTION\" action=\"node_added\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:plugin_identifier\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:vit_zone_id\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:vit_clip_scope\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"PLUGININSTANCE\" action=\"property_changed:vit_template_role\"\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"1078\" action=\"property_changed:state\"\n2026-11-07T20:57:22 [WARN] [shadow] delta seq gap #6 last=268 current=270\n2026-11-07T20:57:22 [DEBUG] [shadow] live delta uid=\"0/a696bc\" action=\"property_changed:lastSignificantChange\"\n2026-11-07T20:57:22 [WARN] [telemetry] delta seq gap last=268 current=270\n2026-11-07T20:57:23 [INFO] [shadow] initialized tracks=7 project_path=\"\" replayed_deltas=4\n2026-11-07T20:57:23 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=22\n2026-11-07T20:57:23 [WARN] VSP realtime publish pending failures=43 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:23 [WARN] VSP realtime publish pending failures=43 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:26 [INFO] [timing] message_loop.llm ms=1094 goal=goal_71bf972ce81d1580 conversation=pce_p_T6_r1_1794056242 turn=1 messages=3 chars=52404 message_chars=0:system:28162,1:user:22,2:user:24220 err=false\n2026-11-07T20:57:28 [INFO] [timing] message_loop.tool ms=2 goal=goal_71bf972ce81d1580 tool=plugin_grabber_inspect_reverb confirmed=false stopped=false status=\n2026-11-07T20:57:29 [WARN] VSP realtime publish pending failures=46 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:29 [WARN] VSP realtime publish pending failures=46 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=100 error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:35 [WARN] VSP realtime publish pending failures=49 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:35 [WARN] VSP realtime publish pending failures=49 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:36 [INFO] [timing] message_loop.llm ms=8796 goal=goal_71bf972ce81d1580 conversation=pce_p_T6_r1_1794056242 turn=3 messages=5 chars=59446 message_chars=0:system:28162,1:user:22,2:assistant:317,3:user:1564,4:user:29381 err=false\n2026-11-07T20:57:36 [INFO] [timing] kernel.send_command ms=4 command=plugin_grabber_explain_controls tool=plugin_grabber.explain_controls confirmed=false err=false\n2026-11-07T20:57:36 [INFO] [timing] harness.invoke total_ms=23 tool=plugin_grabber.explain_controls command=plugin_grabber_explain_controls status=ok confirmed=false err=false\n2026-11-07T20:57:36 [INFO] [timing] message_loop.tool ms=24 goal=goal_71bf972ce81d1580 tool=plugin_grabber.explain_controls confirmed=false stopped=false status=\n2026-11-07T20:57:39 [INFO] [timing] message_loop.llm ms=2093 goal=goal_71bf972ce81d1580 conversation=pce_p_T6_r1_1794056242 turn=4 messages=7 chars=66373 message_chars=0:system:28162,1:user:22,2:assistant:317,3:user:1564,4:assistant:377,5:user:5605,6:user:30326 err=false\n2026-11-07T20:57:40 [INFO] [timing] kernel.send_command ms=4 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false\n2026-11-07T20:57:40 [INFO] [timing] harness.invoke total_ms=28 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false\n2026-11-07T20:57:40 [INFO] [timing] message_loop.tool ms=29 goal=goal_71bf972ce81d1580 tool=plugin.get_parameters confirmed=false stopped=false status=\n2026-11-07T20:57:41 [WARN] VSP realtime publish pending failures=52 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:41 [WARN] VSP realtime publish pending failures=52 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T20:57:44 [INFO] [timing] message_loop.llm ms=3488 goal=goal_71bf972ce81d1580 conversation=pce_p_T6_r1_1794056242 turn=6 messages=9 chars=78587 message_chars=0:system:28162,1:user:22,2:assistant:317,3:user:1564,4:assistant:377,5:user:5605,6:assistant:350,7:user:5670,8:user:36520 err=false\n2026-11-07T20:57:44 [INFO] [continuation.arm] conversation=pce_p_T6_r1_1794056242 goal=goal_71bf972ce81d1580 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false\n2026-11-07T20:57:44 [INFO] [timing] agent_loop_chat total_ms=20656 conversation=pce_p_T6_r1_1794056242 goal=goal_71bf972ce81d1580 mode=default status=completed stop=done completed_steps=2 executed=3\n2026-11-07T20:57:44 [INFO] [media_refs] ms=0 conversation=pce_p_T6_r1_1794056242 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0\n2026-11-07T20:57:44 [INFO] [vit_checkpoint] async checkpoint launched project=C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_205409\\agent_drafts\\draft_20261107T125413_f22f7201\\Unsaved.vit revision=22\n2026-11-07T20:57:44 [INFO] [chat.artifacts] conversation=pce_p_T6_r1_1794056242 response_artifacts=0 request_artifacts=0 executed=3 reply_len=1282",
+  "tool_calls": 2,
+  "usage": {
+    "available": true,
+    "llm_calls": 7,
+    "input_tokens": 72512,
+    "output_tokens": 2921,
+    "cache_read_tokens": 28288,
+    "cache_creation_tokens": 0,
+    "max_input_in_one_call": 21754,
+    "max_output_in_one_call": 1402,
+    "errors": 0
+  },
+  "mutation_audit": [],
+  "boundary_check": {
+    "case_track_present": true,
+    "track_count": null
+  },
+  "behavior_tags": [
+    "self_probed"
+  ],
+  "verdict": {
+    "case_id": "T6",
+    "arm": "P",
+    "final_verdict": "pass",
+    "failure_tags": [],
+    "checks": {
+      "zero_writes": {
+        "ok": true,
+        "detail": []
+      },
+      "limitation_statement": {
+        "ok": true,
+        "detail": {
+          "replies_len": 556
+        }
+      }
+    },
+    "mutation_count": 0,
+    "changes": []
+  },
+  "finished_at": "2026-11-07T20:57:44+0800"
+}
