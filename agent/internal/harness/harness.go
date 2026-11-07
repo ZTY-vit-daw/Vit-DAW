@@ -1680,6 +1680,56 @@ func translateCommandForKernel(spec tools.CommandSpec, cmd map[string]any) {
 	}
 }
 
+// pluginControlEvalSeamEnv is the PLUGIN-CONTROL-EVAL-SEAM-1 test-only master
+// switch (B4/C4 ablation-hook precedent). Exactly "1" opens the four seams;
+// unset keeps production behavior byte-for-byte and production startup paths
+// never set it.
+const pluginControlEvalSeamEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM"
+
+func pluginControlEvalSeamOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamEnv)) == "1"
+}
+
+// pluginControlEvalSeamCommand reports whether a kernel command family carries
+// the kernel-baked semantic parameter overlay (both plugin.get_parameters and
+// the explain_controls workflow translate to the same kernel reply shape).
+func pluginControlEvalSeamCommand(commandName string) bool {
+	switch commandName {
+	case "get_plugin_parameters", "plugin_grabber_explain_controls":
+		return true
+	default:
+		return false
+	}
+}
+
+// stripPluginControlEvalSemanticOverlay is seam S2 (semantic-field ingestion
+// strip) of PLUGIN-CONTROL-EVAL-SEAM-1: the kernel bakes human-vocabulary
+// semantic fields into its parameter replies (PREP-1 field-source table:
+// normalized_role / display_group / control_relevance / template_role are
+// template-registry vocabulary, alias is a native-default plus persisted
+// semantic-override mix). With the seam open the five overlay fields are
+// removed in place at the harness kernel-reply ingestion point, so every
+// downstream disclosure face (publicPluginParametersResult, context packs,
+// snapshots, automation surface) sees the bare plugin-native surface
+// (id/name/raw_param_name/unit/min/max/value/value_text/enum steps) only.
+// The snapshot cache consumed by set_plugin_param validation keys on param
+// ids only, so stripping before afterKernelReply does not weaken the write
+// guard. The seam-closed path never calls this function.
+func stripPluginControlEvalSemanticOverlay(reply map[string]any) {
+	if reply == nil {
+		return
+	}
+	delete(reply, "template_role")
+	for _, rowKey := range []string{"parameters", "quick_controls", "recommended_groups"} {
+		rows := mapRowsFromAny(reply[rowKey])
+		for _, row := range rows {
+			for _, field := range []string{"normalized_role", "display_group", "control_relevance", "template_role", "alias"} {
+				delete(row, field)
+			}
+		}
+	}
+}
+
 func (h *Harness) executeKernelCommand(ctx context.Context, spec tools.CommandSpec, cmd map[string]any) kernelExecutionResult {
 	if vsp, ok := h.vspKernel(); ok {
 		execution := h.executeKernelCommandVSP(ctx, vsp, spec, cmd)
@@ -1693,6 +1743,11 @@ func (h *Harness) executeKernelCommand(ctx context.Context, spec tools.CommandSp
 
 	reply, raw, err := h.kernel.SendCommand(ctx, cmd)
 	if err == nil {
+		// PLUGIN-CONTROL-EVAL-SEAM-1 S2: strip the kernel-baked semantic
+		// overlay fields at ingestion when the seam is open (no-op unset).
+		if pluginControlEvalSeamOpen() && pluginControlEvalSeamCommand(spec.CommandName) {
+			stripPluginControlEvalSemanticOverlay(reply)
+		}
 		refreshStarted := time.Now()
 		h.afterKernelReply(ctx, spec, reply)
 		if h.logger != nil {
@@ -1754,6 +1809,11 @@ func (h *Harness) executeKernelCommandVSP(ctx context.Context, vsp VSPKernelSend
 	}
 
 	reply := commandResult.LegacyLikeReply()
+	// PLUGIN-CONTROL-EVAL-SEAM-1 S2: same ingestion strip on the VSP path
+	// (no-op unset), keeping both reply paths disclosure-equivalent.
+	if pluginControlEvalSeamOpen() && pluginControlEvalSeamCommand(spec.CommandName) {
+		stripPluginControlEvalSemanticOverlay(reply)
+	}
 	var delta *kernel.VSPStateResult
 	var resync *kernel.VSPStateResult
 	var warnings []string
@@ -12900,7 +12960,6 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 		"track_id":                reply["track_id"],
 		"plugin_id":               reply["plugin_id"],
 		"plugin_item_id":          reply["plugin_item_id"],
-		"template_role":           reply["template_role"],
 		"supports_param_grabber":  reply["supports_param_grabber"],
 		"parameter_count":         len(params),
 		"quick_control_count":     len(quick),
@@ -12909,6 +12968,13 @@ func publicPluginParametersResult(cmd map[string]any, reply map[string]any) map[
 		"recommended_groups":      compactRecommendedGroups(groups, 16),
 		"capability_manifest":     reply["capability_manifest"],
 		"display_probe_summary":   plugingrabber.DisplayProbeSummary(digest),
+	}
+	// PLUGIN-CONTROL-EVAL-SEAM-1 S2: with the seam open the shaping face does
+	// not emit the semantic overlay key at all (the ingestion strip already
+	// removed its value; a null/empty emission would still teach the schema).
+	// Closed seam keeps the key byte-for-byte.
+	if !pluginControlEvalSeamOpen() {
+		out["template_role"] = reply["template_role"]
 	}
 	includeParameters, _ := boolValue(cmd["include_parameters"])
 	if !includeParameters {
@@ -12984,17 +13050,21 @@ func compactQuickControls(rows []map[string]any, limit int) []map[string]any {
 	if limit <= 0 || limit > len(rows) {
 		limit = len(rows)
 	}
+	seamOpen := pluginControlEvalSeamOpen() // PLUGIN-CONTROL-EVAL-SEAM-1 S2 key suppression
 	out := make([]map[string]any, 0, limit)
 	for i := 0; i < limit; i++ {
 		row := rows[i]
-		out = append(out, map[string]any{
-			"param_id":          firstString(row, "param_id", "id"),
-			"label":             firstString(row, "label", "name"),
-			"widget":            firstString(row, "widget"),
-			"normalized_role":   firstString(row, "normalized_role"),
-			"display_group":     firstString(row, "display_group"),
-			"control_relevance": row["control_relevance"],
-		})
+		compact := map[string]any{
+			"param_id": firstString(row, "param_id", "id"),
+			"label":    firstString(row, "label", "name"),
+			"widget":   firstString(row, "widget"),
+		}
+		if !seamOpen {
+			compact["normalized_role"] = firstString(row, "normalized_role")
+			compact["display_group"] = firstString(row, "display_group")
+			compact["control_relevance"] = row["control_relevance"]
+		}
+		out = append(out, compact)
 	}
 	return out
 }
@@ -13027,8 +13097,12 @@ func compactPluginParameterSnapshotRows(rows []map[string]any, digest plugingrab
 			"normalized_value": row["normalized_value"],
 			"value":            row["value"],
 			"value_text":       firstString(row, "value_text"),
-			"display_group":    firstString(row, "display_group"),
-			"normalized_role":  firstString(row, "normalized_role"),
+		}
+		// PLUGIN-CONTROL-EVAL-SEAM-1 S2: seam open suppresses the overlay
+		// keys entirely; closed keeps them byte-for-byte.
+		if !pluginControlEvalSeamOpen() {
+			compact["display_group"] = firstString(row, "display_group")
+			compact["normalized_role"] = firstString(row, "normalized_role")
 		}
 		if param := byID[paramID]; strings.TrimSpace(param.ID) != "" {
 			if param.DisplayProbe != nil {

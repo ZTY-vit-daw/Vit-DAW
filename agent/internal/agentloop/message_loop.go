@@ -4319,6 +4319,16 @@ Read-only acoustic observation:
 	return modeRules
 }
 
+// pluginControlEvalSeamEnv is the PLUGIN-CONTROL-EVAL-SEAM-1 test-only master
+// switch (B4/C4 ablation-hook precedent). Exactly "1" opens the four seams;
+// unset keeps production behavior byte-for-byte and production startup paths
+// never set it.
+const pluginControlEvalSeamEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM"
+
+func pluginControlEvalSeamOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamEnv)) == "1"
+}
+
 // messageLoopOrdinaryFamilySystemSkeleton 渲染普通族字节稳定骨架（固定
 // 规则帧+输出格式示例；不含逐轮 modeRules/目录/allowed——它们随每轮
 // state 重算，归动态区）。verified-entry 裁剪按 state 触发，但它是真实
@@ -4387,6 +4397,22 @@ Rules:
 - When the user gives a local asset file or folder and asks what media is available, use media.register_assets or media.index_authorized_folder so the response can include clickable media pool artifact cards. Do not replace artifact cards with long raw path lists.
 - Mark final:true only when requested outcomes are evidenced by tool results or context.
 - User-facing reply text must be Chinese when the user writes Chinese. Do not expose JSON, tool names, tool IDs, or internal IDs unless the user explicitly asks for technical details.`
+	// PLUGIN-CONTROL-EVAL-SEAM-1 S4 (typed-routing rule strip): with the seam
+	// open, the eight typed effect-control routing rules (the block from
+	// "- Before freezing an actionable generic EQ semantic_action" through the
+	// line before "- Mixing is a native Ask Vit conversation task") are
+	// removed so the ordinary loop's system prompt stops steering the model
+	// toward the typed inspect/apply surfaces. The trim runs before the
+	// verified-entry trim: with both active the verified trim's end marker
+	// is already gone, so it no-ops instead of leaving later typed rules
+	// behind. Unset keeps the skeleton byte-for-byte.
+	if pluginControlEvalSeamOpen() {
+		if start := strings.Index(skeleton, "- Before freezing an actionable generic EQ semantic_action"); start >= 0 {
+			if end := strings.Index(skeleton[start:], "- Mixing is a native Ask Vit conversation task"); end >= 0 {
+				skeleton = skeleton[:start] + skeleton[start+end:]
+			}
+		}
+	}
 	if state != nil && messageLoopHasVerifiedSemanticEntry(state) {
 		if start := strings.Index(skeleton, `{"final":true,"reply":"concrete EQ proposal`); start >= 0 {
 			if end := strings.Index(skeleton[start:], "\n\nRules:"); end >= 0 {
