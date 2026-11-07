@@ -433,9 +433,18 @@ func TestEduJamEnterFailClosedWithoutProjectBinding(t *testing.T) {
 	server.mu.Lock()
 	server.activeWorkspaceUUID = "" // 无激活工作区
 	server.mu.Unlock()
+	// 281 修复腿后该场景由激活门收口（裁定 B 形态）：stop_reason 从
+	// edu_jam_project_binding_unavailable 演进为 edu_jam_workspace_activation_incomplete，
+	// 细分原因进 WorkflowData.gate_reason（此处工作区未激活先于内核读面判定）。
 	resp, handled := server.handleEduJamChat(context.Background(), "conv-edu-8", "chat", "开始乐局", eduJamChatCtx())
-	if !handled || resp.StopReason != "edu_jam_project_binding_unavailable" {
+	if !handled || resp.StopReason != "edu_jam_workspace_activation_incomplete" {
 		t.Fatalf("enter without binding must fail closed: handled=%v stop=%s", handled, resp.StopReason)
+	}
+	if got := resp.WorkflowData["gate_reason"]; got != "workspace_not_activated" {
+		t.Fatalf("gate_reason=%v data=%v", got, resp.WorkflowData)
+	}
+	if !strings.Contains(resp.Reply, "工程还没打开好") {
+		t.Fatalf("gate reject reply must be actionable: %s", resp.Reply)
 	}
 }
 
@@ -504,5 +513,100 @@ func TestEduJamPersistenceRoundTripAndRestoreFailClosed(t *testing.T) {
 	// 既有工程无记录 → 空覆盖层（零行为变化）。
 	if got := server.restoreEduJamSessionsLocked(nil); len(got) != 0 {
 		t.Fatalf("nil overlay must restore empty: %v", got)
+	}
+}
+
+// TestEduJamEnterActivationRacePreClosedPostSurvives 是 281 修复腿的竞态建模
+// 单测（主管裁定 B 形态），复刻 smokerun1_20261107_0924 exit 4 的
+// 「enter→激活→推进」时序。段 1 的 9 个测例全在单一预置工作区状态下跑，未建
+// 模请求内激活切换——本测即补该交互面，两方向：
+//
+//	方向 1（pre-activation enter 被 fail-closed 拒绝）：内核已切到新工程而工作
+//	  区仍绑旧工程（shadow 惯性窗口=竞态入口形态）→ enter 必须拒绝且不落会话
+//	  （stop_reason=edu_jam_workspace_activation_incomplete、回话含「工程还没
+//	  打开好…稍等」）；此刻惰性激活的空态整表覆盖（server.go 恢复面同型覆盖行
+//	  `s.eduJamSessions = s.restoreEduJamSessionsLocked(nil)`）发生也无会话可丢。
+//
+//	方向 2（激活后 enter 成功且 turn 2 仍查得会话）：工作区绑定追上内核工程 →
+//	  enter 成功并绑定激活工作区 uuid → 请求边界再次激活的 restore 重放（同身份
+//	  激活从持久化快照 restore，freeStateLoop 同型）不丢会话 → 「写好了」推进轮
+//	  查得会话并在拦截面内闭环（不再放行语义入口）。
+//
+// 边界（如实声明）：门通过后内核才切换工程=用户真实换工程，属 B5 跨身份切换
+// 语义（settle+新工程快照 restore），不在本竞态类，不在本测覆盖内。
+func TestEduJamEnterActivationRacePreClosedPostSurvives(t *testing.T) {
+	theme := eduJamThemeNotes(t)
+	fake := &eduJamFakeKernel{
+		tracks: []any{
+			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
+			eduJamFakeTrack("t2"),
+			eduJamFakeTrack("t3"),
+		},
+		notes: map[string][]any{"c1": eduJamNoteRows(theme)},
+	}
+	server := newEduJamTestServer(t, fake)
+	ctx := context.Background()
+	conv := "conv-edu-race"
+
+	// 时序起点（smokerun1 形态）：内核已持有 fixture 工程（fake kernel
+	// project_uuid=uuid-edu-jam-test），工作区仍绑切换前的旧草稿工程。
+	server.mu.Lock()
+	server.activeWorkspaceUUID = "uuid-stale-draft"
+	server.mu.Unlock()
+
+	// —— 方向 1：pre-activation enter → fail-closed 拒绝 + 会话表保持空。
+	resp, handled := server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx())
+	if !handled {
+		t.Fatalf("pre-activation enter must be handled (fail-closed reject), never released to the semantic entry")
+	}
+	if resp.StopReason != "edu_jam_workspace_activation_incomplete" {
+		t.Fatalf("pre-activation enter stop=%s want edu_jam_workspace_activation_incomplete reply=%s", resp.StopReason, resp.Reply)
+	}
+	if !strings.Contains(resp.Reply, "工程还没打开好") || !strings.Contains(resp.Reply, "稍等") {
+		t.Fatalf("gate reject reply must tell the user to retry later: %s", resp.Reply)
+	}
+	if got := resp.WorkflowData["gate_reason"]; got != "workspace_identity_lagging_kernel" {
+		t.Fatalf("gate_reason=%v data=%v", got, resp.WorkflowData)
+	}
+	if _, exists := server.eduJamSessionFor(conv); exists {
+		t.Fatalf("rejected enter must not store a session")
+	}
+	// 竞态杀手锏验证：此刻惰性激活的空态整表覆盖（server.go 恢复面对新工程
+	// 无盘上记录时的同型覆盖行）发生，也无在途会话可丢。
+	server.mu.Lock()
+	server.eduJamSessions = server.restoreEduJamSessionsLocked(nil)
+	server.mu.Unlock()
+	if _, exists := server.eduJamSessionFor(conv); exists {
+		t.Fatalf("empty-state full-table overwrite must find nothing to wipe (race class defused)")
+	}
+
+	// —— 激活完成：工作区绑定追上内核工程（新工程盘上无历史会话记录）。
+	server.mu.Lock()
+	server.activeWorkspaceUUID = "uuid-edu-jam-test"
+	server.eduJamSessions = server.restoreEduJamSessionsLocked(nil)
+	server.mu.Unlock()
+
+	// —— 方向 2a：激活后 enter 成功，绑定=激活工作区 uuid。
+	resp, handled = server.handleEduJamChat(ctx, conv, "chat", "开始乐局", eduJamChatCtx())
+	if !handled || resp.StopReason != "edu_jam_entered" {
+		t.Fatalf("post-activation enter unexpected: handled=%v stop=%s reply=%s", handled, resp.StopReason, resp.Reply)
+	}
+	session, ok := server.eduJamSessionFor(conv)
+	if !ok || session.ProjectUUID != "uuid-edu-jam-test" {
+		t.Fatalf("post-activation enter must bind the activated workspace uuid: ok=%v session=%+v", ok, session)
+	}
+	// 请求边界再次激活：同身份从持久化快照重放 restore（enter 已同步落盘；
+	// 以 projectAgentRuntimeStateLocked 快照模拟盘上状态，freeStateLoop 同型）。
+	server.mu.Lock()
+	snapshot := server.projectAgentRuntimeStateLocked()
+	server.eduJamSessions = server.restoreEduJamSessionsLocked(snapshot.EduJamSessions)
+	server.mu.Unlock()
+
+	// —— 方向 2b：turn 2 推进轮必须查得会话并在拦截面内闭环（n0 判定过），
+	// 不再重演「查无会话按设计放行 → semantic_entry」丢局路径。
+	resp, handled = server.handleEduJamChat(ctx, conv, "chat", "写好了", eduJamChatCtx())
+	if !handled || resp.StopReason != "edu_jam_node_done" || resp.WorkflowData["node_done"] != "n0_photo_score_open" {
+		t.Fatalf("turn-2 advance must find the session after boundary restore: handled=%v stop=%s data=%v reply=%s",
+			handled, resp.StopReason, resp.WorkflowData, resp.Reply)
 	}
 }

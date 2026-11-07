@@ -228,12 +228,21 @@ func (s *Server) eduJamEnter(ctx context.Context, conversationID, mode, levelHin
 		base.Error = err.Error()
 		return base, true
 	}
-	projectUUID := s.eduJamProjectUUID(ctx)
-	if strings.TrimSpace(projectUUID) == "" {
-		base.Reply = "乐局需要已绑定的工程（会话/工程双绑定是 280 数据层契约）：当前既无激活工作区也读不到内核工程标识，不能开局。"
+	// 281 修复腿（主管裁定 B 形态）：enter 在落盘前确保工作区激活完成——
+	// pre-activation 开局正是 smokerun1_20261107_0924 exit 4 竞态的入口
+	// （enter 落盘 → 同窗口惰性激活空态整表覆盖 eduJamSessions → 推进轮
+	// 查无会话放行）。无法确保激活 → fail-closed 拒绝开局并明确回话。
+	projectUUID, gateReason := s.eduJamEnsureWorkspaceActivation(ctx)
+	if gateReason != "" {
+		base.Reply = "工程还没打开好，稍等再开始乐局（" + eduJamGateReasonText(gateReason) + "）。"
 		base.GoalStatus = "failed"
-		base.StopReason = "edu_jam_project_binding_unavailable"
-		base.Error = "project uuid unavailable"
+		base.StopReason = "edu_jam_workspace_activation_incomplete"
+		base.Error = "workspace activation incomplete: " + gateReason
+		base.WorkflowData = map[string]any{
+			"schema_version": eduJamSessionSchemaVersion,
+			"gate":           "workspace_activation",
+			"gate_reason":    gateReason,
+		}
 		return base, true
 	}
 	nodeIDs := make([]string, 0, len(card.Nodes))
@@ -942,26 +951,82 @@ func (s *Server) eduJamActiveSessionCard(conversationID string) (eduJamSession, 
 	return session, card, true
 }
 
-func (s *Server) eduJamProjectUUID(ctx context.Context) string {
-	s.mu.Lock()
-	uuid := s.activeWorkspaceUUID
-	s.mu.Unlock()
-	if strings.TrimSpace(uuid) != "" {
-		return strings.TrimSpace(uuid)
+// eduJamEnsureWorkspaceActivation 确保 enter 落盘前工作区激活已完成（281 修复
+// 腿，主管裁定 B 形态）。两步：
+//
+//  1. 同步触发一次激活：activateCurrentProjectWorkspace 幂等（同身份同工作会话
+//     走 fast-path 返回）；身份源（shadow summary）已追上内核切换时，此处即
+//     完成激活并按盘上快照 restore——此后同身份激活不再触发整表覆盖。
+//  2. 双源核对：激活工作区 uuid（activeWorkspaceUUID）必须与内核当前工程 uuid
+//     （get_project_state 直读真值，与 observeEduJam 同读面、不经 shadow 惯性）
+//     一致；任一缺失或不一致 = 激活未完成/身份滞后 → 返回 reason（enter 拒绝）。
+//
+// 消灭的竞态类（smokerun1_20261107_0924 exit 4 根因）：enter 在 pre-activation
+// 窗口开局（工作区未激活或仍绑旧工程）→ 同/后续请求边界工作区惰性激活 →
+// restoreProjectAgentRuntimeStateLocked 以新工程空态执行
+// `s.eduJamSessions = s.restoreEduJamSessionsLocked(空)`（server.go 恢复面）整表
+// 覆盖在途会话 → 推进轮查无会话按设计放行。门拒绝开局后，激活窗口内不再有
+// 在途会话可丢；门通过时 enter 绑定的即激活工作区本身（enter 同步持久化），
+// 后续同身份激活走 fast-path 或从含会话的盘上快照 restore，均不丢会话。
+//
+// 边界（如实声明）：门通过后内核才切换工程 = 用户真实换工程动作，属 B5 跨身份
+// 切换语义（settleLiveChainsForWorkspaceSwitch + 新工程快照 restore），不在本
+// 竞态类内；内核 uuid 只作核对真值，不作任何恢复/落盘依据（FIX-START-STATE-
+// RECOVERY-1 用户裁定：kernel 上报 uuid 不是恢复基址——本门不扫描草稿、不绕过
+// 激活身份源，仅拒绝两者不一致时的开局）。
+func (s *Server) eduJamEnsureWorkspaceActivation(ctx context.Context) (string, string) {
+	if s == nil {
+		return "", "server_unavailable"
 	}
-	// 无激活工作区时观察内核工程标识（绑定用观察值；持久化仍走工作区快照路径，
-	// 未激活时为内存态——冒测栈由脚本保证工作区激活）。
+	// 步 1：同步触发激活（harness/shadow 不可用或身份源未就绪时为 no-op，
+	// 由步 2 双源核对兜底拒绝）。
+	s.activateCurrentProjectWorkspace(ctx)
+	// 步 2a：激活工作区标识。
+	s.mu.Lock()
+	activeUUID := strings.TrimSpace(s.activeWorkspaceUUID)
+	s.mu.Unlock()
+	if activeUUID == "" {
+		return "", "workspace_not_activated"
+	}
+	// 步 2b：内核当前工程真值直读。
 	send := s.eduJamKernelSendFunc()
 	if send == nil {
-		return ""
+		return "", "kernel_read_face_unavailable"
 	}
 	stateCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	reply, err := send(stateCtx, map[string]any{"cmd": "get_project_state"})
 	if err != nil || !eduJamKernelReplyOK(reply) {
-		return ""
+		return "", "kernel_identity_unavailable"
 	}
-	return firstStringFromMap(reply, "project_uuid", "project_id")
+	kernelUUID := strings.TrimSpace(firstStringFromMap(reply, "project_uuid", "project_id"))
+	if kernelUUID == "" {
+		return "", "kernel_identity_unavailable"
+	}
+	if !strings.EqualFold(kernelUUID, activeUUID) {
+		// 内核已切换而工作区仍绑旧工程（shadow 惯性窗口）——正是丢会话竞态
+		// 的入口形态，fail-closed 拒绝。
+		return "", "workspace_identity_lagging_kernel"
+	}
+	return activeUUID, ""
+}
+
+// eduJamGateReasonText 把门拒绝原因翻成回话内的用户可读短语（回话主干
+// 「工程还没打开好，稍等再开始乐局」由 enter 模板统一给出）。
+func eduJamGateReasonText(reason string) string {
+	switch reason {
+	case "workspace_not_activated":
+		return "还没有打开的工程"
+	case "kernel_read_face_unavailable":
+		return "暂时读不到内核工程"
+	case "kernel_identity_unavailable":
+		return "暂时读不到内核工程标识"
+	case "workspace_identity_lagging_kernel":
+		return "工程正在切换，工作区还没跟上"
+	case "server_unavailable":
+		return "服务不可用"
+	}
+	return "工作区还没就位"
 }
 
 func (s *Server) eduJamWorkflowData(session eduJamSession, extra map[string]any) map[string]any {
