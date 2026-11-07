@@ -128,6 +128,37 @@ func isMultiPluginLoadIntent(message string) bool {
 	}
 	return types >= 2 || (types >= 1 && (strings.Contains(message, "\u4e24\u4e2a") || strings.Contains(message, "\u5169\u500b") || strings.Contains(lower, "both")))
 }
+
+// pluginControlEvalSeamEnv is the PLUGIN-CONTROL-EVAL-SEAM-1 test-only master
+// switch (B4/C4 ablation-hook precedent: VIT_AUTOMATION_INTENT_ABLATION). When
+// set to exactly "1" the four seams open together so the model-capability A/B
+// arms can run without the product's semantic control machinery. Default unset
+// keeps production behavior byte-for-byte; production startup paths never set
+// this env.
+const pluginControlEvalSeamEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM"
+
+func pluginControlEvalSeamOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamEnv)) == "1"
+}
+
+// applyPluginControlEvalSeamEntryRewrite is seam S1 (typed-takeover bypass) of
+// PLUGIN-CONTROL-EVAL-SEAM-1: with the seam open, a semantic-entry decision
+// classified as explicit_control (control_mode=typed_control) is reclassified
+// as route=other / control_mode=ordinary_agent so the request flows through
+// the ordinary agent tool loop instead of the typed planner. Authorization,
+// scope, and confidence are preserved (action_requested is valid for "other"),
+// and the reason is rewritten so the diversion stays auditable. Every other
+// route — and the closed seam — returns the decision unchanged.
+func applyPluginControlEvalSeamEntryRewrite(decision semanticEntryDecision) semanticEntryDecision {
+	if !pluginControlEvalSeamOpen() || decision.Route != semanticEntryRouteExplicitControl {
+		return decision
+	}
+	decision.Route = semanticEntryRouteOther
+	decision.ControlMode = semanticEntryControlOrdinary
+	decision.Reason = "plugin-control-eval seam S1: explicit control reclassified to the ordinary agent tool loop"
+	return decision
+}
+
 func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, req ChatRequest, cfg config.EngineConfig) (resp ChatResponse, handled bool) {
 	started := time.Now()
 	// FALLBACK-2：切片边界是唯一同时握有 agentloop.Result（含终局 fallback 轨迹）
@@ -290,6 +321,11 @@ func (s *Server) runAgentLoopChat(ctx context.Context, conversationID string, re
 		if err == nil && decision.Route == semanticEntryRouteUnresolved {
 			return s.semanticEntryUnresolvedChatResponse(conversationID, mode, &decision, nil), true
 		}
+		// PLUGIN-CONTROL-EVAL-SEAM-1 S1: with the seam open, control-class
+		// requests bypass the typed takeover (see
+		// applyPluginControlEvalSeamEntryRewrite); unset keeps the production
+		// route decision byte-for-byte.
+		decision = applyPluginControlEvalSeamEntryRewrite(decision)
 		if err == nil {
 			var routingIdentity CapabilityRouteRecord
 			chatContext, routingIdentity = s.ensureCapabilityRoutingTask(userText, chatContext)

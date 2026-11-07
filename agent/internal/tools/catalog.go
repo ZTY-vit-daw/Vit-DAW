@@ -2,6 +2,7 @@ package tools
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -985,6 +986,32 @@ func spec(command, tool, category, description string, risk RiskLevel, mutates, 
 	}
 }
 
+// pluginControlEvalSeamEnv is the PLUGIN-CONTROL-EVAL-SEAM-1 test-only master
+// switch (B4/C4 ablation-hook precedent). Exactly "1" opens the four seams;
+// unset keeps production behavior byte-for-byte and production startup paths
+// never set it.
+const pluginControlEvalSeamEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM"
+
+func pluginControlEvalSeamOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamEnv)) == "1"
+}
+
+// Seam S3 (tool-description sanitization) of PLUGIN-CONTROL-EVAL-SEAM-1: the
+// set_plugin_param catalog description carries product semantic guidance
+// (the display_domain_candidate conversion recipe and the value_text warning).
+// With the seam open the model sees only the bare parameter description; the
+// closed seam returns the production text verbatim.
+const setPluginParamFullDescription = "Set one explicit plugin parameter by normalized value (0.0-1.0). Use display_domain_candidate from explain_controls all_parameters to convert human-unit targets to normalized before calling. Do NOT pass value_text — that path is unreliable and will silently write the wrong value."
+
+const setPluginParamBareDescription = "Set one explicit plugin parameter by normalized value (0.0-1.0)."
+
+func setPluginParamCatalogDescription() string {
+	if pluginControlEvalSeamOpen() {
+		return setPluginParamBareDescription
+	}
+	return setPluginParamFullDescription
+}
+
 func defaultSpecs() []CommandSpec {
 	specs := []CommandSpec{
 		spec("ping", "project.ping", "project", "Check whether the kernel command path is alive.", RiskDirect, false, false, false, false),
@@ -1176,7 +1203,7 @@ func defaultSpecs() []CommandSpec {
 		spec("open_plugin_ui", "plugin.open", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("show_plugin_editor", "plugin.show_editor", "plugin", "Open a plugin editor window.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
 		spec("get_plugin_parameters", "plugin.get_parameters", "plugin", "Read normalized plugin parameter values.", RiskDirect, false, false, false, false, "track_id", "plugin_id"),
-		spec("set_plugin_param", "plugin.set_parameter", "plugin", "Set one explicit plugin parameter by normalized value (0.0-1.0). Use display_domain_candidate from explain_controls all_parameters to convert human-unit targets to normalized before calling. Do NOT pass value_text — that path is unreliable and will silently write the wrong value.", RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
+		spec("set_plugin_param", "plugin.set_parameter", "plugin", setPluginParamCatalogDescription(), RiskUndoable, true, true, false, true, "track_id", "plugin_id", "param_id"),
 		automationGetCurveSpec(),
 		automationSetPointsSpec(),
 		automationClearRegionSpec(),
