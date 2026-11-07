@@ -1,0 +1,62 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_092402\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun1_20261107_0924\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: edu jam env: telemetry=D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun1_20261107_0924\logs\agent_llm_telemetry.jsonl levels_dir=D:\Vit_DAW_wt_281impl\coord\levels
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_281impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_281impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_281impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_281impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=20740 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_281impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=20740
+ok: ZMQ SUB listening: 5556 pid=20740
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=completed message=已执行片段清理：1038 已删除 3 个静音区域。
+ok: Strip Silence chat confirmation executed apply
+strip.chat.cleanup status=ok ids=1038
+
+== chat-driven edu jam mount smoke (EDU-LEVEL-RUNTIME-B, deterministic zero-LLM)
+ok: edu jam project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun1_20261107_0924\default_project.xml
+[edu-jam] fixture verified: track=1007 clip=1016 notes=42
+[edu-jam] FAIL exit=4 phase=n0: n0 advance wrong: stop=semantic_entry_unresolved data={"decision": {"confidence": 0.2, "control_mode": "none", "reason": "The request is only an ambiguous completion statement with no clear acoustic, observation, discussion, or control intent.", "rejection_reason": "Insufficient context to determine whether the user wants discussion, observation, or a project action.", "route": "unresolved", "schema_version": "semantic_entry_decision.v1", "target_scope": "none", "user_authorization": "none"}, "diagnostic_reason": "Insufficient context to determine whether the user wants discussion, observation, or a project action.", "mutation_performed": false, "schema_version": "semantic_entry_decision.v1", "status": "unresolved"}
+edu jam smoke failed with exit code 4 (console: D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEVEL-RUNTIME-B\smokerun1_20261107
+_0924\edu_jam_console.txt)
+所在位置 D:\Vit_DAW_wt_281impl\scripts\dev_agent_smoke.ps1:9019 字符: 9
++         throw ("edu jam smoke failed with exit code $eduJamExit (cons ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (edu jam smoke f...am_console.txt):String) [], RuntimeException
+    + FullyQualifiedErrorId : edu jam smoke failed with exit code 4 (console: D:\Vit_DAW_wt_281impl\coord\runs\EDU-LEV 
+   EL-RUNTIME-B\smokerun1_20261107_0924\edu_jam_console.txt)
+ 
+PS1_EXIT=1
