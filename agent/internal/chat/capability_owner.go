@@ -222,6 +222,20 @@ func lowEndRelationAblationBypassed() bool {
 	return strings.TrimSpace(os.Getenv(lowEndRelationAblationEnv)) == "1"
 }
 
+// panLayoutAblationEnv is the B3-ABLATION-1 test-only hook (264 B4 hook-family
+// pattern reused for B3): when set to exactly "1" the B3 family lexicon
+// short-circuit is bypassed (every pan-layout phrase falls through to the LLM
+// turn) and the canary dispatch to the B3 runtime is disabled — the ablation
+// face of the A-F scaffolding endstate ruling (257 matrix §六). The governance
+// chain (pending proposal confirmation) is not bypassed. Default unset keeps
+// production behavior byte-for-byte; the env is never set by production
+// startup paths.
+const panLayoutAblationEnv = "VIT_PAN_LAYOUT_ABLATION"
+
+func panLayoutAblationBypassed() bool {
+	return strings.TrimSpace(os.Getenv(panLayoutAblationEnv)) == "1"
+}
+
 func inferProjectAwareCapability(message string) string {
 	text := strings.ToLower(strings.TrimSpace(message))
 	for _, marker := range []string{
@@ -233,9 +247,14 @@ func inferProjectAwareCapability(message string) string {
 			return staticBalanceCapabilityID
 		}
 	}
-	for _, marker := range []string{"static_mix.pan_layout", "b3", "声像布局", "pan layout", "panning layout"} {
-		if strings.Contains(text, marker) {
-			return panLayoutCapabilityID
+	// B3-ABLATION-1: with the test-only hook armed the B3 family lexicon
+	// short-circuit is bypassed — every pan-layout phrase falls through to the
+	// LLM turn. Default unset keeps the lexical routing byte-for-byte.
+	if !panLayoutAblationBypassed() {
+		for _, marker := range []string{"static_mix.pan_layout", "b3", "声像布局", "pan layout", "panning layout"} {
+			if strings.Contains(text, marker) {
+				return panLayoutCapabilityID
+			}
 		}
 	}
 	if !lowEndRelationAblationBypassed() {

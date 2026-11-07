@@ -106,7 +106,11 @@ func (s *Server) handleCapabilityRuntimeCanary(ctx context.Context, conversation
 			}
 		}
 	}
-	if capabilityID == panLayoutCapabilityID {
+	// B3-ABLATION-1: with the test-only hook armed the B3 dispatch branch is
+	// disabled (264 B4 hook-family pattern, 257 matrix §六) — a resolved B3
+	// request falls through to the LLM turn instead of the pan-layout canary
+	// runtime. Default unset keeps the dispatch byte-for-byte.
+	if capabilityID == panLayoutCapabilityID && !panLayoutAblationBypassed() {
 		return s.handlePanLayoutRuntimeCanary(ctx, conversationID, req, goal), true
 	}
 	// B4-ABLATION-1: with the test-only hook armed the B4 dispatch branch is

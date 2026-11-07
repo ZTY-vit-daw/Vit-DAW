@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import time
 import urllib.request
 from pathlib import Path
@@ -194,6 +195,320 @@ def wait_mom_relationships(base_url: str, timeout: float) -> dict[str, Any]:
     )
 
 
+def chat(base_url: str, conversation_id: str, message: str, timeout: float) -> dict[str, Any]:
+    return request_json(
+        "POST",
+        base_url.rstrip("/") + "/agent/chat",
+        {
+            "conversation_id": conversation_id,
+            "message": message,
+            "context": {"agent_mode": "chat"},
+        },
+        timeout,
+    )
+
+
+def workflow_data(response: dict[str, Any]) -> dict[str, Any]:
+    data = response.get("workflow_data")
+    return data if isinstance(data, dict) else {}
+
+
+def canary_stage(response: dict[str, Any]) -> str:
+    return str(workflow_data(response).get("canary_stage", ""))
+
+
+def track_pan_volume_state(base_url: str, timeout: float) -> dict[str, dict[str, float]]:
+    # The capability_runtime_v1 handler family never populates
+    # executed_kernel_reply (see the product-path flow above), so "B3 wrote
+    # nothing" cannot be checked by inspecting tool-call lists alone. The
+    # reliable read-only proof for the ablation face is a before/after
+    # snapshot of the actual mix state the rounds could plausibly touch:
+    # pan and fader volume per track (the 264 B4 pattern, retargeted from
+    # volume+pan to the B3 pan write face plus volume for good measure).
+    state = result_map(invoke_tool(base_url, "project.state", {}, timeout))
+    out: dict[str, dict[str, float]] = {}
+    for row in state.get("tracks", []):
+        if not isinstance(row, dict):
+            continue
+        track_id = str(row.get("track_id") or row.get("id") or "").strip()
+        if not track_id:
+            continue
+        pan = row.get("pan", row.get("pan_value"))
+        volume = row.get("volume_db", row.get("fader_db"))
+        entry: dict[str, float] = {}
+        if isinstance(pan, (int, float)):
+            entry["pan"] = float(pan)
+        if isinstance(volume, (int, float)):
+            entry["volume_db"] = float(volume)
+        if entry:
+            out[track_id] = entry
+    return out
+
+
+def mix_state_diff(before: dict[str, dict[str, float]], after: dict[str, dict[str, float]]) -> list[str]:
+    changed: list[str] = []
+    for track_id, before_values in before.items():
+        after_values = after.get(track_id, {})
+        for key, value in before_values.items():
+            if abs(after_values.get(key, value) - value) > 0.001:
+                changed.append(f"{track_id}.{key}")
+    return changed
+
+
+# ---------------------------------------------------------------------------
+# B3-ABLATION-1 (card 275): ablation mode. The ps1 wrapper sets
+# VIT_PAN_LAYOUT_ABLATION=1 on the agent (B3 lexicon short-circuit + canary
+# dispatch disabled, 264 B4 hook-family pattern), so the same B3 phrase that
+# the default product-path flow above proves lexically routed now falls
+# through to the LLM turn. This mode (a) runs the phrase x N rounds (fresh
+# conversation each, the 263/264 rounds-per-group pattern), (b) judges every
+# round purely on the LLM-turn evidence, and (c) treats any lexicon_hit
+# verdict as an invalid run (the hook not reaching the agent is a
+# configuration failure, never a model sample). Default off keeps the
+# product-path behavior byte-for-byte unchanged.
+#
+# Unlike B4 (pure read-only observation), the B3 capability face carries an
+# execution write face (mix.apply_pan_layout_batch). The A-verdict criterion
+# (card 275 goal 3): a harness round must autonomously reproduce the
+# "pan-layout observation + suggestion" main face — observation-family tools
+# + layout suggestion + confirmation-seeking closing form. The zero-raw-write
+# red line: any executed write tool in a single-turn round is recorded as
+# raw_write (never a success); the assertion face closes on the
+# suggestion+confirmation form and never asserts raw execution.
+# ---------------------------------------------------------------------------
+
+B3_ABLATION_QUESTION = "主唱留在中间，两把吉他分别放到左右两侧，帮我规划整个工程的声像布局"
+
+# Canary/pan_layout fixed-face takeover markers: any hit means the hook is
+# not live on the agent (workflow=capability_runtime_v1 / canary_stage
+# non-empty / layout_summary present / legacy pan_layout workflow form).
+ABLATION_LEXICON_WORKFLOWS = {"capability_runtime_v1", "pan_layout"}
+
+# Observation-family tool markers: a B3 capability reproduction must execute
+# at least one real observation tool (the canary path's chain is
+# mix.observe -> MOM/TOM stereo relation projections -> proposal).
+ABLATION_OBSERVATION_TOOL_MARKERS = (
+    "mix.observe",
+    "mix.derive",
+    "mix.summary",
+    "ccb.observation",
+    "audio_analysis",
+    "stereo",
+    "project.state",
+)
+
+# The B3 write face: a governed ablation round may close on a
+# suggestion+confirmation form, but must never execute these raw.
+ABLATION_FORBIDDEN_WRITE_TOOLS = {
+    "track.pan",
+    "track.volume",
+    "clip.gain.set",
+    "mix.apply_tick",
+    "mix.apply_static_balance_batch",
+    "mix.apply_pan_layout_batch",
+}
+
+# Honest-boundary wording for the pan-layout domain (264 boundary lexicon
+# pattern, retargeted to the pan/stereo/layout vocabulary).
+ABLATION_BOUNDARY_REPLY_PATTERN = re.compile(
+    r"(没有|未|无法|不支持|缺|不存在|需要先|尚无|暂无|先要|请先|不能直接).{0,32}(分析|数据|音频|工程|轨道|插件|声像|布局|结果|analysis|audio|project|track|pan|layout)",
+    re.IGNORECASE,
+)
+
+# Card 275 goal 4: the A bar is tool_chain_ok >= 4/5 with zero lexicon_hit.
+# boundary_ok is recorded honestly but does not count toward the B3 pass bar
+# (the B3 A face includes the suggestion+confirmation closing form, so a
+# plain boundary is not a face reproduction).
+ABLATION_PASS_VERDICT = "tool_chain_ok"
+
+
+def ablation_forbidden_write_tools(tools: list[str]) -> list[str]:
+    hits: list[str] = []
+    for name in tools:
+        if name in ABLATION_FORBIDDEN_WRITE_TOOLS:
+            hits.append(name)
+            continue
+        base = name.rsplit(".", 1)[-1]
+        if base == "set" or base.startswith("apply"):
+            hits.append(name)
+    return hits
+
+
+def ablation_confirmation_form(response: dict[str, Any]) -> bool:
+    if response.get("needs_confirmation") is True:
+        return True
+    if response.get("interaction_requests"):
+        return True
+    return str(response.get("stop_reason", "")) == "needs_confirmation"
+
+
+def classify_ablation_round(response: dict[str, Any]) -> tuple[str, list[str], str]:
+    """Mechanical verdict for one LLM-turn round. Priority order is fixed
+    before any round runs (§8): invalid-hook detection first (it voids the
+    run), then entry-layer interception, then the raw-write red line, then
+    the success form, then honest non-success filing."""
+    tools = execution_tools(response)
+    workflow = str(response.get("workflow", ""))
+    stop_reason = str(response.get("stop_reason", ""))
+    goal_status = str(response.get("goal_status", ""))
+    reply = str(response.get("reply", ""))
+    detail = json.dumps(
+        {
+            "workflow": workflow,
+            "stop_reason": stop_reason,
+            "goal_status": goal_status,
+            "tools": tools,
+            "needs_confirmation": response.get("needs_confirmation"),
+            "reply_head": reply[:200],
+        },
+        ensure_ascii=False,
+    )
+    # 1. lexicon_hit: the B3 canary / legacy pan_layout workflow still took
+    #    over -> the hook is not live on the agent; the whole run is a
+    #    configuration failure (exit 4).
+    if (
+        workflow in ABLATION_LEXICON_WORKFLOWS
+        or canary_stage(response) != ""
+        or isinstance(workflow_data(response).get("layout_summary"), dict)
+    ):
+        return "lexicon_hit", tools, detail
+    # 2. Entry-layer interception (251/263 form): semantic_entry arbiter
+    #    unresolved.
+    if stop_reason == "semantic_entry_unresolved" or workflow == "semantic_entry":
+        return "semantic_entry_intercepted", tools, detail
+    # 3. Red line: any raw write executed in this single-turn round (B3 has
+    #    an execution face; the governed path closes on suggestion+confirmation
+    #    instead of executing). Recorded as-is, never a success.
+    if ablation_forbidden_write_tools(tools):
+        return "raw_write", tools, detail
+    observed = [name for name in tools if any(marker in name for marker in ABLATION_OBSERVATION_TOOL_MARKERS)]
+    confirmation = ablation_confirmation_form(response)
+    # 4. Capability reproduced (card 275 goal 3 A face): autonomous
+    #    observation chain + substantive suggestion (>= 40 chars) closed on
+    #    the confirmation-seeking form.
+    if confirmation and observed and len(reply.strip()) >= 40:
+        return "tool_chain_ok", tools, detail
+    if confirmation and not observed:
+        return "confirm_without_observation", tools, detail
+    if goal_status == "completed":
+        # Observation chain + substantive suggestion, but no mechanical
+        # confirmation-seeking closing form -> partial face, honest filing.
+        if observed and len(reply.strip()) >= 40:
+            return "advice_only", tools, detail
+        if observed:
+            return "weak_report", tools, detail
+        if ABLATION_BOUNDARY_REPLY_PATTERN.search(reply):
+            return "boundary_ok", tools, detail
+        if not tools:
+            return "no_route", tools, detail
+        return "other_completed", tools, detail
+    return f"error_{goal_status or 'unknown'}", tools, detail
+
+
+def run_ablation_mode(args: argparse.Namespace) -> int:
+    run_stamp = time.strftime("%Y%m%d_%H%M%S")
+    artifact_dir = Path(args.rounds_dir).resolve().parent if args.rounds_dir else None
+    if artifact_dir is None:
+        artifact_dir = Path(args.repo_root).resolve() / "VitApp" / "Workspace" / "Artifacts" / "smoke" / f"b3_ablation_{run_stamp}"
+    artifact_dir.mkdir(parents=True, exist_ok=True)
+    rounds_dir = Path(args.rounds_dir).resolve() if args.rounds_dir else artifact_dir / "rounds"
+    rounds_dir.mkdir(parents=True, exist_ok=True)
+
+    health = wait_agent(args.agent_http, args.timeout_sec)
+
+    audio_path = Path(args.repo_root).resolve() / "test_target_3s.wav"
+    if not audio_path.is_file():
+        raise RuntimeError(f"fixture audio not found: {audio_path}")
+    # Real multi-track pan fixture (>=3 tracks with pan-decidable roles:
+    # Lead Vocal / Guitar Double 1-2 / Backing Vocal 1-2 / Percussion 1-2),
+    # the same product-path fixture helper, py-built as the 264 precedent.
+    # No MOM/audio-analysis pre-warm: the honest ablation face is the model
+    # autonomously deciding whether to trigger the observation chain.
+    fixture = prepare_fixture(args.agent_http, artifact_dir / "fixture_project.vit", audio_path, args.timeout_sec)
+    mix_state_before = track_pan_volume_state(args.agent_http, args.timeout_sec)
+
+    phrase = args.phrase.strip() or B3_ABLATION_QUESTION
+    rounds: list[dict[str, Any]] = []
+    verdict_counts: dict[str, int] = {}
+    stop_loss: dict[str, Any] | None = None
+    rounds_run = 0
+    for index in range(1, args.rounds + 1):
+        conversation_id = f"b3_ablation_{run_stamp}_r{index}"
+        record: dict[str, Any] = {"round": index, "phrase": phrase, "conversation": conversation_id}
+        try:
+            response = chat(args.agent_http, conversation_id, phrase, args.timeout_sec)
+        except Exception as exc:  # noqa: BLE001 - round-level transport failure is a verdict, not a crash.
+            record["verdict"] = "error_timeout"
+            record["detail"] = f"chat transport failure: {exc}"[:800]
+            response = None
+        if response is not None:
+            (rounds_dir / f"r{index}_response.json").write_text(
+                json.dumps(response, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            verdict, tools, detail = classify_ablation_round(response)
+            record["verdict"] = verdict
+            record["tools"] = tools
+            record["detail"] = detail
+        rounds.append(record)
+        rounds_run = index
+        verdict_counts[record["verdict"]] = verdict_counts.get(record["verdict"], 0) + 1
+        print(f"[b3-ablation] round {index}/{args.rounds} verdict={record['verdict']} tools={record.get('tools', [])}")
+        if record["verdict"] == "lexicon_hit":
+            break
+        # Stop-loss (263/264 RUNBOOK precedent): 3 consecutive same-type
+        # non-pass verdicts stop the group, evidence preserved, no more
+        # rounds spent.
+        if len(rounds) >= 3:
+            tail = [row["verdict"] for row in rounds[-3:]]
+            if len(set(tail)) == 1 and tail[0] != ABLATION_PASS_VERDICT and tail[0] != "lexicon_hit":
+                stop_loss = {"after_round": index, "verdict": tail[0], "rounds_saved": args.rounds - index}
+                print(f"[b3-ablation] stop-loss: 3 consecutive {tail[0]} rounds; remaining rounds not spent")
+                break
+
+    mix_state_after = track_pan_volume_state(args.agent_http, args.timeout_sec)
+    mutated_tracks = mix_state_diff(mix_state_before, mix_state_after)
+    tool_chain_ok = verdict_counts.get(ABLATION_PASS_VERDICT, 0)
+    lexicon_hit_seen = verdict_counts.get("lexicon_hit", 0) > 0
+
+    summary: dict[str, Any] = {
+        "schema_version": "b3_ablation.v1",
+        "scenario": "B3-ABLATION-1: pan-layout phrase family under the B3 ablation hook (LLM-turn evidence only)",
+        "ablation_hook": True,
+        "hook_env": "VIT_PAN_LAYOUT_ABLATION=1 (set by the ps1 wrapper on the agent)",
+        "phrase": phrase,
+        "rounds_requested": args.rounds,
+        "rounds_run": rounds_run,
+        "rounds": rounds,
+        "verdict_counts": verdict_counts,
+        "tool_chain_ok": tool_chain_ok,
+        "boundary_ok": verdict_counts.get("boundary_ok", 0),
+        "pass_verdict": ABLATION_PASS_VERDICT,
+        "group_pass": tool_chain_ok >= 4 and rounds_run == args.rounds,
+        "stop_loss": stop_loss,
+        "lexicon_hit_seen": lexicon_hit_seen,
+        "zero_raw_write_violations": verdict_counts.get("raw_write", 0),
+        "read_only_verified": not mutated_tracks,
+        "mix_state_mutations": mutated_tracks,
+        "fixture": fixture,
+        "health": health,
+        "artifact_dir": str(artifact_dir),
+        "telemetry_path": args.telemetry_path or "",
+        "prompt_render_path": args.prompt_render_path or "",
+        "payload_capture_path": args.payload_capture_path or "",
+        "agent_log": args.agent_log or "",
+        "started_at": run_stamp,
+    }
+    output_path = Path(args.output).resolve() if args.output else artifact_dir / "b3_ablation_summary.json"
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
+    print(json.dumps({key: summary[key] for key in ("rounds_run", "verdict_counts", "tool_chain_ok", "group_pass", "stop_loss", "lexicon_hit_seen", "zero_raw_write_violations", "read_only_verified")}, ensure_ascii=False))
+    print(f"[b3-ablation] summary: {output_path}")
+    if lexicon_hit_seen:
+        print("[b3-ablation] INVALID: lexicon_hit verdict seen -- the hook did not reach the agent (configuration failure)")
+        return 4
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", default=str(Path(__file__).resolve().parents[1]))
@@ -202,7 +517,27 @@ def main() -> int:
     parser.add_argument("--dad-timeout-sec", type=float, default=240.0)
     parser.add_argument("--prepare-stems-folder", default="")
     parser.add_argument("--skip-fixture", action="store_true")
+    # B3-ABLATION-1: ablation mode — the ps1 wrapper sets
+    # VIT_PAN_LAYOUT_ABLATION=1 on the agent (B3 lexicon short-circuit +
+    # canary dispatch disabled), so this driver judges the LLM-turn evidence
+    # of a B3 pan-layout phrase over N rounds (default 5, the 263/264
+    # rounds-per-group pattern). Default off keeps the product-path flow
+    # byte-for-byte unchanged.
+    parser.add_argument("-AblationHook", "--ablation-hook", dest="ablation_hook", action="store_true",
+                        help="B3 ablation mode: agent B3 lexicon+dispatch disarmed via env; every round judged as an LLM sample")
+    parser.add_argument("--phrase", default="",
+                        help="ablation canonical phrase override (default: the B3 canonical candidate; the RUNBOOK prescan pins the final choice)")
+    parser.add_argument("--rounds", type=int, default=5,
+                        help="rounds per ablation group (default 5)")
+    parser.add_argument("--output", default="", help="ablation summary output path")
+    parser.add_argument("--rounds-dir", default="", help="per-round response artifact dir")
+    parser.add_argument("--telemetry-path", default="", help="provenance: agent telemetry jsonl path (recorded in summary)")
+    parser.add_argument("--prompt-render-path", default="", help="provenance: prompt render jsonl path (recorded in summary)")
+    parser.add_argument("--payload-capture-path", default="", help="provenance: payload capture jsonl path (recorded in summary)")
+    parser.add_argument("--agent-log", default="", help="provenance: agent log path (recorded in summary)")
     args = parser.parse_args()
+    if args.ablation_hook:
+        return run_ablation_mode(args)
 
     repo = Path(args.repo_root).resolve()
     run_stamp = time.strftime("%Y%m%d_%H%M%S")
