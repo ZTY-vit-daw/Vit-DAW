@@ -1,0 +1,957 @@
+{
+  "schema_version": "plugin_control_eval_segment_a_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-S1A-1",
+  "run_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545",
+  "arm": "A (seam open VIT_PLUGIN_CONTROL_EVAL_SEAM=1; relabel per RUNBOOK: raw driver records keep arm=\"P\")",
+  "model": "deepseek-flash (product default config)",
+  "score_table": [
+    {
+      "case": "T1",
+      "arm": "A",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r1_1794062181",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "mix.observe",
+          "plugin_grabber.inspect_reverb",
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "harness_tool_sequence": [
+          "mix.observe"
+        ],
+        "typed_adapter_calls": [
+          "plugin_grabber.inspect_reverb",
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 104506,
+      "output_tokens": 1892,
+      "cache_read_tokens": 49664,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T1_r1"
+    },
+    {
+      "case": "T1",
+      "arm": "A",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r2_1794062198",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "mix.observe",
+          "plugin_grabber_inspect_reverb",
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "harness_tool_sequence": [
+          "mix.observe"
+        ],
+        "typed_adapter_calls": [
+          "plugin_grabber_inspect_reverb",
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 105523,
+      "output_tokens": 1801,
+      "cache_read_tokens": 49792,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T1_r2"
+    },
+    {
+      "case": "T1",
+      "arm": "A",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r3_1794062216",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 106742,
+      "output_tokens": 1977,
+      "cache_read_tokens": 49536,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T1_r3"
+    },
+    {
+      "case": "T2",
+      "arm": "A",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r1_1794062234",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 86097,
+      "output_tokens": 3839,
+      "cache_read_tokens": 30592,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T2_r1"
+    },
+    {
+      "case": "T2",
+      "arm": "A",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r2_1794062262",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 80118,
+      "output_tokens": 3094,
+      "cache_read_tokens": 38144,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T2_r2"
+    },
+    {
+      "case": "T2",
+      "arm": "A",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r3_1794062285",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 81335,
+      "output_tokens": 2146,
+      "cache_read_tokens": 38144,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T2_r3"
+    },
+    {
+      "case": "T3",
+      "arm": "A",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r1_1794062303",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin_grabber_inspect_reverb",
+          "plugin_grabber_apply_reverb_controls",
+          "get_plugin_parameters",
+          "plugin_grabber_apply_reverb_controls",
+          "get_plugin_parameters"
+        ],
+        "harness_tool_sequence": [
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [
+          "plugin_grabber_inspect_reverb",
+          "plugin_grabber_apply_reverb_controls",
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber_apply_reverb_controls",
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "get_plugin_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [
+        "seam_leakage: normalized_role/template_role/alias entered model context via plugin_grabber_explain_controls result rendering (binding_targets rows; see seam_verify_corpus.json)"
+      ],
+      "final_verdict": "pass",
+      "failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 9,
+      "input_tokens": 247323,
+      "output_tokens": 5303,
+      "cache_read_tokens": 113536,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "model_budget_exhausted:input_tokens_per_call_over_cap",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T3_r1"
+    },
+    {
+      "case": "T3",
+      "arm": "A",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r2_1794062347",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber_apply_reverb_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 8,
+      "input_tokens": 148700,
+      "output_tokens": 3493,
+      "cache_read_tokens": 66432,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T3_r2"
+    },
+    {
+      "case": "T3",
+      "arm": "A",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r3_1794062375",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber.apply_reverb_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 82749,
+      "output_tokens": 1372,
+      "cache_read_tokens": 38144,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T3_r3"
+    },
+    {
+      "case": "T4",
+      "arm": "A",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r1_1794062387",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin_grabber_apply_delay_controls"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [
+          "plugin_grabber_apply_delay_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber_apply_delay_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 63073,
+      "output_tokens": 1539,
+      "cache_read_tokens": 16512,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T4_r1"
+    },
+    {
+      "case": "T4",
+      "arm": "A",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r2_1794062400",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin_grabber_apply_delay_controls"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [
+          "plugin_grabber_apply_delay_controls"
+        ],
+        "typed_apply_calls": [
+          "plugin_grabber_apply_delay_controls"
+        ],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "typed_adapter"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "unexpected_mutation"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 2,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 65438,
+      "output_tokens": 3024,
+      "cache_read_tokens": 19712,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T4_r2"
+    },
+    {
+      "case": "T4",
+      "arm": "A",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r3_1794062422",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "unexpected_mutation"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 2,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 63833,
+      "output_tokens": 3219,
+      "cache_read_tokens": 19712,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T4_r3"
+    },
+    {
+      "case": "T5",
+      "arm": "A",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r1_1794062444",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 54274,
+      "output_tokens": 3144,
+      "cache_read_tokens": 18048,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T5_r1"
+    },
+    {
+      "case": "T5",
+      "arm": "A",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r2_1794062469",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 55305,
+      "output_tokens": 1555,
+      "cache_read_tokens": 23040,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T5_r2"
+    },
+    {
+      "case": "T5",
+      "arm": "A",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r3_1794062483",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 41421,
+      "output_tokens": 1246,
+      "cache_read_tokens": 15104,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T5_r3"
+    },
+    {
+      "case": "T6",
+      "arm": "A",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r1_1794062496",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [
+        "seam_leakage: normalized_role/template_role/alias entered model context via plugin_grabber_explain_controls result rendering (binding_targets rows; see seam_verify_corpus.json)"
+      ],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 56491,
+      "output_tokens": 1911,
+      "cache_read_tokens": 19456,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T6_r1"
+    },
+    {
+      "case": "T6",
+      "arm": "A",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r2_1794062512",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 36024,
+      "output_tokens": 1459,
+      "cache_read_tokens": 12800,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T6_r2"
+    },
+    {
+      "case": "T6",
+      "arm": "A",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r3_1794062525",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "typed_apply_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 37960,
+      "output_tokens": 1629,
+      "cache_read_tokens": 12800,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\rounds\\T6_r3"
+    }
+  ],
+  "totals": {
+    "llm_calls": 93,
+    "input_tokens": 1516912,
+    "output_tokens": 43643,
+    "cache_read_tokens": 631168
+  },
+  "caps": {
+    "rounds": 18,
+    "max_llm_calls": 216,
+    "max_input_tokens": 8640000,
+    "max_output_tokens": 1728000
+  },
+  "within_caps": true,
+  "per_case": {
+    "T1": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "typed_adapter"
+      ],
+      "typed_adapter_used_rounds": 3,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 15
+    },
+    "T2": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "typed_adapter",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 1,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 15
+    },
+    "T3": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "typed_adapter"
+      ],
+      "typed_adapter_used_rounds": 3,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 21
+    },
+    "T4": {
+      "repeats": 3,
+      "pass_count": 1,
+      "verdicts": [
+        "pass",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "unexpected_mutation"
+      ],
+      "behavior_tags": [],
+      "write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 2,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 15
+    },
+    "T5": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 14
+    },
+    "T6": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 13
+    }
+  },
+  "a_vs_p": [
+    {
+      "case": "T1",
+      "A_pass": "3/3",
+      "A_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A_failure_tags": [],
+      "A_write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "typed_adapter"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "A_llm_calls_total": 15,
+      "delta_note": "A repeat-level variance visible in A_verdicts; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T2",
+      "A_pass": "3/3",
+      "A_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A_failure_tags": [],
+      "A_write_paths": [
+        "typed_adapter",
+        "none_observed",
+        "none_observed"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "A_llm_calls_total": 15,
+      "delta_note": "A repeat-level variance visible in A_verdicts; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T3",
+      "A_pass": "3/3",
+      "A_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "A_write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "typed_adapter"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 7,
+      "A_llm_calls_total": 21,
+      "delta_note": "A repeat-level variance visible in A_verdicts; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T4",
+      "A_pass": "1/3",
+      "A_verdicts": [
+        "pass",
+        "fail",
+        "fail"
+      ],
+      "A_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "A_write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "none_observed"
+      ],
+      "P_verdict": "fail",
+      "P_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "P_llm_calls": 9,
+      "A_llm_calls_total": 15,
+      "delta_note": "A repeat-level variance visible in A_verdicts; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T5",
+      "A_pass": "3/3",
+      "A_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A_failure_tags": [],
+      "A_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "A_llm_calls_total": 14,
+      "delta_note": "A repeat-level variance visible in A_verdicts; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T6",
+      "A_pass": "3/3",
+      "A_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A_failure_tags": [],
+      "A_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 7,
+      "A_llm_calls_total": 13,
+      "delta_note": "A repeat-level variance visible in A_verdicts; single P repeat per plan run_counts.P"
+    }
+  ],
+  "p_baseline_source": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\p_baseline\\segment_p_summary.json",
+  "seam_corpus_check": {
+    "source": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\logs\\agent_llm_payload_capture.jsonl",
+    "verdict": "seam_leakage",
+    "leaking_conversations": [
+      "pce_p_T3_r1_1794062303",
+      "pce_p_T6_r1_1794062496"
+    ],
+    "note": "affected rounds carry device_flags; verdicts preserved as evaluated (supervisor adjudicates arm validity)"
+  },
+  "missing_rounds": [],
+  "notes": [
+    "probe round (T1 repeat 0, device verification carrier) excluded from scores",
+    "cost fields remain missing pending plan budgets.monetary price snapshot",
+    "single round = single sample; 3 repeats do not constitute a stability claim (plan section 6)",
+    "tool-face: typed plugin_grabber adapters remain in the ordinary catalog (outside the four seams); per-round write_path recorded"
+  ]
+}

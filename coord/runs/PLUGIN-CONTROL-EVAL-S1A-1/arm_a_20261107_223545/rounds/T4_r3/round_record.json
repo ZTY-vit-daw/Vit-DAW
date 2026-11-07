@@ -1,0 +1,930 @@
+{
+  "case_id": "T4",
+  "arm": "P",
+  "repeat": 3,
+  "conversation_id": "pce_p_T4_r3_1794062422",
+  "message": "在 H-Delay 的 Sync 保持 Host 的前提下，把延迟时间设为 250 毫秒。",
+  "fixture": {
+    "track_id": "1170",
+    "plugin_id": "1176",
+    "plugin_identifier": "VST3-H-Delay Stereo-695648d-6e3b68a7",
+    "fixture_digest": "e4d16dd4c7ea74a1"
+  },
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "started_at": "2026-11-07T22:40:22+0800",
+  "exchanges": [
+    {
+      "turn": 1,
+      "sent": "在 H-Delay 的 Sync 保持 Host 的前提下，把延迟时间设为 250 毫秒。",
+      "response": {
+        "conversation_id": "pce_p_T4_r3_1794062422",
+        "task_id": "task_c22960844d416196",
+        "goal_id": "goal_31232e5b82b5a3fb",
+        "run_id": "run_84c04f7d27237671",
+        "slice_id": "slice_486d4030b81b34eb",
+        "original_intent": "在 H-Delay 的 Sync 保持 Host 的前提下，把延迟时间设为 250 毫秒。",
+        "reply": "**结论**\n已把 Track 7 机架上 H-Delay Stereo 的延迟时间设为 250 ms，Delay Sec 与 Delay Sec R 左右两路都写入并回读确认为「250 ms」，精确命中、无量化误差。Sync 全程未改动，仍为 Host；本次为原子写入，只改这两个时间参数，Feedback、Mix、Dry/Wet、Output、PingPong 等一律未动，并已留下完整还原点。\n\n**证据**\n- 改前观测：Sync 显示 Host（BPM / Host / ms 三档），Delay Sec 与 Delay Sec R 均为 375 ms，对数刻度、范围 1–3500 ms。\n- 改后回读：两个时间参数都显示「250 ms」，状态为精确命中，写入为原子操作、失败可整体回滚。\n\n**限制**\n- Track 7 上没有音频片段，延迟的发声探针无法运行，所以这次只有参数回读证据，没有音频层验证，最终听感要你 A/B。\n- 需要提醒：Sync 在 Host 档时，H-Delay 的实际延迟量由速度同步的音符值决定（当前显示 1/8D），毫秒值只有切到 ms 档才真正生效。也就是说 250 ms 已写进参数，但 Host 档下听到的仍可能是 1/8D 的时值。这与你「保持 Host」的要求冲突，所以我没动 Sync。\n\n**建议聆听**\n- 先在 Host 档听一遍，确认节奏感仍是 1/8D；若你真正想要「听到 250 ms」，需要临时把 Sync 切到 ms 档做对比，听完再切回 Host。\n- 想完全回退，说一句「撤销」即可把两个时间参数恢复到 375 ms。",
+        "agent_mode": "default",
+        "needs_confirmation": false,
+        "executed_kernel_reply": [
+          {
+            "agent_action_id": "",
+            "command_name": "plugin_grabber_inspect_delay",
+            "elapsed_ms": 5,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "auxiliary_stages": [],
+              "classification": "feedback_delay",
+              "confidence": 0.96,
+              "control_topology": {
+                "generation": "dl1t1_9570e799f62db82b9e54ca45",
+                "schema_version": "delay-control-topology/v1"
+              },
+              "delay_stage": {
+                "capabilities": {
+                  "character": [
+                    "ping_pong"
+                  ],
+                  "feedback": [
+                    "feedback"
+                  ],
+                  "output": [
+                    "dry",
+                    "mix",
+                    "output_gain",
+                    "wet"
+                  ],
+                  "timing": [
+                    "sync",
+                    "time"
+                  ]
+                },
+                "character": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImNoYXJhY3RlciIsInJvbGUiOiJwaW5nX3BvbmciLCJwYXJhbV9pZCI6IjE2In0.cf4b620c87bb117a",
+                    "current_normalized": 0,
+                    "current_text": "Left",
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: Left / Right",
+                      "unit": "enum"
+                    },
+                    "name": "Ping Pong Start Direction",
+                    "param_id": "16",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "Left",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "Right",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "ping_pong"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImNoYXJhY3RlciIsInJvbGUiOiJwaW5nX3BvbmciLCJwYXJhbV9pZCI6IjMifQ.67330becd200be27",
+                    "current_normalized": 0,
+                    "current_text": "Stereo",
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: Stereo / PingPong",
+                      "unit": "enum"
+                    },
+                    "name": "PingPong",
+                    "param_id": "3",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "Stereo",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "PingPong",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "ping_pong"
+                  }
+                ],
+                "feedback": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImZlZWRiYWNrIiwicm9sZSI6ImZlZWRiYWNrIiwicGFyYW1faWQiOiIyIn0.9420f77e8f6ddf45",
+                    "current_normalized": 0.300000011920929,
+                    "current_physical": 60,
+                    "current_text": "60",
+                    "curve": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0.25,
+                        50
+                      ],
+                      [
+                        0.5,
+                        100
+                      ],
+                      [
+                        0.75,
+                        150
+                      ],
+                      [
+                        1,
+                        200
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 200,
+                      "min": 0,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "0~200"
+                    },
+                    "name": "Feedback",
+                    "param_id": "2",
+                    "role": "feedback"
+                  }
+                ],
+                "output": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJkcnkiLCJwYXJhbV9pZCI6ImRyeSBsZXZlbCJ9.282e67f7b57fd422",
+                    "current_normalized": 0,
+                    "current_text": "-INF dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -12
+                      ],
+                      [
+                        0.5,
+                        -6
+                      ],
+                      [
+                        0.75,
+                        -2.5
+                      ],
+                      [
+                        1,
+                        0
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 0,
+                      "min": -12,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-12~0 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Dry Level",
+                    "param_id": "dry level",
+                    "physical_unit": "dB",
+                    "role": "dry"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJtaXgiLCJwYXJhbV9pZCI6IjUifQ.08d49f515f0798c8",
+                    "current_normalized": 1,
+                    "current_physical": 100,
+                    "current_text": "100",
+                    "curve": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0.25,
+                        25
+                      ],
+                      [
+                        0.5,
+                        50
+                      ],
+                      [
+                        0.75,
+                        75
+                      ],
+                      [
+                        1,
+                        100
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 100,
+                      "min": 0,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "0~100"
+                    },
+                    "name": "Mix",
+                    "param_id": "5",
+                    "physical_unit": "%",
+                    "role": "mix"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJvdXRwdXRfZ2FpbiIsInBhcmFtX2lkIjoiNiJ9.eb06f6b31883a3d2",
+                    "current_normalized": 0.5,
+                    "current_physical": 0,
+                    "current_text": "0.0 dB",
+                    "curve": [
+                      [
+                        0,
+                        -18
+                      ],
+                      [
+                        0.25,
+                        -9
+                      ],
+                      [
+                        0.5,
+                        0
+                      ],
+                      [
+                        0.75,
+                        9
+                      ],
+                      [
+                        1,
+                        18
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 18,
+                      "min": -18,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-18~18 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Output",
+                    "param_id": "6",
+                    "physical_unit": "dB",
+                    "role": "output_gain"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJ3ZXQiLCJwYXJhbV9pZCI6IndldCBsZXZlbCJ9.b7e1adca60ccecaf",
+                    "current_normalized": 1,
+                    "current_physical": 0,
+                    "current_text": "+0.0 dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -12
+                      ],
+                      [
+                        0.5,
+                        -6
+                      ],
+                      [
+                        0.75,
+                        -2.5
+                      ],
+                      [
+                        1,
+                        0
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 0,
+                      "min": -12,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-12~0 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Wet Level",
+                    "param_id": "wet level",
+                    "physical_unit": "dB",
+                    "role": "wet"
+                  }
+                ],
+                "stage_key": "delay",
+                "timing": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIxIn0.d875b35421a0e027",
+                    "current_normalized": 0.578999996185303,
+                    "current_physical": 1,
+                    "current_text": "1/8D",
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 2,
+                      "min": 1,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~2"
+                    },
+                    "name": "Delay BPM",
+                    "param_id": "1",
+                    "physical_unit": "ms",
+                    "role": "sync"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIxOCJ9.b85261ecd007daa3",
+                    "current_normalized": 0.578947365283966,
+                    "current_physical": 1,
+                    "current_text": "1/8D",
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 2,
+                      "min": 1,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~2"
+                    },
+                    "name": "Delay BPM R",
+                    "param_id": "18",
+                    "physical_unit": "ms",
+                    "role": "sync"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiI0In0.426a1287c751e9ae",
+                    "current_normalized": 0.5,
+                    "current_text": "Host",
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: BPM / Host / ms",
+                      "unit": "enum"
+                    },
+                    "name": "Sync",
+                    "param_id": "4",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "BPM",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "Host",
+                        "normalized": 0.5
+                      },
+                      {
+                        "label": "ms",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "sync"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.6cd214580e65fa79",
+                    "current_normalized": 0.374000012874603,
+                    "current_physical": 375,
+                    "current_text": "375 ms",
+                    "curve": [
+                      [
+                        0,
+                        1
+                      ],
+                      [
+                        0.25,
+                        251
+                      ],
+                      [
+                        0.5,
+                        501
+                      ],
+                      [
+                        0.75,
+                        1540
+                      ],
+                      [
+                        1,
+                        3500
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 3500,
+                      "min": 1,
+                      "scale": "log",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~3500 ms",
+                      "unit": "ms"
+                    },
+                    "name": "Delay Sec",
+                    "param_id": "0",
+                    "physical_unit": "ms",
+                    "role": "time"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxNyJ9.c663d0c59fa93024",
+                    "current_normalized": 0.374000012874603,
+                    "current_physical": 375,
+                    "current_text": "375 ms",
+                    "curve": [
+                      [
+                        0,
+                        1
+                      ],
+                      [
+                        0.25,
+                        251
+                      ],
+                      [
+                        0.5,
+                        501
+                      ],
+                      [
+                        0.75,
+                        1540
+                      ],
+                      [
+                        1,
+                        3500
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 3500,
+                      "min": 1,
+                      "scale": "log",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~3500 ms",
+                      "unit": "ms"
+                    },
+                    "name": "Delay Sec R",
+                    "param_id": "17",
+                    "physical_unit": "ms",
+                    "role": "time"
+                  }
+                ]
+              },
+              "mapping_source": "generic_structural",
+              "plugin_id": "1176",
+              "schema_version": "delay-control-topology/v1",
+              "status": "ok",
+              "track_id": "1170"
+            },
+            "status": "ok",
+            "tool": "plugin_grabber.inspect_delay",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.inspect_delay",
+              "command_name": "plugin_grabber_inspect_delay",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          },
+          {
+            "agent_action_id": "",
+            "command_name": "plugin_grabber_apply_delay_controls",
+            "elapsed_ms": 221,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "atomic": true,
+              "controls": [
+                {
+                  "actual_readback": [
+                    {
+                      "channel": "shared",
+                      "normalized": 0.248999997973442,
+                      "param_id": "0",
+                      "physical": null,
+                      "role": "time",
+                      "value_text": "250 ms"
+                    }
+                  ],
+                  "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.6cd214580e65fa79",
+                  "requested": {
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.6cd214580e65fa79",
+                    "value_ms": 250
+                  },
+                  "role": "time",
+                  "section": "timing",
+                  "stage_key": "delay",
+                  "status": "exact"
+                },
+                {
+                  "actual_readback": [
+                    {
+                      "channel": "shared",
+                      "normalized": 0.248999997973442,
+                      "param_id": "17",
+                      "physical": null,
+                      "role": "time",
+                      "value_text": "250 ms"
+                    }
+                  ],
+                  "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxNyJ9.c663d0c59fa93024",
+                  "requested": {
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxNyJ9.c663d0c59fa93024",
+                    "value_ms": 250
+                  },
+                  "role": "time",
+                  "section": "timing",
+                  "stage_key": "delay",
+                  "status": "exact"
+                }
+              ],
+              "fxm_probe": {
+                "family": "delay",
+                "plugin_id": "1176",
+                "reason": "probe_send_failed: timefx_dual_tap_probe requires an audio clip on the target track",
+                "status": "failed",
+                "track_id": "1170"
+              },
+              "plugin_id": "1176",
+              "restore_ref": "dlrr1_eyJraW5kIjoiZGVsYXlfcmVzdG9yZV9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInZhbHVlcyI6W3sicGFyYW1faWQiOiIwIiwibm9ybWFsaXplZCI6MC4zNzQwMDAwMTI4NzQ2MDMsInJvbGUiOiJ0aW1lIn0seyJwYXJhbV9pZCI6IjE3Iiwibm9ybWFsaXplZCI6MC4zNzQwMDAwMTI4NzQ2MDMsInJvbGUiOiJ0aW1lIn1dfQ.421d8cc8f4e8a31c",
+              "rollback": {
+                "on_failure": "full_preimage",
+                "verified": true
+              },
+              "status": "exact",
+              "topology_generation": "dl1t1_9570e799f62db82b9e54ca45",
+              "track_id": "1170",
+              "writes": [
+                {
+                  "actual_normalized": 0.248999997973442,
+                  "channel": "shared",
+                  "param_id": "0",
+                  "quantized": false,
+                  "requested_normalized": 0.249,
+                  "requested_physical": 250,
+                  "role": "time"
+                },
+                {
+                  "actual_normalized": 0.248999997973442,
+                  "channel": "shared",
+                  "param_id": "17",
+                  "quantized": false,
+                  "requested_normalized": 0.249,
+                  "requested_physical": 250,
+                  "role": "time"
+                }
+              ]
+            },
+            "status": "ok",
+            "tool": "plugin_grabber.apply_delay_controls",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.apply_delay_controls",
+              "command_name": "plugin_grabber_apply_delay_controls",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          }
+        ],
+        "project_result_cards": [
+          {
+            "executions": [
+              {
+                "agent_action_id": "",
+                "command_name": "plugin_grabber_apply_delay_controls",
+                "elapsed_ms": 221,
+                "error": "",
+                "observed_state": true,
+                "preview": "",
+                "result": {
+                  "atomic": true,
+                  "controls": [
+                    {
+                      "actual_readback": [
+                        {
+                          "channel": "shared",
+                          "normalized": 0.248999997973442,
+                          "param_id": "0",
+                          "physical": null,
+                          "role": "time",
+                          "value_text": "250 ms"
+                        }
+                      ],
+                      "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.6cd214580e65fa79",
+                      "requested": {
+                        "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.6cd214580e65fa79",
+                        "value_ms": 250
+                      },
+                      "role": "time",
+                      "section": "timing",
+                      "stage_key": "delay",
+                      "status": "exact"
+                    },
+                    {
+                      "actual_readback": [
+                        {
+                          "channel": "shared",
+                          "normalized": 0.248999997973442,
+                          "param_id": "17",
+                          "physical": null,
+                          "role": "time",
+                          "value_text": "250 ms"
+                        }
+                      ],
+                      "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxNyJ9.c663d0c59fa93024",
+                      "requested": {
+                        "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxNyJ9.c663d0c59fa93024",
+                        "value_ms": 250
+                      },
+                      "role": "time",
+                      "section": "timing",
+                      "stage_key": "delay",
+                      "status": "exact"
+                    }
+                  ],
+                  "fxm_probe": {
+                    "family": "delay",
+                    "plugin_id": "1176",
+                    "reason": "probe_send_failed: timefx_dual_tap_probe requires an audio clip on the target track",
+                    "status": "failed",
+                    "track_id": "1170"
+                  },
+                  "plugin_id": "1176",
+                  "restore_ref": "dlrr1_eyJraW5kIjoiZGVsYXlfcmVzdG9yZV9yZWYudjEiLCJ0cmFja19pZCI6IjExNzAiLCJwbHVnaW5faWQiOiIxMTc2IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInZhbHVlcyI6W3sicGFyYW1faWQiOiIwIiwibm9ybWFsaXplZCI6MC4zNzQwMDAwMTI4NzQ2MDMsInJvbGUiOiJ0aW1lIn0seyJwYXJhbV9pZCI6IjE3Iiwibm9ybWFsaXplZCI6MC4zNzQwMDAwMTI4NzQ2MDMsInJvbGUiOiJ0aW1lIn1dfQ.421d8cc8f4e8a31c",
+                  "rollback": {
+                    "on_failure": "full_preimage",
+                    "verified": true
+                  },
+                  "status": "exact",
+                  "topology_generation": "dl1t1_9570e799f62db82b9e54ca45",
+                  "track_id": "1170",
+                  "writes": [
+                    {
+                      "actual_normalized": 0.248999997973442,
+                      "channel": "shared",
+                      "param_id": "0",
+                      "quantized": false,
+                      "requested_normalized": 0.249,
+                      "requested_physical": 250,
+                      "role": "time"
+                    },
+                    {
+                      "actual_normalized": 0.248999997973442,
+                      "channel": "shared",
+                      "param_id": "17",
+                      "quantized": false,
+                      "requested_normalized": 0.249,
+                      "requested_physical": 250,
+                      "role": "time"
+                    }
+                  ]
+                },
+                "status": "ok",
+                "tool": "plugin_grabber.apply_delay_controls",
+                "tool_call_id": "tool_step_1",
+                "undo_label": "",
+                "verification": {
+                  "tool_call_id": "tool_step_1",
+                  "tool": "plugin_grabber.apply_delay_controls",
+                  "command_name": "plugin_grabber_apply_delay_controls",
+                  "status": "not_required",
+                  "postcondition": "no_observable_daw_postcondition",
+                  "message": "tool result recorded; no additional DAW state postcondition is required"
+                }
+              }
+            ],
+            "id": "project_result_tool_step_1",
+            "kind": "project_result",
+            "target": {
+              "can_audition": true,
+              "plugin_id": "1176",
+              "track_id": "1170"
+            },
+            "type": "project_result"
+          }
+        ],
+        "goal_status": "completed",
+        "goal_summary": "在 H-Delay 的 Sync 保持 Host 的前提下，把延迟时间设为 250 毫秒。",
+        "completed_steps": 2,
+        "stop_reason": "done",
+        "project_history": {
+          "active_branch": "main",
+          "active_node_id": "n_20261107T144044_f7c2e86e",
+          "active_worktree": "",
+          "available": true,
+          "branches": {
+            "main": "c_20261107T144022_b69c6c90"
+          },
+          "commit_count": 14,
+          "conversation_messages": [
+            {
+              "content": "在 H-Delay 的 Sync 保持 Host 的前提下，把延迟时间设为 250 毫秒。",
+              "logical_message_id": "n_20261107T144022_d246caff",
+              "message_kind": "user",
+              "node_id": "n_20261107T144022_d246caff",
+              "role": "user"
+            },
+            {
+              "content": "**结论**\n已把 Track 7 机架上 H-Delay Stereo 的延迟时间设为 250 ms，Delay Sec 与 Delay Sec R 左右两路都写入并回读确认为「250 ms」，精确命中、无量化误差。Sync 全程未改动，仍为 Host；本次为原子写入，只改这两个时间参数，Feedback、Mix、Dry/Wet、Output、PingPong 等一律未动，并已留下完整还原点。\n\n**证据**\n- 改前观测：Sync 显示 Host（BPM / Host / ms 三档），Delay Sec 与 Delay Sec R 均为 375 ms，对数刻度、范围 1–3500 ms。\n- 改后回读：两个时间参数都显示「250 ms」，状态为精确命中，写入为原子操作、失败可整体回滚。\n\n**限制**\n- Track 7 上没有音频片段，延迟的发声探针无法运行，所以这次只有参数回读证据，没有音频层验证，最终听感要你 A/B。\n- 需要提醒：Sync 在 Host 档时，H-Delay 的实际延迟量由速度同步的音符值决定（当前显示 1/8D），毫秒值只有切到 ms 档才真正生效。也就是说 250 ms 已写进参数，但 Host 档下听到的仍可能是 1/8D 的时值。这与你「保持 Host」的要求冲突，所以我没动 Sync。\n\n**建议聆听**\n- 先在 Host 档听一遍，确认节奏感仍是 1/8D；若你真正想要「听到 250 ms」，需要临时把 Sync 切到 ms 档做对比，听完再切回 Host。\n- 想完全回退，说一句「撤销」即可把两个时间参数恢复到 375 ms。",
+              "logical_message_id": "n_20261107T144044_f7c2e86e",
+              "message_kind": "execution_receipt",
+              "node_id": "n_20261107T144044_f7c2e86e",
+              "role": "assistant"
+            }
+          ],
+          "detached": false,
+          "draft": false,
+          "head": "c_20261107T144022_b69c6c90",
+          "initialized": true,
+          "project_label": "Unsaved",
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit",
+          "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+          "refs": {
+            "refs/heads/main": "c_20261107T144022_b69c6c90"
+          },
+          "root_project_path": "",
+          "unsaved": false,
+          "warnings": [],
+          "worktrees": [
+            {
+              "commit_id": "c_20261107T144022_b69c6c90",
+              "created_at": "2026-11-07T14:40:44.20179Z",
+              "is_root": true,
+              "label": "主工作树",
+              "name": "main",
+              "origin_commit_id": "c_20261107T144022_b69c6c90",
+              "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a",
+              "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit",
+              "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit",
+              "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit"
+            }
+          ]
+        },
+        "lifecycle": "durable",
+        "persistence": "project_history",
+        "message_kind": "execution_receipt",
+        "turn_id": "turn_a76ae716af94f1c9",
+        "logical_message_id": "n_20261107T144044_f7c2e86e"
+      }
+    }
+  ],
+  "confirmations": [],
+  "stop_reason": "goal_completed",
+  "first_action": null,
+  "agent_log_delta": "=38 client=vit.agent.transport_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T22:40:43 [WARN] VSP realtime publish pending failures=38 client=vit.agent.realtime_publisher error=Post \"http://127.0.0.1:8787/vsp\": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.\n2026-11-07T22:40:44 [INFO] [timing] message_loop.llm ms=3034 goal=goal_31232e5b82b5a3fb conversation=pce_p_T4_r3_1794062422 turn=4 messages=7 chars=76023 message_chars=0:system:27135,1:user:45,2:assistant:330,3:user:2433,4:assistant:921,5:user:4244,6:user:40915 err=false\n2026-11-07T22:40:44 [INFO] [continuation.arm] conversation=pce_p_T4_r3_1794062422 goal=goal_31232e5b82b5a3fb status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false\n2026-11-07T22:40:44 [INFO] [timing] agent_loop_chat total_ms=20775 conversation=pce_p_T4_r3_1794062422 goal=goal_31232e5b82b5a3fb mode=default status=completed stop=done completed_steps=2 executed=2\n2026-11-07T22:40:44 [INFO] [media_refs] ms=0 conversation=pce_p_T4_r3_1794062422 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=true artifacts=0\n2026-11-07T22:40:44 [INFO] [vit_checkpoint] async checkpoint launched project=C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit revision=77\n2026-11-07T22:40:44 [INFO] [chat.artifacts] conversation=pce_p_T4_r3_1794062422 response_artifacts=0 request_artifacts=0 executed=2 reply_len=1442",
+  "tool_calls": 0,
+  "usage": {
+    "available": true,
+    "llm_calls": 5,
+    "input_tokens": 63833,
+    "output_tokens": 3219,
+    "cache_read_tokens": 19712,
+    "cache_creation_tokens": 0,
+    "max_input_in_one_call": 25002,
+    "max_output_in_one_call": 977,
+    "errors": 0
+  },
+  "mutation_audit": [
+    {
+      "param_id": "0",
+      "kind": "value_changed",
+      "before": {
+        "value_text": "375 ms",
+        "normalized_value": 0.374000012874603
+      },
+      "after": {
+        "value_text": "250 ms",
+        "normalized_value": 0.248999997973442
+      }
+    },
+    {
+      "param_id": "17",
+      "kind": "value_changed",
+      "before": {
+        "value_text": "375 ms",
+        "normalized_value": 0.374000012874603
+      },
+      "after": {
+        "value_text": "250 ms",
+        "normalized_value": 0.248999997973442
+      }
+    }
+  ],
+  "boundary_check": {
+    "case_track_present": true,
+    "track_count": null
+  },
+  "behavior_tags": [],
+  "verdict": {
+    "case_id": "T4",
+    "arm": "P",
+    "final_verdict": "fail",
+    "failure_tags": [
+      "unexpected_mutation"
+    ],
+    "checks": {
+      "mode_label": {
+        "ok": true,
+        "detail": {
+          "label": "Host",
+          "want": "Host"
+        }
+      },
+      "target_ms_in_tolerance": {
+        "ok": true,
+        "detail": {
+          "display_ms": 250.0,
+          "target": 250
+        }
+      },
+      "non_target_unchanged_except_allowance": {
+        "ok": false,
+        "detail": {
+          "outside": [
+            {
+              "param_id": "17",
+              "kind": "value_changed",
+              "before": {
+                "value_text": "375 ms",
+                "normalized_value": 0.374000012874603
+              },
+              "after": {
+                "value_text": "250 ms",
+                "normalized_value": 0.248999997973442
+              }
+            }
+          ],
+          "allowance": [
+            "0",
+            "4"
+          ]
+        }
+      }
+    },
+    "mutation_count": 2,
+    "changes": [
+      {
+        "param_id": "0",
+        "kind": "value_changed",
+        "before": {
+          "value_text": "375 ms",
+          "normalized_value": 0.374000012874603
+        },
+        "after": {
+          "value_text": "250 ms",
+          "normalized_value": 0.248999997973442
+        }
+      },
+      {
+        "param_id": "17",
+        "kind": "value_changed",
+        "before": {
+          "value_text": "375 ms",
+          "normalized_value": 0.374000012874603
+        },
+        "after": {
+          "value_text": "250 ms",
+          "normalized_value": 0.248999997973442
+        }
+      }
+    ]
+  },
+  "finished_at": "2026-11-07T22:40:44+0800"
+}

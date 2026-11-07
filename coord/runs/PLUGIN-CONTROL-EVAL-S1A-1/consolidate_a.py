@@ -67,7 +67,31 @@ def main() -> int:
     ap.add_argument("--run-dir", required=True, type=Path)
     ap.add_argument("--p-summary", required=True, type=Path)
     ap.add_argument("--out", required=True, type=Path)
+    ap.add_argument("--seam-corpus", default="", type=str,
+                    help="path to seam_verify_corpus.json; rounds whose "
+                         "conversation appears in leaking payload rows get a "
+                         "device flag (verdicts are NOT rewritten)")
     args = ap.parse_args()
+
+    corpus: dict = {}
+    if args.seam_corpus and Path(args.seam_corpus).exists():
+        corpus = json.loads(Path(args.seam_corpus).read_text(encoding="utf-8"))
+    leak_convs: set = set()
+    if corpus:
+        # recompute leaking conversations from the corpus capture directly
+        cap = Path(corpus.get("a_capture") or "")
+        if cap.exists():
+            for line in cap.read_text(encoding="utf-8", errors="replace").splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    row = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                req = json.dumps(row.get("request") or {}, ensure_ascii=False)
+                if any(n in req for n in ("normalized_role", "template_role", '"alias"')):
+                    leak_convs.add(str(row.get("conversation_id") or ""))
 
     rounds_dir = args.run_dir / "rounds"
     rows = []
@@ -83,12 +107,19 @@ def main() -> int:
             u = rec.get("usage") or {}
             v = rec.get("verdict") or {}
             faces = tool_faces(rec.get("agent_log_delta"))
+            device_flags = []
+            if rec.get("conversation_id") in leak_convs:
+                device_flags.append(
+                    "seam_leakage: normalized_role/template_role/alias entered "
+                    "model context via plugin_grabber_explain_controls result "
+                    "rendering (binding_targets rows; see seam_verify_corpus.json)")
             rows.append({
                 "case": case, "arm": "A", "repeat": repeat,
                 "raw_arm_field": rec.get("arm"),
                 "conversation_id": rec.get("conversation_id"),
                 "first_action": rec.get("first_action"),
                 "tool_faces": faces,
+                "device_flags": device_flags,
                 "final_verdict": v.get("final_verdict"),
                 "failure_tags": v.get("failure_tags") or [],
                 "failure_detail": v.get("detail"),
@@ -169,11 +200,20 @@ def main() -> int:
         "per_case": per_case,
         "a_vs_p": comparison,
         "p_baseline_source": str(args.p_summary.resolve()),
+        "seam_corpus_check": {
+            "source": corpus.get("a_capture") if corpus else None,
+            "verdict": corpus.get("verdict") if corpus else None,
+            "leaking_conversations": sorted(leak_convs),
+            "note": "affected rounds carry device_flags; verdicts preserved "
+                    "as evaluated (supervisor adjudicates arm validity)",
+        } if corpus else None,
         "missing_rounds": missing,
         "notes": [
             "probe round (T1 repeat 0, device verification carrier) excluded from scores",
             "cost fields remain missing pending plan budgets.monetary price snapshot",
             "single round = single sample; 3 repeats do not constitute a stability claim (plan section 6)",
+            "tool-face: typed plugin_grabber adapters remain in the ordinary "
+            "catalog (outside the four seams); per-round write_path recorded",
         ],
     }
     if missing:

@@ -109,3 +109,102 @@ ok: dev agent smoke completed
   ok: stack torn down (TEARDOWN_ALL_ZERO: ports free, processes gone)
 [s1a] run_root: D:\Vit_DAW_wt_307s1a\coord\runs\PLUGIN-CONTROL-EVAL-S1A-1\arm_a_20261107_222801
 [s1a] verdict: wrapper_fail final_exit=1
+[s1a] Phase 0: clear-field preflight
+  ok: six TCP ports + two UDP ports free, no stack processes
+[s1a] Phase 1: env freeze (isolation + telemetry + seam + model-face record)
+  ok: VIT_PROJECT_XML=D:\Vit_DAW_wt_307s1a\coord\runs\PLUGIN-CONTROL-EVAL-S1A-1\arm_a_20261107_223545\default_project.xml
+  ok: telemetry=D:\Vit_DAW_wt_307s1a\coord\runs\PLUGIN-CONTROL-EVAL-S1A-1\arm_a_20261107_223545\logs\agent_llm_telemetry.jsonl payload_capture=D:\Vit_DAW_wt_307s1a\coord\runs\PLUGIN-CONTROL-EVAL-S1A-1\arm_a_20261107_223545\logs
+  ok: seam env VIT_PLUGIN_CONTROL_EVAL_SEAM=1
+[s1a] Phase 2: stack bring-up (dev_agent_smoke -StartKernel -RestartAgent, no UI)
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_223547\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_307s1a
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_307s1a\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_307s1a\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_307s1a\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=19252 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_307s1a\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=19252
+ok: ZMQ SUB listening: 5556 pid=19252
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+  ok: stack up pids=VitAgent=23360 VitApp=19252
+  ok: agent ok tool_count=296
+[s1a] Phase 4: driver s0 refreeze (zero LLM)
+  ok: s0 verified; T4 allowance={0}
+  ok: s0 zero-LLM telemetry proof: file absent
+[s1a] Phase 5: driver dryround (seam open, zero LLM)
+  ok: dryround pass with seam open; zero-LLM telemetry proof holds
+[s1a] Phase 6: seam device-verification probe (T1 repeat 0, paid, not scored)
+[s1a] Phase 6b: seam_verify gate
+  ok: seam verification passed (five fields absent / bare tools / no typed routing) -- task rounds released
+[s1a] Phase 7: 18 task rounds (T1..T6 x repeat 1..3, segment caps between rounds)
+[s1a] round T1 r1 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T1 r2 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T1 r3 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T2 r1 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T2 r2 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T2 r3 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T3 r1 ...
+  ok: verdict=pass stop=model_budget_exhausted:input_tokens_per_call_over_cap calls=9
+[s1a] round T3 r2 ...
+  ok: verdict=pass stop=goal_completed calls=8
+[s1a] round T3 r3 ...
+  ok: verdict=pass stop=goal_completed calls=4
+[s1a] round T4 r1 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T4 r2 ...
+  ok: verdict=fail stop=goal_completed calls=5
+[s1a] round T4 r3 ...
+  ok: verdict=fail stop=goal_completed calls=5
+[s1a] round T5 r1 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T5 r2 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T5 r3 ...
+  ok: verdict=pass stop=goal_completed calls=4
+[s1a] round T6 r1 ...
+  ok: verdict=pass stop=goal_completed calls=5
+[s1a] round T6 r2 ...
+  ok: verdict=pass stop=goal_completed calls=4
+[s1a] round T6 r3 ...
+  ok: verdict=pass stop=goal_completed calls=4
+[s1a] task rounds evaluated: 18/18; budget={"output_tokens":43643,"input_tokens":1516912,"llm_calls":93}
+[s1a] Phase 8: consolidation
+[s1a] Phase 8b: post-run seam corpus check (evidence face)
+  FAIL: post-run corpus seam check FAILED -- evidence preserved, supervisor adjudicates
+  ok: stack torn down (TEARDOWN_ALL_ZERO: ports free, processes gone)
+[s1a] run_root: D:\Vit_DAW_wt_307s1a\coord\runs\PLUGIN-CONTROL-EVAL-S1A-1\arm_a_20261107_223545
+[s1a] verdict: driver_complete final_exit=0

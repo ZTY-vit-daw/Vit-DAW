@@ -1,0 +1,631 @@
+{
+  "case_id": "T5",
+  "arm": "P",
+  "repeat": 3,
+  "conversation_id": "pce_p_T5_r3_1794062483",
+  "message": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+  "fixture": {
+    "track_id": "1191",
+    "plugin_id": "1197",
+    "plugin_identifier": "VST3-H-Delay Stereo-695648d-6e3b68a7",
+    "fixture_digest": "e4d16dd4c7ea74a1"
+  },
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "started_at": "2026-11-07T22:41:23+0800",
+  "exchanges": [
+    {
+      "turn": 1,
+      "sent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+      "response": {
+        "conversation_id": "pce_p_T5_r3_1794062483",
+        "task_id": "task_bba42045231bb828",
+        "goal_id": "goal_cb53ed7164ab43d1",
+        "run_id": "run_ff5ca05838c8f847",
+        "slice_id": "slice_6ca98b30d5b29e59",
+        "original_intent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+        "reply": "**结论**\nH-Delay 的 Feedback 当前就是 **60**，已经满足你的要求，因此我一个参数都没有动，插件保持原样。\n\n**证据**\n- Track 7 机架上的 H-Delay Stereo（VST3，启用中）已确认是唯一目标的延迟插件。\n- 回读结果显示：Feedback 当前读数就是 60，取值范围为 0~200，显示方式为线性刻度；读数的文字和物理值一致，不存在量化误差或读错档位的问题。\n\n**限制**\n- 这个 60 来自插件参数回读，不是音频层面的听感验证；Track 7 上没有音频片段，无法运行发声探针。不过对于“当前值是否为 60”这类纯参数核对，回读证据已经足够。\n\n**建议**\n- 无需任何操作。其余参数（Delay Sec 375 ms、Sync Host、Mix 100%、Dry/Wet、Output、PingPong）均未改动。如果你之后想调整 Feedback 的听感，再告诉我方向即可。",
+        "agent_mode": "default",
+        "needs_confirmation": false,
+        "executed_kernel_reply": [
+          {
+            "agent_action_id": "",
+            "command_name": "plugin_grabber_inspect_delay",
+            "elapsed_ms": 4,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "auxiliary_stages": [],
+              "classification": "feedback_delay",
+              "confidence": 0.96,
+              "control_topology": {
+                "generation": "dl1t1_9570e799f62db82b9e54ca45",
+                "schema_version": "delay-control-topology/v1"
+              },
+              "delay_stage": {
+                "capabilities": {
+                  "character": [
+                    "ping_pong"
+                  ],
+                  "feedback": [
+                    "feedback"
+                  ],
+                  "output": [
+                    "dry",
+                    "mix",
+                    "output_gain",
+                    "wet"
+                  ],
+                  "timing": [
+                    "sync",
+                    "time"
+                  ]
+                },
+                "character": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImNoYXJhY3RlciIsInJvbGUiOiJwaW5nX3BvbmciLCJwYXJhbV9pZCI6IjE2In0.549319723cfcfc81",
+                    "current_normalized": 0,
+                    "current_text": "Left",
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: Left / Right",
+                      "unit": "enum"
+                    },
+                    "name": "Ping Pong Start Direction",
+                    "param_id": "16",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "Left",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "Right",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "ping_pong"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImNoYXJhY3RlciIsInJvbGUiOiJwaW5nX3BvbmciLCJwYXJhbV9pZCI6IjMifQ.e7cb9a9f919b0996",
+                    "current_normalized": 0,
+                    "current_text": "Stereo",
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: Stereo / PingPong",
+                      "unit": "enum"
+                    },
+                    "name": "PingPong",
+                    "param_id": "3",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "Stereo",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "PingPong",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "ping_pong"
+                  }
+                ],
+                "feedback": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6ImZlZWRiYWNrIiwicm9sZSI6ImZlZWRiYWNrIiwicGFyYW1faWQiOiIyIn0.61e844e25fe1b56d",
+                    "current_normalized": 0.300000011920929,
+                    "current_physical": 60,
+                    "current_text": "60",
+                    "curve": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0.25,
+                        50
+                      ],
+                      [
+                        0.5,
+                        100
+                      ],
+                      [
+                        0.75,
+                        150
+                      ],
+                      [
+                        1,
+                        200
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 200,
+                      "min": 0,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "0~200"
+                    },
+                    "name": "Feedback",
+                    "param_id": "2",
+                    "role": "feedback"
+                  }
+                ],
+                "output": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJkcnkiLCJwYXJhbV9pZCI6ImRyeSBsZXZlbCJ9.ef1baec794260ee3",
+                    "current_normalized": 0,
+                    "current_text": "-INF dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -12
+                      ],
+                      [
+                        0.5,
+                        -6
+                      ],
+                      [
+                        0.75,
+                        -2.5
+                      ],
+                      [
+                        1,
+                        0
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 0,
+                      "min": -12,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-12~0 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Dry Level",
+                    "param_id": "dry level",
+                    "physical_unit": "dB",
+                    "role": "dry"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJtaXgiLCJwYXJhbV9pZCI6IjUifQ.72b0bf662e1b564c",
+                    "current_normalized": 1,
+                    "current_physical": 100,
+                    "current_text": "100",
+                    "curve": [
+                      [
+                        0,
+                        0
+                      ],
+                      [
+                        0.25,
+                        25
+                      ],
+                      [
+                        0.5,
+                        50
+                      ],
+                      [
+                        0.75,
+                        75
+                      ],
+                      [
+                        1,
+                        100
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 100,
+                      "min": 0,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "0~100"
+                    },
+                    "name": "Mix",
+                    "param_id": "5",
+                    "physical_unit": "%",
+                    "role": "mix"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJvdXRwdXRfZ2FpbiIsInBhcmFtX2lkIjoiNiJ9.94e0432a9e396ee2",
+                    "current_normalized": 0.5,
+                    "current_physical": 0,
+                    "current_text": "0.0 dB",
+                    "curve": [
+                      [
+                        0,
+                        -18
+                      ],
+                      [
+                        0.25,
+                        -9
+                      ],
+                      [
+                        0.5,
+                        0
+                      ],
+                      [
+                        0.75,
+                        9
+                      ],
+                      [
+                        1,
+                        18
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 18,
+                      "min": -18,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-18~18 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Output",
+                    "param_id": "6",
+                    "physical_unit": "dB",
+                    "role": "output_gain"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6Im91dHB1dCIsInJvbGUiOiJ3ZXQiLCJwYXJhbV9pZCI6IndldCBsZXZlbCJ9.db03a3a14f37ba58",
+                    "current_normalized": 1,
+                    "current_physical": 0,
+                    "current_text": "+0.0 dB",
+                    "curve": [
+                      [
+                        0.25,
+                        -12
+                      ],
+                      [
+                        0.5,
+                        -6
+                      ],
+                      [
+                        0.75,
+                        -2.5
+                      ],
+                      [
+                        1,
+                        0
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 0,
+                      "min": -12,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "-12~0 dB",
+                      "unit": "dB"
+                    },
+                    "name": "Wet Level",
+                    "param_id": "wet level",
+                    "physical_unit": "dB",
+                    "role": "wet"
+                  }
+                ],
+                "stage_key": "delay",
+                "timing": [
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIxIn0.6e7d1193e85a72a4",
+                    "current_normalized": 0.578999996185303,
+                    "current_physical": 1,
+                    "current_text": "1/8D",
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 2,
+                      "min": 1,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~2"
+                    },
+                    "name": "Delay BPM",
+                    "param_id": "1",
+                    "physical_unit": "ms",
+                    "role": "sync"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiIxOCJ9.38e1111677816de7",
+                    "current_normalized": 0.578947365283966,
+                    "current_physical": 1,
+                    "current_text": "1/8D",
+                    "domain": {
+                      "confidence": 0.76,
+                      "max": 2,
+                      "min": 1,
+                      "scale": "linear",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~2"
+                    },
+                    "name": "Delay BPM R",
+                    "param_id": "18",
+                    "physical_unit": "ms",
+                    "role": "sync"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJzeW5jIiwicGFyYW1faWQiOiI0In0.3eb23f47458d517b",
+                    "current_normalized": 0.5,
+                    "current_text": "Host",
+                    "domain": {
+                      "confidence": 0.88,
+                      "scale": "enum",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "enum: BPM / Host / ms",
+                      "unit": "enum"
+                    },
+                    "name": "Sync",
+                    "param_id": "4",
+                    "physical_unit": "enum",
+                    "reachable_values": [
+                      {
+                        "label": "BPM",
+                        "normalized": 0
+                      },
+                      {
+                        "label": "Host",
+                        "normalized": 0.5
+                      },
+                      {
+                        "label": "ms",
+                        "normalized": 1
+                      }
+                    ],
+                    "role": "sync"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.d5b9c1176119879b",
+                    "current_normalized": 0.374000012874603,
+                    "current_physical": 375,
+                    "current_text": "375 ms",
+                    "curve": [
+                      [
+                        0,
+                        1
+                      ],
+                      [
+                        0.25,
+                        251
+                      ],
+                      [
+                        0.5,
+                        501
+                      ],
+                      [
+                        0.75,
+                        1540
+                      ],
+                      [
+                        1,
+                        3500
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 3500,
+                      "min": 1,
+                      "scale": "log",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~3500 ms",
+                      "unit": "ms"
+                    },
+                    "name": "Delay Sec",
+                    "param_id": "0",
+                    "physical_unit": "ms",
+                    "role": "time"
+                  },
+                  {
+                    "channel": "shared",
+                    "compression_stage": "delay",
+                    "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjExOTEiLCJwbHVnaW5faWQiOiIxMTk3IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIxNyJ9.b0849605403f70a4",
+                    "current_normalized": 0.374000012874603,
+                    "current_physical": 375,
+                    "current_text": "375 ms",
+                    "curve": [
+                      [
+                        0,
+                        1
+                      ],
+                      [
+                        0.25,
+                        251
+                      ],
+                      [
+                        0.5,
+                        501
+                      ],
+                      [
+                        0.75,
+                        1540
+                      ],
+                      [
+                        1,
+                        3500
+                      ]
+                    ],
+                    "domain": {
+                      "confidence": 0.9,
+                      "max": 3500,
+                      "min": 1,
+                      "scale": "log",
+                      "source": "display_probe_inferred",
+                      "status": "inferred",
+                      "text": "1~3500 ms",
+                      "unit": "ms"
+                    },
+                    "name": "Delay Sec R",
+                    "param_id": "17",
+                    "physical_unit": "ms",
+                    "role": "time"
+                  }
+                ]
+              },
+              "mapping_source": "generic_structural",
+              "plugin_id": "1197",
+              "schema_version": "delay-control-topology/v1",
+              "status": "ok",
+              "track_id": "1191"
+            },
+            "status": "ok",
+            "tool": "plugin_grabber.inspect_delay",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin_grabber.inspect_delay",
+              "command_name": "plugin_grabber_inspect_delay",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          }
+        ],
+        "goal_status": "completed",
+        "goal_summary": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+        "completed_steps": 1,
+        "stop_reason": "done",
+        "project_history": {
+          "active_branch": "main",
+          "active_node_id": "n_20261107T144135_58469c68",
+          "active_worktree": "",
+          "available": true,
+          "branches": {
+            "main": "c_20261107T144122_cdba813a"
+          },
+          "commit_count": 17,
+          "conversation_messages": [
+            {
+              "content": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+              "logical_message_id": "n_20261107T144123_6fae4713",
+              "message_kind": "user",
+              "node_id": "n_20261107T144123_6fae4713",
+              "role": "user"
+            },
+            {
+              "content": "**结论**\nH-Delay 的 Feedback 当前就是 **60**，已经满足你的要求，因此我一个参数都没有动，插件保持原样。\n\n**证据**\n- Track 7 机架上的 H-Delay Stereo（VST3，启用中）已确认是唯一目标的延迟插件。\n- 回读结果显示：Feedback 当前读数就是 60，取值范围为 0~200，显示方式为线性刻度；读数的文字和物理值一致，不存在量化误差或读错档位的问题。\n\n**限制**\n- 这个 60 来自插件参数回读，不是音频层面的听感验证；Track 7 上没有音频片段，无法运行发声探针。不过对于“当前值是否为 60”这类纯参数核对，回读证据已经足够。\n\n**建议**\n- 无需任何操作。其余参数（Delay Sec 375 ms、Sync Host、Mix 100%、Dry/Wet、Output、PingPong）均未改动。如果你之后想调整 Feedback 的听感，再告诉我方向即可。",
+              "logical_message_id": "n_20261107T144135_58469c68",
+              "message_kind": "execution_receipt",
+              "node_id": "n_20261107T144135_58469c68",
+              "role": "assistant"
+            }
+          ],
+          "detached": false,
+          "draft": false,
+          "head": "c_20261107T144122_cdba813a",
+          "initialized": true,
+          "project_label": "Unsaved",
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit",
+          "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+          "refs": {
+            "refs/heads/main": "c_20261107T144122_cdba813a"
+          },
+          "root_project_path": "",
+          "unsaved": false,
+          "warnings": [],
+          "worktrees": [
+            {
+              "commit_id": "c_20261107T144122_cdba813a",
+              "created_at": "2026-11-07T14:41:35.6976326Z",
+              "is_root": true,
+              "label": "主工作树",
+              "name": "main",
+              "origin_commit_id": "c_20261107T144122_cdba813a",
+              "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a",
+              "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit",
+              "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit",
+              "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261107_223547\\agent_drafts\\draft_20261107T143551_6f77147a\\Unsaved.vit"
+            }
+          ]
+        },
+        "lifecycle": "durable",
+        "persistence": "project_history",
+        "message_kind": "execution_receipt",
+        "turn_id": "turn_9164ffd634e3562f",
+        "logical_message_id": "n_20261107T144135_58469c68"
+      }
+    }
+  ],
+  "confirmations": [],
+  "stop_reason": "goal_completed",
+  "first_action": null,
+  "agent_log_delta": "",
+  "tool_calls": 0,
+  "usage": {
+    "available": true,
+    "llm_calls": 4,
+    "input_tokens": 41421,
+    "output_tokens": 1246,
+    "cache_read_tokens": 15104,
+    "cache_creation_tokens": 0,
+    "max_input_in_one_call": 23324,
+    "max_output_in_one_call": 437,
+    "errors": 0
+  },
+  "mutation_audit": [],
+  "boundary_check": {
+    "case_track_present": true,
+    "track_count": null
+  },
+  "behavior_tags": [],
+  "verdict": {
+    "case_id": "T5",
+    "arm": "P",
+    "final_verdict": "pass",
+    "failure_tags": [],
+    "checks": {
+      "zero_mutation": {
+        "ok": true,
+        "detail": []
+      },
+      "recognition_stated": {
+        "ok": true,
+        "detail": {
+          "needle": "60"
+        }
+      }
+    },
+    "mutation_count": 0,
+    "changes": []
+  },
+  "finished_at": "2026-11-07T22:41:35+0800"
+}

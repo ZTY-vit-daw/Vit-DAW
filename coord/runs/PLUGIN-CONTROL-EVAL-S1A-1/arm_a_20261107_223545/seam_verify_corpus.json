@@ -1,0 +1,127 @@
+{
+  "schema_version": "plugin_control_eval_s1a_seam_verify.v1",
+  "a_capture": "D:\\Vit_DAW_wt_307s1a\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1A-1\\arm_a_20261107_223545\\logs\\agent_llm_payload_capture.jsonl",
+  "a_rows": 100,
+  "a_request_payloads": 100,
+  "p_rows": 38,
+  "checks": {
+    "S2_five_fields_absent": {
+      "detail": {
+        "normalized_role": {
+          "a_count": 192,
+          "p_control_count": 70,
+          "a_contexts": [
+            "_preview\\\":{\\\"binding_targets\\\":[{\\\"alias\\\":\\\"Dry Level\\\",\\\"normalized_role\\\":\\\"common_mix\\\",\\\"param_id\\\":\\\"dry level\\\",\\\"param_name\\\":",
+            "_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Wet Level\\\",\\\"normalized_role\\\":\\\"common_mix\\\",\\\"param_id\\\":\\\"wet level\\\",\\\"param_name\\\":",
+            "gin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Bypass\\\",\\\"normalized_role\\\":\\\"common_bypass\\\",\\\"param_id\\\":\\\"10000001\\\",\\\"param_name\\",
+            "m\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Plate Selector\\\",\\\"normalized_role\\\":\\\"other\\\",\\\"param_id\\\":\\\"0\\\",\\\"param_name\\\":\\\"Plate Selec",
+            "gin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Damper\\\",\\\"normalized_role\\\":\\\"other\\\",\\\"param_id\\\":\\\"1\\\",\\\"param_name\\\":\\\"Damper\\\",\\\"",
+            "in_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"BassCut\\\",\\\"normalized_role\\\":\\\"other\\\",\\\"param_id\\\":\\\"2\\\",\\\"param_name\\\":\\\"BassCut\\\",\\",
+            "ugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Drive\\\",\\\"normalized_role\\\":\\\"tone_drive\\\",\\\"param_id\\\":\\\"3\\\",\\\"param_name\\\":\\\"Drive\\",
+            "n_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Predelay\\\",\\\"normalized_role\\\":\\\"other\\\",\\\"param_id\\\":\\\"4\\\",\\\"param_name\\\":\\\"Predelay\\\",",
+            "_preview\\\":{\\\"binding_targets\\\":[{\\\"alias\\\":\\\"Dry Level\\\",\\\"normalized_role\\\":\\\"common_mix\\\",\\\"param_id\\\":\\\"dry level\\\",\\\"param_name\\\":",
+            "_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Wet Level\\\",\\\"normalized_role\\\":\\\"common_mix\\\",\\\"param_id\\\":\\\"wet level\\\",\\\"param_name\\\":"
+          ]
+        },
+        "display_group": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "control_relevance": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "template_role": {
+          "a_count": 208,
+          "p_control_count": 36,
+          "a_contexts": [
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Wet Level\\\",\\\"normalized_role\\\":\\\"comm",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Bypass\\\",\\\"normalized_role\\\":\\\"common_",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Plate Selector\\\",\\\"normalized_role\\\":\\",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Damper\\\",\\\"normalized_role\\\":\\\"other\\\"",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"BassCut\\\",\\\"normalized_role\\\":\\\"other\\",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Drive\\\",\\\"normalized_role\\\":\\\"tone_dri",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Predelay\\\",\\\"normalized_role\\\":\\\"other",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},\\\"\\\\u003comitted 10 items\\\\u003e\\\"],\\\"capability_ma",
+            "\"4\\\",\\\"5\\\",\\\"6\\\",\\\"7\\\"]}],\\\"supports_param_grabber\\\":true,\\\"template_role\\\":\\\"other\\\"},\\\"current_param_signature_hash\\\":\\\"probe_365fe",
+            ",\\\"plugin_type\\\":\\\"vst\\\",\\\"target_kind\\\":\\\"plugin_param\\\",\\\"template_role\\\":\\\"\\\"},{\\\"alias\\\":\\\"Wet Level\\\",\\\"normalized_role\\\":\\\"comm"
+          ]
+        },
+        "alias": {
+          "a_keyform_count": 0,
+          "a_plain_count": 217,
+          "p_keyform_count": 0,
+          "a_plain_contexts": [
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|"
+          ]
+        }
+      },
+      "method_weak_fields": []
+    },
+    "S3_bare_tool_description": {
+      "a_prod_tail_count": 0,
+      "a_prod_tail_contexts": [],
+      "a_bare_count": 0,
+      "p_prod_tail_count": 0,
+      "note": "bare_count>0 proves live-stack bare disclosure when the tool is disclosed; absence is only informational (bounded disclosure may omit the tool)"
+    },
+    "S4_typed_routing_rules_absent": {
+      "a_count": 0,
+      "a_contexts": [],
+      "p_control_count": 24
+    },
+    "S1_no_typed_takeover": {
+      "conversation_id": "pce_p_T1_r0_1794062159",
+      "tool_calls": [
+        "mix.observe"
+      ],
+      "typed_apply_calls": [],
+      "loop_tool_sequence": [
+        "mix.observe",
+        "plugin_grabber.inspect_reverb",
+        "plugin_grabber.apply_reverb_controls",
+        "plugin_grabber.apply_reverb_controls"
+      ],
+      "typed_adapter_calls_informational": [
+        "plugin_grabber.inspect_reverb",
+        "plugin_grabber.apply_reverb_controls",
+        "plugin_grabber.apply_reverb_controls"
+      ],
+      "capture_sources": {
+        "ordinary_agent_semantic_entry": 1,
+        "message_loop": 4,
+        "message_loop_repair": 1
+      },
+      "semantic_entry_present": true,
+      "message_loop_present": true,
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe"
+        ]
+      },
+      "final_verdict": "pass"
+    },
+    "model_face": {
+      "response_models": {},
+      "note": "deepseek-flash expected (product default)"
+    }
+  },
+  "verdict": "seam_leakage",
+  "failures": [
+    "S2 normalized_role present 192x in A requests",
+    "S2 template_role present 208x in A requests"
+  ]
+}
