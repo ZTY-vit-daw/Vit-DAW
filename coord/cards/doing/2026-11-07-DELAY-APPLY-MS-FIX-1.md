@@ -21,4 +21,5 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 21:08 +0800 / origin/main=`9bd1ce90f7dc0be3bf6407816699aaa128668565`（含本批 302 领取提交） / owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 302/304 同批 runner；与 302 VSTI-WRITEGUARD-1 主管合并派发，实现合并进同一 port 分支 `port/vsti-writeguard-1`） / worktree=`D:/Vit_DAW_wt_302wg` / 领取基线：实现基线=origin/main=`db9bd088`（port 分支起点，worktree 全净 status/diff 均空）；协调面自 302 领取后的 main 连续建立。前置核对：doing 卡文件域（genapi/harness 授权/chat 路由/canary 钩+302 守卫段）与本卡（plugin_delay_apply.go+plugin_compressor_apply.go 同链±测试）不相交。
+- （执行侧回填回执）/（主管回填）
