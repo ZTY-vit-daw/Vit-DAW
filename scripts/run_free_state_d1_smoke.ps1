@@ -1459,6 +1459,121 @@ if ($D2StereoCheck) {
         $d2Failures.Add("D2-STEREO FAIL: workflow_data.d2_stereo_check missing from the chat response")
         Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
     }
+    # Gate A extension (D1D3-REGRESS-STACK-1): global digest stereo face + the
+    # per-track stereo face on the post-fix ground truth. Before 2026-11-07 the
+    # consumer read the harness response top level (272 forensics: structural
+    # constant missing) and track-keyed reads fell to catalog_key_not_found
+    # (272/274 forensics ii; 292 track-key routing fix). Corrected expectations:
+    #   - observation.stereo_status must be present (digest wiring, 274);
+    #   - the fixture's seven tracks: six serve correlation rows ready
+    #     (1007/1012/1017/1022/1027/1032), track 1039 has no snapshot rows and
+    #     must surface the honest per-track missing — mix.read returns
+    #     reason=stereo_relation_row_missing_for_track (routed, NOT
+    #     catalog_key_not_found), which the chat reader classifies as
+    #     "read"-without-metrics (292 receipt interpretation note,
+    #     d1d3_premaster_observation_runtime.go:261-266);
+    #   - the 1007 row values are pinned to the 292 unit anchors
+    #     (catalog_trackkey_test.go, TestMixReadTrackKeyedStereoServesFull-
+    #     ProjectSnapshotRows: corr 0.689 / balance -1.475, round-3 disclosure
+    #     of the fixture's persisted rows);
+    #   - payload tracks_measured must be 6 (d2AssessStereoRisk excludes
+    #     read-without-metrics rows from the measured count).
+    # This TIGHTENS the gate onto the fixed readings: present/ready assertions
+    # carry values and never downgrade to existence-only checks.
+    if ($d2Report.stereo_face -eq "present") {
+        Write-Host "   [ok] global digest stereo face present (274 digest-wiring ground truth)" -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: observation stereo_status was '" + $d2Report.stereo_face + "' (expected present — global digest stereo must ride the 274-fixed digest view)")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d2TrackRows = @()
+    if ($null -ne $d2Observation -and $null -ne $d2Observation.PSObject.Properties['track_stereo'] -and $null -ne $d2Observation.track_stereo) {
+        $d2TrackRows = @($d2Observation.track_stereo)
+    }
+    $d2TracksConsidered = -1
+    if ($null -ne $d2Observation -and $null -ne $d2Observation.PSObject.Properties['tracks_considered']) {
+        $d2TracksConsidered = [int]$d2Observation.tracks_considered
+    }
+    $d2ReadyRows = @()
+    $d2NoMetricRows = @()
+    foreach ($d2Row in $d2TrackRows) {
+        $d2HasCorr = ($null -ne $d2Row.PSObject.Properties['correlation_estimate']) -and ($null -ne $d2Row.correlation_estimate)
+        $d2HasPhase = ($null -ne $d2Row.PSObject.Properties['phase_negative_ratio']) -and ($null -ne $d2Row.phase_negative_ratio)
+        if ($d2HasCorr -or $d2HasPhase) { $d2ReadyRows += ,$d2Row } else { $d2NoMetricRows += ,$d2Row }
+    }
+    $d2Report.tracks_considered = $d2TracksConsidered
+    $d2Report.tracks_with_metrics = $d2ReadyRows.Count
+    $d2Report.tracks_without_metrics = $d2NoMetricRows.Count
+    if (($d2TracksConsidered -eq 7) -and ($d2TrackRows.Count -eq 7) -and ($d2ReadyRows.Count -eq 6) -and ($d2NoMetricRows.Count -eq 1)) {
+        Write-Host ("   [ok] per-track face: 7 tracks considered, 6 with correlation metrics ready, 1 honest no-metric row (292 track-key routing ground truth)") -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: per-track face counts (considered=" + $d2TracksConsidered + ", rows=" + $d2TrackRows.Count + ", with_metrics=" + $d2ReadyRows.Count + ", without_metrics=" + $d2NoMetricRows.Count + "; expected 7/7/6/1 — six ready tracks plus the 1039 no-row track, 292 ground truth)")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d2NoMetricRow = $null
+    if ($d2NoMetricRows.Count -eq 1) { $d2NoMetricRow = $d2NoMetricRows[0] }
+    $d2NoMetricTrackID = ""
+    $d2NoMetricStatus = ""
+    if ($null -ne $d2NoMetricRow) {
+        $d2NoMetricTrackID = [string]$d2NoMetricRow.track_id
+        $d2NoMetricStatus = [string]$d2NoMetricRow.status
+    }
+    $d2Report.no_metric_track_id = $d2NoMetricTrackID
+    $d2Report.no_metric_track_status = $d2NoMetricStatus
+    if (($d2NoMetricTrackID -eq "1039") -and ($d2NoMetricStatus -eq "read")) {
+        Write-Host "   [ok] track 1039 honest per-track missing: routed read-without-metrics (mix.read reason=stereo_relation_row_missing_for_track, not catalog_key_not_found — pre-292 shape was status=missing)" -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: the no-metric row must be track 1039 classified read-without-metrics (got track_id='" + $d2NoMetricTrackID + "', status='" + $d2NoMetricStatus + "' — status=missing is the pre-292 catalog_key_not_found shape)")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d2Row1007 = $null
+    foreach ($d2Row in $d2ReadyRows) {
+        if ([string]$d2Row.track_id -eq "1007") { $d2Row1007 = $d2Row }
+    }
+    $d2Corr1007 = $null
+    $d2Balance1007 = $null
+    $d2State1007 = ""
+    if ($null -ne $d2Row1007) {
+        if (($null -ne $d2Row1007.PSObject.Properties['correlation_estimate']) -and ($null -ne $d2Row1007.correlation_estimate)) { $d2Corr1007 = [double]$d2Row1007.correlation_estimate }
+        if (($null -ne $d2Row1007.PSObject.Properties['balance_db']) -and ($null -ne $d2Row1007.balance_db)) { $d2Balance1007 = [double]$d2Row1007.balance_db }
+        if ($null -ne $d2Row1007.PSObject.Properties['correlation_state']) { $d2State1007 = [string]$d2Row1007.correlation_state }
+    }
+    $d2Report.track_1007_correlation = $d2Corr1007
+    $d2Report.track_1007_balance_db = $d2Balance1007
+    $d2Report.track_1007_correlation_state = $d2State1007
+    $d2AnchorOK = $false
+    if (($null -ne $d2Corr1007) -and ($null -ne $d2Balance1007)) {
+        $d2AnchorOK = ([Math]::Abs($d2Corr1007 - 0.689) -le 0.0005) -and ([Math]::Abs($d2Balance1007 - (-1.475)) -le 0.0005)
+    }
+    if ($d2AnchorOK) {
+        Write-Host ("   [ok] track 1007 anchor values: correlation=" + $d2Corr1007 + ", balance_db=" + $d2Balance1007 + " (292 unit anchors corr 0.689 / balance -1.475)") -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: track 1007 anchor values off (correlation=" + $d2Corr1007 + " want 0.689±0.0005, balance_db=" + $d2Balance1007 + " want -1.475±0.0005 — catalog_trackkey_test.go anchors)")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
+    $d2PayloadMeasured = -1
+    $d2PayloadSkipped = -1
+    $d2Report.risk_track_count = -1
+    if ($null -ne $d2Payload) {
+        if ($null -ne $d2Payload.PSObject.Properties['tracks_measured']) { $d2PayloadMeasured = [int]$d2Payload.tracks_measured }
+        if ($null -ne $d2Payload.PSObject.Properties['tracks_skipped']) { $d2PayloadSkipped = [int]$d2Payload.tracks_skipped }
+        if ($null -ne $d2Payload.PSObject.Properties['risk_track_count']) { $d2Report.risk_track_count = [int]$d2Payload.risk_track_count }
+        if ($null -ne $d2Payload.PSObject.Properties['global_correlation']) { $d2Report.global_correlation = [double]$d2Payload.global_correlation }
+        if ($null -ne $d2Payload.PSObject.Properties['global_balance_db']) { $d2Report.global_balance_db = [double]$d2Payload.global_balance_db }
+    }
+    $d2Report.payload_tracks_measured = $d2PayloadMeasured
+    $d2Report.payload_tracks_skipped = $d2PayloadSkipped
+    if ($d2PayloadMeasured -eq 6) {
+        Write-Host ("   [ok] d2 payload tracks_measured=6 (read-without-metrics row excluded; tracks_skipped=" + $d2PayloadSkipped + ", risk_track_count=" + $d2Report.risk_track_count + ")") -ForegroundColor Green
+    }
+    else {
+        $d2Failures.Add("D2-STEREO FAIL: d2 payload tracks_measured=" + $d2PayloadMeasured + " (expected 6 — the honest no-metric row must not count as measured)")
+        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+    }
     $d2Report.mutation_performed = [string]$d2Data.mutation_performed
     if ($d2Report.mutation_performed -eq "False") {
         Write-Host "   [ok] stereo check turn performed no project mutation" -ForegroundColor Green
@@ -1567,6 +1682,8 @@ if ($D2StereoCheck) {
         report         = $d2Report
         gate_results   = @{
             check_turn      = ($d2Report.check_stop_reason -eq "d2_stereo_checked" -and $d2Report.verdict_kind -ne "" -and $d2Report.action_face -eq "disclosure_only_v1" -and $d2Report.mutation_performed -eq "False")
+            global_stereo   = ($d2Report.stereo_face -eq "present")
+            tracks_face     = (($d2TracksConsidered -eq 7) -and ($d2TrackRows.Count -eq 7) -and ($d2ReadyRows.Count -eq 6) -and ($d2NoMetricRows.Count -eq 1) -and ($d2NoMetricTrackID -eq "1039") -and ($d2NoMetricStatus -eq "read") -and $d2AnchorOK -and ($d2PayloadMeasured -eq 6))
             verdict_on_disk = $d2Report.verdict_record_on_disk
             action_face     = (-not $d2Report.card_parked -and $d2Report.mutation_performed -eq "False")
             d2_node_lit     = (($d2Report.d2_node_state -eq "in_progress") -or ($d2Report.d2_node_state -eq "needs_confirmation"))
@@ -1577,7 +1694,7 @@ if ($D2StereoCheck) {
     if ($d2Failures.Count -gt 0) {
         throw ("D2-STEREO-CHECK gates failed (" + [string]$d2Failures.Count + " failure(s)); evidence=" + $d2GatesPath)
     }
-    Write-Host ("[d2-stereo] PASS: probe recorded + check turn + verdict on disk + no-card action face + D2 node lit; gates=" + $d2GatesPath) -ForegroundColor Green
+    Write-Host ("[d2-stereo] PASS: probe recorded + check turn + global stereo present + tracks face (6/7 ready + 1039 honest missing + 1007 anchors) + verdict on disk + no-card action face + D2 node lit; gates=" + $d2GatesPath) -ForegroundColor Green
 }
 # ------------------- D3 reference-alignment gates (opt-in; D3-REF-ALIGN-THIN-1)
 # Face P (LLM, budget-bound): the bare-phrase semantic-entry probe. The phrase
