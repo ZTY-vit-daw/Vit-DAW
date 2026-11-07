@@ -25,4 +25,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 22:42 +0800 / origin/main=9180ff89b0c97594295c26fde54306358136afb7 / owner=ZCode GLM-5.3 L2-worker PC 子代理（301repro）/ 分支 port/kernel-offrender-repro-1 / worktree D:/Vit_DAW_wt_301repro（领取基线：HEAD=9180ff89，status 全净，diff --stat 空）/ 领取提交=本笔 coord/301-claim
+- 回执：（执行侧回填）
+- 验收：（主管回填）
