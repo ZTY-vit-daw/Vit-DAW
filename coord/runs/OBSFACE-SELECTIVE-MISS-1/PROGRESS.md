@@ -1,14 +1,18 @@
 # PROGRESS — OBSFACE-SELECTIVE-MISS-1
 
+**终态：DONE（2026-11-07）**——全五步骤完成，取证工件 forensics.md 落盘，卡面回执+提交推送完成（commit fe2c1ed1 领取 / 5dd3aaf2 取证+回执，分支 port/obsface-selective-miss-1 已推 origin）。
+
+定性结论一句话：**缺陷成立但位置改写——主缺陷=agent 侧 d1d3 观察消费面接线错位（顶层读 digest 键实际嵌套 out["digest"]，M1-4 e0e2f4ac 先天，单测形状掩盖），投影结构性恒 missing；建议修（最小修=改读 digest 子图+单测反钉，kernel 面零改动）；「kernel 观察面选择性缺失非确定性」不成立（铸造层 stereo 13/13 ready），waveform 面 D1 settle 相位翻转设计内疑似两案并陈。**
+
 池序 272 / kernel 观察面选择性缺失取证（纯读档零 LLM）/ 工件目录=本目录。
 
 ## 步骤清单（对应卡面任务步骤）
 
-1. [ ] git fetch origin；建 worktree D:/Vit_DAW_wt_272impl @ port/obsface-selective-miss-1（origin/main）；领取记录回填卡面 todo→doing；逐文件 add 提交推送成功
-2. [ ] 三组 digest 对照表（265 reverify1 + 266 verifyrun1/verifyrun2）
-3. [ ] kernel 铸造路径勘察（VitApp C++ digest/observe 组装代码，锚点级）
-4. [ ] 定性：设计内 vs 缺陷（证据支撑哪边；两案并陈时如实）
-5. [ ] 产出 forensics.md + 卡面回执
+1. [x] git fetch origin；建 worktree D:/Vit_DAW_wt_272impl @ port/obsface-selective-miss-1（origin/main）；领取记录回填卡面 todo→doing；逐文件 add 提交推送成功（fe2c1ed1）
+2. [x] 三组 digest 对照表（实为 5 采样点矩阵，见 forensics.md §2；另核 run 侧持久化观察包 13+ 时点）
+3. [x] 铸造路径勘察（前提修正：铸造在 agent 侧 mixboard 非 VitApp C++，VitApp 零命中；主缺陷=d1d3 投影消费错位，forensics.md §1/§3）
+4. [x] 定性（主缺陷成立建议修；waveform 翻转设计内疑似两案并陈；kernel 非确定缺失候选不成立，forensics.md §4）
+5. [x] 产出 forensics.md + 卡面回执（回执在 worktree 卡面 doing/2026-11-07-OBSFACE-SELECTIVE-MISS-1.md，随 5dd3aaf2 推送）
 
 ## 执行日志
 
