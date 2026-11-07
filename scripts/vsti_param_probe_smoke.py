@@ -317,8 +317,9 @@ def pcactl_fingerprint(agent_dir: Path, plugin_path: str, timeout: float) -> dic
             f"pcactl fingerprint failed for {plugin_path}: exit={completed.returncode} "
             f"stderr={completed.stderr[:300]}")
     try:
-        payload = json.loads(completed.stdout.strip().splitlines()[-1])
-    except (ValueError, IndexError) as exc:
+        # pcactl prints one pretty-printed (multi-line) JSON object on stdout.
+        payload = json.loads(completed.stdout.strip())
+    except ValueError as exc:
         raise RuntimeError(f"pcactl fingerprint output not JSON: {completed.stdout[:200]}") from exc
     if not str(payload.get("binary_fingerprint", "")).startswith("sha256:"):
         raise RuntimeError(f"pcactl fingerprint missing sha256 field: {payload}")
