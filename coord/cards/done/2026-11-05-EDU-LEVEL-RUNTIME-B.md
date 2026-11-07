@@ -93,6 +93,15 @@
 - **smokerun3 衔接裁定兑现**：修复+测试完成后 fetch origin/main（@`8fb5e0e4`）读栈记录——**占用中**（277 ARR-SRCLOAD-1 seg3a_r2 渲染非静音实证重跑腿 10:21 登记在卷，owner=ZCode GLM-5.3 执行子代理 wt_277impl）；按指令停下候栈不等待不覆盖，**本腿未占栈未跑**；栈释放后 smokerun3 口径=smokerun2 同款（-EduJamSmoke 真栈单 run 无重跑，exit 0=PASS→段 4 收口 mv done/、2=环境、4=确定性面缺陷取证留 doing/；工件新目录）
 - **边界声明（AGENTS §5）**：本腿零栈（单测+build）；文件域=edu_jam_chat.go±测试，未触 273/274/275/277/292/293/294 在飞域（shadow.go/capability_routing.go 仅只读引证）
 
+### 段 6：真栈烟测腿 smokerun3 收口（2026-11-07，**py exit 0 → PS1 exit 0=§8 预写 PASS 兑现，单 run 无重跑兑现；整卡自验完成，mv done/ 待主管终验**）
+
+- **run**：`smokerun3_20261107_1041`（10:41:20 启动，driver stamp 20261107_104138，10:41:44 PS1_EXIT=0）；命令/工件链见 `coord/runs/EDU-LEVEL-RUNTIME-B/smokerun3_20261107_1041/evidence.md`
+- **全相读数**：fixture 42 音 PASS → A2 activated=true（shadow tracks=3=过滤后形状）→ B1 enter 一次过（**enter_attempts=1**，零门拒绝）→ **B2 n0「写好了」拦截+判定 stop=edu_jam_node_done，leaves=[clip_exists=true, human_replied=true]——修复腿 2 `cdf99f80` 面实证：smokerun2 失败叶 clip_exists=false 已消灭** → **B3 n1 judge leaves=[judge:note_sequence_match=true]（fixture↔卡 notes.theme 42 音对账过）**→ B4 状态四针+7 关全表 → B5 exit status=exited end_reason=user_exit → **Phase C 零 LLM rows=0**（edu-jam 会话确定性拦截实证）
+- **被测**：agent=现场构建 SHA256 `6FBDA381…D6CE7`（`a6b1557a`，含 `b81449de`+`cdf99f80`；run 前 go build 预验 10:39:56 exit 0）；kernel=wt_228 `F9E3DA0A…0D67A` 只读复用；**计费 1 行 deepseek-flash strip-silence 默认子腿（预申报形态）≪¥0.01，edu-jam 主面零 LLM**
+- **栈纪律**：占用登记 `ccdf81c0`（净空两轮亲核 ~10:37+10:40:21 全零+登记后 ≤60s 即时复核 10:41:05 全零）；PS1 完成态不自拆 → owner 亲拆 VitAgent 35692/VitApp 48756，**TEARDOWN_ALL_ZERO 亲核 10:42:04**（六口 TCP listen=0+UDP 4444/4445=0+五类进程全零）；释放登记随本笔
+- **整卡口径**：段 1 挂载+修复 1 竞态（`b81449de`）+修复 2 寻址（`cdf99f80`）+smokerun3 exit 0——卡面验收标准「烟测 exit 0」达成，整卡自验完成待主管终验；渲染面/用户旅程面覆盖边界不变（AGENTS §5，本腿=agent HTTP/ZMQ 面）
+- **次级观察**：strip silence 默认子腿两行 warn=ps1 既有非断言形态（不属本卡判定面，smokerun2 同形态）；10:41:28 一次 draft 工作区激活后 A2 切到 fixture——与激活门设计交互一致
+
 ## 验收
 
 - （主管回填）
