@@ -837,10 +837,17 @@ func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Ob
 	if eduJamFloatOf(mc["tempo_bpm"]) > 0 && intNumber(mc["tempo_setting_count"]) >= 1 {
 		obs.TempoSet = true
 	}
-	tracks := mapRowsFromAny(state["tracks"])
+	// 真实内核 tracks 按轨树文档序返回，前部固定有 5 条服务轨
+	// （Arranger/Chord/Marker/Tempo/Master——smokerun2 实证
+	// edu_jam_fixture_project.vit:40-48；Go 侧同形状钉死=shadow_test.go:127-131，
+	// 本 run 日志 [shadow] initialized tracks=3 即过滤后计数）。runtime_slots.
+	// track_index 是 1 基**用户轨**号（279 卡 §2.3），必须先过滤出用户轨再寻址；
+	// 原始数组直接下标会把 melody_imported(track_index=1) 落到 Arranger 轨
+	// （无 clips → clip_exists=false）——smokerun2_20261107_1006 失败面。
+	tracks := eduJamUserTrackRows(mapRowsFromAny(state["tracks"]))
 	for _, slotName := range eduJamSortedSlotNames(card) {
 		slot := card.RuntimeSlots[slotName]
-		idx := slot.TrackIndex - 1 // runtime_slots.track_index 是 1 基用户轨号
+		idx := slot.TrackIndex - 1 // 过滤后用户轨数组的 1 基下标
 		if idx < 0 || idx >= len(tracks) {
 			continue // 轨不存在 → 轨槽未观察（clip_exists=false 语义）
 		}
@@ -874,6 +881,51 @@ func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Ob
 		obs.Slots[slotName] = notes
 	}
 	return obs, state, nil
+}
+
+// eduJamUserTrackRows 从 get_project_state 的原始 tracks 行（真实内核轨树文档
+// 序，前部固定 5 条服务轨）过滤出用户轨。判据与 shadow.isUserTrack
+// （internal/shadow/shadow.go，包内未导出故在此复制同语义）同源：服务轨按
+// track_type/track_name 负面清单剔除；is_audio_track/is_audio 布尔或
+// vit_type∈{audio,midi,bus,ghost} 正判。生产消费者同型过滤先例=
+// capability_routing.go:530（capacityFactsFromProjectState 音频轨计数）。
+// 槽寻址（1 基用户轨号）必须落在过滤后的数组上。
+func eduJamUserTrackRows(rows []map[string]any) []map[string]any {
+	out := make([]map[string]any, 0, len(rows))
+	for _, row := range rows {
+		if eduJamIsUserTrackRow(row) {
+			out = append(out, row)
+		}
+	}
+	return out
+}
+
+func eduJamIsUserTrackRow(row map[string]any) bool {
+	kind := strings.ToLower(strings.TrimSpace(firstStringFromMap(row, "track_type", "type")))
+	if eduJamServiceTrackKind(kind) {
+		return false
+	}
+	name := strings.ToLower(strings.TrimSpace(firstStringFromMap(row, "track_name", "name")))
+	if eduJamServiceTrackKind(name) {
+		return false
+	}
+	if contextBool(row, "is_audio_track") || contextBool(row, "is_audio") {
+		return true
+	}
+	vitType := strings.ToLower(strings.TrimSpace(fmt.Sprint(row["vit_type"])))
+	return vitType == "audio" || vitType == "midi" || vitType == "bus" || vitType == "ghost"
+}
+
+// eduJamServiceTrackKind 匹配 tracktion 服务轨种类名（shadow.isUserTrack 负面
+// 清单同语义）。真实内核五条服务轨里 Master 带 track_type=master，其余四条
+// track_type=track 但 track_name 命中清单——type/name 两维任一命中即服务轨
+// （shadow_test.go:127-131 钉死的真实形状）。
+func eduJamServiceTrackKind(kind string) bool {
+	switch kind {
+	case "master", "arranger", "chord", "marker", "tempo":
+		return true
+	}
+	return false
 }
 
 func eduJamKernelReplyOK(reply map[string]any) bool {

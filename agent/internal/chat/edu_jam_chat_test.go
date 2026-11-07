@@ -8,6 +8,7 @@ package chat
 import (
 	"context"
 	"encoding/json"
+	"math"
 	"strings"
 	"sync"
 	"testing"
@@ -52,12 +53,41 @@ func eduJamFakeClip(clipID string, endSeconds float64) map[string]any {
 	return map[string]any{"id": clipID, "clip_type": "midi", "start_seconds": 0.0, "end_seconds": endSeconds}
 }
 
+// eduJamFakeTrack 造一条**真实内核用户轨形状**的假轨行（shadow_test.go:132-136
+// 同形状：track_type=hybrid + is_audio_track=true——真实内核用户轨必带正判标记；
+// 修复腿 2 后槽寻址先过 eduJamUserTrackRows 过滤，无标记的合成行会被当服务轨
+// 滤掉，故假用户轨必须携带真实形状标记）。
 func eduJamFakeTrack(trackID string, clips ...map[string]any) map[string]any {
 	rows := make([]any, 0, len(clips))
 	for _, c := range clips {
 		rows = append(rows, c)
 	}
-	return map[string]any{"track_id": trackID, "clips": rows}
+	return map[string]any{"track_id": trackID, "track_type": "hybrid", "is_audio_track": true, "clips": rows}
+}
+
+// eduJamServiceTracks 造真实内核轨树前部固定存在的 5 条服务轨
+// （shadow_test.go:127-131 同形状钉死；fixture 工程实证
+// edu_jam_fixture_project.vit:40-48：Arranger 1002/Chord 1003/Marker 1004/
+// Tempo 1005/Master 1006 前置于用户轨）。274 教训：夹具形状必须反钉真实内核，
+// 合成形状与真实不符曾掩盖本寻址缺陷面（smokerun2 取证）。
+func eduJamServiceTracks() []any {
+	return []any{
+		map[string]any{"track_id": "1002", "track_name": "Arranger", "track_type": "track", "is_audio_track": false},
+		map[string]any{"track_id": "1003", "track_name": "Chord", "track_type": "track", "is_audio_track": false},
+		map[string]any{"track_id": "1004", "track_name": "Marker", "track_type": "track", "is_audio_track": false},
+		map[string]any{"track_id": "1005", "track_name": "Tempo", "track_type": "track", "is_audio_track": false},
+		map[string]any{"track_id": "1006", "track_name": "Master", "track_type": "master", "is_audio_track": false},
+	}
+}
+
+// eduJamRealShapeTracks 以真实内核轨树形状组装 get_project_state 的 tracks：
+// 5 条服务轨前缀 + 用户轨。零用户轨（空工程）=eduJamRealShapeTracks()。
+func eduJamRealShapeTracks(userTracks ...map[string]any) []any {
+	out := eduJamServiceTracks()
+	for _, track := range userTracks {
+		out = append(out, track)
+	}
+	return out
 }
 
 // eduJamNoteRows 把 edu.Note 投影成内核 get_midi_clip_notes 的 notes 行。
@@ -117,7 +147,7 @@ func eduJamChatCtx() map[string]any { return map[string]any{} }
 
 func TestEduJamEnterStatusIdempotentReject(t *testing.T) {
 	fake := &eduJamFakeKernel{
-		tracks: []any{eduJamFakeTrack("t1"), eduJamFakeTrack("t2"), eduJamFakeTrack("t3")},
+		tracks: eduJamRealShapeTracks(eduJamFakeTrack("t1"), eduJamFakeTrack("t2"), eduJamFakeTrack("t3")),
 		notes:  map[string][]any{},
 	}
 	server := newEduJamTestServer(t, fake)
@@ -154,11 +184,11 @@ func TestEduJamEnterStatusIdempotentReject(t *testing.T) {
 func TestEduJamAdvanceThroughN0JudgeN1(t *testing.T) {
 	theme := eduJamThemeNotes(t)
 	fake := &eduJamFakeKernel{
-		tracks: []any{
+		tracks: eduJamRealShapeTracks(
 			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
 			eduJamFakeTrack("t2", eduJamFakeClip("c2", 26.0)),
 			eduJamFakeTrack("t3"),
-		},
+		),
 		notes: map[string][]any{
 			"c1": eduJamNoteRows(theme),
 			"c2": eduJamNoteRows(eduJamCorruptedNotes(t)),
@@ -193,11 +223,11 @@ func TestEduJamAdvanceThroughN0JudgeN1(t *testing.T) {
 
 func TestEduJamJudgeFailAttemptFeedbackAndPullback(t *testing.T) {
 	fake := &eduJamFakeKernel{
-		tracks: []any{
+		tracks: eduJamRealShapeTracks(
 			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
 			eduJamFakeTrack("t2"),
 			eduJamFakeTrack("t3"),
-		},
+		),
 		notes: map[string][]any{
 			"c1": eduJamNoteRows(eduJamCorruptedNotes(t)), // n1 判定输入=损坏表 → fail
 		},
@@ -262,11 +292,11 @@ func TestEduJamJudgeFailAttemptFeedbackAndPullback(t *testing.T) {
 func TestEduJamClosureConfirmTerminalEventAndSettleHooks(t *testing.T) {
 	theme := eduJamThemeNotes(t)
 	fake := &eduJamFakeKernel{
-		tracks: []any{
+		tracks: eduJamRealShapeTracks(
 			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
 			eduJamFakeTrack("t2", eduJamFakeClip("c2", 26.0)), // 学生已改对（=theme）
 			eduJamFakeTrack("t3", eduJamFakeClip("c3", 26.0)), // 伴奏已填（closure 前提）
-		},
+		),
 		notes: map[string][]any{
 			"c1": eduJamNoteRows(theme),
 			"c2": eduJamNoteRows(theme),
@@ -344,11 +374,11 @@ func TestEduJamClosureConfirmTerminalEventAndSettleHooks(t *testing.T) {
 func TestEduJamClosureBlockedOnPlaceholderBlank(t *testing.T) {
 	theme := eduJamThemeNotes(t)
 	fake := &eduJamFakeKernel{
-		tracks: []any{
+		tracks: eduJamRealShapeTracks(
 			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
 			eduJamFakeTrack("t2", eduJamFakeClip("c2", 26.0)),
 			eduJamFakeTrack("t3"), // 伴奏轨留白 → no_placeholder_blanks 缺口
-		},
+		),
 		notes: map[string][]any{
 			"c1": eduJamNoteRows(theme),
 			"c2": eduJamNoteRows(theme),
@@ -382,7 +412,7 @@ func TestEduJamClosureBlockedOnPlaceholderBlank(t *testing.T) {
 
 func TestEduJamExitFromActiveAndTrajectoryTerminalFace(t *testing.T) {
 	fake := &eduJamFakeKernel{
-		tracks: []any{eduJamFakeTrack("t1"), eduJamFakeTrack("t2"), eduJamFakeTrack("t3")},
+		tracks: eduJamRealShapeTracks(eduJamFakeTrack("t1"), eduJamFakeTrack("t2"), eduJamFakeTrack("t3")),
 		notes:  map[string][]any{},
 	}
 	server := newEduJamTestServer(t, fake)
@@ -412,7 +442,7 @@ func TestEduJamExitFromActiveAndTrajectoryTerminalFace(t *testing.T) {
 }
 
 func TestEduJamCheckAndConfirmWithoutJamNotHandled(t *testing.T) {
-	fake := &eduJamFakeKernel{tracks: []any{}, notes: map[string][]any{}}
+	fake := &eduJamFakeKernel{tracks: eduJamRealShapeTracks(), notes: map[string][]any{}}
 	server := newEduJamTestServer(t, fake)
 	ctx := context.Background()
 	for _, msg := range []string{"写好了", "结束乐局", "确认收尾", "开始乐局吧，我想先聊聊"} {
@@ -427,7 +457,7 @@ func TestEduJamCheckAndConfirmWithoutJamNotHandled(t *testing.T) {
 }
 
 func TestEduJamEnterFailClosedWithoutProjectBinding(t *testing.T) {
-	fake := &eduJamFakeKernel{tracks: []any{}, notes: map[string][]any{}}
+	fake := &eduJamFakeKernel{tracks: eduJamRealShapeTracks(), notes: map[string][]any{}}
 	server := newEduJamTestServer(t, fake)
 	server.eduJamKernelSendOverride = nil // 无内核读面
 	server.mu.Lock()
@@ -451,11 +481,11 @@ func TestEduJamEnterFailClosedWithoutProjectBinding(t *testing.T) {
 func TestEduJamPersistenceRoundTripAndRestoreFailClosed(t *testing.T) {
 	theme := eduJamThemeNotes(t)
 	fake := &eduJamFakeKernel{
-		tracks: []any{
+		tracks: eduJamRealShapeTracks(
 			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
 			eduJamFakeTrack("t2"),
 			eduJamFakeTrack("t3"),
-		},
+		),
 		notes: map[string][]any{"c1": eduJamNoteRows(theme)},
 	}
 	server := newEduJamTestServer(t, fake)
@@ -537,11 +567,11 @@ func TestEduJamPersistenceRoundTripAndRestoreFailClosed(t *testing.T) {
 func TestEduJamEnterActivationRacePreClosedPostSurvives(t *testing.T) {
 	theme := eduJamThemeNotes(t)
 	fake := &eduJamFakeKernel{
-		tracks: []any{
+		tracks: eduJamRealShapeTracks(
 			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
 			eduJamFakeTrack("t2"),
 			eduJamFakeTrack("t3"),
-		},
+		),
 		notes: map[string][]any{"c1": eduJamNoteRows(theme)},
 	}
 	server := newEduJamTestServer(t, fake)
@@ -608,5 +638,109 @@ func TestEduJamEnterActivationRacePreClosedPostSurvives(t *testing.T) {
 	if !handled || resp.StopReason != "edu_jam_node_done" || resp.WorkflowData["node_done"] != "n0_photo_score_open" {
 		t.Fatalf("turn-2 advance must find the session after boundary restore: handled=%v stop=%s data=%v reply=%s",
 			handled, resp.StopReason, resp.WorkflowData, resp.Reply)
+	}
+}
+
+// eduJamNotesEqual 逐音比较（id/pitch/start/length；start/length 用 1e-6 容差，
+// 与 edu.beatEpsilon 同口径）。
+func eduJamNotesEqual(a, b []edu.Note) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i].ID != b[i].ID || a[i].Pitch != b[i].Pitch ||
+			math.Abs(a[i].Start-b[i].Start) > 1e-6 || math.Abs(a[i].Length-b[i].Length) > 1e-6 {
+			return false
+		}
+	}
+	return true
+}
+
+// eduJamLoadFixtureCard 加载仓库夹具乐局卡（观察面单测直读用）。
+func eduJamLoadFixtureCard(t *testing.T) *edu.LevelCard {
+	t.Helper()
+	card, err := edu.LoadLevelCard(eduJamTestLevelsDir + "/first-run-twinkle/level.yaml")
+	if err != nil {
+		t.Fatalf("load fixture level card: %v", err)
+	}
+	return card
+}
+
+// TestEduJamObserveAddressesUserTracksPastServiceTracks 是 281 修复腿 2 的配对
+// **正锚**：真实内核轨树形状（5 服务轨前置+3 用户轨，smokerun2 实证）下，三个
+// runtime_slots 槽必须按**过滤后**的 1 基用户轨号正确寻址——melody_imported
+// (track_index=1)→t1(theme 全表)、melody_corrupted(2)→t2(损坏表，37 拍 68)、
+// accompaniment_blank(3)→t3(无 clip=留白)。修复前（原始数组下标）本测必失败：
+// track_index=1 落 tracks[0]=Arranger 轨无 clips→clip_exists=false（smokerun2_
+// 20261107_1006 B2 失败面）。
+func TestEduJamObserveAddressesUserTracksPastServiceTracks(t *testing.T) {
+	theme := eduJamThemeNotes(t)
+	corrupted := eduJamCorruptedNotes(t)
+	fake := &eduJamFakeKernel{
+		tracks: eduJamRealShapeTracks(
+			eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0)),
+			eduJamFakeTrack("t2", eduJamFakeClip("c2", 26.0)),
+			eduJamFakeTrack("t3"),
+		),
+		notes: map[string][]any{
+			"c1": eduJamNoteRows(theme),
+			"c2": eduJamNoteRows(corrupted),
+		},
+	}
+	server := newEduJamTestServer(t, fake)
+
+	obs, _, err := server.observeEduJam(context.Background(), eduJamLoadFixtureCard(t))
+	if err != nil {
+		t.Fatalf("observeEduJam: %v", err)
+	}
+	if got := obs.Slots["melody_imported"]; !eduJamNotesEqual(got, theme) {
+		t.Fatalf("melody_imported must address user track t1 (theme, %d notes), got %d notes", len(theme), len(got))
+	}
+	if got := obs.Slots["melody_corrupted"]; !eduJamNotesEqual(got, corrupted) {
+		t.Fatalf("melody_corrupted must address user track t2 (corrupted table), got %d notes", len(got))
+	}
+	if _, observed := obs.Slots["accompaniment_blank"]; observed {
+		t.Fatalf("accompaniment_blank (t3 without clips) must stay unobserved (clip_exists=false)")
+	}
+	if !obs.TrackNonEmpty["melody_imported"] || !obs.TrackNonEmpty["melody_corrupted"] || obs.TrackNonEmpty["accompaniment_blank"] {
+		t.Fatalf("TrackNonEmpty wrong under real kernel track shape: %v", obs.TrackNonEmpty)
+	}
+}
+
+// TestEduJamObserveNeverSelectsServiceTrackClips 是配对**负锚（修复前形态）**：
+// 即使服务轨行带有 MIDI clip（修复前原始下标寻址会把 track_index=1 的槽观察落
+// 到 tracks[0]=Arranger 的 clip 上——「clip_exists=true 但数据来自服务轨」的
+// 错位形态），过滤后寻址也必须永不选中服务轨行。本测在过滤被移除/绕过时必
+// 失败（观察到 svc 锚音=过滤失效；观察到空=整体寻址失效）。
+func TestEduJamObserveNeverSelectsServiceTrackClips(t *testing.T) {
+	theme := eduJamThemeNotes(t)
+	// Arranger 服务轨携带 MIDI clip（真实内核服务轨无 clips，此为负锚加压形态）。
+	tracks := eduJamServiceTracks()
+	tracks[0] = map[string]any{
+		"track_id": "1002", "track_name": "Arranger", "track_type": "track", "is_audio_track": false,
+		"clips": []any{eduJamFakeClip("clip_svc_arranger", 1.0)},
+	}
+	fake := &eduJamFakeKernel{
+		tracks: append(tracks, eduJamFakeTrack("t1", eduJamFakeClip("c1", 26.0))),
+		notes: map[string][]any{
+			"clip_svc_arranger": eduJamNoteRows([]edu.Note{{ID: "svc-arranger", Pitch: 1, Start: 0, Length: 1}}),
+			"c1":                eduJamNoteRows(theme),
+		},
+	}
+	server := newEduJamTestServer(t, fake)
+
+	obs, _, err := server.observeEduJam(context.Background(), eduJamLoadFixtureCard(t))
+	if err != nil {
+		t.Fatalf("observeEduJam: %v", err)
+	}
+	if got := obs.Slots["melody_imported"]; !eduJamNotesEqual(got, theme) {
+		t.Fatalf("melody_imported must address the user track t1 even when a service track carries a MIDI clip, got %d notes", len(got))
+	}
+	for slot, notes := range obs.Slots {
+		for _, n := range notes {
+			if n.ID == "svc-arranger" {
+				t.Fatalf("service track clip leaked into slot observation: slot=%s note=%v", slot, n)
+			}
+		}
 	}
 }
