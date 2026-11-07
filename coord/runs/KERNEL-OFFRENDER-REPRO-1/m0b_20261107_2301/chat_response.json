@@ -1,0 +1,3589 @@
+{
+  "conversation_id": "arr_srcload_smoke_20261107_230038",
+  "task_id": "task_5c1cdaf159d91ab2",
+  "goal_id": "goal_96fa8cc974de5574",
+  "run_id": "run_aa77d44d71a1c0e2",
+  "slice_id": "slice_300aaab840442e49",
+  "original_intent": "给这条 MIDI 轨加一个钢琴音源",
+  "reply": "已成功加载插件「Grand Rhapsody Piano Stereo」。",
+  "agent_mode": "default",
+  "needs_confirmation": false,
+  "executed_kernel_reply": [
+    {
+      "agent_action_id": "act_29601f5e26e2dd26",
+      "command_name": "plugin_semantic_search",
+      "elapsed_ms": 6093,
+      "error": "",
+      "observed_state": true,
+      "preview": "",
+      "result": {
+        "built_at": "2026-09-18T11:16:25Z",
+        "entries": [
+          {
+            "id": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "name": "Grand Rhapsody Piano Stereo",
+            "descriptive_name": "Grand Rhapsody Piano Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "Grand Rhapsody Piano Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2130
+          },
+          {
+            "id": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "name": "GW PianoCentric Mono",
+            "descriptive_name": "GW PianoCentric Mono",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Fx|Effects",
+            "identifier": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ],
+            "confidence": 78,
+            "evidence": [
+              {
+                "kind": "name",
+                "value": "GW PianoCentric Mono",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2124
+          },
+          {
+            "id": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "name": "GW PianoCentric Mono/Stereo",
+            "descriptive_name": "GW PianoCentric Mono/Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Fx|Effects",
+            "identifier": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ],
+            "confidence": 78,
+            "evidence": [
+              {
+                "kind": "name",
+                "value": "GW PianoCentric Mono/Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2124
+          },
+          {
+            "id": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "name": "GW PianoCentric Stereo",
+            "descriptive_name": "GW PianoCentric Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Fx|Effects",
+            "identifier": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ],
+            "confidence": 78,
+            "evidence": [
+              {
+                "kind": "name",
+                "value": "GW PianoCentric Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2124
+          },
+          {
+            "id": "VST3-SPL DrumXchanger-25c75f25-2b3f4814",
+            "name": "SPL DrumXchanger",
+            "descriptive_name": "SPL DrumXchanger",
+            "manufacturer": "Plugin Alliance",
+            "format": "VST3",
+            "category": "Fx|Dynamics",
+            "identifier": "VST3-SPL DrumXchanger-25c75f25-2b3f4814",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL DrumXchanger.vst3",
+            "primary_type": "dynamics",
+            "semantic_types": [
+              {
+                "type": "dynamics",
+                "score": 100
+              },
+              {
+                "type": "instrument",
+                "score": 74
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Fx|Dynamics",
+                "type": "dynamics",
+                "score": 92,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Fx|Dynamics",
+                "type": "dynamics",
+                "score": 88,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "SPL DrumXchanger",
+                "type": "instrument",
+                "score": 74,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1308
+          },
+          {
+            "id": "VST3-Bass Fingers Stereo-695648d-f20c8ebc",
+            "name": "Bass Fingers Stereo",
+            "descriptive_name": "Bass Fingers Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Bass Fingers Stereo-695648d-f20c8ebc",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Bass Slapper Stereo-695648d-85123bff",
+            "name": "Bass Slapper Stereo",
+            "descriptive_name": "Bass Slapper Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Bass Slapper Stereo-695648d-85123bff",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Clavinet Stereo-695648d-55547257",
+            "name": "Clavinet Stereo",
+            "descriptive_name": "Clavinet Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Clavinet Stereo-695648d-55547257",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-CODEX Stereo-695648d-76899406",
+            "name": "CODEX Stereo",
+            "descriptive_name": "CODEX Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-CODEX Stereo-695648d-76899406",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-COSMOS Sample Finder Stereo-695648d-54735b52",
+            "name": "COSMOS Sample Finder Stereo",
+            "descriptive_name": "COSMOS Sample Finder Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-COSMOS Sample Finder Stereo-695648d-54735b52",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-CR8 Sampler Stereo-695648d-c1e44bc9",
+            "name": "CR8 Sampler Stereo",
+            "descriptive_name": "CR8 Sampler Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-CR8 Sampler Stereo-695648d-c1e44bc9",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "CR8 Sampler Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Electric Grand 80 Stereo-695648d-33deeaa",
+            "name": "Electric Grand 80 Stereo",
+            "descriptive_name": "Electric Grand 80 Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Electric Grand 80 Stereo-695648d-33deeaa",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Electric200 Stereo-695648d-66b705fe",
+            "name": "Electric200 Stereo",
+            "descriptive_name": "Electric200 Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Electric200 Stereo-695648d-66b705fe",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Electric88 Stereo-695648d-7d3d0604",
+            "name": "Electric88 Stereo",
+            "descriptive_name": "Electric88 Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Electric88 Stereo-695648d-7d3d0604",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Element Stereo-695648d-2b9a3d49",
+            "name": "Element Stereo",
+            "descriptive_name": "Element Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Element Stereo-695648d-2b9a3d49",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Flow Motion Stereo-695648d-85502029",
+            "name": "Flow Motion Stereo",
+            "descriptive_name": "Flow Motion Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Flow Motion Stereo-695648d-85502029",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-One-cfe5d24e-ec3eed50",
+            "name": "One",
+            "descriptive_name": "One",
+            "manufacturer": "FabFilter",
+            "format": "VST3",
+            "category": "Instrument|Synth",
+            "identifier": "VST3-One-cfe5d24e-ec3eed50",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter One.vst3",
+            "is_instrument": true,
+            "primary_type": "synth",
+            "semantic_types": [
+              {
+                "type": "synth",
+                "score": 100
+              },
+              {
+                "type": "instrument",
+                "score": 100
+              },
+              {
+                "type": "filter",
+                "score": 82
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 96,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 88,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "One",
+                "type": "filter",
+                "score": 82,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-OVox Instrument Stereo-695648d-a1f7be54",
+            "name": "OVox Instrument Stereo",
+            "descriptive_name": "OVox Instrument Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-OVox Instrument Stereo-695648d-a1f7be54",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-StudioVerse Instruments Stereo-695648d-362cff25",
+            "name": "StudioVerse Instruments Stereo",
+            "descriptive_name": "StudioVerse Instruments Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-StudioVerse Instruments Stereo-695648d-362cff25",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Surge XT-1e1bcfb-190e4fbd",
+            "name": "Surge XT",
+            "descriptive_name": "Surge XT",
+            "manufacturer": "Surge Synth Team",
+            "format": "VST3",
+            "category": "Instrument|Synth",
+            "identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Surge Synth Team\\Surge XT.vst3\\Contents\\x86_64-win\\Surge XT.vst3",
+            "is_instrument": true,
+            "primary_type": "synth",
+            "semantic_types": [
+              {
+                "type": "synth",
+                "score": 100
+              },
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 96,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 88,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "Surge XT",
+                "type": "synth",
+                "score": 88,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "name",
+                "value": "Surge XT",
+                "type": "synth",
+                "score": 82,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          }
+        ],
+        "index_exists": true,
+        "index_path": "C:\\Users\\timoz\\.vit\\plugin_semantics.json",
+        "live_search": {
+          "count": 24,
+          "queried": true,
+          "warning": ""
+        },
+        "plugins": [
+          {
+            "id": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "name": "Grand Rhapsody Piano Stereo",
+            "descriptive_name": "Grand Rhapsody Piano Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "Grand Rhapsody Piano Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2130
+          },
+          {
+            "id": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "name": "GW PianoCentric Mono",
+            "descriptive_name": "GW PianoCentric Mono",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Fx|Effects",
+            "identifier": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ],
+            "confidence": 78,
+            "evidence": [
+              {
+                "kind": "name",
+                "value": "GW PianoCentric Mono",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2124
+          },
+          {
+            "id": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "name": "GW PianoCentric Mono/Stereo",
+            "descriptive_name": "GW PianoCentric Mono/Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Fx|Effects",
+            "identifier": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ],
+            "confidence": 78,
+            "evidence": [
+              {
+                "kind": "name",
+                "value": "GW PianoCentric Mono/Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2124
+          },
+          {
+            "id": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "name": "GW PianoCentric Stereo",
+            "descriptive_name": "GW PianoCentric Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Fx|Effects",
+            "identifier": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ],
+            "confidence": 78,
+            "evidence": [
+              {
+                "kind": "name",
+                "value": "GW PianoCentric Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 2124
+          },
+          {
+            "id": "VST3-SPL DrumXchanger-25c75f25-2b3f4814",
+            "name": "SPL DrumXchanger",
+            "descriptive_name": "SPL DrumXchanger",
+            "manufacturer": "Plugin Alliance",
+            "format": "VST3",
+            "category": "Fx|Dynamics",
+            "identifier": "VST3-SPL DrumXchanger-25c75f25-2b3f4814",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\SPL DrumXchanger.vst3",
+            "primary_type": "dynamics",
+            "semantic_types": [
+              {
+                "type": "dynamics",
+                "score": 100
+              },
+              {
+                "type": "instrument",
+                "score": 74
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Fx|Dynamics",
+                "type": "dynamics",
+                "score": 92,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Fx|Dynamics",
+                "type": "dynamics",
+                "score": 88,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "SPL DrumXchanger",
+                "type": "instrument",
+                "score": 74,
+                "message": "matched plugin name/manufacturer text"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1308
+          },
+          {
+            "id": "VST3-Bass Fingers Stereo-695648d-f20c8ebc",
+            "name": "Bass Fingers Stereo",
+            "descriptive_name": "Bass Fingers Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Bass Fingers Stereo-695648d-f20c8ebc",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Bass Slapper Stereo-695648d-85123bff",
+            "name": "Bass Slapper Stereo",
+            "descriptive_name": "Bass Slapper Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Bass Slapper Stereo-695648d-85123bff",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Clavinet Stereo-695648d-55547257",
+            "name": "Clavinet Stereo",
+            "descriptive_name": "Clavinet Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Clavinet Stereo-695648d-55547257",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-CODEX Stereo-695648d-76899406",
+            "name": "CODEX Stereo",
+            "descriptive_name": "CODEX Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-CODEX Stereo-695648d-76899406",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-COSMOS Sample Finder Stereo-695648d-54735b52",
+            "name": "COSMOS Sample Finder Stereo",
+            "descriptive_name": "COSMOS Sample Finder Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-COSMOS Sample Finder Stereo-695648d-54735b52",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-CR8 Sampler Stereo-695648d-c1e44bc9",
+            "name": "CR8 Sampler Stereo",
+            "descriptive_name": "CR8 Sampler Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-CR8 Sampler Stereo-695648d-c1e44bc9",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "CR8 Sampler Stereo",
+                "type": "instrument",
+                "score": 78,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Electric Grand 80 Stereo-695648d-33deeaa",
+            "name": "Electric Grand 80 Stereo",
+            "descriptive_name": "Electric Grand 80 Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Electric Grand 80 Stereo-695648d-33deeaa",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Electric200 Stereo-695648d-66b705fe",
+            "name": "Electric200 Stereo",
+            "descriptive_name": "Electric200 Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Electric200 Stereo-695648d-66b705fe",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Electric88 Stereo-695648d-7d3d0604",
+            "name": "Electric88 Stereo",
+            "descriptive_name": "Electric88 Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Electric88 Stereo-695648d-7d3d0604",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Element Stereo-695648d-2b9a3d49",
+            "name": "Element Stereo",
+            "descriptive_name": "Element Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Element Stereo-695648d-2b9a3d49",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Flow Motion Stereo-695648d-85502029",
+            "name": "Flow Motion Stereo",
+            "descriptive_name": "Flow Motion Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-Flow Motion Stereo-695648d-85502029",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-One-cfe5d24e-ec3eed50",
+            "name": "One",
+            "descriptive_name": "One",
+            "manufacturer": "FabFilter",
+            "format": "VST3",
+            "category": "Instrument|Synth",
+            "identifier": "VST3-One-cfe5d24e-ec3eed50",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter One.vst3",
+            "is_instrument": true,
+            "primary_type": "synth",
+            "semantic_types": [
+              {
+                "type": "synth",
+                "score": 100
+              },
+              {
+                "type": "instrument",
+                "score": 100
+              },
+              {
+                "type": "filter",
+                "score": 82
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 96,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 88,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "One",
+                "type": "filter",
+                "score": 82,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-OVox Instrument Stereo-695648d-a1f7be54",
+            "name": "OVox Instrument Stereo",
+            "descriptive_name": "OVox Instrument Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-OVox Instrument Stereo-695648d-a1f7be54",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-StudioVerse Instruments Stereo-695648d-362cff25",
+            "name": "StudioVerse Instruments Stereo",
+            "descriptive_name": "StudioVerse Instruments Stereo",
+            "manufacturer": "Waves",
+            "format": "VST3",
+            "category": "Instrument|Waves",
+            "identifier": "VST3-StudioVerse Instruments Stereo-695648d-362cff25",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "is_instrument": true,
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Waves",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          },
+          {
+            "id": "VST3-Surge XT-1e1bcfb-190e4fbd",
+            "name": "Surge XT",
+            "descriptive_name": "Surge XT",
+            "manufacturer": "Surge Synth Team",
+            "format": "VST3",
+            "category": "Instrument|Synth",
+            "identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Surge Synth Team\\Surge XT.vst3\\Contents\\x86_64-win\\Surge XT.vst3",
+            "is_instrument": true,
+            "primary_type": "synth",
+            "semantic_types": [
+              {
+                "type": "synth",
+                "score": 100
+              },
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ],
+            "confidence": 100,
+            "evidence": [
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 96,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "instrument",
+                "score": 90,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "category",
+                "value": "Instrument|Synth",
+                "type": "synth",
+                "score": 88,
+                "message": "matched plugin category"
+              },
+              {
+                "kind": "name",
+                "value": "Surge XT",
+                "type": "synth",
+                "score": 88,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "name",
+                "value": "Surge XT",
+                "type": "synth",
+                "score": 82,
+                "message": "matched plugin name/manufacturer text"
+              },
+              {
+                "kind": "metadata",
+                "value": "is_instrument",
+                "type": "instrument",
+                "score": 70,
+                "message": "plugin metadata marks it as an instrument"
+              }
+            ],
+            "updated_at": "2026-09-18T11:16:25.7599656Z",
+            "search_score": 1300
+          }
+        ],
+        "status": "ok",
+        "summary": {
+          "analyzer": 22,
+          "compressor": 2,
+          "delay": 26,
+          "distortion": 84,
+          "dynamics": 187,
+          "eq": 146,
+          "filter": 11,
+          "instrument": 22,
+          "limiter": 2,
+          "meter": 4,
+          "modulation": 44,
+          "pitch": 22,
+          "reverb": 59,
+          "synth": 4,
+          "unknown": 356
+        },
+        "transient": true
+      },
+      "status": "ok",
+      "tool": "plugin.semantic_search",
+      "tool_call_id": "tool_step_1",
+      "undo_label": "",
+      "verification": {
+        "tool_call_id": "tool_step_1",
+        "tool": "plugin.semantic_search",
+        "command_name": "plugin_semantic_search",
+        "status": "not_required",
+        "postcondition": "no_observable_daw_postcondition",
+        "message": "tool result recorded; no additional DAW state postcondition is required"
+      }
+    },
+    {
+      "agent_action_id": "act_a12200af39fc5471",
+      "command_name": "plugin_search",
+      "elapsed_ms": 4079,
+      "error": "",
+      "observed_state": true,
+      "preview": "",
+      "result": {
+        "entries": [
+          {
+            "category": "Fx|Effects",
+            "confidence": 78,
+            "descriptive_name": "GW PianoCentric Mono",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "identifier": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "is_instrument": false,
+            "manufacturer": "Waves",
+            "match_score": 968,
+            "name": "GW PianoCentric Mono",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ]
+          },
+          {
+            "category": "Fx|Effects",
+            "confidence": 78,
+            "descriptive_name": "GW PianoCentric Mono/Stereo",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "identifier": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "is_instrument": false,
+            "manufacturer": "Waves",
+            "match_score": 968,
+            "name": "GW PianoCentric Mono/Stereo",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ]
+          },
+          {
+            "category": "Fx|Effects",
+            "confidence": 78,
+            "descriptive_name": "GW PianoCentric Stereo",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "identifier": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "is_instrument": false,
+            "manufacturer": "Waves",
+            "match_score": 968,
+            "name": "GW PianoCentric Stereo",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ]
+          },
+          {
+            "category": "Instrument|Waves",
+            "confidence": 100,
+            "descriptive_name": "Grand Rhapsody Piano Stereo",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "is_instrument": true,
+            "manufacturer": "Waves",
+            "match_score": 930,
+            "name": "Grand Rhapsody Piano Stereo",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ]
+          }
+        ],
+        "match_count": 4,
+        "plugin_count": 994,
+        "plugins": [
+          {
+            "category": "Fx|Effects",
+            "confidence": 78,
+            "descriptive_name": "GW PianoCentric Mono",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "identifier": "VST3-GW PianoCentric Mono-695648d-5deb0e1a",
+            "is_instrument": false,
+            "manufacturer": "Waves",
+            "match_score": 968,
+            "name": "GW PianoCentric Mono",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ]
+          },
+          {
+            "category": "Fx|Effects",
+            "confidence": 78,
+            "descriptive_name": "GW PianoCentric Mono/Stereo",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "identifier": "VST3-GW PianoCentric Mono/Stereo-695648d-5e14591a",
+            "is_instrument": false,
+            "manufacturer": "Waves",
+            "match_score": 968,
+            "name": "GW PianoCentric Mono/Stereo",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ]
+          },
+          {
+            "category": "Fx|Effects",
+            "confidence": 78,
+            "descriptive_name": "GW PianoCentric Stereo",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "identifier": "VST3-GW PianoCentric Stereo-695648d-5e01941a",
+            "is_instrument": false,
+            "manufacturer": "Waves",
+            "match_score": 968,
+            "name": "GW PianoCentric Stereo",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 78
+              }
+            ]
+          },
+          {
+            "category": "Instrument|Waves",
+            "confidence": 100,
+            "descriptive_name": "Grand Rhapsody Piano Stereo",
+            "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "format": "VST3",
+            "id": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "is_instrument": true,
+            "manufacturer": "Waves",
+            "match_score": 930,
+            "name": "Grand Rhapsody Piano Stereo",
+            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+            "primary_type": "instrument",
+            "semantic_types": [
+              {
+                "type": "instrument",
+                "score": 100
+              }
+            ]
+          }
+        ],
+        "query": "piano",
+        "scanned_paths": [
+          "C:\\Program Files\\Common Files\\VST3"
+        ],
+        "source": "scan_plugins",
+        "status": "ok"
+      },
+      "status": "ok",
+      "tool": "plugin.search",
+      "tool_call_id": "tool_step_1",
+      "undo_label": "",
+      "verification": {
+        "tool_call_id": "tool_step_1",
+        "tool": "plugin.search",
+        "command_name": "plugin_search",
+        "status": "not_required",
+        "postcondition": "no_observable_daw_postcondition",
+        "message": "tool result recorded; no additional DAW state postcondition is required"
+      }
+    },
+    {
+      "agent_action_id": "act_a7d698fdaab88082",
+      "command_name": "rack_add_node",
+      "elapsed_ms": 2629,
+      "error": "",
+      "observed_state": true,
+      "preview": "",
+      "result": {
+        "clip_scope": "track",
+        "command_ack": {
+          "ack": {
+            "message": "Rack node added",
+            "stage": "completed"
+          },
+          "command": "legacy.command",
+          "legacy_command": "rack_add_node",
+          "resync_hint": true,
+          "revision": 0,
+          "source": "vsp.command.response",
+          "stage": "completed",
+          "transaction_id": "tx_1794063661490903300_94"
+        },
+        "graph_active_revision": 1,
+        "graph_last_diff_kind": "node_add",
+        "graph_last_diff_summary": "Added rack node Grand Rhapsody Piano Stereo",
+        "graph_last_retired_revision": 0,
+        "graph_lifecycle_state": "active",
+        "graph_pending_revision": 0,
+        "graph_publish_mode": "context_rebuild_idle",
+        "graph_recent_changes": [
+          {
+            "dest_id": "",
+            "kind": "node_add",
+            "node_id": "1013",
+            "rack_item_id": "1012",
+            "revision": 1,
+            "source_id": "",
+            "summary": "Added rack node Grand Rhapsody Piano Stereo",
+            "timestamp_ms": 1794063663998,
+            "track_id": "1007"
+          }
+        ],
+        "graph_retired_snapshot_count": 0,
+        "graph_revision": 1,
+        "message": "Rack node added",
+        "plugin_id": "1013",
+        "plugin_identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+        "plugin_instance_ready": true,
+        "plugin_item_id": "1013",
+        "plugin_load_state": "name=Grand Rhapsody Piano Stereo id=1013 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+        "plugin_name": "Grand Rhapsody Piano Stereo",
+        "rack_item_id": "1012",
+        "state_delta": {
+          "ack": {
+            "message": "State delta captured",
+            "stage": "completed"
+          },
+          "base_revision": 3,
+          "changed_clips": null,
+          "changed_tracks": [
+            "1007"
+          ],
+          "ops": [
+            {
+              "op": "replace",
+              "path": "/project",
+              "value": {
+                "clip_count": 0,
+                "legacy_graph_active_revision": 1,
+                "legacy_graph_last_diff_kind": "node_add",
+                "legacy_graph_lifecycle_state": "active",
+                "legacy_graph_pending_revision": 0,
+                "legacy_graph_publish_mode": "context_rebuild_idle",
+                "legacy_graph_revision": 1,
+                "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+                "project_id": "project_current",
+                "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+                "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+                "scope": "project.timeline",
+                "track_count": 1
+              }
+            },
+            {
+              "op": "replace",
+              "path": "/tracks/1007",
+              "track_id": "1007",
+              "value": {
+                "armed": false,
+                "can_contain_child_tracks": false,
+                "child_track_count": 0,
+                "child_track_ids": [],
+                "clip_count": 0,
+                "depth": 0,
+                "descendant_track_count": 0,
+                "descendant_track_ids": [],
+                "direct_child_track_ids": [],
+                "fader_db": 0,
+                "folder_behavior": null,
+                "gain_db": 0,
+                "has_child_tracks": false,
+                "id": "1007",
+                "is_armed": false,
+                "is_audio": true,
+                "is_audio_track": true,
+                "is_folder_container": false,
+                "is_folder_track": false,
+                "is_submix_folder": false,
+                "mute": false,
+                "name": "Track 1",
+                "pan": 0,
+                "pan_value": 0,
+                "parent_folder_track_id": null,
+                "parent_track_id": null,
+                "plugin_count": 3,
+                "plugin_param_digest": "a5ad0a91224dd711",
+                "plugins": [
+                  {
+                    "id": "1012",
+                    "name": "New Rack",
+                    "type": "rack"
+                  },
+                  {
+                    "id": "1008",
+                    "name": "Volume & Pan Plugin",
+                    "type": "volume"
+                  },
+                  {
+                    "id": "1009",
+                    "name": "Level Meter",
+                    "type": "level"
+                  }
+                ],
+                "rack": {
+                  "clip_proxy_nodes": [],
+                  "clip_routes": [],
+                  "edges": [
+                    {
+                      "dest_id": "RACK_OUTPUT",
+                      "dest_pin": 1,
+                      "edge_id": "1013|1|RACK_OUTPUT|1",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "1013",
+                      "source_pin": 1,
+                      "vit_internal_default_audio": false
+                    },
+                    {
+                      "dest_id": "RACK_OUTPUT",
+                      "dest_pin": 2,
+                      "edge_id": "1013|2|RACK_OUTPUT|2",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "1013",
+                      "source_pin": 2,
+                      "vit_internal_default_audio": false
+                    },
+                    {
+                      "dest_id": "1013",
+                      "dest_pin": 0,
+                      "edge_id": "RACK_INPUT|0|1013|0",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "RACK_INPUT",
+                      "source_pin": 0,
+                      "vit_internal_default_audio": false
+                    },
+                    {
+                      "dest_id": "RACK_OUTPUT",
+                      "dest_pin": 0,
+                      "edge_id": "1013|0|RACK_OUTPUT|0",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "1013",
+                      "source_pin": 0,
+                      "vit_internal_default_audio": false
+                    }
+                  ],
+                  "id": "1012",
+                  "item_id": "1012",
+                  "node_count": 1,
+                  "nodes": [
+                    {
+                      "audio_reachable_from_rack_input": true,
+                      "clip_scope": "track",
+                      "enabled": true,
+                      "format": "VST3",
+                      "id": "1013",
+                      "item_id": "1013",
+                      "name": "Grand Rhapsody Piano Stereo",
+                      "node_id": "1013",
+                      "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                      "plugin_format": "VST3",
+                      "plugin_id": "1013",
+                      "plugin_item_id": "1013",
+                      "plugin_name": "Grand Rhapsody Piano Stereo",
+                      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                      "supports_param_grabber": true,
+                      "template_role": "instrument",
+                      "type": "vst",
+                      "vit_effective_in_output_path": true,
+                      "vit_orphan_bypass_candidate": false,
+                      "x": 1,
+                      "y": 1,
+                      "zone_id": "Z2"
+                    }
+                  ],
+                  "rack_item_id": "1012",
+                  "scope": "track"
+                },
+                "routing_bus_enabled": false,
+                "solo": false,
+                "track_depth": 0,
+                "track_id": "1007",
+                "track_state_revision": "703abac3d9f5e2c3",
+                "track_type": "hybrid",
+                "volume_db": 0
+              }
+            }
+          ],
+          "ops_count": 2,
+          "project_epoch": "epoch_56ab9b0353086723",
+          "resync": false,
+          "resync_hint": false,
+          "revision": 4,
+          "scope": "project.timeline",
+          "snapshot_hash": "318a7935bddd46f0",
+          "source": "vsp.state.delta",
+          "stage": "completed",
+          "type": "state.delta"
+        },
+        "state_resync": {
+          "ack": {
+            "message": "State resynchronised",
+            "stage": "completed"
+          },
+          "base_revision": 0,
+          "changed_clips": null,
+          "changed_tracks": null,
+          "ops_count": 0,
+          "project": {
+            "clip_count": 0,
+            "legacy_graph_active_revision": 1,
+            "legacy_graph_last_diff_kind": "node_add",
+            "legacy_graph_lifecycle_state": "active",
+            "legacy_graph_pending_revision": 0,
+            "legacy_graph_publish_mode": "context_rebuild_idle",
+            "legacy_graph_revision": 1,
+            "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+            "project_id": "project_current",
+            "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+            "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+            "scope": "project.timeline",
+            "track_count": 1
+          },
+          "project_epoch": "epoch_56ab9b0353086723",
+          "resync": true,
+          "resync_hint": false,
+          "revision": 4,
+          "scope": "project.timeline",
+          "snapshot_hash": "318a7935bddd46f0",
+          "source": "vsp.state.resync",
+          "stage": "completed",
+          "tracks": [
+            {
+              "armed": false,
+              "can_contain_child_tracks": false,
+              "child_track_count": 0,
+              "child_track_ids": [],
+              "clip_count": 0,
+              "clips": [],
+              "depth": 0,
+              "descendant_track_count": 0,
+              "descendant_track_ids": [],
+              "direct_child_track_ids": [],
+              "fader_db": 0,
+              "folder_behavior": null,
+              "gain_db": 0,
+              "has_child_tracks": false,
+              "id": "1007",
+              "is_armed": false,
+              "is_audio": true,
+              "is_audio_track": true,
+              "is_folder_container": false,
+              "is_folder_track": false,
+              "is_submix_folder": false,
+              "mute": false,
+              "name": "Track 1",
+              "pan": 0,
+              "pan_value": 0,
+              "parent_folder_track_id": null,
+              "parent_track_id": null,
+              "plugin_count": 3,
+              "plugin_param_digest": "a5ad0a91224dd711",
+              "plugins": [
+                {
+                  "id": "1012",
+                  "name": "New Rack",
+                  "type": "rack"
+                },
+                {
+                  "id": "1008",
+                  "name": "Volume & Pan Plugin",
+                  "type": "volume"
+                },
+                {
+                  "id": "1009",
+                  "name": "Level Meter",
+                  "type": "level"
+                }
+              ],
+              "rack": {
+                "clip_proxy_nodes": [],
+                "clip_routes": [],
+                "edges": [
+                  {
+                    "dest_id": "RACK_OUTPUT",
+                    "dest_pin": 1,
+                    "edge_id": "1013|1|RACK_OUTPUT|1",
+                    "is_scope_hidden": false,
+                    "line_color_hint": "#9AA4B2",
+                    "shared_by_clip_ids": [],
+                    "source_clip_id": "",
+                    "source_id": "1013",
+                    "source_pin": 1,
+                    "vit_internal_default_audio": false
+                  },
+                  {
+                    "dest_id": "RACK_OUTPUT",
+                    "dest_pin": 2,
+                    "edge_id": "1013|2|RACK_OUTPUT|2",
+                    "is_scope_hidden": false,
+                    "line_color_hint": "#9AA4B2",
+                    "shared_by_clip_ids": [],
+                    "source_clip_id": "",
+                    "source_id": "1013",
+                    "source_pin": 2,
+                    "vit_internal_default_audio": false
+                  },
+                  {
+                    "dest_id": "1013",
+                    "dest_pin": 0,
+                    "edge_id": "RACK_INPUT|0|1013|0",
+                    "is_scope_hidden": false,
+                    "line_color_hint": "#9AA4B2",
+                    "shared_by_clip_ids": [],
+                    "source_clip_id": "",
+                    "source_id": "RACK_INPUT",
+                    "source_pin": 0,
+                    "vit_internal_default_audio": false
+                  },
+                  {
+                    "dest_id": "RACK_OUTPUT",
+                    "dest_pin": 0,
+                    "edge_id": "1013|0|RACK_OUTPUT|0",
+                    "is_scope_hidden": false,
+                    "line_color_hint": "#9AA4B2",
+                    "shared_by_clip_ids": [],
+                    "source_clip_id": "",
+                    "source_id": "1013",
+                    "source_pin": 0,
+                    "vit_internal_default_audio": false
+                  }
+                ],
+                "id": "1012",
+                "item_id": "1012",
+                "node_count": 1,
+                "nodes": [
+                  {
+                    "audio_reachable_from_rack_input": true,
+                    "clip_scope": "track",
+                    "enabled": true,
+                    "format": "VST3",
+                    "id": "1013",
+                    "item_id": "1013",
+                    "name": "Grand Rhapsody Piano Stereo",
+                    "node_id": "1013",
+                    "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                    "plugin_format": "VST3",
+                    "plugin_id": "1013",
+                    "plugin_item_id": "1013",
+                    "plugin_name": "Grand Rhapsody Piano Stereo",
+                    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                    "supports_param_grabber": true,
+                    "template_role": "instrument",
+                    "type": "vst",
+                    "vit_effective_in_output_path": true,
+                    "vit_orphan_bypass_candidate": false,
+                    "x": 1,
+                    "y": 1,
+                    "zone_id": "Z2"
+                  }
+                ],
+                "rack_item_id": "1012",
+                "scope": "track"
+              },
+              "routing_bus_enabled": false,
+              "solo": false,
+              "track_depth": 0,
+              "track_id": "1007",
+              "track_state_revision": "703abac3d9f5e2c3",
+              "track_type": "hybrid",
+              "volume_db": 0
+            }
+          ],
+          "type": "state.snapshot"
+        },
+        "status": "ok",
+        "template_role": "instrument",
+        "track_id": "1007",
+        "vsp": {
+          "command_ack": {
+            "ack": {
+              "message": "Rack node added",
+              "stage": "completed"
+            },
+            "command": "legacy.command",
+            "legacy_command": "rack_add_node",
+            "resync_hint": true,
+            "revision": 0,
+            "source": "vsp.command.response",
+            "stage": "completed",
+            "transaction_id": "tx_1794063661490903300_94"
+          },
+          "state_delta": {
+            "ack": {
+              "message": "State delta captured",
+              "stage": "completed"
+            },
+            "base_revision": 3,
+            "changed_clips": null,
+            "changed_tracks": [
+              "1007"
+            ],
+            "ops": [
+              {
+                "op": "replace",
+                "path": "/project",
+                "value": {
+                  "clip_count": 0,
+                  "legacy_graph_active_revision": 1,
+                  "legacy_graph_last_diff_kind": "node_add",
+                  "legacy_graph_lifecycle_state": "active",
+                  "legacy_graph_pending_revision": 0,
+                  "legacy_graph_publish_mode": "context_rebuild_idle",
+                  "legacy_graph_revision": 1,
+                  "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+                  "project_id": "project_current",
+                  "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+                  "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+                  "scope": "project.timeline",
+                  "track_count": 1
+                }
+              },
+              {
+                "op": "replace",
+                "path": "/tracks/1007",
+                "track_id": "1007",
+                "value": {
+                  "armed": false,
+                  "can_contain_child_tracks": false,
+                  "child_track_count": 0,
+                  "child_track_ids": [],
+                  "clip_count": 0,
+                  "depth": 0,
+                  "descendant_track_count": 0,
+                  "descendant_track_ids": [],
+                  "direct_child_track_ids": [],
+                  "fader_db": 0,
+                  "folder_behavior": null,
+                  "gain_db": 0,
+                  "has_child_tracks": false,
+                  "id": "1007",
+                  "is_armed": false,
+                  "is_audio": true,
+                  "is_audio_track": true,
+                  "is_folder_container": false,
+                  "is_folder_track": false,
+                  "is_submix_folder": false,
+                  "mute": false,
+                  "name": "Track 1",
+                  "pan": 0,
+                  "pan_value": 0,
+                  "parent_folder_track_id": null,
+                  "parent_track_id": null,
+                  "plugin_count": 3,
+                  "plugin_param_digest": "a5ad0a91224dd711",
+                  "plugins": [
+                    {
+                      "id": "1012",
+                      "name": "New Rack",
+                      "type": "rack"
+                    },
+                    {
+                      "id": "1008",
+                      "name": "Volume & Pan Plugin",
+                      "type": "volume"
+                    },
+                    {
+                      "id": "1009",
+                      "name": "Level Meter",
+                      "type": "level"
+                    }
+                  ],
+                  "rack": {
+                    "clip_proxy_nodes": [],
+                    "clip_routes": [],
+                    "edges": [
+                      {
+                        "dest_id": "RACK_OUTPUT",
+                        "dest_pin": 1,
+                        "edge_id": "1013|1|RACK_OUTPUT|1",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "1013",
+                        "source_pin": 1,
+                        "vit_internal_default_audio": false
+                      },
+                      {
+                        "dest_id": "RACK_OUTPUT",
+                        "dest_pin": 2,
+                        "edge_id": "1013|2|RACK_OUTPUT|2",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "1013",
+                        "source_pin": 2,
+                        "vit_internal_default_audio": false
+                      },
+                      {
+                        "dest_id": "1013",
+                        "dest_pin": 0,
+                        "edge_id": "RACK_INPUT|0|1013|0",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "RACK_INPUT",
+                        "source_pin": 0,
+                        "vit_internal_default_audio": false
+                      },
+                      {
+                        "dest_id": "RACK_OUTPUT",
+                        "dest_pin": 0,
+                        "edge_id": "1013|0|RACK_OUTPUT|0",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "1013",
+                        "source_pin": 0,
+                        "vit_internal_default_audio": false
+                      }
+                    ],
+                    "id": "1012",
+                    "item_id": "1012",
+                    "node_count": 1,
+                    "nodes": [
+                      {
+                        "audio_reachable_from_rack_input": true,
+                        "clip_scope": "track",
+                        "enabled": true,
+                        "format": "VST3",
+                        "id": "1013",
+                        "item_id": "1013",
+                        "name": "Grand Rhapsody Piano Stereo",
+                        "node_id": "1013",
+                        "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                        "plugin_format": "VST3",
+                        "plugin_id": "1013",
+                        "plugin_item_id": "1013",
+                        "plugin_name": "Grand Rhapsody Piano Stereo",
+                        "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                        "supports_param_grabber": true,
+                        "template_role": "instrument",
+                        "type": "vst",
+                        "vit_effective_in_output_path": true,
+                        "vit_orphan_bypass_candidate": false,
+                        "x": 1,
+                        "y": 1,
+                        "zone_id": "Z2"
+                      }
+                    ],
+                    "rack_item_id": "1012",
+                    "scope": "track"
+                  },
+                  "routing_bus_enabled": false,
+                  "solo": false,
+                  "track_depth": 0,
+                  "track_id": "1007",
+                  "track_state_revision": "703abac3d9f5e2c3",
+                  "track_type": "hybrid",
+                  "volume_db": 0
+                }
+              }
+            ],
+            "ops_count": 2,
+            "project_epoch": "epoch_56ab9b0353086723",
+            "resync": false,
+            "resync_hint": false,
+            "revision": 4,
+            "scope": "project.timeline",
+            "snapshot_hash": "318a7935bddd46f0",
+            "source": "vsp.state.delta",
+            "stage": "completed",
+            "type": "state.delta"
+          },
+          "state_resync": {
+            "ack": {
+              "message": "State resynchronised",
+              "stage": "completed"
+            },
+            "base_revision": 0,
+            "changed_clips": null,
+            "changed_tracks": null,
+            "ops_count": 0,
+            "project": {
+              "clip_count": 0,
+              "legacy_graph_active_revision": 1,
+              "legacy_graph_last_diff_kind": "node_add",
+              "legacy_graph_lifecycle_state": "active",
+              "legacy_graph_pending_revision": 0,
+              "legacy_graph_publish_mode": "context_rebuild_idle",
+              "legacy_graph_revision": 1,
+              "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+              "project_id": "project_current",
+              "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+              "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+              "scope": "project.timeline",
+              "track_count": 1
+            },
+            "project_epoch": "epoch_56ab9b0353086723",
+            "resync": true,
+            "resync_hint": false,
+            "revision": 4,
+            "scope": "project.timeline",
+            "snapshot_hash": "318a7935bddd46f0",
+            "source": "vsp.state.resync",
+            "stage": "completed",
+            "tracks": [
+              {
+                "armed": false,
+                "can_contain_child_tracks": false,
+                "child_track_count": 0,
+                "child_track_ids": [],
+                "clip_count": 0,
+                "clips": [],
+                "depth": 0,
+                "descendant_track_count": 0,
+                "descendant_track_ids": [],
+                "direct_child_track_ids": [],
+                "fader_db": 0,
+                "folder_behavior": null,
+                "gain_db": 0,
+                "has_child_tracks": false,
+                "id": "1007",
+                "is_armed": false,
+                "is_audio": true,
+                "is_audio_track": true,
+                "is_folder_container": false,
+                "is_folder_track": false,
+                "is_submix_folder": false,
+                "mute": false,
+                "name": "Track 1",
+                "pan": 0,
+                "pan_value": 0,
+                "parent_folder_track_id": null,
+                "parent_track_id": null,
+                "plugin_count": 3,
+                "plugin_param_digest": "a5ad0a91224dd711",
+                "plugins": [
+                  {
+                    "id": "1012",
+                    "name": "New Rack",
+                    "type": "rack"
+                  },
+                  {
+                    "id": "1008",
+                    "name": "Volume & Pan Plugin",
+                    "type": "volume"
+                  },
+                  {
+                    "id": "1009",
+                    "name": "Level Meter",
+                    "type": "level"
+                  }
+                ],
+                "rack": {
+                  "clip_proxy_nodes": [],
+                  "clip_routes": [],
+                  "edges": [
+                    {
+                      "dest_id": "RACK_OUTPUT",
+                      "dest_pin": 1,
+                      "edge_id": "1013|1|RACK_OUTPUT|1",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "1013",
+                      "source_pin": 1,
+                      "vit_internal_default_audio": false
+                    },
+                    {
+                      "dest_id": "RACK_OUTPUT",
+                      "dest_pin": 2,
+                      "edge_id": "1013|2|RACK_OUTPUT|2",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "1013",
+                      "source_pin": 2,
+                      "vit_internal_default_audio": false
+                    },
+                    {
+                      "dest_id": "1013",
+                      "dest_pin": 0,
+                      "edge_id": "RACK_INPUT|0|1013|0",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "RACK_INPUT",
+                      "source_pin": 0,
+                      "vit_internal_default_audio": false
+                    },
+                    {
+                      "dest_id": "RACK_OUTPUT",
+                      "dest_pin": 0,
+                      "edge_id": "1013|0|RACK_OUTPUT|0",
+                      "is_scope_hidden": false,
+                      "line_color_hint": "#9AA4B2",
+                      "shared_by_clip_ids": [],
+                      "source_clip_id": "",
+                      "source_id": "1013",
+                      "source_pin": 0,
+                      "vit_internal_default_audio": false
+                    }
+                  ],
+                  "id": "1012",
+                  "item_id": "1012",
+                  "node_count": 1,
+                  "nodes": [
+                    {
+                      "audio_reachable_from_rack_input": true,
+                      "clip_scope": "track",
+                      "enabled": true,
+                      "format": "VST3",
+                      "id": "1013",
+                      "item_id": "1013",
+                      "name": "Grand Rhapsody Piano Stereo",
+                      "node_id": "1013",
+                      "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                      "plugin_format": "VST3",
+                      "plugin_id": "1013",
+                      "plugin_item_id": "1013",
+                      "plugin_name": "Grand Rhapsody Piano Stereo",
+                      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                      "supports_param_grabber": true,
+                      "template_role": "instrument",
+                      "type": "vst",
+                      "vit_effective_in_output_path": true,
+                      "vit_orphan_bypass_candidate": false,
+                      "x": 1,
+                      "y": 1,
+                      "zone_id": "Z2"
+                    }
+                  ],
+                  "rack_item_id": "1012",
+                  "scope": "track"
+                },
+                "routing_bus_enabled": false,
+                "solo": false,
+                "track_depth": 0,
+                "track_id": "1007",
+                "track_state_revision": "703abac3d9f5e2c3",
+                "track_type": "hybrid",
+                "volume_db": 0
+              }
+            ],
+            "type": "state.snapshot"
+          },
+          "transport": "vsp",
+          "version": "1.0"
+        },
+        "x": 360,
+        "y": 260,
+        "zone_id": "Z2"
+      },
+      "status": "ok",
+      "tool": "rack.add_node",
+      "tool_call_id": "tool_step_1",
+      "undo_label": "Agent: rack_add_node",
+      "verification": {
+        "tool_call_id": "tool_step_1",
+        "tool": "rack.add_node",
+        "command_name": "rack_add_node",
+        "status": "verified",
+        "postcondition": "rack_node_present",
+        "message": "observed rack node Grand Rhapsody Piano Stereo in refreshed project state",
+        "evidence": {
+          "expected_plugin_id": "1013",
+          "expected_plugin_name": "Grand Rhapsody Piano Stereo",
+          "expected_plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+          "expected_track_id": "1007",
+          "observed_node_id": "1013",
+          "observed_plugin_name": "Grand Rhapsody Piano Stereo"
+        }
+      }
+    }
+  ],
+  "project_result_cards": [
+    {
+      "executions": [
+        {
+          "agent_action_id": "act_a7d698fdaab88082",
+          "command_name": "rack_add_node",
+          "elapsed_ms": 2629,
+          "error": "",
+          "observed_state": true,
+          "preview": "",
+          "result": {
+            "clip_scope": "track",
+            "command_ack": {
+              "ack": {
+                "message": "Rack node added",
+                "stage": "completed"
+              },
+              "command": "legacy.command",
+              "legacy_command": "rack_add_node",
+              "resync_hint": true,
+              "revision": 0,
+              "source": "vsp.command.response",
+              "stage": "completed",
+              "transaction_id": "tx_1794063661490903300_94"
+            },
+            "graph_active_revision": 1,
+            "graph_last_diff_kind": "node_add",
+            "graph_last_diff_summary": "Added rack node Grand Rhapsody Piano Stereo",
+            "graph_last_retired_revision": 0,
+            "graph_lifecycle_state": "active",
+            "graph_pending_revision": 0,
+            "graph_publish_mode": "context_rebuild_idle",
+            "graph_recent_changes": [
+              {
+                "dest_id": "",
+                "kind": "node_add",
+                "node_id": "1013",
+                "rack_item_id": "1012",
+                "revision": 1,
+                "source_id": "",
+                "summary": "Added rack node Grand Rhapsody Piano Stereo",
+                "timestamp_ms": 1794063663998,
+                "track_id": "1007"
+              }
+            ],
+            "graph_retired_snapshot_count": 0,
+            "graph_revision": 1,
+            "message": "Rack node added",
+            "plugin_id": "1013",
+            "plugin_identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+            "plugin_instance_ready": true,
+            "plugin_item_id": "1013",
+            "plugin_load_state": "name=Grand Rhapsody Piano Stereo id=1013 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+            "plugin_name": "Grand Rhapsody Piano Stereo",
+            "rack_item_id": "1012",
+            "state_delta": {
+              "ack": {
+                "message": "State delta captured",
+                "stage": "completed"
+              },
+              "base_revision": 3,
+              "changed_clips": null,
+              "changed_tracks": [
+                "1007"
+              ],
+              "ops": [
+                {
+                  "op": "replace",
+                  "path": "/project",
+                  "value": {
+                    "clip_count": 0,
+                    "legacy_graph_active_revision": 1,
+                    "legacy_graph_last_diff_kind": "node_add",
+                    "legacy_graph_lifecycle_state": "active",
+                    "legacy_graph_pending_revision": 0,
+                    "legacy_graph_publish_mode": "context_rebuild_idle",
+                    "legacy_graph_revision": 1,
+                    "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+                    "project_id": "project_current",
+                    "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+                    "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+                    "scope": "project.timeline",
+                    "track_count": 1
+                  }
+                },
+                {
+                  "op": "replace",
+                  "path": "/tracks/1007",
+                  "track_id": "1007",
+                  "value": {
+                    "armed": false,
+                    "can_contain_child_tracks": false,
+                    "child_track_count": 0,
+                    "child_track_ids": [],
+                    "clip_count": 0,
+                    "depth": 0,
+                    "descendant_track_count": 0,
+                    "descendant_track_ids": [],
+                    "direct_child_track_ids": [],
+                    "fader_db": 0,
+                    "folder_behavior": null,
+                    "gain_db": 0,
+                    "has_child_tracks": false,
+                    "id": "1007",
+                    "is_armed": false,
+                    "is_audio": true,
+                    "is_audio_track": true,
+                    "is_folder_container": false,
+                    "is_folder_track": false,
+                    "is_submix_folder": false,
+                    "mute": false,
+                    "name": "Track 1",
+                    "pan": 0,
+                    "pan_value": 0,
+                    "parent_folder_track_id": null,
+                    "parent_track_id": null,
+                    "plugin_count": 3,
+                    "plugin_param_digest": "a5ad0a91224dd711",
+                    "plugins": [
+                      {
+                        "id": "1012",
+                        "name": "New Rack",
+                        "type": "rack"
+                      },
+                      {
+                        "id": "1008",
+                        "name": "Volume & Pan Plugin",
+                        "type": "volume"
+                      },
+                      {
+                        "id": "1009",
+                        "name": "Level Meter",
+                        "type": "level"
+                      }
+                    ],
+                    "rack": {
+                      "clip_proxy_nodes": [],
+                      "clip_routes": [],
+                      "edges": [
+                        {
+                          "dest_id": "RACK_OUTPUT",
+                          "dest_pin": 1,
+                          "edge_id": "1013|1|RACK_OUTPUT|1",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "1013",
+                          "source_pin": 1,
+                          "vit_internal_default_audio": false
+                        },
+                        {
+                          "dest_id": "RACK_OUTPUT",
+                          "dest_pin": 2,
+                          "edge_id": "1013|2|RACK_OUTPUT|2",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "1013",
+                          "source_pin": 2,
+                          "vit_internal_default_audio": false
+                        },
+                        {
+                          "dest_id": "1013",
+                          "dest_pin": 0,
+                          "edge_id": "RACK_INPUT|0|1013|0",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "RACK_INPUT",
+                          "source_pin": 0,
+                          "vit_internal_default_audio": false
+                        },
+                        {
+                          "dest_id": "RACK_OUTPUT",
+                          "dest_pin": 0,
+                          "edge_id": "1013|0|RACK_OUTPUT|0",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "1013",
+                          "source_pin": 0,
+                          "vit_internal_default_audio": false
+                        }
+                      ],
+                      "id": "1012",
+                      "item_id": "1012",
+                      "node_count": 1,
+                      "nodes": [
+                        {
+                          "audio_reachable_from_rack_input": true,
+                          "clip_scope": "track",
+                          "enabled": true,
+                          "format": "VST3",
+                          "id": "1013",
+                          "item_id": "1013",
+                          "name": "Grand Rhapsody Piano Stereo",
+                          "node_id": "1013",
+                          "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                          "plugin_format": "VST3",
+                          "plugin_id": "1013",
+                          "plugin_item_id": "1013",
+                          "plugin_name": "Grand Rhapsody Piano Stereo",
+                          "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                          "supports_param_grabber": true,
+                          "template_role": "instrument",
+                          "type": "vst",
+                          "vit_effective_in_output_path": true,
+                          "vit_orphan_bypass_candidate": false,
+                          "x": 1,
+                          "y": 1,
+                          "zone_id": "Z2"
+                        }
+                      ],
+                      "rack_item_id": "1012",
+                      "scope": "track"
+                    },
+                    "routing_bus_enabled": false,
+                    "solo": false,
+                    "track_depth": 0,
+                    "track_id": "1007",
+                    "track_state_revision": "703abac3d9f5e2c3",
+                    "track_type": "hybrid",
+                    "volume_db": 0
+                  }
+                }
+              ],
+              "ops_count": 2,
+              "project_epoch": "epoch_56ab9b0353086723",
+              "resync": false,
+              "resync_hint": false,
+              "revision": 4,
+              "scope": "project.timeline",
+              "snapshot_hash": "318a7935bddd46f0",
+              "source": "vsp.state.delta",
+              "stage": "completed",
+              "type": "state.delta"
+            },
+            "state_resync": {
+              "ack": {
+                "message": "State resynchronised",
+                "stage": "completed"
+              },
+              "base_revision": 0,
+              "changed_clips": null,
+              "changed_tracks": null,
+              "ops_count": 0,
+              "project": {
+                "clip_count": 0,
+                "legacy_graph_active_revision": 1,
+                "legacy_graph_last_diff_kind": "node_add",
+                "legacy_graph_lifecycle_state": "active",
+                "legacy_graph_pending_revision": 0,
+                "legacy_graph_publish_mode": "context_rebuild_idle",
+                "legacy_graph_revision": 1,
+                "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+                "project_id": "project_current",
+                "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+                "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+                "scope": "project.timeline",
+                "track_count": 1
+              },
+              "project_epoch": "epoch_56ab9b0353086723",
+              "resync": true,
+              "resync_hint": false,
+              "revision": 4,
+              "scope": "project.timeline",
+              "snapshot_hash": "318a7935bddd46f0",
+              "source": "vsp.state.resync",
+              "stage": "completed",
+              "tracks": [
+                {
+                  "armed": false,
+                  "can_contain_child_tracks": false,
+                  "child_track_count": 0,
+                  "child_track_ids": [],
+                  "clip_count": 0,
+                  "clips": [],
+                  "depth": 0,
+                  "descendant_track_count": 0,
+                  "descendant_track_ids": [],
+                  "direct_child_track_ids": [],
+                  "fader_db": 0,
+                  "folder_behavior": null,
+                  "gain_db": 0,
+                  "has_child_tracks": false,
+                  "id": "1007",
+                  "is_armed": false,
+                  "is_audio": true,
+                  "is_audio_track": true,
+                  "is_folder_container": false,
+                  "is_folder_track": false,
+                  "is_submix_folder": false,
+                  "mute": false,
+                  "name": "Track 1",
+                  "pan": 0,
+                  "pan_value": 0,
+                  "parent_folder_track_id": null,
+                  "parent_track_id": null,
+                  "plugin_count": 3,
+                  "plugin_param_digest": "a5ad0a91224dd711",
+                  "plugins": [
+                    {
+                      "id": "1012",
+                      "name": "New Rack",
+                      "type": "rack"
+                    },
+                    {
+                      "id": "1008",
+                      "name": "Volume & Pan Plugin",
+                      "type": "volume"
+                    },
+                    {
+                      "id": "1009",
+                      "name": "Level Meter",
+                      "type": "level"
+                    }
+                  ],
+                  "rack": {
+                    "clip_proxy_nodes": [],
+                    "clip_routes": [],
+                    "edges": [
+                      {
+                        "dest_id": "RACK_OUTPUT",
+                        "dest_pin": 1,
+                        "edge_id": "1013|1|RACK_OUTPUT|1",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "1013",
+                        "source_pin": 1,
+                        "vit_internal_default_audio": false
+                      },
+                      {
+                        "dest_id": "RACK_OUTPUT",
+                        "dest_pin": 2,
+                        "edge_id": "1013|2|RACK_OUTPUT|2",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "1013",
+                        "source_pin": 2,
+                        "vit_internal_default_audio": false
+                      },
+                      {
+                        "dest_id": "1013",
+                        "dest_pin": 0,
+                        "edge_id": "RACK_INPUT|0|1013|0",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "RACK_INPUT",
+                        "source_pin": 0,
+                        "vit_internal_default_audio": false
+                      },
+                      {
+                        "dest_id": "RACK_OUTPUT",
+                        "dest_pin": 0,
+                        "edge_id": "1013|0|RACK_OUTPUT|0",
+                        "is_scope_hidden": false,
+                        "line_color_hint": "#9AA4B2",
+                        "shared_by_clip_ids": [],
+                        "source_clip_id": "",
+                        "source_id": "1013",
+                        "source_pin": 0,
+                        "vit_internal_default_audio": false
+                      }
+                    ],
+                    "id": "1012",
+                    "item_id": "1012",
+                    "node_count": 1,
+                    "nodes": [
+                      {
+                        "audio_reachable_from_rack_input": true,
+                        "clip_scope": "track",
+                        "enabled": true,
+                        "format": "VST3",
+                        "id": "1013",
+                        "item_id": "1013",
+                        "name": "Grand Rhapsody Piano Stereo",
+                        "node_id": "1013",
+                        "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                        "plugin_format": "VST3",
+                        "plugin_id": "1013",
+                        "plugin_item_id": "1013",
+                        "plugin_name": "Grand Rhapsody Piano Stereo",
+                        "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                        "supports_param_grabber": true,
+                        "template_role": "instrument",
+                        "type": "vst",
+                        "vit_effective_in_output_path": true,
+                        "vit_orphan_bypass_candidate": false,
+                        "x": 1,
+                        "y": 1,
+                        "zone_id": "Z2"
+                      }
+                    ],
+                    "rack_item_id": "1012",
+                    "scope": "track"
+                  },
+                  "routing_bus_enabled": false,
+                  "solo": false,
+                  "track_depth": 0,
+                  "track_id": "1007",
+                  "track_state_revision": "703abac3d9f5e2c3",
+                  "track_type": "hybrid",
+                  "volume_db": 0
+                }
+              ],
+              "type": "state.snapshot"
+            },
+            "status": "ok",
+            "template_role": "instrument",
+            "track_id": "1007",
+            "vsp": {
+              "command_ack": {
+                "ack": {
+                  "message": "Rack node added",
+                  "stage": "completed"
+                },
+                "command": "legacy.command",
+                "legacy_command": "rack_add_node",
+                "resync_hint": true,
+                "revision": 0,
+                "source": "vsp.command.response",
+                "stage": "completed",
+                "transaction_id": "tx_1794063661490903300_94"
+              },
+              "state_delta": {
+                "ack": {
+                  "message": "State delta captured",
+                  "stage": "completed"
+                },
+                "base_revision": 3,
+                "changed_clips": null,
+                "changed_tracks": [
+                  "1007"
+                ],
+                "ops": [
+                  {
+                    "op": "replace",
+                    "path": "/project",
+                    "value": {
+                      "clip_count": 0,
+                      "legacy_graph_active_revision": 1,
+                      "legacy_graph_last_diff_kind": "node_add",
+                      "legacy_graph_lifecycle_state": "active",
+                      "legacy_graph_pending_revision": 0,
+                      "legacy_graph_publish_mode": "context_rebuild_idle",
+                      "legacy_graph_revision": 1,
+                      "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+                      "project_id": "project_current",
+                      "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+                      "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+                      "scope": "project.timeline",
+                      "track_count": 1
+                    }
+                  },
+                  {
+                    "op": "replace",
+                    "path": "/tracks/1007",
+                    "track_id": "1007",
+                    "value": {
+                      "armed": false,
+                      "can_contain_child_tracks": false,
+                      "child_track_count": 0,
+                      "child_track_ids": [],
+                      "clip_count": 0,
+                      "depth": 0,
+                      "descendant_track_count": 0,
+                      "descendant_track_ids": [],
+                      "direct_child_track_ids": [],
+                      "fader_db": 0,
+                      "folder_behavior": null,
+                      "gain_db": 0,
+                      "has_child_tracks": false,
+                      "id": "1007",
+                      "is_armed": false,
+                      "is_audio": true,
+                      "is_audio_track": true,
+                      "is_folder_container": false,
+                      "is_folder_track": false,
+                      "is_submix_folder": false,
+                      "mute": false,
+                      "name": "Track 1",
+                      "pan": 0,
+                      "pan_value": 0,
+                      "parent_folder_track_id": null,
+                      "parent_track_id": null,
+                      "plugin_count": 3,
+                      "plugin_param_digest": "a5ad0a91224dd711",
+                      "plugins": [
+                        {
+                          "id": "1012",
+                          "name": "New Rack",
+                          "type": "rack"
+                        },
+                        {
+                          "id": "1008",
+                          "name": "Volume & Pan Plugin",
+                          "type": "volume"
+                        },
+                        {
+                          "id": "1009",
+                          "name": "Level Meter",
+                          "type": "level"
+                        }
+                      ],
+                      "rack": {
+                        "clip_proxy_nodes": [],
+                        "clip_routes": [],
+                        "edges": [
+                          {
+                            "dest_id": "RACK_OUTPUT",
+                            "dest_pin": 1,
+                            "edge_id": "1013|1|RACK_OUTPUT|1",
+                            "is_scope_hidden": false,
+                            "line_color_hint": "#9AA4B2",
+                            "shared_by_clip_ids": [],
+                            "source_clip_id": "",
+                            "source_id": "1013",
+                            "source_pin": 1,
+                            "vit_internal_default_audio": false
+                          },
+                          {
+                            "dest_id": "RACK_OUTPUT",
+                            "dest_pin": 2,
+                            "edge_id": "1013|2|RACK_OUTPUT|2",
+                            "is_scope_hidden": false,
+                            "line_color_hint": "#9AA4B2",
+                            "shared_by_clip_ids": [],
+                            "source_clip_id": "",
+                            "source_id": "1013",
+                            "source_pin": 2,
+                            "vit_internal_default_audio": false
+                          },
+                          {
+                            "dest_id": "1013",
+                            "dest_pin": 0,
+                            "edge_id": "RACK_INPUT|0|1013|0",
+                            "is_scope_hidden": false,
+                            "line_color_hint": "#9AA4B2",
+                            "shared_by_clip_ids": [],
+                            "source_clip_id": "",
+                            "source_id": "RACK_INPUT",
+                            "source_pin": 0,
+                            "vit_internal_default_audio": false
+                          },
+                          {
+                            "dest_id": "RACK_OUTPUT",
+                            "dest_pin": 0,
+                            "edge_id": "1013|0|RACK_OUTPUT|0",
+                            "is_scope_hidden": false,
+                            "line_color_hint": "#9AA4B2",
+                            "shared_by_clip_ids": [],
+                            "source_clip_id": "",
+                            "source_id": "1013",
+                            "source_pin": 0,
+                            "vit_internal_default_audio": false
+                          }
+                        ],
+                        "id": "1012",
+                        "item_id": "1012",
+                        "node_count": 1,
+                        "nodes": [
+                          {
+                            "audio_reachable_from_rack_input": true,
+                            "clip_scope": "track",
+                            "enabled": true,
+                            "format": "VST3",
+                            "id": "1013",
+                            "item_id": "1013",
+                            "name": "Grand Rhapsody Piano Stereo",
+                            "node_id": "1013",
+                            "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                            "plugin_format": "VST3",
+                            "plugin_id": "1013",
+                            "plugin_item_id": "1013",
+                            "plugin_name": "Grand Rhapsody Piano Stereo",
+                            "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                            "supports_param_grabber": true,
+                            "template_role": "instrument",
+                            "type": "vst",
+                            "vit_effective_in_output_path": true,
+                            "vit_orphan_bypass_candidate": false,
+                            "x": 1,
+                            "y": 1,
+                            "zone_id": "Z2"
+                          }
+                        ],
+                        "rack_item_id": "1012",
+                        "scope": "track"
+                      },
+                      "routing_bus_enabled": false,
+                      "solo": false,
+                      "track_depth": 0,
+                      "track_id": "1007",
+                      "track_state_revision": "703abac3d9f5e2c3",
+                      "track_type": "hybrid",
+                      "volume_db": 0
+                    }
+                  }
+                ],
+                "ops_count": 2,
+                "project_epoch": "epoch_56ab9b0353086723",
+                "resync": false,
+                "resync_hint": false,
+                "revision": 4,
+                "scope": "project.timeline",
+                "snapshot_hash": "318a7935bddd46f0",
+                "source": "vsp.state.delta",
+                "stage": "completed",
+                "type": "state.delta"
+              },
+              "state_resync": {
+                "ack": {
+                  "message": "State resynchronised",
+                  "stage": "completed"
+                },
+                "base_revision": 0,
+                "changed_clips": null,
+                "changed_tracks": null,
+                "ops_count": 0,
+                "project": {
+                  "clip_count": 0,
+                  "legacy_graph_active_revision": 1,
+                  "legacy_graph_last_diff_kind": "node_add",
+                  "legacy_graph_lifecycle_state": "active",
+                  "legacy_graph_pending_revision": 0,
+                  "legacy_graph_publish_mode": "context_rebuild_idle",
+                  "legacy_graph_revision": 1,
+                  "parent_project_uuid": "vitproj_0547bdd284114902ab6ebdcb2726d214",
+                  "project_id": "project_current",
+                  "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+                  "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+                  "scope": "project.timeline",
+                  "track_count": 1
+                },
+                "project_epoch": "epoch_56ab9b0353086723",
+                "resync": true,
+                "resync_hint": false,
+                "revision": 4,
+                "scope": "project.timeline",
+                "snapshot_hash": "318a7935bddd46f0",
+                "source": "vsp.state.resync",
+                "stage": "completed",
+                "tracks": [
+                  {
+                    "armed": false,
+                    "can_contain_child_tracks": false,
+                    "child_track_count": 0,
+                    "child_track_ids": [],
+                    "clip_count": 0,
+                    "clips": [],
+                    "depth": 0,
+                    "descendant_track_count": 0,
+                    "descendant_track_ids": [],
+                    "direct_child_track_ids": [],
+                    "fader_db": 0,
+                    "folder_behavior": null,
+                    "gain_db": 0,
+                    "has_child_tracks": false,
+                    "id": "1007",
+                    "is_armed": false,
+                    "is_audio": true,
+                    "is_audio_track": true,
+                    "is_folder_container": false,
+                    "is_folder_track": false,
+                    "is_submix_folder": false,
+                    "mute": false,
+                    "name": "Track 1",
+                    "pan": 0,
+                    "pan_value": 0,
+                    "parent_folder_track_id": null,
+                    "parent_track_id": null,
+                    "plugin_count": 3,
+                    "plugin_param_digest": "a5ad0a91224dd711",
+                    "plugins": [
+                      {
+                        "id": "1012",
+                        "name": "New Rack",
+                        "type": "rack"
+                      },
+                      {
+                        "id": "1008",
+                        "name": "Volume & Pan Plugin",
+                        "type": "volume"
+                      },
+                      {
+                        "id": "1009",
+                        "name": "Level Meter",
+                        "type": "level"
+                      }
+                    ],
+                    "rack": {
+                      "clip_proxy_nodes": [],
+                      "clip_routes": [],
+                      "edges": [
+                        {
+                          "dest_id": "RACK_OUTPUT",
+                          "dest_pin": 1,
+                          "edge_id": "1013|1|RACK_OUTPUT|1",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "1013",
+                          "source_pin": 1,
+                          "vit_internal_default_audio": false
+                        },
+                        {
+                          "dest_id": "RACK_OUTPUT",
+                          "dest_pin": 2,
+                          "edge_id": "1013|2|RACK_OUTPUT|2",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "1013",
+                          "source_pin": 2,
+                          "vit_internal_default_audio": false
+                        },
+                        {
+                          "dest_id": "1013",
+                          "dest_pin": 0,
+                          "edge_id": "RACK_INPUT|0|1013|0",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "RACK_INPUT",
+                          "source_pin": 0,
+                          "vit_internal_default_audio": false
+                        },
+                        {
+                          "dest_id": "RACK_OUTPUT",
+                          "dest_pin": 0,
+                          "edge_id": "1013|0|RACK_OUTPUT|0",
+                          "is_scope_hidden": false,
+                          "line_color_hint": "#9AA4B2",
+                          "shared_by_clip_ids": [],
+                          "source_clip_id": "",
+                          "source_id": "1013",
+                          "source_pin": 0,
+                          "vit_internal_default_audio": false
+                        }
+                      ],
+                      "id": "1012",
+                      "item_id": "1012",
+                      "node_count": 1,
+                      "nodes": [
+                        {
+                          "audio_reachable_from_rack_input": true,
+                          "clip_scope": "track",
+                          "enabled": true,
+                          "format": "VST3",
+                          "id": "1013",
+                          "item_id": "1013",
+                          "name": "Grand Rhapsody Piano Stereo",
+                          "node_id": "1013",
+                          "path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                          "plugin_format": "VST3",
+                          "plugin_id": "1013",
+                          "plugin_item_id": "1013",
+                          "plugin_name": "Grand Rhapsody Piano Stereo",
+                          "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+                          "supports_param_grabber": true,
+                          "template_role": "instrument",
+                          "type": "vst",
+                          "vit_effective_in_output_path": true,
+                          "vit_orphan_bypass_candidate": false,
+                          "x": 1,
+                          "y": 1,
+                          "zone_id": "Z2"
+                        }
+                      ],
+                      "rack_item_id": "1012",
+                      "scope": "track"
+                    },
+                    "routing_bus_enabled": false,
+                    "solo": false,
+                    "track_depth": 0,
+                    "track_id": "1007",
+                    "track_state_revision": "703abac3d9f5e2c3",
+                    "track_type": "hybrid",
+                    "volume_db": 0
+                  }
+                ],
+                "type": "state.snapshot"
+              },
+              "transport": "vsp",
+              "version": "1.0"
+            },
+            "x": 360,
+            "y": 260,
+            "zone_id": "Z2"
+          },
+          "status": "ok",
+          "tool": "rack.add_node",
+          "tool_call_id": "tool_step_1",
+          "undo_label": "Agent: rack_add_node",
+          "verification": {
+            "tool_call_id": "tool_step_1",
+            "tool": "rack.add_node",
+            "command_name": "rack_add_node",
+            "status": "verified",
+            "postcondition": "rack_node_present",
+            "message": "observed rack node Grand Rhapsody Piano Stereo in refreshed project state",
+            "evidence": {
+              "expected_plugin_id": "1013",
+              "expected_plugin_name": "Grand Rhapsody Piano Stereo",
+              "expected_plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
+              "expected_track_id": "1007",
+              "observed_node_id": "1013",
+              "observed_plugin_name": "Grand Rhapsody Piano Stereo"
+            }
+          }
+        }
+      ],
+      "id": "project_result_act_a7d698fdaab88082",
+      "kind": "project_result",
+      "target": {
+        "can_audition": true,
+        "plugin_id": "1013",
+        "plugin_name": "Grand Rhapsody Piano Stereo",
+        "track_id": "1007"
+      },
+      "type": "project_result"
+    }
+  ],
+  "goal_status": "completed",
+  "goal_summary": "给这条 MIDI 轨加一个钢琴音源",
+  "completed_steps": 3,
+  "stop_reason": "done",
+  "project_history": {
+    "active_branch": "main",
+    "active_node_id": "n_20261107T150104_dd2dc9ef",
+    "active_worktree": "",
+    "available": true,
+    "branches": {
+      "main": "c_20261107T150040_545e9ecc"
+    },
+    "commit_count": 1,
+    "conversation_messages": [
+      {
+        "content": "给这条 MIDI 轨加一个钢琴音源",
+        "logical_message_id": "n_20261107T150040_bd629d56",
+        "message_kind": "user",
+        "node_id": "n_20261107T150040_bd629d56",
+        "role": "user"
+      },
+      {
+        "content": "已成功加载插件「Grand Rhapsody Piano Stereo」。",
+        "logical_message_id": "n_20261107T150104_dd2dc9ef",
+        "message_kind": "execution_receipt",
+        "node_id": "n_20261107T150104_dd2dc9ef",
+        "role": "assistant"
+      }
+    ],
+    "detached": false,
+    "draft": false,
+    "head": "c_20261107T150040_545e9ecc",
+    "initialized": true,
+    "project_label": "arr_srcload_fixture_project",
+    "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+    "project_uuid": "vitproj_214c0106362a456db1fac275576e1a92",
+    "refs": {
+      "refs/heads/main": "c_20261107T150040_545e9ecc"
+    },
+    "root_project_path": "",
+    "unsaved": false,
+    "warnings": [],
+    "worktrees": [
+      {
+        "commit_id": "c_20261107T150040_545e9ecc",
+        "created_at": "2026-11-07T15:01:04.1416626Z",
+        "is_root": true,
+        "label": "主工作树",
+        "name": "main",
+        "origin_commit_id": "c_20261107T150040_545e9ecc",
+        "path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301",
+        "project_file_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+        "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit",
+        "root_project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit"
+      }
+    ]
+  },
+  "lifecycle": "durable",
+  "persistence": "project_history",
+  "message_kind": "execution_receipt",
+  "turn_id": "turn_06b01a92823dced8",
+  "logical_message_id": "n_20261107T150104_dd2dc9ef"
+}

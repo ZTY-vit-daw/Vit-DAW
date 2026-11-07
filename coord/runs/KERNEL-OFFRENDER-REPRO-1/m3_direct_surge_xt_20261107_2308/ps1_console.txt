@@ -1,0 +1,48 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261107_230728\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_301repro\coord\runs\KERNEL-OFFRENDER-REPRO-1\m3_direct_surge_xt_20261107_2308\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: offrender repro telemetry capture: telemetry=D:\Vit_DAW_wt_301repro\coord\runs\KERNEL-OFFRENDER-REPRO-1\m3_direct_surge_xt_20261107_2308\logs\agent_llm_telemetry.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_301repro
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_301repro\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_301repro\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_301repro\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_301repro\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=23484 workdir=D:\Vit_DAW_wt_301repro\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_301repro\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=23484
+ok: ZMQ SUB listening: 5556 pid=23484
+
+== Project state invoke
+project.state status=ok error=
+
+== offline-render silence repro leg (KERNEL-OFFRENDER-REPRO-1, zero-LLM, plugin=surge_xt)
+ok: offrender repro project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_301repro\coord\runs\KERNEL-OFFRENDER-REPRO-1\m3_direct_surge_xt_20261107_2308\default_project.xml
+[offrender-repro] precheck ok: instruments=17, selected='Surge XT'; fixture track=1007
+[offrender-repro] direct mount ok: 'Surge XT' plugin_id=1010 top-level matched_by=id
+[offrender-repro] clip ok: 1011 with 16 notes
+[offrender-repro] CHAIN COMPLETE: Surge XT direct-mount -> clip 16 notes -> render peak_abs=6823 (-13.63 dBFS) rms_abs=1854.23 (-24.95 dBFS) => NON-SILENT (direct-mount render sounds â€?the seg3a_r2 silence is specific to the rack/chat path); guard_lines=0
+ok: offrender repro smoke chain complete (silent/non-silent is recorded as observation in summary: D:\Vit_DAW_wt_301repro\coord\runs\KERNEL-OFFRENDER-REPRO-1\m3_direct_surge_xt_20261107_2308\offrender_repro_summary_surge_xt.json)
+
+== Summary
+ok: dev agent smoke completed

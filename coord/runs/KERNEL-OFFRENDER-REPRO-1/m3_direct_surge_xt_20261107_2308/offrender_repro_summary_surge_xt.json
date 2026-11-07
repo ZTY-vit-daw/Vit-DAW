@@ -1,0 +1,83 @@
+{
+  "card": "KERNEL-OFFRENDER-REPRO-1",
+  "leg": "Surge XT (plugin-specificity leg) (zero-LLM, direct track mount, no rack, no chat)",
+  "stamp": "20261107_230733",
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "selector": "surge_xt",
+      "matched": [
+        {
+          "name": "Surge XT",
+          "identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"
+        }
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m3_direct_surge_xt_20261107_2308\\offrender_repro_fixture_project_surge_xt.vit"
+    },
+    "instantiate": {
+      "cmd": "instantiate_plugin",
+      "status": "ok",
+      "plugin_name": "Surge XT",
+      "plugin_id": "1010",
+      "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+      "template_role": "instrument",
+      "graph_last_diff_kind": "node_add",
+      "top_level_visibility": {
+        "track_id": "1007",
+        "want_plugin_id": "1010",
+        "top_level_plugin_names": [
+          "Surge XT",
+          "Volume & Pan Plugin",
+          "Level Meter"
+        ],
+        "matched_by": "id",
+        "ok": true
+      }
+    },
+    "clip": {
+      "clip_id": "1011",
+      "note_count": 16,
+      "readback_count": 16
+    },
+    "render": {
+      "job_id": "482935c298ca418688c918360470f31b",
+      "wav": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m3_direct_surge_xt_20261107_2308\\offrender_repro_render_surge_xt.wav",
+      "bytes": 1411984,
+      "completion": {
+        "sub_signal": "render_done",
+        "fallback_file": false
+      },
+      "render_silent": false,
+      "channels": 2,
+      "frames": 352800,
+      "peak_abs": 6823,
+      "peak_dbfs": -13.63,
+      "rms_abs": 1854.23,
+      "rms_dbfs": -24.95
+    },
+    "guard_trace": {
+      "log_dir": "D:\\Vit_DAW_wt_301repro\\VitApp\\Workspace\\Logs",
+      "logs_scanned": [
+        {
+          "file": "VitHeadlessServer2026-11-07_23-07-29.log",
+          "mtime": "2026-11-07T23:07:35.911819"
+        }
+      ],
+      "guard_lines": [],
+      "error": null,
+      "artifact": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m3_direct_surge_xt_20261107_2308\\offrender_repro_summary_surge_xt_guard_trace.txt"
+    },
+    "billing": {
+      "path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m3_direct_surge_xt_20261107_2308\\logs\\agent_llm_telemetry.jsonl",
+      "rows_total": null,
+      "note": "telemetry file absent (no agent start or no rows yet)"
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "chain_complete",
+  "observation": "NON-SILENT (direct-mount render sounds — the seg3a_r2 silence is specific to the rack/chat path)"
+}

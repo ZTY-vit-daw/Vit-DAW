@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD 48d01d484b45561c35aca0c719b027360c3a6c76:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-11-07T23:04:32.2771339+08:00",
+    "marker_path":  "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m2_direct_grand_rhapsody_20261107_2305\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m2_direct_grand_rhapsody_20261107_2305\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}

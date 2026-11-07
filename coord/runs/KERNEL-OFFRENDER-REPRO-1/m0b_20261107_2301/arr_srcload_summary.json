@@ -1,0 +1,155 @@
+{
+  "card": "ARR-SRCLOAD-1",
+  "leg": "seg3a full-access chat-driven instrument load -> clip -> non-silent render",
+  "stamp": "20261107_230038",
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "instrument_names": [
+        "One",
+        "Twin 3",
+        "Surge XT",
+        "COSMOS Sample Finder Stereo",
+        "Clavinet Stereo",
+        "Electric200 Stereo",
+        "Electric88 Stereo",
+        "Flow Motion Stereo",
+        "Electric Grand 80 Stereo",
+        "Grand Rhapsody Piano Stereo"
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_fixture_project.vit"
+    },
+    "authority": {
+      "baseline_mode": "manual_confirmation",
+      "switch_response": {
+        "authority_mode": "full_project_access",
+        "persisted": true,
+        "status": "ok",
+        "workspace_ready": true
+      },
+      "verified_mode": "full_project_access",
+      "pca_promoted_instrument_inventory": {
+        "available": true,
+        "semantic_instrument_count": 17,
+        "stores": {
+          "processor_control_attestations.v1.json": {
+            "exists": true,
+            "promoted_total": 116,
+            "promoted_instruments": 0
+          },
+          "processor_control_attestations.v2.json": {
+            "exists": true,
+            "promoted_total": 89,
+            "promoted_instruments": 0
+          }
+        },
+        "promoted_instrument_identifiers": [],
+        "promoted_instrument_total": 0
+      }
+    },
+    "chat": {
+      "conversation_id": "arr_srcload_smoke_20261107_230038",
+      "stop_reason": "done",
+      "goal_status": "completed",
+      "needs_confirmation": false,
+      "plan_id": "",
+      "workflow": null,
+      "workflow_plugin_kind": null,
+      "reply_excerpt": "已成功加载插件「Grand Rhapsody Piano Stereo」。",
+      "log_delta_tools": [
+        "plugin.semantic_search",
+        "plugin.search",
+        "rack.add_node"
+      ]
+    },
+    "load": {
+      "tool": "rack.add_node",
+      "status": "ok",
+      "zone_id": "Z2",
+      "plugin_name": "Grand Rhapsody Piano Stereo",
+      "plugin_id": "1013",
+      "rack_item_id": "1012",
+      "track_id": "1007",
+      "plugin_instance_ready": true,
+      "plugin_load_state": "name=Grand Rhapsody Piano Stereo id=1013 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+      "execution_surface": {
+        "plugin_instance_ready": true,
+        "rack_item_id": "1012",
+        "plugin_id": "1013",
+        "track_id": "1007",
+        "graph_last_diff_kind": "node_add",
+        "graph_node_add_match": {
+          "node_id": "1013",
+          "rack_item_id": "1012",
+          "track_id": "1007",
+          "summary": "Added rack node Grand Rhapsody Piano Stereo"
+        },
+        "load_state_tokens": {
+          "enabled": "true",
+          "processing": "true",
+          "async": "false",
+          "load_error": ""
+        },
+        "ok": true,
+        "reason": ""
+      },
+      "admission_path_inference": "no promoted instrument admission existed at run time; the gate admitted this load through its certification-token fallback (operator token armed on this machine) — recorded as evidence, authorization-surface disposition stays with card 273"
+    },
+    "clip": {
+      "clip_id": "1014",
+      "note_count": 16,
+      "rack_visibility": {
+        "track_id": "1007",
+        "track_found": true,
+        "track_plugin_names": [
+          "New Rack",
+          "Volume & Pan Plugin",
+          "Level Meter"
+        ],
+        "rack_item_id": "1012",
+        "rack_node_count": 1,
+        "matched_by": "id",
+        "node": {
+          "id": "1013",
+          "node_id": "1013",
+          "plugin_id": "1013",
+          "name": "Grand Rhapsody Piano Stereo",
+          "zone_id": "Z2",
+          "enabled": true,
+          "plugin_instance_ready": true,
+          "template_role": "instrument"
+        }
+      }
+    },
+    "render": {
+      "job_id": "e75b46e8c54b471797607dbc6c2cffe6",
+      "wav": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0b_20261107_2301\\arr_srcload_render.wav",
+      "bytes": 1411984,
+      "completion": {
+        "sub_signal": "render_done",
+        "fallback_file": false
+      },
+      "channels": 2,
+      "frames": 352800,
+      "peak_abs": 0,
+      "peak_dbfs": -120.0,
+      "rms_abs": 0.0,
+      "rms_dbfs": -120.0
+    },
+    "billing": {
+      "available": true,
+      "calls": 5,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cached_input_tokens": 0
+    }
+  },
+  "exit_code": 4,
+  "exit_class": "command_defect",
+  "fail_phase": "render",
+  "fail_reason": "render product is silent: peak_abs=0 <= 500 or rms_abs=0.0 <= 20.0 (instrument loaded + clip present — silent render is a chain defect; forensics hand-over)"
+}

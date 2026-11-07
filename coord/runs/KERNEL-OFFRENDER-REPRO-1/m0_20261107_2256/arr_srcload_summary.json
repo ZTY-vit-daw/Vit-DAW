@@ -1,0 +1,70 @@
+{
+  "card": "ARR-SRCLOAD-1",
+  "leg": "seg3a full-access chat-driven instrument load -> clip -> non-silent render",
+  "stamp": "20261107_225622",
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "instrument_names": [
+        "One",
+        "Twin 3",
+        "Surge XT",
+        "COSMOS Sample Finder Stereo",
+        "Clavinet Stereo",
+        "Electric200 Stereo",
+        "Electric88 Stereo",
+        "Flow Motion Stereo",
+        "Electric Grand 80 Stereo",
+        "Grand Rhapsody Piano Stereo"
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_301repro\\coord\\runs\\KERNEL-OFFRENDER-REPRO-1\\m0_20261107_2256\\arr_srcload_fixture_project.vit"
+    },
+    "authority": {
+      "baseline_mode": "manual_confirmation",
+      "switch_response": {
+        "authority_mode": "full_project_access",
+        "persisted": true,
+        "status": "ok",
+        "workspace_ready": true
+      },
+      "verified_mode": "full_project_access",
+      "pca_promoted_instrument_inventory": {
+        "available": true,
+        "semantic_instrument_count": 17,
+        "stores": {
+          "processor_control_attestations.v1.json": {
+            "exists": true,
+            "promoted_total": 116,
+            "promoted_instruments": 0
+          },
+          "processor_control_attestations.v2.json": {
+            "exists": true,
+            "promoted_total": 89,
+            "promoted_instruments": 0
+          }
+        },
+        "promoted_instrument_identifiers": [],
+        "promoted_instrument_total": 0
+      }
+    },
+    "chat": {
+      "conversation_id": "arr_srcload_smoke_20261107_225622",
+      "stop_reason": "done",
+      "goal_status": "completed",
+      "needs_confirmation": false,
+      "plan_id": "",
+      "workflow": null,
+      "workflow_plugin_kind": null,
+      "reply_excerpt": "结论：这一轮我加不了钢琴音源。\n\n证据：我确认了当前工程状态——里面只有一条轨道「Track 1」（hybrid 类型，0 个片段），轨道上已加载的插件只有 Volume & Pan 和 Level Meter，没有任何乐器槽内容。\n\n限制：本轮授权给我的工具集只有轨道、片段、MIDI 音符编辑这一类操作（建轨、改名、编组、写音符等），不包含插件／音源加载入口，因此我没有任何合法手段把钢琴乐器插到这条轨上。插件库里确实识别到 22 个 instrument 类条目，但能力侧不开放加载就没法落下去。\n\n建议：把「插件／乐器加载」权限打开后重新发一次这个请求，我会直接在 Track 1 的乐器槽（Z2）挂上钢琴音源；如果你有指定型号（比如某个具体钢琴 VST），一并告诉我，我按型号挂。",
+      "log_delta_tools": []
+    }
+  },
+  "exit_code": 3,
+  "exit_class": "llm_behavior_miss",
+  "fail_phase": "chat",
+  "fail_reason": "no rack_add_node executed row after chat+confirm; plan_id=none; needs_confirmation=False; stop_reason=done; workflow=None"
+}
