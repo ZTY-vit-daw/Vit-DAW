@@ -28,7 +28,7 @@
 | 273 | ARRLOOP-AUTHBRIDGE-1 | doing（11-07 早窗重发；零栈段在派，验证腿候栈第 3 位） |
 | 274 | D1D3-DIGEST-WIRING-1 | done 已验收 pass 合入（相邻两处转卡 292/293） |
 | 275 | B3-ABLATION-1 | doing（段 1 零栈腿回执在案候轻验；ps1 腿候合并窗口与栈窗口） |
-| 292 | MIXBOARD-TRACKKEY-1 | todo 可领（mix.read 逐轨键路由修，274 勘察②转卡；零栈先行） |
+| 292 | MIXBOARD-TRACKKEY-1 | done 已验收 pass 合入（四处同型候选记录→PD） |
 | 293 | WE-MISMATCH-FORENSICS-1 | todo 可领（D1 波形包络特征物化失配取证，274 勘察①转卡；零栈） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
 | 277 | ARR-SRCLOAD-1 | doing（段 1/2 pass；段 3a full-access 出声实证候栈第 2 位；授权桥缝转 273） |
