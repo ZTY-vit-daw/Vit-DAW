@@ -422,11 +422,21 @@ param(
     # 0=PASS；2=环境（含 VSTi 库存空）；3=模型未发起装载；4=装载链缺陷
     # （zone≠Z2/确认后失败/装载在场仍静音渲染——取证上交不重跑）。
     # 腿需 agent HTTP 面在栈（-StartKernel -RestartAgent；不启 UI）。
-    [switch]$ArrSrcLoadSmoke
+    [switch]$ArrSrcLoadSmoke,
+    # ARR-SRCLOAD-1 段 3a（277 域）：-ArrSrcLoadSmoke 的改参腿——chat 轮前经
+    # 服务端权威控制（POST /agent/authority，261 G5/chat_auth_stamp 先例）把
+    # 轮次晋升为 full_project_access；shadow 绑定等待+PCA 晋升库存只读证据
+    # +渲染 RMS 计量在 py 内。单独给出，不与 -ArrSrcLoadSmoke 合并：段 2
+    # 场景（manual 轮）保持原样可复现。
+    [switch]$ArrSrcLoadFullAccess
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
+
+if ($ArrSrcLoadFullAccess -and -not $ArrSrcLoadSmoke) {
+    throw "-ArrSrcLoadFullAccess is a modifier of -ArrSrcLoadSmoke and cannot be used alone"
+}
 
 function Resolve-RepoRoot {
     param([string]$Explicit)
@@ -8971,7 +8981,7 @@ if ($EduTransformSmoke) {
 }
 
 if ($ArrSrcLoadSmoke) {
-    Write-Step "chat-driven instrument load smoke (ARR-SRCLOAD-1 segment 2)"
+    Write-Step ("chat-driven instrument load smoke (ARR-SRCLOAD-1 " + $(if ($ArrSrcLoadFullAccess) { "segment 3a full-access leg" } else { "segment 2" }) + ")")
     $arrSrcLoadScript = Join-Path $RepoRoot "scripts\arr_srcload_smoke.py"
     if (-not (Test-Path -LiteralPath $arrSrcLoadScript)) {
         throw ("arr srcload smoke script missing: " + $arrSrcLoadScript)
@@ -9000,6 +9010,11 @@ if ($ArrSrcLoadSmoke) {
     $arrSrcLoadProjectPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_fixture_project.vit"
     $arrSrcLoadRenderPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_render.wav"
     $arrSrcLoadPythonArgs = @($arrSrcLoadScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--project-path", $arrSrcLoadProjectPath, "--render-path", $arrSrcLoadRenderPath, "--output", $arrSrcLoadSummaryPath, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--agent-log", $AgentLog)
+    if ($ArrSrcLoadFullAccess) {
+        # 段 3a：full-access promoted 轮（authority 控制面切换在 py 内完成，
+        # 话术/骨架与段 2 相同）。守卫：改参腿只随 -ArrSrcLoadSmoke 生效。
+        $arrSrcLoadPythonArgs += "--full-access"
+    }
     & python @arrSrcLoadPythonArgs > $arrSrcLoadConsolePath 2>&1
     $arrSrcLoadExit = $LASTEXITCODE
     Get-Content -LiteralPath $arrSrcLoadConsolePath | ForEach-Object { Write-Host $_ }

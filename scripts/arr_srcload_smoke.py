@@ -1,30 +1,51 @@
 #!/usr/bin/env python3
-"""ARR-SRCLOAD-1 (card 277) segment-2 real-stack smoke driver, 2026-11-07.
+"""ARR-SRCLOAD-1 (card 277) real-stack smoke driver, 2026-11-07.
 
-Chat-driven instrument-load leg ("load an instrument source onto a MIDI
-track and make it sound") — the first real-stack verification of the
-arrangement load chain (card goal 1, A1-corrected conclusion landing):
+Segment 3a full-access leg (supervisor ruling on segment 2's forensics:
+option D — prove the physical chain load -> clip -> non-silent render
+under an explicit full_project_access round; the authorization-surface
+form stays with card 273). Segment 2's original chat-round scenario is
+kept byte-identical when --full-access is not passed.
 
   A  fixture + environment precheck (kernel ZMQ, deterministic, zero LLM):
      plugin_list_available -> is_instrument count > 0 (card stop condition:
      empty local VSTi inventory is an environment hand-over, never a code
      obstacle); new_project -> save_as_project -> add_track (exactly one
      user-visible track so the chat load target is unambiguous).
+ A2 (--full-access only, deterministic, zero LLM):
+     promote the round to full_project_access through the server-owned
+     authority control (the 261 G5 / chat_auth_stamp_smoke precedent):
+     wait for the agent shadow to bind the run project identity
+     (AUTHORITY-LOST-1: a switch that races the identity re-bind lands on
+     the previous workspace), then POST /agent/authority
+     {"authority_mode": "full_project_access"} and verify via GET. The
+     chat turn then needs no authority assertion anywhere in its body:
+     bindChatAuthorityMode stamps the server state onto the turn context.
+     Also records (best-effort, read-only) how many of the semantic
+     library's instrument identifiers currently hold a promoted PCA
+     admission in the default-path attestation stores — the honest
+     admission-path evidence: the harness load gate's full-access fallback
+     (authorizeFullProjectAccessLoad) admits only promoted identities, so
+     with zero promoted instruments an admitted instrument load can only
+     have gone through the operator-armed certification-token fallback
+     (authorizeCertificationTokenLoad), which is the gate's own designed
+     routing on this machine. Recorded, not asserted.
   B  one real chat turn (billed, default engine):
      POST /agent/chat with the arrangement phrasing
-     「给这条 MIDI 轨加一个钢琴音源」(agent_mode=chat). The load is
-     RiskConfirm-gated, so the expected shape is a pending plan
-     (NeedsConfirmation + plan_id); the driver then approves it once via
-     POST /agent/confirm. Route evidence (agent-loop capability round vs
-     plugin_grabber workflow) is recorded honestly from the response, not
-     asserted — both are legitimate chat-driven load channels.
+     「给这条 MIDI 轨加一个钢琴音源」(agent_mode=chat). Route evidence
+     (agent-loop capability round vs plugin_grabber workflow) is recorded
+     honestly from the response, not asserted — both are legitimate
+     chat-driven load channels. If the turn parks a confirmable plan the
+     driver approves it once via POST /agent/confirm.
   C  deterministic kernel-side chain:
      assert the executed rack_add_node row: status ok, zone_id == "Z2"
      (synth zone), plugin_instance_ready recorded; insert_midi_clip +
      add_midi_notes (16-beat C-major arpeggio) with readback; start_render
      (16-bit WAV in the run artifacts dir); wait for the kernel
      render/render_done publication (SUB 5556, file-poll fallback); assert
-     the render product is non-silent (max |sample| above threshold).
+     the render product is non-silent by physical metering — peak |sample|
+     AND rms above thresholds (a single stray click no longer counts as
+     sound).
 
 Exit codes (card section 8, fixed before execution; single run, no rerun):
   0 PASS              load chain complete: instrument loaded Z2 via chat,
@@ -37,8 +58,11 @@ Exit codes (card section 8, fixed before execution; single run, no rerun):
                       unrelated action) — honest model-behavior record
   4 command_defect    load executed but the chain contradicts the design
                       (zone != Z2, load status error after confirm, render
-                      silent/failing with the instrument present) —
-                      forensics hand-over, no rerun
+                      silent/failing with the instrument present), or the
+                      full-access round's load is still refused by the PCA
+                      gate (card premise "通路现成" overturned — forensics
+                      hand-over with the gate's verbatim rejection, no
+                      rerun)
 
 LLM budget: one chat turn plus at most a few in-turn roundtrips on the
 user's default engine; telemetry rows for the conversation are summarized
@@ -69,6 +93,10 @@ CHAT_TIMEOUT_SEC = 300.0
 CLIP_LENGTH_BEATS = 16.0
 RENDER_WAIT_SEC = 180.0
 NON_SILENCE_THRESHOLD = 500  # max |sample| out of int16 full scale
+NON_SILENCE_RMS_THRESHOLD = 20.0  # sqrt(mean(sample^2)); one stray click at
+# 5000 in ~700k samples is rms≈6, real held notes are in the thousands —
+# so a real render clears this while digital silence plus a single click
+# cannot.
 
 # 16-beat C-major arpeggio fixture (C5 E5 G5 up/down, one note per beat).
 ARPEGGIO: List[int] = [72, 76, 79, 84, 79, 76] + [72, 76, 79, 84, 79, 76] + [72, 74, 76, 79]
@@ -100,6 +128,120 @@ def post_json(base_url: str, path: str, payload: Dict[str, Any], timeout: float)
         except json.JSONDecodeError:
             pass
         raise RuntimeError(f"{path} returned HTTP {exc.code}: {body[:800]}") from exc
+
+
+def get_json(base_url: str, path: str, timeout: float) -> Dict[str, Any]:
+    request = urllib.request.Request(base_url.rstrip("/") + path, method="GET")
+    with urllib.request.urlopen(request, timeout=timeout) as response:
+        return json.loads(response.read().decode("utf-8"))
+
+
+def authority_get(base_url: str) -> Dict[str, Any]:
+    body = get_json(base_url, "/agent/authority", 30.0)
+    if str(body.get("status", "")) != "ok":
+        raise RuntimeError(f"GET /agent/authority failed: {json.dumps(body, ensure_ascii=False)[:400]}")
+    return body
+
+
+def authority_post(base_url: str, mode: str) -> Dict[str, Any]:
+    try:
+        body = post_json(base_url, "/agent/authority", {"authority_mode": mode}, 30.0)
+    except Exception as exc:  # noqa: BLE001 - control-plane failure is env-class.
+        raise RuntimeError(f"POST /agent/authority {mode} failed: {exc}") from exc
+    if str(body.get("status", "")) != "ok" or body.get("authority_mode") != mode:
+        raise RuntimeError(f"POST /agent/authority {mode} rejected: {json.dumps(body, ensure_ascii=False)[:500]}")
+    return body
+
+
+def wait_shadow_tracks(base_url: str, want_tracks: int, timeout_s: float = 60.0) -> None:
+    """Wait until the agent's shadow has bound the kernel's CURRENT project.
+
+    Authority state is per project identity: a switch that races the
+    identity re-bind lands on the previous workspace (AUTHORITY-LOST-1
+    anti-leak; chat_auth_stamp_smoke round-1 finding). Same helper, same
+    semantics as the 223 precedent.
+    """
+    deadline = time.time() + timeout_s
+    last = ""
+    while time.time() < deadline:
+        try:
+            state = get_json(base_url, "/agent/state", 10.0)
+        except Exception as exc:  # noqa: BLE001 - retry until deadline.
+            last = f"/agent/state: {exc}"
+            time.sleep(0.5)
+            continue
+        shadow = state.get("shadow") or {}
+        if shadow.get("initialized") is True:
+            count = shadow.get("track_count")
+            if isinstance(count, int) and count == want_tracks:
+                return
+            last = f"track_count={count!r}"
+        else:
+            last = f"shadow={json.dumps(shadow, ensure_ascii=False)[:120]}"
+        time.sleep(0.5)
+    raise RuntimeError(f"agent shadow never bound a project with {want_tracks} tracks: {last}")
+
+
+def promoted_instrument_inventory() -> Dict[str, Any]:
+    """Read-only admission-path evidence (best-effort, never asserted).
+
+    Counts how many of the semantic library's instrument identifiers hold
+    a status==promoted record in the default-path PCA attestation stores
+    (v1+v2). The harness load gate's full-access fallback admits only
+    promoted identities; a semantic-library identifier is matched
+    case-insensitively exactly, mirroring promotedProcessorIdentityMatches.
+    """
+    from pathlib import Path as _Path
+    home = _Path.home() / ".vit"
+    result: Dict[str, Any] = {"available": False}
+    try:
+        sem_path = home / "plugin_semantics.json"
+        if not sem_path.exists():
+            result["error"] = f"semantic library missing: {sem_path}"
+            return result
+        sem = json.loads(sem_path.read_text(encoding="utf-8"))
+        entries = sem.get("entries") if isinstance(sem, dict) else None
+        if not isinstance(entries, list):
+            result["error"] = "semantic library has no entries list"
+            return result
+        instrument_ids = {
+            str(entry.get("identifier", "")).strip().lower()
+            for entry in entries
+            if isinstance(entry, dict) and entry.get("is_instrument") and str(entry.get("identifier", "")).strip()
+        }
+        result["semantic_instrument_count"] = len(instrument_ids)
+        result["stores"] = {}
+        promoted_hits: List[str] = []
+        for name in ("processor_control_attestations.v1.json", "processor_control_attestations.v2.json"):
+            store_path = home / name
+            if not store_path.exists():
+                result["stores"][name] = {"exists": False}
+                continue
+            store = json.loads(store_path.read_text(encoding="utf-8"))
+            attestations = store.get("attestations") if isinstance(store, dict) else None
+            if not isinstance(attestations, list):
+                result["stores"][name] = {"exists": True, "error": "no attestations list"}
+                continue
+            promoted = 0
+            instrument_promoted = 0
+            for attestation in attestations:
+                if not isinstance(attestation, dict) or attestation.get("status") != "promoted":
+                    continue
+                promoted += 1
+                subject = attestation.get("subject") or {}
+                identifier = str(subject.get("identifier", "")).strip().lower()
+                if identifier and identifier in instrument_ids:
+                    instrument_promoted += 1
+                    promoted_hits.append(identifier)
+            result["stores"][name] = {
+                "exists": True, "promoted_total": promoted, "promoted_instruments": instrument_promoted,
+            }
+        result["promoted_instrument_identifiers"] = sorted(set(promoted_hits))
+        result["promoted_instrument_total"] = len(set(promoted_hits))
+        result["available"] = True
+    except OSError as exc:
+        result["error"] = f"store read failed: {exc}"
+    return result
 
 
 def zmq_command(url: str, payload: Dict[str, Any], timeout_ms: int = 60000) -> Dict[str, Any]:
@@ -183,11 +325,16 @@ def wav_max_abs(path: Path) -> Dict[str, Any]:
     samples = struct.unpack("<%dh" % count, raw[: count * 2])
     peak = max(abs(sample) for sample in samples) if samples else 0
     dbfs = round(20 * math.log10(peak / 32768.0), 2) if peak > 0 else -120.0
+    square_sum = sum(float(sample) * float(sample) for sample in samples)
+    rms = math.sqrt(square_sum / count) if count else 0.0
+    rms_dbfs = round(20 * math.log10(rms / 32768.0), 2) if rms > 0 else -120.0
     return {
         "channels": channels,
         "frames": frames,
         "peak_abs": peak,
         "peak_dbfs": dbfs,
+        "rms_abs": round(rms, 2),
+        "rms_dbfs": rms_dbfs,
     }
 
 
@@ -285,7 +432,7 @@ def telemetry_for_conversation(telemetry_path: Optional[Path], conversation: str
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="ARR-SRCLOAD-1 segment-2 chat-driven instrument load smoke")
+    parser = argparse.ArgumentParser(description="ARR-SRCLOAD-1 chat-driven instrument load smoke (segment 2 scenario; --full-access = segment 3a leg)")
     parser.add_argument("--agent-http", required=True)
     parser.add_argument("--kernel-zmq", required=True)
     parser.add_argument("--kernel-sub", default="tcp://127.0.0.1:5556")
@@ -295,12 +442,17 @@ def main() -> int:
     parser.add_argument("--agent-log", default="", help="agent log path for harness.invoke route cross-check")
     parser.add_argument("--telemetry-path", default="", help="agent LLM telemetry jsonl (billing evidence)")
     parser.add_argument("--chat-timeout", type=float, default=CHAT_TIMEOUT_SEC)
+    parser.add_argument("--full-access", action="store_true",
+                        help="segment 3a: promote the round to full_project_access through the "
+                             "server-owned authority control before the chat turn (261 G5 precedent)")
     args = parser.parse_args()
 
     stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     summary: Dict[str, Any] = {
         "card": "ARR-SRCLOAD-1",
-        "leg": "smokerun1 chat-driven instrument load -> clip -> non-silent render",
+        "leg": ("seg3a full-access chat-driven instrument load -> clip -> non-silent render"
+                if args.full_access
+                else "smokerun1 chat-driven instrument load -> clip -> non-silent render"),
         "stamp": stamp,
         "phases": {},
     }
@@ -368,6 +520,30 @@ def main() -> int:
     save_summary()
     print(f"[arr-srcload] precheck ok: instruments={len(instrument_rows)}; fixture track={track_id}", flush=True)
 
+    # ---- Phase A2 (--full-access): promote the round through the authority control ----
+    if args.full_access:
+        try:
+            inventory = promoted_instrument_inventory()
+            baseline = authority_get(args.agent_http)
+            wait_shadow_tracks(args.agent_http, 1)
+            switch = authority_post(args.agent_http, "full_project_access")
+            verify = authority_get(args.agent_http)
+            if str(verify.get("authority_mode", "")) != "full_project_access":
+                return fail(EXIT_ENV, "authority",
+                            f"full-access switch did not stick: {json.dumps(verify, ensure_ascii=False)[:300]}")
+            summary["phases"]["authority"] = {
+                "baseline_mode": baseline.get("authority_mode"),
+                "switch_response": switch,
+                "verified_mode": verify.get("authority_mode"),
+                "pca_promoted_instrument_inventory": inventory,
+            }
+            save_summary()
+            print(f"[arr-srcload] full access promoted (baseline={baseline.get('authority_mode')!r}, "
+                  f"persisted={switch.get('persisted')}); promoted instruments on default paths="
+                  f"{inventory.get('promoted_instrument_total')}", flush=True)
+        except Exception as exc:  # noqa: BLE001 - control-plane failure is env-class.
+            return fail(EXIT_ENV, "authority", f"full-access promotion failed: {exc}")
+
     # ---- Phase B: one real chat turn (billed) + confirmation ----
     agent_log_path = Path(args.agent_log) if args.agent_log else None
     log_size_before = agent_log_path.stat().st_size if (agent_log_path and agent_log_path.exists()) else 0
@@ -421,13 +597,32 @@ def main() -> int:
         save_summary()
         load_row = find_executed_load(collect_executed(confirm_response))
 
+    log_delta_text = ""
     if agent_log_path and agent_log_path.exists():
         with agent_log_path.open("r", encoding="utf-8", errors="replace") as handle:
             handle.seek(log_size_before)
-            summary["phases"]["chat"]["log_delta_tools"] = parse_tool_calls(handle.read())
+            log_delta_text = handle.read()
+            summary["phases"]["chat"]["log_delta_tools"] = parse_tool_calls(log_delta_text)
         save_summary()
 
     if load_row is None:
+        gate_lines = [line.strip() for line in log_delta_text.splitlines()
+                      if "pca_load_gate" in line]
+        if not gate_lines:
+            gate_lines = [line.strip() for line in
+                          str(chat_response.get("reply") or "").splitlines()
+                          + (str((confirm_response or {}).get("message") or "").splitlines()
+                             if confirm_response else [])
+                          if "pca_load_gate" in line]
+        if args.full_access and gate_lines:
+            # The supervisor's segment-2 ruling pre-classified this branch:
+            # a full-access round still refused by the PCA load gate
+            # overturns the "通路现成" premise — forensics hand-over, no rerun.
+            summary["phases"]["chat"]["pca_gate_rejections"] = gate_lines[:8]
+            return fail(EXIT_CMD_DEFECT, "chat",
+                        "full-access round load still refused by the PCA gate (premise overturned; "
+                        "gate rejection verbatim in pca_gate_rejections)",
+                        chat_phase)
         reason = (
             f"no rack_add_node executed row after chat+confirm; plan_id={plan_id or 'none'}; "
             f"needs_confirmation={chat_phase.get('needs_confirmation')}; "
@@ -459,6 +654,21 @@ def main() -> int:
                     f"instrument load zone_id={result.get('zone_id')!r}, want Z2 (synth zone)", load_assert)
 
     plugin_name = str(result.get("plugin_name") or "")
+    if args.full_access:
+        inventory = (summary["phases"].get("authority") or {}).get("pca_promoted_instrument_inventory") or {}
+        if inventory.get("available") and int(inventory.get("promoted_instrument_total") or 0) == 0:
+            # Static admission-path inference, recorded honestly: with zero
+            # promoted instrument identities in the default-path PCA stores,
+            # an admitted full-access instrument load can only have gone
+            # through the operator-armed certification-token fallback inside
+            # the gate (authorizeCertificationTokenLoad) — the gate's own
+            # designed routing. Authorization-form disposition: card 273.
+            summary["phases"]["load"]["admission_path_inference"] = (
+                "no promoted instrument admission existed at run time; the gate admitted this load through "
+                "its certification-token fallback (operator token armed on this machine) — recorded as "
+                "evidence, authorization-surface disposition stays with card 273"
+            )
+            save_summary()
     print(f"[arr-srcload] load ok: {plugin_name} zone={result.get('zone_id')} "
           f"instance_ready={result.get('plugin_instance_ready')}", flush=True)
 
@@ -544,16 +754,18 @@ def main() -> int:
 
         if "error" in peak:
             return fail(EXIT_ENV, "render", f"wav decode error: {peak.get('error')}", peak)
-        if peak.get("peak_abs", 0) <= NON_SILENCE_THRESHOLD:
+        if peak.get("peak_abs", 0) <= NON_SILENCE_THRESHOLD or peak.get("rms_abs", 0.0) <= NON_SILENCE_RMS_THRESHOLD:
             return fail(EXIT_CMD_DEFECT, "render",
                         f"render product is silent: peak_abs={peak.get('peak_abs')} <= {NON_SILENCE_THRESHOLD} "
+                        f"or rms_abs={peak.get('rms_abs')} <= {NON_SILENCE_RMS_THRESHOLD} "
                         "(instrument loaded + clip present — silent render is a chain defect; forensics hand-over)",
                         peak)
     except Exception as exc:  # noqa: BLE001
         return fail(EXIT_ENV, "chain", f"chain exception: {exc}")
 
     print(f"[arr-srcload] PASS: chat-loaded {plugin_name} (Z2) -> clip {len(ARPEGGIO)} notes -> "
-          f"render peak_abs={peak.get('peak_abs')} ({peak.get('peak_dbfs')} dBFS)", flush=True)
+          f"render peak_abs={peak.get('peak_abs')} ({peak.get('peak_dbfs')} dBFS), "
+          f"rms_abs={peak.get('rms_abs')} ({peak.get('rms_dbfs')} dBFS)", flush=True)
     summary["exit_code"] = EXIT_PASS
     summary["exit_class"] = "pass"
     save_summary()
