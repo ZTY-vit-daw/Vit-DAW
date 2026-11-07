@@ -106,12 +106,68 @@ func (s *Server) resolveCapabilityOwner(conversationID string, req ChatRequest) 
 
 func explicitB4InvocationMarker(message string) bool {
 	text := strings.ToLower(strings.TrimSpace(message))
-	return strings.Contains(text, "static_mix.low_end_relation") || strings.Contains(text, "b4")
+	return strings.Contains(text, "static_mix.low_end_relation") || capabilityMarkerPresent(text, "b4")
 }
 
 func explicitC1InvocationMarker(message string) bool {
 	text := strings.ToLower(strings.TrimSpace(message))
-	return strings.Contains(text, "fine_mix.frequency_cleanup") || strings.Contains(text, "c1") || strings.Contains(text, "full project") || strings.Contains(text, "whole project") || strings.Contains(text, "全工程") || strings.Contains(text, "整首")
+	return strings.Contains(text, "fine_mix.frequency_cleanup") || capabilityMarkerPresent(text, "c1") || strings.Contains(text, "full project") || strings.Contains(text, "whole project") || strings.Contains(text, "全工程") || strings.Contains(text, "整首")
+}
+
+// capabilityMarkerWordByte reports whether b may continue an ASCII word token
+// (letters/digits/underscore — snake_case identifiers like "track_b2" are one
+// token). Bytes >= 0x80 (e.g. CJK runes in the lowercased message) are word
+// boundaries for the short ASCII capability codes.
+func capabilityMarkerWordByte(b byte) bool {
+	return (b >= 'a' && b <= 'z') || (b >= 'A' && b <= 'Z') || (b >= '0' && b <= '9') || b == '_'
+}
+
+// capabilityShortCodeMarker reports whether the marker is a bare short ASCII
+// alphanumeric capability code (the b2/b3/b4/b5/c1/c2/c3/d1/d2/d3 family).
+// Dotted capability IDs ("static_mix.pan_layout") and natural-language
+// phrases ("声像布局", "pan layout") are not short codes.
+func capabilityShortCodeMarker(marker string) bool {
+	if marker == "" {
+		return false
+	}
+	for i := 0; i < len(marker); i++ {
+		if !capabilityMarkerWordByte(marker[i]) {
+			return false
+		}
+	}
+	return true
+}
+
+// capabilityMarkerPresent reports whether marker occurs in the lowercased
+// message text. Short alphanumeric capability codes only match as standalone
+// tokens: an occurrence embedded inside a longer alphanumeric run (ABC
+// notation "b32|Z|", code "a4b4-", hex "d1ff") does NOT claim the turn —
+// only an explicit bounded code ("b3", "run C2 dynamic control", "运行 B4",
+// "b2静态平衡" with CJK acting as boundary) does. GEN-CHAT-ROUTING-1 (278
+// run2): full-message substring matching let the score text "b32" hijack the
+// turn into the pan_layout canary. Non-code markers keep substring matching
+// unchanged, so no phrase is added to or removed from any entry word list
+// (the M1-3/M1-4 entry-admission rulings govern list membership, not token
+// shape; the in-code comments already frame these codes as *explicit*
+// markers). The check is strictly false-positive reducing: it can never make
+// a previously unmatched message match.
+func capabilityMarkerPresent(text, marker string) bool {
+	if !capabilityShortCodeMarker(marker) {
+		return strings.Contains(text, marker)
+	}
+	for start := 0; start < len(text); {
+		idx := strings.Index(text[start:], marker)
+		if idx < 0 {
+			return false
+		}
+		i := start + idx
+		j := i + len(marker)
+		if (i == 0 || !capabilityMarkerWordByte(text[i-1])) && (j == len(text) || !capabilityMarkerWordByte(text[j])) {
+			return true
+		}
+		start = j
+	}
+	return false
 }
 
 func c1SelectedTargetContext(context map[string]any) bool {
@@ -229,24 +285,24 @@ func inferProjectAwareCapability(message string) string {
 		"静态平衡", "静态音量", "推子平衡", "静态主次", "建立主次", "主次关系", "核心元素定位", "突出主唱",
 		"static balance", "focus position",
 	} {
-		if strings.Contains(text, marker) {
+		if capabilityMarkerPresent(text, marker) {
 			return staticBalanceCapabilityID
 		}
 	}
 	for _, marker := range []string{"static_mix.pan_layout", "b3", "声像布局", "pan layout", "panning layout"} {
-		if strings.Contains(text, marker) {
+		if capabilityMarkerPresent(text, marker) {
 			return panLayoutCapabilityID
 		}
 	}
 	if !lowEndRelationAblationBypassed() {
 		for _, marker := range []string{"static_mix.low_end_relation", "b4", "低频关系", "low-end relation", "low end relation", "低频分析", "低频占用", "低频遮蔽"} {
-			if strings.Contains(text, marker) {
+			if capabilityMarkerPresent(text, marker) {
 				return lowEndRelationCapabilityID
 			}
 		}
 	}
 	for _, marker := range []string{"fine_mix.frequency_cleanup", "c1", "frequency cleanup", "frequency clean-up", "频段清理", "频率清理", "频谱清理", "全工程eq清理"} {
-		if strings.Contains(text, marker) {
+		if capabilityMarkerPresent(text, marker) {
 			return frequencyCleanupCapabilityID
 		}
 	}
@@ -254,14 +310,14 @@ func inferProjectAwareCapability(message string) string {
 	// selected-track dynamic requests. Only an explicit C2 capability marker
 	// may claim ownership here.
 	for _, marker := range []string{"fine_mix.dynamic_control", "c2"} {
-		if strings.Contains(text, marker) {
+		if capabilityMarkerPresent(text, marker) {
 			return dynamicControlCapabilityID
 		}
 	}
 	// C3 同 C2：工程级只读观察能力入口，不做普通空间/混响话术的词法后继
 	// （MIXLAYER-M1-3）；只有显式 C3 标记可在此认领。
 	for _, marker := range []string{"fine_mix.space_depth", "c3"} {
-		if strings.Contains(text, marker) {
+		if capabilityMarkerPresent(text, marker) {
 			return spaceDepthCapabilityID
 		}
 	}
@@ -275,7 +331,7 @@ func inferProjectAwareCapability(message string) string {
 		"全局响度检查", "响度检查", "峰值检查", "母带前响度", "母带前检查",
 		"global loudness check", "loudness check", "loudness settle",
 	} {
-		if strings.Contains(text, marker) {
+		if capabilityMarkerPresent(text, marker) {
 			return premasterObservationCapabilityID
 		}
 	}
