@@ -152,12 +152,12 @@ func (s *Server) applyPluginGrabberDelayControls(ctx context.Context, cmd, reque
 	}
 	overall := "exact"
 	for i := range results {
-		results[i]["actual_readback"] = eqActualRowsForWrites(actual, []eqWriteStep{writes[i]})
-		if writes[i].Quantized {
-			results[i]["status"] = "quantized"
-			overall = "quantized"
-		} else {
-			results[i]["status"] = "exact"
+		readback := eqActualRowsForWrites(actual, []eqWriteStep{writes[i]})
+		results[i]["actual_readback"] = readback
+		status := delayWriteLandingStatus(writes[i], readback)
+		results[i]["status"] = status
+		if status == "quantized" || (status == "approximate" && overall == "exact") {
+			overall = status
 		}
 	}
 	result := map[string]any{"status": overall, "atomic": true, "track_id": target.TrackID, "plugin_id": target.PluginID, "topology_generation": generation, "controls": results, "writes": executed, "restore_ref": restoreRef, "rollback": map[string]any{"on_failure": "full_preimage", "verified": true}}
@@ -371,4 +371,41 @@ func delayRoleIn(role string, values ...string) bool {
 		}
 	}
 	return false
+}
+
+// delayWriteLandingStatus keeps apply_status honest (DELAY-APPLY-MS-FIX-1):
+// delay roles are not EQ physical roles, so the shared transaction machine
+// verifies the normalized landing but never the physical one — the observed
+// defect reported status=exact while the display read back 352 ms for a
+// 250 ms request. "exact" now requires the kernel's own display readback to
+// parse and land within the role's physical tolerance of the requested
+// target; anything else downgrades to "approximate" ("quantized" keeps its
+// existing precedence for discrete reachable targets).
+func delayWriteLandingStatus(write eqWriteStep, readbackRows []map[string]any) string {
+	if write.Quantized {
+		return "quantized"
+	}
+	if write.RequestedPhysical == nil {
+		return "exact"
+	}
+	for _, row := range readbackRows {
+		if firstNonEmptyText(row, "param_id") != write.ParamID {
+			continue
+		}
+		physical, ok := plugingrabber.ParseCompressorPhysical(write.Role, firstNonEmptyText(row, "value_text"))
+		if !ok || math.Abs(physical-*write.RequestedPhysical) > delayPhysicalTolerance(write.Role, *write.RequestedPhysical) {
+			return "approximate"
+		}
+		return "exact"
+	}
+	return "exact"
+}
+
+// delayPhysicalTolerance gives the delay timing roles the release-family
+// tolerance; eqPhysicalTolerance has no time/sync entries of its own.
+func delayPhysicalTolerance(role string, target float64) float64 {
+	if delayRoleIn(role, "time", "sync") {
+		return math.Max(0.05, math.Abs(target)*0.01)
+	}
+	return eqPhysicalTolerance(role, target)
 }
