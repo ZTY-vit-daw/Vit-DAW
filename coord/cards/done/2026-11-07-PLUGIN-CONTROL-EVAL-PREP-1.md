@@ -76,4 +76,4 @@ if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
   - **未决项（交主管）**：①污染臂先跑下界 vs 先建缝跑纯臂 vs 两段都跑（缝卡挂「答辩前不落实」用户拍板）；②货币预算缺项（DeepSeek 价目未核，建议 3 轮校准样本）；③P 臂确认卡应答策略冻结；④S0 真栈腿窗口（与 296/297/298 等栈腿错峰）；⑤响应模型身份首轮核验。
   - **建议后续卡**：PLUGIN-CONTROL-EVAL-RUNNER-1（文件域 scripts/ 新 py/ps1+coord/runs/PLUGIN-CONTROL-EVAL-\*；pgtdc_compat_verify.ps1+b3 先例；交付=夹具构建+S0 零 LLM 验证器+臂驱动+独立评价器+工件/退出码；详见 plan.json next_card_scope）。
   - **端测边界声明**：本卡为零运行的实验准备——无模型成绩、无真栈结论、无栈启停、无付费请求、无旧工件覆盖；引用遥测为既有文件只读采样。
-- 验收：待 PC 主管决策流裁定；执行 done 不代替最终验收。
+- - 验收（2026-11-07 晚窗，主管）：**pass（准备卡收口）**——三件工件合格（plan.json 13 字段主管亲验 13/13+臂命名诚实 A_star/B_star 污染态明示+分段预算 caps 结构在）；preflight 证据三级标注规范（静态/历史工件/待新运行分离，模型=请求名非响应名的 nuance 抓得准）；**两项关键发现采信**：①实际被测模型=deepseek-flash（config+228 条遥测双证）②A/B 纯臂四面污染不可达（锚点齐、未动码）。附加裁定：四锚点初步判定**全部可 Go 侧中和**（内核烘焙字段可在 agent 摄取面剥离——test-only env 同 B4/C4 钩先例级，无需 C++ 重建），缝卡设计归 RUNNER 后决策；RUNNER（不含缝）+S0+S1-P 可先行，纯臂 A/B/C 等用户裁定缝与模型矩阵。PS5.1 GBK 假 PASS 坑记教训账本（非 ASCII 文档检查须显式编码）。L1 台账 48h 窗口。
