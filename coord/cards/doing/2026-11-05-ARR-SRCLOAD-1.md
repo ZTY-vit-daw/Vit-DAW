@@ -70,6 +70,16 @@
 - **admission-path 如实分账（evidence.md §4）**：跑前+跑时双证 instrument 晋升 0/17（v1 116/v2 89 全效果器）→ 本 run 装载放行**必经**门内 certification-token 回落（`~/.vit/pca_certauth.token` armed，门自身既设路由非绕门；agent 日志零行 pca_load_gate）。「通路现成」按此修正：**物理通路=现成（本 run 实证）；授权形态=cert-token 回落**，治本归 273。
 - **交主管**：①exit 4 定性与断言修形（rack 节点查询形状）后是否再派一跑拿渲染非静音实证（§8 纪律下执行侧不重跑）；②admission-path 表述修正采认；③段 3 未收口（渲染非静音未获证），**卡留 doing/**。
 
+### 段 3a-fix（可见性断言形状修，2026-11-07，零栈零 LLM）——修完停下候栈，seg3a_r2 重跑腿待主管另派
+
+- owner 续占（无需重领）：worktree `D:/Vit_DAW_wt_277impl` @ `port/arr-srcload-1`；本腿起点 HEAD=`ea2c0963`（段 3a 工件提交后），status/diff 全净。实现 commit **`4f636414`**（仅 `scripts/arr_srcload_smoke.py`，+213/-14）；卡面协调提交仅 coord/。
+- **断言修形（exit 4 修复本体）**：弃「plugin_name ∈ track.plugins 顶层行」断言，改按内核 rack 容器形状查询——`get_project_state` 轨行的 `rack.nodes[]`（内核权威序列化=CommandDispatcher `createRackState`：node 带 node_id/plugin_id/plugin_item_id/name/enabled/zone_id/plugin_instance_ready/plugin_load_state，容器带 rack_item_id/node_count）。蓝本三源交叉：seg3a executed row（rack_item_id=1012/plugin_id=1013/zone Z2）+ state_delta `/tracks/1007` 实轨行 + 146-SOFT-GUIDE-EXP 存档 get_project_state 工件（rack 节点同形）+ 内核源码逐行核实（`VitApp/Source/Service/CommandDispatcher.cpp:3754` 轨行挂 rack；`PluginRackControlService.cpp:3637-3652` 成功回复必带 rack_item_id/plugin_id/zone_id/instance_ready/load_state+graph 域）。匹配 id 优先（executed plugin_id/plugin_item_id 对节点 id 键族）、名字精确兜底；匹配节点上再断言 **zone_id=Z2 / enabled=true / instance_ready≠false** + rack 容器 rack_item_id 与 executed 回执互核；顶层插件行降为证据记录（track_plugin_names 如实入 summary，不断言）。
+- **装载腿核对面增密（只增不减）**：executed row 新增 graph diff 核对（`graph_last_diff_kind=node_add` 且 node_add 行 node_id/rack_item_id/track_id 三方与 executed 回执+fixture 轨一致）+ 实例面核对（plugin_instance_ready≠false；plugin_load_state 串解析 enabled=true/processing=true/load_error 空）——内核成功回复必带此域（源级核实），无合法缺省路径；flattened face 兜底键表同步扩 rack/graph 键（防同型风险在另一面复发）。
+- **顺检结论（渲染腿/clip 腿同型排查）**：**无同型缺陷，零改动**。start_render 调用形状对齐内核 handler（`TransportAudioService::handleStartRender`：file_path+bit_depth→jmax(16,·)；缺省 range=[0, edit 长度]=唯一内容即本 16 拍 clip；回复 status+job_id；SUB 出版 topic=render/subtopic=render_done|render_failed/job_id 全对齐驱动器）；`no_renderable_audio_content` 拒因串与内核逐字一致（GEN-MAC-BASELINE run4 legB 实证同串）且内核 Leg B 门（`editHasRenderableAudioContent`）按「MIDI clip+轨上乐器」放行（rack 容器插件按 takes-MIDI 计入）；RMS/peak 断言（peak>500 且 rms>20；width==2 由 bit_depth 16 保证）保持。**不加显式 range**：BPM→秒换算是新的未验形状，缺省 range 失败模式可检不可误报（不覆盖 clip→渲染静音→exit 4 取证）。clip 三断言（insert/add_notes/回读）seg3a 已实证形状正确。
+- **离线验证（零栈，蓝本=实盘形状）**：`python -m py_compile scripts/arr_srcload_smoke.py`=exit 0；断言面离线自测（seg3a 实盘工件喂新断言函数：`chat_response.json` executed rack.add_node row + state_delta `/tracks/1007` 实轨行构造 get_project_state 形状）=**21/21 全绿 exit 0**——正例 2（execution_surface ok：graph 匹配 1012/1007/1013+token enabled/processing=true；rack_visibility ok：id 匹配+node Z2+顶层三行如实记录）+ 旧断言形状在同一蓝本上仍失败（修法必要性钉）+ 负例 13（rack 缺失/nodes 空/zone Z3/enabled false/instance_ready false/容器 id 不符/fixture 轨缺失/graph 异轨/kind≠node_add/instance false/processing false/load_error 非空各独立命中）+ 名字兜底正例 + load_error token 解析钉。自测脚本为临时件（`%TEMP%\arr277_offline_assert_test.py`，不入库不占文件域；蓝本输入全部来自已 commit 工件，可复现）。
+- **红线核对**：断言语义未放松（旧核对面 status ok+zone Z2 全保持，新增面全为增严）；文件域=脚本+卡面（dev_agent_smoke.ps1 核后零改动——透传缝与断言形状无耦合）；零真栈零 LLM（计费 0）；无 git reset/clean，主工作树未触。
+- **状态**：卡留 doing/，**停下候栈**——seg3a_r2 重跑腿（拿渲染非静音实证）由主管在 281 smokerun2 释放后另派。
+
 ## 验收
 
 - （主管回填）
