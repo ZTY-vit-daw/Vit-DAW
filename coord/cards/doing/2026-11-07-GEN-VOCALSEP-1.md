@@ -28,4 +28,4 @@
 
 ## 状态（2026-11-07 深夜）
 
-- 已领取（181f94d0）后暂停：**候用户部署**（[裁定 2026-11-07](../../decisions/2026-11-07-deployment-tasks-to-user.md)）——用户部署 demucs 包+htdemucs.pt（fbaipublicfiles 直链→~/.cache/torch/hub/checkpoints/）+选定 python 环境后，新代理接续（工作树 wt_306vsep 续用）。
+- 已领取（181f94d0）后**挂起（2026-11-07 深夜主管裁定：P3 非展演线依赖）**——教学轨迹录播/生成展示/混音展示三面均不依赖人声分离；**触发条件=「生成人声作为独立轨进 DAW 工程」场景入卡时再部署**（一晚工作量：demucs 包+htdemucs.pt 单模型即覆盖 vocals/drums/bass/other 四轨，无需其他拆解模型）。恢复时：用户部署（[裁定 2026-11-07](../../decisions/2026-11-07-deployment-tasks-to-user.md)）→新代理接续（工作树 wt_306vsep 续用）。
