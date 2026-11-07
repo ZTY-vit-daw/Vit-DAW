@@ -313,7 +313,7 @@ func (s Store) Read(req ReadRequest) (map[string]any, error) {
 		if key == "" {
 			continue
 		}
-		if strings.Contains(key, ".raw.") && evidenceSnapshot == nil {
+		if (strings.Contains(key, ".raw.") || trackKeyedStereoKey(key)) && evidenceSnapshot == nil {
 			evidenceSnapshot = lazyFeatureSnapshot(obs)
 		}
 		value, ok := readObservationKey(obs, key, req, evidenceSnapshot)
@@ -580,8 +580,113 @@ func readObservationKey(obs ObservationPacket, key string, req ReadRequest, evid
 	case "relationships.available":
 		return map[string]any{"status": "ready", "types": []string{"before_after", "ab_result", "rank_tracks", "focus_vs_project", "a_vs_b", "group_overlap"}}, true
 	default:
+		// MIXBOARD-TRACKKEY-1：track-keyed stereo 键的 TargetRef 语义路由。
+		if value, ok := readTrackKeyedStereoFace(obs, key, evidenceSnapshot); ok {
+			return value, true
+		}
 		return nil, false
 	}
+}
+
+// trackKeyedStereoKey reports whether key names a track-keyed stereo read
+// face (track.<id>.slow.stereo.summary / track.<id>.realtime.stereo.summary).
+func trackKeyedStereoKey(key string) bool {
+	_, _, ok := parseTrackKeyedStereoKey(key)
+	return ok
+}
+
+// parseTrackKeyedStereoKey 解析 track-keyed stereo 读取键。d1d3 等消费方按
+// 工程态真实 track id 逐轨请求（track.1007.slow.stereo.summary…），而
+// full_project 观察包自身的 TargetRef={id:"current",kind:"project"}——修复
+// 前 case 臂只按包自身 ref 键（track.current.*）命中，真实 track id 键恒走
+// default → catalog_key_not_found（265 实盘 d2_check 7/7 missing，
+// obs_20261106T152825 亲核：snapshot stereo_relation_summaries 19 行 ready
+// 而键面无消费路径）。本路由不改铸造面，只把读取键解析到观察包已携带的
+// 逐轨行集上；非 stereo 面（fast.levels/band_energy/time_energy 等）不在
+// 本卡文件域内，维持 default miss（勘察结论见任务卡回执）。
+func parseTrackKeyedStereoKey(key string) (trackID string, rowsKey string, ok bool) {
+	const prefix = "track."
+	if !strings.HasPrefix(key, prefix) {
+		return "", "", false
+	}
+	faces := map[string]string{
+		"slow.stereo.summary":     "stereo_relation_summaries",
+		"realtime.stereo.summary": "realtime_stereo_relation_summaries",
+	}
+	for face, rows := range faces {
+		suffix := "." + face
+		if !strings.HasSuffix(key, suffix) {
+			continue
+		}
+		if id := key[len(prefix) : len(key)-len(suffix)]; id != "" {
+			return id, rows, true
+		}
+	}
+	return "", "", false
+}
+
+// readTrackKeyedStereoFace 把 track-keyed stereo 请求路由到观察包内的对应
+// track 面：行集来自 feature snapshot（内联优先，`.raw.` 同款证据回溯兜底）。
+// 披露保持身份绑定：只有 track_id 与请求轨道严格同轨（EqualFold）的行才可
+// 披露；无行轨道返回诚实的逐轨 missing（键可路由，不再是
+// catalog_key_not_found）。观察包自身目标键（track.<own>.*）仍由上方精确
+// case 臂持有语义，本函数不接管。
+func readTrackKeyedStereoFace(obs ObservationPacket, key string, evidenceSnapshot map[string]any) (any, bool) {
+	trackID, rowsKey, ok := parseTrackKeyedStereoKey(key)
+	if !ok {
+		return nil, false
+	}
+	if trackID == firstNonEmpty(obs.TargetRef.ID, "target") {
+		return nil, false
+	}
+	realtime := rowsKey == "realtime_stereo_relation_summaries"
+	featureType := "stereo_relation_summary"
+	missingReason := "stereo_relation_row_missing_for_track"
+	if realtime {
+		featureType = "realtime_stereo_relation_summary"
+		missingReason = "realtime_stereo_relation_row_missing_for_track"
+	}
+	eligible := make([]map[string]any, 0)
+	for _, row := range observationFeatureRows(obs, rowsKey, evidenceSnapshot) {
+		if strings.EqualFold(cleanAnyString(row["track_id"]), trackID) {
+			eligible = append(eligible, row)
+		}
+	}
+	if len(eligible) == 0 {
+		return map[string]any{
+			"status":       "missing",
+			"feature_type": featureType,
+			"reason":       missingReason,
+			"track_id":     trackID,
+		}, true
+	}
+	// 同轨多行（265 实盘 track 1007 有 4 行：同材质不同 updated_at）按既有
+	// 行选择器取最优（状态位 → 目标分 → 投影完备度），与 singular 槽提升
+	// （promoteBestL3FeatureRows）同一判定链。
+	row := bestRealtimeFeatureRow(nil, eligible, map[string]any{"track_id": trackID})
+	if len(row) == 0 {
+		return nil, false
+	}
+	return buildStereoRelationSummary(row), true
+}
+
+// observationFeatureRows 取观察包的逐轨 feature 行集：内联 compact snapshot
+// 优先（v2 持久化投影保留 summary 行集；265 实盘形状），已解析的证据快照
+// 参数次之，最后走 FeatureSnapshotEvidence 回溯（hard-projected 包内联仅剩
+// {status:"projected",evidence_ref}，完整态在证据 blob）。
+func observationFeatureRows(obs ObservationPacket, rowsKey string, evidenceSnapshot map[string]any) []map[string]any {
+	if snapshot := mapValue(obs.GlobalSummary["feature_snapshot"]); len(snapshot) > 0 {
+		if rows := mapRowsAny(snapshot[rowsKey]); len(rows) > 0 {
+			return rows
+		}
+	}
+	if len(evidenceSnapshot) > 0 {
+		return mapRowsAny(evidenceSnapshot[rowsKey])
+	}
+	if full, _ := FeatureSnapshotEvidence(obs); len(full) > 0 {
+		return mapRowsAny(full[rowsKey])
+	}
+	return nil
 }
 
 func lazyFeatureSnapshot(obs ObservationPacket) map[string]any {
