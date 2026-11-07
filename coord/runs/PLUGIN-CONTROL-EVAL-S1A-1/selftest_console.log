@@ -1,0 +1,48 @@
+  ok: display_number ms
+  ok: display_number pct
+  ok: display_number plain
+  ok: display_number fraction
+  ok: display_number inf
+  ok: cases_digest stable
+  ok: T1 message frozen
+  ok: T1 rules frozen
+  ok: T2 message frozen
+  ok: T2 rules frozen
+  ok: T3 message frozen
+  ok: T3 rules frozen
+  ok: T4 message frozen
+  ok: T4 rules frozen
+  ok: T5 message frozen
+  ok: T5 rules frozen
+  ok: T6 message frozen
+  ok: T6 rules frozen
+  ok: T2 message hides param id
+  ok: case plugins map
+  ok: diff detects single change
+  ok: diff detects two changes
+  ok: diff tolerant to float noise
+  ok: T1 evaluator pass
+  ok: T1 evaluator fail wrong value
+  ok: T2 linear guess fails
+  ok: T2 correct halving passes
+  ok: T3 label exact pass
+  ok: T3 numeric-accept fails label check
+  ok: T4 pass with linkage allowance
+  ok: T4 fail when allowance excludes linked row
+  ok: T4 wrong mode fails
+  ok: T5 pass
+  ok: T5 mutation fails
+  ok: T6 limitation pass
+  ok: T6 fabricated statement fails
+  ok: telemetry filtered by conversation
+  ok: budget within caps
+  ok: budget breach llm calls
+  ok: budget breach input per call
+  ok: budget breach tool calls
+  ok: tool call count regex
+  ok: plan face detected
+  ok: interaction face detected
+  ok: no face on plain reply
+  ok: clarification shape
+  ok: completed not clarification
+selftest: PASS (0 failures)
