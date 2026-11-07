@@ -481,6 +481,19 @@ func compressorPhysicalTarget(binding map[string]any, requested float64, unit st
 		if !ok {
 			return 0, 0, false, false, rejectCompressorControl("display_curve_unusable", "observed display curve is not invertible")
 		}
+		// DELAY-APPLY-MS-FIX-1: the parametric inversion is only as good as its
+		// global fit. When the one-parameter fit misses the measured samples by
+		// a material share of the span, invert on the measured polyline instead:
+		// it is exact at every sample by construction. Observed case (300 S0
+		// run4/run5 T4 write_faces): H-Delay "Delay Sec" samples
+		// 1/251/501/1540/3500 ms fit the power model with ~11% span-relative
+		// residual, so inverting 250 ms through the fit landed on normalized
+		// 0.35065 = 352 ms while the apply reported status=exact.
+		if !compressorCurveFitTracksSamples(curve) {
+			if segment, segmentOK := compressorCurveSegmentInverse(curve, requested); segmentOK {
+				normalized = segment
+			}
+		}
 		return normalized, requested, false, hi < lo, nil
 	}
 	reachable := mapRowsValue(binding["reachable_values"])
@@ -529,6 +542,87 @@ func compressorEnumTarget(binding map[string]any, requested string) (float64, st
 		}
 	}
 	return 0, "", false
+}
+
+// compressorCurveFitTracksSamples reports whether the global one-parameter
+// fit behind eqNormalizedFromCurve (log or power) tracks the measured display
+// samples closely enough to trust between samples. The residual math mirrors
+// eqNormalizedFromCurve's model selection so gating here matches the
+// parametric inversion that actually ran.
+func compressorCurveFitTracksSamples(curve [][2]float64) bool {
+	logResidual, powerResidual := compressorCurveFitResiduals(curve)
+	best := math.Min(logResidual, powerResidual)
+	return math.IsInf(best, 1) || best <= compressorCurveFitTrustSpanShare
+}
+
+// compressorCurveFitTrustSpanShare is the maximum average span-relative
+// residual (|predicted-measured| averaged over samples, divided by the full
+// physical span) a global fit may carry before inversion falls back to the
+// measured polyline. The observed H-Delay miss was ~11% of span; smooth log
+// or linear surfaces fit at a few tenths of a percent.
+const compressorCurveFitTrustSpanShare = 0.05
+
+// compressorCurveFitResiduals recomputes the log-model and power-model
+// residuals eqNormalizedFromCurve selects between (see plugin_eq_control.go;
+// duplicated here because that inversion returns only the normalized value).
+func compressorCurveFitResiduals(curve [][2]float64) (logResidual, powerResidual float64) {
+	first, last := curve[0], curve[len(curve)-1]
+	lo, hi := first[1], last[1]
+	span := hi - lo
+	if span <= 0 {
+		return math.Inf(1), math.Inf(1)
+	}
+	powerExponent, powerSamples := 0.0, 0
+	for _, point := range curve[1 : len(curve)-1] {
+		n, value := point[0], point[1]
+		fraction := (value - lo) / span
+		if n <= 0 || n >= 1 || fraction <= 0 || fraction >= 1 {
+			continue
+		}
+		powerExponent += math.Log(fraction) / math.Log(n)
+		powerSamples++
+	}
+	powerResidual = math.Inf(1)
+	if powerSamples > 0 {
+		powerExponent /= float64(powerSamples)
+		if powerExponent > 0 {
+			powerResidual = eqCurveResidual(curve, span, func(n float64) float64 {
+				return lo + span*math.Pow(n, powerExponent)
+			})
+		}
+	}
+	logResidual = math.Inf(1)
+	if lo > 0 {
+		logResidual = eqCurveResidual(curve, span, func(n float64) float64 {
+			return lo * math.Pow(hi/lo, n)
+		})
+	}
+	return logResidual, powerResidual
+}
+
+// compressorCurveSegmentInverse inverts a physical target on the measured
+// display-probe polyline: it returns the normalized position whose linear
+// interpolation between the two bracketing measured samples equals the
+// target. The polyline passes through every measured sample exactly, so this
+// is the honest inversion basis whenever the global parametric fit does not
+// track the samples. Handles increasing and decreasing physical axes.
+func compressorCurveSegmentInverse(curve [][2]float64, requested float64) (float64, bool) {
+	if len(curve) < 2 {
+		return 0, false
+	}
+	for i := 1; i < len(curve); i++ {
+		prev, next := curve[i-1], curve[i]
+		lowValue, highValue := math.Min(prev[1], next[1]), math.Max(prev[1], next[1])
+		if requested < lowValue || requested > highValue {
+			continue
+		}
+		fraction := 0.0
+		if next[1] != prev[1] {
+			fraction = (requested - prev[1]) / (next[1] - prev[1])
+		}
+		return clampUnit(prev[0] + fraction*(next[0]-prev[0])), true
+	}
+	return 0, false
 }
 
 func compressorCurveFromAny(value any) [][2]float64 {
