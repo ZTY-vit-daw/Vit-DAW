@@ -34,6 +34,7 @@
 | 295 | CAPABILITYPACK-KEYADVERT-1 | todo 可领（提示词键宣传对账，292 勘察①转卡；零栈） |
 | 296 | D1D3-REGRESS-STACK-1 | todo 可领（274+292 真栈回归门；候栈排队） |
 | 297 | KERNEL-OFFRENDER-FORENSICS-1 | todo 可领（内核离线渲染数字静音取证，277 转卡；含 PD-7 查证） |
+| 298 | VSTI-PARAM-PROBE-1 | todo 可领（音源参数控制探针=准入后置链②，与 297 可并行；不写 attestation 库） |
 | 276 | EDU-SYMBOL-CORE-1 | done 已验收 pass 整卡收口（黄金三条真栈命中） |
 | 277 | ARR-SRCLOAD-1 | done 已验收 pass 收口（装载链四环节实证；渲染静音=域外内核缺陷转卡 297；**注册链③解锁**） |
 | 279 | EDU-LEVEL-CONTENT-1 | done 已验收 pass 整卡（首个乐局卡定稿+319 项复算） |
