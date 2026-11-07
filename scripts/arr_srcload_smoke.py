@@ -39,8 +39,19 @@ kept byte-identical when --full-access is not passed.
      driver approves it once via POST /agent/confirm.
   C  deterministic kernel-side chain:
      assert the executed rack_add_node row: status ok, zone_id == "Z2"
-     (synth zone), plugin_instance_ready recorded; insert_midi_clip +
-     add_midi_notes (16-beat C-major arpeggio) with readback; start_render
+     (synth zone), plus the kernel graph surface (graph_last_diff_kind
+     node_add whose node_id/rack_item_id/track_id match the executed reply
+     and the fixture track) and the instance surface (plugin_instance_ready
+     not false; load-state tokens enabled/processing true, load_error
+     empty); insert_midi_clip + add_midi_notes (16-beat C-major arpeggio)
+     with readback; then assert load VISIBILITY by the kernel's
+     rack-container shape: rack_add_node mounts the instrument as an
+     INTERNAL node of the track's rack container (track.rack.nodes[],
+     matched by plugin_id/rack_item_id against the executed reply), NOT as
+     a top-level track.plugins row — the top-level rows are only the rack
+     container itself plus built-ins ("New Rack", "Volume & Pan Plugin",
+     "Level Meter"); seg3a_20261107_0950 exit-4 blueprint. The matched node
+     re-asserts zone_id == Z2, enabled, instance_ready. Then start_render
      (16-bit WAV in the run artifacts dir); wait for the kernel
      render/render_done publication (SUB 5556, file-poll fallback); assert
      the render product is non-silent by physical metering — peak |sample|
@@ -310,6 +321,183 @@ def collect_executed(response: Dict[str, Any]) -> List[Dict[str, Any]]:
     for key in ("executed_kernel_reply", "executed", "replies"):
         rows.extend(rows_of(response.get(key)))
     return rows
+
+
+def parse_load_state_tokens(text: Any) -> Dict[str, str]:
+    """Parse the kernel's plugin_load_state disclosure string
+    (describeExternalPluginLoadState: 'name=... id=... enabled=true
+    processing=true ... load_error='). Space-containing values (path=)
+    fragment harmlessly; only the space-free tokens are consumed."""
+    tokens: Dict[str, str] = {}
+    for chunk in str(text or "").split():
+        key, sep, value = chunk.partition("=")
+        if sep and key:
+            tokens[key] = value
+    return tokens
+
+
+def check_load_execution_surface(result: Dict[str, Any], fixture_track_id: str) -> Dict[str, Any]:
+    """Graph + instance surface cross-check on the executed rack_add_node
+    result (blueprint = seg3a_20261107_0950 executed row; the kernel's
+    successful rack_add_node reply always carries these fields —
+    PluginRackControlService sets rack_item_id/plugin_id/zone_id/
+    plugin_instance_ready/plugin_load_state and appends the graph revision
+    properties on every success). ok=False is a command_defect.
+    """
+    surface: Dict[str, Any] = {
+        "plugin_instance_ready": result.get("plugin_instance_ready"),
+        "rack_item_id": result.get("rack_item_id"),
+        "plugin_id": result.get("plugin_id") or result.get("plugin_item_id"),
+        "track_id": result.get("track_id"),
+        "graph_last_diff_kind": result.get("graph_last_diff_kind"),
+        "graph_node_add_match": None,
+    }
+    tokens = parse_load_state_tokens(result.get("plugin_load_state"))
+    surface["load_state_tokens"] = {
+        key: tokens[key] for key in ("enabled", "processing", "async", "load_error") if key in tokens
+    }
+
+    if result.get("plugin_instance_ready") is False:
+        surface["ok"] = False
+        surface["reason"] = f"rack_add_node ok but plugin_instance_ready=false: {result.get('plugin_load_state')!r}"
+        return surface
+    if tokens.get("enabled") not in (None, "true"):
+        surface["ok"] = False
+        surface["reason"] = f"loaded plugin disabled in load state: enabled={tokens.get('enabled')!r}"
+        return surface
+    if tokens.get("processing") not in (None, "true"):
+        surface["ok"] = False
+        surface["reason"] = f"loaded plugin not processing: processing={tokens.get('processing')!r}"
+        return surface
+    if tokens.get("load_error"):
+        surface["ok"] = False
+        surface["reason"] = f"loaded plugin reports load_error={tokens.get('load_error')!r}"
+        return surface
+
+    kind = result.get("graph_last_diff_kind")
+    if kind is not None and str(kind) != "node_add":
+        surface["ok"] = False
+        surface["reason"] = f"graph_last_diff_kind={kind!r}, want node_add"
+        return surface
+    want_rack = str(result.get("rack_item_id") or "")
+    want_node = str(result.get("plugin_id") or result.get("plugin_item_id") or "")
+    for change in rows_of(result.get("graph_recent_changes")):
+        if str(change.get("kind") or "") != "node_add":
+            continue
+        surface["graph_node_add_match"] = {
+            "node_id": change.get("node_id"),
+            "rack_item_id": change.get("rack_item_id"),
+            "track_id": change.get("track_id"),
+            "summary": change.get("summary"),
+        }
+        problems = []
+        if want_node and str(change.get("node_id") or "") != want_node:
+            problems.append(f"node_id {change.get('node_id')!r} != executed plugin_id {want_node!r}")
+        if want_rack and str(change.get("rack_item_id") or "") != want_rack:
+            problems.append(f"rack_item_id {change.get('rack_item_id')!r} != executed {want_rack!r}")
+        if fixture_track_id and str(change.get("track_id") or "") != str(fixture_track_id):
+            problems.append(f"track_id {change.get('track_id')!r} != fixture track {fixture_track_id!r}")
+        if problems:
+            surface["ok"] = False
+            surface["reason"] = "graph node_add does not match the executed load: " + "; ".join(problems)
+        else:
+            surface["ok"] = True
+            surface["reason"] = ""
+        return surface
+    surface["ok"] = False
+    surface["reason"] = "no node_add row in graph_recent_changes for the executed rack_add_node"
+    return surface
+
+
+def check_rack_visibility(state_reply: Dict[str, Any], track_id: str, executed_result: Dict[str, Any]) -> Dict[str, Any]:
+    """Load-visibility check in the kernel's rack-container shape.
+
+    rack_add_node mounts the instrument INSIDE the track's rack container:
+    get_project_state track rows expose it as track.rack.nodes[] (kernel
+    createRackState: node_id/plugin_id/plugin_item_id/name/enabled/zone_id/
+    plugin_instance_ready per node, rack_item_id on the container), while
+    the top-level track.plugins rows only list the container ("New Rack")
+    and built-ins. seg3a_20261107_0950 proved the old top-level membership
+    assertion wrong (exit 4). Matching is id-first (plugin_id/plugin_item_id
+    against the executed reply), name-exact as fallback; the matched node
+    re-asserts zone Z2 / enabled / instance_ready. ok=False is a
+    command_defect.
+    """
+    evidence: Dict[str, Any] = {
+        "track_id": track_id,
+        "track_found": False,
+        "track_plugin_names": [],
+        "rack_item_id": None,
+        "rack_node_count": None,
+        "matched_by": None,
+        "node": None,
+    }
+    track_row: Optional[Dict[str, Any]] = None
+    for track in rows_of(state_reply.get("tracks")):
+        if str(track.get("track_id") or track.get("id") or "") == str(track_id):
+            track_row = track
+            break
+    if track_row is None:
+        return {"ok": False,
+                "reason": f"fixture track {track_id!r} not found in get_project_state tracks",
+                "evidence": evidence}
+    evidence["track_found"] = True
+    evidence["track_plugin_names"] = [str(row.get("name") or "") for row in rows_of(track_row.get("plugins"))]
+
+    rack = track_row.get("rack")
+    nodes = rows_of(rack.get("nodes")) if isinstance(rack, dict) else []
+    if isinstance(rack, dict):
+        evidence["rack_item_id"] = rack.get("rack_item_id")
+        evidence["rack_node_count"] = rack.get("node_count", len(nodes))
+    if not isinstance(rack, dict) or not nodes:
+        return {"ok": False,
+                "reason": (f"rack container internals missing on track {track_id} "
+                           f"(rack nodes empty; top-level plugin rows: {evidence['track_plugin_names']})"),
+                "evidence": evidence}
+
+    wanted_ids = {str(executed_result.get(key)) for key in ("plugin_id", "plugin_item_id")
+                  if str(executed_result.get(key) or "").strip()}
+    wanted_name = str(executed_result.get("plugin_name") or "")
+    matched: Optional[Dict[str, Any]] = None
+    matched_by = ""
+    for node in nodes:
+        node_ids = {str(node.get(key)) for key in ("plugin_id", "plugin_item_id", "node_id", "id")
+                    if str(node.get(key) or "").strip()}
+        if wanted_ids and node_ids & wanted_ids:
+            matched, matched_by = node, "id"
+            break
+    if matched is None and wanted_name:
+        for node in nodes:
+            if wanted_name in {str(node.get("plugin_name") or ""), str(node.get("name") or "")}:
+                matched, matched_by = node, "name"
+                break
+    if matched is None:
+        node_dump = [{"id": node.get("id"), "name": node.get("name"), "zone_id": node.get("zone_id")}
+                     for node in nodes]
+        return {"ok": False,
+                "reason": (f"loaded instrument not found inside track {track_id} rack nodes "
+                           f"(wanted ids={sorted(wanted_ids)}, name={wanted_name!r}; "
+                           f"rack nodes={node_dump}; top-level plugin rows: {evidence['track_plugin_names']})"),
+                "evidence": evidence}
+    evidence["matched_by"] = matched_by
+    evidence["node"] = {key: matched.get(key) for key in
+                        ("id", "node_id", "plugin_id", "name", "zone_id", "enabled",
+                         "plugin_instance_ready", "template_role")}
+
+    problems = []
+    if str(matched.get("zone_id") or "").upper() != "Z2":
+        problems.append(f"rack node zone_id={matched.get('zone_id')!r}, want Z2")
+    if matched.get("enabled") is not True:
+        problems.append(f"rack node enabled={matched.get('enabled')!r}, want true")
+    if matched.get("plugin_instance_ready") is False:
+        problems.append(f"rack node plugin_instance_ready=false (load_state={matched.get('plugin_load_state')!r})")
+    executed_rack = str(executed_result.get("rack_item_id") or "")
+    state_rack = str(rack.get("rack_item_id") or "") if isinstance(rack, dict) else ""
+    if executed_rack and state_rack and executed_rack != state_rack:
+        problems.append(f"rack container id {state_rack!r} != executed rack_item_id {executed_rack!r}")
+    if problems:
+        return {"ok": False, "reason": "; ".join(problems), "evidence": evidence}
+    return {"ok": True, "reason": "", "evidence": evidence}
 
 
 def wav_max_abs(path: Path) -> Dict[str, Any]:
@@ -634,13 +822,18 @@ def main() -> int:
     result = load_row.get("result") if isinstance(load_row.get("result"), dict) else {}
     if not result:
         # some faces nest the kernel reply directly on the row
-        result = {k: load_row.get(k) for k in ("status", "zone_id", "plugin_name", "plugin_id", "plugin_instance_ready", "plugin_load_state") if k in load_row}
+        result = {k: load_row.get(k) for k in ("status", "zone_id", "plugin_name", "plugin_id", "plugin_item_id",
+                                               "rack_item_id", "track_id", "plugin_instance_ready",
+                                               "plugin_load_state", "graph_last_diff_kind", "graph_recent_changes")
+                  if k in load_row}
     load_assert: Dict[str, Any] = {
         "tool": tool_name_of(load_row),
         "status": result.get("status"),
         "zone_id": result.get("zone_id"),
         "plugin_name": result.get("plugin_name"),
         "plugin_id": result.get("plugin_id"),
+        "rack_item_id": result.get("rack_item_id"),
+        "track_id": result.get("track_id"),
         "plugin_instance_ready": result.get("plugin_instance_ready"),
         "plugin_load_state": result.get("plugin_load_state"),
     }
@@ -652,6 +845,13 @@ def main() -> int:
     if str(result.get("zone_id") or "").upper() != "Z2":
         return fail(EXIT_CMD_DEFECT, "load",
                     f"instrument load zone_id={result.get('zone_id')!r}, want Z2 (synth zone)", load_assert)
+
+    execution_surface = check_load_execution_surface(result, track_id)
+    summary["phases"]["load"]["execution_surface"] = execution_surface
+    save_summary()
+    if not execution_surface.get("ok"):
+        return fail(EXIT_CMD_DEFECT, "load", execution_surface.get("reason") or "load execution surface mismatch",
+                    execution_surface)
 
     plugin_name = str(result.get("plugin_name") or "")
     if args.full_access:
@@ -699,22 +899,21 @@ def main() -> int:
             return fail(EXIT_ENV, "clip", f"readback note count {len(readback)} != {len(ARPEGGIO)}")
 
         state = zmq_command(args.kernel_zmq, {"cmd": "get_project_state", "command_timeout_ms": 60000})
-        plugin_names_on_track: List[str] = []
-        for track in rows_of(state.get("tracks")):
-            if str(track.get("track_id") or track.get("id") or "") != track_id:
-                continue
-            for plugin_row in rows_of(track.get("plugins")):
-                plugin_names_on_track.append(str(plugin_row.get("name") or ""))
+        # Load visibility in the kernel's rack-container shape (seg3a
+        # blueprint): the instrument lives INSIDE track.rack.nodes[], not in
+        # the top-level track.plugins rows (those hold only the "New Rack"
+        # container and built-ins). check_rack_visibility matches the executed
+        # plugin_id/rack_item_id against the rack internals and re-asserts
+        # zone Z2 / enabled / instance_ready on the node.
+        visibility = check_rack_visibility(state, track_id, result)
         summary["phases"]["clip"] = {
             "clip_id": clip_id,
             "note_count": len(ARPEGGIO),
-            "track_plugin_names": plugin_names_on_track,
+            "rack_visibility": visibility["evidence"],
         }
         save_summary()
-        if plugin_name and plugin_name not in plugin_names_on_track:
-            return fail(EXIT_CMD_DEFECT, "clip",
-                        f"loaded plugin {plugin_name!r} not visible on track {track_id}: {plugin_names_on_track}",
-                        {"track_plugin_names": plugin_names_on_track})
+        if not visibility["ok"]:
+            return fail(EXIT_CMD_DEFECT, "clip", visibility["reason"], visibility["evidence"])
 
         render_path = Path(args.render_path).resolve()
         if render_path.exists():
