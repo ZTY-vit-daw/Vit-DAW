@@ -1,0 +1,6 @@
+RUN_START 2026-11-07 18:40:39
+PS1_EXIT=127
+RUN_END 2026-11-07 18:40:39
+attempt0: bash backslash quoting abort (powershell -File path mangled, PS1_EXIT=127, 18:40:39, zero duration, stack untouched procs/ports=0 verified 18:42) — launch-leg self-correction, run NOT consumed (266 pre-stack precedent)
+RUN_START 2026-11-07 18:42:20
+RUN_END 18:54:24

@@ -1,0 +1,4 @@
+-File 形式参数的实际参数“D:Vit_DAW_wt_296regressscriptsrun_free_state_d1_smoke.ps1”不存在。请提供现有“.ps1”文件的路径，作为 -File 形式参数的一个实际参数。
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+

@@ -1,0 +1,1 @@
+b49b816b370eac743de9dc9d0f229720281bfa9818e73a4159d82d25ab63d650 *agent/bin/VitAgent.exe
