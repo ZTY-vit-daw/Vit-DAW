@@ -382,12 +382,15 @@ def resolve_discrete_label(before_rows: dict[str, dict[str, Any]], pid: str,
 
 def typed_apply_write(agent_http: str, fixture: dict[str, Any], family: str,
                       pid: str, label: Optional[str], display: Optional[float],
-                      timeout: float) -> dict[str, Any]:
+                      timeout: float, ms: Optional[float] = None) -> dict[str, Any]:
     """Typed-apply fallback for plugins whose generic set_plugin_param is
-    governance-blocked (guardLimiterOwnedGenericParameterWrite: the product
+    governance-blocked (guard*OwnedGenericParameterWrite: the product
     prescribes the typed control face when a typed topology is unresolved --
     e.g. Abbey Road Plates' Damper, bound as the reverb tail decay control,
-    pgtdc spot precedent apply_status=exact)."""
+    pgtdc spot precedent apply_status=exact). Control field is unit-aware:
+    the binding's disclosed physical unit selects value_ms / value_s /
+    percent / display_value (display_value alone was proven ambiguous in S0
+    run3: 250 in an ms binding landed at normalized 0.352 = 352 ms)."""
     inspect_tool = (f"plugin_grabber.inspect_{family}"
                     if family in {"reverb", "delay"} else None)
     apply_tool = (f"plugin_grabber.apply_{family}_controls"
@@ -410,20 +413,36 @@ def typed_apply_write(agent_http: str, fixture: dict[str, Any], family: str,
             break
     if not binding or not str(binding.get("control_ref") or ""):
         raise FixtureError(f"typed inspect {family} has no binding for param {pid}")
+    unit = ""
+    domain = binding.get("domain")
+    if isinstance(domain, dict):
+        unit = str(domain.get("unit") or "").strip().lower()
+    if not unit:
+        unit = str(binding.get("physical_unit") or "").strip().lower()
     control: dict[str, Any] = {"control_ref": binding.get("control_ref")}
     if label is not None:
         control["enum_label"] = label
+    elif ms is not None:
+        if unit in {"s", "sec", "second", "seconds"}:
+            control["value_s"] = ms / 1000.0
+        else:
+            control["value_ms"] = ms
     elif display is not None:
-        control["display_value"] = display
+        if unit in {"s", "sec", "second", "seconds"}:
+            control["value_s"] = display
+        elif unit in {"ms", "millisecond", "milliseconds"}:
+            control["value_ms"] = display
+        else:
+            control["display_value"] = display
     else:
-        raise FixtureError(f"typed apply needs a label or display value for {pid}")
+        raise FixtureError(f"typed apply needs a label, ms or display value for {pid}")
     applied = require_ok(invoke(agent_http, apply_tool, {
         "track_id": fixture["track_id"], "plugin_id": fixture["plugin_id"],
         "controls": [control]}, timeout), apply_tool)
     if str(applied.get("status")) not in {"exact", "quantized"}:
         raise FixtureError(f"typed apply status={applied.get('status')!r} "
                            f"(control={control})")
-    return {"face": apply_tool, "control": control,
+    return {"face": apply_tool, "control": control, "binding_unit": unit,
             "apply_status": applied.get("status")}
 
 
@@ -431,13 +450,14 @@ def write_param(agent_http: str, fixture: dict[str, Any], pid: str,
                 normalized: Optional[float], timeout: float,
                 before_rows: Optional[dict[str, dict[str, Any]]] = None,
                 family: Optional[str] = None,
-                target_display: Optional[float] = None) -> dict[str, Any]:
+                target_display: Optional[float] = None,
+                target_ms: Optional[float] = None) -> dict[str, Any]:
     """Deterministic write on the agent tool faces the model itself has:
     generic set_plugin_param first; when product governance blocks the
     generic face (typed topology gates), route through the typed apply face
     with the equivalent display-domain operation. Discrete targets resolve
     their step label from the disclosed label table; continuous targets use
-    the caller-provided target display value (nonlinear domains cannot be
+    the caller-provided ms/display target (nonlinear domains cannot be
     derived from normalized alone)."""
     resp = invoke(agent_http, "set_plugin_param", {
         "track_id": fixture["track_id"], "plugin_id": fixture["plugin_id"],
@@ -449,12 +469,16 @@ def write_param(agent_http: str, fixture: dict[str, Any], pid: str,
             if before_rows is not None:
                 label = resolve_discrete_label(before_rows, pid, float(normalized))
             display = target_display
-            if label is None and display is None:
-                display = display_number(
-                    (before_rows or {}).get(pid, {}).get("value_text"))
+            ms = target_ms
+            if label is None and ms is None and display is None:
+                before_row = (before_rows or {}).get(pid, {})
+                text = str(before_row.get("value_text") or "")
+                display = display_number(text)
+                if text.strip().lower().endswith("ms"):
+                    ms = display
             return typed_apply_write(agent_http, fixture, family or
                                      case_family(fixture["case_id"]), pid,
-                                     label, display, timeout)
+                                     label, display, timeout, ms=ms)
         require_ok(resp, "set_plugin_param")
         return {"face": "set_plugin_param"}
     return {"face": "set_plugin_param"}
@@ -572,13 +596,16 @@ def s0_case(case_id: str, agent_http: str, timeout: float, out_dir: Path,
             row["status"] = "verified"
             return row
 
-        # scripted correct operation (deterministic writes)
+        # scripted correct operation (deterministic writes; the write faces
+        # are recorded BEFORE expectations so a failed expectation still
+        # carries the face evidence)
         write_faces: list[dict[str, Any]] = []
         for write in spec["writes"]:
             face = write_param(agent_http, fixture, write["param_id"],
                                write["normalized"], timeout,
                                before_rows=rows_index(before),
-                               target_display=write.get("display"))
+                               target_display=write.get("display"),
+                               target_ms=write.get("ms"))
             write_faces.append({"param_id": write["param_id"], **face})
         row["write_faces"] = write_faces
         after = readback_parameters(fixture, timeout, agent_http)
@@ -667,9 +694,12 @@ def restore_changed_rows(fixture: dict[str, Any],
         norm = _num(row.get("normalized_value"))
         if norm is None:
             continue
+        text = str(row.get("value_text") or "")
+        display = display_number(text)
         write_param(agent_http, fixture, pid, norm, timeout,
                     before_rows=before,
-                    target_display=display_number(row.get("value_text")))
+                    target_display=display,
+                    target_ms=display if text.strip().lower().endswith("ms") else None)
 
 
 # ---------------------------------------------------------------------------
