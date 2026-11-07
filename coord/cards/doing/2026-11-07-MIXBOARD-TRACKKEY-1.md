@@ -22,4 +22,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 早窗 / origin/main=acc17453f45c9ba1da17eb1043d2b3d307017823 / owner=GLM 主会话 L2-worker 子代理（ZCode/PC）/ 分支=port/mixboard-trackkey-1 / worktree=D:/Vit_DAW_wt_292impl / 领取基线：HEAD=acc17453（worktree 自 origin/main 新建）、status --short 空、diff --stat 空（零领取前 diff）；在飞卡文件域核对：293=coord/runs 取证零源码、273=harness/chat（已停候栈）、275/281=py+edu+server、277=capability_pack+catalog 消费面（与 mixboard 键路由不相交，卡面红线条目在案）
+- 回执：（执行侧回填）
+- 验收：（主管回填）
