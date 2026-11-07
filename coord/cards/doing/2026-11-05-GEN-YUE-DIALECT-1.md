@@ -29,7 +29,11 @@
 
 ## 领取
 
-- （执行侧回填）
+- 2026-11-07 / origin/main=56c53bd1（领取 fetch 后亲核）；owner=GLM 主会话 L2-worker 子代理（ZCode/PC）
+- 分支 port/gen-yue-dialect-1 / worktree D:/Vit_DAW_wt_278impl；协调分支 coord/278-claim（worktree D:/Vit_DAW_wt_278coord）
+- 领取基线：worktree 自 56c53bd1 新建，HEAD=56c53bd1，status 全净，diff --stat 空
+- 前置核对：277 pass（c6c7f5a3）/281 pass（90126560）已合入；卡在 todo/、派发已确认；doing/ 三卡（ARRLOOP-AUTHBRIDGE/B3-ABLATION/CLOSURE-ROUTE-ADAPT）文件域与本卡不相交
+- YuE2 引擎勘察：E:\AI\YuE2\ 部署在场（yue-server.exe+启停脚本，259 工件 YUE2-PC-DEPLOY-1）；当前未运行（127.0.0.1:8087 连接拒绝）——烟测腿自管启停，不入 PC-RUNTIME-STACK（非三件套栈）
 
 ## 回执
 
