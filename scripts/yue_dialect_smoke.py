@@ -218,8 +218,16 @@ def leg0_registration(agent_base, run_root, report):
 
 def leg1_chat(agent_base, run_root, download_dir, report, budget):
     before = snapshot_files(download_dir)
+    # The "/goal " prefix is the designed escape hatch past the lexical
+    # capability router (capability_owner.go:60 — slash-prefixed messages
+    # bypass canary ownership; goalrunner_chat.go:76 keeps them on the agent
+    # loop; agentLoopUserText strips the prefix before the LLM sees it).
+    # Without it, an ABC score in the message gets lexically hijacked: the
+    # outro "b32|Z|" contains the marker "b3" -> static_mix.pan_layout canary
+    # -> turn.failed "B3 当前不能形成可执行候选" (run2 evidence, out-of-domain
+    # defect reported with anchor; not fixed in this card's file domain).
     chat_message = (
-        "请用 YuE2 把下面这段谱唱出来。"
+        "/goal 请用 YuE2 把下面这段谱唱出来。"
         "调用 gen.generate 工具，参数：provider_id=\"yue-local\"，"
         "abc=下面这段 ABC 谱（必须逐字原样传入，不要改写、不要截断），"
         "lyrics=下面的歌词，style_tags=\"%s\"，duration_seconds=60，不要传 track_id。\n\n"

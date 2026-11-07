@@ -1,0 +1,40 @@
+{
+ "schema_version": "yue_dialect_smoke.v1",
+ "agent_base": "http://127.0.0.1:7878",
+ "engine_base": "http://127.0.0.1:8087",
+ "run_root": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_193711",
+ "download_dir": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_193711\\downloads",
+ "started": "2026-11-07T19:37:46",
+ "engine_health": {
+  "ok": true,
+  "body": "{'status': 'ok'}"
+ },
+ "leg0": {
+  "outcome": "pass",
+  "entry": {
+   "api_key_from": "config_file",
+   "auth_style": "none",
+   "base_url": "http://127.0.0.1:8087",
+   "dialect": "yue_local",
+   "download_dir": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_193711\\downloads",
+   "has_api_key": false,
+   "id": "yue-local",
+   "model": "",
+   "poll_interval_seconds": 0,
+   "timeout_seconds": 0
+  },
+  "config_path": "D:\\Vit_DAW_wt_278impl\\coord\\runs\\GEN-YUE-DIALECT-1\\run_20261107_193711\\genapi_providers.json"
+ },
+ "leg1": {
+  "conversation_id": "yue_dialect_20261107_193746",
+  "goal_id": "goal_2120cc28edeaa14f",
+  "goal_status": "failed",
+  "stop_reason": "",
+  "wall_seconds": 6,
+  "chat_http_head": "{\"conversation_id\":\"yue_dialect_20261107_193746\",\"task_id\":\"task_ecf91a615a25e8be\",\"goal_id\":\"goal_2120cc28edeaa14f\",\"run_id\":\"run_8386062cf60d960c\",\"original_intent\":\"请用 YuE2 把下面这段谱唱出来。调用 gen.generate 工具，参数：provider_id=\\\"yue-local\\\"，abc=下面这段 ABC 谱（必须逐字原样传入，不要改写、不要截断），lyrics=下面的歌词，style_tags=\\\"Mandarin city pop, female vocal, warm electric piano, bass and drums, 108 BPM\\\"，duration_seconds=60，不要传 track_id。\\n\\nABC 谱：\\nX:1\\nT:\\nM:4/4\\nL:1/32\\nQ:1/4=106\\nV: Vocal clef=treble name=\\\"Vocal Melody\\\" sn",
+  "outcome": "leg1_chat_goal"
+ },
+ "outcome": "leg1_chat_goal",
+ "exit_code": 1,
+ "finished": "2026-11-07T19:37:52"
+}

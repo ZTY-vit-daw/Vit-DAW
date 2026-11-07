@@ -37,3 +37,13 @@
 - VitApp 栈（kernel+agent，7878/5555/5556）按 PC-RUNTIME-STACK 六步：净空亲核→登记推 main→≤60s 复核→启动→测试→TEARDOWN_ALL_ZERO 亲核释放。
 - 当前在卷：296 占用（2026-11-07 18:39 登记，run1 进行中）+298 候栈排队第 2——本腿排队第 3，等 296/298 释放并 fetch 重读后方可登记。
 - YuE2 引擎进程不登记 PC-RUNTIME-STACK（独立进程自管，启停记录落本 run 工件 prereq）。
+
+## run2 结果补记（19:37–19:38，基础设施+域外路由缺陷两案）
+
+- attempt1（19:26 run）：包装器引擎启动行管道阻塞（写句柄继承），驱动零腿零 LLM 零生成；修复 db85e03c。
+- run2（19:37 run，run_20261107_193711）：leg0 注册披露 **PASS**（yue-local/dialect=yue_local/base_url 在列，真栈亲证）；leg1 chat goal 6s failed——**域外词法路由缺陷**：
+  - 锚点：`agent/internal/chat/capability_owner.go:225`（inferProjectAwareCapability 对全消息小写做子串匹配）+ `:236`（marker `"b3"`）；
+  - 最小复现：chat 消息含 ABC 尾段 `b32|Z|`（子串 "b3"）→ 被 static_mix.pan_layout.v0 canary 认领 → turn.failed「B3 当前不能形成可执行候选」（zero steps）；同类暴露面：`e4f8d12z8` 含 "d1"（D1 劫持）、`"A7"b4c'8` 含 "b4"（B4）——任何携带乐谱/十六进制 ID 的 chat 消息均可能被词法劫持；
+  - 处置：本卡文件域不含 capability_owner.go，不扩修（AGENTS §11）；烟测改用设计内逃生门 `/goal ` 前缀（capability_owner.go:60 斜杠旁路 + goalrunner_chat.go:76 保留 agent loop + agentLoopUserText 剥前缀），路由修复建议交决策侧另立卡；
+  - leg2 未执行（leg1 失败即停）。零生成消耗（leg1 死于路由，未到引擎）；LLM 计费≈0（6.5s 内零工具计划轮，semantic_entry 分类一轮 flash 级）。
+- run3：同场景重跑（唯一改动=驱动消息 `/goal ` 前缀）；§8 口径不变——run2 的 leg1 失败归类为域外缺陷取证（非本卡功能面失败，非环境类），按卡面「生成产物 schema 差异大→取证分列」同精神处理：缺陷证据保全+锚点上交，chat 腿经设计内逃生门重试一次。
