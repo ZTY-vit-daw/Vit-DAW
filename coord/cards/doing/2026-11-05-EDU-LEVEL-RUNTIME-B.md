@@ -81,6 +81,18 @@
 - **栈纪律**：占用登记 `62c4af5f`（10:05 推 main；净空两轮亲核 10:03:55/10:04:49+登记后 ≤60s 即时复核 10:05:45 全零；277 已 09:55:23 释放在卷）；PS1 throw 后残留 VitAgent 11380/VitApp 20960 **owner 10:07:19 亲拆**；**TEARDOWN_ALL_ZERO 亲核 10:07:32**（六口 TCP listen=0+UDP 4444/4445=0+五类进程全零）；释放登记随本笔
 - **边界声明（AGENTS §5）**：本腿真栈烟测（真实内核+agent HTTP/ZMQ 面）；渲染面/用户旅程面不在覆盖内（不变）
 
+### 段 5：修复腿 2 观察组组装轨寻址修（2026-11-07，主管裁定候选①过滤后寻址，零栈先行；commit `cdf99f80` @ `port/edu-level-runtime-b` 已推送；**smokerun3 候栈未跑——277 seg3a_r2 占用中**）
+
+- **领取续占核验**：本腿续占执行（owner 不变）；开工时 HEAD=`c5e54c5c`、`git status --short` 空、净树开工；卡面段 1-4 回执通读，最新=段 4 smokerun2 取证
+- **修复实现**（2 文件，+205/−19；commit `cdf99f80`）：
+  - `agent/internal/chat/edu_jam_chat.go`（+56）：新增 `eduJamUserTrackRows`/`eduJamIsUserTrackRow`/`eduJamServiceTrackKind` 三函数——判据与 `shadow.isUserTrack`（shadow.go:740，包内未导出故**复制同语义+注释来源**）同源：track_type/track_name 负面清单（master/arranger/chord/marker/tempo，两维任一命中）剔除服务轨；`is_audio_track`/`is_audio` 布尔或 `vit_type∈{audio,midi,bus,ghost}` 正判用户轨（生产同型先例=capability_routing.go:530 已注释在锚点）；`observeEduJam` 槽寻址改 `eduJamUserTrackRows(mapRowsFromAny(state["tracks"]))` 过滤后 1 基下标，段 4 根因注释就地落锚
+  - `agent/internal/chat/edu_jam_chat_test.go`（+168）：**夹具反钉真实内核形状（274 教训兑现）**——`eduJamFakeTrack` 补用户轨真实标记（track_type=hybrid+is_audio_track=true，shadow_test.go:132-136 同形状）；新增 `eduJamServiceTracks()`（Arranger 1002/Chord 1003/Marker 1004/Tempo 1005/Master 1006，is_audio_track=false，shadow_test.go:127-131+fixture .vit:40-48 同形状钉死）+`eduJamRealShapeTracks()`（5 服务轨前缀组装）；**全部 10 处**假内核 tracks 构造改真实形状（含空工程=仅服务轨两处）
+- **配对单测**：正锚 `TestEduJamObserveAddressesUserTracksPastServiceTracks`（5 服务轨前置+3 用户轨：melody_imported→t1 theme 42 音逐音相等 / melody_corrupted→t2 损坏表 37 拍 68 / accompaniment_blank→t3 留白 clip_exists=false / TrackNonEmpty 三槽全对）+负锚 `TestEduJamObserveNeverSelectsServiceTrackClips`（服务轨带 MIDI clip 加压：过滤后永不选中，svc 锚音不得漏进任何槽观察）
+- **负锚性质实证（修复前形态）**：临时还原原始下标寻址（仅过滤一行回退）跑两新测例——**精确复现 smokerun2 失败面**：正锚 `melody_imported got 0 notes`（=Arranger 无 clips，clip_exists=false 同款）+负锚 `got 1 notes`（=svc-arranger 服务轨 clip 泄漏，clip_exists=true 但数据错轨）；验证后修复行已恢复，工作树与 commit `cdf99f80` 一致
+- **测试命令与退出码**（全 0）：`go test ./internal/chat -run 'TestEduJam' -count=1`（12 例 PASS=10 既有+2 新）；`go test ./internal/chat ./internal/edu -count=1`（chat 197.7s ok+edu 0.670s ok 全包零回退）；`go build ./...` exit 0
+- **smokerun3 衔接裁定兑现**：修复+测试完成后 fetch origin/main（@`8fb5e0e4`）读栈记录——**占用中**（277 ARR-SRCLOAD-1 seg3a_r2 渲染非静音实证重跑腿 10:21 登记在卷，owner=ZCode GLM-5.3 执行子代理 wt_277impl）；按指令停下候栈不等待不覆盖，**本腿未占栈未跑**；栈释放后 smokerun3 口径=smokerun2 同款（-EduJamSmoke 真栈单 run 无重跑，exit 0=PASS→段 4 收口 mv done/、2=环境、4=确定性面缺陷取证留 doing/；工件新目录）
+- **边界声明（AGENTS §5）**：本腿零栈（单测+build）；文件域=edu_jam_chat.go±测试，未触 273/274/275/277/292/293/294 在飞域（shadow.go/capability_routing.go 仅只读引证）
+
 ## 验收
 
 - （主管回填）
