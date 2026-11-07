@@ -1,0 +1,21 @@
+# attempt1 console excerpt (script killed at engine-start block; prereq.txt never written — reconstructed from the session console capture 2026-11-07 19:35)
+
+run_root=D:\Vit_DAW_wt_278impl\coord\runs\GEN-YUE-DIALECT-1\run_20261107_192625
+head=fd1328a0f93e79a0422d9db8e6258ebb0e48e4ee
+git_status=(clean)
+
+port_free=7878 / 5555 / 5556 / 8087
+vram_before_mib=1676
+agent_binary=...\run_20261107_192625\bin\VitAgent.yuedialect.exe size=39187456 mtime=2026-11-07T19:26:27
+kernel_binary=D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe size=31790592 mtime=2026-10-28T21:26:38 sha256=C1E32DFE5338A9E11444A9F86C41454AB50B299DE5EA44FB0DDF21C411246F83
+kernel_pid=12040 -> ok: kernel up
+agent_pid=5456 -> ok: agent up
+Kernel warm-up dwell 30s
+authority_mode=full_project_access
+== Start YuE2 engine (independent process; self-managed per card 278)
+[NO FURTHER OUTPUT — wrapper blocked at `& powershell -File start_engine.ps1 | Out-Null`
+ (pipe write handle inherited by yue-server -> pipeline never sees EOF).
+ Engine itself started and answered /health 200 (verified externally 19:29-19:35);
+ VRAM job / python driver never launched; zero legs, zero LLM, zero generation.
+ Owner killed blocked PS1 26972 and tore down agent 5456 / kernel 12040 / engine 26368;
+ TEARDOWN_ALL_ZERO verified 19:35 (all seven TCP listen=0, all process classes=0).]
