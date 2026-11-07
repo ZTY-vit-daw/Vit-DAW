@@ -59,6 +59,7 @@ param(
     [int]$Leg2InvokeTimeoutSeconds = 300,
     [int]$Leg2JobBudgetSeconds = 300,
     [switch]$SkipLeg1,
+    [switch]$SkipLeg2,   # endgame leg: re-verification clause closed per ruling B — generation budget goes to leg1 only
     [double]$VramPeakLimitMiB = 6451  # 6.3GB in MiB, YUE2-PC-DEPLOY-1 measured peak ceiling
 )
 
@@ -271,6 +272,7 @@ try {
         "--leg2-job-budget", [string]$Leg2JobBudgetSeconds
     )
     if ($SkipLeg1) { $driverArgs += "--skip-leg1" }
+    if ($SkipLeg2) { $driverArgs += "--skip-leg2" }
     & python @driverArgs
     $driverExit = $LASTEXITCODE
     Add-Prereq ("driver_exit=" + $driverExit)

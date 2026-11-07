@@ -8,12 +8,18 @@ as an independent process — it never registers in PC-RUNTIME-STACK):
   leg0 registration (deterministic, zero LLM, zero generation)
       /agent/invoke gen.providers must list the yue-local provider
       (dialect yue_local, base_url http://127.0.0.1:8087).
-  leg1 chat-driven generation (1 LLM goal, 1 generation)
-      /agent/chat "用 YuE2 把这段谱唱出来" carrying the baseline ABC score;
-      the goal must complete and the dialect must land both artifacts in the
-      run-scoped download dir (sniffed WAV + replay JSON sidecar). The only
-      writer into that dir is the agent's genapi_generate yue_local call, so
-      the file set IS the dialect-invocation evidence.
+  leg1 chat-driven generation (1 LLM goal, 1 generation) — endgame leg
+      /agent/chat "用 YuE2 把这段谱唱出来" carrying the baseline ABC score,
+      with NO "/goal " prefix: the message text itself (outro "b32|Z|", style
+      tags "vocal/drums/BPM") is the live replay of both GEN-CHAT-ROUTING-1
+      (303) defect shapes — the lexical canary must NOT hijack the turn
+      (run2 shape) and the narrowed toolset must disclose+invoke gen.generate
+      (run3 shape). Assertions: goal completed, no hijack marker, gen.generate
+      trace in the event stream, and the dialect must land both artifacts in
+      the run-scoped download dir (sniffed WAV with plausible duration +
+      replay JSON sidecar). The only writer into that dir is the agent's
+      genapi_generate yue_local call, so the file set IS the
+      dialect-invocation evidence.
   leg2 a-cappella re-verification (259 acceptance carry-over; deterministic
       invoke, 1 generation + 1 SheetSage2 transcription)
       gen.generate with the P1 score (Ins voice fully rested) -> engine
@@ -25,8 +31,9 @@ Probabilistic-run protocol (AGENTS.md §8, declared before execution; the PS1
 wrapper carries the same declaration):
   runs        : 1 full-chain attempt; no in-run retry of a generation leg.
   success     : exit 0 — all three legs pass their assertions.
-  fail classes: leg0_registration, leg1_chat_goal, leg1_no_artifacts,
-                leg1_bad_artifacts, leg2_invoke, leg2_transcribe,
+  fail classes: leg0_registration, leg1_chat_goal, leg1_no_generate_tool,
+                leg1_no_artifacts, leg1_bad_artifacts, leg1_bad_duration,
+                leg2_invoke, leg2_transcribe,
                 leg2_instrumental_detected, leg2_shape_mismatch,
                 timeout, env_failure.
   stop-loss   : same-shape failure twice across runs -> stop and escalate;
@@ -165,6 +172,31 @@ def invoke_tool(agent_base, tool, args, timeout=120):
     return http_json("POST", agent_base.rstrip("/") + "/agent/invoke", payload, timeout=timeout)
 
 
+def wav_duration_seconds(path):
+    """Duration of a RIFF/WAVE file in seconds (fmt byte_rate over the data
+    chunk size), or None when the header does not carry both chunks."""
+    with open(path, "rb") as fh:
+        head = fh.read(8192)
+    if len(head) < 12 or head[0:4] != b"RIFF" or head[8:12] != b"WAVE":
+        return None
+    pos = 12
+    byte_rate = None
+    data_size = None
+    while pos + 8 <= len(head):
+        cid = head[pos:pos + 4]
+        csz = int.from_bytes(head[pos + 4:pos + 8], "little")
+        body = pos + 8
+        if cid == b"fmt " and body + 16 <= len(head):
+            byte_rate = int.from_bytes(head[body + 8:body + 12], "little")
+        if cid == b"data":
+            data_size = csz if csz not in (0, 0xFFFFFFFF) else max(0, os.path.getsize(path) - body)
+            break
+        pos = body + csz + (csz & 1)
+    if not byte_rate or data_size is None:
+        return None
+    return data_size / float(byte_rate)
+
+
 def snapshot_files(download_dir):
     out = {}
     for root, _dirs, files in os.walk(download_dir):
@@ -218,20 +250,21 @@ def leg0_registration(agent_base, run_root, report):
 
 def leg1_chat(agent_base, run_root, download_dir, report, budget):
     before = snapshot_files(download_dir)
-    # The "/goal " prefix is the designed escape hatch past the lexical
-    # capability router (capability_owner.go:60 — slash-prefixed messages
-    # bypass canary ownership; goalrunner_chat.go:76 keeps them on the agent
-    # loop; agentLoopUserText strips the prefix before the LLM sees it).
-    # Without it, an ABC score in the message gets lexically hijacked: the
-    # outro "b32|Z|" contains the marker "b3" -> static_mix.pan_layout canary
-    # -> turn.failed "B3 当前不能形成可执行候选" (run2 evidence, out-of-domain
-    # defect reported with anchor; not fixed in this card's file domain).
+    # Endgame-leg message: NO "/goal " prefix. The prefix was the designed
+    # escape hatch around the lexical canary hijack (run2 evidence; the defect
+    # was fixed out-of-domain by GEN-CHAT-ROUTING-1/303, now merged into this
+    # branch). Sending the raw text is the live replay of the run2 shape: the
+    # outro "b32|Z|" carries the marker "b3", which must now stay inert under
+    # word-boundary matching, so the turn routes to the agent loop instead of
+    # the static_mix.pan_layout canary. "唱出来" is the generation-intent
+    # trigger (agentLoopGenerationIntent) and the style tags still carry
+    # vocal/drums/BPM vocabulary, so mix/midi/transport packs arm alongside —
+    # the run3 shape: the narrowed toolset must still disclose gen.generate.
     chat_message = (
-        "/goal 请用 YuE2 把下面这段谱唱出来。"
-        "调用 gen.generate 工具，参数：provider_id=\"yue-local\"，"
-        "abc=下面这段 ABC 谱（必须逐字原样传入，不要改写、不要截断），"
-        "lyrics=下面的歌词，style_tags=\"%s\"，duration_seconds=60，不要传 track_id。\n\n"
-        "ABC 谱：\n%s\n\n歌词：\n%s" % (LEG1_STYLE, ORIG_ABC, LYRICS)
+        "请用 YuE2 把下面这段谱唱出来。"
+        "provider 用 \"yue-local\"，ABC 谱必须逐字原样传入（不要改写、不要截断），"
+        "歌词和风格在下面，duration_seconds=60，不要传 track_id。\n\n"
+        "ABC 谱：\n%s\n\n歌词：\n%s\n\n风格：\"%s\"" % (ORIG_ABC, LYRICS, LEG1_STYLE)
     )
     conversation_id = "yue_dialect_" + time.strftime("%Y%m%d_%H%M%S")
     started = time.time()
@@ -291,6 +324,42 @@ def leg1_chat(agent_base, run_root, download_dir, report, budget):
         leg["outcome"] = "leg1_chat_goal"
         return False
 
+    # Route-not-hijacked evidence (run2 shape replay): a lexical canary
+    # hijack kills the turn in zero steps with "B3 当前不能形成可执行候选"
+    # / turn.failed. A completed goal already excludes that shape; record the
+    # negative marker scan explicitly so the report carries the routing face.
+    hijack_markers = ["不能形成可执行候选", "turn.failed"]
+    hijack_hits = [m for m in hijack_markers if m in (chat_raw or "")]
+    leg["route_hijack_markers"] = hijack_hits
+    if hijack_hits:
+        leg["outcome"] = "leg1_chat_goal"
+        return False
+
+    # gen.generate disclosure+invocation evidence (run3 shape replay): with
+    # the generation pack armed, the tool call must leave a trace in the
+    # event stream. Only daw_action items count: turn bodies echo user text
+    # and LLM prose, and run3's own stream contains "gen.generate" inside
+    # both (the model naming the absent tool while honestly refusing) — a
+    # bare text scan would false-positive on the exact defect shape this leg
+    # replays. Real invocations carry the tool name in the daw_action item_id
+    # or payload.command_name (run3 precedent: observe_b1_gain_staging /
+    # mix_observe).
+    tool_hits = set()
+    for ev in events:
+        if not isinstance(ev, dict) or ev.get("item_type") != "daw_action":
+            continue
+        item_text = str(ev.get("item_id") or "")
+        payload = ev.get("payload") if isinstance(ev.get("payload"), dict) else {}
+        cmd_text = str(payload.get("command_name") or "")
+        for name in ("gen.generate", "gen.providers", "genapi_generate", "gen_generate", "gen_providers"):
+            if name in item_text or name in cmd_text:
+                tool_hits.add(name)
+    tool_hits = sorted(tool_hits)
+    leg["generation_tool_traces"] = tool_hits
+    if not tool_hits:
+        leg["outcome"] = "leg1_no_generate_tool"
+        return False
+
     # Artifact face: files that appeared in the run-scoped download dir during
     # the goal. Only the agent's genapi_generate yue_local call writes there.
     after = snapshot_files(download_dir)
@@ -307,7 +376,19 @@ def leg1_chat(agent_base, run_root, download_dir, report, budget):
             head = fh.read(12)
         if head[0:4] == b"RIFF" and head[8:12] == b"WAVE":
             wav_ok = True
-            leg["wav"] = {"path": wav, "bytes": os.path.getsize(wav)}
+            duration = wav_duration_seconds(wav)
+            leg["wav"] = {
+                "path": wav,
+                "bytes": os.path.getsize(wav),
+                "duration_seconds": duration,
+            }
+    # Duration plausibility for a duration_seconds=60 request: the engine
+    # renders ~0.55x realtime 60s songs (YUE2-PC-DEPLOY-1; run4 evidence
+    # 11,012,908B ≈ 62.4s @44.1kHz stereo 16bit). Window [45, 75]s.
+    duration_val = ((leg.get("wav") or {}).get("duration_seconds")) or 0
+    if not wav_ok or not (45.0 <= duration_val <= 75.0):
+        leg["outcome"] = "leg1_bad_duration" if wav_ok else "leg1_bad_artifacts"
+        return False
     replay_info = None
     for rep in replays:
         try:
@@ -476,6 +557,7 @@ def main():
     parser.add_argument("--leg2-invoke-timeout", type=int, default=300)
     parser.add_argument("--leg2-job-budget", type=int, default=300)
     parser.add_argument("--skip-leg1", action="store_true")
+    parser.add_argument("--skip-leg2", action="store_true")
     args = parser.parse_args()
 
     os.makedirs(args.run_root, exist_ok=True)
@@ -508,10 +590,12 @@ def main():
                 outcome = report["leg1"]["outcome"]
                 raise SystemExit(1)
 
-        ok2 = leg2_acapella(
-            args.agent_base, args.engine_base, args.run_root, report,
-            args.leg2_invoke_timeout, args.leg2_job_budget,
-        )
+        ok2 = True
+        if not args.skip_leg2:
+            ok2 = leg2_acapella(
+                args.agent_base, args.engine_base, args.run_root, report,
+                args.leg2_invoke_timeout, args.leg2_job_budget,
+            )
         if not ok2:
             outcome = report["leg2"]["outcome"]
             raise SystemExit(1)

@@ -72,3 +72,15 @@
   - **两新样本 1/1 分裂**：run4 回读 Ins=纯休止（PASS）/ run5 回读 Ins=有音高（FAIL）；同 seed=11 同谱（引擎声学层重跑非逐字节确定=已知边界）；
 - **结论（如实）**：259 单次实证「仅人声模式→转谱回读无器乐」**不能升级为确定性断言**——该性质在 (渲染,转谱) 联合层面是概率性的。按 §8 预写 leg2_instrumental_detected 类：取证上交主管裁定，不硬凑不弱化；生成预算 2/2 尽，不再消耗。
 - 今晚收口：真栈烟测整体 exit 0 未达成（chat 腿=域外双缺陷在案；leg2=复验断言样本 2 失败）；被测面（yue_local dialect 全链）四 run 连续绿；卡留 doing/ 待主管处置。
+
+## 末腿 §8 跑前口径（endgame leg，成文于启动前；303 双修已合入 main afda4b4e，ruling 放行）
+
+- 场景：`scripts/run_yue_dialect_smoke.ps1 -SkipLeg2`（leg0 注册披露 + leg1 chat 驱动一回合；**leg2 跳过——复验条款已按晚窗段主管裁定 B 收口（谱面层确定性成立+声学层不承诺），不再消耗生成预算**）。
+- 被测：wt_278impl @ port/gen-yue-dialect-1（origin/main afda4b4e 已 merge=merge commit，`go test ./internal/chat ./internal/genapi -count=1` 全绿后启栈）；agent=worktree 现场构建；kernel=主检出预构建 VitApp.exe 只读复用（SHA256 随 prereq）；YuE2 引擎自管启停（不入 PC-RUNTIME-STACK）。
+- leg1 消息=**无前缀自然话术**：「请用 YuE2 把下面这段谱唱出来。provider 用 "yue-local"…」+基线谱（outro `b32|Z|` 在场）+歌词+风格串（vocal/drums/108 BPM 在场）——run2 劫持形态+run3 收窄形态的实盘复放面，不点名工具名（披露面由 LLM 自选 gen.generate 兑现）。
+- 断言三合一：①路由不劫持（goal completed + chat 响应无「不能形成可执行候选」/turn.failed 标记）；②gen 系工具真实调用轨迹（仅认 daw_action 事件的 item_id/payload.command_name——run3 亲证 turn body 会回显 gen.generate 文本，裸文本扫描会假阳性）；③产物面（run 专属 downloads 新落 wav=RIFF+时长 45–75s 窗[run4 亲证 57.36s/run5 60.0s]+replay 含 abc）。
+- 运行次数与预算：**单 run 无重跑**（环境中断类允许 owner 亲拆重建栈一次，二次即停）；生成恰 1 次（60s 歌请求，21–40s 墙钟）；LLM=一 chat goal（工具计划+终局回复，flash 级 ≈¥0.05–0.15，上界 ¥0.5）；chat-budget 420s；VRAM 峰值 ≤6451MiB（超限=环境中断类）。
+- 成功条件：ps1 **exit 0** = leg0 在 + leg1 三合一全过。
+- 失败分类：**exit 0=PASS**；**exit 2=环境中断**（端口/引擎/内核/vram_over_budget——重建栈一次许可内）；**exit 1=功能面失败取证上交**（leg0_registration / leg1_chat_goal[含劫持复发=303 修复被推翻的实盘证据] / leg1_no_generate_tool[披露面复发=同] / leg1_no_artifacts / leg1_bad_artifacts / leg1_bad_duration[LLM 未按 60s 指令传参属话术面失败，如实记录]）。确定性面缺陷（断言失败）取证留 doing/ 上交，不弱化断言不重跑。
+- 止损线：同失败形态跨 run 两次 → 停止投入上交。run2/run3 两形态已由 303 修复+配对单测关闭；若末腿复发=修复被推翻的新证据，直接上交不重试。
+- 栈协议：当前 300（PLUGIN-CONTROL-EVAL-RUNNER-1）2026-11-07 20:12 占用在卷——**排队等释放**；登记前 fetch 重读+亲核，六步全链（净空亲核→登记推 main→≤60s 复核→启动→测试→TEARDOWN_ALL_ZERO 亲核释放）。
