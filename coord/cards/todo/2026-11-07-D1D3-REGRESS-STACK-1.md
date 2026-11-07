@@ -32,4 +32,4 @@
   - **工件**：coord/runs/D1D3-REGRESS-STACK-1/run1/（RUNBOOK §8 跑前成文 272f27e9 于 run 前+evidence.md 取证+console×2+ps1_exit×2+d1_smoke_report.json 全量+agent_last_run1.log+telemetry 30 行+二进制 SHA256），port/d1d3-regress-stack-1 2731b2b2 已推 origin；大件同批入库（13.8MB 报告，D3 verifyrun2 先例）。
   - **交主管裁定项**：①回归门未收口——重派口径建议（现 main 已含 295 f6d1982e，键宣传面修后重跑可同时消解归因②；可参 266 先例单门组降参收窄变量）②runner capability_blocked 形态是否开取证卡（若重派再现即两现开卡）③D2 门组断言修正可先行验收（离线双形状干跑在卷，随重派 run 活栈兑现）。
   - **端测边界声明（AGENTS §5）**：本卡改动=冒测脚本断言块（未触 agent 源码/webui/demo 旅程）；真栈验收=run_free_state_d1_smoke.ps1 门组——**run1 exit 1 未达 §5 门槛**，D1A/D2/D3 门组零活栈覆盖如实申报；两渲染面门槛（E2E-WEBUI-1/JOURNEY-1）不适用。
-- 验收：（主管回填）
+- 验收（2026-11-07 晚窗，主管）：**rework（返工重跑一次）+D2 断言修正预收**——run1 取证合格（失败机理分列规范，归因①LLM settle 边界停为首要候选、归因②基线未含 295 修亲证成立）；D2 门组断言修正（present 断言+1039 反钉+1007 锚值±0.0005+离线双形状干跑）**预收 pass**，活栈兑现随重跑。**返工意见**：①基线=现 main（含 295 修 f6d1982e，消解归因②）重跑一次，非原样重跑（版本已变）②capability_blocked 形态若重跑再现（两现）→停止，开取证卡③重跑排栈队列 300 S0/P 之后④预算沿用 ≈¥0.6/run。卡移回 todo 候重跑腿。L1 台账 48h 窗口。

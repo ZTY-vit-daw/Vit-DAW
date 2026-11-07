@@ -32,7 +32,7 @@
 | 293 | WE-MISMATCH-FORENSICS-1 | done 已验收 pass（取证型：设计内披露+物化链无罪+前提证伪；转卡 294；加固挂 PD-6） |
 | 294 | FIXTURE-WE-HYGIENE-1 | done 已验收 pass（三处剔除+离线四情景验证；三休眠行记录接受） |
 | 295 | CAPABILITYPACK-KEYADVERT-1 | done 已验收 pass 合入（A 案宣传面修正） |
-| 296 | D1D3-REGRESS-STACK-1 | todo 可领（274+292 真栈回归门；候栈排队） |
+| 296 | D1D3-REGRESS-STACK-1 | todo（rework 重跑一次：D2 断言修正预收；基线=现 main 含 295 修；排 300 之后；blocked 两现开取证卡） |
 | 297 | KERNEL-OFFRENDER-FORENSICS-1 | done 已验收 pass（候选②fail-silent 守卫唯一不可排除；转卡 301 复现；PD-7=by-design 钉死） |
 | 300 | PLUGIN-CONTROL-EVAL-RUNNER-1 | doing（晚窗在派；含 S0+S1-P 授权——deepseek-flash 单模型，用户裁定） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | todo 可领（守卫留痕+M0-M3 复现；C++ 最小插桩+栈） |
