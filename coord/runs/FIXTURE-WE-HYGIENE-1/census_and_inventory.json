@@ -1,0 +1,26 @@
+{
+  "fixture": "semantic_processor_project_smoke_v1_80085263a651cf20",
+  "post_hygiene_census_1055_identity_refs": {
+    "state_layer_hygienized": [
+      "mixboard_feature_snapshot.json (two targets cleaned; siblings retained, see hash_ledger)",
+      "acoustic_package_status.json (clean, 6 canonical packages)"
+    ],
+    "history_layer_retained_read_only": [
+      "projects/spv1_p01/.vit_agent/vitproj_b3f2838183d64add9ca7824b8b3ac557/observations/obs_20260905T080104_ff7c68e6d066.json (121)",
+      "projects/spv1_p01/.vit_agent/vitproj_b3f2838183d64add9ca7824b8b3ac557/observations/obs_20260905T080116_ac6dea211861.json (27)",
+      "projects/spv1_p01/.vit_agent/vitproj_b3f2838183d64add9ca7824b8b3ac557/observations/obs_20260905T080128_c1e583ac826d.json (27)",
+      "projects/spv1_p01/.vit_agent/vitproj_b3f2838183d64add9ca7824b8b3ac557/observations/obs_20260905T080145_a7eed7d07b21.json (27)",
+      "projects/spv1_p01/.vit_derived/vitproj_b3f2838183d64add9ca7824b8b3ac557/l3_feature_log.jsonl (18)",
+      "projects/spv1_p01/.vit_history/.sessions/vitproj_b3f2838183d64add9ca7824b8b3ac557/session_20260905T075904_d81c0d3e/workspace/state/agent_runtime_state.json (1170)",
+      "projects/spv1_p01/.vit_history/.sessions/vitproj_b3f2838183d64add9ca7824b8b3ac557/session_20260905T075904_d81c0d3e/workspace/state/conversation_graph.json (4)"
+    ],
+    "project_state": "projects/spv1_p01/spv1_p01.vit: zero 1055 (9/6 state, canonical ids 1001-1036)",
+    "backups_with_legitimate_1055_history": [
+      "spv1_p01.vit.bak_20260905 (id=\"1055\" x1)",
+      "spv1_p01.vit.bak_20260906_preclip1055 (id=\"1055\" x1)"
+    ],
+    "other_projects_or_vitproj_dirs": "zero 1055 refs"
+  },
+  "sibling_fixture_02be6193fbc17bed": "state-layer files (mixboard_feature_snapshot.json / acoustic_package_status.json / *.vit) with clip ids outside canonical 1001-1036: ZERO — no same-type date leftover found",
+  "manifest_check": "fixture_manifest.json stems: 54/54 sha256+size verified OK after swap (sealed material surface untouched)"
+}

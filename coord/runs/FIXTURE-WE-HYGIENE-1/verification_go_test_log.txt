@@ -1,0 +1,9 @@
+=== RUN   TestWEHygieneReadPathScenarios
+    zz_294hygiene_verify_test.go:89: v1_control_orig.json: we_status=ready we_req=kernel_prepared_waveform_envelope_1011 we_track=1007 we_clip=1011 reason= twe_rows=0 obs_status=ready
+    zz_294hygiene_verify_test.go:96: v2_control_flip.json: we_status=missing we_req=kernel_prepared_waveform_envelope_1055 we_track=1007 we_clip=1055 reason=project_material_identity_mismatch twe_rows=0 obs_status=partial
+    zz_294hygiene_verify_test.go:102: v3_postswap.json: we_status=ready we_req=kernel_prepared_waveform_envelope_1011 we_track=1007 we_clip=1011 reason= twe_rows=0 obs_status=ready
+    zz_294hygiene_verify_test.go:109: v4_postswap.json: we_status=missing we_req= we_track= we_clip= reason= twe_rows=0 obs_status=partial
+--- PASS: TestWEHygieneReadPathScenarios (0.13s)
+PASS
+ok  	vit-daw-agent/internal/mixboard	0.812s
+EXIT=0

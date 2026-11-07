@@ -1,0 +1,759 @@
+{
+	"band_energy_summaries": {
+		"analysis_version": "audio_feature.v1.2",
+		"analyzed_sample_count": 97020,
+		"analyzer_revision": "dad_l3_offline_analyzer.v1",
+		"analyzer_version": "dad_l3_offline_analyzer.v1",
+		"band_count": 6,
+		"band_dynamics": {
+			"bands": [
+				{
+					"crest_distribution": {
+						"count": 24,
+						"max": 46.43050171380181,
+						"min": -30.03185375451057,
+						"p50": 0,
+						"p90": 44.28948034413865
+					},
+					"evidence_refs": [
+						"dad.l3.band_dynamics"
+					],
+					"id": "sub",
+					"status": "ready",
+					"time_distribution": {
+						"count": 24,
+						"max": 23.09575059307255,
+						"min": -160,
+						"p50": -160,
+						"p90": 18.81466289069129
+					}
+				},
+				{
+					"crest_distribution": {
+						"count": 24,
+						"max": 26.675153792924895,
+						"min": -37.98559739468983,
+						"p50": 0,
+						"p90": 26.400149368436498
+					},
+					"evidence_refs": [
+						"dad.l3.band_dynamics"
+					],
+					"id": "bass",
+					"status": "ready",
+					"time_distribution": {
+						"count": 24,
+						"max": 31.049494233251814,
+						"min": -160,
+						"p50": -160,
+						"p90": 26.76936405983769
+					}
+				},
+				{
+					"crest_distribution": {
+						"count": 24,
+						"max": 0,
+						"min": -61.9659344777193,
+						"p50": 0,
+						"p90": 0
+					},
+					"evidence_refs": [
+						"dad.l3.band_dynamics"
+					],
+					"id": "low_mid",
+					"status": "ready",
+					"time_distribution": {
+						"count": 24,
+						"max": 55.02983131628128,
+						"min": -160,
+						"p50": -160,
+						"p90": 55.02983081195309
+					}
+				},
+				{
+					"crest_distribution": {
+						"count": 24,
+						"max": 2.185774119911164,
+						"min": -41.039351150082574,
+						"p50": 0,
+						"p90": 2.181125492529536
+					},
+					"evidence_refs": [
+						"dad.l3.band_dynamics"
+					],
+					"id": "mid",
+					"status": "ready",
+					"time_distribution": {
+						"count": 24,
+						"max": 34.103247988644554,
+						"min": -160,
+						"p50": -160,
+						"p90": 29.828706342565262
+					}
+				},
+				{
+					"crest_distribution": {
+						"count": 24,
+						"max": 37.3892640598311,
+						"min": -15.795952637978116,
+						"p50": 0,
+						"p90": 37.133435663525646
+					},
+					"evidence_refs": [
+						"dad.l3.band_dynamics"
+					],
+					"id": "presence",
+					"status": "ready",
+					"time_distribution": {
+						"count": 24,
+						"max": 8.859849476540095,
+						"min": -160,
+						"p50": -160,
+						"p90": 4.581197497390634
+					}
+				},
+				{
+					"crest_distribution": {
+						"count": 24,
+						"max": 31.15457132064404,
+						"min": -2.423541072255852,
+						"p50": 0,
+						"p90": 31.08095361258001
+					},
+					"evidence_refs": [
+						"dad.l3.band_dynamics"
+					],
+					"id": "air",
+					"status": "ready",
+					"time_distribution": {
+						"count": 24,
+						"max": -4.512562089182169,
+						"min": -160,
+						"p50": -160,
+						"p90": -8.789711572056166
+					}
+				}
+			],
+			"method": "bounded_fft_frame_band_envelope_v1",
+			"status": "ready"
+		},
+		"bands": {
+			"air": {
+				"active_frame_ratio": 0.375,
+				"coverage": 1,
+				"coverage_ratio": 1,
+				"energy": 0.949133494434795,
+				"energy_db": -0.226727003028586,
+				"evidence_ref": "dad.l3.band_energy_summary:air",
+				"frame_count": 11700,
+				"max_hz": 20000,
+				"min_hz": 6000,
+				"persistence_ratio": 0.375,
+				"quality_status": "ready",
+				"relative_distribution": 4.176877907087193e-07,
+				"sample_count": 97020,
+				"status": "ready",
+				"unit_energy": 4.176877907087193e-07
+			},
+			"bass": {
+				"active_frame_ratio": 0.375,
+				"coverage": 1,
+				"coverage_ratio": 1,
+				"energy": 3412.725008298286,
+				"energy_db": 35.331012949618724,
+				"evidence_ref": "dad.l3.band_energy_summary:bass",
+				"frame_count": 162,
+				"max_hz": 250,
+				"min_hz": 60,
+				"persistence_ratio": 0.375,
+				"quality_status": "ready",
+				"relative_distribution": 0.001501847292684,
+				"sample_count": 97020,
+				"status": "ready",
+				"unit_energy": 0.001501847292684
+			},
+			"low_mid": {
+				"active_frame_ratio": 0.375,
+				"coverage": 1,
+				"coverage_ratio": 1,
+				"energy": 2261475.143647423,
+				"energy_db": 63.543918186854796,
+				"evidence_ref": "dad.l3.band_energy_summary:low_mid",
+				"frame_count": 207,
+				"max_hz": 500,
+				"min_hz": 250,
+				"persistence_ratio": 0.375,
+				"quality_status": "ready",
+				"relative_distribution": 0.995213594327188,
+				"sample_count": 97020,
+				"status": "ready",
+				"unit_energy": 0.995213594327188
+			},
+			"mid": {
+				"active_frame_ratio": 0.375,
+				"coverage": 1,
+				"coverage_ratio": 1,
+				"energy": 6895.482447443541,
+				"energy_db": 38.38564657304125,
+				"evidence_ref": "dad.l3.band_energy_summary:mid",
+				"frame_count": 1251,
+				"max_hz": 2000,
+				"min_hz": 500,
+				"persistence_ratio": 0.375,
+				"quality_status": "ready",
+				"relative_distribution": 0.003034513950073,
+				"sample_count": 97020,
+				"status": "ready",
+				"unit_energy": 0.003034513950073
+			},
+			"presence": {
+				"active_frame_ratio": 0.375,
+				"coverage": 1,
+				"coverage_ratio": 1,
+				"energy": 20.61442348482844,
+				"energy_db": 13.141711935706146,
+				"evidence_ref": "dad.l3.band_energy_summary:presence",
+				"frame_count": 3348,
+				"max_hz": 6000,
+				"min_hz": 2000,
+				"persistence_ratio": 0.375,
+				"quality_status": "ready",
+				"relative_distribution": 9.071846112900467e-06,
+				"sample_count": 97020,
+				"status": "ready",
+				"unit_energy": 9.071846112900467e-06
+			},
+			"sub": {
+				"active_frame_ratio": 0.375,
+				"coverage": 1,
+				"coverage_ratio": 1,
+				"energy": 546.6252887162913,
+				"energy_db": 27.37689719738432,
+				"evidence_ref": "dad.l3.band_energy_summary:sub",
+				"frame_count": 36,
+				"max_hz": 60,
+				"min_hz": 20,
+				"persistence_ratio": 0.375,
+				"quality_status": "ready",
+				"relative_distribution": 0.000240554896153,
+				"sample_count": 97020,
+				"status": "ready",
+				"unit_energy": 0.000240554896153
+			}
+		},
+		"bit_depth": 16,
+		"bits_per_sample": 16,
+		"capture_mode": "offline_full_song",
+		"channel_count": 1,
+		"channels": 1,
+		"clip_id": "1055",
+		"clip_revision": "clip=1055|track=1007|source=D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000|offset=0.0000|length=2.2000",
+		"command": "audio_feature_data_ready",
+		"coverage_ratio": 1,
+		"coverage_seconds": 2.2,
+		"duration_seconds": 2.2,
+		"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"expected_sample_count": 97020,
+		"feature_family": "audio_feature",
+		"feature_type": "band_energy_summary",
+		"feature_version": "band_energy_summary.v1",
+		"file_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"frame_count": 24,
+		"frequency_basis": "fft_hann_mono_sum",
+		"frequency_time_events": {
+			"coverage": 1,
+			"event_count_available": true,
+			"events": [
+				{
+					"band_id": "sub",
+					"contrast_db": 176.11670123675952,
+					"end_seconds": 0.371519274376417,
+					"level_dbfs": 16.116701236759518,
+					"max_hz": 60,
+					"min_hz": 20,
+					"start_seconds": 0.278639455782313
+				},
+				{
+					"band_id": "sub",
+					"contrast_db": 183.09575059307255,
+					"end_seconds": 0.743038548752834,
+					"level_dbfs": 23.09575059307255,
+					"max_hz": 60,
+					"min_hz": 20,
+					"start_seconds": 0.65015873015873
+				},
+				{
+					"band_id": "sub",
+					"contrast_db": 183.0626031981748,
+					"end_seconds": 1.30031746031746,
+					"level_dbfs": 23.0626031981748,
+					"max_hz": 60,
+					"min_hz": 20,
+					"start_seconds": 1.207437641723356
+				},
+				{
+					"band_id": "sub",
+					"contrast_db": 179.97093217094778,
+					"end_seconds": 1.578956916099773,
+					"level_dbfs": 19.97093217094777,
+					"max_hz": 60,
+					"min_hz": 20,
+					"start_seconds": 1.486077097505669
+				},
+				{
+					"band_id": "bass",
+					"contrast_db": 184.07093829983305,
+					"end_seconds": 0.371519274376417,
+					"level_dbfs": 24.07093829983304,
+					"max_hz": 250,
+					"min_hz": 60,
+					"start_seconds": 0.278639455782313
+				},
+				{
+					"band_id": "bass",
+					"contrast_db": 191.0494942332518,
+					"end_seconds": 0.743038548752834,
+					"level_dbfs": 31.049494233251814,
+					"max_hz": 250,
+					"min_hz": 60,
+					"start_seconds": 0.65015873015873
+				},
+				{
+					"band_id": "bass",
+					"contrast_db": 191.0166773456752,
+					"end_seconds": 1.30031746031746,
+					"level_dbfs": 31.016677345675205,
+					"max_hz": 250,
+					"min_hz": 60,
+					"start_seconds": 1.207437641723356
+				},
+				{
+					"band_id": "bass",
+					"contrast_db": 187.92583224269683,
+					"end_seconds": 1.578956916099773,
+					"level_dbfs": 27.925832242696835,
+					"max_hz": 250,
+					"min_hz": 60,
+					"start_seconds": 1.486077097505669
+				},
+				{
+					"band_id": "mid",
+					"contrast_db": 187.08930114293494,
+					"end_seconds": 0.371519274376417,
+					"level_dbfs": 27.089301142934943,
+					"max_hz": 2000,
+					"min_hz": 500,
+					"start_seconds": 0.278639455782313
+				},
+				{
+					"band_id": "mid",
+					"contrast_db": 194.10324798864457,
+					"end_seconds": 0.743038548752834,
+					"level_dbfs": 34.103247988644554,
+					"max_hz": 2000,
+					"min_hz": 500,
+					"start_seconds": 0.65015873015873
+				},
+				{
+					"band_id": "mid",
+					"contrast_db": 194.0674999956936,
+					"end_seconds": 1.30031746031746,
+					"level_dbfs": 34.06749999569361,
+					"max_hz": 2000,
+					"min_hz": 500,
+					"start_seconds": 1.207437641723356
+				},
+				{
+					"band_id": "mid",
+					"contrast_db": 191.00273714240683,
+					"end_seconds": 1.578956916099773,
+					"level_dbfs": 31.00273714240683,
+					"max_hz": 2000,
+					"min_hz": 500,
+					"start_seconds": 1.486077097505669
+				},
+				{
+					"band_id": "presence",
+					"contrast_db": 161.88487009248368,
+					"end_seconds": 0.371519274376417,
+					"level_dbfs": 1.884870092483684,
+					"max_hz": 6000,
+					"min_hz": 2000,
+					"start_seconds": 0.278639455782313
+				},
+				{
+					"band_id": "presence",
+					"contrast_db": 168.8598494765401,
+					"end_seconds": 0.743038548752834,
+					"level_dbfs": 8.859849476540095,
+					"max_hz": 6000,
+					"min_hz": 2000,
+					"start_seconds": 0.65015873015873
+				},
+				{
+					"band_id": "presence",
+					"contrast_db": 168.8268511890774,
+					"end_seconds": 1.30031746031746,
+					"level_dbfs": 8.826851189077392,
+					"max_hz": 6000,
+					"min_hz": 2000,
+					"start_seconds": 1.207437641723356
+				},
+				{
+					"band_id": "presence",
+					"contrast_db": 165.73676638520791,
+					"end_seconds": 1.578956916099773,
+					"level_dbfs": 5.736766385207902,
+					"max_hz": 6000,
+					"min_hz": 2000,
+					"start_seconds": 1.486077097505669
+				},
+				{
+					"band_id": "air",
+					"contrast_db": 148.51117988956037,
+					"end_seconds": 0.371519274376417,
+					"level_dbfs": -11.488820110439622,
+					"max_hz": 20000,
+					"min_hz": 6000,
+					"start_seconds": 0.278639455782313
+				},
+				{
+					"band_id": "air",
+					"contrast_db": 155.48743791081782,
+					"end_seconds": 0.743038548752834,
+					"level_dbfs": -4.512562089182169,
+					"max_hz": 20000,
+					"min_hz": 6000,
+					"start_seconds": 0.65015873015873
+				},
+				{
+					"band_id": "air",
+					"contrast_db": 155.45447551439756,
+					"end_seconds": 1.30031746031746,
+					"level_dbfs": -4.545524485602443,
+					"max_hz": 20000,
+					"min_hz": 6000,
+					"start_seconds": 1.207437641723356
+				},
+				{
+					"band_id": "air",
+					"contrast_db": 152.36704923010817,
+					"end_seconds": 1.578956916099773,
+					"level_dbfs": -7.632950769891825,
+					"max_hz": 20000,
+					"min_hz": 6000,
+					"start_seconds": 1.486077097505669
+				}
+			],
+			"evidence_refs": [
+				"dad.l3.frequency_time_events"
+			],
+			"status": "ready"
+		},
+		"inf_count": 0,
+		"layer": "l3_deep",
+		"materialized_by": "kernel_prepared_l3_telemetry",
+		"max_abs": 0.449981689453125,
+		"nan_count": 0,
+		"nan_inf_count": 0,
+		"noise_floor_evidence": {
+			"confidence": "low",
+			"estimate_dbfs": -160,
+			"evidence_refs": [
+				"dad.l3.noise_floor"
+			],
+			"method": "bounded_fft_frame_rms_percentile",
+			"p10_dbfs": -160,
+			"p50_dbfs": -160,
+			"status": "ready",
+			"window_count": 24
+		},
+		"nonzero_count": 28652,
+		"project_id": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+		"project_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\projects\\spv1_p01\\spv1_p01.vit",
+		"project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+		"quality_evidence": {
+			"analyzed_sample_count": 97020,
+			"analyzer_version": "dad_l3_offline_analyzer.v1",
+			"channels": 1,
+			"coverage_ratio": 1,
+			"duration_seconds": 2.2,
+			"evidence_ref": "dad.l3.band_energy_summary:D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"expected_sample_count": 97020,
+			"inf_count": 0,
+			"max_abs": 0.449981689453125,
+			"nan_count": 0,
+			"nan_inf_count": 0,
+			"nonzero_count": 28652,
+			"quality_reasons": [
+				"ok"
+			],
+			"quality_status": "ready",
+			"sample_rate": 44100,
+			"source_identity": "source_revision+clip_revision+optional_render_revision",
+			"sum_abs": 8211.662170410156
+		},
+		"quality_reason": "ok",
+		"quality_reasons": [
+			"ok"
+		],
+		"quality_status": "ready",
+		"ready": true,
+		"sample_count": 97020,
+		"sample_rate": 44100,
+		"schema_version": "dad_l3_band_energy_summary.v1",
+		"source": "kernel_l3_offline_analyzer",
+		"source_fingerprint": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"source_id": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"source_identity": {
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"analyzer_version": "dad_l3_offline_analyzer.v1",
+			"channels": 1,
+			"clip_id": "1055",
+			"clip_revision": "clip=1055|track=1007|source=D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000|offset=0.0000|length=2.2000",
+			"duration_seconds": 2.2,
+			"project_id": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+			"project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+			"sample_rate": 44100,
+			"source_fingerprint": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"source_id": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+			"source_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+			"source_revision": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"track_id": "1007"
+		},
+		"source_kind": "clip",
+		"source_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"source_revision": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"source_track_id": "1007",
+		"status": "ready",
+		"sum_abs": 8211.662170410156,
+		"time_basis": "source_samples",
+		"track_id": "1007",
+		"transient_events": {
+			"coverage": 1,
+			"events": [
+				{
+					"attack_body_contrast_db": 0.904841096322633,
+					"body_dbfs": -10.847728673772224,
+					"body_end_seconds": 0.743038548752835,
+					"onset_dbfs": -9.942887577449591,
+					"onset_seconds": 0.371519274376417,
+					"sustain_dbfs": -104.0625841865182,
+					"sustain_decay_db": 93.21485551274597,
+					"sustain_end_seconds": 1.486077097505669
+				}
+			],
+			"evidence_refs": [
+				"dad.l3.transient_events"
+			],
+			"hop_ms": 92.87981859410431,
+			"status": "ready",
+			"window_ms": 92.87981859410431
+		},
+		"updated_at": "2026-09-05T15:59:32.766+08:00"
+	},
+	"loudness_summaries": {
+		"algorithm": "approximate_rms_lufs_v1",
+		"analysis_version": "audio_feature.v1.2",
+		"analyzed_sample_count": 97020,
+		"analyzer_revision": "dad_l3_offline_analyzer.v1",
+		"analyzer_version": "dad_l3_offline_analyzer.v1",
+		"approximate": true,
+		"approximate_lufs": -15.932411188144195,
+		"bit_depth": 16,
+		"bits_per_sample": 16,
+		"capture_mode": "offline_full_song",
+		"channel_count": 1,
+		"channels": 1,
+		"clip_id": "1055",
+		"clip_revision": "clip=1055|track=1007|source=D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000|offset=0.0000|length=2.2000",
+		"command": "audio_feature_data_ready",
+		"coverage_ratio": 1,
+		"coverage_seconds": 2.2,
+		"crest_db": 8.305308026706173,
+		"crest_factor": 2.60174903010691,
+		"duration_seconds": 2.2,
+		"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"expected_sample_count": 97020,
+		"feature_family": "audio_feature",
+		"feature_type": "loudness_summary",
+		"feature_version": "loudness_summary.v1",
+		"file_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"inf_count": 0,
+		"integrated_lufs": -15.932411188144195,
+		"layer": "l3_deep",
+		"materialized_by": "kernel_prepared_l3_telemetry",
+		"max_abs": 0.449981689453125,
+		"nan_count": 0,
+		"nan_inf_count": 0,
+		"nonzero_count": 28652,
+		"peak": 0.449981689453125,
+		"peak_abs": 0.449981689453125,
+		"peak_dbfs": -6.936103161438021,
+		"project_id": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+		"project_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\projects\\spv1_p01\\spv1_p01.vit",
+		"project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+		"quality_evidence": {
+			"analyzed_sample_count": 97020,
+			"analyzer_version": "dad_l3_offline_analyzer.v1",
+			"channels": 1,
+			"coverage_ratio": 1,
+			"duration_seconds": 2.2,
+			"evidence_ref": "dad.l3.loudness_summary:D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"expected_sample_count": 97020,
+			"inf_count": 0,
+			"max_abs": 0.449981689453125,
+			"nan_count": 0,
+			"nan_inf_count": 0,
+			"nonzero_count": 28652,
+			"quality_reasons": [
+				"ok"
+			],
+			"quality_status": "ready",
+			"sample_rate": 44100,
+			"source_identity": "source_revision+clip_revision+optional_render_revision",
+			"sum_abs": 8211.662170410156
+		},
+		"quality_reason": "ok",
+		"quality_reasons": [
+			"ok"
+		],
+		"quality_status": "ready",
+		"ready": true,
+		"rms": 0.172953534044225,
+		"rms_dbfs": -15.241411188144195,
+		"sample_count": 97020,
+		"sample_rate": 44100,
+		"schema_version": "dad_l3_loudness_summary.v1",
+		"source": "kernel_l3_offline_analyzer",
+		"source_fingerprint": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"source_id": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"source_identity": {
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"analyzer_version": "dad_l3_offline_analyzer.v1",
+			"channels": 1,
+			"clip_id": "1055",
+			"clip_revision": "clip=1055|track=1007|source=D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000|offset=0.0000|length=2.2000",
+			"duration_seconds": 2.2,
+			"project_id": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+			"project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+			"sample_rate": 44100,
+			"source_fingerprint": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"source_id": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+			"source_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+			"source_revision": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"track_id": "1007"
+		},
+		"source_kind": "clip",
+		"source_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"source_revision": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"source_track_id": "1007",
+		"status": "ready",
+		"sum_abs": 8211.662170410156,
+		"time_basis": "source_samples",
+		"track_id": "1007",
+		"updated_at": "2026-09-05T15:59:32.767+08:00"
+	},
+	"stereo_relation_summaries": {
+		"analysis_version": "audio_feature.v1.2",
+		"analyzed_sample_count": 97020,
+		"analyzer_revision": "dad_l3_offline_analyzer.v1",
+		"analyzer_version": "dad_l3_offline_analyzer.v1",
+		"balance_db": 0,
+		"balance_state": "centered",
+		"bit_depth": 16,
+		"bits_per_sample": 16,
+		"capture_mode": "offline_full_song",
+		"channel_count": 1,
+		"channels": 1,
+		"clip_id": "1055",
+		"clip_revision": "clip=1055|track=1007|source=D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000|offset=0.0000|length=2.2000",
+		"command": "audio_feature_data_ready",
+		"correlation_estimate": 1,
+		"correlation_state": "highly_correlated",
+		"coverage_ratio": 1,
+		"coverage_seconds": 2.2,
+		"duration_seconds": 2.2,
+		"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"expected_sample_count": 97020,
+		"feature_family": "audio_feature",
+		"feature_type": "stereo_relation_summary",
+		"feature_version": "stereo_relation_summary.v1",
+		"file_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"frame_count": 97020,
+		"inf_count": 0,
+		"layer": "l3_deep",
+		"left_energy": 2902.1519775222987,
+		"left_level_db": -15.241411188144195,
+		"materialized_by": "kernel_prepared_l3_telemetry",
+		"max_abs": 0.449981689453125,
+		"mono_compatibility_risk": "low",
+		"nan_count": 0,
+		"nan_inf_count": 0,
+		"nonzero_count": 28652,
+		"phase_risk": "low",
+		"project_id": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+		"project_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\projects\\spv1_p01\\spv1_p01.vit",
+		"project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+		"quality_evidence": {
+			"analyzed_sample_count": 97020,
+			"analyzer_version": "dad_l3_offline_analyzer.v1",
+			"channels": 1,
+			"coverage_ratio": 1,
+			"duration_seconds": 2.2,
+			"evidence_ref": "dad.l3.stereo_relation_summary:D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"expected_sample_count": 97020,
+			"inf_count": 0,
+			"max_abs": 0.449981689453125,
+			"nan_count": 0,
+			"nan_inf_count": 0,
+			"nonzero_count": 28652,
+			"quality_reasons": [
+				"ok"
+			],
+			"quality_status": "ready",
+			"sample_rate": 44100,
+			"source_identity": "source_revision+clip_revision+optional_render_revision",
+			"sum_abs": 8211.662170410156
+		},
+		"quality_reason": "ok",
+		"quality_reasons": [
+			"ok"
+		],
+		"quality_status": "ready",
+		"ready": true,
+		"right_energy": 2902.1519775222987,
+		"right_level_db": -15.241411188144195,
+		"sample_count": 97020,
+		"sample_rate": 44100,
+		"schema_version": "dad_l3_stereo_relation_summary.v1",
+		"source": "kernel_l3_offline_analyzer",
+		"source_fingerprint": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"source_id": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"source_identity": {
+			"analyzer_revision": "dad_l3_offline_analyzer.v1",
+			"analyzer_version": "dad_l3_offline_analyzer.v1",
+			"channels": 1,
+			"clip_id": "1055",
+			"clip_revision": "clip=1055|track=1007|source=D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000|offset=0.0000|length=2.2000",
+			"duration_seconds": 2.2,
+			"project_id": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+			"project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+			"sample_rate": 44100,
+			"source_fingerprint": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"source_id": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+			"source_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+			"source_revision": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+			"track_id": "1007"
+		},
+		"source_kind": "clip",
+		"source_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+		"source_revision": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav|size=194084|mtime=1788595162174|length=2.2000",
+		"source_track_id": "1007",
+		"status": "ready",
+		"sum_abs": 8211.662170410156,
+		"time_basis": "source_samples",
+		"track_id": "1007",
+		"updated_at": "2026-09-05T15:59:32.767+08:00"
+	}
+}

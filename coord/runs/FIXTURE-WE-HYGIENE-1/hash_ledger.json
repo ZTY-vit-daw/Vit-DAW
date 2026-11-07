@@ -1,0 +1,29 @@
+{
+  "authoritative_paths": {
+    "mixboard": "D:/Vit_DAW/temp/semantic-processor-agent-project-smoke-v1/fixtures/semantic_processor_project_smoke_v1_80085263a651cf20/projects/spv1_p01/.vit_agent/vitproj_b3f2838183d64add9ca7824b8b3ac557/mixboard/mixboard_feature_snapshot.json",
+    "acoustic": "D:/Vit_DAW/temp/semantic-processor-agent-project-smoke-v1/fixtures/semantic_processor_project_smoke_v1_80085263a651cf20/projects/spv1_p01/.vit_derived/vitproj_b3f2838183d64add9ca7824b8b3ac557/acoustic_package_status.json"
+  },
+  "mixboard_sha256": {
+    "pre": "5c0c97d53873ca44b0706e3ca39ab0e586d5810189dd2134d4a015aec743527b",
+    "post": "be05aafd1c361003800de7e29b0d6e84b043709881c8c2553fd87238bbb96634"
+  },
+  "acoustic_sha256": {
+    "pre": "e43d159cab21fde5730a63d0230ac8a6f20539f66265844923cfbe10848ece43",
+    "post": "22416df090e1df08d67c0a024ad3a531bf93b102df736b6cf2ae3fdda711b8d2"
+  },
+  "pre_state_backup_workspace": [
+    "5c0c97d53873ca44b0706e3ca39ab0e586d5810189dd2134d4a015aec743527b",
+    "e43d159cab21fde5730a63d0230ac8a6f20539f66265844923cfbe10848ece43"
+  ],
+  "removed": [
+    "waveform_envelope slot row kernel_prepared_waveform_envelope_1055 (kernel_prepared_telemetry, first_received 2026-09-05T07:59:32.7597918Z)",
+    "track_waveform_envelopes[18] (1007,1055)",
+    "acoustic packages[6] (1007,1055) strip_silence_agent_smoke_8764_1788595162174.wav"
+  ],
+  "record_only_same_family_retained": [
+    "band_energy_summaries[18] (1007,1055) kernel_l3_offline_analyzer 2026-09-05T15:59:32.766+08:00",
+    "loudness_summaries[18] (1007,1055) kernel_l3_offline_analyzer 2026-09-05T15:59:32.767+08:00",
+    "stereo_relation_summaries[18] (1007,1055) kernel_l3_offline_analyzer 2026-09-05T15:59:32.767+08:00"
+  ],
+  "manifest_stems_verified": "54 files, 0 mismatches (sealed material surface untouched)"
+}
