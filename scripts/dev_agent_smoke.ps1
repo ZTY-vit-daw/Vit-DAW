@@ -423,8 +423,46 @@ param(
     # exit 4 取证）。退出码：0=PASS；2=环境；4=确定性面缺陷。腿需 agent HTTP
     # 面在栈（-StartKernel -RestartAgent；不启 UI）；VIT_EDU_LEVELS_DIR 由
     # 本腿 env 块指向 $RepoRoot\coord\levels（agent 进程 cwd 不在仓库根）。
-    [switch]$EduJamSmoke
+    [switch]$EduJamSmoke,
+    # ARR-SRCLOAD-1 (277) 段 2：编曲语境音源装载真栈烟测腿（断言体在
+    # scripts/arr_srcload_smoke.py）。链：plugin_list_available is_instrument>0
+    # 预检（==0 按卡面停止条件=环境前置上交）→ 一个真实 chat 回合（编曲
+    # 话术「给这条 MIDI 轨加一个钢琴音源」；装载 RiskConfirm 门控→驱动器
+    # 以 /agent/confirm 批准一次）→ executed rack_add_node 断言
+    # status=ok+zone_id=Z2 → 内核 ZMQ 写 MIDI clip → start_render →
+    # SUB render_done/文件面等完成 → WAV 非静音断言（peak>阈值）。退出码：
+    # 0=PASS；2=环境（含 VSTi 库存空）；3=模型未发起装载；4=装载链缺陷
+    # （zone≠Z2/确认后失败/装载在场仍静音渲染——取证上交不重跑）。
+    # 腿需 agent HTTP 面在栈（-StartKernel -RestartAgent；不启 UI）。
+    [switch]$ArrSrcLoadSmoke,
+    # ARR-SRCLOAD-1 段 3a（277 域）：-ArrSrcLoadSmoke 的改参腿——chat 轮前经
+    # 服务端权威控制（POST /agent/authority，261 G5/chat_auth_stamp 先例）把
+    # 轮次晋升为 full_project_access；shadow 绑定等待+PCA 晋升库存只读证据
+    # +渲染 RMS 计量在 py 内。单独给出，不与 -ArrSrcLoadSmoke 合并：段 2
+    # 场景（manual 轮）保持原样可复现。
+    [switch]$ArrSrcLoadFullAccess,
+    # KERNEL-OFFRENDER-REPRO-1 (301)：离线渲染静音守卫复现腿（免 LLM，
+    # 断言体在 scripts/kernel_offrender_repro_smoke.py）。内核 ZMQ 直挂
+    # instantiate_plugin（不经 rack、不经 chat）→ 同形 16 音 clip →
+    # start_render → 非静音计量+内核日志 VIT301_GUARD 守卫留痕采集
+    # （被测内核须为带守卫留痕插桩的构建）。插件由 -OffrenderReproPlugin
+    # 选择（grand_rhapsody=与 seg3a_r2 同件；surge_xt=M3 插件特异性腿）。
+    # 退出码：0=链路完成（静音与否均按观测记录，判定在 summary）；2=环境；
+    # 4=确定性链缺陷（直挂失败/渲染失败，取证上交不重跑）。
+    # 腿需内核栈在 -StartKernel 后可用；-RestartAgent 仅保栈形一致（零 LLM：
+    # 建议配 -NoChatSmoke -NoStripSilenceSmoke）。
+    [switch]$KernelOffrenderReproSmoke,
+    # -KernelOffrenderReproSmoke 的插件选择参数（grand_rhapsody|surge_xt）。
+    [ValidateSet("grand_rhapsody", "surge_xt")]
+    [string]$OffrenderReproPlugin = "grand_rhapsody"
 )
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+if ($ArrSrcLoadFullAccess -and -not $ArrSrcLoadSmoke) {
+    throw "-ArrSrcLoadFullAccess is a modifier of -ArrSrcLoadSmoke and cannot be used alone"
+}
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -1366,7 +1404,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $ArrSrcLoadSmoke -or $KernelOffrenderReproSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1506,6 +1544,38 @@ if ($EduJamSmoke -and -not $ScenarioMode) {
     Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $EduJamLogsDir "agent_llm_telemetry.jsonl")
     Set-Item -LiteralPath "env:VIT_EDU_LEVELS_DIR" -Value (Join-Path $RepoRoot "coord\levels")
     Write-Ok ("edu jam env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " levels_dir=" + $env:VIT_EDU_LEVELS_DIR)
+}
+
+# ARR-SRCLOAD-1 (277) 段 2：同 env-before-agent-start 窗口——单 chat 回合
+# 计费证据（telemetry jsonl）与 prompt render（arrangement 披露面取证）必须
+# 在该腿运行的 agent 进程启动前就位；本腿无引擎注入（本机默认引擎，
+# RUNBOOK 申报）、无 payload capture（不扩面）。
+if ($ArrSrcLoadSmoke -and -not $ScenarioMode) {
+    $ArrSrcLoadTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($ArrSrcLoadTelemetryRoot)) {
+        $ArrSrcLoadTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\arr_srcload_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $ArrSrcLoadTelemetryRoot -Force | Out-Null
+    $ArrSrcLoadLogsDir = Join-Path $ArrSrcLoadTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $ArrSrcLoadLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $ArrSrcLoadLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $ArrSrcLoadLogsDir "agent_prompt_render.jsonl")
+    Write-Ok ("arr srcload telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
+}
+
+# KERNEL-OFFRENDER-REPRO-1 (301)：同 env-before-agent-start 窗口——telemetry
+# jsonl 是本腿「零 LLM」申报的证据面（腿体免 LLM；栈上其他默认腿按各自
+# 开关另行关闭）。无引擎注入、无 payload capture。
+if ($KernelOffrenderReproSmoke -and -not $ScenarioMode) {
+    $OffrenderReproTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($OffrenderReproTelemetryRoot)) {
+        $OffrenderReproTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\offrender_repro_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $OffrenderReproTelemetryRoot -Force | Out-Null
+    $OffrenderReproLogsDir = Join-Path $OffrenderReproTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $OffrenderReproLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $OffrenderReproLogsDir "agent_llm_telemetry.jsonl")
+    Write-Ok ("offrender repro telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -9017,6 +9087,106 @@ if ($EduJamSmoke) {
     }
     else {
         throw ("edu jam smoke failed with exit code $eduJamExit (console: " + $eduJamConsolePath + ")")
+    }
+}
+
+if ($ArrSrcLoadSmoke) {
+    Write-Step ("chat-driven instrument load smoke (ARR-SRCLOAD-1 " + $(if ($ArrSrcLoadFullAccess) { "segment 3a full-access leg" } else { "segment 2" }) + ")")
+    $arrSrcLoadScript = Join-Path $RepoRoot "scripts\arr_srcload_smoke.py"
+    if (-not (Test-Path -LiteralPath $arrSrcLoadScript)) {
+        throw ("arr srcload smoke script missing: " + $arrSrcLoadScript)
+    }
+    $arrSrcLoadArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($arrSrcLoadArtifactsDir)) {
+        $arrSrcLoadArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\arr_srcload_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $arrSrcLoadArtifactsDir)) {
+        New-Item -ItemType Directory -Path $arrSrcLoadArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($ArrSrcLoadSmoke is in its
+    # condition list): the setup leg's kernel-side new_project rewrites the
+    # workspace default project, so VIT_PROJECT_XML must point at a git-clean
+    # run-dir copy (217 incident lesson, same family as 218/220/276).
+    $arrSrcLoadPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($arrSrcLoadPriorProjectXml)) {
+        Write-Ok ("arr srcload project isolation: VIT_PROJECT_XML=" + $arrSrcLoadPriorProjectXml)
+    }
+    else {
+        throw "arr srcload smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $arrSrcLoadSummaryPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_summary.json"
+    $arrSrcLoadConsolePath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_console.txt"
+    $arrSrcLoadProjectPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_fixture_project.vit"
+    $arrSrcLoadRenderPath = Join-Path $arrSrcLoadArtifactsDir "arr_srcload_render.wav"
+    $arrSrcLoadPythonArgs = @($arrSrcLoadScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--project-path", $arrSrcLoadProjectPath, "--render-path", $arrSrcLoadRenderPath, "--output", $arrSrcLoadSummaryPath, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--agent-log", $AgentLog)
+    if ($ArrSrcLoadFullAccess) {
+        # 段 3a：full-access promoted 轮（authority 控制面切换在 py 内完成，
+        # 话术/骨架与段 2 相同）。守卫：改参腿只随 -ArrSrcLoadSmoke 生效。
+        $arrSrcLoadPythonArgs += "--full-access"
+    }
+    & python @arrSrcLoadPythonArgs > $arrSrcLoadConsolePath 2>&1
+    $arrSrcLoadExit = $LASTEXITCODE
+    Get-Content -LiteralPath $arrSrcLoadConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $arrSrcLoadSummaryPath)) {
+        throw ("arr srcload smoke produced no summary artifact (exit code " + $arrSrcLoadExit + "; console: " + $arrSrcLoadConsolePath + ")")
+    }
+    if ($arrSrcLoadExit -eq 0) {
+        Write-Ok ("arr srcload smoke PASS: chat-driven instrument load (Z2) -> clip -> non-silent offline render (summary: " + $arrSrcLoadSummaryPath + ")")
+    }
+    elseif ($arrSrcLoadExit -eq 2) {
+        throw ("arr srcload smoke environment failure (raw evidence on disk; exit 2 includes the empty-VSTi-inventory precondition hand-over) - see " + $arrSrcLoadSummaryPath)
+    }
+    elseif ($arrSrcLoadExit -eq 3) {
+        throw ("arr srcload smoke LLM behavior miss (model did not drive a load; honest record, no rerun) - see " + $arrSrcLoadSummaryPath)
+    }
+    else {
+        throw ("arr srcload smoke failed with exit code $arrSrcLoadExit (console: " + $arrSrcLoadConsolePath + ")")
+    }
+}
+
+if ($KernelOffrenderReproSmoke) {
+    Write-Step ("offline-render silence repro leg (KERNEL-OFFRENDER-REPRO-1, zero-LLM, plugin=" + $OffrenderReproPlugin + ")")
+    $offrenderReproScript = Join-Path $RepoRoot "scripts\kernel_offrender_repro_smoke.py"
+    if (-not (Test-Path -LiteralPath $offrenderReproScript)) {
+        throw ("offrender repro smoke script missing: " + $offrenderReproScript)
+    }
+    $offrenderReproArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($offrenderReproArtifactsDir)) {
+        $offrenderReproArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\offrender_repro_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $offrenderReproArtifactsDir)) {
+        New-Item -ItemType Directory -Path $offrenderReproArtifactsDir -Force | Out-Null
+    }
+    # Project isolation: same shared GUI-leg isolation block contract
+    # ($KernelOffrenderReproSmoke is in its condition list).
+    $offrenderReproPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($offrenderReproPriorProjectXml)) {
+        Write-Ok ("offrender repro project isolation: VIT_PROJECT_XML=" + $offrenderReproPriorProjectXml)
+    }
+    else {
+        throw "offrender repro smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $offrenderReproSummaryPath = Join-Path $offrenderReproArtifactsDir ("offrender_repro_summary_" + $OffrenderReproPlugin + ".json")
+    $offrenderReproConsolePath = Join-Path $offrenderReproArtifactsDir ("offrender_repro_console_" + $OffrenderReproPlugin + ".txt")
+    $offrenderReproProjectPath = Join-Path $offrenderReproArtifactsDir ("offrender_repro_fixture_project_" + $OffrenderReproPlugin + ".vit")
+    $offrenderReproRenderPath = Join-Path $offrenderReproArtifactsDir ("offrender_repro_render_" + $OffrenderReproPlugin + ".wav")
+    $offrenderReproKernelLogDir = Join-Path $RepoRoot "VitApp\Workspace\Logs"
+    $offrenderReproPythonArgs = @($offrenderReproScript, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--plugin-select", $OffrenderReproPlugin, "--project-path", $offrenderReproProjectPath, "--render-path", $offrenderReproRenderPath, "--output", $offrenderReproSummaryPath, "--kernel-log-dir", $offrenderReproKernelLogDir, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH)
+    & python @offrenderReproPythonArgs > $offrenderReproConsolePath 2>&1
+    $offrenderReproExit = $LASTEXITCODE
+    Get-Content -LiteralPath $offrenderReproConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $offrenderReproSummaryPath)) {
+        throw ("offrender repro smoke produced no summary artifact (exit code " + $offrenderReproExit + "; console: " + $offrenderReproConsolePath + ")")
+    }
+    if ($offrenderReproExit -eq 0) {
+        Write-Ok ("offrender repro smoke chain complete (silent/non-silent is recorded as observation in summary: " + $offrenderReproSummaryPath + ")")
+    }
+    elseif ($offrenderReproExit -eq 2) {
+        throw ("offrender repro smoke environment failure - see " + $offrenderReproSummaryPath)
+    }
+    else {
+        throw ("offrender repro smoke failed with exit code $offrenderReproExit (console: " + $offrenderReproConsolePath + ")")
     }
 }
 
