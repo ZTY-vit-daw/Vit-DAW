@@ -1,0 +1,287 @@
+{
+ "fixture_baseline_20260905": {
+  "path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\projects\\spv1_p01\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\mixboard_feature_snapshot.json",
+  "updated_at": "2026-09-05T08:01:28.4787333Z",
+  "we_slot": {
+   "request_id": "kernel_prepared_waveform_envelope_1055",
+   "track_id": "1007",
+   "clip_id": "1055",
+   "status": "ready",
+   "first_received_at": "2026-09-05T07:59:32.7597918Z",
+   "file_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+   "freshness": null,
+   "superseded_by_request": null,
+   "superseded_at": null
+  },
+  "latest_request_id": "mixboard_l2_render_probe_1007_20260905T080127.180123900",
+  "twe_row_count": 19,
+  "twe_track_clip": [
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1055"
+   ]
+  ]
+ },
+ "run266_final_20261106T171512": {
+  "path": "<wt_266impl>\\artifacts\\free_state_d1_s1\\20261107_011211\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\mixboard_feature_snapshot.json",
+  "updated_at": "2026-11-06T17:15:12.7222466Z",
+  "we_slot": {
+   "request_id": "kernel_prepared_waveform_envelope_1055",
+   "track_id": "1007",
+   "clip_id": "1055",
+   "status": "ready",
+   "first_received_at": "2026-09-05T07:59:32.7597918Z",
+   "file_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+   "freshness": "stale",
+   "superseded_by_request": "mixboard_l2_render_probe_1027_20261106T171511.867643400",
+   "superseded_at": "2026-11-06T17:15:12.7222466Z"
+  },
+  "latest_request_id": "mixboard_l2_render_probe_1027_20261106T171511.867643400",
+  "twe_row_count": 19,
+  "twe_track_clip": [
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1055"
+   ]
+  ]
+ },
+ "run265reverify_final_frozen": {
+  "path": "<wt_265rv>\\artifacts\\free_state_d1_s1\\20261106_232316\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\mixboard_feature_snapshot.json",
+  "updated_at": "2026-09-05T08:01:28.4787333Z",
+  "we_slot": {
+   "request_id": "kernel_prepared_waveform_envelope_1055",
+   "track_id": "1007",
+   "clip_id": "1055",
+   "status": "ready",
+   "first_received_at": "2026-09-05T07:59:32.7597918Z",
+   "file_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+   "freshness": "stale",
+   "superseded_by_request": "mixboard_l2_render_probe_1007_20260905T080127.180123900",
+   "superseded_at": "2026-11-06T15:24:43.3498075Z"
+  },
+  "latest_request_id": "mixboard_l2_render_probe_1007_20260905T080127.180123900",
+  "twe_row_count": 19,
+  "twe_track_clip": [
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1011"
+   ],
+   [
+    "1012",
+    "1016"
+   ],
+   [
+    "1017",
+    "1021"
+   ],
+   [
+    "1022",
+    "1026"
+   ],
+   [
+    "1027",
+    "1031"
+   ],
+   [
+    "1032",
+    "1036"
+   ],
+   [
+    "1007",
+    "1055"
+   ]
+  ]
+ }
+}

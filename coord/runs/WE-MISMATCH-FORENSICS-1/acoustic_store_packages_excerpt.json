@@ -1,0 +1,62 @@
+{
+ "path": "<wt_266impl>/.vit_derived/vitproj_b3f2838183d64add9ca7824b8b3ac557/acoustic_package_status.json",
+ "updated_at": "2026-11-06T17:17:21.6597778Z",
+ "packages": [
+  {
+   "updated_at": "2026-11-06T17:17:21.6233819Z",
+   "track_id": "1007",
+   "clip_id": "1011",
+   "source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+   "l1_waveform_status": "ready",
+   "l1_waveform_ref_request": "kernel_prepared_waveform_envelope_1011"
+  },
+  {
+   "updated_at": "2026-09-05T13:32:21.606+08:00",
+   "track_id": "1012",
+   "clip_id": "1016",
+   "source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+   "l1_waveform_status": "missing",
+   "l1_waveform_ref_request": null
+  },
+  {
+   "updated_at": "2026-09-05T13:32:22.290+08:00",
+   "track_id": "1017",
+   "clip_id": "1021",
+   "source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+   "l1_waveform_status": "missing",
+   "l1_waveform_ref_request": null
+  },
+  {
+   "updated_at": "2026-09-05T13:32:22.932+08:00",
+   "track_id": "1022",
+   "clip_id": "1026",
+   "source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+   "l1_waveform_status": "missing",
+   "l1_waveform_ref_request": null
+  },
+  {
+   "updated_at": "2026-09-05T13:32:23.659+08:00",
+   "track_id": "1027",
+   "clip_id": "1031",
+   "source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+   "l1_waveform_status": "missing",
+   "l1_waveform_ref_request": null
+  },
+  {
+   "updated_at": "2026-09-05T13:32:24.326+08:00",
+   "track_id": "1032",
+   "clip_id": "1036",
+   "source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+   "l1_waveform_status": "missing",
+   "l1_waveform_ref_request": null
+  },
+  {
+   "updated_at": "2026-09-05T15:59:32.767+08:00",
+   "track_id": "1007",
+   "clip_id": "1055",
+   "source_path": "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\smoke\\strip_silence_agent_smoke_8764_1788595162074.wav",
+   "l1_waveform_status": "missing",
+   "l1_waveform_ref_request": null
+  }
+ ]
+}
