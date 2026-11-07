@@ -68,5 +68,12 @@ if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
 ## 领取 / 回执 / 验收
 
 - 领取：2026-11-07 18:20 +0800 ｜ origin/main=b352ba898c0f5016962d7c4b5e5d3d5fbfdd8014（与本地 main 一致）｜ owner=GLM 主会话 L2-worker 子代理（ZCode/PC）｜ 分支=port/plugin-control-eval-prep-1 ｜ worktree=D:/Vit_DAW_wt_299prep ｜ 领取基线：HEAD=b352ba89、status 全净、diff --stat 空（fresh worktree）｜ 前置核对：卡在 todo/ ✓ 派发确认=已确认（池序 299，HEAD 提交即派发登记）✓ doing 三卡（ARRLOOP-AUTHBRIDGE-1/B3-ABLATION-1/CLOSURE-ROUTE-ADAPT-1）文件域与本卡（仅 coord/reports/、coord/runs/PLUGIN-CONTROL-EVAL-PREP-1/ 新建三件+本卡）不相交 ✓ 领取提交见回执。
-- 回执：待执行侧填写工件链接、commit hash、检查命令/退出码、未决项和建议后续卡；端测边界明确写“本卡为零运行的实验准备，无模型成绩、无真栈结论”。
+- 回执（2026-11-07 19:10 +0800，执行侧自验完成待验收）：
+  - **领取提交**：a93dd97c（已推 main，fetch 重读确认 owner）；**工件提交**：b9465b44（分支 `port/plugin-control-eval-prep-1`，3 文件 +504 行，零生产改动——仅新建三件工件）。领取后 main 另有 4 笔他卡领取提交（3f222128 等），文件域不相交已复核。
+  - **三件工件**：① [preflight 报告](../../reports/2026-11-07-plugin-control-model-evaluation-preflight.md)；② [plan.json](../../runs/PLUGIN-CONTROL-EVAL-PREP-1/plan.json)（13 必需字段全在，待证值显式 pending，全文 ASCII——PS5.1 `Get-Content -Raw` 默认码页下可解析）；③ [RUNBOOK.md](../../runs/PLUGIN-CONTROL-EVAL-PREP-1/RUNBOOK.md)（P→A\*→B\*→C 分段 go/no-go，token 上限授权+货币 pending+3 轮校准样本建议）。
+  - **检查命令与退出码**（worktree D:/Vit_DAW_wt_299prep 根目录执行，卡面 PowerShell 命令逐字运行）：`ConvertFrom-Json+13 字段校验+Get-Item+git diff --check` → **exit 0**（DOC_CHECK_PASS；首轮曾因 UTF-8 中文被 PS 默认 GBK 码页误读致假 PASS，已改 ASCII 后复跑真 PASS，exit 0 记录于本轮）。
+  - **关键结论**：①实际被测模型=deepseek-flash（`~/.vit/config.json`+遥测 228 条非错误记录双证；响应模型/采样参数待首轮请求捕获核验）；②A/B 纯臂**不可达**——产品聊天入口 explicit_control 强制 typed 接管（goalrunner_chat.go:260-307 + orchestrationcontroller/types.go:83）+内核回复无条件烘焙语义字段（PluginRackControlService.cpp:3326-3436）+目录描述与 message loop 骨架提示词引导（catalog.go:1173/message_loop.go:4344-4351）——四处 test-only 缝锚点已列（S1-S4），不改代码只能跑污染臂 A\*/B\*；③字段来源三分完成：normalized_role/display_group/control_relevance/template_role=人工词表（VitPluginTemplateRegistry.cpp:85-202，实测常见错误归类如 Decay Rate→mod_rate），alias=原生默认+持久化语义覆盖混合，display_probe/value_text=通用探测；④T1-T6 冻结自 61 件兼容矩阵真实参数面（Pro-R/Plates/H-Delay/IR-L，reverb+delay 2 族 4 件），目标可达性=抽验先例级，逐案 S0 已知操作腿待批执行。
+  - **未决项（交主管）**：①污染臂先跑下界 vs 先建缝跑纯臂 vs 两段都跑（缝卡挂「答辩前不落实」用户拍板）；②货币预算缺项（DeepSeek 价目未核，建议 3 轮校准样本）；③P 臂确认卡应答策略冻结；④S0 真栈腿窗口（与 296/297/298 等栈腿错峰）；⑤响应模型身份首轮核验。
+  - **建议后续卡**：PLUGIN-CONTROL-EVAL-RUNNER-1（文件域 scripts/ 新 py/ps1+coord/runs/PLUGIN-CONTROL-EVAL-\*；pgtdc_compat_verify.ps1+b3 先例；交付=夹具构建+S0 零 LLM 验证器+臂驱动+独立评价器+工件/退出码；详见 plan.json next_card_scope）。
+  - **端测边界声明**：本卡为零运行的实验准备——无模型成绩、无真栈结论、无栈启停、无付费请求、无旧工件覆盖；引用遥测为既有文件只读采样。
 - 验收：待 PC 主管决策流裁定；执行 done 不代替最终验收。
