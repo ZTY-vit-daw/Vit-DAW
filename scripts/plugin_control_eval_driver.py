@@ -417,6 +417,12 @@ def typed_apply_write(agent_http: str, fixture: dict[str, Any], family: str,
     domain = binding.get("domain")
     if isinstance(domain, dict):
         unit = str(domain.get("unit") or "").strip().lower()
+    elif isinstance(domain, str):
+        # the disclosed domain may be a bare unit string ("enum" on the
+        # plates damper binding in the pgtdc spot artifact; "ms" family on
+        # delay time bindings) -- treating it as non-dict dropped the unit
+        # and produced the run3/run4 display_value misreads
+        unit = domain.strip().lower()
     if not unit:
         unit = str(binding.get("physical_unit") or "").strip().lower()
     control: dict[str, Any] = {"control_ref": binding.get("control_ref")}
@@ -514,6 +520,14 @@ def run_s0(agent_http: str, timeout: float, out_dir: Path) -> int:
         print(f"[s0] {case_id} ({case_family(case_id)}) ...", flush=True)
         try:
             row = s0_case(case_id, agent_http, timeout, out_dir, report)
+        except CaseFailure as error:
+            row = dict(getattr(error, "partial_row", {}) or {})
+            row.update({"case_id": case_id, "status": "fixture_failure",
+                        "error": str(error)})
+            report["cases"].append(row)
+            print(f"  FIXTURE FAILURE: {error}", flush=True)
+            exit_code = 1
+            continue
         except FixtureError as error:
             row = {"case_id": case_id, "status": "fixture_failure", "error": str(error)}
             report["cases"].append(row)
@@ -561,6 +575,15 @@ def run_s0(agent_http: str, timeout: float, out_dir: Path) -> int:
     return exit_code
 
 
+class CaseFailure(FixtureError):
+    """FixtureError carrying the partial case row (write faces, snapshots)
+    so the report keeps the evidence even when an assertion fails."""
+
+    def __init__(self, message: str, partial_row: Optional[dict[str, Any]] = None):
+        super().__init__(message)
+        self.partial_row = partial_row or {}
+
+
 def s0_case(case_id: str, agent_http: str, timeout: float, out_dir: Path,
             report: dict[str, Any]) -> dict[str, Any]:
     spec = KNOWN_OP[case_id]
@@ -569,6 +592,19 @@ def s0_case(case_id: str, agent_http: str, timeout: float, out_dir: Path,
                            "fixture": {k: fixture[k] for k in ("track_id", "plugin_id")},
                            "fixture_digest": fixture["fixture_digest"]}
     try:
+        try:
+            return _s0_case_body(case_id, spec, fixture, row, agent_http,
+                                 timeout, out_dir, report)
+        except FixtureError as error:
+            raise CaseFailure(str(error), row) from error
+    finally:
+        teardown_fixture(agent_http, fixture, timeout)
+
+
+def _s0_case_body(case_id: str, spec: dict[str, Any], fixture: dict[str, Any],
+                  row: dict[str, Any], agent_http: str, timeout: float,
+                  out_dir: Path, report: dict[str, Any]) -> dict[str, Any]:
+    if True:  # keep the original indentation block
         before = readback_parameters(fixture, timeout, agent_http)
         (out_dir / f"{case_id}_before.json").write_text(
             json.dumps(before, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -675,8 +711,6 @@ def s0_case(case_id: str, agent_http: str, timeout: float, out_dir: Path,
         }
         row["status"] = "verified"
         return row
-    finally:
-        teardown_fixture(agent_http, fixture, timeout)
 
 
 def restore_changed_rows(fixture: dict[str, Any],
