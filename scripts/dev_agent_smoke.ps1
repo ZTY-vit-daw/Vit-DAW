@@ -411,7 +411,19 @@ param(
     # 5-6→7-8）。退出码：0=PASS；2=环境；3=模型未调/漏 key；4=命令面
     # 缺陷（取证上交）。腿需 agent HTTP 面在栈（-StartKernel
     # -RestartAgent；不启 UI）。
-    [switch]$EduTransformSmoke
+    [switch]$EduTransformSmoke,
+    # EDU-LEVEL-RUNTIME-B（281）真栈烟测腿：全确定性零 LLM（乐局拦截面在
+    # 语义入口分类之前应答，本腿同时断言 telemetry 零行）。断言体在
+    # scripts/edu_jam_smoke.py：内核 ZMQ 面 fixture（new_project +
+    # save_as_project 落 run 工件目录 + add_track x3 + insert_midi_clip +
+    # add_midi_notes 42 音小星星，§10 隔离）→ HTTP chat 驱动最小一局
+    # （开始乐局 → 写好了 n0 推进 → 写好了 n1 判定过 → 乐局状态 → 结束乐局
+    # 终态）→ 逐回合 workflow/stop_reason/workflow_data 断言。n1 判定过
+    # 兼作 fixture↔卡 notes.theme 对账（漂移即 attempt_failed 回复带 mismatch，
+    # exit 4 取证）。退出码：0=PASS；2=环境；4=确定性面缺陷。腿需 agent HTTP
+    # 面在栈（-StartKernel -RestartAgent；不启 UI）；VIT_EDU_LEVELS_DIR 由
+    # 本腿 env 块指向 $RepoRoot\coord\levels（agent 进程 cwd 不在仓库根）。
+    [switch]$EduJamSmoke
 )
 
 Set-StrictMode -Version Latest
@@ -1354,7 +1366,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1477,6 +1489,23 @@ if ($EduTransformSmoke -and -not $ScenarioMode) {
     Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $EduTransformLogsDir "agent_llm_telemetry.jsonl")
     Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $EduTransformLogsDir "agent_prompt_render.jsonl")
     Write-Ok ("edu transform telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " prompt_render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH)
+}
+
+# EDU-LEVEL-RUNTIME-B（281）：同 env-before-agent-start 窗口。两件事都必须在
+# agent 进程启动前就位：① VIT_EDU_LEVELS_DIR → $RepoRoot\coord\levels（乐局
+# 卡装载根；agent 进程 cwd=agent/ 不在仓库根，缺此 env 则 enter fail-closed）；
+# ② telemetry jsonl（本腿零 LLM 断言的证据面——乐局确定性拦截面不得计费）。
+if ($EduJamSmoke -and -not $ScenarioMode) {
+    $EduJamTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($EduJamTelemetryRoot)) {
+        $EduJamTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\edu_jam_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $EduJamTelemetryRoot -Force | Out-Null
+    $EduJamLogsDir = Join-Path $EduJamTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $EduJamLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $EduJamLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_EDU_LEVELS_DIR" -Value (Join-Path $RepoRoot "coord\levels")
+    Write-Ok ("edu jam env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " levels_dir=" + $env:VIT_EDU_LEVELS_DIR)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -8939,6 +8968,55 @@ if ($EduTransformSmoke) {
     }
     else {
         throw ("edu transform smoke failed with exit code $eduTransformExit (console: " + $eduTransformConsolePath + ")")
+    }
+}
+
+if ($EduJamSmoke) {
+    Write-Step "chat-driven edu jam mount smoke (EDU-LEVEL-RUNTIME-B, deterministic zero-LLM)"
+    $eduJamScript = Join-Path $RepoRoot "scripts\edu_jam_smoke.py"
+    if (-not (Test-Path -LiteralPath $eduJamScript)) {
+        throw ("edu jam smoke script missing: " + $eduJamScript)
+    }
+    $eduJamArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($eduJamArtifactsDir)) {
+        $eduJamArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\edu_jam_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $eduJamArtifactsDir)) {
+        New-Item -ItemType Directory -Path $eduJamArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($EduJamSmoke is in its condition
+    # list): the setup leg's kernel-side new_project rewrites the workspace
+    # default project, so VIT_PROJECT_XML must point at a git-clean run-dir
+    # copy (217 incident lesson, same family as the edu transform leg).
+    $eduJamPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($eduJamPriorProjectXml)) {
+        Write-Ok ("edu jam project isolation: VIT_PROJECT_XML=" + $eduJamPriorProjectXml)
+    }
+    else {
+        throw "edu jam smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    if ([string]::IsNullOrWhiteSpace($env:VIT_EDU_LEVELS_DIR)) {
+        throw "edu jam smoke requires VIT_EDU_LEVELS_DIR (unset after the env block)"
+    }
+    $eduJamSummaryPath = Join-Path $eduJamArtifactsDir "edu_jam_summary.json"
+    $eduJamConsolePath = Join-Path $eduJamArtifactsDir "edu_jam_console.txt"
+    $eduJamProjectPath = Join-Path $eduJamArtifactsDir "edu_jam_fixture_project.vit"
+    $eduJamPythonArgs = @($eduJamScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--project-path", $eduJamProjectPath, "--output", $eduJamSummaryPath, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH)
+    & python @eduJamPythonArgs > $eduJamConsolePath 2>&1
+    $eduJamExit = $LASTEXITCODE
+    Get-Content -LiteralPath $eduJamConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $eduJamSummaryPath)) {
+        throw ("edu jam smoke produced no summary artifact (exit code " + $eduJamExit + "; console: " + $eduJamConsolePath + ")")
+    }
+    if ($eduJamExit -eq 0) {
+        Write-Ok ("edu jam smoke PASS: minimal jam flow green on the deterministic mount face (summary: " + $eduJamSummaryPath + ")")
+    }
+    elseif ($eduJamExit -eq 2) {
+        throw ("edu jam smoke environment failure (raw evidence on disk) - see " + $eduJamSummaryPath)
+    }
+    else {
+        throw ("edu jam smoke failed with exit code $eduJamExit (console: " + $eduJamConsolePath + ")")
     }
 }
 

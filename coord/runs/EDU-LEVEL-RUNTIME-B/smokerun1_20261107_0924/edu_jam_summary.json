@@ -1,0 +1,22 @@
+{
+  "card": "EDU-LEVEL-RUNTIME-B",
+  "leg": "smokerun1 chat-driven jam mount (deterministic, zero LLM)",
+  "stamp": "20261107_092414",
+  "phases": {
+    "fixture": {
+      "track_ids": [
+        "1007",
+        "1010",
+        "1013"
+      ],
+      "clip_id": "1016",
+      "project_path": "D:\\Vit_DAW_wt_281impl\\coord\\runs\\EDU-LEVEL-RUNTIME-B\\smokerun1_20261107_0924\\edu_jam_fixture_project.vit",
+      "note_count": 42,
+      "verified": true
+    }
+  },
+  "exit_code": 4,
+  "exit_class": "face_defect",
+  "fail_phase": "n0",
+  "fail_reason": "n0 advance wrong: stop=semantic_entry_unresolved data={\"decision\": {\"confidence\": 0.2, \"control_mode\": \"none\", \"reason\": \"The request is only an ambiguous completion statement with no clear acoustic, observation, discussion, or control intent.\", \"rejection_reason\": \"Insufficient context to determine whether the user wants discussion, observation, or a project action.\", \"route\": \"unresolved\", \"schema_version\": \"semantic_entry_decision.v1\", \"target_scope\": \"none\", \"user_authorization\": \"none\"}, \"diagnostic_reason\": \"Insufficient context to determine whether the user wants discussion, observation, or a project action.\", \"mutation_performed\": false, \"schema_version\": \"semantic_entry_decision.v1\", \"status\": \"unresolved\"}"
+}

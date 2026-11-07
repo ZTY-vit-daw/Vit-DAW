@@ -281,6 +281,13 @@ func windowNotes(notes []Note, start, end float64) []Note {
 	return out
 }
 
+// ParseClipNotes 导出 parseClipNotes（EDU-LEVEL-RUNTIME-B 挂载接线面）：chat
+// 侧乐局运行时用同一解析器把 get_midi_clip_notes 回复组装成 Observation.Slots，
+// 与 analyze 命令面零语义漂移（同 fail-closed 口径）。
+func ParseClipNotes(reply map[string]any) ([]Note, error) {
+	return parseClipNotes(reply)
+}
+
 // parseClipNotes 解析 get_midi_clip_notes 回复的 notes[]（id/start/length/
 // pitch）。行内缺字段或越界 fail-closed 报错，不静默跳过。
 func parseClipNotes(reply map[string]any) ([]Note, error) {
