@@ -309,9 +309,44 @@ func (s *Server) d1d3BuildRLMProjection(req ChatRequest, state *kernel.VSPStateR
 	})
 }
 
+// d1d3DigestView 返回 D1-D3 消费面应读的 digest 视图。mix.observe 的 harness
+// 响应真实形状（D1D3-DIGEST-WIRING-1，272 取证转卡）：digest 嵌套在
+// `out["digest"]` 子图（harness requestMixObservation 的 out map，mixboard
+// BuildDigest 产物），顶层从不存在 peak_dbfs/stereo_status 等面键；另有拍平面
+// `out["acoustic_digest"]`（harness mixObservationAcousticDigest）与之并存，
+// 其中 stereo 键名是 stereo_relation_status（非 stereo_status），且不含
+// rankings/available_detail。本函数不改写响应本体，只在消费视图内做两源键名
+// 归一：digest 子图优先，拍平面仅补缺席键，stereo_relation_status 归一为
+// 消费面键名 stereo_status。
+func d1d3DigestView(observe map[string]any) map[string]any {
+	// 浅拷贝（mapValue 对 map[string]any 返回原引用，直接写入会污染响应本体）：
+	// 归一键只落在拷贝视图上。
+	view := copyStringAnyMap(mapValue(observe["digest"]))
+	flattened := mapValue(observe["acoustic_digest"])
+	if len(flattened) == 0 {
+		return view
+	}
+	if _, exists := view["stereo_status"]; !exists {
+		if stereoStatus, ok := flattened["stereo_relation_status"]; ok {
+			view["stereo_status"] = stereoStatus
+		}
+	}
+	for _, key := range []string{"peak_dbfs", "rms_dbfs", "crest_db", "waveform", "missing_metrics",
+		"correlation_estimate", "correlation_state", "balance_db", "balance_state"} {
+		if _, exists := view[key]; !exists {
+			if value, ok := flattened[key]; ok {
+				view[key] = value
+			}
+		}
+	}
+	return view
+}
+
 // d1d3AssemblePreMasterReport 是纯组装函数（单测直接喂面数据断言）：三面
 // 状态归一 + limitations 汇总。缺省态为 missing，只有实际数据在场才升级；
-// 缺失面如实记录，不升级不虚构。
+// 缺失面如实记录，不升级不虚构。observe 入参是 mix.observe 的 harness 响应
+// 原样（digest 嵌套形状，见 d1d3DigestView）；observation_id 在响应顶层与
+// digest 子图均在场，顶层优先。
 func d1d3AssemblePreMasterReport(observe map[string]any, observeErr error, trackCandidates int, trackRows []d1d3TrackStereoRow, rlmProjection rlm.Projection, userIntent string) d1d3PreMasterReport {
 	report := d1d3PreMasterReport{
 		SchemaVersion:      d1d3ObservationSchema,
@@ -335,38 +370,41 @@ func d1d3AssemblePreMasterReport(observe map[string]any, observeErr error, track
 		report.Limitations = append(report.Limitations, "mix.observe 返回空 digest（D1/D2 载体缺席，缺失如实保留）")
 	}
 	if len(observe) > 0 {
-		report.ObservationID = firstStringFromMap(observe, "observation_id")
-		if value, ok := d1d3Number(observe["peak_dbfs"]); ok {
+		report.ObservationID = firstNonEmpty(firstStringFromMap(observe, "observation_id"), firstStringFromMap(mapValue(observe["digest"]), "observation_id"))
+		// D1/D2 面键全部在 digest 子图（真实响应形状，见 d1d3DigestView）；
+		// 顶层从不存在这些键（272 取证：顶层读=结构性恒 missing）。
+		digest := d1d3DigestView(observe)
+		if value, ok := d1d3Number(digest["peak_dbfs"]); ok {
 			report.GlobalPeakDBFS = &value
 		}
-		if value, ok := d1d3Number(observe["rms_dbfs"]); ok {
+		if value, ok := d1d3Number(digest["rms_dbfs"]); ok {
 			report.GlobalRMSDBFS = &value
 		}
-		if value, ok := d1d3Number(observe["crest_db"]); ok {
+		if value, ok := d1d3Number(digest["crest_db"]); ok {
 			report.GlobalCrestDB = &value
 		}
-		report.Waveform = mapValue(observe["waveform"])
-		report.LoudnessRanking = mapRowsFromAny(observe["project_loudness_ranking_excerpt"])
-		report.HeadroomRisk = mapRowsFromAny(observe["project_headroom_risk_excerpt"])
-		report.PeakRisk = mapRowsFromAny(observe["project_peak_risk_ranking_excerpt"])
-		report.MissingMetrics = stringRowsFromAny(observe["missing_metrics"])
+		report.Waveform = mapValue(digest["waveform"])
+		report.LoudnessRanking = mapRowsFromAny(digest["project_loudness_ranking_excerpt"])
+		report.HeadroomRisk = mapRowsFromAny(digest["project_headroom_risk_excerpt"])
+		report.PeakRisk = mapRowsFromAny(digest["project_peak_risk_ranking_excerpt"])
+		report.MissingMetrics = stringRowsFromAny(digest["missing_metrics"])
 		report.LoudnessPeakStatus = d1d3LoudnessFaceStatus(report)
 		// D2 全局 stereo 面
-		if observe["stereo_status"] != nil || observe["correlation_estimate"] != nil || observe["balance_db"] != nil {
+		if digest["stereo_status"] != nil || digest["correlation_estimate"] != nil || digest["balance_db"] != nil {
 			report.StereoStatus = "present"
-			if value, ok := d1d3Number(observe["correlation_estimate"]); ok {
+			if value, ok := d1d3Number(digest["correlation_estimate"]); ok {
 				report.CorrelationEstimate = &value
 			}
-			report.CorrelationState = firstStringFromMap(observe, "correlation_state")
-			if value, ok := d1d3Number(observe["balance_db"]); ok {
+			report.CorrelationState = firstStringFromMap(digest, "correlation_state")
+			if value, ok := d1d3Number(digest["balance_db"]); ok {
 				report.BalanceDB = &value
 			}
-			report.BalanceState = firstStringFromMap(observe, "balance_state")
+			report.BalanceState = firstStringFromMap(digest, "balance_state")
 		} else {
 			report.StereoStatus = "missing"
 			report.Limitations = append(report.Limitations, "全局 stereo_relation 缺席（依赖声学证据，缺失原样保留不升级）")
 		}
-		report.StereoSourceStatus = firstStringFromMap(mapValue(observe["available_detail"]), "stereo_relation")
+		report.StereoSourceStatus = firstStringFromMap(mapValue(digest["available_detail"]), "stereo_relation")
 	}
 	// D2 逐轨面覆盖
 	if trackCandidates > d1d3TrackStereoReadLimit {
