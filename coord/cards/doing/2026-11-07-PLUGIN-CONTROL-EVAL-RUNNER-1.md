@@ -25,4 +25,5 @@ S0 正确操作腿失败→夹具/接口取证上交（不进模型轮）；S1-P
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-07 18:49 +0800 / origin/main=8568f2e4175b2b293982aae4db33a7d289e86c72 / owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 300runner）/ 分支=port/plugin-control-eval-runner-1 / worktree=D:/Vit_DAW_wt_300runner / 领取提交=coord/300-claim（hash 见回执节）。领取基线：fresh worktree 自 origin/main，`git status --short` 与 `git diff --stat` 均为空（clean）。冻结计划取自 origin/port/plugin-control-eval-prep-1:coord/runs/PLUGIN-CONTROL-EVAL-PREP-1/plan.json（287 行，已通读）。
+- （执行侧回填回执）/（主管回填）
