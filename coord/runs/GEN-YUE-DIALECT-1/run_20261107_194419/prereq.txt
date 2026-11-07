@@ -1,0 +1,27 @@
+﻿run_root=D:\Vit_DAW_wt_278impl\coord\runs\GEN-YUE-DIALECT-1\run_20261107_194419
+head=175f09358db4cc7f8a07ff0b858e80bdbe0e0d5b
+git_status=?? coord/runs/GEN-YUE-DIALECT-1/run3_console.txt
+port_free=7878
+port_free=5555
+port_free=5556
+port_free=8087
+vram_before_mib=1662
+agent_binary=D:\Vit_DAW_wt_278impl\coord\runs\GEN-YUE-DIALECT-1\run_20261107_194419\bin\VitAgent.yuedialect.exe size=39187456 mtime=2026-11-07T19:44:21.0791358+08:00
+genapi_config=D:\Vit_DAW_wt_278impl\coord\runs\GEN-YUE-DIALECT-1\run_20261107_194419\genapi_providers.json
+kernel_binary=D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe size=31790592 mtime=2026-10-28T21:26:38.9937636+08:00 sha256=C1E32DFE5338A9E11444A9F86C41454AB50B299DE5EA44FB0DDF21C411246F83
+kernel_pid=1248
+agent_pid=12156
+authority_mode=full_project_access
+engine_pid=3592
+vram_engine_up_mib=1829
+driver_exit=1
+vram_peak_mib=0
+stopped_agent_pid=12156
+stopped_kernel_pid=1248
+stopped_engine_pid=3592
+port_released=7878
+port_released=5555
+port_released=5556
+port_released=8087
+vram_after_mib=1636
+finished=2026-11-07T19:52:17.4085331+08:00

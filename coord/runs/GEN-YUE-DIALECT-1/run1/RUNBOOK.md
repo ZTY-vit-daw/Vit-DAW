@@ -47,3 +47,13 @@
   - 处置：本卡文件域不含 capability_owner.go，不扩修（AGENTS §11）；烟测改用设计内逃生门 `/goal ` 前缀（capability_owner.go:60 斜杠旁路 + goalrunner_chat.go:76 保留 agent loop + agentLoopUserText 剥前缀），路由修复建议交决策侧另立卡；
   - leg2 未执行（leg1 失败即停）。零生成消耗（leg1 死于路由，未到引擎）；LLM 计费≈0（6.5s 内零工具计划轮，semantic_entry 分类一轮 flash 级）。
 - run3：同场景重跑（唯一改动=驱动消息 `/goal ` 前缀）；§8 口径不变——run2 的 leg1 失败归类为域外缺陷取证（非本卡功能面失败，非环境类），按卡面「生成产物 schema 差异大→取证分列」同精神处理：缺陷证据保全+锚点上交，chat 腿经设计内逃生门重试一次。
+
+## run3 结果补记（19:44–19:53）
+
+- leg0 注册披露 PASS（二次亲证）；leg1 chat goal **completed 但 LLM 诚实拒绝执行**——**域外第二缺口：chat 工具披露层无生成能力包**：
+  - 证据：chat 响应 goal_status=completed，reply 明言「本次会话可用的工具集里没有 gen.generate（YuE2 歌声合成）这个入口」；回合执行步=混音观察+get_project_state+project.audio_analysis_status（mix 观察治理路径）；
+  - 锚点：`agent/internal/chat/goalrunner_chat.go:4361`（agentLoopToolContext：capabilities 非空→工具集收窄到 capability 包）；`:4544` 附近 mix 关键词表含 "vocal"（style 串必然命中）、`:4605` midi 表含 "drum"、"drums"、`:4608` transport 表含 "bpm"——**生成请求的自然词汇（风格标签）与 mix/midi/transport 能力词典天然相交**；`:4437-4492` capability switch 无 generation 能力、`:5001` agentLoopMixTools 无 gen.*；
+  - 结论：catalog/harness 注册面齐备（leg0 亲证）但 chat 披露层（goalrunner capability packs）缺 gen.generate——与 276 段3 发现的「第四处注册面」同型；
+  - 处置：本卡文件域不含 goalrunner_chat.go，不扩修（AGENTS §11）；chat 腿暂停交付，锚点+复现（run3 工件）上交决策侧（276 裁定 A 先例=最小一行扩 agentLoop 工具表+配对单测）；
+  - 驱动副作用修正：goal 终态后 runtime 复位 idle 导致轮询空转（run3 wall 439s），驱动改为 chat 响应 goal_status 权威兜底；
+- **run4 计划：-SkipLeg1 跑确定性面（leg0+leg2）**——leg2=复验条款主体（a cappella 生成+转谱回读无器乐断言，卡面验收标准核心），不依赖 chat 披露层；生成预算消耗=1（a cappella 腿，预算 2 以内）；chat 腿生成未消耗如实入账。

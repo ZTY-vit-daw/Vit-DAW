@@ -243,6 +243,7 @@ def leg1_chat(agent_base, run_root, download_dir, report, budget):
     )
     goal_id = (chat_resp or {}).get("goal_id", "")
     stop_reason = (chat_resp or {}).get("stop_reason", "")
+    chat_goal_status = str((chat_resp or {}).get("goal_status") or "")
     events = []
     goal_status = ""
     deadline = time.time() + budget
@@ -263,6 +264,11 @@ def leg1_chat(agent_base, run_root, download_dir, report, budget):
             pass
         if goal_status in ("completed", "failed", "stopped", "cancelled"):
             break
+        # The runtime goal resets to idle after completion; the chat response
+        # goal_status is the authoritative terminal record (run3 evidence).
+        if chat_goal_status in ("completed", "failed", "stopped", "cancelled") and goal_status == "idle":
+            goal_status = chat_goal_status
+            break
         time.sleep(5)
     wall = int(time.time() - started)
 
@@ -270,6 +276,7 @@ def leg1_chat(agent_base, run_root, download_dir, report, budget):
         "conversation_id": conversation_id,
         "goal_id": goal_id,
         "goal_status": goal_status,
+        "chat_goal_status": chat_goal_status,
         "stop_reason": stop_reason,
         "wall_seconds": wall,
         "chat_http_head": (chat_raw or "")[:500],
