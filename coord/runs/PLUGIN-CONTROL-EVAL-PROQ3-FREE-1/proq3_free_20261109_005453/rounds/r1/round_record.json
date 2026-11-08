@@ -1,0 +1,21 @@
+{
+  "case": "T7",
+  "card": "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+  "round": 1,
+  "conversation_id": "pce_proq3_r1_1794156902",
+  "message": "请用这条轨上的 Pro-Q 3 做你认为有必要的均衡处理。调整完必须说明：动了哪个/哪些频段，每段的频率、Q 值、增益量、滤波器类型（钟形/搁架/高通/低通等），以及为什么。",
+  "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit",
+  "fixture": {
+    "track_id": "1007",
+    "plugin_id": "1015",
+    "fixture_digest": "5080116bec1afcfa"
+  },
+  "cases_digest": "e1b70f0ee20e923f208abd54d4f2078461a99bf65f06032db450cc13587988c3",
+  "started_at": "2026-11-09T00:55:02+0800",
+  "exchanges": [],
+  "confirmations": [],
+  "stop_reason": "",
+  "first_action": null,
+  "exception": "timed out",
+  "finished_at": "2026-11-09T00:55:32+0800"
+}
