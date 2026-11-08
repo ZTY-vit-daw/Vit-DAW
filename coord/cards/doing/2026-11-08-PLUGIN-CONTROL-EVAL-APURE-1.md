@@ -30,4 +30,6 @@ A 段同款：plan.json A_star segment_caps（≤18 任务轮/≤216 调用/in�
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-08 晚窗 +0800 / origin/main=00722e1c68190e33b0c2e298bc3981c309c91413（308 已合入亲证） / owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 310 apure runner；发卡人已置 doing/ 并派发确认） / 分支=port/plugin-control-eval-apure-1 / worktree=D:/Vit_DAW_wt_310apure / 领取提交=coord/310-claim→main（hash 见 git log）。领取基线：fresh worktree 自 origin/main 00722e1c，`git status --short`=空、`git diff --stat`=空（全净）。在飞卡域核对：296-R3=scripts 断言+真栈腿（wt_296r2，任务指令已让栈）、309=waveshell C++ 域取证腿候栈、273/271 分支未合入不进本树——与本卡（coord/runs/PLUGIN-CONTROL-EVAL-APURE-1/ 工件目录+工件内编排脚本+本卡面）不相交。308 缝在位亲证：HEAD 上 catalog.go pluginControlEvalSeamTrimsCatalogSpec×4+context.go stripBindingTargetsSemanticOverlay×6+两 seam2 测试文件在场；agent 二进制=本 worktree 现场构建（SHA256 随 run_report）。runner 三件=307 runner_frozen 快照逐字复用（blob 核对随 RUNBOOK）。
+- 回执：（执行侧回填）
+- 验收：（主管回填）
