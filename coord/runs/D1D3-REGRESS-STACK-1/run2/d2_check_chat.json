@@ -1,0 +1,376 @@
+﻿{
+    "conversation_id":  "conv_d2_check_20261108_181759",
+    "task_id":  "task_37bea0c9473daaa1",
+    "goal_id":  "goal_951f637fdefef631",
+    "run_id":  "run_db4e73fec4555258",
+    "original_intent":  "d2 翻译检查",
+    "reply":  "D2 翻译检查（stereo→mono，schema d1d3.premaster.observation.v0 载体，只读）。\n全局立体声（mix.observe digest）：correlation 0.98 / balance -0.1 dB。\n逐轨 stereo summary：读取 6 轨，mono 风险 3 轨。\n判断结果：检出 3 条 mono 风险轨（已测 6 轨；阈值与投影层同款：correlation\u003c0.25 或 phase_negative_ratio\u003e0.10；近似口径结论，不构成翻译合规判定）。\n风险轨 1017：correlation 0.23 \u003c 0.25。\n风险轨 1022：correlation 0.23 \u003c 0.25。\n风险轨 1027：correlation 0.09 \u003c 0.25。\n本次不生成写操作确认卡：v1 确认链操作（gain/pan/eq_band/broadband）无一能改变声道间相关性：gain 对 mono 抵消比例不变，pan 收窄不修复相位抵消；真实修复（立体声宽度/相位处理）属母带 E3 面未建——按「不发明动作」红线，risk_found 仅披露不挂写卡。未修改工程。\n检查结果已记入 stereo check verdict 记录；D2 节点状态可在队列视图查看。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "capability_runtime_v1",
+    "workflow_data":  {
+                          "canary_stage":  "d2_stereo_check",
+                          "capability_id":  "pre_master.stereo_check.v0",
+                          "d2_stereo_check":  {
+                                                  "action_face":  "disclosure_only_v1",
+                                                  "action_face_reason":  "v1 确认链操作（gain/pan/eq_band/broadband）无一能改变声道间相关性：gain 对 mono 抵消比例不变，pan 收窄不修复相位抵消；真实修复（立体声宽度/相位处理）属母带 E3 面未建——按「不发明动作」红线，risk_found 仅披露不挂写卡",
+                                                  "capability_id":  "pre_master.stereo_check.v0",
+                                                  "checked":  true,
+                                                  "global_balance_db":  -0.085,
+                                                  "global_correlation":  0.979,
+                                                  "risk_track_count":  3,
+                                                  "tracks_measured":  6,
+                                                  "tracks_skipped":  0,
+                                                  "verdict":  "risk_found",
+                                                  "verdict_store_key":  "vitproj_b3f2838183d64add9ca7824b8b3ac557|2|risk_found",
+                                                  "verdict_summary":  "检出 3 条 mono 风险轨（已测 6 轨；阈值与投影层同款：correlation\u003c0.25 或 phase_negative_ratio\u003e0.10；近似口径结论，不构成翻译合规判定）。"
+                                              },
+                          "mutation_performed":  false,
+                          "observation":  {
+                                              "schema_version":  "d1d3.premaster.observation.v0",
+                                              "observation_id":  "obs_20261108T102057_f3829088fa74",
+                                              "loudness_peak_status":  "present",
+                                              "waveform":  {
+                                                               "crest_db":  null,
+                                                               "headroom_db":  null,
+                                                               "peak_dbfs":  null,
+                                                               "rms_dbfs":  null,
+                                                               "status":  "missing"
+                                                           },
+                                              "loudness_ranking_rows":  [
+                                                                            {
+                                                                                "focused":  false,
+                                                                                "metric":  "rms_dbfs",
+                                                                                "name":  "vocals",
+                                                                                "rank":  1,
+                                                                                "role_guess":  "vocal",
+                                                                                "track_id":  "1032",
+                                                                                "value":  -19.843
+                                                                            },
+                                                                            {
+                                                                                "focused":  false,
+                                                                                "metric":  "rms_dbfs",
+                                                                                "name":  "drums",
+                                                                                "rank":  2,
+                                                                                "role_guess":  "drums",
+                                                                                "track_id":  "1012",
+                                                                                "value":  -20.94
+                                                                            },
+                                                                            {
+                                                                                "focused":  false,
+                                                                                "metric":  "rms_dbfs",
+                                                                                "name":  "other",
+                                                                                "rank":  3,
+                                                                                "role_guess":  "unknown",
+                                                                                "track_id":  "1022",
+                                                                                "value":  -22.683
+                                                                            },
+                                                                            {
+                                                                                "focused":  false,
+                                                                                "metric":  "rms_dbfs",
+                                                                                "name":  "piano",
+                                                                                "rank":  4,
+                                                                                "role_guess":  "keys_or_synth",
+                                                                                "track_id":  "1027",
+                                                                                "value":  -27.619
+                                                                            },
+                                                                            {
+                                                                                "focused":  false,
+                                                                                "metric":  "rms_dbfs",
+                                                                                "name":  "bass",
+                                                                                "rank":  5,
+                                                                                "role_guess":  "bass",
+                                                                                "track_id":  "1007",
+                                                                                "value":  -30.255
+                                                                            },
+                                                                            {
+                                                                                "focused":  false,
+                                                                                "metric":  "rms_dbfs",
+                                                                                "name":  "guitar",
+                                                                                "rank":  6,
+                                                                                "role_guess":  "guitar",
+                                                                                "track_id":  "1017",
+                                                                                "value":  -31.817
+                                                                            }
+                                                                        ],
+                                              "headroom_risk_rows":  [
+                                                                         {
+                                                                             "focused":  false,
+                                                                             "headroom_db":  5.22,
+                                                                             "name":  "vocals",
+                                                                             "rank":  1,
+                                                                             "risk":  "low",
+                                                                             "role_guess":  "vocal",
+                                                                             "track_id":  "1032"
+                                                                         },
+                                                                         {
+                                                                             "focused":  false,
+                                                                             "headroom_db":  5.328,
+                                                                             "name":  "drums",
+                                                                             "rank":  2,
+                                                                             "risk":  "low",
+                                                                             "role_guess":  "drums",
+                                                                             "track_id":  "1012"
+                                                                         },
+                                                                         {
+                                                                             "focused":  false,
+                                                                             "headroom_db":  5.604,
+                                                                             "name":  "other",
+                                                                             "rank":  3,
+                                                                             "risk":  "low",
+                                                                             "role_guess":  "unknown",
+                                                                             "track_id":  "1022"
+                                                                         },
+                                                                         {
+                                                                             "focused":  false,
+                                                                             "headroom_db":  8.61,
+                                                                             "name":  "piano",
+                                                                             "rank":  4,
+                                                                             "risk":  "low",
+                                                                             "role_guess":  "keys_or_synth",
+                                                                             "track_id":  "1027"
+                                                                         },
+                                                                         {
+                                                                             "focused":  false,
+                                                                             "headroom_db":  11.567,
+                                                                             "name":  "guitar",
+                                                                             "rank":  5,
+                                                                             "risk":  "low",
+                                                                             "role_guess":  "guitar",
+                                                                             "track_id":  "1017"
+                                                                         },
+                                                                         {
+                                                                             "focused":  false,
+                                                                             "headroom_db":  15.873,
+                                                                             "name":  "bass",
+                                                                             "rank":  6,
+                                                                             "risk":  "low",
+                                                                             "role_guess":  "bass",
+                                                                             "track_id":  "1007"
+                                                                         }
+                                                                     ],
+                                              "peak_risk_rows":  [
+                                                                     {
+                                                                         "focused":  false,
+                                                                         "headroom_db":  5.22,
+                                                                         "name":  "vocals",
+                                                                         "peak_dbfs":  -5.22,
+                                                                         "rank":  1,
+                                                                         "risk":  "low",
+                                                                         "role_guess":  "vocal",
+                                                                         "track_id":  "1032"
+                                                                     },
+                                                                     {
+                                                                         "focused":  false,
+                                                                         "headroom_db":  5.328,
+                                                                         "name":  "drums",
+                                                                         "peak_dbfs":  -5.328,
+                                                                         "rank":  2,
+                                                                         "risk":  "low",
+                                                                         "role_guess":  "drums",
+                                                                         "track_id":  "1012"
+                                                                     },
+                                                                     {
+                                                                         "focused":  false,
+                                                                         "headroom_db":  5.604,
+                                                                         "name":  "other",
+                                                                         "peak_dbfs":  -5.604,
+                                                                         "rank":  3,
+                                                                         "risk":  "low",
+                                                                         "role_guess":  "unknown",
+                                                                         "track_id":  "1022"
+                                                                     },
+                                                                     {
+                                                                         "focused":  false,
+                                                                         "headroom_db":  8.61,
+                                                                         "name":  "piano",
+                                                                         "peak_dbfs":  -8.61,
+                                                                         "rank":  4,
+                                                                         "risk":  "low",
+                                                                         "role_guess":  "keys_or_synth",
+                                                                         "track_id":  "1027"
+                                                                     },
+                                                                     {
+                                                                         "focused":  false,
+                                                                         "headroom_db":  11.567,
+                                                                         "name":  "guitar",
+                                                                         "peak_dbfs":  -11.567,
+                                                                         "rank":  5,
+                                                                         "risk":  "low",
+                                                                         "role_guess":  "guitar",
+                                                                         "track_id":  "1017"
+                                                                     },
+                                                                     {
+                                                                         "focused":  false,
+                                                                         "headroom_db":  15.873,
+                                                                         "name":  "bass",
+                                                                         "peak_dbfs":  -15.873,
+                                                                         "rank":  6,
+                                                                         "risk":  "low",
+                                                                         "role_guess":  "bass",
+                                                                         "track_id":  "1007"
+                                                                     }
+                                                                 ],
+                                              "missing_metrics":  [
+                                                                      "waveform_envelope",
+                                                                      "before_after_delta",
+                                                                      "ab_result"
+                                                                  ],
+                                              "rlm_status":  "ready",
+                                              "rlm_mode":  "coarse",
+                                              "rlm_selected_metric":  "rms_dbfs",
+                                              "rlm_reference_level":  -25.151,
+                                              "rlm_summary":  {
+                                                                  "candidate_count":  6,
+                                                                  "eligible_track_count":  6,
+                                                                  "missing_metric_count":  0,
+                                                                  "not_calibratable_count":  0,
+                                                                  "reference_basis":  "median",
+                                                                  "selected_unit":  "dBFS",
+                                                                  "track_count":  6
+                                                              },
+                                              "rlm_limitations":  [
+                                                                      "rlm_strict_active_or_lufs_missing_coarse_reference"
+                                                                  ],
+                                              "stereo_status":  "present",
+                                              "correlation_estimate":  0.979,
+                                              "correlation_state":  "highly_correlated",
+                                              "balance_db":  -0.085,
+                                              "balance_state":  "centered",
+                                              "stereo_source_status":  "ready",
+                                              "track_stereo":  [
+                                                                   {
+                                                                       "track_id":  "1007",
+                                                                       "status":  "read",
+                                                                       "correlation_estimate":  0.689,
+                                                                       "correlation_state":  "coherent",
+                                                                       "balance_db":  -1.475,
+                                                                       "phase_negative_ratio":  0,
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1012",
+                                                                       "status":  "read",
+                                                                       "correlation_estimate":  0.974,
+                                                                       "correlation_state":  "highly_correlated",
+                                                                       "balance_db":  0.039,
+                                                                       "phase_negative_ratio":  0,
+                                                                       "mono_risk":  false
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1017",
+                                                                       "status":  "read",
+                                                                       "correlation_estimate":  0.227,
+                                                                       "correlation_state":  "decorrelated",
+                                                                       "balance_db":  0.676,
+                                                                       "phase_negative_ratio":  0,
+                                                                       "mono_risk":  true
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1022",
+                                                                       "status":  "read",
+                                                                       "correlation_estimate":  0.225,
+                                                                       "correlation_state":  "decorrelated",
+                                                                       "balance_db":  -0.597,
+                                                                       "phase_negative_ratio":  0,
+                                                                       "mono_risk":  true
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1027",
+                                                                       "status":  "read",
+                                                                       "correlation_estimate":  0.088,
+                                                                       "correlation_state":  "decorrelated",
+                                                                       "balance_db":  0.887,
+                                                                       "phase_negative_ratio":  0,
+                                                                       "mono_risk":  true
+                                                                   },
+                                                                   {
+                                                                       "track_id":  "1032",
+                                                                       "status":  "read",
+                                                                       "correlation_estimate":  0.979,
+                                                                       "correlation_state":  "highly_correlated",
+                                                                       "balance_db":  -0.085,
+                                                                       "phase_negative_ratio":  0,
+                                                                       "mono_risk":  false
+                                                                   }
+                                                               ],
+                                              "tracks_considered":  6,
+                                              "tracks_skipped":  0,
+                                              "mono_risk_tracks":  3,
+                                              "user_intent":  "d2 翻译检查",
+                                              "render_binding_count":  0,
+                                              "reference_track_gap":  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补",
+                                              "limitations":  [
+                                                                  "当前无 render→delivery 绑定（render_profile_bind 写端不在本只读 pack，绑定面如实为空）",
+                                                                  "参考曲导入/对比命令缺口：audition.* 十命令在内核 dispatcher 而不在 agent catalog，D3 参考曲对比本体缺命令载体——如实登记，本卡不补"
+                                                              ]
+                                          },
+                          "observation_carrier":  "pre_master.observation.v0",
+                          "read_only":  true,
+                          "schema":  "d1d3.premaster.observation.v0",
+                          "session_id":  "cap_v1_d1d3_conv_d2_check_20261108_181759_1"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "d2 翻译检查",
+    "stop_reason":  "d2_stereo_checked",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261108T102101_8fcd5437",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261108T102015_ebfcd0d2"
+                                         },
+                            "commit_count":  3,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "d2 翻译检查",
+                                                              "logical_message_id":  "n_20261108T102055_67e16ed3",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261108T102055_67e16ed3",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "D2 翻译检查（stereo→mono，schema d1d3.premaster.observation.v0 载体，只读）。\n全局立体声（mix.observe digest）：correlation 0.98 / balance -0.1 dB。\n逐轨 stereo summary：读取 6 轨，mono 风险 3 轨。\n判断结果：检出 3 条 mono 风险轨（已测 6 轨；阈值与投影层同款：correlation\u003c0.25 或 phase_negative_ratio\u003e0.10；近似口径结论，不构成翻译合规判定）。\n风险轨 1017：correlation 0.23 \u003c 0.25。\n风险轨 1022：correlation 0.23 \u003c 0.25。\n风险轨 1027：correlation 0.09 \u003c 0.25。\n本次不生成写操作确认卡：v1 确认链操作（gain/pan/eq_band/broadband）无一能改变声道间相关性：gain 对 mono 抵消比例不变，pan 收窄不修复相位抵消；真实修复（立体声宽度/相位处理）属母带 E3 面未建——按「不发明动作」红线，risk_found 仅披露不挂写卡。未修改工程。\n检查结果已记入 stereo check verdict 记录；D2 节点状态可在队列视图查看。",
+                                                              "logical_message_id":  "n_20261108T102101_8fcd5437",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261108T102101_8fcd5437",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261108T102015_ebfcd0d2",
+                            "initialized":  true,
+                            "project_label":  "spv1_p01",
+                            "project_path":  "D:\\Vit_DAW_wt_296r2\\artifacts\\free_state_d1_s1\\20261108_181759\\project\\spv1_p01.vit",
+                            "project_uuid":  "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261108T102015_ebfcd0d2"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261108T102015_ebfcd0d2",
+                                                  "created_at":  "2026-11-08T10:21:01.3277909Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261108T102015_ebfcd0d2",
+                                                  "path":  "D:\\Vit_DAW_wt_296r2\\artifacts\\free_state_d1_s1\\20261108_181759\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_296r2\\artifacts\\free_state_d1_s1\\20261108_181759\\project\\spv1_p01.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_296r2\\artifacts\\free_state_d1_s1\\20261108_181759\\project\\spv1_p01.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_296r2\\artifacts\\free_state_d1_s1\\20261108_181759\\project\\spv1_p01.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_db4e73fec4555258",
+    "logical_message_id":  "n_20261108T102101_8fcd5437"
+}

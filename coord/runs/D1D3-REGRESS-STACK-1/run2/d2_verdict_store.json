@@ -1,0 +1,48 @@
+{
+  "schema_version": "stereo_check_verdicts.v0",
+  "updated_at": "2026-11-08T10:21:01.2977786Z",
+  "checks_total": 1,
+  "verdicts": [
+    {
+      "key": "vitproj_b3f2838183d64add9ca7824b8b3ac557|2|risk_found",
+      "project_uuid": "vitproj_b3f2838183d64add9ca7824b8b3ac557",
+      "project_revision": "2",
+      "verdict_kind": "risk_found",
+      "verdict": {
+        "schema_version": "stereo_check_verdicts.v0",
+        "verdict": "risk_found",
+        "global_correlation": 0.979,
+        "global_balance_db": -0.085,
+        "risk_tracks": [
+          {
+            "track_id": "1017",
+            "correlation_estimate": 0.227,
+            "phase_negative_ratio": 0,
+            "basis": "correlation 0.23 \u003c 0.25"
+          },
+          {
+            "track_id": "1022",
+            "correlation_estimate": 0.225,
+            "phase_negative_ratio": 0,
+            "basis": "correlation 0.23 \u003c 0.25"
+          },
+          {
+            "track_id": "1027",
+            "correlation_estimate": 0.088,
+            "phase_negative_ratio": 0,
+            "basis": "correlation 0.09 \u003c 0.25"
+          }
+        ],
+        "tracks_measured": 6,
+        "tracks_skipped": 0,
+        "summary": "检出 3 条 mono 风险轨（已测 6 轨；阈值与投影层同款：correlation\u003c0.25 或 phase_negative_ratio\u003e0.10；近似口径结论，不构成翻译合规判定）。"
+      },
+      "trigger_kind": "d2_stereo_check",
+      "trigger_ref": "cap_v1_d1d3_conv_d2_check_20261108_181759_1",
+      "recorded_at": "2026-11-08T10:21:01.2977786Z",
+      "risk_track_count": 3,
+      "tracks_measured": 6,
+      "tracks_skipped": 0
+    }
+  ]
+}

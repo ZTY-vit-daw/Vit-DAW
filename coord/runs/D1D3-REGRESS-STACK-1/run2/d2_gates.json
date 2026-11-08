@@ -1,0 +1,55 @@
+﻿{
+    "probe":  {
+                  "passed":  true,
+                  "stop_reason":  "done",
+                  "entry_route":  "",
+                  "conversation_id":  "conv_d2_probe_20261108_181759",
+                  "entry_confidence":  "",
+                  "message":  "帮我检查一下这首歌用单声道播放会不会丢内容",
+                  "sent_vocabulary":  false
+              },
+    "runner_exit":  0,
+    "gate_results":  {
+                         "tracks_face":  false,
+                         "global_stereo":  true,
+                         "verdict_on_disk":  true,
+                         "d2_node_lit":  true,
+                         "action_face":  true,
+                         "check_turn":  true
+                     },
+    "schema_version":  "d2_stereo_check_gates.v0",
+    "report":  {
+                   "verdict_record_on_disk":  true,
+                   "failures":  [
+                                    "D2-STEREO FAIL: per-track face counts (considered=6, rows=6, with_metrics=6, without_metrics=0; expected 7/7/6/1 — six ready tracks plus the 1039 no-row track, 292 ground truth)",
+                                    "D2-STEREO FAIL: the no-metric row must be track 1039 classified read-without-metrics (got track_id=\u0027\u0027, status=\u0027\u0027 — status=missing is the pre-292 catalog_key_not_found shape)"
+                                ],
+                   "tracks_with_metrics":  6,
+                   "no_metric_track_id":  "",
+                   "track_1007_balance_db":  -1.475,
+                   "stereo_face":  "present",
+                   "verdict_store_path":  "D:\\Vit_DAW_wt_296r2\\artifacts\\free_state_d1_s1\\20261108_181759\\project\\.vit_agent\\vitproj_b3f2838183d64add9ca7824b8b3ac557\\mixboard\\stereo_check_verdicts.json",
+                   "tracks_without_metrics":  0,
+                   "payload_tracks_measured":  6,
+                   "mutation_performed":  "False",
+                   "d2_node_state":  "in_progress",
+                   "track_1007_correlation_state":  "coherent",
+                   "payload_tracks_skipped":  0,
+                   "risk_track_count":  3,
+                   "no_metric_track_status":  "",
+                   "probe_passed":  true,
+                   "check_stop_reason":  "d2_stereo_checked",
+                   "global_balance_db":  -0.085,
+                   "global_correlation":  0.979,
+                   "card_parked":  false,
+                   "verdict_kind":  "risk_found",
+                   "track_1007_correlation":  0.689,
+                   "tracks_considered":  6,
+                   "action_face":  "disclosure_only_v1"
+               },
+    "run_stamp":  "20261108_181759",
+    "failures":  [
+                     "D2-STEREO FAIL: per-track face counts (considered=6, rows=6, with_metrics=6, without_metrics=0; expected 7/7/6/1 — six ready tracks plus the 1039 no-row track, 292 ground truth)",
+                     "D2-STEREO FAIL: the no-metric row must be track 1039 classified read-without-metrics (got track_id=\u0027\u0027, status=\u0027\u0027 — status=missing is the pre-292 catalog_key_not_found shape)"
+                 ]
+}

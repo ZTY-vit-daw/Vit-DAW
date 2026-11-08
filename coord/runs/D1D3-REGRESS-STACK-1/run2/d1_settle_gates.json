@@ -1,0 +1,17 @@
+﻿{
+    "failures":  [
+
+                 ],
+    "run_stamp":  "20261108_181759",
+    "schema_version":  "d1_loudness_settle_gates.v0",
+    "phase_reachable":  false,
+    "skip_reason":  "zero_mutation_boundary: no applied action -\u003e no watch-hook trigger -\u003e no verdict store (gate B) and the D1 queue node never left not_started (gate D); the settle gates are structurally unreachable on this branch",
+    "gate_results":  {
+                         "settle_turn":  "skipped_branch_unreachable",
+                         "d1_node_lit":  "skipped_branch_unreachable",
+                         "verdict_on_disk":  "skipped_branch_unreachable",
+                         "action_face":  "skipped_branch_unreachable"
+                     },
+    "runner_exit":  0,
+    "d1_branch":  "zero_mutation_boundary"
+}

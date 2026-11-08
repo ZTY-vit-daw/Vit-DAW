@@ -1,0 +1,71 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_181801\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_296r2
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=30904 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=30904
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_296r2\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=30904
+ok: ZMQ SUB listening: 5556 pid=30904
+
+== Project state invoke
+project.state status=ok error=
+
+== Summary
+ok: dev agent smoke completed
+D1-S1 PASS: report=D:\Vit_DAW_wt_296r2\artifacts\free_state_d1_s1\20261108_181759\d1_smoke_report.json
+
+== Phase D1-SETTLE: loudness/peak settle gates ==
+[d1-settle] BRANCH-SKIP (zero-mutation): settle gates unreachable on this branch, recorded skip-with-reason (phase_reachable=false); gates=D:\Vit_DAW_wt_296r2\artifacts\free_state_d1_s1\20261108_181759\d1_settle_gates.json
+
+== Phase D2-STEREO: stereo/mono translation-check gates ==
+[d2-stereo] face P: bare-phrase semantic-entry probe (LLM)
+   [ok] bare phrase passed semantic_entry (stop_reason=done, route=, conf=) — no-vocabulary entry baseline holds (263 lesson)
+[d2-stereo] gate A: explicit check chat turn
+   [ok] stop_reason=d2_stereo_checked
+   [ok] d2_stereo_check payload: verdict=risk_found (fixture-dependent, unasserted), action_face=disclosure_only_v1, stereo_face=present
+   [ok] global digest stereo face present (274 digest-wiring ground truth)
+   [FAIL] D2-STEREO FAIL: per-track face counts (considered=6, rows=6, with_metrics=6, without_metrics=0; expected 7/7/6/1 — six ready tracks plus the 1039 no-row track, 292 ground truth)
+   [FAIL] D2-STEREO FAIL: the no-metric row must be track 1039 classified read-without-metrics (got track_id='', status='' — status=missing is the pre-292 catalog_key_not_found shape)
+   [ok] track 1007 anchor values: correlation=0.689, balance_db=-1.475 (292 unit anchors corr 0.689 / balance -1.475)
+   [ok] d2 payload tracks_measured=6 (read-without-metrics row excluded; tracks_skipped=0, risk_track_count=3)
+   [ok] stereo check turn performed no project mutation
+[d2-stereo] gate B: d2_stereo_check verdict record on disk
+   [ok] verdict store carries a d2_stereo_check trigger record (candidates=1)
+[d2-stereo] gate C: action face (verdict=risk_found, v1 pinned no-card)
+   [ok] no verdict kind parks a card in v1 (disclosure-only boundary, zero mutation)
+[d2-stereo] gate D: mix.report queue view D2 node state
+   [ok] D2 node state=in_progress
+D2-STEREO-CHECK gates failed (2 failure(s)); evidence=D:\Vit_DAW_wt_296r2\artifacts\free_state_d1_s1\20261108_181759\d2
+_gates.json
+所在位置 D:\Vit_DAW_wt_296r2\scripts\run_free_state_d1_smoke.ps1:1695 字符: 9
++         throw ("D2-STEREO-CHECK gates failed (" + [string]$d2Failures ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (D2-STEREO-CHECK...9\d2_gates.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : D2-STEREO-CHECK gates failed (2 failure(s)); evidence=D:\Vit_DAW_wt_296r2\artifacts\free 
+   _state_d1_s1\20261108_181759\d2_gates.json
+ 
