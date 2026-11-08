@@ -246,6 +246,12 @@ func (c *Catalog) Tools() []Tool {
 	}
 	out := make([]Tool, 0, len(c.tools))
 	for _, spec := range c.tools {
+		// PLUGIN-CONTROL-EVAL-SEAM2-1 S5: seam open trims the plugin_grabber
+		// typed-adapter family from the model tool list (AllowedTools derives
+		// from this face); closed returns every tool byte-for-byte.
+		if pluginControlEvalSeamTrimsCatalogSpec(spec) {
+			continue
+		}
 		out = append(out, Tool{
 			Name:                 spec.ToolName,
 			Namespace:            spec.Namespace,
@@ -292,6 +298,11 @@ func (c *Catalog) ModelSummary() string {
 	}
 	var parts []string
 	for _, spec := range c.Commands() {
+		// PLUGIN-CONTROL-EVAL-SEAM2-1 S5: seam open trims plugin_grabber
+		// summary lines from the model catalog text.
+		if pluginControlEvalSeamTrimsCatalogSpec(spec) {
+			continue
+		}
 		parts = append(parts, modelSummaryLine(spec))
 	}
 	return strings.Join(parts, "\n")
@@ -323,6 +334,12 @@ func (c *Catalog) ModelSummaryForTools(toolNames []string) string {
 			continue
 		}
 		seen[key] = true
+		// PLUGIN-CONTROL-EVAL-SEAM2-1 S5: seam open trims plugin_grabber
+		// summary lines from the capability-pack catalog text even when a
+		// static pack list still names the tool.
+		if pluginControlEvalSeamTrimsCatalogSpec(spec) {
+			continue
+		}
 		specs = append(specs, spec)
 	}
 	sort.Slice(specs, func(i, j int) bool {
@@ -1010,6 +1027,25 @@ func setPluginParamCatalogDescription() string {
 		return setPluginParamBareDescription
 	}
 	return setPluginParamFullDescription
+}
+
+// Seam S5 (tool-catalog trimming) of PLUGIN-CONTROL-EVAL-SEAM2-1: the
+// plugin_grabber typed-adapter family (inspect_* / apply_*_controls /
+// explain_controls / apply_eq_edits / set_eq_point — every command whose
+// CommandName starts with "plugin_grabber") stayed on the model-facing menu
+// after the 305 seams, and the 307 A-arm observed the model self-selecting
+// it in 10/18 rounds (write_path=typed_adapter). With the seam open those
+// specs are trimmed from the model tool catalog faces (Tools, ModelSummary,
+// ModelSummaryForTools), so AllowedTools derivation and every catalog
+// summary text stop disclosing them and the agentloop allowedTool admission
+// gate rejects hallucinated calls. The bare parameter tools
+// (plugin.get_parameters / get_plugin_parameters / plugin.set_parameter /
+// set_plugin_param) stay on the menu. Execution-facing lookups
+// (LookupCommand / LookupTool / Commands / DirectCommandNames) keep the
+// specs so the policy and free-state guard faces are not weakened. The
+// seam-closed path returns every spec (production behavior byte-for-byte).
+func pluginControlEvalSeamTrimsCatalogSpec(spec CommandSpec) bool {
+	return pluginControlEvalSeamOpen() && strings.HasPrefix(spec.CommandName, "plugin_grabber")
 }
 
 func defaultSpecs() []CommandSpec {
