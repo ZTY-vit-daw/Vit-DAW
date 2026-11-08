@@ -34,3 +34,9 @@
   - **域外记录（不扩修）**：dev_agent_smoke.ps1 起栈不传递调用方 PS 会话 env 至 agent 进程（-RestartAgent 链），缝类实验须从带 env 的 shell 直接启动 agent 或修脚本——scripts 域，交主管裁量；保存路径其余 5 处 Track flush 调用点（~186/~232/~1389/~1445/~1641，load 前快照/其他路径）rack 面同型缺口未在本卡修（卡面只锚两保存入口）——如主管认为需全覆盖可另开小卡；
   - **端测边界声明**：本卡验收=agent HTTP/ZMQ 面持久化 probe（零 LLM），无渲染面/用户旅程主张；「**320 解锁条件已备**」——本卡合入后 320 可续批（装置全就绪+selftest 25/25 在分支，布位→device→T7×3 一次栈窗口可完成）。
 - 验收：（主管回填）
+
+### 终验（主管，2026-11-09 凌晨）
+
+- **pass 整卡收口+合入 main**——probe 报告主管直读亲证（arm_a rack 内 Pro-Q 3 value_after_reopen=0.699999988 persisted:true ×3 有效测量；对照 320 未修基线三次全回 0.5；arm_b track 级回归维持）；锚点核实的一处精化（写时 else 分支本体直 flush 已执行、真缺口=VST3 chunk 吸收依插件而定+rack 面无补偿通道）采信并记录——修复设计（override 重放必胜时序）与之自洽；全量 Release 构建 exit 0+新单测全过；栈协议全链（0e2eba76→8ae87693）零 LLM。
+- **域外两记录处置**：①-RestartAgent env 不透传=scripts 域记录候卡（缝类实验影响面小，暂不开卡挂 PENDING）；②其余 5 处 Track flush 同型缺口=后续同型修复小卡候排（非本卡扩域）。
+- **320 解锁**：装置全就绪，续批跑 T7×3 终章。
