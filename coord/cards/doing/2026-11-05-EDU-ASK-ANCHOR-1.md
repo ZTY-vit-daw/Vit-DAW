@@ -55,3 +55,10 @@
 ## 验收
 
 - （主管回填）
+
+### 验收（实现腿，主管，2026-11-08 晚窗）
+
+- **pass 轻验（终验候真栈轻腿）**——主管亲读核心交付件：①引导段全文=裁定 15 方案 a 三要素齐（参照物清单[marker/循环区/轨道 clip/transport 秒/music_context]+问询守则[指称落锚定物/用户侧坐标追问转换]+刹车句[问在判定权属用户处，不问模型自己能查到处]），bar 坐标守门（tempo_setting_count==1+披露拍号才可用，否则回落秒/marker）=§五-8+256 定案忠实落地，A/B 兜底编排含渲染主路径优先声明；②落点=ruleset shared 段体系（evidence_refs 跨族段先例复用，非新建结构）+RulesetVersion v2→v3+parity 测试（embed 减 postMigration==legacy 模板全绿，§11 持久化兼容口径履行）；③注册四面齐（catalog spec RiskDirect+policy+chat 门控+自动披露），描述诚实（"Transport state only"）。
+- **域外申报裁定：goalrunner_chat.go +4 行批准**（agentLoopTransportTools 白名单补 set_loop/clear_loop=276 第四注册面同型，缺行则工具对模型遮蔽、卡面"注册"目标不可达——扩域追认，先例一致）。
+- **两处覆盖边界记录接受**：普通族 ReAct 骨架面不含引导段（工具仍可达）；纯 midi 关键词轮次不披露 transport 工具（既有能力分面行为）。
+- 真栈轻腿（chat 驱动 loop 设置/清除断言）候栈——排 310/296-R3/309 腿后、今晚手测前由主管排栈；候栈期间卡留 doing。
