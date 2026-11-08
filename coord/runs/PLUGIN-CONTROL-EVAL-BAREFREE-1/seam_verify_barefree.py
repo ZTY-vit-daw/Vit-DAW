@@ -390,7 +390,9 @@ def verify(a_capture: Path, probe_dir: Path, p_capture: Path,
     gwl: dict = {"probe_path": str(gw_live_probe) if gw_live_probe else ""}
     if gw_live_probe and Path(gw_live_probe).exists():
         try:
-            live = json.loads(Path(gw_live_probe).read_text(encoding="utf-8"))
+            # utf-8-sig: the orchestrator merges this file with PowerShell
+            # Set-Content -Encoding UTF8 (BOM on Windows PowerShell 5.1)
+            live = json.loads(Path(gw_live_probe).read_text(encoding="utf-8-sig"))
         except json.JSONDecodeError:
             live = {"_unparseable": True}
         bare = live.get("barewrite_probe") or {}

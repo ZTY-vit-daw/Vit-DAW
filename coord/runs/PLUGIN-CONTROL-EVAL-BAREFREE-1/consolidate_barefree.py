@@ -218,7 +218,8 @@ def main() -> int:
     gw_path = Path(args.gw_live_probe) if args.gw_live_probe else (args.run_dir / "guard_live_probe.json")
     if gw_path.is_file():
         try:
-            gw_live = json.loads(gw_path.read_text(encoding="utf-8"))
+            # utf-8-sig: PowerShell-merged artifact may carry a BOM
+            gw_live = json.loads(gw_path.read_text(encoding="utf-8-sig"))
         except json.JSONDecodeError:
             gw_live = {"_unparseable": True}
 
