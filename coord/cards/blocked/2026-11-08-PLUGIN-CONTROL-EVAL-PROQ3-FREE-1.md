@@ -41,6 +41,14 @@ Pro-Q 3 不在 registry/无法装载→取证上交（换 EQ 插件须用户裁�
   - **预算**：三 run+probe 全程零 LLM 零计费（失败均在零 LLM 腿）；≈¥1 批预算未动；
   - **端测边界**：无任务轮数据/无渲染面/无用户旅程主张；GUI 终审物未产生；
   - **解锁条件（候主管）**：C++ 持久化缺陷修复合入后，本卡装置全部就绪可直接续（cases/driver/orchestrator/RUNBOOK 在分支，selftest 25/25；布位→device→T7×3→对账表全链一次栈窗口可完成）。
+- 回执三（终章批，2026-11-09 00:42 收口）：修复#3 已提交分支+释放登记 2c7ef6db；状态=**终章批两 run 后再停（doing→blocked 第三停）——候第四批授权**
+  - **run4 proq3_free_20261109_003004**：持久化门假阴性=**本侧装置门跨工程测量缺陷**（布位循环尾 active=r3，known-op/持久化持 r1 id 写——两副本命令序列相同→id 同名巧合命中 r3 实例——随后 reopen r1「验证」=写 r3 验 r1；321 修复本身与此无关）；修复=门先 open 目标工程再写（321 probe 正确流对齐）；
+  - **run5 proq3_free_20261109_003454（终章批重建#1）**：**装置六门全 TRUE**——registry+布位 r1/r2/r3+启动页 recent+初始态等价 digest 全等+known-op 裸写 0.7 落地+**持久化门 PASS（Band1 Gain 0.7→save→open→0.699999988079071 persisted:true，restore 后 digest 回初始 5080116bec1afcfa）=321 修复经修正装置门端到端亲证**；随后 T7 r1 崩于付费会话启动前——open 后参数面异步重建竞态（agent invoke status=ok 但 0 参数行→runner RuntimeError 于 try 外→PS EAP=Stop 把 python stderr 升级 NativeCommandError 终止整批；agent 日志止于 00:35:03 get_plugin_parameters ok+rounds/r1 空，取证在卷）；
+  - **零 LLM 亲证**：telemetry 文件不存在（崩点在首次 chat 前）——DeepSeek 零调用零计费，≈¥1 预算未动；
+  - **停批依据**：终章指令第 5 条（付费段装置失败=取证上交）+终章批重建额度耗尽（run5=重建#1，§四冻结）；
+  - **修复#3（已提交分支候用）**：runner 5 处读面改 wait_agent_parameters 轮询（布位门同款，消除 open 后异步竞态）+编排 3 个 python 调用点 EAP=Continue 守卫（traceback 入 Tee 日志不再杀批）；selftest 25/25+PARSE_OK；
+  - **栈协议（终章批）**：占用 4dce706f（净空 00:29:24+≤60s 复核 00:30:00+psutil env 亲证两键=1）→run4/run5→owner 亲拆 **TEARDOWN_ALL_ZERO 00:41:33**→释放 2c7ef6db；三布位工程已清除（projects 域亲核）；
+  - **第四批距离（候主管授权）**：唯一剩余=两 runner 侧竞态修复（已在分支）后的重跑——321 修复+装置六门+T7 话术/判据/预算全就绪；一次栈窗口即可完成 device→T7×3→对账表→用户 GUI 终审交付物。
 - 验收：（主管回填+用户 GUI 终审）
 
 ### 续批授权（主管，2026-11-08 深夜）
