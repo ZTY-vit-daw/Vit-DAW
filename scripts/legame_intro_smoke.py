@@ -265,14 +265,37 @@ def main() -> int:
         wait_kernel_zmq(args.kernel_zmq, 30.0)
         wait_agent_http(args.agent_http, 60.0)
 
-        # Open the isolated fixture copy in the kernel, then wait for the agent
-        # workspace to bind it (activation to completion BEFORE any chat - a
-        # deferred auto-intro would otherwise spill a white-talk turn into the
-        # semantic entry and bill an LLM call).
+        # Product entry face (runA attempt-2 forensics): a bare ZMQ open_project
+        # does not establish the agent workspace identity - the Godot START PAGE
+        # enters a project through the agent invoke face (project.open, then the
+        # version.project_opened lifecycle notification; the same face the
+        # l4_genesis scenario drives). This leg reproduces exactly that product
+        # sequence, which is the flow the LEGAME cards exist for.
         place_path = str(Path(args.project_path).resolve())
-        reply = zmq_command(args.kernel_zmq, {"cmd": "open_project", "file_path": place_path, "command_timeout_ms": 60000})
-        if str(reply.get("status", "")).lower() not in {"ok", "success"}:
-            return fail(EXIT_ENV, "open_project", f"open_project failed: {json.dumps(reply, ensure_ascii=False)[:400]}")
+
+        def invoke(tool: str, tool_args: Dict[str, Any], timeout: float = 60.0) -> Dict[str, Any]:
+            return post_json(args.agent_http, "/agent/invoke", {
+                "tool": tool,
+                "args": tool_args,
+                "confirmed": True,
+                "source": "legame_intro_smoke.start_page_face",
+            }, timeout)
+
+        opened = invoke("project.open", {"file_path": place_path})
+        if str(opened.get("status", "")) != "ok":
+            return fail(EXIT_ENV, "project_open", f"project.open not ok: {json.dumps(opened, ensure_ascii=False)[:400]}")
+        state_reply = invoke("project.state", {})
+        result = state_reply.get("result") if isinstance(state_reply.get("result"), dict) else {}
+        project_uuid = str(result.get("project_uuid") or "")
+        if str(state_reply.get("status", "")) != "ok" or not project_uuid:
+            return fail(EXIT_ENV, "project_state", f"project.state uuid unavailable: {json.dumps(state_reply, ensure_ascii=False)[:400]}")
+        notify = invoke("version.project_opened", {"project_path": place_path, "project_uuid": project_uuid}, timeout=120.0)
+        if str(notify.get("status", "")) != "ok":
+            return fail(EXIT_ENV, "project_opened_notify", f"version.project_opened not ok: {json.dumps(notify, ensure_ascii=False)[:400]}")
+        summary["phases"]["project_entry"] = {"path": place_path, "uuid": project_uuid}
+        save_summary()
+        print(f"[legame-smoke] start-page entry: path={place_path} uuid={project_uuid}", flush=True)
+
         activation = wait_workspace_activation(args.agent_http, place_path, ACTIVATION_WAIT_SEC)
         summary["phases"]["activation"] = activation
         save_summary()
