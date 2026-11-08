@@ -1,0 +1,51 @@
+slice: lines 1502..1582 (81 lines) from D:\Vit_DAW_wt_296r2\scripts\run_free_state_d1_smoke.ps1
+== T1 zero-mutation + run2-verbatim 6/6/6/0 all-read (expect PASS) ==
+   [ok] per-track face (zero-mutation branch): 6 tracks considered, 6 rows, 6 read-with-metrics, 0 no-metric rows (292 track-key routing ground truth; run2 evidence #2/#4)
+   [ok] all 6 rows classified status=read (routed mix.read track-keyed face; 292 ground truth)
+   countsOK=True shapeOK=True tracksFaceOK=True failures=0 => PASS
+== T2 1-mutation 7/7/6/1 no-metric id=1039 status=read (expect PASS) ==
+   [ok] per-track face (1-mutation branch): 7 tracks considered, 6 fixture rows read-with-metrics, 1 runner-created row without metrics (292 ground truth; run2 evidence #3)
+   [ok] no-metric row is a runner-created track (id=1039, auto-assigned ！ never hardcoded) classified read-without-metrics (mix.read reason=stereo_relation_row_missing_for_track, not catalog_key_not_found ！ pre-292 shape was status=missing)
+   countsOK=True shapeOK=True tracksFaceOK=True failures=0 => PASS
+== T3 1-mutation 7/7/6/1 no-metric id=1043 status=read (non-1039) (expect PASS) ==
+   [ok] per-track face (1-mutation branch): 7 tracks considered, 6 fixture rows read-with-metrics, 1 runner-created row without metrics (292 ground truth; run2 evidence #3)
+   [ok] no-metric row is a runner-created track (id=1043, auto-assigned ！ never hardcoded) classified read-without-metrics (mix.read reason=stereo_relation_row_missing_for_track, not catalog_key_not_found ！ pre-292 shape was status=missing)
+   countsOK=True shapeOK=True tracksFaceOK=True failures=0 => PASS
+== T4 zero-mutation fed 7/7/6/1 face (branch mismatch) (expect FAIL) ==
+   [FAIL] D2-STEREO FAIL: per-track face counts on the zero-mutation branch (considered=7, rows=7, with_metrics=6, without_metrics=1; expected 6/6/6/0 ！ the fixture carries six tracks and no runner track exists on this branch, so every row must be read-with-metrics; run2 evidence #2/#4)
+   [FAIL] D2-STEREO FAIL: zero-mutation branch must have zero no-metric rows and all six rows status=read (no_metric_rows=1, read_rows=7 ！ status=missing is the pre-292 catalog_key_not_found shape)
+   countsOK=False shapeOK=False tracksFaceOK=False failures=2 => FAIL
+   [failure] D2-STEREO FAIL: per-track face counts on the zero-mutation branch (considered=7, rows=7, with_metrics=6, without_metrics=1; expected 6/6/6/0 ！ the fixture carries six tracks and no runner track exists on this branch, so every row must be read-with-metrics; run2 evidence #2/#4)
+   [failure] D2-STEREO FAIL: zero-mutation branch must have zero no-metric rows and all six rows status=read (no_metric_rows=1, read_rows=7 ！ status=missing is the pre-292 catalog_key_not_found shape)
+== T5 zero-mutation fed pre-292 face (6 rows all missing) (expect FAIL) ==
+   [FAIL] D2-STEREO FAIL: per-track face counts on the zero-mutation branch (considered=6, rows=6, with_metrics=0, without_metrics=6; expected 6/6/6/0 ！ the fixture carries six tracks and no runner track exists on this branch, so every row must be read-with-metrics; run2 evidence #2/#4)
+   [FAIL] D2-STEREO FAIL: zero-mutation branch must have zero no-metric rows and all six rows status=read (no_metric_rows=6, read_rows=0 ！ status=missing is the pre-292 catalog_key_not_found shape)
+   countsOK=False shapeOK=False tracksFaceOK=False failures=2 => FAIL
+   [failure] D2-STEREO FAIL: per-track face counts on the zero-mutation branch (considered=6, rows=6, with_metrics=0, without_metrics=6; expected 6/6/6/0 ！ the fixture carries six tracks and no runner track exists on this branch, so every row must be read-with-metrics; run2 evidence #2/#4)
+   [failure] D2-STEREO FAIL: zero-mutation branch must have zero no-metric rows and all six rows status=read (no_metric_rows=6, read_rows=0 ！ status=missing is the pre-292 catalog_key_not_found shape)
+== T6 1-mutation fed 6/6/6/0 (runner track row absent) (expect FAIL) ==
+   [FAIL] D2-STEREO FAIL: per-track face counts on the 1-mutation branch (considered=6, rows=6, with_metrics=6, without_metrics=0; expected 7/7/6/1 ！ six fixture rows plus exactly one runner-created no-metric row; run2 evidence #3)
+   [FAIL] D2-STEREO FAIL: the no-metric row must be a runner-created (non-fixture) track classified read-without-metrics (got track_id='', status='', is_fixture_id=False ！ status=missing is the pre-292 catalog_key_not_found shape; a fixture track id here means its stereo row went missing = regression shape)
+   countsOK=False shapeOK=False tracksFaceOK=False failures=2 => FAIL
+   [failure] D2-STEREO FAIL: per-track face counts on the 1-mutation branch (considered=6, rows=6, with_metrics=6, without_metrics=0; expected 7/7/6/1 ！ six fixture rows plus exactly one runner-created no-metric row; run2 evidence #3)
+   [failure] D2-STEREO FAIL: the no-metric row must be a runner-created (non-fixture) track classified read-without-metrics (got track_id='', status='', is_fixture_id=False ！ status=missing is the pre-292 catalog_key_not_found shape; a fixture track id here means its stereo row went missing = regression shape)
+== T7 1-mutation no-metric row status=missing (pre-292) (expect FAIL) ==
+   [ok] per-track face (1-mutation branch): 7 tracks considered, 6 fixture rows read-with-metrics, 1 runner-created row without metrics (292 ground truth; run2 evidence #3)
+   [FAIL] D2-STEREO FAIL: the no-metric row must be a runner-created (non-fixture) track classified read-without-metrics (got track_id='1039', status='missing', is_fixture_id=False ！ status=missing is the pre-292 catalog_key_not_found shape; a fixture track id here means its stereo row went missing = regression shape)
+   countsOK=True shapeOK=False tracksFaceOK=False failures=1 => FAIL
+   [failure] D2-STEREO FAIL: the no-metric row must be a runner-created (non-fixture) track classified read-without-metrics (got track_id='1039', status='missing', is_fixture_id=False ！ status=missing is the pre-292 catalog_key_not_found shape; a fixture track id here means its stereo row went missing = regression shape)
+== T8 1-mutation no-metric row track_id=1007 (fixture id) (expect FAIL) ==
+   [ok] per-track face (1-mutation branch): 7 tracks considered, 6 fixture rows read-with-metrics, 1 runner-created row without metrics (292 ground truth; run2 evidence #3)
+   [FAIL] D2-STEREO FAIL: the no-metric row must be a runner-created (non-fixture) track classified read-without-metrics (got track_id='1007', status='read', is_fixture_id=True ！ status=missing is the pre-292 catalog_key_not_found shape; a fixture track id here means its stereo row went missing = regression shape)
+   countsOK=True shapeOK=False tracksFaceOK=False failures=1 => FAIL
+   [failure] D2-STEREO FAIL: the no-metric row must be a runner-created (non-fixture) track classified read-without-metrics (got track_id='1007', status='read', is_fixture_id=True ！ status=missing is the pre-292 catalog_key_not_found shape; a fixture track id here means its stereo row went missing = regression shape)
+
+T1 zero-mutation + run2-verbatim 6/6/6/0 all-read  expect=PASS got=PASS  OK
+T2 1-mutation 7/7/6/1 no-metric id=1039 status=read  expect=PASS got=PASS  OK
+T3 1-mutation 7/7/6/1 no-metric id=1043 status=read (non-1039)  expect=PASS got=PASS  OK
+T4 zero-mutation fed 7/7/6/1 face (branch mismatch)  expect=FAIL got=FAIL  OK
+T5 zero-mutation fed pre-292 face (6 rows all missing)  expect=FAIL got=FAIL  OK
+T6 1-mutation fed 6/6/6/0 (runner track row absent)  expect=FAIL got=FAIL  OK
+T7 1-mutation no-metric row status=missing (pre-292)  expect=FAIL got=FAIL  OK
+T8 1-mutation no-metric row track_id=1007 (fixture id)  expect=FAIL got=FAIL  OK
+DRYRUN_VERDICT: ALL_SHAPES_AS_EXPECTED

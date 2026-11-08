@@ -1463,21 +1463,33 @@ if ($D2StereoCheck) {
     # per-track stereo face on the post-fix ground truth. Before 2026-11-07 the
     # consumer read the harness response top level (272 forensics: structural
     # constant missing) and track-keyed reads fell to catalog_key_not_found
-    # (272/274 forensics ii; 292 track-key routing fix). Corrected expectations:
+    # (272/274 forensics ii; 292 track-key routing fix). Corrected expectations
+    # are BRANCH-AWARE (R2 acceptance ruling #1; run2/evidence.md anchors #2-#4):
+    # the fixture project (spv1_p01.vit) carries exactly six tracks
+    # (1007/1012/1017/1022/1027/1032); a seventh track exists only on the
+    # 1-mutation branch, created by the runner during the applied action (its
+    # id is auto-assigned — 265 reverify1 happened to draw 1039, which is also
+    # a rack plugin id in the .vit file, so the id must NEVER be hardcoded):
     #   - observation.stereo_status must be present (digest wiring, 274);
-    #   - the fixture's seven tracks: six serve correlation rows ready
-    #     (1007/1012/1017/1022/1027/1032), track 1039 has no snapshot rows and
-    #     must surface the honest per-track missing — mix.read returns
-    #     reason=stereo_relation_row_missing_for_track (routed, NOT
-    #     catalog_key_not_found), which the chat reader classifies as
-    #     "read"-without-metrics (292 receipt interpretation note,
-    #     d1d3_premaster_observation_runtime.go:261-266);
+    #   - zero-mutation branch ($zeroMutationBranch, from validation.branch=
+    #     zero_mutation_boundary): tracks face 6/6/6/0 — six rows, every row
+    #     read-WITH-metrics, zero no-metric rows (run2 live face: 6/6 read,
+    #     corr 0.689/0.974/0.227/0.225/0.088/0.979);
+    #   - 1-mutation branch: tracks face 7/7/6/1 — the six fixture rows
+    #     read-with-metrics plus exactly ONE runner-created track row that is
+    #     read-WITHOUT-metrics (mix.read reason=stereo_relation_row_missing_
+    #     for_track routes as "read", NOT catalog_key_not_found; 292 receipt
+    #     interpretation note, d1d3_premaster_observation_runtime.go:261-266).
+    #     The no-metric row id must NOT be a fixture track id — all six fixture
+    #     tracks serve stereo rows (292 ground truth), so a fixture no-metric
+    #     row is the regression shape; status=missing is the pre-292 shape and
+    #     must fail;
     #   - the 1007 row values are pinned to the 292 unit anchors
     #     (catalog_trackkey_test.go, TestMixReadTrackKeyedStereoServesFull-
     #     ProjectSnapshotRows: corr 0.689 / balance -1.475, round-3 disclosure
     #     of the fixture's persisted rows);
-    #   - payload tracks_measured must be 6 (d2AssessStereoRisk excludes
-    #     read-without-metrics rows from the measured count).
+    #   - payload tracks_measured must be 6 on BOTH branches (d2AssessStereoRisk
+    #     excludes read-without-metrics rows from the measured count).
     # This TIGHTENS the gate onto the fixed readings: present/ready assertions
     # carry values and never downgrade to existence-only checks.
     if ($d2Report.stereo_face -eq "present") {
@@ -1502,33 +1514,72 @@ if ($D2StereoCheck) {
         $d2HasPhase = ($null -ne $d2Row.PSObject.Properties['phase_negative_ratio']) -and ($null -ne $d2Row.phase_negative_ratio)
         if ($d2HasCorr -or $d2HasPhase) { $d2ReadyRows += ,$d2Row } else { $d2NoMetricRows += ,$d2Row }
     }
+    $d2ReadRowCount = 0
+    foreach ($d2Row in $d2TrackRows) {
+        if (($null -ne $d2Row.PSObject.Properties['status']) -and ([string]$d2Row.status -eq "read")) { $d2ReadRowCount++ }
+    }
     $d2Report.tracks_considered = $d2TracksConsidered
     $d2Report.tracks_with_metrics = $d2ReadyRows.Count
     $d2Report.tracks_without_metrics = $d2NoMetricRows.Count
-    if (($d2TracksConsidered -eq 7) -and ($d2TrackRows.Count -eq 7) -and ($d2ReadyRows.Count -eq 6) -and ($d2NoMetricRows.Count -eq 1)) {
-        Write-Host ("   [ok] per-track face: 7 tracks considered, 6 with correlation metrics ready, 1 honest no-metric row (292 track-key routing ground truth)") -ForegroundColor Green
-    }
-    else {
-        $d2Failures.Add("D2-STEREO FAIL: per-track face counts (considered=" + $d2TracksConsidered + ", rows=" + $d2TrackRows.Count + ", with_metrics=" + $d2ReadyRows.Count + ", without_metrics=" + $d2NoMetricRows.Count + "; expected 7/7/6/1 — six ready tracks plus the 1039 no-row track, 292 ground truth)")
-        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
-    }
+    $d2Report.tracks_read = $d2ReadRowCount
+    $d2Report.d1_branch = $d1ValidationBranch
+    $d2FixtureTrackIds = @("1007", "1012", "1017", "1022", "1027", "1032")
     $d2NoMetricRow = $null
     if ($d2NoMetricRows.Count -eq 1) { $d2NoMetricRow = $d2NoMetricRows[0] }
     $d2NoMetricTrackID = ""
     $d2NoMetricStatus = ""
     if ($null -ne $d2NoMetricRow) {
-        $d2NoMetricTrackID = [string]$d2NoMetricRow.track_id
-        $d2NoMetricStatus = [string]$d2NoMetricRow.status
+        if ($null -ne $d2NoMetricRow.PSObject.Properties['track_id']) { $d2NoMetricTrackID = [string]$d2NoMetricRow.track_id }
+        if ($null -ne $d2NoMetricRow.PSObject.Properties['status']) { $d2NoMetricStatus = [string]$d2NoMetricRow.status }
     }
     $d2Report.no_metric_track_id = $d2NoMetricTrackID
     $d2Report.no_metric_track_status = $d2NoMetricStatus
-    if (($d2NoMetricTrackID -eq "1039") -and ($d2NoMetricStatus -eq "read")) {
-        Write-Host "   [ok] track 1039 honest per-track missing: routed read-without-metrics (mix.read reason=stereo_relation_row_missing_for_track, not catalog_key_not_found — pre-292 shape was status=missing)" -ForegroundColor Green
+    $d2CountsOK = $false
+    $d2ShapeOK = $false
+    if ($zeroMutationBranch) {
+        # Zero-mutation branch: the fixture's six tracks, all read-with-metrics,
+        # zero no-metric rows (R2 acceptance ruling #1; run2 live face 6/6/6/0).
+        $d2CountsOK = (($d2TracksConsidered -eq 6) -and ($d2TrackRows.Count -eq 6) -and ($d2ReadyRows.Count -eq 6) -and ($d2NoMetricRows.Count -eq 0))
+        $d2ShapeOK = ($d2NoMetricRows.Count -eq 0) -and ($d2ReadRowCount -eq 6)
+        if ($d2CountsOK) {
+            Write-Host ("   [ok] per-track face (zero-mutation branch): 6 tracks considered, 6 rows, 6 read-with-metrics, 0 no-metric rows (292 track-key routing ground truth; run2 evidence #2/#4)") -ForegroundColor Green
+        }
+        else {
+            $d2Failures.Add("D2-STEREO FAIL: per-track face counts on the zero-mutation branch (considered=" + $d2TracksConsidered + ", rows=" + $d2TrackRows.Count + ", with_metrics=" + $d2ReadyRows.Count + ", without_metrics=" + $d2NoMetricRows.Count + "; expected 6/6/6/0 — the fixture carries six tracks and no runner track exists on this branch, so every row must be read-with-metrics; run2 evidence #2/#4)")
+            Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+        }
+        if ($d2ShapeOK) {
+            Write-Host ("   [ok] all " + $d2ReadRowCount + " rows classified status=read (routed mix.read track-keyed face; 292 ground truth)") -ForegroundColor Green
+        }
+        else {
+            $d2Failures.Add("D2-STEREO FAIL: zero-mutation branch must have zero no-metric rows and all six rows status=read (no_metric_rows=" + $d2NoMetricRows.Count + ", read_rows=" + $d2ReadRowCount + " — status=missing is the pre-292 catalog_key_not_found shape)")
+            Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+        }
     }
     else {
-        $d2Failures.Add("D2-STEREO FAIL: the no-metric row must be track 1039 classified read-without-metrics (got track_id='" + $d2NoMetricTrackID + "', status='" + $d2NoMetricStatus + "' — status=missing is the pre-292 catalog_key_not_found shape)")
-        Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+        # 1-mutation branch: the six fixture rows read-with-metrics plus exactly
+        # one runner-created track row read-without-metrics. The new track's id
+        # is auto-assigned by the runner — shape-asserted, NEVER hardcoded
+        # (R2 acceptance ruling #1; AGENTS §10 sealed-fixture discipline).
+        $d2CountsOK = (($d2TracksConsidered -eq 7) -and ($d2TrackRows.Count -eq 7) -and ($d2ReadyRows.Count -eq 6) -and ($d2NoMetricRows.Count -eq 1))
+        $d2NoMetricIsFixture = ($d2NoMetricTrackID -ne "") -and ($d2FixtureTrackIds -contains $d2NoMetricTrackID)
+        $d2ShapeOK = ($d2NoMetricRows.Count -eq 1) -and ($d2NoMetricTrackID -ne "") -and (-not $d2NoMetricIsFixture) -and ($d2NoMetricStatus -eq "read")
+        if ($d2CountsOK) {
+            Write-Host ("   [ok] per-track face (1-mutation branch): 7 tracks considered, 6 fixture rows read-with-metrics, 1 runner-created row without metrics (292 ground truth; run2 evidence #3)") -ForegroundColor Green
+        }
+        else {
+            $d2Failures.Add("D2-STEREO FAIL: per-track face counts on the 1-mutation branch (considered=" + $d2TracksConsidered + ", rows=" + $d2TrackRows.Count + ", with_metrics=" + $d2ReadyRows.Count + ", without_metrics=" + $d2NoMetricRows.Count + "; expected 7/7/6/1 — six fixture rows plus exactly one runner-created no-metric row; run2 evidence #3)")
+            Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+        }
+        if ($d2ShapeOK) {
+            Write-Host ("   [ok] no-metric row is a runner-created track (id=" + $d2NoMetricTrackID + ", auto-assigned — never hardcoded) classified read-without-metrics (mix.read reason=stereo_relation_row_missing_for_track, not catalog_key_not_found — pre-292 shape was status=missing)") -ForegroundColor Green
+        }
+        else {
+            $d2Failures.Add("D2-STEREO FAIL: the no-metric row must be a runner-created (non-fixture) track classified read-without-metrics (got track_id='" + $d2NoMetricTrackID + "', status='" + $d2NoMetricStatus + "', is_fixture_id=" + $d2NoMetricIsFixture + " — status=missing is the pre-292 catalog_key_not_found shape; a fixture track id here means its stereo row went missing = regression shape)")
+            Write-Host ("   [FAIL] " + $d2Failures[$d2Failures.Count - 1]) -ForegroundColor Red
+        }
     }
+    $d2TracksFaceOK = ($d2CountsOK -and $d2ShapeOK)
     $d2Row1007 = $null
     foreach ($d2Row in $d2ReadyRows) {
         if ([string]$d2Row.track_id -eq "1007") { $d2Row1007 = $d2Row }
@@ -1683,7 +1734,7 @@ if ($D2StereoCheck) {
         gate_results   = @{
             check_turn      = ($d2Report.check_stop_reason -eq "d2_stereo_checked" -and $d2Report.verdict_kind -ne "" -and $d2Report.action_face -eq "disclosure_only_v1" -and $d2Report.mutation_performed -eq "False")
             global_stereo   = ($d2Report.stereo_face -eq "present")
-            tracks_face     = (($d2TracksConsidered -eq 7) -and ($d2TrackRows.Count -eq 7) -and ($d2ReadyRows.Count -eq 6) -and ($d2NoMetricRows.Count -eq 1) -and ($d2NoMetricTrackID -eq "1039") -and ($d2NoMetricStatus -eq "read") -and $d2AnchorOK -and ($d2PayloadMeasured -eq 6))
+            tracks_face     = ($d2TracksFaceOK -and $d2AnchorOK -and ($d2PayloadMeasured -eq 6))
             verdict_on_disk = $d2Report.verdict_record_on_disk
             action_face     = (-not $d2Report.card_parked -and $d2Report.mutation_performed -eq "False")
             d2_node_lit     = (($d2Report.d2_node_state -eq "in_progress") -or ($d2Report.d2_node_state -eq "needs_confirmation"))
@@ -1694,7 +1745,7 @@ if ($D2StereoCheck) {
     if ($d2Failures.Count -gt 0) {
         throw ("D2-STEREO-CHECK gates failed (" + [string]$d2Failures.Count + " failure(s)); evidence=" + $d2GatesPath)
     }
-    Write-Host ("[d2-stereo] PASS: probe recorded + check turn + global stereo present + tracks face (6/7 ready + 1039 honest missing + 1007 anchors) + verdict on disk + no-card action face + D2 node lit; gates=" + $d2GatesPath) -ForegroundColor Green
+    Write-Host ("[d2-stereo] PASS: probe recorded + check turn + global stereo present + branch-aware tracks face (zero-mutation 6/6/6/0 all-read / 1-mutation 7 rows = 6 fixture read-with-metrics + 1 runner-created read-no-metrics + 1007 anchors) + verdict on disk + no-card action face + D2 node lit; gates=" + $d2GatesPath) -ForegroundColor Green
 }
 # ------------------- D3 reference-alignment gates (opt-in; D3-REF-ALIGN-THIN-1)
 # Face P (LLM, budget-bound): the bare-phrase semantic-entry probe. The phrase
