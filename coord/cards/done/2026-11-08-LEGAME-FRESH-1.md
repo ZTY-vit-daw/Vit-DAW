@@ -32,6 +32,12 @@
 - **真栈验收并入 315 真栈腿**（设计稿 §2.3/§6：重铺→开场→重铺→再开场，验证重铺后 binding/会话残留归零+自动开场可再次触发=「新工程」语义自证）——候栈（317 占用登记 21:15 在卷）
 - **端测边界声明**：零栈卡无独立真栈腿；内核级回读（clips 42/42+recent 首项）归并入的 315 真栈腿断言面
 
+#### 真栈验收补记（并入 315 段 2 腿，2026-11-09 00:0x）
+
+- **relay 真命令对真会话污染态实证 exit 0**：runB 会话后副本工作区=.vit_agent{binding(opened)+vitproj 工作区}+.vit_history 会话记录 → `relay` → 重铺三问全过（①relay summary exit_code=0 在卷；②工程 SHA256==e0e95338…2441e3 模板终态；③残留零：.vit_agent 仅 legame_binding.json[opened_at=null]+.vit_history 不存在）；bound_at 溯源跨重铺保留（连跑字节恒等的零栈结论在真栈得到结构确认）。
+- **runC：重铺后再开场 PS1/py exit 0**——新 agent 进程白话自动开场再次触发（=重铺即「新工程」语义自证）；%APPDATA% 用户目标全程零接触（runB/runC 目标哈希断言）——**预演副本制全链兑现**（预演/烟测全部在隔离副本上跑，目标仅只读参照）。
+- 工件：`coord/runs/LEGAME-L1-STACK-1/`（evidence.md 索引；runB relay_summary.json 在卷）。整卡自验完成（零栈脚本域+真栈 relay/runC），mv done/ 待主管终验。
+
 ### 验收
 
 - （主管回填）
