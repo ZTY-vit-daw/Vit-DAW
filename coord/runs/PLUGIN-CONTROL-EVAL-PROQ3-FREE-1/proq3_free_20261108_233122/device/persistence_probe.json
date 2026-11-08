@@ -1,0 +1,10 @@
+{
+  "param_id": "3",
+  "changed_value_after_reopen": 0.5,
+  "changed_value_persisted": false,
+  "restore_status": "ok",
+  "value_after_restore": 0.5,
+  "restore_ok": true,
+  "final_digest": "5080116bec1afcfa",
+  "final_digest_equals_initial": true
+}

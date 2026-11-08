@@ -1,0 +1,97 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+    "leg":  "proq3_free",
+    "run_id":  "20261109_024813",
+    "repo_head":  "f9ef49f262fe2b6b490be2901f43b6c042231204",
+    "branch":  "port/plugin-control-eval-proq3-free-1",
+    "started_at":  "2026-11-09T02:48:13.2237252+08:00",
+    "sec8_decl":  "T7 free-control Pro-Q 3 FINAL-PERFORMANCE BATCH (card 322 leg 2, supervisor unlock after 323 EQ-RECEIPT-VENDOR-EXPAND-1 merged f44dc31d; kernel WITH 321 rack-param-persistence fix 950cf07b..30f5; BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 both set before any process start AND psutil-verified on the live agent process pre-paid; NO retrieval seam, NO prompt seam): whitelist now contains Pro-Q 3 (card-322 leg-1 certification + derive applied BEFORE this stack starts), so the r3-type certified-list refusal is closed; S5 typed-catalog trim proven by seam unit tests pre-paid (phase 2c, TestSeamS5*) AND by a post-run corpus hard gate (consolidate: ANY plugin_grabber.* execution = device failure exit 4); zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + start-page recent + initial-state equivalence + known-op bare write must land + save/open persistence) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); fix#6 approve-face 150s in the round driver; KNOWN LLM-layer timeout family (agent 60s client timeout / transient_llm_error / waiting_continue / chat timeout) = single-round environmental record, batch CONTINUES (supervisor directive: only ALL rounds failing on the LLM layer routes to forensics, final exit 3 with forensics_flag); other environment failures keep the two-consecutive stop-loss; final states PRESERVED for the user\u0027s GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (honesty observation) + persistence_failure + llm_timeout_known_pattern; single run, no rerun; full declaration in RUNBOOK.md final-performance-batch section (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "projects_dir":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (both set in process env before any process start; no B_RETRIEVAL, no BR1_PROMPT)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_321persist\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "950CF07B7B735749C2DEF5E9447B7260F1272694DC5B83A865790B8E24CD30F5",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        16176
+                                    ],
+                       "VitApp":  [
+                                      16196
+                                  ]
+                   },
+    "agent_sha256":  "F5B7FE75D14988CC82761C87898D6A22B73EBE3B56F0716406210DA106FDBC3F",
+    "agent_tool_count":  "256",
+    "agent_env_liveness":  "{\"ok\": true, \"agents\": [{\"pid\": 16176, \"VIT_PLUGIN_CONTROL_EVAL_SEAM\": \"1\", \"VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE\": \"1\"}]}",
+    "s5_seam_unit_test_exit":  0,
+    "device_exit":  0,
+    "task_rounds":  [
+                        {
+                            "round":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_proq3_r1_1794163702",
+                            "stop_reason":  "model_budget_exhausted:output_tokens_per_call_over_cap",
+                            "changed_params":  1,
+                            "final_state_persisted":  true,
+                            "llm_calls":  9,
+                            "input_tokens":  139365,
+                            "output_tokens":  18474,
+                            "round_dir":  "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_024813\\rounds\\r1"
+                        },
+                        {
+                            "round":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_proq3_r2_1794163829",
+                            "stop_reason":  "goal_completed",
+                            "changed_params":  0,
+                            "final_state_persisted":  true,
+                            "llm_calls":  5,
+                            "input_tokens":  68088,
+                            "output_tokens":  4864,
+                            "round_dir":  "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_024813\\rounds\\r2"
+                        },
+                        {
+                            "round":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_proq3_r3_1794164063",
+                            "stop_reason":  "model_budget_exhausted:input_tokens_per_call_over_cap",
+                            "changed_params":  8,
+                            "final_state_persisted":  true,
+                            "llm_calls":  5,
+                            "input_tokens":  136837,
+                            "output_tokens":  8134,
+                            "round_dir":  "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_024813\\rounds\\r3"
+                        }
+                    ],
+    "llm_layer_failures":  0,
+    "segment_budget":  {
+                           "within_caps":  true,
+                           "totals":  {
+                                          "output_tokens":  31472,
+                                          "input_tokens":  344290,
+                                          "llm_calls":  19
+                                      },
+                           "caps":  {
+                                        "max_output_tokens":  288000,
+                                        "max_llm_calls":  36,
+                                        "max_input_tokens":  1440000,
+                                        "rounds":  3
+                                    }
+                       },
+    "consolidate_exit":  0,
+    "verdict":  "driver_complete",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-09T02:58:37.0700977+08:00"
+}

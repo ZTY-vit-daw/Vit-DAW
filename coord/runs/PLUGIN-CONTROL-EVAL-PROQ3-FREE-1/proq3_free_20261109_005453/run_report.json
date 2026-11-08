@@ -1,0 +1,76 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+    "leg":  "proq3_free",
+    "run_id":  "20261109_005453",
+    "repo_head":  "f7cea78c106554eeb3099a174f9f821814806c9f",
+    "branch":  "port/plugin-control-eval-proq3-free-1",
+    "started_at":  "2026-11-09T00:54:53.1223275+08:00",
+    "sec8_decl":  "T7 free-control Pro-Q 3 FINAL BATCH (kernel WITH 321 rack-param-persistence fix 950cf07b..30f5; BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 both set before any process start AND psutil-verified on the live agent process pre-paid; NO retrieval seam, NO prompt seam): zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + start-page recent + initial-state equivalence + known-op bare write must land + save/open persistence -- now expected PASS under the 321 fix) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); final states PRESERVED for the user\u0027s GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (honesty observation) + persistence_failure; single run, no rerun; device/env failure after paid rounds = forensics hand-over; full declaration in RUNBOOK.md final-batch section (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "projects_dir":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (both set in process env before any process start; no B_RETRIEVAL, no BR1_PROMPT)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_321persist\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "950CF07B7B735749C2DEF5E9447B7260F1272694DC5B83A865790B8E24CD30F5",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        16952
+                                    ],
+                       "VitApp":  [
+                                      17196
+                                  ]
+                   },
+    "agent_sha256":  "F5B7FE75D14988CC82761C87898D6A22B73EBE3B56F0716406210DA106FDBC3F",
+    "agent_tool_count":  "256",
+    "agent_env_liveness":  "{\"ok\": true, \"agents\": [{\"pid\": 16952, \"VIT_PLUGIN_CONTROL_EVAL_SEAM\": \"1\", \"VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE\": \"1\"}]}",
+    "device_exit":  0,
+    "task_rounds":  [
+                        {
+                            "round":  1,
+                            "exit":  1,
+                            "status":  "environment_interruption",
+                            "error_tail":  "{\"round\": 1, \"error\": \"timed out\"}"
+                        },
+                        {
+                            "round":  2,
+                            "exit":  2,
+                            "status":  "environment_interruption",
+                            "error_tail":  "{\"round\": 2, \"error\": \"workspace_not_activated\", \"detail\": {\"activated\": false, \"project_path\": \"C:\\\\Users\\\\timoz\\\\AppData\\\\Roaming\\\\Vit-DAW\\\\projects\\\\瀹為獙路ProQ3 瑁告帶 r1.vit\"}}"
+                        },
+                        {
+                            "round":  3,
+                            "status":  "not_run_stop_loss_two_consecutive_environment"
+                        }
+                    ],
+    "segment_budget":  {
+                           "within_caps":  true,
+                           "totals":  {
+                                          "output_tokens":  0,
+                                          "input_tokens":  0,
+                                          "llm_calls":  0
+                                      },
+                           "caps":  {
+                                        "max_output_tokens":  288000,
+                                        "max_llm_calls":  36,
+                                        "max_input_tokens":  1440000,
+                                        "rounds":  3
+                                    }
+                       },
+    "segment_stop":  "stop_loss_two_consecutive_environment",
+    "consolidate_exit":  1,
+    "verdict":  "driver_complete",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-09T00:57:06.8103399+08:00"
+}

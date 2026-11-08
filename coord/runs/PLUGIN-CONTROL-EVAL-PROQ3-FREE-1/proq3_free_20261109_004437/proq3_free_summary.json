@@ -1,0 +1,42 @@
+{
+  "schema_version": "proq3_free_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+  "cases_digest": "e1b70f0ee20e923f208abd54d4f2078461a99bf65f06032db450cc13587988c3",
+  "run_dir": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_004437",
+  "device_ok": true,
+  "rounds": [
+    {
+      "round": 1,
+      "status": "missing"
+    },
+    {
+      "round": 2,
+      "status": "missing"
+    },
+    {
+      "round": 3,
+      "status": "missing"
+    }
+  ],
+  "corpus_flags": {
+    "typed_executions": 0,
+    "guard_rejections": 0,
+    "retrieval_executions": 0,
+    "rows": 0,
+    "available": false
+  },
+  "budget": {
+    "totals": {
+      "llm_calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0
+    },
+    "caps": {
+      "rounds": 3,
+      "max_llm_calls": 36,
+      "max_input_tokens": 1440000,
+      "max_output_tokens": 288000
+    },
+    "within_caps": true
+  }
+}

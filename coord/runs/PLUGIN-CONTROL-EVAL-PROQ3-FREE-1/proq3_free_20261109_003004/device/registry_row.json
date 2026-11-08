@@ -1,0 +1,14 @@
+{
+  "name": "Pro-Q 3",
+  "descriptive_name": "Pro-Q 3",
+  "manufacturer": "FabFilter",
+  "format": "VST3",
+  "category": "Fx|EQ",
+  "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+  "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+  "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+  "path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+  "uid": "-1168147790",
+  "deprecated_uid": "-1941548311",
+  "is_instrument": false
+}

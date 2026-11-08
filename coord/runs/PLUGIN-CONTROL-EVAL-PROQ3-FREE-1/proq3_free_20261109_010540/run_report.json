@@ -1,0 +1,89 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+    "leg":  "proq3_free",
+    "run_id":  "20261109_010540",
+    "repo_head":  "ac314fb6f53d2699bd0afdfcc7c2c527a4e204c2",
+    "branch":  "port/plugin-control-eval-proq3-free-1",
+    "started_at":  "2026-11-09T01:05:40.0353231+08:00",
+    "sec8_decl":  "T7 free-control Pro-Q 3 FINAL BATCH (kernel WITH 321 rack-param-persistence fix 950cf07b..30f5; BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 both set before any process start AND psutil-verified on the live agent process pre-paid; NO retrieval seam, NO prompt seam): zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + start-page recent + initial-state equivalence + known-op bare write must land + save/open persistence -- now expected PASS under the 321 fix) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); final states PRESERVED for the user\u0027s GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (honesty observation) + persistence_failure; single run, no rerun; device/env failure after paid rounds = forensics hand-over; full declaration in RUNBOOK.md final-batch section (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "projects_dir":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (both set in process env before any process start; no B_RETRIEVAL, no BR1_PROMPT)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_321persist\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "950CF07B7B735749C2DEF5E9447B7260F1272694DC5B83A865790B8E24CD30F5",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        4748
+                                    ],
+                       "VitApp":  [
+                                      15012
+                                  ]
+                   },
+    "agent_sha256":  "F5B7FE75D14988CC82761C87898D6A22B73EBE3B56F0716406210DA106FDBC3F",
+    "agent_tool_count":  "256",
+    "agent_env_liveness":  "{\"ok\": true, \"agents\": [{\"pid\": 4748, \"VIT_PLUGIN_CONTROL_EVAL_SEAM\": \"1\", \"VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE\": \"1\"}]}",
+    "device_exit":  0,
+    "task_rounds":  [
+                        {
+                            "round":  1,
+                            "exit":  1,
+                            "status":  "environment_interruption",
+                            "error_tail":  "{\"round\": 1, \"error\": \"timed out\"}"
+                        },
+                        {
+                            "round":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_proq3_r2_1794157611",
+                            "stop_reason":  "wall_clock_timeout",
+                            "changed_params":  0,
+                            "final_state_persisted":  true,
+                            "llm_calls":  5,
+                            "input_tokens":  50313,
+                            "output_tokens":  3194,
+                            "round_dir":  "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_010540\\rounds\\r2"
+                        },
+                        {
+                            "round":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_proq3_r3_1794159011",
+                            "stop_reason":  "goal_completed",
+                            "changed_params":  0,
+                            "final_state_persisted":  true,
+                            "llm_calls":  5,
+                            "input_tokens":  67776,
+                            "output_tokens":  7285,
+                            "round_dir":  "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_010540\\rounds\\r3"
+                        }
+                    ],
+    "segment_budget":  {
+                           "within_caps":  true,
+                           "totals":  {
+                                          "output_tokens":  10479,
+                                          "input_tokens":  118089,
+                                          "llm_calls":  10
+                                      },
+                           "caps":  {
+                                        "max_output_tokens":  288000,
+                                        "max_llm_calls":  36,
+                                        "max_input_tokens":  1440000,
+                                        "rounds":  3
+                                    }
+                       },
+    "consolidate_exit":  0,
+    "verdict":  "driver_complete",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-09T01:34:25.7221755+08:00"
+}

@@ -1,0 +1,8 @@
+﻿python.exe : Traceback (most recent call last):
+所在位置 D:\Vit_DAW_wt_320proq3\coord\runs\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\proq3_free_orchestrator.ps1:272 字符: 9
++         & python $Driver "round" "--repeat" $r "--project" $projectPa ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+

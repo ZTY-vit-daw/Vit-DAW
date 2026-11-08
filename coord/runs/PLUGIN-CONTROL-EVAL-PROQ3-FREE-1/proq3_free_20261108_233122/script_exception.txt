@@ -1,0 +1,8 @@
+﻿device leg exit=4
+所在位置 D:\Vit_DAW_wt_320proq3\coord\runs\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\proq3_free_orchestrator.ps1:202 字符: 9
++         throw ("device leg exit=" + $deviceExit)
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (device leg exit=4:String) [], RuntimeException
+    + FullyQualifiedErrorId : device leg exit=4
+ 
+
