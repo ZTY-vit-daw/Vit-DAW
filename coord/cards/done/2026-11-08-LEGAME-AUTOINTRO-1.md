@@ -34,6 +34,13 @@
 - **端测边界声明（AGENTS §5）**：段 1 零栈（单测+build+脚本域）；Godot 聊天面板视觉呈现不在断言面（API 级验证，GUI 最后一米=用户手测本体）；真栈腿（布位带 binding 工程→白话触发开场[含 edu_jam_entered，无命令词]→新会话白话→恢复播报→exit 0；含 316 重铺后再开场）候栈——21:15 起 317 占用登记在卷，候其释放
 - **设计偏差记录**：①插点从「activation 尾部」后移至 pending 确认面之后（理由如上，F5 时序不破坏）；②恢复播报同受「binding 在案」门控（设计稿五条件针对注入整体；保证无 binding 工程 100% 零差异的 §11 义务）；③「fresh binding×终态局→再开场」按设计稿字面语义实现（终态不属「活跃（非终态）」），供验收复核
 
+#### 段 2：真栈腿（2026-11-09 00:0x，占用 `421f1665`/释放 `b2cfad93`，工件随 `port/legame-l1-1` `37f47c7b`）
+
+- **runB（intro 腿）PS1/py exit 0**：place-copy 隔离副本（binding fresh）→ 启动页面进入 → conv-A **白话「在吗」（无命令词）→ `edu_jam_entered`**（完整开场叙事；含 314 三级解析+binding 五条件全链真栈实证）→ binding 磁盘回写 opened_at=2026-11-08T16:05:15Z+opened_conversation_id=conv-A → conv-B「嗨」→ **`edu_jam_recovery_broadcast`「接着上局：拍谱开局（1/7）——继续或问我都行。」**（模板确定性零 LLM）→ %APPDATA% 用户目标工程 SHA256==e0e95338…2441e3（预演副本制零接触）；两会话 telemetry 零行。
+- **runC（含 316 重铺后再开场验收）PS1/py exit 0**：真 `relay` 命令清 runB 会话污染态（.vit_agent 仅 binding/opened_at=null/bound_at 溯源保留；.vit_history 消失；工程哈希==模板——重铺三问全过）→ **新 agent 进程白话 → 自动开场再次触发**（opened_at 重写为新会话 16:06:03Z）→ 新会话恢复播报照常 → 目标哈希不动 → 零 LLM。**重铺=「新工程」语义自证**。
+- 取证在卷：两次启动失败均环境类不计 run（同 314 段 2；驱动入场面修正 `9b87531e`）；TEARDOWN_ALL_ZERO 00:06:13 亲核。详见 `coord/runs/LEGAME-L1-STACK-1/evidence.md`。
+- 整卡自验完成（段 1 零栈四象限+F5 竞态回归+段 2 真栈白话开场/播报/重铺再开场 exit 0），mv done/ 待主管终验。
+
 ### 验收
 
 - （主管回填）
