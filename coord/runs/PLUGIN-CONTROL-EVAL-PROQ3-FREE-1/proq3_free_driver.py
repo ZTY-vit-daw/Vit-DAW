@@ -315,6 +315,31 @@ def open_and_locate(project_path: str, spec: dict[str, Any],
     return located
 
 
+def wait_workspace_activation_with_nudge(agent_http: str, project_path: str,
+                                         timeout_s: float = 60.0) -> dict[str, Any]:
+    """BATCH-6 FIX 5b: poll -> nudge -> poll -> nudge -> poll (m2 enter-nudge
+    precedent). Records the outcome; the caller proceeds either way (the
+    activation state is evidence, not a gate)."""
+    result: dict[str, Any] = {"activated": False, "project_path": "",
+                              "nudges": 0}
+    for attempt in range(3):
+        poll = wait_workspace_activation(agent_http, project_path, timeout_s)
+        result["project_path"] = poll.get("project_path", "")
+        if poll.get("activated"):
+            result["activated"] = True
+            result["settled_at_attempt"] = attempt + 1
+            return result
+        result["nudges"] += 1
+        try:  # m2 twin: a state GET nudges the agent-side follow
+            request_json("GET", agent_http.rstrip("/") + "/agent/state", None, 10.0)
+        except Exception:  # noqa: BLE001 - nudge is best effort
+            pass
+        time.sleep(5.0)
+    result["note"] = ("proceeding without agent-workspace follow; kernel edit "
+                      "verified by open_and_locate (tool face targets it)")
+    return result
+
+
 def wait_workspace_activation(agent_http: str, project_path: str,
                               timeout_s: float = 90.0) -> dict[str, Any]:
     """Card-311 twin: the agent workspace must follow the kernel project
@@ -636,7 +661,8 @@ def run_known_op_and_persistence(placement: dict[str, Any], spec: dict[str, Any]
 
 def run_round(round_no: int, agent_http: str, timeout: float,
               rounds_dir: Path, telemetry_path: Optional[Path],
-              agent_log: Optional[Path], project_path: str) -> int:
+              agent_log: Optional[Path], project_path: str,
+              chat_timeout: float = 150.0) -> int:
     round_dir = rounds_dir / f"r{round_no}"
     round_dir.mkdir(parents=True, exist_ok=True)
     conversation = f"pce_proq3_r{round_no}_{int(time.time())}"
@@ -645,13 +671,15 @@ def run_round(round_no: int, agent_http: str, timeout: float,
 
     located = open_and_locate(project_path, spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
-    activation = wait_workspace_activation(agent_http, project_path)
+    # BATCH-6 FIX 5b (authorization bf078c99): activation wait is DOWNGRADED to
+    # record + nudge retry (m2 nudge precedent) -- it no longer aborts the
+    # round. The 318 frozen rounds never waited at all (the agent's tool face
+    # targets the kernel-active edit, which open_and_locate already verified);
+    # run 005453 showed the agent ui/state follow can lag >90s without it
+    # mattering for tool targeting.
+    activation = wait_workspace_activation_with_nudge(agent_http, project_path)
     (round_dir / "workspace_activation.json").write_text(
         json.dumps(activation, ensure_ascii=False, indent=2), encoding="utf-8")
-    if not activation.get("activated"):
-        print(json.dumps({"round": round_no, "error": "workspace_not_activated",
-                          "detail": activation}, ensure_ascii=False))
-        return 2
     # FINAL-BATCH FIX 2 (run proq3_free_20261109_003454 r1 crash): a single
     # read right after open_project races the plugin instance's async face
     # recreation (invoke replies ok with ZERO param rows -> RuntimeError
@@ -686,7 +714,7 @@ def run_round(round_no: int, agent_http: str, timeout: float,
     followups_left = int(cases.P_ARM_POLICY["clarify_followup_max"])
     try:
         resp = chat(agent_http, conversation, message,
-                    dict(cases.P_ARM_POLICY["chat_context"]), timeout)
+                    dict(cases.P_ARM_POLICY["chat_context"]), chat_timeout)
         record["exchanges"].append({"turn": 1, "sent": message, "response": resp})
         turn = 1
         while True:
@@ -730,7 +758,7 @@ def run_round(round_no: int, agent_http: str, timeout: float,
                 followups_left -= 1
                 followup = cases.P_ARM_POLICY["clarify_followup"]
                 resp = chat(agent_http, conversation, followup,
-                            dict(cases.P_ARM_POLICY["chat_context"]), timeout)
+                            dict(cases.P_ARM_POLICY["chat_context"]), chat_timeout)
                 turn += 1
                 record["exchanges"].append({"turn": turn, "sent": followup,
                                             "response": resp})
@@ -1137,6 +1165,7 @@ def main() -> int:
                               "instead of a caller-supplied --project string")
     p_round.add_argument("--agent-http", default=DEFAULT_AGENT_HTTP)
     p_round.add_argument("--timeout", type=float, default=30.0)
+    p_round.add_argument("--chat-timeout", type=float, default=150.0)
     p_round.add_argument("--rounds-dir", required=True, type=Path)
     p_round.add_argument("--telemetry-path", default="")
     p_round.add_argument("--agent-log", default="")
@@ -1175,7 +1204,8 @@ def main() -> int:
             print(json.dumps({"error": "round requires --projects-dir or --project"}))
             return 1
         return run_round(args.repeat, args.agent_http, args.timeout,
-                         args.rounds_dir, telemetry, agent_log, project)
+                         args.rounds_dir, telemetry, agent_log, project,
+                         args.chat_timeout)
     if args.cmd == "consolidate":
         return run_consolidate(args.run_dir)
     return 1
