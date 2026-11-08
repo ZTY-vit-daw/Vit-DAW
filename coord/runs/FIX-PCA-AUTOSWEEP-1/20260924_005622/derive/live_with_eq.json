@@ -1607,6 +1607,34 @@
           "gain_param_id_ch2": "1111977521"
         }
       ]
+    },
+    {
+      "plugin_name": "Pro-Q 3",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+      "bands": [
+        {
+          "center_hz": 3400.0,
+          "gain_param_id_ch1": "3",
+          "gain_param_id_ch2": "3"
+        }
+      ]
+    },
+    {
+      "plugin_name": "TBTECH Kirchhoff-EQ",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-TBTECH Kirchhoff-EQ-be41c239-bdb35085",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\TBTECH Kirchhoff-EQ.vst3",
+      "bands": [
+        {
+          "center_hz": 3400.0,
+          "gain_param_id_ch1": "55578",
+          "gain_param_id_ch2": "55578"
+        }
+      ]
     }
   ],
   "broadband_compression": [
@@ -2085,6 +2113,30 @@
       "plugin_identifier": "VST3-Smack Attack Stereo-695648d-ead81c48",
       "plugin_path": "C:\\Program Files\\Common Files\\VST3\\WaveShell1-VST3 17.1_x64.vst3",
       "attack_param_id": "2"
+    }
+  ],
+  "reverb": [
+    {
+      "plugin_name": "Pro-R",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-R-4bc24482-78c01fa6",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-R.vst3",
+      "decay_param_id": "1",
+      "pre_delay_param_id": "74",
+      "wet_param_id": "6"
+    }
+  ],
+  "delay": [
+    {
+      "plugin_name": "Timeless 3",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Timeless 3-72be40c7-96546ef3",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Timeless 3.vst3",
+      "time_param_id": "0",
+      "feedback_param_id": "85",
+      "wet_param_id": "160"
     }
   ]
 }

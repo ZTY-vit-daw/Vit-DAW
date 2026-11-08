@@ -48231,7 +48231,7 @@
   },
   "derived": true,
   "verified": true,
-  "updated_at": "2026-11-08T18:31:26+00:00",
+  "updated_at": "2026-11-08T18:40:59+00:00",
   "derived_whitelist": "D:\\Vit_DAW_wt_322exec\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\derive\\whitelist_v6_full.json",
   "derived_counts": {
     "static_eq": 48,

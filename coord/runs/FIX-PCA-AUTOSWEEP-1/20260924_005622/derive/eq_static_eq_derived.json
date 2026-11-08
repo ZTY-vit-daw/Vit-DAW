@@ -1,5 +1,34 @@
 {
-  "derived": [],
+  "derived": [
+    {
+      "plugin_name": "Pro-Q 3",
+      "manufacturer": "FabFilter",
+      "format": "VST3",
+      "plugin_identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+      "bands": [
+        {
+          "center_hz": 3400.0,
+          "gain_param_id_ch1": "3",
+          "gain_param_id_ch2": "3"
+        }
+      ]
+    },
+    {
+      "plugin_name": "TBTECH Kirchhoff-EQ",
+      "manufacturer": "Plugin Alliance",
+      "format": "VST3",
+      "plugin_identifier": "VST3-TBTECH Kirchhoff-EQ-be41c239-bdb35085",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\TBTECH Kirchhoff-EQ.vst3",
+      "bands": [
+        {
+          "center_hz": 3400.0,
+          "gain_param_id_ch1": "55578",
+          "gain_param_id_ch2": "55578"
+        }
+      ]
+    }
+  ],
   "excluded": [
     {
       "plugin_name": "EMO-Q4 Stereo",
@@ -8,14 +37,6 @@
     {
       "plugin_name": "Lindell 80 Channel",
       "reason": "band BHIGH lacks center/gain anchor; band BLOW lacks center/gain anchor; band BMID lacks center/gain anchor"
-    },
-    {
-      "plugin_name": "Pro-Q 3",
-      "reason": "no derivable band anchors"
-    },
-    {
-      "plugin_name": "TBTECH Kirchhoff-EQ",
-      "reason": "no derivable band anchors"
     },
     {
       "plugin_name": "bx_tonebox",

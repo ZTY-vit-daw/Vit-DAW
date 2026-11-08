@@ -630,175 +630,193 @@
     "note": ""
   },
   {
-    "section": "static_eq",
-    "field": "_excluded",
-    "value": "Pro-Q 3 not listed",
-    "source": "no derivable band anchors",
-    "note": "frozen derivation rule: promoted ∧ upsert bell coverage ∧ derivable band anchors"
+    "section": "static_eq[48]",
+    "field": "bands",
+    "value": [
+      3400.0
+    ],
+    "source": "receipt-verified upsert writes (apply.json: freq param 2 @ 3400.0 Hz, gain param 3) x explain topology band row x S3 dual-cycle probe (zero drift, stable_id)",
+    "note": "free_floating receipt-backed single band anchor (322 in-card fix; fail-closed unchanged)"
   },
   {
     "section": "static_eq[48]",
+    "field": "_attestation",
+    "value": "static_eq promoted (v1)",
+    "source": "S2 v1 store; EQ-channel receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Pro-Q_3\\summary.json",
+    "note": "upsert bell coverage; zero-LLM deterministic channel"
+  },
+  {
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q10 Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q10_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q10 Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q10_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q3 Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q3_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q3 Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q3_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q4 Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q4_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q4 Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q4_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q6 Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q6_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q6 Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q6_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q8 Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q8_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Q8 Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Q8_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "RChannel Mono/Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\RChannel_Mono_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "RChannel Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\RChannel_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "RChannel Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\RChannel_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "REQ 4 Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\REQ_4_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "REQ 4 Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\REQ_4_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "REQ 6 Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\REQ_6_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "REQ 6 Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\REQ_6_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Saphira Mono already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Saphira_Mono\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Saphira Stereo already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Saphira_Stereo\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
     "field": "_s0_kept",
     "value": "Swivel Audio HitStrip already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Swivel_Audio_HitStrip\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq",
-    "field": "_excluded",
-    "value": "TBTECH Kirchhoff-EQ not listed",
-    "source": "no derivable band anchors",
-    "note": "frozen derivation rule: promoted ∧ upsert bell coverage ∧ derivable band anchors"
+    "section": "static_eq[49]",
+    "field": "bands",
+    "value": [
+      3400.0
+    ],
+    "source": "receipt-verified upsert writes (apply.json: freq param 55577 @ 3400.0 Hz, gain param 55578) x explain topology band row x S3 dual-cycle probe (zero drift, stable_id)",
+    "note": "free_floating receipt-backed single band anchor (322 in-card fix; fail-closed unchanged)"
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[49]",
+    "field": "_attestation",
+    "value": "static_eq promoted (v1)",
+    "source": "S2 v1 store; EQ-channel receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\TBTECH_Kirchhoff-EQ\\summary.json",
+    "note": "upsert bell coverage; zero-LLM deterministic channel"
+  },
+  {
+    "section": "static_eq[50]",
     "field": "_s0_kept",
     "value": "bx_hybrid V2 mix already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\bx_hybrid_V2_mix\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[50]",
     "field": "_s0_kept",
     "value": "bx_hybrid V2 already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\bx_hybrid_V2\\summary.json merges store coverage only)",
     "note": ""
   },
   {
-    "section": "static_eq[48]",
+    "section": "static_eq[50]",
     "field": "_s0_kept",
     "value": "bx_panEQ already in live static_eq",
     "source": "S0 live entry kept verbatim (fresh receipt C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\bx_panEQ\\summary.json merges store coverage only)",
