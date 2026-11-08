@@ -13,4 +13,17 @@
 文件域=scripts 布位脚本+coord/transfer 模板；零 agent 源码。
 
 ## 领取/回执/验收
-- （执行侧回填）/（执行侧回填）/（主管回填）
+
+### 领取
+
+- 2026-11-08 21:21 +0800 / origin/main `cdf2f5eb`（含 314/315 领取+段1 回执四笔在卷）/ owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 314-316 legame L1 组，同 owner 顺序 314→315→316）/ 分支 `port/legame-l1-1` / worktree `D:/Vit_DAW_wt_314l1`
+- 领取基线：HEAD=`cd5aa5b0`（=315 实现提交）；`git status --short` 空；`git diff --stat` 空（净树续卡）
+- 段划分：零栈（脚本域+模板域）；真栈验收并入 315 真栈腿（重铺后再开场，设计稿 §2.3/§6）
+
+### 回执
+
+- （执行侧回填）
+
+### 验收
+
+- （主管回填）
