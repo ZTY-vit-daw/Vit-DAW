@@ -26,4 +26,12 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+### 领取
+
+- 2026-11-08 深夜段 / origin/main `2dbb2cbd` / owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 313legame）/ 分支 `port/legame-ux-design-1` / worktree `D:/Vit_DAW_wt_313legame`
+- 领取基线：HEAD=`2dbb2cbd`（=origin/main，净树建枝）；`git status --short` 空；`git diff --stat` 空
+- 派发依据：卡面「待用户」已由 [decisions/2026-11-08 §六](../../decisions/2026-11-08-product-style-handtest-ruling.md) 收口——「乐局产品体验设计回到上一版定稿……313 设计腿据此派发出正式稿」；用户已与主管完成三轮设计讨论（§一/§五/§六），任务指令=按定稿方向出正式稿+拆卡清单
+- 在飞域核对：doing 五卡（EDU-ASK-ANCHOR/ARRLOOP-AUTHBRIDGE/CLOSURE-ROUTE-ADAPT/WAVESHELL-OFFRENDER-FIX/PLUGIN-CONTROL-EVAL-S1B）文件域均不在 coord/reports/ 与本卡面——不相交；312 占栈中，本卡零栈零冲突
+- 文件域：`coord/reports/2026-11-08-legame-ux-design-v1.md`（新建）+ 本卡面；零代码零栈
+
+- （回执执行侧回填）/（验收主管回填）
