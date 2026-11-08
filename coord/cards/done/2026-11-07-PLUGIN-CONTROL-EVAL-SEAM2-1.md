@@ -32,3 +32,9 @@
   - **治理等价性/技术精化记录（待主管追认）**：①S5 挂点=模型目录三出口裁剪而非 catalog 整体移除——执行面 spec 保留使 policy/free-state 守卫面零弱化，hallucinate 调用由 agentloop allowedTool 白名单拒（LookupCommand 映射后无 allowed 名可匹配）；②S5 裁剪判据=CommandName 前缀 `plugin_grabber` 全族 20 spec（含 apply_eq_edits/set_eq_point，按卡面「等语义适配工具」从宽覆盖——若主管要窄化到 307 实测自选名单可收）；③**S2b 残留声明**：`control_shell.template_role:"other"`（explain_controls 回复顶层 control_shell 内，非 binding_targets 行）按卡面字段清单（binding_targets 行三键）不剥——307 corpus template_role 208 计数混含此形态，A 臂复验若再报 template_role 其来源将是 control_shell（binding_targets 行已净），如需覆盖请主管裁定扩域；④嵌套 binding_targets（vsp 包裹等）一并净化（净化拷贝递归全树，超出负锚实测形态的防御性覆盖）；⑤EQ 守卫交互：缝开时 goalrunner EQ 拓扑写守卫（goalrunner_chat.go eqGenericWriteBlockedResponse）拒绝裸写 EQ 拓扑参数的指引文本仍指向 plugin_grabber.apply_eq_edits（目录已无该工具）——仅 test-only 态的装置事实（A 臂 T4 本为 fail 案，P/A 两臂同守卫可比），非治理冲突。
   - **端测边界声明（AGENTS §5，零栈）**：本卡全部验证为 Go 单测/包级回归+编译（§7 等级：单元契约级）；未跑真栈烟测、未启栈、零 LLM 调用零计费、无 run ID。缝开态装置有效性（A-pure 臂 menu 无 typed adapter+corpus 无 binding_targets 语义键）由 310 A-pure 装置门在真栈腿承接。渲染面/用户旅程不涉及（contextruntime 渲染为模型上下文面，非 webui 渲染面）。
 - 验收：（主管回填）
+
+### 验收（主管，2026-11-08 晚窗）
+
+- **pass 合入 main**——主管亲读 diff 承重面：S5 三模型面出口（Tools/ModelSummary/ModelSummaryForTools）缝开滤 `plugin_grabber` 前缀全族+执行面 Lookup*/Commands/DirectCommandNames 保留（policy/free-state 守卫零弱化）+裸参数工具在场+hallucinate 由 allowedTool 白名单拒；S2b 净化拷贝不变异输入/深度界限/binding_targets 三语义键剥除+原生键保留；默认 unset 字节不变三态在测。**主管裁定三项追认**：①control_shell 残留=**接受**——307 A 臂语料亲证 8/8 命中全为 result_keys 键名列表、**内容形态 0 命中**（S2 摄取面已剥内容），键名残留归入既有「最小结构残留」声明族（与 quick_controls/recommended_groups 组名同级）；**310 装置门加 content-form control_shell 检测兜底**（检出即装置失效停段）②S5 从宽裁全族 20 spec **维持**（卡面原文=族裁剪；窄名单=维护面+漏裁风险）③EQ 守卫文本指向已裁工具=test-only 态外观、两臂可比，记录接受。
+- **合入验证**：merge commit 后主仓 `go test ./internal/tools ./internal/contextruntime -run 'TestSeam' -count=1`=ok（305 S1-S4+308 S5/S2b 全绿）；worker 侧全包 97 包 ok+四包绿在卷。
+- **310 解锁**：A-pure 终测可领（装置门负锚=307 T3_r1；content-form control_shell 兜底入 seam_verify）。

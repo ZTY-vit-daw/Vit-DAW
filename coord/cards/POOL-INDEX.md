@@ -38,8 +38,8 @@
 | 304 | DELAY-APPLY-MS-FIX-1 | done 已验收 pass 合入（分段反演+物理回读诚实降级） |
 | 305 | PLUGIN-CONTROL-EVAL-SEAM-1 | done 已验收 pass 合入（四缝+A 臂三面亲证；S2 残留=A 口径声明项） |
 | 307 | PLUGIN-CONTROL-EVAL-S1A-1 | done 已验收 pass（A=P=5/6 同构；两装置发现→S5/S2b 开卡 308；T4 疑似规则缺陷批次前修） |
-| 308 | PLUGIN-CONTROL-EVAL-SEAM2-1 | doing（**零栈实现腿在派 2026-11-08 早窗**：S5 工具目录裁剪+S2b 渲染面剥离→A-pure 前置；今日主菜关键路径） |
-| 310 | PLUGIN-CONTROL-EVAL-APURE-1 | todo 可领但**候 308 合入**（A-pure 终测 18 轮=「越过控制脚本」正式答案+开放录音棚适配器形态依据；真栈） |
+| 308 | PLUGIN-CONTROL-EVAL-SEAM2-1 | done 已验收 pass 合入（S5 三出口裁族+S2b 渲染剥离+三态字节不变；control_shell=键名残留接受；310 解锁） |
+| 310 | PLUGIN-CONTROL-EVAL-APURE-1 | doing（**308 已合入，终测腿在派 2026-11-08 晚窗**：真纯裸参数 18 轮；与 296-R3 让栈协调） |
 | 306 | GEN-VOCALSEP-1 | done 已验收 pass（三 vocals stem 候用户试听终审；集成腿候后续卡） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | done 已验收 pass（**候选②排除+定性 WaveShell 插件兼容**；M3 证活渲染管线；转卡 309） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
