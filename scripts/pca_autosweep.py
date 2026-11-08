@@ -342,12 +342,16 @@ CERT_FAMILY = {
 }
 
 # EQ-channel receipt kinds. The v1 import gate (processorauthority.ReadReceipt)
-# accepts exactly these two vendor-scoped kinds; subjects from any other
+# accepts exactly these vendor-scoped kinds; subjects from any other
 # manufacturer are honestly rejected with vendor_kind_missing (extending the
 # kind list is agent code, out of this script's file domain).
+# EQ-RECEIPT-VENDOR-EXPAND-1: FabFilter joins via the same vendor-scoped
+# pattern (agent side = processorauthority.SchemaFabFilterEQLive); Pro-Q 3
+# was previously rejected vendor_kind_missing (FIX-PCA-AUTOSWEEP-1 ledger).
 EQ_RECEIPT_KIND = {
     "waves": "waves.static_eq.phase3_live_smoke.v1",
     "plugin alliance": "plugin_alliance.eq_two_level_live_smoke.v1",
+    "fabfilter": "fabfilter.static_eq.eq_channel_live_smoke.v1",
 }
 
 # PC-FULL ruling 1 (FIX-PCA-EQCHANNEL-1 execution): legacy journey-verified
@@ -927,8 +931,9 @@ class Sweep:
             return {"status": "vendor_kind_missing",
                     "error": f"manufacturer {entry.get('manufacturer')!r} has no v1 "
                              f"receipt kind (import gate accepts waves/"
-                             f"plugin_alliance kinds only; kind extension is agent "
-                             f"code, out of this sweep's file domain)"}
+                             f"plugin_alliance/fabfilter kinds only; kind "
+                             f"extension is agent code, out of this sweep's "
+                             f"file domain)"}
         receipt_dir = (Path(self.args.cert_dir) / f"eq_channel_{self.run_id}" / slug)
         receipt_dir.mkdir(parents=True, exist_ok=True)
         receipt_path = receipt_dir / "summary.json"
