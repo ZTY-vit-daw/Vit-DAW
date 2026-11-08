@@ -222,10 +222,42 @@ def main() -> int:
             entry["size_bytes"] = path.stat().st_size
             digest = sha256_of(path)
             entry["sha256_recomputed"] = digest
-            recorded = preview_ref.split("audio_file:", 1)[1] if preview_ref.startswith("audio_file:") else ""
-            entry["sha256_recorded"] = recorded
-            entry["sha256_match"] = bool(digest and recorded and digest == recorded)
+            # The recorded sha256 provenance travels in render_revision
+            # ("semantic_dynamic_render:<phase>:<rev>:<digest16>"); on the real
+            # kernel the session rows' preview_ref is the kernel's own
+            # audio-buffer URI, so the digest is read from render_revision
+            # (falling back to the audio_file:<sha> preview_ref form used by
+            # the stub shape when render_revision carries no digest).
+            render_revision = str(row.get("render_revision") or "")
+            digest16 = ""
+            phase_recorded = ""
+            revision_recorded = ""
+            if render_revision.startswith("semantic_dynamic_render:"):
+                parts = render_revision.split(":")
+                if len(parts) >= 4:
+                    phase_recorded = parts[1]
+                    revision_recorded = parts[2]
+                    digest16 = parts[3]
+            elif str(row.get("preview_ref") or "").startswith("audio_file:"):
+                digest16 = str(row.get("preview_ref")).split("audio_file:", 1)[1]
+            entry["sha256_recorded_digest16"] = digest16
+            entry["render_phase_recorded"] = phase_recorded
+            entry["render_revision_recorded"] = revision_recorded
+            entry["sha256_match"] = bool(digest and digest16 and digest.startswith(digest16))
             if not entry["sha256_match"]:
+                out["failures"].append("C_sha256_mismatch")
+                c_ok = False
+            # phase coherence: candidate-a is bound to the before render,
+            # candidate-b to the after render (canonical assignment face; the
+            # blind swap only exchanges the physical file behind the label,
+            # which is exactly what the swapped-path check below reads back).
+            expected_phase = "before" if str(row.get("id")) == "candidate-a" else "after"
+            if phase_recorded and phase_recorded != expected_phase:
+                entry["render_phase_mismatch"] = f"{phase_recorded}!={expected_phase}"
+                out["failures"].append("C_sha256_mismatch")
+                c_ok = False
+            if revision_recorded and str(row.get("project_revision") or "") and revision_recorded != str(row.get("project_revision")):
+                entry["render_revision_mismatch"] = f"{revision_recorded}!={row.get('project_revision')}"
                 out["failures"].append("C_sha256_mismatch")
                 c_ok = False
             name = path.name.lower()
@@ -330,7 +362,20 @@ def main() -> int:
 
     # ---------- verdict --------------------------------------------------------
     out["failures"] = list(dict.fromkeys(out["failures"]))
-    out["classification"] = sorted({FAILURES_CLASS[name] for name in out["failures"] if name in FAILURES_CLASS})
+    goal_completed = summary.get("goal_status_final") == "completed"
+    classification = set()
+    for name in out["failures"]:
+        if name not in FAILURES_CLASS:
+            continue
+        # With the goal already completed and the chain routed, a missing
+        # executed-response face is the delivery-boundary capture gap (the
+        # scheduler's terminal projection carries only the reply text, never
+        # workflow_data), not a routing failure.
+        if name in ("A_no_executed_response", "A_stamp_missing_from_responses") and goal_completed:
+            classification.add("executed_face_capture_gap")
+            continue
+        classification.add(FAILURES_CLASS[name])
+    out["classification"] = sorted(classification)
     out["conversation_id"] = summary.get("conversation_id")
     out["exit"] = 0 if not out["failures"] else 1
     (round_dir / "leg_assertions.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

@@ -89,3 +89,32 @@ exit=1
 + python aba174_driver.py --round round4 --out-root /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver --resume-conversation aba174_round4_20261023_000846
 [round4][resume] settle=goal_terminal goal=completed
 exit=0
++ python assert_aba174.py --round-dir /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver/round4
+[A] FAIL
+[B] FAIL
+[C] FAIL
+[D] PASS
+[E] PASS
+[F] PASS
+failures: A_no_executed_response, B_not_mounted, C_sha256_mismatch | classification: assets_missing, no_audition_ready, no_dynamic_chain
+exit=1
+(assert fixes: C reads the sha provenance from render_revision digest16 with phase/revision coherence; A category refined for the goal-completed delivery-boundary shape)
++ python assert_aba174.py --round-dir /d/Vit_DAW/coord/runs/UX-AB-AUDITION-IMPL-1/aba174_chat_20261022_233614/driver/round4 (final)
+[A] FAIL
+[B] FAIL
+[C] PASS
+[D] PASS
+[E] PASS
+[F] PASS
+failures: A_no_executed_response, B_not_mounted | classification: executed_face_capture_gap, no_audition_ready
+exit=1
++ powershell bringup_aba174.ps1 -Action Stop
+teardown ok (stopped: VitApp=29704, vsphub=14268, VitAgent=23540); ports 5555/5556/7878/8787 all free
+exit=0
++ powershell bringup_aba174.ps1 -Action Status (port recheck)
+port 5555 free
+port 5556 free
+port 7878 free
+port 8787 free
+exit=0
+=== leg finished 2026-10-23T00:24:07+08:00 ===
