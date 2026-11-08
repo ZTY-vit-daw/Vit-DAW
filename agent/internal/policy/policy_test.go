@@ -70,3 +70,25 @@ func TestAnalyzeMidiTransformationsIsDirect(t *testing.T) {
 		t.Fatal("analyze_midi_transformations missing from directCommands fallback")
 	}
 }
+
+// EDU-ASK-ANCHOR-1（282）：循环区命令=传输态，不改工程内容（256 验收已裁
+// RiskDirect）——spec 与 directCommands 兜底两条路径都必须是 direct。
+func TestTransportLoopCommandsAreDirect(t *testing.T) {
+	for _, cmd := range []map[string]any{
+		{"cmd": "transport_set_loop", "start_seconds": 0.0, "end_seconds": 4.0},
+		{"tool": "transport.set_loop", "args": map[string]any{"start_seconds": 0.0, "end_seconds": 4.0}},
+		{"cmd": "transport_clear_loop"},
+		{"tool": "transport.clear_loop", "args": map[string]any{}},
+	} {
+		d := Classify(cmd)
+		if d.Risk != RiskDirect {
+			t.Fatalf("risk = %s, want %s (cmd=%v)", d.Risk, RiskDirect, cmd)
+		}
+		if NeedsConfirmation([]Decision{d}) {
+			t.Fatalf("transport loop command must not require confirmation (cmd=%v)", cmd)
+		}
+	}
+	if !directCommands["transport_set_loop"] || !directCommands["transport_clear_loop"] {
+		t.Fatal("transport loop commands missing from directCommands fallback")
+	}
+}

@@ -103,3 +103,14 @@ func snippet(text string, index int) string {
 	}
 	return text[start:end]
 }
+
+// TestNeutralFamilySkeletonIncludesAskAnchorsDiscipline：EDU-ASK-ANCHOR-1
+// （282）问询锚定段进中性族骨架（跨族段第二渲染面）。
+func TestNeutralFamilySkeletonIncludesAskAnchorsDiscipline(t *testing.T) {
+	state := neutralFamilyTestState(nil)
+	state.input.AllowedTools = []string{"ccb.observation_catalog", "ccb.observation_request"}
+	produced := messageLoopNeutralFamilySystemSkeleton(state)
+	if !strings.Contains(produced, "Anchorable references and inquiry discipline:") {
+		t.Fatalf("neutral skeleton lacks ask_anchors discipline anchor sentence")
+	}
+}

@@ -74,11 +74,18 @@ const (
 // 资源新增（既有七段字节不动）+ RulesetVersion 递增（ruleset.v2）。
 const SectionEvidenceRefDiscipline = "shared.discipline.evidence_refs"
 
+// SectionAskAnchorDiscipline 是问询锚定纪律段（EDU-ASK-ANCHOR-1 / 裁定 15
+// 方案 a 新增）：可锚定参照物清单 + 问询守则（坐标层+回流层）+ A/B 兜底
+// 编排次序。跨族段——chat 与 neutral_family 各渲染一次（与 evidence_refs
+// 同型）。新增段=embed 资源新增（既有段字节不动）+ RulesetVersion 递增
+// （ruleset.v3）。
+const SectionAskAnchorDiscipline = "shared.discipline.ask_anchors"
+
 // postMigrationSectionIDs 列出 IMPL-B 逐字迁移之后新增的段。双源对照锁定
 // 测试（chat/agentloop 的 ruleset_parity）比对 legacy 生产常量与 embed 渲染
 // 时排除它们：这些段是语义新增，legacy 生产面在 IMPL-D 接线翻转前不含
 // 它们；其正确性由各自测试断言（T-B7），不进「迁移零改写」证明面。
-var postMigrationSectionIDs = []string{SectionEvidenceRefDiscipline}
+var postMigrationSectionIDs = []string{SectionEvidenceRefDiscipline, SectionAskAnchorDiscipline}
 
 // PostMigrationSectionIDs 返回迁移后新增段 ID 集的副本（对照锁定测试用）。
 func PostMigrationSectionIDs() []string {

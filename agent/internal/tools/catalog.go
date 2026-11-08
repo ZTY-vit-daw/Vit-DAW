@@ -397,6 +397,10 @@ func argHint(commandName string) string {
 		return "text:string(max 500 chars) XOR clear:boolean"
 	case "seek":
 		return "time:number_seconds"
+	case "transport_set_loop":
+		return "start_seconds:number end_seconds:number"
+	case "transport_clear_loop":
+		return "no args"
 	case "set_click":
 		return "enabled:boolean"
 	case "route_wave_input_to_track":
@@ -1136,6 +1140,12 @@ func defaultSpecs() []CommandSpec {
 		spec("return_to_zero", "transport.return_to_zero", "transport", "Stop and return the playhead to the project start.", RiskDirect, false, false, false, false),
 		spec("transport_option_stop_return_to_start", "transport.option_stop_return_to_start", "transport", "Toggle the stop-return-to-start transport option.", RiskDirect, false, false, false, false),
 		spec("seek", "transport.seek", "transport", "Move the playhead.", RiskDirect, false, false, false, false),
+		// EDU-ASK-ANCHOR-1（282，裁定 15）：循环区参照物注册——内核现成
+		// 命令（CommandDispatcher.cpp transport_set_loop/clear_loop），agent
+		// 侧此前零注册（256 缺口①）。传输态不改工程内容 → RiskDirect
+		// （256 验收已裁）。
+		spec("transport_set_loop", "transport.set_loop", "transport", "Set the transport loop region [start_seconds, end_seconds] and enable looping; the playhead moves to start_seconds. Transport state only — does not change project content.", RiskDirect, false, false, false, false),
+		spec("transport_clear_loop", "transport.clear_loop", "transport", "Disable transport looping. Transport state only — does not change project content.", RiskDirect, false, false, false, false),
 		spec("toggle_click", "transport.toggle_click", "transport", "Toggle the metronome click.", RiskDirect, false, false, false, false),
 		spec("set_click", "transport.set_click", "transport", "Set metronome click state.", RiskDirect, false, false, false, false),
 		spec("set_tempo", "transport.set_tempo", "transport", "Set project tempo.", RiskUndoable, true, true, false, true),

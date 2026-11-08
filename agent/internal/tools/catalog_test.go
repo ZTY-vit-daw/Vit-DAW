@@ -511,6 +511,45 @@ func TestAnalyzeMidiTransformationsIsCataloged(t *testing.T) {
 	}
 }
 
+// TestTransportLoopToolsAreCataloged：EDU-ASK-ANCHOR-1（282）循环区参照物
+// 注册面——内核现成命令 transport_set_loop/transport_clear_loop 进 agent
+// 目录：参数提示与 RiskDirect（传输态不改工程内容）钉住；能力 pack 面零
+// 变化（无 transport pack，走全目录/transport 门控披露）。
+func TestTransportLoopToolsAreCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	setLoop, ok := catalog.LookupTool("transport.set_loop")
+	if !ok {
+		t.Fatal("transport.set_loop missing")
+	}
+	if setLoop.CommandName != "transport_set_loop" || setLoop.Category != "transport" ||
+		setLoop.MutatesProject || setLoop.SupportsUndo || setLoop.RequiresConfirmation || setLoop.RiskLevel != RiskDirect {
+		t.Fatalf("transport.set_loop metadata = %+v", setLoop)
+	}
+	clearLoop, ok := catalog.LookupTool("transport.clear_loop")
+	if !ok {
+		t.Fatal("transport.clear_loop missing")
+	}
+	if clearLoop.CommandName != "transport_clear_loop" || clearLoop.Category != "transport" ||
+		clearLoop.MutatesProject || clearLoop.SupportsUndo || clearLoop.RequiresConfirmation || clearLoop.RiskLevel != RiskDirect {
+		t.Fatalf("transport.clear_loop metadata = %+v", clearLoop)
+	}
+	if hint := argHint("transport_set_loop"); !strings.Contains(hint, "start_seconds:number") || !strings.Contains(hint, "end_seconds:number") {
+		t.Fatalf("transport_set_loop arg hint = %q", hint)
+	}
+	if hint := argHint("transport_clear_loop"); hint != "no args" {
+		t.Fatalf("transport_clear_loop arg hint = %q", hint)
+	}
+	summary := catalog.ModelSummary()
+	for _, want := range []string{
+		"transport_set_loop tool=transport.set_loop risk=direct required=- args=start_seconds:number end_seconds:number",
+		"transport_clear_loop tool=transport.clear_loop risk=direct required=- args=no args",
+	} {
+		if !strings.Contains(summary, want) {
+			t.Fatalf("ModelSummary missing %q", want)
+		}
+	}
+}
+
 func TestMixTickToolsAreAgentLayerCataloged(t *testing.T) {
 	catalog := DefaultCatalog()
 	propose, ok := catalog.LookupTool("mix.propose_tick")

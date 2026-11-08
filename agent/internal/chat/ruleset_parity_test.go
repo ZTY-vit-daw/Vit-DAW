@@ -102,3 +102,18 @@ func TestChatSystemFallbackMatchesEmbedMinusPostMigration(t *testing.T) {
 			at, len(fallback), len(want), legacy, migrated)
 	}
 }
+
+// TestChatSystemIncludesAskAnchorsDiscipline：EDU-ASK-ANCHOR-1（282）问询
+// 锚定段进生产 chat system（embed 全量渲染语义增量的 canary，同
+// evidence_refs 锚句方式）。
+func TestChatSystemIncludesAskAnchorsDiscipline(t *testing.T) {
+	server := newChatServerForTest(t, nil, nil, nil)
+	assembly := server.buildAssembly(context.Background(), "conv-ask-anchors", "锚定对照轮。", map[string]any{})
+	system := chatAssemblySystemText(t, assembly.Messages)
+	if !strings.Contains(system, "Anchorable references and inquiry discipline:") {
+		t.Fatalf("chat system lacks ask_anchors discipline anchor sentence")
+	}
+	if !strings.Contains(system, "listen to A first, then B") {
+		t.Fatalf("chat system lacks A/B fallback orchestration anchor sentence")
+	}
+}

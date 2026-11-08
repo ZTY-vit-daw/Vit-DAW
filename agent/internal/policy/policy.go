@@ -50,6 +50,10 @@ var directCommands = map[string]bool{
 	"browser_fetch":                         true,
 	"browser_search":                        true,
 	"transport_option_stop_return_to_start": true,
+	// EDU-ASK-ANCHOR-1（282）：循环区命令兜底行（spec 表 RiskDirect 为主分
+	// 类源，此处为 catalog 缺行时的防线，与 play/stop 同族姿态）。
+	"transport_set_loop":   true,
+	"transport_clear_loop": true,
 }
 
 func CommandName(cmd map[string]any) string {
