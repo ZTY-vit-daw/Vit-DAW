@@ -1,0 +1,54 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_194516\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_311prep\coord\runs\M2-HANDTEST-PREP-1\prep1_20261108_194514\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: m2 prep env: telemetry=D:\Vit_DAW_wt_311prep\coord\runs\M2-HANDTEST-PREP-1\prep1_20261108_194514\logs\agent_llm_telemetry.jsonl render=D:\Vit_DAW_wt_311prep\coord\runs\M2-HANDTEST-PREP-1\prep1_20261108_194514\logs\agent_prompt_render.jsonl levels_dir=D:\Vit_DAW_wt_311prep\coord\levels genapi=D:\Vit_DAW_wt_311prep\coord\runs\M2-HANDTEST-PREP-1\prep1_20261108_194514\genapi_providers.json
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_311prep
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_311prep\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_311prep\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_311prep\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=12024 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=12024
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_311prep\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=12024
+ok: ZMQ SUB listening: 5556 pid=12024
+
+== Project state invoke
+project.state status=ok error=
+
+== M-2 handtest prep leg (placement + journey reachability + gen routing)
+ok: m2 prep project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_311prep\coord\runs\M2-HANDTEST-PREP-1\prep1_20261108_194514\default_project.xml
+[m2prep] placement verified: C:\Users\timoz\AppData\Roaming\Vit-DAW\projects\手测·小星星乐局.vit (3 tracks, 42+42 notes, recent first)
+[m2prep] workspace activation: {"activated": true, "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit"}
+[m2prep] journey verified: enter -> n0 -> exit, zero LLM rows=None
+[m2prep] gen routing turn 1: accepted=True domain_reply=False tool_trace=True disclosed=True
+[m2prep] NOTE: routing budget exceeded (4 rows > 3); recorded, not failed
+[m2prep] PASS: placement + journey + gen routing green (routing turns=1, llm rows=4)
+ok: m2 prep PASS: placement + journey + gen routing green (handtest go signal; summary: D:\Vit_DAW_wt_311prep\coord\runs\M2-HANDTEST-PREP-1\prep1_20261108_194514\m2_prep_summary.json)
+
+== Summary
+ok: dev agent smoke completed

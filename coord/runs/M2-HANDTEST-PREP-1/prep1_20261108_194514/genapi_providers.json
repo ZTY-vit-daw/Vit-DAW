@@ -1,0 +1,12 @@
+{
+  "providers": [
+    {
+      "id": "yue-local",
+      "dialect": "yue_local",
+      "base_url": "http://127.0.0.1:8087",
+      "api_key": "",
+      "download_dir": "D:\\Vit_DAW_wt_311prep\\coord\\runs\\M2-HANDTEST-PREP-1\\prep1_20261108_194514\\downloads",
+      "extra_params": { "seed": 11 }
+    }
+  ]
+}

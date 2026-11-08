@@ -1,0 +1,59 @@
+{
+  "card": "M2-HANDTEST-PREP-1",
+  "leg": "placement + journey reachability + generation routing (single run)",
+  "stamp": "20261108_194530",
+  "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit",
+  "phases": {
+    "placement": {
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit",
+      "track_ids": [
+        "1007",
+        "1010",
+        "1013"
+      ],
+      "clip_ids": [
+        "1016",
+        "1017"
+      ],
+      "recent_first": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit",
+      "notes_theme": 42,
+      "notes_corrupted": 42,
+      "corrupt_anchor": "beat37.0=pitch68",
+      "track2_muted": true,
+      "verified": true
+    },
+    "activation": {
+      "activated": true,
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit"
+    },
+    "enter_attempts": 1,
+    "journey": {
+      "conversation_id": "m2prep_journey_20261108_194530",
+      "turns": 3,
+      "flow": [
+        "开始乐局",
+        "写好了(n0)",
+        "结束乐局"
+      ],
+      "llm_rows": null
+    },
+    "gen_routing": {
+      "turn1": {
+        "prompt": "用小星星的情绪唱一首关于今晚的短歌",
+        "accepted_orchestrated": true,
+        "domain_reply": false,
+        "gen_tool_trace": true,
+        "gen_generate_disclosed": true,
+        "stop_reason": "needs_confirmation",
+        "reply_head": "这个操作需要你确认后才会执行。"
+      },
+      "turns": 1,
+      "routing_hit": true,
+      "conversation_llm_rows": 4,
+      "budget_exceeded": true,
+      "budget_note": "routing leg billed 4 LLM rows (declared budget 1-3; recorded honestly, not a face defect)"
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "pass"
+}

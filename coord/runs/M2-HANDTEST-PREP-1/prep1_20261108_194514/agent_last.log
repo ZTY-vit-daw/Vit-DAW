@@ -1,0 +1,347 @@
+2026-11-08T19:45:28 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-08T19:45:28 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-08T19:45:28 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-08T19:45:28 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-08T19:45:28 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-08T19:45:28 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-08T19:45:28 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-08T19:45:28 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:28 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-08T19:45:28 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:28 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:28 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-11-08T19:45:28 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T19:45:28 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T19:45:29 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T19:45:29 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T19:45:29 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T19:45:30 [INFO] [media_refs] ms=1 conversation=dev_range_context_20261108_194529 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:45:30 [INFO] [chat.artifacts] conversation=dev_range_context_20261108_194529 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-11-08T19:45:30 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-08T19:45:30 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:45:30 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_194516\\agent_drafts\\draft_20261108T114529_31c8b863\\Unsaved.vit" uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-08T19:45:30 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:45:30 [INFO] [timing] http.chat total_ms=638 conversation=dev_range_context_20261108_194529 message_len=20
+2026-11-08T19:45:30 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:45:30 [INFO] [timing] kernel.send_command ms=10 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-08T19:45:30 [INFO] [timing] harness.invoke total_ms=18 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:vit_project_uuid"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:vit_project_parent_uuid"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:modifiedBy"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1010" action="property_changed:id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1012" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1011" action="property_changed:remapOnTempoChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1013" action="property_changed:id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1015" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1014" action="property_changed:remapOnTempoChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1013" action="property_changed:name"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="QUANTISATION" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="GROOVE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="SEQUENCE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1016" action="property_changed:currentTake"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1016" action="property_changed:speed"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1016" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="1016" action="property_changed:colour"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:31 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [INFO] [shadow] initialized tracks=3 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit" replayed_deltas=10
+2026-11-08T19:45:32 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [INFO] [workspace] parent history recovery skipped parent=vitproj_f67b8db6b7f548b79601b8c710d71af6 target=vitproj_08c5c00962544622bac8cd1e7aaf0778 reason=parent project path not found for UUID vitproj_f67b8db6b7f548b79601b8c710d71af6
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:45:32 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit" uuid=vitproj_08c5c00962544622bac8cd1e7aaf0778 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="QUANTISATION" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="GROOVE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="SEQUENCE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="1017" action="property_changed:currentTake"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="1017" action="property_changed:speed"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="1017" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="1017" action="property_changed:colour"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:32 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [INFO] [shadow] initialized tracks=3 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit" replayed_deltas=11
+2026-11-08T19:45:33 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [INFO] [timing] agent_loop_chat total_ms=368 conversation=m2prep_journey_20261108_194530 goal= mode=default status=completed stop=edu_jam_entered completed_steps=0 executed=0
+2026-11-08T19:45:33 [INFO] [media_refs] ms=0 conversation=m2prep_journey_20261108_194530 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Roaming\Vit-DAW\projects\手测·小星星乐局.vit revision=2
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [INFO] [chat.artifacts] conversation=m2prep_journey_20261108_194530 response_artifacts=0 request_artifacts=0 executed=0 reply_len=295
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Roaming\Vit-DAW\projects\手测·小星星乐局.vit revision=2 commit=c_20261108T114533_380a8515 rebound=1 total_ms=31
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:45:33 [INFO] [timing] http.chat total_ms=1315 conversation=m2prep_journey_20261108_194530 message_len=12
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="1010" action="property_changed:mute"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="0/38bba41" action="property_changed:lastSignificantChange"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="1016" action="property_changed:mute"
+2026-11-08T19:45:33 [DEBUG] [shadow] live delta uid="1017" action="property_changed:mute"
+2026-11-08T19:45:34 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:34 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:34 [INFO] [timing] agent_loop_chat total_ms=14 conversation=m2prep_journey_20261108_194530 goal= mode=default status=completed stop=edu_jam_node_done completed_steps=0 executed=0
+2026-11-08T19:45:34 [INFO] [media_refs] ms=0 conversation=m2prep_journey_20261108_194530 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:45:34 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Roaming\Vit-DAW\projects\手测·小星星乐局.vit revision=2
+2026-11-08T19:45:34 [INFO] [shadow] initialized tracks=3 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit" replayed_deltas=11
+2026-11-08T19:45:34 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=2
+2026-11-08T19:45:34 [INFO] [chat.artifacts] conversation=m2prep_journey_20261108_194530 response_artifacts=0 request_artifacts=0 executed=0 reply_len=229
+2026-11-08T19:45:34 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:45:34 [INFO] [timing] http.chat total_ms=800 conversation=m2prep_journey_20261108_194530 message_len=9
+2026-11-08T19:45:35 [INFO] [timing] agent_loop_chat total_ms=9 conversation=m2prep_journey_20261108_194530 goal= mode=default status=completed stop=edu_jam_exited completed_steps=0 executed=0
+2026-11-08T19:45:35 [INFO] [media_refs] ms=0 conversation=m2prep_journey_20261108_194530 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:45:35 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Roaming\Vit-DAW\projects\手测·小星星乐局.vit revision=2
+2026-11-08T19:45:35 [INFO] [chat.artifacts] conversation=m2prep_journey_20261108_194530 response_artifacts=0 request_artifacts=0 executed=0 reply_len=90
+2026-11-08T19:45:35 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:45:35 [INFO] [timing] http.chat total_ms=760 conversation=m2prep_journey_20261108_194530 message_len=12
+2026-11-08T19:45:40 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:40 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:40 [INFO] [timing] message_loop.llm ms=2439 goal=goal_5209c70dd6c17dea conversation=m2prep_journey_20261108_194530 turn=1 messages=3 chars=33533 message_chars=0:system:17205,1:user:17,2:user:16311 err=false
+2026-11-08T19:45:42 [INFO] [timing] harness.invoke total_ms=21 tool=gen.providers command=genapi_providers status=ok confirmed=false err=false
+2026-11-08T19:45:42 [INFO] [timing] message_loop.tool ms=23 goal=goal_5209c70dd6c17dea tool=gen.providers confirmed=false stopped=false status=
+2026-11-08T19:45:46 [WARN] VSP realtime publish pending failures=12 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:46 [WARN] VSP realtime publish pending failures=12 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:46 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:47 [INFO] [timing] message_loop.llm ms=5124 goal=goal_5209c70dd6c17dea conversation=m2prep_journey_20261108_194530 turn=3 messages=5 chars=39831 message_chars=0:system:17205,1:user:17,2:assistant:137,3:user:1861,4:user:20611 err=false
+2026-11-08T19:45:47 [INFO] [timing] harness.invoke total_ms=16 tool=gen.generate command=genapi_generate status=needs_confirmation confirmed=false err=false
+2026-11-08T19:45:47 [INFO] [timing] message_loop.tool ms=29 goal=goal_5209c70dd6c17dea tool=gen.generate confirmed=false stopped=true status=waiting_confirmation
+2026-11-08T19:45:47 [INFO] [continuation.arm] conversation=m2prep_journey_20261108_194530 goal=goal_5209c70dd6c17dea status=waiting_confirmation stop=needs_confirmation limit= continuation=true durable=cont_4ae45d484ca7ff103942130d lifecycle=waiting_interaction scheduled=false budget_stop=false requires_user_interaction=true owes_outcome=false settle_checkpoint=false
+2026-11-08T19:45:47 [INFO] [timing] agent_loop_chat total_ms=11687 conversation=m2prep_journey_20261108_194530 goal=goal_5209c70dd6c17dea mode=default status=waiting_confirmation stop=needs_confirmation completed_steps=1 executed=2
+2026-11-08T19:45:47 [INFO] [media_refs] ms=0 conversation=m2prep_journey_20261108_194530 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:45:47 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Roaming\Vit-DAW\projects\手测·小星星乐局.vit revision=2
+2026-11-08T19:45:47 [INFO] [chat.artifacts] conversation=m2prep_journey_20261108_194530 response_artifacts=0 request_artifacts=0 executed=2 reply_len=45
+2026-11-08T19:45:47 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:45:47 [INFO] [timing] http.chat total_ms=12513 conversation=m2prep_journey_20261108_194530 message_len=51
+2026-11-08T19:45:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:45:52 [WARN] VSP realtime publish pending failures=15 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:52 [WARN] VSP realtime publish pending failures=15 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:45:58 [WARN] VSP realtime publish pending failures=18 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:45:58 [WARN] VSP realtime publish pending failures=18 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:04 [WARN] VSP realtime publish pending failures=21 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:04 [WARN] VSP realtime publish pending failures=21 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:06 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:10 [WARN] VSP realtime publish pending failures=24 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:10 [WARN] VSP realtime publish pending failures=24 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:16 [WARN] VSP realtime publish pending failures=27 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:16 [WARN] VSP realtime publish pending failures=27 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:22 [WARN] VSP realtime publish pending failures=30 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:22 [WARN] VSP realtime publish pending failures=30 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:26 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:28 [WARN] VSP realtime publish pending failures=33 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:28 [WARN] VSP realtime publish pending failures=33 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:34 [WARN] VSP realtime publish pending failures=36 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:34 [WARN] VSP realtime publish pending failures=36 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:40 [WARN] VSP realtime publish pending failures=39 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:40 [WARN] VSP realtime publish pending failures=39 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:46 [WARN] VSP realtime publish pending failures=42 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:46 [WARN] VSP realtime publish pending failures=42 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:46 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=1 workspace=vitproj_08c5c00962544622bac8cd1e7aaf0778
+2026-11-08T19:46:52 [WARN] VSP realtime publish pending failures=45 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:46:52 [WARN] VSP realtime publish pending failures=45 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

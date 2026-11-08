@@ -423,7 +423,15 @@ param(
     # exit 4 取证）。退出码：0=PASS；2=环境；4=确定性面缺陷。腿需 agent HTTP
     # 面在栈（-StartKernel -RestartAgent；不启 UI）；VIT_EDU_LEVELS_DIR 由
     # 本腿 env 块指向 $RepoRoot\coord\levels（agent 进程 cwd 不在仓库根）。
-    [switch]$EduJamSmoke
+    [switch]$EduJamSmoke,
+    # M2-HANDTEST-PREP-1（311）M-2 手测前置腿：乐局工程持久布位（%APPDATA%
+    # 用户数据域，非源码树非 run 目录）+ 旅程可达核验（enter→n0→exit，零
+    # LLM）+ 生成路由活体核验（1-3 调用 deepseek-flash，路由确认即停不等
+    # wav）。断言体在 scripts/m2_handtest_prep.py；§8 口径冻结在
+    # coord/runs/M2-HANDTEST-PREP-1/RUNBOOK.md。退出码：0=PASS（=手测放行）；
+    # 2=环境；4=确定性面缺陷（取证上交不重跑）。腿需三件套
+    # （-StartKernel -RestartAgent -StartUI；GUI 面不在断言面，AGENTS §5）。
+    [switch]$M2HandtestPrep
 )
 
 Set-StrictMode -Version Latest
@@ -1366,7 +1374,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $M2HandtestPrep) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1506,6 +1514,47 @@ if ($EduJamSmoke -and -not $ScenarioMode) {
     Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $EduJamLogsDir "agent_llm_telemetry.jsonl")
     Set-Item -LiteralPath "env:VIT_EDU_LEVELS_DIR" -Value (Join-Path $RepoRoot "coord\levels")
     Write-Ok ("edu jam env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " levels_dir=" + $env:VIT_EDU_LEVELS_DIR)
+}
+
+# M2-HANDTEST-PREP-1（311）手测前置腿 env：agent 进程启动前就位。
+# ① VIT_EDU_LEVELS_DIR → $RepoRoot\coord\levels（同 EduJamSmoke：agent cwd
+#    不在仓库根，缺此 env 则乐局 enter fail-closed）；
+# ② telemetry jsonl（乐局面零 LLM 断言证据面）；
+# ③ prompt render jsonl（生成路由客观断言面：gen.generate 披露）；
+# ④ VIT_GENAPI_CONFIG → run 工件 providers（yue-local@8087 引擎不在场，
+#    gen.generate 若被调即快速失败；路由证据在 render+响应面即停）。
+if ($M2HandtestPrep -and -not $ScenarioMode) {
+    $M2PrepTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($M2PrepTelemetryRoot)) {
+        $M2PrepTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\m2_prep_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $M2PrepTelemetryRoot -Force | Out-Null
+    $M2PrepLogsDir = Join-Path $M2PrepTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $M2PrepLogsDir -Force | Out-Null
+    $M2PrepDownloadsDir = Join-Path $M2PrepTelemetryRoot "downloads"
+    New-Item -ItemType Directory -Path $M2PrepDownloadsDir -Force | Out-Null
+    $M2PrepGenapiConfig = Join-Path $M2PrepTelemetryRoot "genapi_providers.json"
+    $M2PrepGenapiJson = @'
+{
+  "providers": [
+    {
+      "id": "yue-local",
+      "dialect": "yue_local",
+      "base_url": "http://127.0.0.1:8087",
+      "api_key": "",
+      "download_dir": "__DOWNLOADS__",
+      "extra_params": { "seed": 11 }
+    }
+  ]
+}
+'@ -replace "__DOWNLOADS__", ($M2PrepDownloadsDir -replace '\\', '\\')
+    # BOM-less UTF8 (Go json.Unmarshal rejects a leading BOM; 278 pattern).
+    [System.IO.File]::WriteAllText($M2PrepGenapiConfig, $M2PrepGenapiJson, (New-Object System.Text.UTF8Encoding($false)))
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $M2PrepLogsDir "agent_llm_telemetry.jsonl")
+    Set-Item -LiteralPath "env:VIT_AGENT_PROMPT_RENDER_PATH" -Value (Join-Path $M2PrepLogsDir "agent_prompt_render.jsonl")
+    Set-Item -LiteralPath "env:VIT_EDU_LEVELS_DIR" -Value (Join-Path $RepoRoot "coord\levels")
+    Set-Item -LiteralPath "env:VIT_GENAPI_CONFIG" -Value $M2PrepGenapiConfig
+    Write-Ok ("m2 prep env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " levels_dir=" + $env:VIT_EDU_LEVELS_DIR + " genapi=" + $env:VIT_GENAPI_CONFIG)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -9017,6 +9066,73 @@ if ($EduJamSmoke) {
     }
     else {
         throw ("edu jam smoke failed with exit code $eduJamExit (console: " + $eduJamConsolePath + ")")
+    }
+}
+
+if ($M2HandtestPrep) {
+    Write-Step "M-2 handtest prep leg (placement + journey reachability + gen routing)"
+    $m2PrepScript = Join-Path $RepoRoot "scripts\m2_handtest_prep.py"
+    if (-not (Test-Path -LiteralPath $m2PrepScript)) {
+        throw ("m2 prep script missing: " + $m2PrepScript)
+    }
+    $m2PrepArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($m2PrepArtifactsDir)) {
+        $m2PrepArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\m2_prep_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $m2PrepArtifactsDir)) {
+        New-Item -ItemType Directory -Path $m2PrepArtifactsDir -Force | Out-Null
+    }
+    # Project isolation for this leg is set before any process start by the
+    # shared GUI-leg isolation block above ($M2HandtestPrep is in its
+    # condition list): the placement leg's kernel-side new_project rewrites
+    # the workspace default project, so VIT_PROJECT_XML must point at a
+    # git-clean run-dir copy (217 incident lesson, same family as the edu
+    # jam leg). The PERSISTENT placement target itself lives under
+    # %APPDATA%\Vit-DAW\projects\ (user data domain, never the source tree
+    # or a run dir, AGENTS.md section 10).
+    $m2PrepPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($m2PrepPriorProjectXml)) {
+        Write-Ok ("m2 prep project isolation: VIT_PROJECT_XML=" + $m2PrepPriorProjectXml)
+    }
+    else {
+        throw "m2 prep requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    foreach ($m2PrepEnvKey in @("VIT_EDU_LEVELS_DIR", "VIT_AGENT_LLM_TELEMETRY_PATH", "VIT_AGENT_PROMPT_RENDER_PATH", "VIT_GENAPI_CONFIG")) {
+        if ([string]::IsNullOrWhiteSpace([System.Environment]::GetEnvironmentVariable($m2PrepEnvKey, "Process"))) {
+            throw ("m2 prep requires " + $m2PrepEnvKey + " (unset after the env block)")
+        }
+    }
+    # Persistent placement target: user-data domain next to the kernel's
+    # global recent-projects config (%APPDATA%\Vit-DAW), Chinese display
+    # name per the card.
+    $m2PrepProjectsDir = Join-Path $env:APPDATA "Vit-DAW\projects"
+    New-Item -ItemType Directory -Path $m2PrepProjectsDir -Force | Out-Null
+    $m2PrepProjectPath = Join-Path $m2PrepProjectsDir "手测·小星星乐局.vit"
+    $m2PrepSummaryPath = Join-Path $m2PrepArtifactsDir "m2_prep_summary.json"
+    $m2PrepConsolePath = Join-Path $m2PrepArtifactsDir "m2_prep_console.txt"
+    $m2PrepPythonArgs = @(
+        $m2PrepScript,
+        "--agent-http", $AgentHttp,
+        "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort),
+        "--project-path", $m2PrepProjectPath,
+        "--output", $m2PrepSummaryPath,
+        "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH,
+        "--prompt-render-path", $env:VIT_AGENT_PROMPT_RENDER_PATH
+    )
+    & python @m2PrepPythonArgs > $m2PrepConsolePath 2>&1
+    $m2PrepExit = $LASTEXITCODE
+    Get-Content -LiteralPath $m2PrepConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $m2PrepSummaryPath)) {
+        throw ("m2 prep produced no summary artifact (exit code " + $m2PrepExit + "; console: " + $m2PrepConsolePath + ")")
+    }
+    if ($m2PrepExit -eq 0) {
+        Write-Ok ("m2 prep PASS: placement + journey + gen routing green (handtest go signal; summary: " + $m2PrepSummaryPath + ")")
+    }
+    elseif ($m2PrepExit -eq 2) {
+        throw ("m2 prep environment failure (raw evidence on disk) - see " + $m2PrepSummaryPath)
+    }
+    else {
+        throw ("m2 prep failed with exit code $m2PrepExit (console: " + $m2PrepConsolePath + ")")
     }
 }
 
