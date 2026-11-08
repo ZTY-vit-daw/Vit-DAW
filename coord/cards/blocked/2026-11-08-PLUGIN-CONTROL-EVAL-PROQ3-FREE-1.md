@@ -32,6 +32,15 @@ Pro-Q 3 不在 registry/无法装载→取证上交（换 EQ 插件须用户裁�
   - **上交点（候主管授权）**：修复#2 已提交分支待用；授权内容=新一批 §8 冻结（新 run 目录+device 门+三轮 T7；装置与预算无需改，预计仍 ≈¥1/批）；半布位 r1.vit 已清除（%APPDATA% projects 域回归卡前状态亲核）；
   - **栈协议全链**：排队 319 后（319 占用 23:06→释放 23:15 亲证在卷）→净空亲核 23:16:35 全零→占用登记 bb952a03→≤60s 复核 23:17:57 全零→run×2→owner 亲拆 **TEARDOWN_ALL_ZERO 23:26:49 亲核**→释放登记（见栈记录本日 23:27 条）；
   - **端测边界声明**：两 run 均未达付费轮——无任务轮数据、无渲染面/用户旅程主张；用户 GUI 终审物（三工程+自报告+对账表）未产生（候授权续批后交付）。
+- 回执二（续批 b2，2026-11-08 23:41 收口）：取证工件随 port/plugin-control-eval-proq3-free-1 最新提交+释放登记 4591eabf；状态=**卡面前提被产品缺陷推翻→blocked 上交（doing→blocked）**
+  - **续批结果**：run3 proq3_free_20261108_233122 device 五门前四门全 PASS（registry 亲证+rack.nodes 布位 r1/r2/r3 全成功[修复#2 生效]+启动页 recent 亲证+初始态等价 digest 全等+known-op 裸写 0.7 落地回读在靶=BAREWRITE 缝在 Pro-Q 3 面活体亲证）；**败在持久化门（第三型，非装置脚本缺陷）**：Pro-Q 3 Band 1 Gain 活体 0.7→save_project→open_project→回 0.5；
+  - **零 LLM 判别 probe（占用窗口内，forensic_persistence_20261108/ 两跑）**：A 臂 rack 内 Pro-Q 3 三次重载全回默认 vs **B 臂 track 级 Volume&Pan -18.08 dB 过重载保留——A/B 分离铁证**；两跑均复原 r1 至初始 digest 亲证；
+  - **机理（源码锚点，C++ 域）**：ipcSaveEncryptedProjectToPath（VitApp/Source/Service/VitHeadlessService.cpp ~1316-1320）+saveProjectToDefaultXml（~671-675）保存前只 track 级 flush；tracktion_Track.cpp ~49-53 flush 只级联本轨 pluginList（~277-280 getAllPlugins=pluginList.getPlugins()），rack 内插件挂 RackType 自身轨表不触达；PluginRackControlService.cpp ~2051-2054 写时同只 owner track flush；**Edit::flushState() 的 getAllPlugins 走 edit trackList 亦漏 rack 内——修复须 rack 感知（RackType::flushStateToValueTree 在位可用）**；修复候选=写时直 flush 目标插件 和/或 保存路径 rack 遍历 flush——**归主管裁定另开 C++ 卡**（本卡文件域不含 VitApp，不扩修）；
+  - **为何付费轮不启动**：卡面核心交付=「终态保留供用户 GUI 亲验」——模型调完参用户打开工程只会看到默认值（缺陷实证），付费轮的钱会花在不可交付的终态上；持久化门的设计目的即在付费前拦住此情形；
+  - **栈协议（续批）**：占用 a3a4af22（净空亲核 23:30:36+≤60s 复核 23:31:17）→run3+取证 probe 腿→owner 亲拆 **TEARDOWN_ALL_ZERO 23:39:51**→释放 4591eabf（栈记录 b2 占用/释放两条在卷）；三布位工程已清除（projects 域=ledger+手测·小星星乐局.vit 亲核）；
+  - **预算**：三 run+probe 全程零 LLM 零计费（失败均在零 LLM 腿）；≈¥1 批预算未动；
+  - **端测边界**：无任务轮数据/无渲染面/无用户旅程主张；GUI 终审物未产生；
+  - **解锁条件（候主管）**：C++ 持久化缺陷修复合入后，本卡装置全部就绪可直接续（cases/driver/orchestrator/RUNBOOK 在分支，selftest 25/25；布位→device→T7×3→对账表全链一次栈窗口可完成）。
 - 验收：（主管回填+用户 GUI 终审）
 
 ### 续批授权（主管，2026-11-08 深夜）
