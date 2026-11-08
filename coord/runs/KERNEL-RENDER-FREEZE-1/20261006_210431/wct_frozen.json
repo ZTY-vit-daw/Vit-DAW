@@ -1,0 +1,666 @@
+{
+ "pid": 33280,
+ "captured_at_wall": "2026-10-06T13:05:45.562+00:00",
+ "note": "KERNEL-RENDER-FREEZE-1 frozen wait chains",
+ "tool": "Wait Chain Traversal (advapi32)",
+ "flags_used": 15,
+ "threads": [
+  {
+   "tid": 7188,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 7188,
+     "wait_time_ms": 84196705,
+     "context_switches": 8048
+    },
+    {
+     "type": "ThreadWait",
+     "status": "Owned"
+    },
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 34304,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 11368,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 11368,
+     "wait_time_ms": 84196725,
+     "context_switches": 3670
+    }
+   ]
+  },
+  {
+   "tid": 15692,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 15692,
+     "wait_time_ms": 84196726,
+     "context_switches": 312
+    }
+   ]
+  },
+  {
+   "tid": 28692,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 28692,
+     "wait_time_ms": 84196722,
+     "context_switches": 159
+    }
+   ]
+  },
+  {
+   "tid": 36764,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 36764,
+     "wait_time_ms": 84196717,
+     "context_switches": 1953
+    }
+   ]
+  },
+  {
+   "tid": 40932,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 40932,
+     "wait_time_ms": 84196723,
+     "context_switches": 161
+    }
+   ]
+  },
+  {
+   "tid": 34620,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 34620,
+     "wait_time_ms": 84196724,
+     "context_switches": 161
+    }
+   ]
+  },
+  {
+   "tid": 20568,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 20568,
+     "wait_time_ms": 84196723,
+     "context_switches": 160
+    }
+   ]
+  },
+  {
+   "tid": 20052,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 20052,
+     "wait_time_ms": 84196723,
+     "context_switches": 159
+    }
+   ]
+  },
+  {
+   "tid": 21748,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 21748,
+     "wait_time_ms": 84196723,
+     "context_switches": 160
+    }
+   ]
+  },
+  {
+   "tid": 34516,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 34516,
+     "wait_time_ms": 84196723,
+     "context_switches": 160
+    }
+   ]
+  },
+  {
+   "tid": 15700,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 15700,
+     "wait_time_ms": 84196723,
+     "context_switches": 160
+    }
+   ]
+  },
+  {
+   "tid": 12024,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 12024,
+     "wait_time_ms": 84196724,
+     "context_switches": 158
+    }
+   ]
+  },
+  {
+   "tid": 34832,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 34832,
+     "wait_time_ms": 84196706,
+     "context_switches": 14
+    }
+   ]
+  },
+  {
+   "tid": 38732,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 38732,
+     "wait_time_ms": 84196706,
+     "context_switches": 13
+    }
+   ]
+  },
+  {
+   "tid": 8824,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 8824,
+     "wait_time_ms": 84196706,
+     "context_switches": 8
+    }
+   ]
+  },
+  {
+   "tid": 14260,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 14260,
+     "wait_time_ms": 84196742,
+     "context_switches": 7365
+    }
+   ]
+  },
+  {
+   "tid": 14324,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 14324,
+     "wait_time_ms": 84196706,
+     "context_switches": 4
+    }
+   ]
+  },
+  {
+   "tid": 5116,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 5116,
+     "wait_time_ms": 84196706,
+     "context_switches": 33
+    }
+   ]
+  },
+  {
+   "tid": 38380,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 38380,
+     "wait_time_ms": 84196745,
+     "context_switches": 6701
+    }
+   ]
+  },
+  {
+   "tid": 40736,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 40736,
+     "wait_time_ms": 84196746,
+     "context_switches": 6818
+    }
+   ]
+  },
+  {
+   "tid": 25416,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 25416,
+     "wait_time_ms": 84196707,
+     "context_switches": 4
+    }
+   ]
+  },
+  {
+   "tid": 35228,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 35228,
+     "wait_time_ms": 84196707,
+     "context_switches": 4
+    }
+   ]
+  },
+  {
+   "tid": 40892,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 40892,
+     "wait_time_ms": 84196707,
+     "context_switches": 5388
+    }
+   ]
+  },
+  {
+   "tid": 34304,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 34304,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 27248,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 27248,
+     "wait_time_ms": 84196707,
+     "context_switches": 15
+    }
+   ]
+  },
+  {
+   "tid": 30652,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 30652,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 20960,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 20960,
+     "wait_time_ms": 84196707,
+     "context_switches": 10
+    }
+   ]
+  },
+  {
+   "tid": 39792,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 39792,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 40680,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 40680,
+     "wait_time_ms": 84196707,
+     "context_switches": 6
+    }
+   ]
+  },
+  {
+   "tid": 19780,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 19780,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 21752,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 21752,
+     "wait_time_ms": 84196707,
+     "context_switches": 7
+    }
+   ]
+  },
+  {
+   "tid": 31848,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 31848,
+     "wait_time_ms": 84196707,
+     "context_switches": 7
+    }
+   ]
+  },
+  {
+   "tid": 40844,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 40844,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 39304,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 39304,
+     "wait_time_ms": 84196707,
+     "context_switches": 7
+    }
+   ]
+  },
+  {
+   "tid": 38008,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 38008,
+     "wait_time_ms": 84196707,
+     "context_switches": 6
+    }
+   ]
+  },
+  {
+   "tid": 2656,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 2656,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 38560,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 38560,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 17148,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 17148,
+     "wait_time_ms": 84196707,
+     "context_switches": 14
+    }
+   ]
+  },
+  {
+   "tid": 33624,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 33624,
+     "wait_time_ms": 84196707,
+     "context_switches": 8
+    }
+   ]
+  },
+  {
+   "tid": 12628,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 12628,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 10208,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 10208,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 27520,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 27520,
+     "wait_time_ms": 84196707,
+     "context_switches": 6
+    }
+   ]
+  },
+  {
+   "tid": 6568,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Blocked",
+     "process_id": 33280,
+     "thread_id": 6568,
+     "wait_time_ms": 84196707,
+     "context_switches": 5
+    }
+   ]
+  },
+  {
+   "tid": 19384,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 19384,
+     "wait_time_ms": 84196707,
+     "context_switches": 4
+    }
+   ]
+  },
+  {
+   "tid": 18024,
+   "is_cycle": false,
+   "chain": [
+    {
+     "type": "Thread",
+     "status": "Running",
+     "process_id": 33280,
+     "thread_id": 18024,
+     "wait_time_ms": 84196707,
+     "context_switches": 6
+    }
+   ]
+  }
+ ],
+ "errors": []
+}

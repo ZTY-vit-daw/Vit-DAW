@@ -1,0 +1,6 @@
+﻿{
+    "conversation_id":  "note_smoke_legacy_20261004_223802",
+    "reply":  "Circled range: timeline face only (selection share 0.72), on track smoke_track_1 — 2 clips.\n\nMapped time span: 0:03.2 – 0:12.0 (union of the two clips).\n\nClips intersecting the range:\n- smoke_clip_full (track smoke_track_1) — full extent 0:03.2–0:07.8; intersecting segment 0:03.2–0:07.8 (entirely inside the range).\n- smoke_clip_part (track smoke_track_1) — full extent 0:05.0–0:12.0; intersecting segment 0:05.0–0:12.0 (entirely inside the range).\n\nBoth clips sit on the same track and overlap on 0:05.0–0:07.8, so the range\u0027s dense portion is that overlap plus the tail 0:07.8–0:12.0.\n\nRead-only state: project initialized, 2 clips, 0 user tracks, no groups, no pending jobs. No other faces (rack / library / control surfaces) are part of this note.",
+    "agent_mode":  "default",
+    "needs_confirmation":  false
+}

@@ -1,0 +1,1276 @@
+2026-10-03T11:59:42 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-03T11:59:42 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-03T11:59:42 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-03T11:59:42 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-03T11:59:42 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-03T11:59:42 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-03T11:59:42 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:42 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-03T11:59:42 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:42 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:42 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=state_summary err=false
+2026-10-03T11:59:42 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:59:42 [INFO] [timing] harness.refresh_shadow ms=8 reason=state_summary status=ok err=false
+2026-10-03T11:59:42 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-03T11:59:42 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:59:42 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\SETTLE-DELIVER-SMOKE-20261003_115939\\agent_drafts\\draft_20261003T035942_dd984279\\Unsaved.vit" uuid=vitproj_f9f02a88e08043da8e635859d41ec23f recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-03T11:59:47 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:47 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:52 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:52 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:57 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:59:57 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:00 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:02 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:02 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:07 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:07 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:12 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:12 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:17 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:17 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:20 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:22 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:22 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:27 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:27 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:32 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:32 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:37 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:37 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:40 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:42 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-03T12:00:42 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:00:42 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:42 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:45 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-10-03T12:00:45 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T12:00:45 [INFO] [timing] harness.refresh_shadow ms=27 reason=capacity_project_facts status=ok err=false
+2026-10-03T12:00:47 [WARN] VSP realtime publish pending failures=261 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:47 [WARN] VSP realtime publish pending failures=261 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:50 [INFO] [timing] message_loop.llm ms=4089 goal=goal_62f8f9c24bf82275 conversation=settledeliver_20261003_120042 turn=1 messages=2 chars=47652 message_chars=0:system:33067,1:user:14585 err=false
+2026-10-03T12:00:50 [INFO] [timing] harness.invoke total_ms=11 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-03T12:00:50 [INFO] [timing] message_loop.tool ms=12 goal=goal_62f8f9c24bf82275 tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-03T12:00:50 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:00:50 [INFO] [continuation.arm] conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_7b12abc408d0b15743408fce lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-03T12:00:50 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-03T12:00:50 [INFO] [timing] agent_loop_chat total_ms=6838 conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-03T12:00:50 [INFO] [media_refs] ms=0 conversation=settledeliver_20261003_120042 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-03T12:00:50 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\agent_drafts\draft_20261003T035942_dd984279\Unsaved.vit revision=1
+2026-10-03T12:00:50 [INFO] [chat.artifacts] conversation=settledeliver_20261003_120042 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-03T12:00:50 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\agent_drafts\draft_20261003T035942_dd984279\Unsaved.vit revision=1 commit=c_20261003T040050_a91665e8 rebound=1 total_ms=19
+2026-10-03T12:00:50 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:00:50 [INFO] [timing] http.chat total_ms=7612 conversation=settledeliver_20261003_120042 message_len=77
+2026-10-03T12:00:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:00:50 [INFO] [continuation.claim] claimed id=cont_7b12abc408d0b15743408fce goal=goal_62f8f9c24bf82275 conversation=settledeliver_20261003_120042 attempt=1 lease_until=2026-10-03T04:02:50Z
+2026-10-03T12:00:50 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-03T12:00:50 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T12:00:50 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-03T12:00:52 [WARN] VSP realtime publish pending failures=281 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:52 [WARN] VSP realtime publish pending failures=281 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:54 [INFO] [timing] message_loop.llm ms=4321 goal=goal_62f8f9c24bf82275 conversation=settledeliver_20261003_120042 turn=2 messages=2 chars=54095 message_chars=0:system:33314,1:user:20781 err=false
+2026-10-03T12:00:54 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=mix_request_observation_project_scope_state err=false
+2026-10-03T12:00:54 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T12:00:54 [INFO] [timing] harness.refresh_shadow ms=15 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\bass.wav status=ready
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\bass.wav status=ready
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\bass.wav status=ready
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1012 clip_id=1016 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\drums.wav status=ready
+2026-10-03T12:00:55 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=33871 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\BridgeReplies\20261003_120055_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1012 clip_id=1016 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\drums.wav status=ready
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1012 clip_id=1016 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\drums.wav status=ready
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1017 clip_id=1021 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\guitar.wav status=ready
+2026-10-03T12:00:55 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=36221 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\BridgeReplies\20261003_120055_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1017 clip_id=1021 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\guitar.wav status=ready
+2026-10-03T12:00:55 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1017 clip_id=1021 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\guitar.wav status=ready
+2026-10-03T12:00:56 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1022 clip_id=1026 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\other.wav status=ready
+2026-10-03T12:00:56 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=34219 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\BridgeReplies\20261003_120056_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T12:00:56 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1022 clip_id=1026 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\other.wav status=ready
+2026-10-03T12:00:56 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1022 clip_id=1026 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\other.wav status=ready
+2026-10-03T12:00:56 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1027 clip_id=1031 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\piano.wav status=ready
+2026-10-03T12:00:56 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=37048 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\BridgeReplies\20261003_120056_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T12:00:56 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1027 clip_id=1031 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\piano.wav status=ready
+2026-10-03T12:00:56 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1027 clip_id=1031 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\piano.wav status=ready
+2026-10-03T12:00:57 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1032 clip_id=1036 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\vocals.wav status=ready
+2026-10-03T12:00:57 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=36719 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\BridgeReplies\20261003_120057_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T12:00:57 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1032 clip_id=1036 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\vocals.wav status=ready
+2026-10-03T12:00:57 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1032 clip_id=1036 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\vocals.wav status=ready
+2026-10-03T12:00:57 [INFO] [timing] harness.invoke total_ms=2833 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-03T12:00:57 [INFO] [timing] message_loop.tool ms=2836 goal=goal_62f8f9c24bf82275 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-03T12:00:57 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:00:57 [INFO] [continuation.arm] conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_f250a3eb5f0bf816370f1f30 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-03T12:00:57 [INFO] [timing] agent_loop_chat total_ms=7264 conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-03T12:00:57 [INFO] [f6.gate] conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-03T12:00:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:00:57 [INFO] [continuation.claim] claimed id=cont_f250a3eb5f0bf816370f1f30 goal=goal_62f8f9c24bf82275 conversation=settledeliver_20261003_120042 attempt=1 lease_until=2026-10-03T04:02:57Z
+2026-10-03T12:00:57 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-03T12:00:57 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T12:00:57 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-03T12:00:57 [WARN] VSP realtime publish pending failures=301 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:00:57 [WARN] VSP realtime publish pending failures=301 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:00 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:02 [WARN] VSP realtime publish pending failures=321 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:02 [WARN] VSP realtime publish pending failures=321 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:04 [INFO] [timing] message_loop.llm ms=7083 goal=goal_62f8f9c24bf82275 conversation=settledeliver_20261003_120042 turn=3 messages=2 chars=56185 message_chars=0:system:33372,1:user:22813 err=false
+2026-10-03T12:01:05 [INFO] telemetry spilled to file label=l2_render_probe_ready bytes=57414 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\BridgeReplies\20261003_120105_000000000_telemetry_l2_render_probe_ready.json
+2026-10-03T12:01:05 [INFO] [timing] harness.invoke total_ms=1066 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-03T12:01:05 [INFO] [timing] message_loop.tool ms=1069 goal=goal_62f8f9c24bf82275 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-03T12:01:07 [WARN] VSP realtime publish pending failures=341 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:07 [WARN] VSP realtime publish pending failures=341 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:12 [WARN] VSP realtime publish pending failures=361 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:12 [WARN] VSP realtime publish pending failures=361 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:17 [WARN] VSP realtime publish pending failures=381 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:17 [WARN] VSP realtime publish pending failures=381 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:20 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=50 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:22 [WARN] VSP realtime publish pending failures=401 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:22 [WARN] VSP realtime publish pending failures=401 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:24 [INFO] [timing] message_loop.llm ms=18730 goal=goal_62f8f9c24bf82275 conversation=settledeliver_20261003_120042 turn=4 messages=2 chars=55379 message_chars=0:system:33203,1:user:22176 err=false
+2026-10-03T12:01:27 [WARN] VSP realtime publish pending failures=421 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:27 [WARN] VSP realtime publish pending failures=421 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:31 [INFO] [timing] harness.invoke total_ms=20 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-03T12:01:31 [INFO] [mix.tick.pending] stored conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 run=run_b143eaa8e8c77e51 将 Track 1007 的电平调整 -1.50 dB observation=
+2026-10-03T12:01:31 [INFO] [continuation.arm] conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-03T12:01:31 [INFO] [domain-route] domain=static_eq route=legacy_native source=default
+2026-10-03T12:01:31 [INFO] [mix.tick.pending] stored conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 run=run_b143eaa8e8c77e51 对 Track 1007 执行一次有界的静态 EQ 频段增益调整 observation=obs_20261003T040105_7c57bc9b5561
+2026-10-03T12:01:32 [WARN] VSP realtime publish pending failures=441 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:32 [WARN] VSP realtime publish pending failures=441 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="1037" action="property_changed:name"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="1037" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="1038" action="property_changed:id"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="1038" action="property_changed:remapOnTempoChange"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="1039" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="1040" action="property_changed:state"
+2026-10-03T12:01:36 [WARN] [shadow] delta seq gap #1 last=27 current=29
+2026-10-03T12:01:36 [DEBUG] [shadow] live delta uid="0/273c406" action="property_changed:lastSignificantChange"
+2026-10-03T12:01:36 [WARN] [telemetry] delta seq gap last=27 current=29
+2026-10-03T12:01:37 [DEBUG] [shadow] live delta uid="0/273c406" action="property_changed:lastSignificantChange"
+2026-10-03T12:01:37 [WARN] VSP realtime publish pending failures=458 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:37 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=mix_request_observation_project_scope_state err=false
+2026-10-03T12:01:37 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T12:01:37 [INFO] [timing] harness.refresh_shadow ms=13 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-03T12:01:37 [WARN] VSP realtime publish pending failures=459 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:38 [INFO] [timing] harness.invoke total_ms=255 tool=mix.observe command=mix_observe status=ok confirmed=true err=false
+2026-10-03T12:01:39 [INFO] telemetry spilled to file label=l2_render_probe_ready bytes=57414 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\BridgeReplies\20261003_120139_000000000_telemetry_l2_render_probe_ready.json
+2026-10-03T12:01:39 [INFO] [timing] harness.invoke total_ms=1101 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-03T12:01:39 [INFO] [timing] harness.invoke total_ms=23 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-03T12:01:40 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=60 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:40 [INFO] [audition] blind A/B tier disabled source=config_invalid:D:\Vit_DAW\VitApp\Workspace\agent_runtime_config.json session=audition:turn:free_state_2bb1509a0e9a9d86:round-1-1609a0eac2e88371
+2026-10-03T12:01:40 [INFO] [audition] judgment request declined until the round records its human_audition_ready target response session=audition:turn:free_state_2bb1509a0e9a9d86:round-1-1609a0eac2e88371
+2026-10-03T12:01:40 [INFO] [timing] agent_loop_chat total_ms=43031 conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 mode= status=waiting_continue stop=d1_post_action_evaluation_required completed_steps=0 executed=0
+2026-10-03T12:01:40 [INFO] [f6.gate] conversation=settledeliver_20261003_120042 goal=goal_62f8f9c24bf82275 chainEnded=true status=waiting_interaction respGoal=waiting_continue runtimeGoal=waiting_confirmation
+2026-10-03T12:01:40 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\agent_drafts\draft_20261003T035942_dd984279\Unsaved.vit revision=3
+2026-10-03T12:01:40 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_115939\agent_drafts\draft_20261003T035942_dd984279\Unsaved.vit revision=3 commit=c_20261003T040140_e58a23cc rebound=1 total_ms=17
+2026-10-03T12:01:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:42 [WARN] VSP realtime publish pending failures=478 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:42 [WARN] VSP realtime publish pending failures=479 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:47 [WARN] VSP realtime publish pending failures=498 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:47 [WARN] VSP realtime publish pending failures=499 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:52 [WARN] VSP realtime publish pending failures=518 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:52 [WARN] VSP realtime publish pending failures=519 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:57 [WARN] VSP realtime publish pending failures=538 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:57 [WARN] VSP realtime publish pending failures=539 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:01:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:01:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:01:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:00 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=70 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:02 [WARN] VSP realtime publish pending failures=558 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:03 [WARN] VSP realtime publish pending failures=559 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:07 [WARN] VSP realtime publish pending failures=578 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:08 [WARN] VSP realtime publish pending failures=579 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:12 [WARN] VSP realtime publish pending failures=598 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:13 [WARN] VSP realtime publish pending failures=599 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:17 [WARN] VSP realtime publish pending failures=618 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:18 [WARN] VSP realtime publish pending failures=619 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:20 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=80 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:23 [WARN] VSP realtime publish pending failures=638 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:23 [WARN] VSP realtime publish pending failures=639 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:28 [WARN] VSP realtime publish pending failures=658 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:28 [WARN] VSP realtime publish pending failures=659 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:33 [WARN] VSP realtime publish pending failures=678 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:33 [WARN] VSP realtime publish pending failures=679 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:38 [WARN] VSP realtime publish pending failures=698 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:38 [WARN] VSP realtime publish pending failures=699 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:40 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=90 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:43 [WARN] VSP realtime publish pending failures=718 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:43 [WARN] VSP realtime publish pending failures=719 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:48 [WARN] VSP realtime publish pending failures=738 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:48 [WARN] VSP realtime publish pending failures=739 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:53 [WARN] VSP realtime publish pending failures=758 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:53 [WARN] VSP realtime publish pending failures=759 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:58 [WARN] VSP realtime publish pending failures=778 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:58 [WARN] VSP realtime publish pending failures=779 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:02:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:02:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:02:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:00 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=100 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:03 [WARN] VSP realtime publish pending failures=798 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:03 [WARN] VSP realtime publish pending failures=799 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:08 [WARN] VSP realtime publish pending failures=818 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:08 [WARN] VSP realtime publish pending failures=819 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:13 [WARN] VSP realtime publish pending failures=838 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:13 [WARN] VSP realtime publish pending failures=839 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:18 [WARN] VSP realtime publish pending failures=858 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:18 [WARN] VSP realtime publish pending failures=859 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:20 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=110 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:23 [WARN] VSP realtime publish pending failures=878 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:23 [WARN] VSP realtime publish pending failures=879 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:28 [WARN] VSP realtime publish pending failures=898 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:28 [WARN] VSP realtime publish pending failures=899 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:33 [WARN] VSP realtime publish pending failures=918 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:33 [WARN] VSP realtime publish pending failures=919 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:38 [WARN] VSP realtime publish pending failures=938 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:38 [WARN] VSP realtime publish pending failures=939 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:40 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=120 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:43 [WARN] VSP realtime publish pending failures=958 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:43 [WARN] VSP realtime publish pending failures=959 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:48 [WARN] VSP realtime publish pending failures=978 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:48 [WARN] VSP realtime publish pending failures=979 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T12:03:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T12:03:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T12:03:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_f9f02a88e08043da8e635859d41ec23f

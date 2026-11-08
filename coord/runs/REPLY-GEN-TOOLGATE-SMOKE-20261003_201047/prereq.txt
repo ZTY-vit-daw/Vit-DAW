@@ -1,0 +1,23 @@
+﻿run_root=D:\Vit_DAW\coord\runs\REPLY-GEN-TOOLGATE-SMOKE-20261003_201047
+head=c04b39d51b5d5b4b9d5f1b02dc106c486c507d9e
+git_status= M VitApp/Workspace/default_project.xml ;  M agent/internal/agentloop/message_loop.go ;  M agent/internal/agentloop/runner.go ;  M agent/internal/planner/planner.go ; ?? .zcodeignore ; ?? agent/internal/agentloop/message_loop_reply_gen_toolgate_test.go ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_110730/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_111943/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_112607/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_113348/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_114223/BridgeReplies/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_114223/agent_drafts/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_115939/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_120857/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_121934/BridgeReplies/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_121934/agent_drafts/ ; ?? coord/runs/SETTLE-DELIVER-SMOKE-20261003_122932/ ; ?? coord/runs/VITNOTE-CONTAINER-3/verify_pc/ ; ?? scripts/reply_gen_toolgate_smoke.ps1
+port_free=7878
+port_free=5555
+port_free=5556
+agent_binary=D:\Vit_DAW\coord\runs\REPLY-GEN-TOOLGATE-SMOKE-20261003_201047\bin\VitAgent.replygentoolgate.exe size=35296768 mtime=2026-10-03T20:10:49.4890450+08:00
+kernel_binary=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe size=30922752 mtime=2026-09-29T19:37:42.4930926+08:00
+repo_default_project_sha256_before=5B2C36906125B508F94BDF3504C432B752694C84C69A5F66FB81657490D6418B
+kernel_pid=32252
+agent_pid=27520
+s1_shadow_initialized=True track_count=6
+authority_mode=full_project_access
+chat1_goal=goal_da21527f5d96c635 status=waiting_continue stop=limit_reached
+judgment_http=ok
+fatal=persisted assistant conversation_message row for the settle report missing (rows=4)
+stopped_agent_pid=27520
+stopped_kernel_pid=32252
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=5B2C36906125B508F94BDF3504C432B752694C84C69A5F66FB81657490D6418B
+finished=2026-10-03T20:13:15.2320129+08:00

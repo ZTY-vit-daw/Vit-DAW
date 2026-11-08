@@ -1,0 +1,30 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=41272 workdir=D:\Vit_DAW\Export\staging\runtime
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=True track_count=11
+ok: scenario berth project identity stable: vitproj_19a2b6fbc94f49a7ba4a1505bc96be07
+
+== Scenario midi_register: kernel import_midi_to_track + apply_midi_note_patch registration (MIDI-CMD-REGISTER-1)
+ok: midi fixture written: D:\Vit_DAW\coord\runs\SMOKE-SCEN-RANGE-1\20261007_095715\midi_register_fixture.mid (53 bytes)
+ok: host track added: 1046
+ok: midi.import_file executed via import_midi_to_track: clip=1049 notes=3
+ok: imported notes read back consistent (60@0/64@1/67@2, len 1, vel 90/80/70): 1049
+ok: midi.write_clip_notes executed via apply_midi_note_patch (insert+transpose+delete)
+ok: patched notes read back consistent (65@0/67@2/72@3, len 1, vel 90/70/64): 1049
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=25012
+ok: stopped scenario kernel pid=41272
+
+== Summary
+ok: dev agent smoke completed (scenario=midi_register, artifacts=D:\Vit_DAW\coord\runs\SMOKE-SCEN-RANGE-1\20261007_095715)

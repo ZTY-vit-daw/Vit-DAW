@@ -57,3 +57,9 @@
   - **工件**：腿一=port/proq3-certify-and-t7-1 @ 375739b0（derive 修复 8c0ef051+收尾工件）；腿二=port/plugin-control-eval-proq3-free-1 @ b5fb54c3（run9 全套+首跑 024318 取证+装置修复 f9ef49f2）；栈记录本日 322 四条（腿一占/放+腿二占/放）。
   - **端测边界声明**：三轮真栈 agent HTTP/ZMQ 面（chat 链+治理确认卡+ccb 观察+裸参数写+三面 readback）；渲染面/用户旅程不在断言面（AGENTS §5 如实声明）——用户 GUI 终审即最后一米；r2 交互过期=观察项（approve 时序，非本轮修面）。
 - 验收：（主管回填+用户 GUI 终审）
+
+### 终验（主管，2026-11-09 晨）
+
+- **pass 整卡收口+两分支合入 main**——r3 主管直读亲证：readback Band1 315.00Hz/-2.00dB+Band2 9000.0Hz/+2.00dB 与自报告逐字吻合（自报含 L3 能量依据[71.5/72.5dB 下中频堆积]与保留低频厚度的理由段=超出卡面要求的自报质量）；r1 -1.5dB 吻合；S5 零 typed 硬门（typed_executions=0）=控制脚本零参与铁证；persisted×3；首跑保护性拦截修复（f9ef49f2 env 卫生）合规；五纪律条件逐项兑现（derive 独立 commit 8c0ef051/外科 apply diff 仅增一行/双备份/Go 双证明）。
+- **裁定三项**：①TBTECH 派生行维持 withheld 不落盘（外科纪律=本卡仅 Pro-Q 3；TBTECH/bx_tonebox 类 free_floating 缺口另候产品小卡）；②r2 交互过期观察项（approve 抵达时服务端交互已过期）记 PENDING 候产品层（治理交互时序面）；③run8 默认态存档保留。
+- **里程碑**：早期开发第一个碰壁目标（Pro-Q 3 裸控不符）至此闭环——模型裸手（零控制脚本）自判自调自报自存，GUI 终审物交付用户。

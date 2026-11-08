@@ -1,0 +1,34 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[shot] out_dir=D:/Vit_DAW/coord/runs/FE-GUI-START-FEED-1/r3_1/r31_visual_evidence window=1920x1080
+WARNING: VitTelemetryManager: bind 4444 failed: 2
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _ready (res://app/kernel/autoloads/telemetry_manager.gd:168)
+[shot] projects injected=12 state=idle
+[shot] to_list start card rect=[P: (790.0, 402.5), S: (980.0, 595.0)]
+[shot] to_list plan target rect=[P: (32.0, 118.0), S: (210.0, 200.0)] state=to_list instant=false
+[shot] to_list flight now=[P: (790.0, 402.5), S: (980.0, 595.0)] target=[P: (32.0, 118.0), S: (210.0, 200.0)] remain=(-1143.0,-482.0)
+[shot] r31_to_list_pre_finalize_1920x1080.png saved (finalize 前一帧缓存)
+[shot] pre_finalize tile_min_alpha=0.000 state=idle
+[shot] r31_to_list_post_finalize_1920x1080.png saved state=idle
+[shot] post_finalize tile_min_alpha=0.000 state=idle
+[shot] r3_to_list_midflight_1920x1080.png saved state=idle
+[shot] r3_list_settled_1920x1080.png saved state=idle
+[shot] list_settled tile_min_alpha=1.000 state=idle
+[shot] to_display plan start(tile)=[P: (870.0, 118.0), S: (401.0, 200.0)] end(display)=[P: (790.0, 402.5), S: (980.0, 595.0)] state=to_display
+[shot] to_display flight now=[P: (870.0, 118.0), S: (401.0, 200.0)] target=[P: (790.0, 402.5), S: (980.0, 595.0)] remain=(209.5,482.0)
+[shot] r3_to_display_midflight_1920x1080.png saved state=to_display
+[shot] r3_display_settled_1920x1080.png saved state=idle
+[shot] DONE all=6
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

@@ -1,0 +1,41 @@
+﻿{
+    "evidence":  {
+                     "schema_version":  "vit.user_judgment_evidence.v1",
+                     "id":  "judgment-f6bbf8175d91e55d",
+                     "conversation_id":  "dev_journey_ab_judg_20261008_193646",
+                     "turn_id":  "turn:free_state_1d5dfccc9c98a3c7",
+                     "round_id":  "round-1-fb85ad08cd5564b9",
+                     "audition_session_id":  "audition:turn:free_state_1d5dfccc9c98a3c7:round-1-fb85ad08cd5564b9",
+                     "candidate_a_ref":  "D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_193642\\project\\.vit_agent\\vitproj_95efbf99c0c846eeb9709c8e80681233\\artifacts\\d1_s1\\turnfree_state_1d5dfccc9c98a3c7\\before_revision_6.wav",
+                     "candidate_b_ref":  "D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_193642\\project\\.vit_agent\\vitproj_95efbf99c0c846eeb9709c8e80681233\\artifacts\\d1_s1\\turnfree_state_1d5dfccc9c98a3c7\\after_revision_8.wav",
+                     "candidate_a_checkpoint_ref":  "pending:free_state_1d5dfccc9c98a3c7",
+                     "candidate_b_checkpoint_ref":  "c_20261008T113924_ba01114e",
+                     "candidate_a_commit_id":  "pending:free_state_1d5dfccc9c98a3c7",
+                     "candidate_b_commit_id":  "c_20261008T113924_ba01114e",
+                     "candidate_a_branch_ref":  "D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_193642\\project\\journey_fixture.vit",
+                     "candidate_b_branch_ref":  "D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_193642\\project\\journey_fixture.vit",
+                     "candidate_a_preview_ref":  "audio_file:a31fac07cd21cac401e610d505730b30e2b43f0987962a8a7bd60219d2b3b659",
+                     "candidate_b_preview_ref":  "audio_file:ccab7bb7415bde8c0b7796f5afc77d2c9a522d75e84656eba55fc2c21a5efe22",
+                     "candidate_a_render_revision":  "d1_render:turnfree_state_1d5dfccc9c98a3c7:before:6:a31fac07cd21cac4",
+                     "candidate_b_render_revision":  "d1_render:turnfree_state_1d5dfccc9c98a3c7:after:8:ccab7bb7415bde8c",
+                     "project_uuid":  "vitproj_95efbf99c0c846eeb9709c8e80681233",
+                     "project_revision":  "8",
+                     "scope":  "target",
+                     "transport_anchor":  {
+                                              "is_playing":  false,
+                                              "position_seconds":  0,
+                                              "sample_rate":  48000,
+                                              "timeline_revision":  "8"
+                                          },
+                     "analytical_evidence_refs":  [
+                                                      "obs_20261008T113830_d8b7f16a9053"
+                                                  ],
+                     "heard_difference":  "yes",
+                     "preference":  "b",
+                     "reason_tags":  [
+                                         "journey_ab_judgment_smoke"
+                                     ],
+                     "created_at":  "2026-10-08T11:39:26.9040566Z"
+                 },
+    "status":  "ok"
+}

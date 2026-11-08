@@ -1,0 +1,15 @@
+func messageLoopClipRangeSplitCompletionReply(plan []planner.ToolCall, succeeded map[string]bool) string {
+	times := make([]string, 0, len(plan))
+	missing := make([]string, 0, len(plan))
+	for _, call := range plan {
+		key := clipRangeSplitCutKey(call.Args)
+		times = append(times, strings.TrimPrefix(key, strings.TrimSpace(messageLoopText(call.Args["clip_id"]))+"@"))
+		if !succeeded[key] {
+			missing = append(missing, times[len(times)-1])
+		}
+	}
+	if len(missing) == 0 {
+		return "框选范围拆分完成：已按 " + strings.Join(times, " → ") + " 秒的顺序切分，所选范围已独立成片。"
+	}
+	return "框选范围拆分未完成：" + strings.Join(missing, "、") + " 秒处的切分未能执行，片段状态可能已变化，请检查后重试。"
+}

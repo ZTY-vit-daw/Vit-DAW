@@ -1,0 +1,19 @@
+﻿{
+    "session_blind":  false,
+    "authority_probe":  "authority_smoke_ok",
+    "seat_judged":  true,
+    "finished_at":  "2026-10-08T19:39:30.2687923+08:00",
+    "project_path":  "D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_193642\\project\\journey_fixture.vit",
+    "blind_eligible":  false,
+    "classification":  "judgment_ok",
+    "seat_found":  true,
+    "track_names":  [
+                        "Bass",
+                        "Lead Vocal"
+                    ],
+    "judgment_gate":  "pass",
+    "capability_blocked_face":  "not_triggered",
+    "journey":  "journey_ab_judgment",
+    "conversation_id":  "dev_journey_ab_judg_20261008_193646",
+    "blind_expected":  false
+}

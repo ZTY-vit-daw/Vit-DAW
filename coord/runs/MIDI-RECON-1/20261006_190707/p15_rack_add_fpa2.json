@@ -1,0 +1,1 @@
+{"status":"error","tool":"rack.add_node","command_name":"rack_add_node","risk_level":"confirm","requires_confirmation":false,"error":"pca_load_gate: autonomous full-access load rejected: no_promoted_current_pca_admission_for_identifier"}

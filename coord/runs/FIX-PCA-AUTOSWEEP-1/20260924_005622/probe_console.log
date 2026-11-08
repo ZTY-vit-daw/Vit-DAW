@@ -1,0 +1,51 @@
+=== phase probe (run 20260924_005622) ===
+[probe] subjects=974 remaining=950
+[probe] 1/950 (ok=25) 0.35/s eta=45m
+[probe] 26/950 (ok=49) 0.14/s eta=110m
+[probe] 51/950 (ok=72) 0.11/s eta=137m
+[probe] 76/950 (ok=96) 0.12/s eta=122m
+[probe] 101/950 (ok=121) 0.15/s eta=95m
+[probe] 126/950 (ok=146) 0.18/s eta=77m
+[probe] 151/950 (ok=171) 0.21/s eta=64m
+[probe] 176/950 (ok=192) 0.14/s eta=92m
+[probe] 201/950 (ok=213) 0.11/s eta=111m
+[probe] 226/950 (ok=237) 0.12/s eta=105m
+[probe] 251/950 (ok=262) 0.12/s eta=94m
+[probe] 276/950 (ok=285) 0.12/s eta=93m
+[probe] 301/950 (ok=307) 0.12/s eta=92m
+=== phase probe (run 20260924_005622) ===
+[probe] subjects=974 remaining=667 workers=4
+[probe] 25/667 (ok=332) 0.05/s eta=221m
+[probe] 50/667 (ok=357) 0.08/s eta=131m
+[probe] 75/667 (ok=382) 0.11/s eta=89m
+[probe] 100/667 (ok=407) 0.13/s eta=73m
+[probe] 125/667 (ok=432) 0.16/s eta=58m
+[probe] 150/667 (ok=457) 0.17/s eta=52m
+[probe] 175/667 (ok=482) 0.19/s eta=44m
+[probe] 200/667 (ok=507) 0.20/s eta=38m
+[probe] 225/667 (ok=532) 0.22/s eta=34m
+[probe] 250/667 (ok=557) 0.23/s eta=30m
+[probe] 275/667 (ok=582) 0.24/s eta=27m
+[probe] 300/667 (ok=607) 0.26/s eta=24m
+[probe] 325/667 (ok=632) 0.25/s eta=23m
+[probe] 350/667 (ok=657) 0.26/s eta=20m
+[probe] 375/667 (ok=682) 0.27/s eta=18m
+[probe] 400/667 (ok=707) 0.28/s eta=16m
+[probe] 425/667 (ok=732) 0.29/s eta=14m
+[probe] 450/667 (ok=757) 0.29/s eta=13m
+[probe] 475/667 (ok=782) 0.30/s eta=11m
+[probe] 500/667 (ok=807) 0.30/s eta=9m
+[probe] 525/667 (ok=832) 0.31/s eta=8m
+[probe] 550/667 (ok=857) 0.30/s eta=7m
+[probe] 575/667 (ok=882) 0.30/s eta=5m
+[probe] 600/667 (ok=907) 0.29/s eta=4m
+[probe] done ok=917 fail=57
+=== phase probe (run 20260924_005622) ===
+=== phase probe (run 20260924_005622) ===
+=== phase probe (run 20260924_005622) ===
+=== phase probe (run 20260924_005622) ===
+=== phase probe (run 20260924_005622) ===
+[probe] subjects=974 remaining=57 workers=4
+[probe] 25/57 (ok=942) 1.45/s eta=0m
+[probe] 50/57 (ok=967) 1.64/s eta=0m
+[probe] done ok=970 fail=4

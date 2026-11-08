@@ -1,0 +1,61 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe
+
+== Start UI
+ok: started Godot project UI: D:\Godot\Godot_v4.6.1-stable_win64_console.exe --path D:\Godot\project\vit-daw-frontend
+godot log: D:\Vit_DAW\VitApp\Workspace\Logs\godot_dev_agent_smoke.log
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=261
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=7824
+ok: ZMQ SUB listening: 5556 pid=7824
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=2260 track_id=1007
+strip.chat.stop_reason=capability_blocked
+strip.chat.reply=任务已到达明确的能力边界；没有把能力不足解释为改善完成。
+warn: Strip Silence chat route did not return a parameter suggestion or pending confirmation
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== Chat route smoke
+chat.stop_reason=limit_reached
+chat.reply=我还在继续处理这个任务，完成后再向你汇报。
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Summary
+ok: dev agent smoke completed

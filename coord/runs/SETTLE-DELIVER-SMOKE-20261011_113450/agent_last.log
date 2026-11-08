@@ -1,0 +1,32 @@
+2026-10-11T11:41:14 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-11T11:41:14 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-11T11:41:14 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-11T11:41:14 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-11T11:41:14 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-11T11:41:14 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-11T11:41:14 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-11T11:41:14 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-11T11:41:14 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-11T11:41:14 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-11T11:41:14 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-10-11T11:41:14 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-11T11:41:14 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-10-11T11:41:14 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_mixlayer_m1_1\\coord\\runs\\SETTLE-DELIVER-SMOKE-20261011_113450\\agent_drafts\\draft_20261011T034114_b7261457\\Unsaved.vit" uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-11T11:41:15 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-11T11:41:15 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-10-11T11:41:17 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-10-11T11:41:17 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-11T11:41:17 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-11T11:41:19 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-11T11:41:19 [INFO] [timing] kernel.send_command ms=9 command=get_project_state tool=project.state confirmed=false err=false
+2026-10-11T11:41:19 [INFO] [timing] harness.invoke total_ms=15 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-10-11T11:41:19 [INFO] [timing] message_loop.tool ms=21 goal=goal_4173b9acc1306132 tool=project.state confirmed=false project_blackboard_status=true stopped=false status=
+2026-10-11T11:41:19 [INFO] [continuation.arm] conversation=m1survival_20261011_114115 goal=goal_4173b9acc1306132 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-11T11:41:19 [INFO] [timing] agent_loop_chat total_ms=3669 conversation=m1survival_20261011_114115 goal=goal_4173b9acc1306132 mode=default status=completed stop=done completed_steps=1 executed=1
+2026-10-11T11:41:19 [INFO] [media_refs] ms=0 conversation=m1survival_20261011_114115 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-11T11:41:19 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_mixlayer_m1_1\coord\runs\SETTLE-DELIVER-SMOKE-20261011_113450\agent_drafts\draft_20261011T034114_b7261457\Unsaved.vit revision=3
+2026-10-11T11:41:19 [INFO] [chat.artifacts] conversation=m1survival_20261011_114115 response_artifacts=0 request_artifacts=0 executed=1 reply_len=1989
+2026-10-11T11:41:19 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_4173b9acc1306132
+2026-10-11T11:41:19 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_mixlayer_m1_1\coord\runs\SETTLE-DELIVER-SMOKE-20261011_113450\agent_drafts\draft_20261011T034114_b7261457\Unsaved.vit revision=3 commit=c_20261011T034119_993c7737 rebound=1 total_ms=16
+2026-10-11T11:41:19 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-10-11T11:41:19 [INFO] [timing] http.chat total_ms=4230 conversation=m1survival_20261011_114115 message_len=33

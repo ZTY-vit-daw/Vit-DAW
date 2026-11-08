@@ -1,0 +1,22 @@
+﻿run_root=D:\Vit_DAW_wt_mixlayer_m1_1\coord\runs\SETTLE-DELIVER-SMOKE-20261011_105423
+head=fc0247f56125a6e5877774431cbf47f74364d6d9
+git_status= M .gitignore ;  M agent/internal/agentloop/project_blackboard_report.go ;  M agent/internal/chat/audition_candidate_adoption.go ;  M agent/internal/chat/audition_events.go ;  M agent/internal/chat/free_state_experiment_runtime.go ;  M agent/internal/chat/free_state_reasoning_loop.go ;  M agent/internal/chat/judgment_park_continuation.go ;  M scripts/settle_deliver_smoke.ps1 ; ?? agent/internal/agentloop/project_blackboard_report_free_state_test.go ; ?? agent/internal/chat/free_state_conclusion_bridge.go ; ?? agent/internal/chat/free_state_conclusion_bridge_test.go ; ?? agent/internal/mixboard/free_state_conclusion_store.go ; ?? agent/internal/mixboard/free_state_conclusion_store_test.go
+port_free=7878
+port_free=5555
+port_free=5556
+agent_binary=D:\Vit_DAW_wt_mixlayer_m1_1\coord\runs\SETTLE-DELIVER-SMOKE-20261011_105423\bin\VitAgent.settledeliver.exe size=36124672 mtime=2026-10-11T10:54:26.9254309+08:00
+kernel_binary=D:\Vit_DAW_wt_mixlayer_m1_1\VitApp\build\VitApp_artefacts\Release\VitApp.exe size=30991360 mtime=2026-10-11T10:53:56.0798327+08:00
+repo_default_project_sha256_before=0BF39F256B996DF408CC3179DB0ECFC97BBD234145741DD0A4E243E69F12DC1D
+kernel_pid=9264
+agent_pid=26900
+s1_shadow_initialized=True track_count=6
+authority_mode=full_project_access
+chat1_goal=goal_a917bb3039e233ad status=waiting_continue stop=limit_reached
+fatal=trajectory.user_judgment.requested never arrived after the audition seat
+stopped_agent_pid=26900
+stopped_kernel_pid=9264
+port_released=7878
+port_released=5555
+port_released=5556
+repo_default_project_sha256_after=0BF39F256B996DF408CC3179DB0ECFC97BBD234145741DD0A4E243E69F12DC1D
+finished=2026-10-11T11:00:39.5282800+08:00

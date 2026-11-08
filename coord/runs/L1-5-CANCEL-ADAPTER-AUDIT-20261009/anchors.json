@@ -1,0 +1,903 @@
+{
+  "a": "de1d876c8b8e3e453d69b138e22bf7425df4f558",
+  "anchor_count": 41,
+  "anchors": [
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/budget.go",
+      "name": "ObservationBudget",
+      "start": 20,
+      "end": 24
+    },
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/budget.go",
+      "name": "CycleExhausted",
+      "start": 51,
+      "end": 53
+    },
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/budget.go",
+      "name": "ProbeExhausted",
+      "start": 56,
+      "end": 58
+    },
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/loop.go",
+      "name": "FastPathRouter",
+      "start": 81,
+      "end": 83
+    },
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/loop.go",
+      "name": "GoalInput",
+      "start": 87,
+      "end": 109
+    },
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/loop.go",
+      "name": "Result",
+      "start": 112,
+      "end": 128
+    },
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/loop.go",
+      "name": "Run",
+      "start": 151,
+      "end": 273
+    },
+    {
+      "revision": "de1d876c",
+      "path": "agent/internal/pullharness/loop.go",
+      "name": "finish",
+      "start": 382,
+      "end": 393
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/exit_retain.go",
+      "name": "retainRunObservationConclusions",
+      "start": 56,
+      "end": 87
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/exit_retain.go",
+      "name": "observationConclusionUnits",
+      "start": 93,
+      "end": 123
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/free_state_reasoning.go",
+      "name": "messageLoopTerminalFallbackResult",
+      "start": 902,
+      "end": 918
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/free_state_reasoning.go",
+      "name": "messageLoopFreeStateDiagnosticOnly",
+      "start": 1678,
+      "end": 1689
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/interaction_pause.go",
+      "name": "pendingInteractionPauseForResult",
+      "start": 27,
+      "end": 58
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/message_loop.go",
+      "name": "newFastPathRouter",
+      "start": 405,
+      "end": 422
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/message_loop.go",
+      "name": "loop",
+      "start": 424,
+      "end": 865
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/message_loop.go",
+      "name": "executeMessageLoopToolCalls",
+      "start": 867,
+      "end": 943
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/message_loop.go",
+      "name": "preflightProjectBlackboardStatus",
+      "start": 1014,
+      "end": 1060
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/message_loop.go",
+      "name": "preflightClipFadeGainRead",
+      "start": 1062,
+      "end": 1110
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/message_loop.go",
+      "name": "preflightClipFadeGainSet",
+      "start": 1112,
+      "end": 1150
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/message_loop.go",
+      "name": "preflightClipRangeSplit",
+      "start": 1199,
+      "end": 1259
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "Continuation",
+      "start": 68,
+      "end": 96
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "Result",
+      "start": 98,
+      "end": 134
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "Continue",
+      "start": 192,
+      "end": 261
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "ResumeAfterConfirmation",
+      "start": 263,
+      "end": 348
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "runState",
+      "start": 350,
+      "end": 377
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "executeTool",
+      "start": 505,
+      "end": 655
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "checkpoint",
+      "start": 657,
+      "end": 688
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "checkTurnBudget",
+      "start": 690,
+      "end": 695
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "checkToolBudget",
+      "start": 697,
+      "end": 702
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "complete",
+      "start": 704,
+      "end": 711
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "fail",
+      "start": 713,
+      "end": 728
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "pause",
+      "start": 730,
+      "end": 737
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/runner.go",
+      "name": "result",
+      "start": 739,
+      "end": 831
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "name": "preflightStaticMixGainStagingContextPack",
+      "start": 17,
+      "end": 178
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/executionports/staticbalance_vsp.go",
+      "name": "Apply",
+      "start": 79,
+      "end": 142
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/executionruntime/coordinator.go",
+      "name": "Execute",
+      "start": 45,
+      "end": 47
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/executionruntime/coordinator.go",
+      "name": "Reconcile",
+      "start": 223,
+      "end": 324
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/executor/executor.go",
+      "name": "RunToolCall",
+      "start": 45,
+      "end": 88
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/fastpath/router.go",
+      "name": "SetDiagnosticOnly",
+      "start": 52,
+      "end": 52
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/fastpath/router.go",
+      "name": "TryMatch",
+      "start": 60,
+      "end": 74
+    },
+    {
+      "revision": "c488b811",
+      "path": "agent/internal/harness/harness.go",
+      "name": "Invoke",
+      "start": 879,
+      "end": 1191
+    }
+  ],
+  "c": "c488b8110a52d6907632876d460645d7fd222ca9",
+  "lifecycle_calls": [
+    {
+      "path": "agent/internal/agentloop/free_state_reasoning.go",
+      "line": 915,
+      "call": "r.fail(state, fmt.Errorf(\"terminal turn produced no admissible final decision after one strengthened retry\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 261,
+      "call": "r.fail(\u0026state, fmt.Errorf(\"confirmation continuation is missing pending tool call\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 280,
+      "call": "r.fail(\u0026state, fmt.Errorf(\"project.set_audio_settings is required before this import but is not allowed\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 295,
+      "call": "r.fail(\u0026state, fmt.Errorf(\"project.set_audio_settings failed before stems import\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 317,
+      "call": "r.complete(\u0026state, messageLoopMixObservationFinalReply(\u0026state, reply))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 321,
+      "call": "r.complete(\u0026state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 329,
+      "call": "r.complete(\u0026state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 336,
+      "call": "r.complete(\u0026state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 340,
+      "call": "r.complete(\u0026state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 344,
+      "call": "r.complete(\u0026state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 349,
+      "call": "r.fail(\u0026state, fmt.Errorf(\"%s\", errText))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 352,
+      "call": "r.complete(\u0026state, messageLoopStripSilenceApplyCompleteReply(record, call))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 365,
+      "call": "r.fail(state, fmt.Errorf(\"confirmed Strip Silence bundle has no executable apply actions\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 369,
+      "call": "r.fail(state, fmt.Errorf(\"unknown or disallowed tool: %s\", strings.TrimSpace(batchCall.Tool)))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 379,
+      "call": "r.fail(state, fmt.Errorf(\"%s\", issue))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 396,
+      "call": "r.fail(state, fmt.Errorf(\"%s\", errText))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 399,
+      "call": "r.complete(state, messageLoopStripSilenceApplyCompleteReply(state.executed[len(state.executed)-1], batchCall))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 426,
+      "call": "r.fail(state, fmt.Errorf(\"agent message loop LLM client is nil\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 429,
+      "call": "r.fail(state, fmt.Errorf(\"agent message loop LLM config incomplete\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 468,
+      "call": "r.fail(state, fmt.Errorf(\"context_overflow: %s\", overflow))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 474,
+      "call": "r.fail(state, assembleErr)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 521,
+      "call": "r.pause(state, agentruntime.StatusWaitingContinue, StopReasonTransientLLMError, \"\", reply, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 530,
+      "call": "r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, \"\", reply, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 535,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 542,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 544,
+      "call": "r.fail(state, err)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 575,
+      "call": "r.fail(state, fmt.Errorf(\"Agent 返回的计划格式不完整，自动修复也失败了\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 593,
+      "call": "r.fail(state, fmt.Errorf(\"Agent 返回的计划格式不完整，自动修复也没有得到可执行计划\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 693,
+      "call": "r.fail(state, errors.New(out.FailureReason))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 752,
+      "call": "r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 756,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 760,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 775,
+      "call": "r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, \"\", question, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 792,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 808,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 838,
+      "call": "r.complete(state, messageLoopDeterministicVocalClarificationPendingReply(state, candidate))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 842,
+      "call": "r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, \"\", question, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 847,
+      "call": "r.complete(state, messageLoopMixObservationFinalReply(state, reply))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 857,
+      "call": "r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, \"\", question, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 862,
+      "call": "r.complete(state, messageLoopMixObservationFinalReply(state, reply))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 885,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 917,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 919,
+      "call": "r.fail(state, errors.New(result.Error))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 938,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1011,
+      "call": "r.complete(state, messageLoopStaticMixCapabilityContractReply(state))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1020,
+      "call": "r.complete(state, messageLoopProjectBlackboardReportFromRecord(state, record))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1040,
+      "call": "r.complete(state, messageLoopProjectBlackboardReportFromRecord(state, record))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1059,
+      "call": "r.complete(state, messageLoopProjectBlackboardReportFromRecord(state, record))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1066,
+      "call": "r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, \"\", reply, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1107,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1109,
+      "call": "r.complete(state, \"Clip fade/gain read completed.\")"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1147,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1149,
+      "call": "r.complete(state, \"Clip fade/gain set completed.\")"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1187,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1189,
+      "call": "r.complete(state, \"清理静音分析完成。\")"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1213,
+      "call": "r.complete(state, messageLoopClipRangeSplitCompletionReply(plan, succeeded))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1258,
+      "call": "r.complete(state, messageLoopClipRangeSplitCompletionReply(plan, succeeded))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1986,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 1989,
+      "call": "r.complete(state, \"已写入段落 marker。\")"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 2734,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 7769,
+      "call": "r.fail(state, fmt.Errorf(\"project.audio_analysis_status is required to wait for automatic DAD facts before replying with A2 TIM\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 7813,
+      "call": "r.fail(state, messageLoopDADGateTimeoutError(\"no_progress\", jobID, result, readyCount, totalCount, idleTimeout, maxWait))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 7817,
+      "call": "r.fail(state, messageLoopDADGateTimeoutError(\"max_wait\", jobID, result, readyCount, totalCount, idleTimeout, maxWait))"
+    },
+    {
+      "path": "agent/internal/agentloop/message_loop.go",
+      "line": 7821,
+      "call": "r.fail(state, err)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 324,
+      "call": "r.fail(\u0026state, fmt.Errorf(\"confirmation continuation is missing pending tool call\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 381,
+      "call": "r.fail(state, fmt.Errorf(\"goal planner is nil\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 418,
+      "call": "r.fail(state, err)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 432,
+      "call": "r.fail(state, errors.New(out.FailureReason))"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 437,
+      "call": "r.pause(state, agentruntime.StatusWaitingClarification, StopReasonNeedsClarification, \"\", question, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 451,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 477,
+      "call": "r.fail(state, errors.New(result.Error))"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 507,
+      "call": "r.fail(state, fmt.Errorf(\"goal executor is nil\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 569,
+      "call": "r.pause(state, interactionPause.Status, interactionPause.StopReason, \"\", interactionPause.Reply, execResult.Preview, execResult.UndoLabel, nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 601,
+      "call": "r.pause(state, agentruntime.StatusWaitingConfirmation, StopReasonNeedsConfirmation, \"\", \"这个操作需要你确认后才会执行。\", execResult.Preview, execResult.UndoLabel, \u0026pending)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 639,
+      "call": "r.fail(state, errors.New(firstNonEmpty(toolResult.Error, \"工具执行失败\")))"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 662,
+      "call": "r.pause(state, agentruntime.StatusWaitingContinue, StopReasonLimitReached, LimitTypeTimeout, limitReply(LimitTypeTimeout), \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 673,
+      "call": "r.result(state, agentruntime.StatusStopped, StopReasonCancelled, \"\", \"已停止。\", \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 681,
+      "call": "r.result(state, agentruntime.StatusCancelled, StopReasonCancelled, \"\", \"已取消。\", \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 685,
+      "call": "r.pause(state, agentruntime.StatusWaitingContinue, StopReasonInterjection, \"\", msg, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 692,
+      "call": "r.pause(state, agentruntime.StatusWaitingContinue, StopReasonLimitReached, LimitTypeTurns, limitReply(LimitTypeTurns), \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 699,
+      "call": "r.pause(state, agentruntime.StatusWaitingContinue, StopReasonLimitReached, LimitTypeToolCalls, limitReply(LimitTypeToolCalls), \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 710,
+      "call": "r.result(state, agentruntime.StatusCompleted, StopReasonDone, \"\", reply, \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 724,
+      "call": "r.result(state, agentruntime.StatusFailed, stopReason, \"\", \"执行失败：\"+friendlyAgentLoopError(err), \"\", \"\", nil)"
+    },
+    {
+      "path": "agent/internal/agentloop/runner.go",
+      "line": 736,
+      "call": "r.result(state, status, stopReason, limitType, reply, preview, undoLabel, pending)"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 143,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 155,
+      "call": "r.complete(state, messageLoopGainStagingTechnicalReport(pack, faderStats))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 187,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 196,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 219,
+      "call": "r.complete(state, messageLoopGainStagingFaderResetPendingReply(stats, groupID))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 415,
+      "call": "r.complete(state, messageLoopGainStagingNoActionReply(pack, suggestions))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 423,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 432,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 455,
+      "call": "r.complete(state, messageLoopGainStagingFaderResetPendingReply(stats, groupID))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 459,
+      "call": "r.complete(state, messageLoopGainStagingNoActionReply(pack, suggestions))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 464,
+      "call": "r.complete(state, reply)"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 500,
+      "call": "r.complete(state, messageLoopGainStagingSourceCalibrationPendingReply(pack, action))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 502,
+      "call": "r.complete(state, messageLoopGainStagingClipGainCompleteReply(action))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1085,
+      "call": "r.fail(state, fmt.Errorf(\"B1 fader reset verification could not find the confirmed execution record\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1090,
+      "call": "r.fail(state, fmt.Errorf(\"%s\", errText))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1293,
+      "call": "r.fail(state, fmt.Errorf(\"B1.2 source calibration verification could not find the confirmed execution record\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1298,
+      "call": "r.fail(state, fmt.Errorf(\"%s\", errText))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1340,
+      "call": "r.fail(state, fmt.Errorf(\"B1.2 source calibration could not refresh project.audio_analysis_status\"))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1345,
+      "call": "r.fail(state, fmt.Errorf(\"B1.2 source calibration DAD verification is incomplete: %s\", detail))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1388,
+      "call": "r.fail(state, fmt.Errorf(\"B1.2 source calibration write verification failed: %s\", issue))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 1399,
+      "call": "r.fail(state, fmt.Errorf(\"B1.2 source calibration acoustic verification failed: effective static peak exceeds the %+.1f dBFS safety ceiling (%s)\", levelsafety.StaticPeakCeilingDBFS, strings.Join(parts, \"; \")))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 2089,
+      "call": "r.fail(state, fmt.Errorf(\"B1 waiting for DAD made no progress: ready=%.0f/%.0f pending=%.0f idle_timeout=%s\", ready, total, pending, idleTimeout))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 2092,
+      "call": "r.fail(state, fmt.Errorf(\"B1 waiting for DAD exceeded max wait: ready=%.0f/%.0f pending=%.0f max_wait=%s\", ready, total, pending, maxWait))"
+    },
+    {
+      "path": "agent/internal/agentloop/static_mix_gain_staging_context.go",
+      "line": 2096,
+      "call": "r.fail(state, err)"
+    }
+  ],
+  "runtime_statuses": [
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 14,
+      "call": "StatusIdle                 GoalStatus = \"idle\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 15,
+      "call": "StatusRunning              GoalStatus = \"running\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 16,
+      "call": "StatusProcessing           GoalStatus = \"processing\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 17,
+      "call": "StatusExecuting            GoalStatus = \"executing\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 18,
+      "call": "StatusWaitingConfirmation  GoalStatus = \"waiting_confirmation\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 19,
+      "call": "StatusWaitingClarification GoalStatus = \"waiting_clarification\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 20,
+      "call": "StatusWaitingContinue      GoalStatus = \"waiting_continue\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 21,
+      "call": "StatusCancelling           GoalStatus = \"cancelling\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 22,
+      "call": "StatusCancelled            GoalStatus = \"cancelled\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 23,
+      "call": "StatusStopped              GoalStatus = \"stopped\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 24,
+      "call": "StatusStable               GoalStatus = \"stable\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 25,
+      "call": "StatusCompleted            GoalStatus = \"completed\""
+    },
+    {
+      "path": "agent/internal/runtime/runtime.go",
+      "line": 26,
+      "call": "StatusFailed               GoalStatus = \"failed\""
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+﻿{
+    "scenario":  "ref_diff_content",
+    "artifacts_dir":  "coord/runs/L1-3-IMPL-D-SMOKE/20261006_193805",
+    "finished_at":  "2026-10-06T19:38:21.3436306+08:00",
+    "outcome":  "pass"
+}

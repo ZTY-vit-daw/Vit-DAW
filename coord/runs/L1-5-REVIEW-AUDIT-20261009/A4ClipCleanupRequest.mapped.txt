@@ -1,0 +1,10 @@
+func messageLoopA4ClipCleanupRequest(text string) bool {
+	text = strings.ToLower(strings.TrimSpace(text))
+	if text == "" || !messageLoopTextHasAny(text, "a4", "a 4", "epm") {
+		return false
+	}
+	return messageLoopTextHasAny(text,
+		"clip cleanup", "clip trim", "clip trimming", "trim clips", "cleanup clips",
+		"片段裁剪", "片段清理", "裁剪片段", "清理片段", "裁剪", "清理",
+	)
+}

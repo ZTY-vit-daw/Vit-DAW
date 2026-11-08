@@ -1,0 +1,22 @@
+﻿{
+    "requested_before_post":  true,
+    "seat_found":  true,
+    "capability_blocked_face":  "not_triggered",
+    "blind_eligible":  true,
+    "recorded_rows":  1,
+    "disclosure_event_after":  true,
+    "requested_rows":  2,
+    "classification":  "judgment_ok_blind",
+    "seat_event_type":  "audition.ready",
+    "capability_blocked_responses":  0,
+    "seat_attempts":  1,
+    "fixture_open_authority":  "pass (threw otherwise)",
+    "session_blind":  true,
+    "recorded_blind_flagged":  true,
+    "seat_rotated":  false,
+    "disclosure_in_response":  true,
+    "hop_gate":  "not_driven_no_card",
+    "blind_expected":  true,
+    "judgment_gate":  "pass",
+    "candidate_ready_seen":  true
+}

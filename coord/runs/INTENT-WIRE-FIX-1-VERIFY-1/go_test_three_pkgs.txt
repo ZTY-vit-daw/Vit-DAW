@@ -1,0 +1,4 @@
+ok  	vit-daw-agent/internal/chat	117.456s
+ok  	vit-daw-agent/internal/conversation	0.389s
+ok  	vit-daw-agent/internal/agentloop	6.353s
+EXIT_CODE=0

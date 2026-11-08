@@ -1,0 +1,311 @@
+2026-09-29T18:49:52 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-09-29T18:49:52 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-09-29T18:49:52 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-09-29T18:49:52 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-29T18:49:52 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-29T18:49:52 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-09-29T18:49:52 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:49:52 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-09-29T18:49:52 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:49:52 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:49:53 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-09-29T18:49:53 [INFO] [workspace] parent history recovery skipped parent=vitproj_ce374a4572d94040a168dc9a69f63aa2 target=vitproj_b3f2838183d64add9ca7824b8b3ac557 reason=parent project path not found for UUID vitproj_ce374a4572d94040a168dc9a69f63aa2
+2026-09-29T18:49:54 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-29T18:49:54 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:49:54 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260905T134132_3866b080\\Unsaved.vit" uuid=vitproj_b3f2838183d64add9ca7824b8b3ac557 recovered=true conversations=136 retired_legacy_b2=0 retired_legacy_b3=0
+2026-09-29T18:49:57 [INFO] [media_refs] ms=0 conversation=dev_range_context_20260929_184953 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-29T18:49:57 [INFO] [chat.artifacts] conversation=dev_range_context_20260929_184953 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-09-29T18:49:57 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:49:57 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:49:59 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:49:59 [INFO] [timing] http.chat total_ms=5195 conversation=dev_range_context_20260929_184953 message_len=20
+2026-09-29T18:50:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:02 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:02 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:03 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-09-29T18:50:03 [INFO] [timing] kernel.send_command ms=18 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-29T18:50:03 [INFO] [timing] harness.invoke total_ms=39 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-09-29T18:50:05 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:07 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:07 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:09 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:11 [INFO] [timing] harness.invoke total_ms=619 tool=ref.query command=ref_query status=ok confirmed=false err=false
+2026-09-29T18:50:12 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:12 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:13 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:17 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:17 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:17 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:18 [INFO] [timing] harness.invoke total_ms=24 tool=ref.query command=ref_query status=ok confirmed=false err=false
+2026-09-29T18:50:20 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:22 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:22 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:24 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:26 [INFO] [timing] harness.invoke total_ms=28 tool=ref.query command=ref_query status=error confirmed=false err=true
+2026-09-29T18:50:27 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:27 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:28 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:32 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:32 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:32 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:35 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:37 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:37 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:37 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:39 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:41 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:42 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:42 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:44 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:46 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:47 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:47 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:48 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:51 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:52 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:52 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:53 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:56 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:50:57 [WARN] VSP realtime publish pending failures=261 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:58 [WARN] VSP realtime publish pending failures=261 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:50:58 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:50:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:00 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:02 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:03 [WARN] VSP realtime publish pending failures=281 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:03 [WARN] VSP realtime publish pending failures=281 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:05 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:07 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:08 [WARN] VSP realtime publish pending failures=301 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:08 [WARN] VSP realtime publish pending failures=301 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:10 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:13 [WARN] VSP realtime publish pending failures=321 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:13 [WARN] VSP realtime publish pending failures=321 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:14 [INFO] [media_refs] ms=0 conversation=dev_range_context_20260929_185111 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-29T18:51:14 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260929T104953_40c6ae7b\Unsaved.vit revision=1
+2026-09-29T18:51:14 [INFO] [chat.artifacts] conversation=dev_range_context_20260929_185111 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-09-29T18:51:14 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260929T104953_40c6ae7b\Unsaved.vit revision=1 commit=c_20260929T105114_9dbd70cc rebound=1 total_ms=369
+2026-09-29T18:51:16 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:16 [INFO] [timing] http.chat total_ms=4825 conversation=dev_range_context_20260929_185111 message_len=20
+2026-09-29T18:51:18 [WARN] VSP realtime publish pending failures=341 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:18 [WARN] VSP realtime publish pending failures=341 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:18 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:20 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-09-29T18:51:20 [INFO] [timing] kernel.send_command ms=15 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-29T18:51:20 [INFO] [timing] harness.invoke total_ms=41 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-09-29T18:51:22 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:23 [WARN] VSP realtime publish pending failures=361 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:23 [WARN] VSP realtime publish pending failures=361 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:26 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:28 [INFO] [timing] harness.invoke total_ms=32 tool=ref.query command=ref_query status=ok confirmed=false err=false
+2026-09-29T18:51:28 [WARN] VSP realtime publish pending failures=381 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:28 [WARN] VSP realtime publish pending failures=381 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:30 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=50 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:33 [WARN] VSP realtime publish pending failures=401 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:33 [WARN] VSP realtime publish pending failures=401 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:33 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:35 [INFO] [timing] harness.invoke total_ms=30 tool=ref.query command=ref_query status=ok confirmed=false err=false
+2026-09-29T18:51:37 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:38 [WARN] VSP realtime publish pending failures=421 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:38 [WARN] VSP realtime publish pending failures=421 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:41 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:43 [WARN] VSP realtime publish pending failures=441 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:43 [WARN] VSP realtime publish pending failures=441 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:43 [INFO] [timing] harness.invoke total_ms=28 tool=ref.query command=ref_query status=error confirmed=false err=true
+2026-09-29T18:51:45 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:48 [WARN] VSP realtime publish pending failures=461 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:48 [WARN] VSP realtime publish pending failures=461 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:49 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=60 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:51 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:53 [WARN] VSP realtime publish pending failures=481 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:53 [WARN] VSP realtime publish pending failures=481 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:54 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:56 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:57 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:51:58 [WARN] VSP realtime publish pending failures=501 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:58 [WARN] VSP realtime publish pending failures=501 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:51:59 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:51:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:03 [WARN] VSP realtime publish pending failures=521 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:03 [WARN] VSP realtime publish pending failures=521 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:04 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:06 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:08 [WARN] VSP realtime publish pending failures=541 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:08 [WARN] VSP realtime publish pending failures=541 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:08 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:09 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=70 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:11 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:13 [WARN] VSP realtime publish pending failures=561 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:13 [WARN] VSP realtime publish pending failures=561 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:13 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:15 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:18 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:18 [WARN] VSP realtime publish pending failures=581 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:18 [WARN] VSP realtime publish pending failures=581 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:20 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:23 [WARN] VSP realtime publish pending failures=601 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:23 [WARN] VSP realtime publish pending failures=601 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:23 [INFO] [media_refs] ms=0 conversation=dev_range_context_20260929_185220 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-29T18:52:23 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260929T104953_40c6ae7b\Unsaved.vit revision=1
+2026-09-29T18:52:23 [INFO] [chat.artifacts] conversation=dev_range_context_20260929_185220 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-09-29T18:52:25 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:25 [INFO] [timing] http.chat total_ms=4382 conversation=dev_range_context_20260929_185220 message_len=20
+2026-09-29T18:52:27 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:28 [WARN] VSP realtime publish pending failures=621 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:28 [WARN] VSP realtime publish pending failures=621 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:29 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-09-29T18:52:29 [INFO] [timing] kernel.send_command ms=15 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-29T18:52:29 [INFO] [timing] harness.invoke total_ms=46 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-09-29T18:52:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=80 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:31 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:33 [WARN] VSP realtime publish pending failures=641 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:33 [WARN] VSP realtime publish pending failures=641 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:34 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:36 [INFO] [timing] harness.invoke total_ms=26 tool=ref.query command=ref_query status=ok confirmed=false err=false
+2026-09-29T18:52:38 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:38 [WARN] VSP realtime publish pending failures=661 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:38 [WARN] VSP realtime publish pending failures=661 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:41 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:43 [INFO] [timing] harness.invoke total_ms=25 tool=ref.query command=ref_query status=ok confirmed=false err=false
+2026-09-29T18:52:43 [WARN] VSP realtime publish pending failures=681 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:43 [WARN] VSP realtime publish pending failures=681 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:45 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:48 [WARN] VSP realtime publish pending failures=701 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:48 [WARN] VSP realtime publish pending failures=701 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:48 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:50 [INFO] [timing] harness.invoke total_ms=25 tool=ref.query command=ref_query status=error confirmed=false err=true
+2026-09-29T18:52:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=90 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:52 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:53 [WARN] VSP realtime publish pending failures=721 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:53 [WARN] VSP realtime publish pending failures=721 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:56 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:52:57 [INFO] [timing] harness.invoke total_ms=31 tool=ref.query command=ref_query status=error confirmed=false err=true
+2026-09-29T18:52:58 [WARN] VSP realtime publish pending failures=741 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:58 [WARN] VSP realtime publish pending failures=741 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:52:59 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:52:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:03 [WARN] VSP realtime publish pending failures=761 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:03 [WARN] VSP realtime publish pending failures=761 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:04 [INFO] [timing] harness.invoke total_ms=27 tool=ref.query command=ref_query status=error confirmed=false err=true
+2026-09-29T18:53:06 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:08 [WARN] VSP realtime publish pending failures=781 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:08 [WARN] VSP realtime publish pending failures=781 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:10 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=100 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:11 [INFO] [timing] harness.invoke total_ms=28 tool=ref.diff command=ref_diff status=ok confirmed=false err=false
+2026-09-29T18:53:13 [WARN] VSP realtime publish pending failures=801 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:13 [WARN] VSP realtime publish pending failures=801 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:13 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:17 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:18 [WARN] VSP realtime publish pending failures=821 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:18 [WARN] VSP realtime publish pending failures=821 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:18 [INFO] [timing] harness.invoke total_ms=32 tool=ref.diff command=ref_diff status=error confirmed=false err=true
+2026-09-29T18:53:20 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:23 [WARN] VSP realtime publish pending failures=841 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:23 [WARN] VSP realtime publish pending failures=841 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:24 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:26 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:28 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:28 [WARN] VSP realtime publish pending failures=861 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:28 [WARN] VSP realtime publish pending failures=861 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:30 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=110 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:32 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:33 [WARN] VSP realtime publish pending failures=881 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:33 [WARN] VSP realtime publish pending failures=881 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:35 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:37 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:38 [WARN] VSP realtime publish pending failures=901 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:38 [WARN] VSP realtime publish pending failures=901 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:39 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:42 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:43 [WARN] VSP realtime publish pending failures=921 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:43 [WARN] VSP realtime publish pending failures=921 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:44 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:46 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-29T18:53:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=6 skipped_status=64 workspace=vitproj_b3f2838183d64add9ca7824b8b3ac557
+2026-09-29T18:53:48 [WARN] VSP realtime publish pending failures=941 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-29T18:53:48 [WARN] VSP realtime publish pending failures=941 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

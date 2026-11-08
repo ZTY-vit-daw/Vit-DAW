@@ -1,0 +1,270 @@
+﻿{
+    "conversation_id":  "observe_sample_q2_levels_190914",
+    "task_id":  "task_610b9737cce455d5",
+    "goal_id":  "goal_1e68faf8f56596d3",
+    "run_id":  "run_79ea21e4ad3ace88",
+    "slice_id":  "slice_7ad36c4fb2cf407e",
+    "original_intent":  "??????????:????? Lead Vocal ? Bass ????????????",
+    "reply":  "任务在形成有效结算前失败；失败原因与已有证据已保留。",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "minimal_audio_closure",
+    "workflow_data":  {
+                          "free_state_admission_receipt":  {
+
+                                                           },
+                          "minimal_audio_closure":  {
+                                                        "action_attempts":  0,
+                                                        "actionability":  "unknown",
+                                                        "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                        "contract_id":  "contract_task_610b9737cce455d5",
+                                                        "conversation_id":  "observe_sample_q2_levels_190914",
+                                                        "created_at":  "2026-10-07T11:09:23.8022748Z",
+                                                        "events":  [
+                                                                       {
+                                                                           "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                                           "data":  {
+                                                                                        "ContractID":  "contract_task_610b9737cce455d5",
+                                                                                        "ConversationID":  "observe_sample_q2_levels_190914",
+                                                                                        "GoalID":  "goal_1e68faf8f56596d3",
+                                                                                        "Mode":  "diagnostic",
+                                                                                        "OriginalIntent":  "??????????:????? Lead Vocal ? Bass ????????????",
+                                                                                        "Policy":  {
+                                                                                                       "max_action_attempts":  1,
+                                                                                                       "max_closure_rounds":  6,
+                                                                                                       "max_duty_observations":  8,
+                                                                                                       "max_model_protocol_repairs":  1,
+                                                                                                       "max_no_progress_rounds":  2,
+                                                                                                       "max_rollback_attempts":  1,
+                                                                                                       "max_unique_observation_sets":  4
+                                                                                                   },
+                                                                                        "ProjectRevision":  "2",
+                                                                                        "ProjectUUID":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                                                        "RunID":  "run_79ea21e4ad3ace88",
+                                                                                        "Scope":  {
+                                                                                                      "id":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                                                                      "kind":  "project"
+                                                                                                  },
+                                                                                        "TaskID":  "task_610b9737cce455d5",
+                                                                                        "TaskState":  "observation_in_progress",
+                                                                                        "TaskStateRevision":  1
+                                                                                    },
+                                                                           "event_id":  "audio_closure_073765bdf93fa9f7:1",
+                                                                           "occurred_at":  "2026-10-07T11:09:23.8022748Z",
+                                                                           "sequence":  1,
+                                                                           "type":  "closure_started"
+                                                                       },
+                                                                       {
+                                                                           "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                                           "data":  {
+                                                                                        "round":  1
+                                                                                    },
+                                                                           "event_id":  "audio_closure_073765bdf93fa9f7:2",
+                                                                           "occurred_at":  "2026-10-07T11:09:23.8082748Z",
+                                                                           "sequence":  2,
+                                                                           "type":  "round_started"
+                                                                       },
+                                                                       {
+                                                                           "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                                           "data":  {
+                                                                                        "from":  "reasoning",
+                                                                                        "guard":  {
+                                                                                                      "admission_valid":  false,
+                                                                                                      "capacity_assessed":  false,
+                                                                                                      "continue_once_remaining":  false,
+                                                                                                      "dimension_closed":  false,
+                                                                                                      "frontier_established":  false,
+                                                                                                      "gate_passed":  false,
+                                                                                                      "project_bound":  false,
+                                                                                                      "queue_non_empty":  false,
+                                                                                                      "scan_usable":  false,
+                                                                                                      "target_evidence":  false
+                                                                                                  },
+                                                                                        "guard_passed":  true,
+                                                                                        "reason":  "fs entry",
+                                                                                        "to":  "fs0_semantic_entry"
+                                                                                    },
+                                                                           "event_id":  "audio_closure_073765bdf93fa9f7:3",
+                                                                           "occurred_at":  "2026-10-07T11:09:23.8137741Z",
+                                                                           "sequence":  3,
+                                                                           "type":  "phase_transition"
+                                                                       },
+                                                                       {
+                                                                           "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                                           "data":  {
+                                                                                        "from":  "fs0_semantic_entry",
+                                                                                        "guard":  {
+                                                                                                      "admission_valid":  false,
+                                                                                                      "capacity_assessed":  false,
+                                                                                                      "continue_once_remaining":  true,
+                                                                                                      "dimension_closed":  false,
+                                                                                                      "frontier_established":  false,
+                                                                                                      "gate_passed":  false,
+                                                                                                      "project_bound":  true,
+                                                                                                      "queue_non_empty":  true,
+                                                                                                      "scan_usable":  false,
+                                                                                                      "target_evidence":  false
+                                                                                                  },
+                                                                                        "guard_passed":  true,
+                                                                                        "reason":  "derived from closure evidence",
+                                                                                        "to":  "fs1_project_bound"
+                                                                                    },
+                                                                           "event_id":  "audio_closure_073765bdf93fa9f7:4",
+                                                                           "occurred_at":  "2026-10-07T11:09:23.8137741Z",
+                                                                           "sequence":  4,
+                                                                           "type":  "phase_transition"
+                                                                       },
+                                                                       {
+                                                                           "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                                           "data":  {
+                                                                                        "count":  1
+                                                                                    },
+                                                                           "event_id":  "audio_closure_073765bdf93fa9f7:5",
+                                                                           "occurred_at":  "2026-10-07T11:09:35.0026797Z",
+                                                                           "sequence":  5,
+                                                                           "type":  "model_protocol_repair_recorded"
+                                                                       },
+                                                                       {
+                                                                           "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                                           "data":  {
+                                                                                        "contract_id":  "contract_task_610b9737cce455d5",
+                                                                                        "revision":  2,
+                                                                                        "state":  "failed"
+                                                                                    },
+                                                                           "event_id":  "audio_closure_073765bdf93fa9f7:6",
+                                                                           "occurred_at":  "2026-10-07T11:09:35.0086791Z",
+                                                                           "sequence":  6,
+                                                                           "type":  "task_state_projected"
+                                                                       },
+                                                                       {
+                                                                           "closure_id":  "audio_closure_073765bdf93fa9f7",
+                                                                           "data":  {
+                                                                                        "settlement":  {
+                                                                                                           "reason":  "failed",
+                                                                                                           "round":  1,
+                                                                                                           "settled_at":  "2026-10-07T11:09:35.0086791Z",
+                                                                                                           "summary":  "model_protocol_failure"
+                                                                                                       }
+                                                                                    },
+                                                                           "event_id":  "audio_closure_073765bdf93fa9f7:7",
+                                                                           "occurred_at":  "2026-10-07T11:09:35.0086791Z",
+                                                                           "sequence":  7,
+                                                                           "type":  "closure_settled"
+                                                                       }
+                                                                   ],
+                                                        "goal_id":  "goal_1e68faf8f56596d3",
+                                                        "hypothesis_frontier":  {
+
+                                                                                },
+                                                        "mode":  "diagnostic",
+                                                        "model_protocol_repairs":  1,
+                                                        "no_progress_streak":  0,
+                                                        "original_intent":  "??????????:????? Lead Vocal ? Bass ????????????",
+                                                        "phase":  "fs9_terminal",
+                                                        "policy":  {
+                                                                       "max_action_attempts":  1,
+                                                                       "max_closure_rounds":  6,
+                                                                       "max_duty_observations":  8,
+                                                                       "max_model_protocol_repairs":  1,
+                                                                       "max_no_progress_rounds":  2,
+                                                                       "max_rollback_attempts":  1,
+                                                                       "max_unique_observation_sets":  4
+                                                                   },
+                                                        "project_revision":  "2",
+                                                        "project_uuid":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                        "revision":  7,
+                                                        "rollback_attempts":  0,
+                                                        "round_had_progress":  false,
+                                                        "round_in_progress":  false,
+                                                        "rounds_started":  1,
+                                                        "run_id":  "run_79ea21e4ad3ace88",
+                                                        "schema_version":  "minimal_audio_closure.v1",
+                                                        "scope":  {
+                                                                      "id":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                                      "kind":  "project"
+                                                                  },
+                                                        "settlement":  {
+                                                                           "reason":  "failed",
+                                                                           "round":  1,
+                                                                           "settled_at":  "2026-10-07T11:09:35.0086791Z",
+                                                                           "summary":  "model_protocol_failure"
+                                                                       },
+                                                        "task_id":  "task_610b9737cce455d5",
+                                                        "task_state":  "failed",
+                                                        "task_state_revision":  2,
+                                                        "updated_at":  "2026-10-07T11:09:35.0086791Z"
+                                                    },
+                          "mutation_performed":  false,
+                          "schema_version":  "minimal_audio_closure.v1",
+                          "settlement":  {
+                                             "reason":  "failed",
+                                             "summary":  "model_protocol_failure",
+                                             "round":  1,
+                                             "settled_at":  "2026-10-07T11:09:35.0086791Z"
+                                         },
+                          "status":  "settled"
+                      },
+    "goal_status":  "failed",
+    "goal_summary":  "??????????:????? Lead Vocal ? Bass ????????????",
+    "stop_reason":  "failed",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261007T110935_64f30a1a",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261007T110914_2353ab8c"
+                                         },
+                            "commit_count":  2,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "??????????:????? Lead Vocal ? Bass ????????????",
+                                                              "logical_message_id":  "n_20261007T110914_e4c4392d",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261007T110914_e4c4392d",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "任务在形成有效结算前失败；失败原因与已有证据已保留。",
+                                                              "logical_message_id":  "n_20261007T110935_64f30a1a",
+                                                              "message_kind":  "error",
+                                                              "node_id":  "n_20261007T110935_64f30a1a",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261007T110914_2353ab8c",
+                            "initialized":  true,
+                            "project_label":  "observe_fixture",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190902\\project\\observe_fixture.vit",
+                            "project_uuid":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261007T110914_2353ab8c"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261007T110914_2353ab8c",
+                                                  "created_at":  "2026-10-07T11:09:35.024891Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261007T110914_2353ab8c",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190902\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190902\\project\\observe_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190902\\project\\observe_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190902\\project\\observe_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "error",
+    "turn_id":  "turn_c7ef9eea59086ff2",
+    "logical_message_id":  "n_20261007T110935_64f30a1a"
+}

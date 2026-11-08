@@ -1,0 +1,256 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_61788c61de50fd37",
+    "tool":  "ref.diff",
+    "command_name":  "ref_diff",
+    "risk_level":  "direct",
+    "requires_confirmation":  false,
+    "result":  {
+                   "added":  [
+                                 "vit://dad.compressor_dual_tap/track:1007/t=all@com2_fd03bf17d279405abf71ad8c#sha256:87dffcabd0c04d26",
+                                 "vit://dad.compressor_dual_tap/track:1012/t=all@com2_fc1ce3b39bad4dc9bc5e58e0#sha256:d59003be411b33b0",
+                                 "vit://dad.compressor_dual_tap/track:1016/t=all@com2_d1a47e32d0ef4c5a8699fbfa#sha256:f158963951192e77",
+                                 "vit://dad.compressor_dual_tap/track:1025/t=all@com2_39c075cf39d3455e918f1af8#sha256:8335e1dbe5e6a26d",
+                                 "vit://dad.compressor_dual_tap/track:1032/t=all@com2_fe12723dcc814cbb9f88dde2#sha256:89200435885a8168",
+                                 "vit://dad.compressor_dual_tap/track:1062/t=all@com2_d3255a85f3654f8aac19c34e#sha256:b86486804601b90f",
+                                 "vit://dad.compressor_dual_tap/track:1071/t=all@com2_e789d8f93d6e4043a3db59b4#sha256:c0b01b9cc6ddf222",
+                                 "vit://dad.compressor_dual_tap/track:1307/t=all@com2_80554db9492c4f7e8f954d80#sha256:0588c5de8041467b",
+                                 "vit://dad.compressor_dual_tap/track:2298/t=all@com2_6ec78e2d622644729a0d4e58#sha256:49b91856b46ec99d",
+                                 "vit://dad.compressor_dual_tap/track:2305/t=all@com2_656f4e6d81b9448b882d083c#sha256:2956b6121f1460ce",
+                                 "vit://dad.compressor_dual_tap/track:2312/t=all@com2_3568555a767d45b18055cd6a#sha256:6551e0150c641d6f",
+                                 "vit://dad.compressor_dual_tap/track:2319/t=all@com2_329a5b605001492dbe55964f#sha256:af865a6539ae1a02",
+                                 "vit://dad.compressor_dual_tap/track:2335/t=all@com2_0a5a457706794db5b0ce2c38#sha256:43e76b7758cacc1c",
+                                 "vit://dad.compressor_dual_tap/track:2342/t=all@com2_cda6d04f829b4d2c8fd39c01#sha256:1a3d2657ef87022b",
+                                 "vit://dad.compressor_dual_tap/track:2358/t=all@com2_3a4d7d75086a44dd9241ee19#sha256:94ef26c23383f2f8",
+                                 "vit://dad.compressor_dual_tap/track:pair%3Acom2_0c10e6b4864a4b51ac453c89/t=all@com2_0c10e6b4864a4b51ac453c89#sha256:6d63aa1509e5325d",
+                                 "vit://dad.compressor_dual_tap/track:pair%3Acom2_b22af9ec7b5d41e18043db06/t=all@com2_b22af9ec7b5d41e18043db06#sha256:09d96ea0833e4f67",
+                                 "vit://dad.compressor_dual_tap/track:pair%3Acom2_b22ef4027b04d6935bc657f1/t=all@com2_b22ef4027b04d6935bc657f1#sha256:4f9bad2e255bc7af",
+                                 "vit://dom/track:unknown/t=all@current#sha256:1f4e2afea5c9438a"
+                             ],
+                   "changed":  [
+                                   {
+                                       "base":  "vit://com/selection:unknown/t=all@obs_20261006T113811_a2deac7e0fbe#sha256:d8cfd26a37edecd1",
+                                       "hash_semantics":  "instance_identity",
+                                       "head":  "vit://com/selection:unknown/t=all@obs_20261006T113814_296d969c58f5#sha256:d49be36bf829f2d3",
+                                       "kind":  "com"
+                                   },
+                                   {
+                                       "base":  "vit://fxm/selection:unknown/t=all@obs_20261006T113811_a2deac7e0fbe#sha256:e9602ca384c024d2",
+                                       "hash_semantics":  "instance_identity",
+                                       "head":  "vit://fxm/selection:unknown/t=all@obs_20261006T113814_296d969c58f5#sha256:af52dc908911e1fe",
+                                       "kind":  "fxm"
+                                   }
+                               ],
+                   "cost_class":  "compile",
+                   "degraded":  "",
+                   "delegated":  {
+                                     "com.change_delta":  {
+                                                              "note":  "COM change_delta 投影载于观察票 com_projection（behavior_change 维度差分 + before/after projection ID；锚定校验：同源/同精确采样窗/同 tap/render_revision 必变，com/change.go compareChangeChildren）",
+                                                              "pairs":  [
+                                                                            {
+                                                                                "base_handle":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260930T021158_05341a2b\\.vit_agent\\vitproj_19a2b6fbc94f49a7ba4a1505bc96be07\\observations\\obs_20261006T113811_a2deac7e0fbe.json",
+                                                                                "base_ref":  "vit://com/selection:unknown/t=all@obs_20261006T113811_a2deac7e0fbe#sha256:d8cfd26a37edecd1",
+                                                                                "head_handle":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260930T021158_05341a2b\\.vit_agent\\vitproj_19a2b6fbc94f49a7ba4a1505bc96be07\\observations\\obs_20261006T113814_296d969c58f5.json",
+                                                                                "head_ref":  "vit://com/selection:unknown/t=all@obs_20261006T113814_296d969c58f5#sha256:d49be36bf829f2d3"
+                                                                            }
+                                                                        ]
+                                                          },
+                                     "com.paired_artifact":  {
+                                                                 "items":  [
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_fd03bf17d279405abf71ad8c\\com2_fd03bf17d279405abf71ad8c.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1007/t=all@com2_fd03bf17d279405abf71ad8c#sha256:87dffcabd0c04d26"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_fc1ce3b39bad4dc9bc5e58e0\\com2_fc1ce3b39bad4dc9bc5e58e0.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1012/t=all@com2_fc1ce3b39bad4dc9bc5e58e0#sha256:d59003be411b33b0"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_d1a47e32d0ef4c5a8699fbfa\\com2_d1a47e32d0ef4c5a8699fbfa.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1016/t=all@com2_d1a47e32d0ef4c5a8699fbfa#sha256:f158963951192e77"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_39c075cf39d3455e918f1af8\\com2_39c075cf39d3455e918f1af8.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1025/t=all@com2_39c075cf39d3455e918f1af8#sha256:8335e1dbe5e6a26d"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_fe12723dcc814cbb9f88dde2\\com2_fe12723dcc814cbb9f88dde2.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1032/t=all@com2_fe12723dcc814cbb9f88dde2#sha256:89200435885a8168"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_d3255a85f3654f8aac19c34e\\com2_d3255a85f3654f8aac19c34e.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1062/t=all@com2_d3255a85f3654f8aac19c34e#sha256:b86486804601b90f"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_e789d8f93d6e4043a3db59b4\\com2_e789d8f93d6e4043a3db59b4.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1071/t=all@com2_e789d8f93d6e4043a3db59b4#sha256:c0b01b9cc6ddf222"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_80554db9492c4f7e8f954d80\\com2_80554db9492c4f7e8f954d80.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:1307/t=all@com2_80554db9492c4f7e8f954d80#sha256:0588c5de8041467b"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_6ec78e2d622644729a0d4e58\\com2_6ec78e2d622644729a0d4e58.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:2298/t=all@com2_6ec78e2d622644729a0d4e58#sha256:49b91856b46ec99d"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_656f4e6d81b9448b882d083c\\com2_656f4e6d81b9448b882d083c.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:2305/t=all@com2_656f4e6d81b9448b882d083c#sha256:2956b6121f1460ce"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_3568555a767d45b18055cd6a\\com2_3568555a767d45b18055cd6a.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:2312/t=all@com2_3568555a767d45b18055cd6a#sha256:6551e0150c641d6f"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_329a5b605001492dbe55964f\\com2_329a5b605001492dbe55964f.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:2319/t=all@com2_329a5b605001492dbe55964f#sha256:af865a6539ae1a02"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_0a5a457706794db5b0ce2c38\\com2_0a5a457706794db5b0ce2c38.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:2335/t=all@com2_0a5a457706794db5b0ce2c38#sha256:43e76b7758cacc1c"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_cda6d04f829b4d2c8fd39c01\\com2_cda6d04f829b4d2c8fd39c01.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:2342/t=all@com2_cda6d04f829b4d2c8fd39c01#sha256:1a3d2657ef87022b"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_3a4d7d75086a44dd9241ee19\\com2_3a4d7d75086a44dd9241ee19.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:2358/t=all@com2_3a4d7d75086a44dd9241ee19#sha256:94ef26c23383f2f8"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_0c10e6b4864a4b51ac453c89\\smoke_report.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:pair%3Acom2_0c10e6b4864a4b51ac453c89/t=all@com2_0c10e6b4864a4b51ac453c89#sha256:6d63aa1509e5325d"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_b22af9ec7b5d41e18043db06\\smoke_report.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:pair%3Acom2_b22af9ec7b5d41e18043db06/t=all@com2_b22af9ec7b5d41e18043db06#sha256:09d96ea0833e4f67"
+                                                                               },
+                                                                               {
+                                                                                   "handle":  "D:\\Vit_DAW\\VitApp\\Workspace\\Artifacts\\com_evidence\\com2_b22ef4027b04d6935bc657f1\\smoke_report.json",
+                                                                                   "ref":  "vit://dad.compressor_dual_tap/track:pair%3Acom2_b22ef4027b04d6935bc657f1/t=all@com2_b22ef4027b04d6935bc657f1#sha256:4f9bad2e255bc7af"
+                                                                               }
+                                                                           ],
+                                                                 "note":  "COM paired 工件（Before/After 双 tap：compressor_input/compressor_output 同精确采样窗 + render_revision 锚定，com/paired.go validatePairedArtifact）；句柄=工件路径"
+                                                             },
+                                     "fxm.ab":  {
+                                                    "note":  "FXM A/B 投影载于观察票 fxm_projection（baseline_ref/processed_ref 各携 render_revision + effect_delta 差分值；门=same_source/same_window/same_format，fxm/projection.go）",
+                                                    "pairs":  [
+                                                                  {
+                                                                      "base_handle":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260930T021158_05341a2b\\.vit_agent\\vitproj_19a2b6fbc94f49a7ba4a1505bc96be07\\observations\\obs_20261006T113811_a2deac7e0fbe.json",
+                                                                      "base_ref":  "vit://fxm/selection:unknown/t=all@obs_20261006T113811_a2deac7e0fbe#sha256:e9602ca384c024d2",
+                                                                      "head_handle":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260930T021158_05341a2b\\.vit_agent\\vitproj_19a2b6fbc94f49a7ba4a1505bc96be07\\observations\\obs_20261006T113814_296d969c58f5.json",
+                                                                      "head_ref":  "vit://fxm/selection:unknown/t=all@obs_20261006T113814_296d969c58f5#sha256:af52dc908911e1fe"
+                                                                  }
+                                                              ]
+                                                },
+                                     "observation.before_after":  {
+                                                                      "note":  "观察票 mix_package.current_metrics：before_after_delta（前后观察 metrics 块差）+ ab_result（mom_ab_result.v1，tap/render_revision 门在其 quality_gates——same_tap_point/render_revision_changed）",
+                                                                      "tickets":  [
+                                                                                      {
+                                                                                          "ab_result":  {
+                                                                                                            "after_observation_id":  "",
+                                                                                                            "after_render_revision":  "",
+                                                                                                            "before_observation_id":  "",
+                                                                                                            "before_render_revision":  "",
+                                                                                                            "quality_gates":  null,
+                                                                                                            "render_mode":  "",
+                                                                                                            "status":  "missing",
+                                                                                                            "tap_point":  ""
+                                                                                                        },
+                                                                                          "before_after_delta":  {
+                                                                                                                     "after_observation_id":  "",
+                                                                                                                     "before_observation_id":  "",
+                                                                                                                     "reason":  "no_previous_mix_observation",
+                                                                                                                     "status":  "pending"
+                                                                                                                 },
+                                                                                          "handle":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260930T021158_05341a2b\\.vit_agent\\vitproj_19a2b6fbc94f49a7ba4a1505bc96be07\\observations\\obs_20261006T113811_a2deac7e0fbe.json"
+                                                                                      },
+                                                                                      {
+                                                                                          "ab_result":  {
+                                                                                                            "after_observation_id":  "obs_20261006T113814_296d969c58f5",
+                                                                                                            "after_render_revision":  "",
+                                                                                                            "before_observation_id":  "obs_20261006T113811_a2deac7e0fbe",
+                                                                                                            "before_render_revision":  "",
+                                                                                                            "quality_gates":  {
+                                                                                                                                  "after_evidence_ref":  false,
+                                                                                                                                  "after_probe_present":  true,
+                                                                                                                                  "after_quality_trusted":  false,
+                                                                                                                                  "after_status_ready":  false,
+                                                                                                                                  "before_evidence_ref":  false,
+                                                                                                                                  "before_probe_present":  true,
+                                                                                                                                  "before_quality_trusted":  false,
+                                                                                                                                  "before_status_ready":  false,
+                                                                                                                                  "raw_payload_excluded":  true,
+                                                                                                                                  "render_revision_changed":  false,
+                                                                                                                                  "same_render_mode":  false,
+                                                                                                                                  "same_tap_point":  false
+                                                                                                                              },
+                                                                                                            "render_mode":  "",
+                                                                                                            "status":  "missing",
+                                                                                                            "tap_point":  ""
+                                                                                                        },
+                                                                                          "before_after_delta":  {
+                                                                                                                     "after_observation_id":  "obs_20261006T113814_296d969c58f5",
+                                                                                                                     "before_observation_id":  "obs_20261006T113811_a2deac7e0fbe",
+                                                                                                                     "reason":  "",
+                                                                                                                     "status":  "ready"
+                                                                                                                 },
+                                                                                          "handle":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260930T021158_05341a2b\\.vit_agent\\vitproj_19a2b6fbc94f49a7ba4a1505bc96be07\\observations\\obs_20261006T113814_296d969c58f5.json",
+                                                                                          "matches_base":  true
+                                                                                      }
+                                                                                  ]
+                                                                  }
+                                 },
+                   "removed":  null,
+                   "status":  "ok",
+                   "unchanged_count":  0,
+                   "unrouted_kinds":  [
+                                          "dom"
+                                      ]
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261006T111942_de62fa6a",
+                            "baseline_created":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T113809_9da978e0\\Unsaved.vit",
+                            "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-10-06T11:38:19.9802287Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T113809_9da978e0",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T113809_9da978e0\\Unsaved.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T113809_9da978e0\\Unsaved.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T113809_9da978e0\\Unsaved.vit"
+                                              }
+                                          ]
+                        }
+}

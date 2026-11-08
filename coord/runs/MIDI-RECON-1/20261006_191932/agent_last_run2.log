@@ -1,0 +1,447 @@
+2026-10-06T19:19:40 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-06T19:19:40 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-06T19:19:40 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-06T19:19:40 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-06T19:19:40 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-06T19:19:40 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-06T19:19:40 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:40 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-06T19:19:40 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:40 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:40 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-06T19:19:41 [INFO] [authority] restore adopted disk mode=full_project_access
+2026-10-06T19:19:41 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_19a2b6fbc94f49a7ba4a1505bc96be07
+2026-10-06T19:19:41 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260930T021158_05341a2b\\Unsaved.vit" uuid=vitproj_19a2b6fbc94f49a7ba4a1505bc96be07 recovered=true conversations=19 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-06T19:19:41 [INFO] [authority] restore adopted disk mode=full_project_access
+2026-10-06T19:19:41 [INFO] [authority] restore adopted disk mode=full_project_access
+2026-10-06T19:19:41 [INFO] [authority] restore adopted disk mode=full_project_access
+2026-10-06T19:19:42 [INFO] [media_refs] ms=1 conversation=dev_range_context_20261006_191941 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-06T19:19:42 [INFO] [chat.artifacts] conversation=dev_range_context_20261006_191941 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-10-06T19:19:42 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_19a2b6fbc94f49a7ba4a1505bc96be07
+2026-10-06T19:19:42 [INFO] [timing] http.chat total_ms=1146 conversation=dev_range_context_20261006_191941 message_len=20
+2026-10-06T19:19:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:44 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=0
+2026-10-06T19:19:44 [INFO] [timing] kernel.send_command ms=6 command=get_project_state tool=project.state confirmed=false err=false
+2026-10-06T19:19:44 [INFO] [timing] harness.invoke total_ms=26 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-10-06T19:19:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:45 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:45 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:50 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:50 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:51 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=0
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="1010" action="property_changed:id"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-06T19:19:51 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=add_track err=false
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-06T19:19:51 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-06T19:19:51 [INFO] [timing] harness.refresh_shadow ms=22 reason=add_track status=ok err=false
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-06T19:19:51 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-06T19:19:51 [INFO] [timing] kernel.send_command ms=55 command=add_track tool=track.add confirmed=true err=false
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="1012" action="node_added"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="1011" action="property_changed:remapOnTempoChange"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="0/20623cb" action="property_changed:lastSignificantChange"
+2026-10-06T19:19:51 [INFO] [timing] harness.invoke total_ms=77 tool=track.add command=add_track status=ok confirmed=true err=false
+2026-10-06T19:19:51 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-10-06T19:19:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:52 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-06T19:19:52 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-06T19:19:52 [DEBUG] [shadow] live delta uid="QUANTISATION" action="node_added"
+2026-10-06T19:19:52 [DEBUG] [shadow] live delta uid="GROOVE" action="node_added"
+2026-10-06T19:19:53 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=insert_midi_clip err=false
+2026-10-06T19:19:53 [DEBUG] [shadow] live delta uid="SEQUENCE" action="node_added"
+2026-10-06T19:19:53 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-06T19:19:53 [INFO] [timing] harness.refresh_shadow ms=15 reason=insert_midi_clip status=ok err=false
+2026-10-06T19:19:53 [DEBUG] [shadow] live delta uid="1013" action="property_changed:currentTake"
+2026-10-06T19:19:53 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-10-06T19:19:53 [INFO] [timing] kernel.send_command ms=41 command=insert_midi_clip tool=midi.insert_clip confirmed=true err=false
+2026-10-06T19:19:53 [DEBUG] [shadow] live delta uid="1013" action="property_changed:speed"
+2026-10-06T19:19:53 [DEBUG] [shadow] live delta uid="1013" action="node_added"
+2026-10-06T19:19:53 [DEBUG] [shadow] live delta uid="1013" action="property_changed:colour"
+2026-10-06T19:19:53 [DEBUG] [shadow] live delta uid="0/20623cb" action="property_changed:lastSignificantChange"
+2026-10-06T19:19:53 [INFO] [timing] harness.invoke total_ms=74 tool=midi.insert_clip command=insert_midi_clip status=ok confirmed=true err=false
+2026-10-06T19:19:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:55 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:55 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:58 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:19:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:19:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:00 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:00 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:03 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-10-06T19:20:03 [INFO] [timing] kernel.send_command ms=4 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-06T19:20:03 [INFO] [timing] harness.invoke total_ms=24 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-06T19:20:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:05 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:05 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:10 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:10 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:15 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:15 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:16 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-10-06T19:20:16 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-10-06T19:20:16 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-10-06T19:20:16 [DEBUG] [shadow] live delta uid="NOTE" action="node_added"
+2026-10-06T19:20:16 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=apply_midi_note_patch err=false
+2026-10-06T19:20:16 [DEBUG] [shadow] live delta uid="NOTE" action="property_changed:vit_note_id"
+2026-10-06T19:20:16 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-10-06T19:20:16 [INFO] [timing] harness.refresh_shadow ms=27 reason=apply_midi_note_patch status=ok err=false
+2026-10-06T19:20:16 [DEBUG] [shadow] live delta uid="0/20623cb" action="property_changed:lastSignificantChange"
+2026-10-06T19:20:16 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-10-06T19:20:16 [INFO] [timing] kernel.send_command ms=50 command=apply_midi_note_patch tool=midi.write_clip_notes confirmed=true err=false
+2026-10-06T19:20:16 [INFO] [timing] harness.invoke total_ms=68 tool=midi.write_clip_notes command=apply_midi_note_patch status=ok confirmed=true err=false
+2026-10-06T19:20:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:18 [INFO] [timing] kernel.send_command ms=2 command=get_midi_clip_notes tool=midi.read_clip_notes confirmed=true err=false
+2026-10-06T19:20:18 [INFO] [timing] harness.invoke total_ms=28 tool=midi.read_clip_notes command=get_midi_clip_notes status=ok confirmed=true err=false
+2026-10-06T19:20:18 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:20 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:20 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:25 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:25 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:30 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:30 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:35 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:35 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:38 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:40 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:40 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:43 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-10-06T19:20:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:58 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:20:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:20:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:18 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=50 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:21:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:38 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=60 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:21:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:45 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:46 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:47 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:48 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:49 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:50 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:51 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:52 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:53 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:54 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:55 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:58 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=70 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:21:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:21:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:14 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:15 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:16 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:17 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:18 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=80 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:22:18 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:19 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:20 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:21 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:22 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:23 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:24 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:25 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:26 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:27 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:28 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:29 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:30 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:31 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:32 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:33 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:34 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:35 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:36 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:38 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=90 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-06T19:22:38 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:39 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:40 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:41 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:42 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-06T19:22:43 [INFO] [timing] kernel.send_command ms=120013 command=start_render tool=render.start confirmed=true err=false
+2026-10-06T19:22:43 [INFO] [timing] harness.invoke total_ms=120026 tool=render.start command=start_render status=ok confirmed=true err=false
+2026-10-06T19:22:43 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access

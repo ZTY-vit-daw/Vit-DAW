@@ -1,0 +1,21 @@
+{
+  "schema_version": "free_state_conclusion.v1",
+  "conclusion_id": "fsc_turn_free_state_47ea929b2de6e642_loop_closure_settle",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "conversation_id": "settledeliver_20261011_113524",
+  "goal_id": "goal_c4ca57e0b4d40706",
+  "run_id": "run_42b1b8f001548343",
+  "loop_id": "free_state_47ea929b2de6e642",
+  "experiment_id": "turn:free_state_47ea929b2de6e642",
+  "kind": "loop_closure_settle",
+  "outcome": "capability_blocked",
+  "decision_status": "capability_blocked",
+  "summary": "closure made no material progress within its bounded observation window",
+  "project_revision": "3",
+  "target_ref": {
+    "id": "1007",
+    "kind": "track"
+  },
+  "settled_at": "2026-10-11T03:37:28.1656917Z",
+  "recorded_at": "2026-10-11T03:37:28.1656917Z"
+}

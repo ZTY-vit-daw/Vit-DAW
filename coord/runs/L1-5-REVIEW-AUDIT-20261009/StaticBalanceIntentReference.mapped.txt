@@ -1,0 +1,6 @@
+func messageLoopStaticBalanceIntentReference(text string) bool {
+	return messageLoopTextHasAny(strings.ToLower(strings.TrimSpace(text)),
+		"b2", "b 2", "static_mix.static_balance", "static balance",
+		"\u9759\u6001\u5e73\u8861", "\u9759\u6001\u97f3\u91cf", "\u63a8\u5b50\u5e73\u8861",
+	)
+}

@@ -1,0 +1,59 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[VIT221] ipc diag armed; pid=30284
+[stack-probe] STACK-OCCUPATION-WARNING card=FE-RACK-DELETE-GUI-REFRESH-1(221)
+[stack-probe] scene=res://tools/stack_probe_rack_delete_gui_refresh.tscn started=2026-10-30 19:29:57
+[stack-probe] !!! 任何模式（含只读腿）都走生产传输链：
+[stack-probe]     VitIpcClient UDP 4445 (cmd) / 4444 (telemetry) → agent bridge → kernel ZMQ 5555/5556
+[stack-probe] !!! PC-RUNTIME-STACK.md §2.2 占用登记是本探针任何运行的前置义务
+[stack-probe] mode=DIAG(缺陷复现轮,pre-fix baseline) window-form(non-headless)=true
+[VIT221] queued rid=ipc_1 cmd=clear_project soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_1 cmd=clear_project queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_1 cmd=clear_project status=ok elapsed_ms=32 depth=0
+[VIT221] await_done cmd=clear_project rid=ipc_1 status=ok msg=Project cleared total_ms=57 (incl queue wait)
+[stack-probe] PASS P0 setup clear_project
+[VIT221] queued rid=ipc_2 cmd=add_track soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_2 cmd=add_track queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_2 cmd=add_track status=ok elapsed_ms=16 depth=0
+[VIT221] await_done cmd=add_track rid=ipc_2 status=ok msg=Track added total_ms=52 (incl queue wait)
+[stack-probe] PASS P0 setup probe track created
+[VIT221] queued rid=ipc_3 cmd=plugin_search soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_3 cmd=plugin_search queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_3 cmd=plugin_search status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=plugin_search rid=ipc_3 status=ok msg= total_ms=44 (incl queue wait)
+[stack-probe] PASS P0 setup plugin_search (fallback=false)
+[VIT221] queued rid=ipc_4 cmd=rack_add_node soft_to_sec=60.0 depth=1 active=<none>
+[VIT221] send rid=ipc_4 cmd=rack_add_node queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_4 cmd=rack_add_node status=ok elapsed_ms=90 depth=0
+[VIT221] await_done cmd=rack_add_node rid=ipc_4 status=ok msg=Rack node added total_ms=103 (incl queue wait)
+[stack-probe] PASS P0 setup rack_add_node loads external VST#1
+[stack-probe] TELEMETRY P0 track_id=1035 vst1=1041
+ERROR: Cannot open file 'res://vit_dock/scenes/vit_dock_root.tscn'.
+   at: load (scene/resources/resource_format_text.cpp:1430)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:445)
+       [1] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [2] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [3] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [4] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+ERROR: Failed loading resource: res://vit_dock/scenes/vit_dock_root.tscn.
+   at: _load (core/io/resource_loader.cpp:343)
+   GDScript backtrace (most recent call first):
+       [0] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:445)
+       [1] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [2] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [3] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [4] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+[stack-probe] FAIL P1a production main scene loads (VitDockRoot.tscn) | res://vit_dock/scenes/vit_dock_root.tscn
+[stack-probe] SUMMARY_JSON {"checks_failed":1,"checks_total":5,"failures":["P1a production main scene loads (VitDockRoot.tscn) | res://vit_dock/scenes/vit_dock_root.tscn"],"mode":"diag","stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"res://tools/stack_probe_rack_delete_gui_refresh.tscn","time":"2026-10-30 19:29:57"},"status":"fail","telemetry":{"delete_receipts":[],"dispatch_route":"none","gesture_dispatched":false,"ipc_counters":{"after_window":{},"before_delete":{},"series_len":0},"legacy_receipts":[],"project_loaded_at_msec":[],"project_loaded_count":0,"store_request_failed":[]}}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

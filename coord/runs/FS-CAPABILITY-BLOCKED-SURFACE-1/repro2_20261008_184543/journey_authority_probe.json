@@ -1,0 +1,73 @@
+﻿{
+    "conversation_id":  "dev_journey_fs_nl_authority_20261008_184550",
+    "task_id":  "task_f71e1089bd3f7656",
+    "goal_id":  "goal_6fbe44a880349359",
+    "run_id":  "run_0964a2db6e97bd4c",
+    "original_intent":  "/smoke authority",
+    "reply":  "authority smoke: bound=full_project_access server=full_project_access",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "goal_status":  "completed",
+    "goal_summary":  "/smoke authority",
+    "stop_reason":  "authority_smoke_ok",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261008T104605_2ba1ac0d",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261008T104604_c5c0566a"
+                                         },
+                            "commit_count":  1,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "/smoke authority",
+                                                              "logical_message_id":  "n_20261008T104604_f61fffe4",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261008T104604_f61fffe4",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                              "logical_message_id":  "n_20261008T104605_2ba1ac0d",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261008T104605_2ba1ac0d",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261008T104604_c5c0566a",
+                            "initialized":  true,
+                            "project_label":  "journey_fixture",
+                            "project_path":  "D:\\Vit_DAW_wt_fs_cap\\coord\\runs\\FS-CAPABILITY-BLOCKED-SURFACE-1\\repro2_20261008_184543\\project\\journey_fixture.vit",
+                            "project_uuid":  "vitproj_d0067bcfb2064b3e89e341d4afdab49c",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261008T104604_c5c0566a"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261008T104604_c5c0566a",
+                                                  "created_at":  "2026-10-08T10:46:05.4080942Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261008T104604_c5c0566a",
+                                                  "path":  "D:\\Vit_DAW_wt_fs_cap\\coord\\runs\\FS-CAPABILITY-BLOCKED-SURFACE-1\\repro2_20261008_184543\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_fs_cap\\coord\\runs\\FS-CAPABILITY-BLOCKED-SURFACE-1\\repro2_20261008_184543\\project\\journey_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_fs_cap\\coord\\runs\\FS-CAPABILITY-BLOCKED-SURFACE-1\\repro2_20261008_184543\\project\\journey_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_fs_cap\\coord\\runs\\FS-CAPABILITY-BLOCKED-SURFACE-1\\repro2_20261008_184543\\project\\journey_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_0964a2db6e97bd4c",
+    "logical_message_id":  "n_20261008T104605_2ba1ac0d"
+}

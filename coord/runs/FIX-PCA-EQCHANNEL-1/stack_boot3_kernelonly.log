@@ -1,0 +1,44 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=261
+shadow.initialized=False track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+warn: ZMQ REQ port not listening: 5555
+warn: ZMQ SUB port not listening: 5556
+
+== Chat route smoke
+chat.stop_reason=limit_reached
+chat.reply=我还在继续处理这个任务，完成后再向你汇报。
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Summary
+ok: dev agent smoke completed

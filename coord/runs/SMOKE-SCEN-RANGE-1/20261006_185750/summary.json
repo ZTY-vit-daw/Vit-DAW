@@ -1,0 +1,7 @@
+﻿{
+    "scenario":  "range_split",
+    "range_split_proposal_source":  "tool_form_clip_split",
+    "finished_at":  "2026-10-06T18:58:03.9735930+08:00",
+    "artifacts_dir":  "D:\\Vit_DAW\\coord\\runs\\SMOKE-SCEN-RANGE-1\\20261006_185750",
+    "outcome":  "pass"
+}

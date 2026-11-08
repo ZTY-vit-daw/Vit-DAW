@@ -1,0 +1,8 @@
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=mom finalize_count=1
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=tim finalize_count=1
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=fxm finalize_count=1
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=com finalize_count=1
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=mom finalize_count=2
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=tim finalize_count=2
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=fxm finalize_count=2
+2026-10-03T12:30:54 [INFO] [materialize.metrics] kind=com finalize_count=2

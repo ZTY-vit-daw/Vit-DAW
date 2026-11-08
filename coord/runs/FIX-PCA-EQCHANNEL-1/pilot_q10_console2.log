@@ -1,0 +1,17 @@
+=== phase certify (run 20260924_005622) ===
+[certify] targets=1
+Traceback (most recent call last):
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 1729, in <module>
+    if args.phase == "all" else [args.phase])
+           ^^^^^^
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 1723, in main
+    "'static_eq,broadband_compression' to avoid retrying "
+    ^^^^^^^^^^^^^
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 766, in phase_certify
+    if not targets:
+        ^^^^^^^^^^^
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 723, in ensure_kernel_plugin_list
+    # later; confirm the emptiness persists before scanning (a
+    # scan fired during the load window piles up on the JUCE
+    # queue and starves the whole kernel).
+RuntimeError: kernel plugin search stayed busy for 20 minutes (boot-time revalidation); wait for the stack to settle and rerun certify

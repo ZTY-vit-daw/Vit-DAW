@@ -1,0 +1,189 @@
+2026-09-27T21:36:02 [INFO] [materialize] mode=shadow kinds=tom,acp,dom store=memory
+2026-09-27T21:36:02 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-09-27T21:36:02 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-09-27T21:36:02 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-09-27T21:36:02 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-27T21:36:02 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-27T21:36:02 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-09-27T21:36:02 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:02 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-09-27T21:36:02 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:02 [INFO] [shadow] initialized tracks=5 project_path="" replayed_deltas=0
+2026-09-27T21:36:02 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-27T21:36:02 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b1ff7ba129914b50855ba0ef38a590ab
+2026-09-27T21:36:02 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260927T083625_92d7d48e\\Unsaved.vit" uuid=vitproj_b1ff7ba129914b50855ba0ef38a590ab recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-09-27T21:36:03 [INFO] [media_refs] ms=0 conversation=dev_range_context_20260927_213602 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-27T21:36:03 [INFO] [chat.artifacts] conversation=dev_range_context_20260927_213602 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-09-27T21:36:04 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b1ff7ba129914b50855ba0ef38a590ab
+2026-09-27T21:36:04 [INFO] [timing] http.chat total_ms=1154 conversation=dev_range_context_20260927_213602 message_len=20
+2026-09-27T21:36:04 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:04 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:05 [INFO] [materialize] receipt change_id=shadow_change_000001 scopes=mix.frequency_relationship,mix.masking_relationship,mix.multitrack_relationship,project.state,project.structure,track.basic_energy,track.stereo_space,track.timbre_frequency,track.time_dynamics entities=6
+2026-09-27T21:36:05 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-27T21:36:05 [INFO] [timing] kernel.send_command ms=4 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-27T21:36:05 [INFO] [timing] harness.invoke total_ms=13 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-09-27T21:36:05 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:06 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:06 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000002 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000003 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-09-27T21:36:06 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=add_track err=false
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000004 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000005 scopes=mix.frequency_relationship,mix.masking_relationship,mix.multitrack_relationship,project.state,project.structure,track.basic_energy,track.stereo_space,track.timbre_frequency,track.time_dynamics entities=2
+2026-09-27T21:36:06 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=1
+2026-09-27T21:36:06 [INFO] [timing] harness.refresh_shadow ms=24 reason=add_track status=ok err=false
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000006 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-09-27T21:36:06 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=1
+2026-09-27T21:36:06 [INFO] [timing] kernel.send_command ms=50 command=add_track tool=track.add confirmed=true err=false
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000007 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000008 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000009 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000010 scopes=project.state entities=1
+2026-09-27T21:36:06 [INFO] [timing] harness.invoke total_ms=82 tool=track.add command=add_track status=ok confirmed=true err=false
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000011 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000012 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000013 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000014 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="0/3a937a4" action="property_changed:lastSignificantChange"
+2026-09-27T21:36:06 [INFO] [materialize] receipt change_id=shadow_change_000015 scopes=project.state entities=1
+2026-09-27T21:36:06 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-09-27T21:36:06 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:06 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:07 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:07 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:07 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=1
+2026-09-27T21:36:07 [INFO] [timing] kernel.send_command ms=4 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-27T21:36:07 [INFO] [timing] harness.invoke total_ms=18 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-09-27T21:36:08 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:08 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:09 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=1
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000016 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000017 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="1011" action="property_changed:elastiqueMode"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000018 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="1011" action="property_changed:pan"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000019 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000020 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000021 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000022 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000023 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000024 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000025 scopes=project.state entities=1
+2026-09-27T21:36:09 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=import_media_to_track err=false
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000026 scopes=mix.frequency_relationship,mix.masking_relationship,mix.multitrack_relationship,project.state,project.structure,track.basic_energy,track.stereo_space,track.timbre_frequency,track.time_dynamics entities=2
+2026-09-27T21:36:09 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=2
+2026-09-27T21:36:09 [INFO] [timing] harness.refresh_shadow ms=16 reason=import_media_to_track status=ok err=false
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000027 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-27T21:36:09 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=2
+2026-09-27T21:36:09 [INFO] [timing] kernel.send_command ms=56 command=import_media_to_track tool=clip.import_media_to_track confirmed=true err=false
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000028 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000029 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000030 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="1011" action="property_changed:colour"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000031 scopes=project.state entities=1
+2026-09-27T21:36:09 [INFO] [timing] harness.invoke total_ms=84 tool=clip.import_media_to_track command=import_media_to_track status=ok confirmed=true err=false
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="1011" action="property_changed:proxyAllowed"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000032 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="1011" action="property_changed:resamplingQuality"
+2026-09-27T21:36:09 [INFO] [materialize] receipt change_id=shadow_change_000033 scopes=project.state entities=1
+2026-09-27T21:36:09 [DEBUG] [shadow] live delta uid="0/3a937a4" action="property_changed:lastSignificantChange"
+2026-09-27T21:36:09 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=vitproj_b1ff7ba129914b50855ba0ef38a590ab target_path=D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\mat_d_shadow_fixture_34896_1790516168625.wav status=ready
+2026-09-27T21:36:09 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=vitproj_b1ff7ba129914b50855ba0ef38a590ab target_path=D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\mat_d_shadow_fixture_34896_1790516168625.wav status=ready
+2026-09-27T21:36:09 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=vitproj_b1ff7ba129914b50855ba0ef38a590ab target_path=D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\mat_d_shadow_fixture_34896_1790516168625.wav status=ready
+2026-09-27T21:36:09 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:10 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:10 [INFO] [materialize] shadow_round observation_id=obs_20260927T133610_7dba468f0f80 kinds=acp:inv=0,arr=3,rec=1,ups=11,unch=0;dom:inv=0,arr=4,rec=1,ups=1,unch=0;fxm:inv=0,arr=0,rec=1,ups=1,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=0,arr=0,rec=1,ups=1,unch=0 shadow_divergences=0 reconcile_rows=1 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=0
+2026-09-27T21:36:11 [INFO] [timing] harness.invoke total_ms=323 tool=mix.request_observation command=mix_request_observation status=ok confirmed=false err=false
+2026-09-27T21:36:11 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:11 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:11 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:12 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:12 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=2
+2026-09-27T21:36:12 [INFO] [materialize] receipt change_id=shadow_change_000034 scopes=project.state entities=1
+2026-09-27T21:36:12 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-09-27T21:36:12 [INFO] [materialize] receipt change_id=shadow_change_000035 scopes=project.state entities=1
+2026-09-27T21:36:12 [DEBUG] [shadow] live delta uid="0/3a937a4" action="property_changed:lastSignificantChange"
+2026-09-27T21:36:12 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=set_volume err=false
+2026-09-27T21:36:12 [INFO] [materialize] receipt change_id=shadow_change_000036 scopes=mix.frequency_relationship,mix.masking_relationship,mix.multitrack_relationship,project.headroom,project.state,track.level entities=2
+2026-09-27T21:36:12 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=2
+2026-09-27T21:36:12 [INFO] [timing] harness.refresh_shadow ms=15 reason=set_volume status=ok err=false
+2026-09-27T21:36:12 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=2
+2026-09-27T21:36:12 [INFO] [timing] kernel.send_command ms=45 command=set_volume tool=track.volume confirmed=true err=false
+2026-09-27T21:36:12 [INFO] [timing] harness.invoke total_ms=57 tool=track.volume command=set_volume status=ok confirmed=true err=false
+2026-09-27T21:36:12 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:13 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:13 [INFO] [materialize] shadow_round observation_id=obs_20260927T133613_9df56cb66dae kinds=acp:inv=3,arr=3,rec=2,ups=22,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=2,ups=2,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=0 reconcile_rows=2 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=0
+2026-09-27T21:36:13 [INFO] [timing] harness.invoke total_ms=335 tool=mix.request_observation command=mix_request_observation status=ok confirmed=false err=false
+2026-09-27T21:36:13 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:14 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:14 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:15 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:15 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:15 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:16 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:16 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:16 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:16 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:17 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:17 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:17 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:17 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:18 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:18 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:18 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:19 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:19 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:19 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:20 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:20 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:20 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:20 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:20 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:21 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:21 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:21 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:21 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:22 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:22 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:22 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:22 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:23 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:23 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:23 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:24 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:24 [INFO] [materialize] shadow_round observation_id=obs_20260927T133624_2d3503b3222b kinds=acp:inv=3,arr=3,rec=2,ups=22,unch=0;dom:inv=3,arr=4,rec=2,ups=2,unch=0;fxm:inv=3,arr=0,rec=3,ups=3,unch=0;mom:inv=0,arr=3,rec=0,ups=0,unch=0;tim:inv=0,arr=4,rec=0,ups=0,unch=0;tom:inv=3,arr=0,rec=2,ups=2,unch=0 shadow_divergences=0 reconcile_rows=3 dropped_changes=0 recovery_skipped_rows=0 measurement_carried_excluded=0 timing_carried_excluded=0
+2026-09-27T21:36:24 [INFO] [timing] harness.invoke total_ms=350 tool=mix.request_observation command=mix_request_observation status=ok confirmed=false err=false
+2026-09-27T21:36:24 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:25 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:25 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:26 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:26 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:26 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:26 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:27 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T21:36:27 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T21:36:27 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=2
+2026-09-27T21:36:27 [INFO] [timing] kernel.send_command ms=4 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-27T21:36:27 [INFO] [timing] harness.invoke total_ms=15 tool=project.state command=get_project_state status=ok confirmed=false err=false

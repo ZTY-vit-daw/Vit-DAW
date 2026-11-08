@@ -1,0 +1,86 @@
+2026-09-27T22:30:38 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-09-27T22:30:38 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-09-27T22:30:38 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-09-27T22:30:38 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-27T22:30:38 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-27T22:30:38 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-09-27T22:30:38 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:38 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-09-27T22:30:38 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:38 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:38 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-09-27T22:30:39 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-27T22:30:39 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b1ff7ba129914b50855ba0ef38a590ab
+2026-09-27T22:30:39 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260927T083625_92d7d48e\\Unsaved.vit" uuid=vitproj_b1ff7ba129914b50855ba0ef38a590ab recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-09-27T22:30:40 [INFO] [media_refs] ms=0 conversation=dev_range_context_20260927_223039 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-27T22:30:40 [INFO] [chat.artifacts] conversation=dev_range_context_20260927_223039 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-09-27T22:30:40 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_b1ff7ba129914b50855ba0ef38a590ab
+2026-09-27T22:30:40 [INFO] [timing] http.chat total_ms=1205 conversation=dev_range_context_20260927_223039 message_len=20
+2026-09-27T22:30:41 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:41 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=0
+2026-09-27T22:30:41 [INFO] [timing] kernel.send_command ms=5 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-27T22:30:41 [INFO] [timing] harness.invoke total_ms=14 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-09-27T22:30:41 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:42 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:43 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:43 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:43 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:43 [INFO] [timing] harness.invoke total_ms=735 tool=mix.request_observation command=mix_request_observation status=ok confirmed=false err=false
+2026-09-27T22:30:44 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:44 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:45 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:45 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:46 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:46 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:46 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:47 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:47 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:48 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:48 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:48 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:48 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:49 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:49 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:50 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:50 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:50 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:51 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:51 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:52 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:52 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:53 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:53 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:53 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:53 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:54 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:54 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:54 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:55 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:55 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:56 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:56 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:56 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:56 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:57 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:57 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:58 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:58 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:58 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:30:58 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:59 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:30:59 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:00 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:00 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:00 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:02 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:02 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:03 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:31:03 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-09-27T22:31:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-27T22:31:04 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=0
+2026-09-27T22:31:04 [INFO] [timing] kernel.send_command ms=5 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-27T22:31:04 [INFO] [timing] harness.invoke total_ms=20 tool=project.state command=get_project_state status=ok confirmed=false err=false

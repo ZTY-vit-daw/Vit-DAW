@@ -1,0 +1,137 @@
+{
+ "round_dir": "D:\\Vit_DAW\\coord\\runs\\UX-AB-AUDITION-IMPL-1\\aba174_chat_20261022_233614\\driver\\round4",
+ "faces": {
+  "A": {
+   "ok": false,
+   "goal_status_final": "completed",
+   "executed_response": null,
+   "settle_reason": "goal_terminal",
+   "receipt_fields": {
+    "receipt_id": null,
+    "after_revision": null,
+    "settlement_verified": null,
+    "ticket_id": null
+   }
+  },
+  "B": {
+   "ok": false,
+   "session_id": "audition:dynamic:dyn_75291e34fad3d653",
+   "turn_id": "dynamic_turn:dyn_75291e34fad3d653",
+   "round_id": "dynamic_round:dyn_75291e34fad3d653",
+   "stamp_file": null,
+   "stamp": {},
+   "audition_ready_event_seqs": [
+    25,
+    27
+   ],
+   "judgment_requested_events": [
+    {
+     "seq": 26,
+     "turn_id": "dynamic_turn:dyn_75291e34fad3d653",
+     "session": "audition:dynamic:dyn_75291e34fad3d653"
+    }
+   ]
+  },
+  "C": {
+   "ok": true,
+   "candidates": [
+    {
+     "label": "A",
+     "source_ref": "D:\\Vit_DAW\\coord\\runs\\UX-AB-AUDITION-IMPL-1\\aba174_chat_20261022_233614\\driver\\round4\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\aba174_round4_20261023_000846\\before_revision_5.wav",
+     "preview_ref": "audio-buffer://audition:dynamic:dyn_75291e34fad3d653/candidate-a:2ch@44100Hz",
+     "project_revision": "5",
+     "render_revision": "semantic_dynamic_render:before:5:539357cbfc99be8e",
+     "file_exists": true,
+     "size_bytes": 582904,
+     "sha256_recomputed": "539357cbfc99be8e9f91aa6e8b0bcbbf493d6ce980287a9a34712a7c3a561f3a",
+     "sha256_recorded_digest16": "539357cbfc99be8e",
+     "render_phase_recorded": "before",
+     "render_revision_recorded": "5",
+     "sha256_match": true,
+     "filename_provenance": true
+    },
+    {
+     "label": "B",
+     "source_ref": "D:\\Vit_DAW\\coord\\runs\\UX-AB-AUDITION-IMPL-1\\aba174_chat_20261022_233614\\driver\\round4\\.vit_agent\\vitproj_ed51d8a45b8b48cd91fa6588f746b80f\\artifacts\\semantic_dynamic_audition\\aba174_round4_20261023_000846\\after_revision_6.wav",
+     "preview_ref": "audio-buffer://audition:dynamic:dyn_75291e34fad3d653/candidate-b:2ch@44100Hz",
+     "project_revision": "6",
+     "render_revision": "semantic_dynamic_render:after:6:7b20ffa854f3a346",
+     "file_exists": true,
+     "size_bytes": 582904,
+     "sha256_recomputed": "7b20ffa854f3a34668a4ae8ef343f9b12795903a1d737695b21caa150544e422",
+     "sha256_recorded_digest16": "7b20ffa854f3a346",
+     "render_phase_recorded": "after",
+     "render_revision_recorded": "6",
+     "sha256_match": true,
+     "filename_provenance": true
+    }
+   ],
+   "revisions": [
+    "5",
+    "6"
+   ],
+   "revisions_distinct": true
+  },
+  "D": {
+   "ok": true,
+   "judgment_ok_status": 200,
+   "judgment_decision": "retain",
+   "judgment_status": "retained",
+   "judgment_evidence_id": "judg_ff6b2804c9c06f52",
+   "blind_disclosure": {
+    "audition_session": "audition:dynamic:dyn_75291e34fad3d653",
+    "candidate_a": "A",
+    "candidate_b": "B",
+    "decision": "retain",
+    "schema_version": "vit.semantic_dynamic_audition_blind_disclosure.v1"
+   },
+   "identity_probe_status": 409,
+   "identity_probe_error": "audition session identity mismatch",
+   "experiment_probe_status": 409,
+   "experiment_probe_error": "audition session identity mismatch",
+   "judgment_events": [
+    {
+     "seq": 44,
+     "status": "retain"
+    }
+   ],
+   "recorded_trajectory_events": [
+    {
+     "seq": 43,
+     "turn_id": "dynamic_turn:dyn_75291e34fad3d653"
+    }
+   ]
+  },
+  "E": {
+   "ok": true,
+   "session_blind": true,
+   "candidate_labels": [
+    "A",
+    "B"
+   ]
+  },
+  "F": {
+   "ok": true,
+   "ready_schema_version": "vit.kernel_audition.v1",
+   "ready_session_turn_id": "dynamic_turn:dyn_75291e34fad3d653",
+   "ready_session_round_id": "dynamic_round:dyn_75291e34fad3d653",
+   "ready_candidates_ready": [
+    "ready",
+    "ready"
+   ],
+   "requested_node_kind": "user_judgment",
+   "requested_status": "waiting_for_user",
+   "requested_session": "audition:dynamic:dyn_75291e34fad3d653"
+  }
+ },
+ "failures": [
+  "A_no_executed_response",
+  "B_not_mounted"
+ ],
+ "classification": [
+  "executed_face_capture_gap",
+  "no_audition_ready"
+ ],
+ "conversation_id": "aba174_round4_20261023_000846",
+ "exit": 1
+}

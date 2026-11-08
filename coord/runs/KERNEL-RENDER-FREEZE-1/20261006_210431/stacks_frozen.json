@@ -1,0 +1,1177 @@
+{
+ "pid": 33280,
+ "captured_at_wall": "2026-10-06T13:05:45.424+00:00",
+ "captured_at_monotonic": 1315595.0436692,
+ "note": "KERNEL-RENDER-FREEZE-1 frozen capture (cache-only symbols)",
+ "tool": "ctypes dbghelp StackWalk64",
+ "threads": [
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f466ff4c8",
+   "start_addr": "0x7ff7b82fde70",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "Thrd_join+0x1f",
+    "VitApp.exe+0x6efb43",
+    "VitApp.exe+0x701bef",
+    "VitApp.exe+0x65ec66",
+    "VitApp.exe+0xb8344f",
+    "VitApp.exe+0x7b4602",
+    "VitApp.exe+0xf22d25",
+    "VitApp.exe+0x9ae457",
+    "VitApp.exe+0x9ade00",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 7188
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f46aff648",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x69d873",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 11368
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f46bff608",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x69dfa2",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 15692
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f46cff608",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0xc85065",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 28692
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f46dff608",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x7b25a5",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 36764
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f46eff848",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 40932
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f46fff8e8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 34620
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f470ff868",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 20568
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f471ff878",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 20052
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f472ff6f8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 21748
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f473ffb18",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 34516
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f474ff578",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 15700
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f475ff928",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "VitApp.exe+0x9ad0b0",
+    "VitApp.exe+0xca64fb",
+    "VitApp.exe+0x68e672",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 12024
+  },
+  {
+   "rip": "0x7ffc01a64a74",
+   "rsp": "0x8f476ff568",
+   "start_addr": "0x7ffc0191a2e0",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForWorkViaWorkerFactory+0x14",
+    "TppWorkerThread+0x37e",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 34832
+  },
+  {
+   "rip": "0x7ffc01a64a74",
+   "rsp": "0x8f478ffaa8",
+   "start_addr": "0x7ffc0191a2e0",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForWorkViaWorkerFactory+0x14",
+    "TppWorkerThread+0x37e",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 38732
+  },
+  {
+   "rip": "0x7ffc01a64a74",
+   "rsp": "0x8f477ff8f8",
+   "start_addr": "0x7ffc0191a2e0",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForWorkViaWorkerFactory+0x14",
+    "TppWorkerThread+0x37e",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 8824
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f479ff5c8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x79c26c",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 14260
+  },
+  {
+   "rip": "0x7ffc01a63d94",
+   "rsp": "0x8f490fc558",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtRemoveIoCompletionEx+0x14",
+    "GetQueuedCompletionStatusEx+0xcf",
+    "VitApp.exe+0x995c24",
+    "VitApp.exe+0x994d74",
+    "VitApp.exe+0x97de51",
+    "VitApp.exe+0x97c044",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 14324
+  },
+  {
+   "rip": "0x7ffc01a63d94",
+   "rsp": "0x8f494fcc78",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtRemoveIoCompletionEx+0x14",
+    "GetQueuedCompletionStatusEx+0xcf",
+    "VitApp.exe+0x995c24",
+    "VitApp.exe+0x994d74",
+    "VitApp.exe+0x97de51",
+    "VitApp.exe+0x97c044",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 5116
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f495fedf8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "mswsock.dll+0x951a",
+    "mswsock.dll+0x8464",
+    "Tcpip4_WSHStringToAddress+0xa78",
+    "WSAPoll+0x451",
+    "VitApp.exe+0x96a955",
+    "VitApp.exe+0xbe39c9",
+    "VitApp.exe+0xc86980",
+    "VitApp.exe+0xc6b3ec",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 38380
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f496ff708",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "midMessage+0x2735",
+    "midMessage+0x3686",
+    "mxdMessage+0x12c9f",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 40736
+  },
+  {
+   "rip": "0x7ffc01a61914",
+   "rsp": "0x8f497ff658",
+   "start_addr": "0x7ffb785a3e10",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForMultipleObjects+0x14",
+    "WaitForMultipleObjectsEx+0x123",
+    "WaitForMultipleObjects+0x11",
+    "modMessage+0x1315",
+    "modMessage+0x1275",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 25416
+  },
+  {
+   "rip": "0x7ffc01a61914",
+   "rsp": "0x8f498ff2e8",
+   "start_addr": "0x7ffb785a3e10",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForMultipleObjects+0x14",
+    "WaitForMultipleObjectsEx+0x123",
+    "WaitForMultipleObjects+0x11",
+    "modMessage+0x1315",
+    "modMessage+0x1275",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 35228
+  },
+  {
+   "rip": "0x7ffc01a61914",
+   "rsp": "0x8f47aff6b8",
+   "start_addr": "0x7ffbedddff00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForMultipleObjects+0x14",
+    "joySetThreshold+0x156",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 40892
+  },
+  {
+   "rip": "0x7ffc01a64a14",
+   "rsp": "0x8f47bff558",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForAlertByThreadId+0x14",
+    "RtlSleepConditionVariableSRW+0x1de",
+    "SleepConditionVariableSRW+0x38",
+    "Cnd_wait+0x28",
+    "VitApp.exe+0xca62ff",
+    "VitApp.exe+0x69a0b2",
+    "VitApp.exe+0xe7817e",
+    "VitApp.exe+0x6f8d82",
+    "VitApp.exe+0xda0629",
+    "VitApp.exe+0x7028e3",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 34304
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f47cffa78",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 27248
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f47dffa78",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 30652
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f47effce8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 20960
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f47fff5c8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 39792
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f480ff998",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 40680
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f481ffd68",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 19780
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f482ff648",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 21752
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f483ffd58",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 31848
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f484ffbb8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 40844
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f485ffb58",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 39304
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f486ffb68",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 38008
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f487ff958",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 2656
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f488ff918",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 38560
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f489ff738",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 17148
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f48aff798",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 33624
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f48bffb48",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 12628
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f48cffbf8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 10208
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f499ff7d8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 27520
+  },
+  {
+   "rip": "0x7ffc01a60e44",
+   "rsp": "0x8f49aff8b8",
+   "start_addr": "0x7ffbff32cd00",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForSingleObject+0x14",
+    "WaitForSingleObjectEx+0xaf",
+    "VitApp.exe+0x117d3e9",
+    "VitApp.exe+0x947a4d",
+    "thread_start<unsigned int (__cdecl*)(void *),1>+0x30",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 6568
+  },
+  {
+   "rip": "0x7ffc01a64a74",
+   "rsp": "0x8f49bff8a8",
+   "start_addr": "0x7ffc0191a2e0",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForWorkViaWorkerFactory+0x14",
+    "TppWorkerThread+0x37e",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 19384
+  },
+  {
+   "rip": "0x7ffc01a64a74",
+   "rsp": "0x8f49cff6d8",
+   "start_addr": "0x7ffc0191a2e0",
+   "suspend_ok": true,
+   "frames": [
+    "NtWaitForWorkViaWorkerFactory+0x14",
+    "TppWorkerThread+0x37e",
+    "BaseThreadInitThunk+0x17",
+    "RtlUserThreadStart+0x2c"
+   ],
+   "tid": 18024
+  }
+ ],
+ "errors": [],
+ "module_count": 75,
+ "modules": [
+  {
+   "name": "VitApp.exe",
+   "base": "0x7ff7b7950000",
+   "size": 32440320
+  },
+  {
+   "name": "ntdll.dll",
+   "base": "0x7ffc01900000",
+   "size": 2519040
+  },
+  {
+   "name": "KERNEL32.DLL",
+   "base": "0x7ffbff950000",
+   "size": 831488
+  },
+  {
+   "name": "KERNELBASE.dll",
+   "base": "0x7ffbfed70000",
+   "size": 4202496
+  },
+  {
+   "name": "apphelp.dll",
+   "base": "0x7ffbfb410000",
+   "size": 651264
+  },
+  {
+   "name": "WS2_32.dll",
+   "base": "0x7ffbff7e0000",
+   "size": 524288
+  },
+  {
+   "name": "ucrtbase.dll",
+   "base": "0x7ffbff300000",
+   "size": 1359872
+  },
+  {
+   "name": "RPCRT4.dll",
+   "base": "0x7ffbffc90000",
+   "size": 1146880
+  },
+  {
+   "name": "USER32.dll",
+   "base": "0x7ffc00a90000",
+   "size": 1896448
+  },
+  {
+   "name": "win32u.dll",
+   "base": "0x7ffbff460000",
+   "size": 159744
+  },
+  {
+   "name": "GDI32.dll",
+   "base": "0x7ffc017c0000",
+   "size": 176128
+  },
+  {
+   "name": "gdi32full.dll",
+   "base": "0x7ffbfeb00000",
+   "size": 1216512
+  },
+  {
+   "name": "IPHLPAPI.DLL",
+   "base": "0x7ffbfd130000",
+   "size": 208896
+  },
+  {
+   "name": "msvcp_win.dll",
+   "base": "0x7ffbfec30000",
+   "size": 667648
+  },
+  {
+   "name": "SHELL32.dll",
+   "base": "0x7ffc00d50000",
+   "size": 7962624
+  },
+  {
+   "name": "ole32.dll",
+   "base": "0x7ffbff640000",
+   "size": 1679360
+  },
+  {
+   "name": "combase.dll",
+   "base": "0x7ffc00570000",
+   "size": 3690496
+  },
+  {
+   "name": "OLEAUT32.dll",
+   "base": "0x7ffbff870000",
+   "size": 888832
+  },
+  {
+   "name": "COMDLG32.dll",
+   "base": "0x7ffc00990000",
+   "size": 1003520
+  },
+  {
+   "name": "shcore.dll",
+   "base": "0x7ffc016c0000",
+   "size": 1028096
+  },
+  {
+   "name": "SHLWAPI.dll",
+   "base": "0x7ffc014f0000",
+   "size": 417792
+  },
+  {
+   "name": "ADVAPI32.dll",
+   "base": "0x7ffc017f0000",
+   "size": 770048
+  },
+  {
+   "name": "msvcrt.dll",
+   "base": "0x7ffbffe60000",
+   "size": 692224
+  },
+  {
+   "name": "COMCTL32.dll",
+   "base": "0x7ffbe2d10000",
+   "size": 2686976
+  },
+  {
+   "name": "sechost.dll",
+   "base": "0x7ffbffdb0000",
+   "size": 692224
+  },
+  {
+   "name": "IMM32.dll",
+   "base": "0x7ffbfffb0000",
+   "size": 200704
+  },
+  {
+   "name": "MSVCP140_ATOMIC_WAIT.dll",
+   "base": "0x7ffbca3e0000",
+   "size": 81920
+  },
+  {
+   "name": "WININET.dll",
+   "base": "0x7ffbe17d0000",
+   "size": 2699264
+  },
+  {
+   "name": "WINMM.dll",
+   "base": "0x7ffbeddd0000",
+   "size": 221184
+  },
+  {
+   "name": "MSVCP140.dll",
+   "base": "0x7ffbe2fe0000",
+   "size": 557056
+  },
+  {
+   "name": "dwmapi.dll",
+   "base": "0x7ffbfbe10000",
+   "size": 192512
+  },
+  {
+   "name": "d2d1.dll",
+   "base": "0x7ffbf9720000",
+   "size": 6529024
+  },
+  {
+   "name": "dcomp.dll",
+   "base": "0x7ffbf9ee0000",
+   "size": 2248704
+  },
+  {
+   "name": "dxgi.dll",
+   "base": "0x7ffbfb6d0000",
+   "size": 1290240
+  },
+  {
+   "name": "d3d11.dll",
+   "base": "0x7ffbf94b0000",
+   "size": 2490368
+  },
+  {
+   "name": "VCRUNTIME140_1.dll",
+   "base": "0x7ffbe2fd0000",
+   "size": 45056
+  },
+  {
+   "name": "VCRUNTIME140.dll",
+   "base": "0x7ffbe2fb0000",
+   "size": 122880
+  },
+  {
+   "name": "kernel.appcore.dll",
+   "base": "0x7ffbfd7b0000",
+   "size": 110592
+  },
+  {
+   "name": "Microsoft.Internal.WarpPal.dll",
+   "base": "0x7ffbf8b10000",
+   "size": 106496
+  },
+  {
+   "name": "powrprof.dll",
+   "base": "0x7ffbfe7a0000",
+   "size": 385024
+  },
+  {
+   "name": "CRYPTBASE.DLL",
+   "base": "0x7ffbfe0a0000",
+   "size": 49152
+  },
+  {
+   "name": "UMPDC.dll",
+   "base": "0x7ffbfe780000",
+   "size": 86016
+  },
+  {
+   "name": "bcryptPrimitives.dll",
+   "base": "0x7ffbff240000",
+   "size": 704512
+  },
+  {
+   "name": "uxtheme.dll",
+   "base": "0x7ffbfbca0000",
+   "size": 688128
+  },
+  {
+   "name": "MSCTF.dll",
+   "base": "0x7ffc01560000",
+   "size": 1421312
+  },
+  {
+   "name": "windows.storage.dll",
+   "base": "0x7ffbfc530000",
+   "size": 9101312
+  },
+  {
+   "name": "ntmarta.dll",
+   "base": "0x7ffbfd8e0000",
+   "size": 221184
+  },
+  {
+   "name": "winmmbase.dll",
+   "base": "0x7ffb78620000",
+   "size": 225280
+  },
+  {
+   "name": "cfgmgr32.dll",
+   "base": "0x7ffbfe690000",
+   "size": 335872
+  },
+  {
+   "name": "MMDevAPI.DLL",
+   "base": "0x7ffbf8020000",
+   "size": 675840
+  },
+  {
+   "name": "wdmaud.drv",
+   "base": "0x7ffb785c0000",
+   "size": 311296
+  },
+  {
+   "name": "wdmaud2.drv",
+   "base": "0x7ffb78590000",
+   "size": 155648
+  },
+  {
+   "name": "AVRT.dll",
+   "base": "0x7ffbf8480000",
+   "size": 45056
+  },
+  {
+   "name": "DEVOBJ.dll",
+   "base": "0x7ffbfe710000",
+   "size": 192512
+  },
+  {
+   "name": "AUDIOSES.DLL",
+   "base": "0x7ffbedef0000",
+   "size": 1798144
+  },
+  {
+   "name": "msacm32.drv",
+   "base": "0x7ffb7c140000",
+   "size": 61440
+  },
+  {
+   "name": "MSACM32.dll",
+   "base": "0x7ffb78230000",
+   "size": 135168
+  },
+  {
+   "name": "midimap.dll",
+   "base": "0x7ffb7ba20000",
+   "size": 49152
+  },
+  {
+   "name": "setupapi.dll",
+   "base": "0x7ffc000e0000",
+   "size": 4747264
+  },
+  {
+   "name": "WINTRUST.dll",
+   "base": "0x7ffbfece0000",
+   "size": 532480
+  },
+  {
+   "name": "CRYPT32.dll",
+   "base": "0x7ffbff490000",
+   "size": 1564672
+  },
+  {
+   "name": "MSASN1.dll",
+   "base": "0x7ffbfe100000",
+   "size": 77824
+  },
+  {
+   "name": "dsound.dll",
+   "base": "0x7ffbc3970000",
+   "size": 606208
+  },
+  {
+   "name": "ResampleDmo.DLL",
+   "base": "0x7ffbc1130000",
+   "size": 749568
+  },
+  {
+   "name": "msdmo.dll",
+   "base": "0x7ffbae550000",
+   "size": 57344
+  },
+  {
+   "name": "clbcatq.dll",
+   "base": "0x7ffc00020000",
+   "size": 712704
+  },
+  {
+   "name": "resourcepolicyclient.dll",
+   "base": "0x7ffbfc1e0000",
+   "size": 81920
+  },
+  {
+   "name": "Windows.UI.dll",
+   "base": "0x7ffbe4300000",
+   "size": 1421312
+  },
+  {
+   "name": "mswsock.dll",
+   "base": "0x7ffbfdd90000",
+   "size": 442368
+  },
+  {
+   "name": "wshunix.dll",
+   "base": "0x7ffbba2f0000",
+   "size": 32768
+  },
+  {
+   "name": "NSI.dll",
+   "base": "0x7ffbfffa0000",
+   "size": 40960
+  },
+  {
+   "name": "dhcpcsvc6.DLL",
+   "base": "0x7ffbf77e0000",
+   "size": 118784
+  },
+  {
+   "name": "dhcpcsvc.DLL",
+   "base": "0x7ffbf77b0000",
+   "size": 151552
+  },
+  {
+   "name": "DNSAPI.dll",
+   "base": "0x7ffbfd170000",
+   "size": 1409024
+  },
+  {
+   "name": "DSPARSE.dll",
+   "base": "0x7ffbfdb70000",
+   "size": 53248
+  }
+ ]
+}

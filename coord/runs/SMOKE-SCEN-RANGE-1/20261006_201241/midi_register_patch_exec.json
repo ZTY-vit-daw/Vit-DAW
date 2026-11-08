@@ -1,0 +1,714 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_2bb58bfca150dd20",
+    "tool":  "midi.write_clip_notes",
+    "command_name":  "apply_midi_note_patch",
+    "risk_level":  "confirm",
+    "requires_confirmation":  false,
+    "undo_label":  "Agent: MIDI note patch",
+    "result":  {
+                   "clip_id":  "1016",
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "MIDI note patch applied",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "apply_midi_note_patch",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1791288769431958500_43"
+                                   },
+                   "deleted_count":  1,
+                   "deleted_note_ids":  [
+                                            "midi_file_note_2"
+                                        ],
+                   "ignored_channels":  [
+
+                                        ],
+                   "inserted_count":  1,
+                   "inserted_note_ids":  [
+                                             "note_5d120f011706473c9e898a08d03d8579"
+                                         ],
+                   "message":  "MIDI note patch applied",
+                   "missing_note_ids":  [
+
+                                        ],
+                   "mutated_count":  1,
+                   "mutated_note_ids":  [
+                                            "midi_file_note_1"
+                                        ],
+                   "notes":  [
+                                 {
+                                     "channel":  1,
+                                     "id":  "midi_file_note_1",
+                                     "length":  1,
+                                     "pitch":  65,
+                                     "start":  0,
+                                     "velocity":  90
+                                 },
+                                 {
+                                     "channel":  1,
+                                     "id":  "midi_file_note_3",
+                                     "length":  1,
+                                     "pitch":  67,
+                                     "start":  2,
+                                     "velocity":  70
+                                 },
+                                 {
+                                     "channel":  1,
+                                     "id":  "note_5d120f011706473c9e898a08d03d8579",
+                                     "length":  1,
+                                     "pitch":  72,
+                                     "start":  3,
+                                     "velocity":  64
+                                 }
+                             ],
+                   "operation_count":  3,
+                   "quantized_count":  0,
+                   "quantized_note_ids":  [
+
+                                          ],
+                   "replaced_region_count":  0,
+                   "state_delta":  {
+                                       "ack":  {
+                                                   "message":  "State delta captured",
+                                                   "stage":  "completed"
+                                               },
+                                       "base_revision":  3,
+                                       "changed_clips":  [
+                                                             "1016"
+                                                         ],
+                                       "changed_tracks":  [
+                                                              "1013"
+                                                          ],
+                                       "ops":  [
+                                                   {
+                                                       "op":  "replace",
+                                                       "path":  "/tracks/1013",
+                                                       "track_id":  "1013",
+                                                       "value":  {
+                                                                     "armed":  false,
+                                                                     "can_contain_child_tracks":  false,
+                                                                     "child_track_count":  0,
+                                                                     "child_track_ids":  [
+
+                                                                                         ],
+                                                                     "clip_count":  1,
+                                                                     "depth":  0,
+                                                                     "descendant_track_count":  0,
+                                                                     "descendant_track_ids":  [
+
+                                                                                              ],
+                                                                     "direct_child_track_ids":  [
+
+                                                                                                ],
+                                                                     "fader_db":  0,
+                                                                     "folder_behavior":  null,
+                                                                     "gain_db":  0,
+                                                                     "has_child_tracks":  false,
+                                                                     "id":  "1013",
+                                                                     "is_armed":  false,
+                                                                     "is_audio":  true,
+                                                                     "is_audio_track":  true,
+                                                                     "is_folder_container":  false,
+                                                                     "is_folder_track":  false,
+                                                                     "is_submix_folder":  false,
+                                                                     "mute":  false,
+                                                                     "name":  "Track 3",
+                                                                     "pan":  0,
+                                                                     "pan_value":  0,
+                                                                     "parent_folder_track_id":  null,
+                                                                     "parent_track_id":  null,
+                                                                     "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                     "routing_bus_enabled":  false,
+                                                                     "solo":  false,
+                                                                     "track_depth":  0,
+                                                                     "track_id":  "1013",
+                                                                     "track_state_revision":  "3038f738510bd32b",
+                                                                     "track_type":  "hybrid",
+                                                                     "volume_db":  0
+                                                                 }
+                                                   },
+                                                   {
+                                                       "clip_id":  "1016",
+                                                       "op":  "replace",
+                                                       "path":  "/tracks/1013/clips/1016",
+                                                       "track_id":  "1013",
+                                                       "value":  {
+                                                                     "active_take_id":  "",
+                                                                     "asset_job_id":  "",
+                                                                     "asset_ref":  "",
+                                                                     "asset_state":  "",
+                                                                     "clip_id":  "1016",
+                                                                     "clip_state_revision":  "780131b5ca093e69",
+                                                                     "clip_type":  "midi",
+                                                                     "end_seconds":  2,
+                                                                     "ghost_state":  "",
+                                                                     "id":  "1016",
+                                                                     "length_seconds":  2,
+                                                                     "name":  "midi_register_fixture",
+                                                                     "offset_in_source_seconds":  0,
+                                                                     "start_seconds":  0,
+                                                                     "take_stack_id":  "",
+                                                                     "track_id":  "1013",
+                                                                     "warp_state":  ""
+                                                                 }
+                                                   }
+                                               ],
+                                       "ops_count":  2,
+                                       "project_epoch":  "epoch_c3adc632e660c070",
+                                       "resync":  false,
+                                       "resync_hint":  false,
+                                       "revision":  4,
+                                       "scope":  "project.timeline",
+                                       "snapshot_hash":  "950d3928db0685a4",
+                                       "source":  "vsp.state.delta",
+                                       "stage":  "completed",
+                                       "type":  "state.delta"
+                                   },
+                   "state_resync":  {
+                                        "ack":  {
+                                                    "message":  "State resynchronised",
+                                                    "stage":  "completed"
+                                                },
+                                        "base_revision":  0,
+                                        "changed_clips":  null,
+                                        "changed_tracks":  null,
+                                        "ops_count":  0,
+                                        "project":  {
+                                                        "clip_count":  1,
+                                                        "legacy_graph_active_revision":  0,
+                                                        "legacy_graph_last_diff_kind":  "",
+                                                        "legacy_graph_lifecycle_state":  "idle",
+                                                        "legacy_graph_pending_revision":  0,
+                                                        "legacy_graph_publish_mode":  "idle",
+                                                        "legacy_graph_revision":  0,
+                                                        "parent_project_uuid":  "",
+                                                        "project_id":  "project_current",
+                                                        "project_path":  "",
+                                                        "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                                                        "scope":  "project.timeline",
+                                                        "track_count":  3
+                                                    },
+                                        "project_epoch":  "epoch_c3adc632e660c070",
+                                        "resync":  true,
+                                        "resync_hint":  false,
+                                        "revision":  4,
+                                        "scope":  "project.timeline",
+                                        "snapshot_hash":  "950d3928db0685a4",
+                                        "source":  "vsp.state.resync",
+                                        "stage":  "completed",
+                                        "tracks":  [
+                                                       {
+                                                           "armed":  false,
+                                                           "can_contain_child_tracks":  false,
+                                                           "child_track_count":  0,
+                                                           "child_track_ids":  [
+
+                                                                               ],
+                                                           "clip_count":  0,
+                                                           "clips":  [
+
+                                                                     ],
+                                                           "depth":  0,
+                                                           "descendant_track_count":  0,
+                                                           "descendant_track_ids":  [
+
+                                                                                    ],
+                                                           "direct_child_track_ids":  [
+
+                                                                                      ],
+                                                           "fader_db":  0,
+                                                           "folder_behavior":  null,
+                                                           "gain_db":  0,
+                                                           "has_child_tracks":  false,
+                                                           "id":  "1007",
+                                                           "is_armed":  false,
+                                                           "is_audio":  true,
+                                                           "is_audio_track":  true,
+                                                           "is_folder_container":  false,
+                                                           "is_folder_track":  false,
+                                                           "is_submix_folder":  false,
+                                                           "mute":  false,
+                                                           "name":  "Track 1",
+                                                           "pan":  0,
+                                                           "pan_value":  0,
+                                                           "parent_folder_track_id":  null,
+                                                           "parent_track_id":  null,
+                                                           "plugin_param_digest":  "krev1_no_external_plugins",
+                                                           "routing_bus_enabled":  false,
+                                                           "solo":  false,
+                                                           "track_depth":  0,
+                                                           "track_id":  "1007",
+                                                           "track_state_revision":  "cf5c9d64b65a0c57",
+                                                           "track_type":  "hybrid",
+                                                           "volume_db":  0
+                                                       },
+                                                       {
+                                                           "armed":  false,
+                                                           "can_contain_child_tracks":  false,
+                                                           "child_track_count":  0,
+                                                           "child_track_ids":  [
+
+                                                                               ],
+                                                           "clip_count":  0,
+                                                           "clips":  [
+
+                                                                     ],
+                                                           "depth":  0,
+                                                           "descendant_track_count":  0,
+                                                           "descendant_track_ids":  [
+
+                                                                                    ],
+                                                           "direct_child_track_ids":  [
+
+                                                                                      ],
+                                                           "fader_db":  0,
+                                                           "folder_behavior":  null,
+                                                           "gain_db":  0,
+                                                           "has_child_tracks":  false,
+                                                           "id":  "1010",
+                                                           "is_armed":  false,
+                                                           "is_audio":  true,
+                                                           "is_audio_track":  true,
+                                                           "is_folder_container":  false,
+                                                           "is_folder_track":  false,
+                                                           "is_submix_folder":  false,
+                                                           "mute":  false,
+                                                           "name":  "Track 2",
+                                                           "pan":  0,
+                                                           "pan_value":  0,
+                                                           "parent_folder_track_id":  null,
+                                                           "parent_track_id":  null,
+                                                           "plugin_param_digest":  "krev1_no_external_plugins",
+                                                           "routing_bus_enabled":  false,
+                                                           "solo":  false,
+                                                           "track_depth":  0,
+                                                           "track_id":  "1010",
+                                                           "track_state_revision":  "fa87f1d6b19de4d9",
+                                                           "track_type":  "hybrid",
+                                                           "volume_db":  0
+                                                       },
+                                                       {
+                                                           "armed":  false,
+                                                           "can_contain_child_tracks":  false,
+                                                           "child_track_count":  0,
+                                                           "child_track_ids":  [
+
+                                                                               ],
+                                                           "clip_count":  1,
+                                                           "clips":  [
+                                                                         {
+                                                                             "active_take_id":  "",
+                                                                             "asset_job_id":  "",
+                                                                             "asset_ref":  "",
+                                                                             "asset_state":  "",
+                                                                             "clip_id":  "1016",
+                                                                             "clip_state_revision":  "780131b5ca093e69",
+                                                                             "clip_type":  "midi",
+                                                                             "end_seconds":  2,
+                                                                             "ghost_state":  "",
+                                                                             "id":  "1016",
+                                                                             "length_seconds":  2,
+                                                                             "name":  "midi_register_fixture",
+                                                                             "offset_in_source_seconds":  0,
+                                                                             "start_seconds":  0,
+                                                                             "take_stack_id":  "",
+                                                                             "track_id":  "1013",
+                                                                             "warp_state":  ""
+                                                                         }
+                                                                     ],
+                                                           "depth":  0,
+                                                           "descendant_track_count":  0,
+                                                           "descendant_track_ids":  [
+
+                                                                                    ],
+                                                           "direct_child_track_ids":  [
+
+                                                                                      ],
+                                                           "fader_db":  0,
+                                                           "folder_behavior":  null,
+                                                           "gain_db":  0,
+                                                           "has_child_tracks":  false,
+                                                           "id":  "1013",
+                                                           "is_armed":  false,
+                                                           "is_audio":  true,
+                                                           "is_audio_track":  true,
+                                                           "is_folder_container":  false,
+                                                           "is_folder_track":  false,
+                                                           "is_submix_folder":  false,
+                                                           "mute":  false,
+                                                           "name":  "Track 3",
+                                                           "pan":  0,
+                                                           "pan_value":  0,
+                                                           "parent_folder_track_id":  null,
+                                                           "parent_track_id":  null,
+                                                           "plugin_param_digest":  "krev1_no_external_plugins",
+                                                           "routing_bus_enabled":  false,
+                                                           "solo":  false,
+                                                           "track_depth":  0,
+                                                           "track_id":  "1013",
+                                                           "track_state_revision":  "3038f738510bd32b",
+                                                           "track_type":  "hybrid",
+                                                           "volume_db":  0
+                                                       }
+                                                   ],
+                                        "type":  "state.snapshot"
+                                    },
+                   "status":  "ok",
+                   "time_unit":  "beats",
+                   "track_id":  "1013",
+                   "ui_action":  "midi_note_patch",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "MIDI note patch applied",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "apply_midi_note_patch",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1791288769431958500_43"
+                                               },
+                               "state_delta":  {
+                                                   "ack":  {
+                                                               "message":  "State delta captured",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "base_revision":  3,
+                                                   "changed_clips":  [
+                                                                         "1016"
+                                                                     ],
+                                                   "changed_tracks":  [
+                                                                          "1013"
+                                                                      ],
+                                                   "ops":  [
+                                                               {
+                                                                   "op":  "replace",
+                                                                   "path":  "/tracks/1013",
+                                                                   "track_id":  "1013",
+                                                                   "value":  {
+                                                                                 "armed":  false,
+                                                                                 "can_contain_child_tracks":  false,
+                                                                                 "child_track_count":  0,
+                                                                                 "child_track_ids":  [
+
+                                                                                                     ],
+                                                                                 "clip_count":  1,
+                                                                                 "depth":  0,
+                                                                                 "descendant_track_count":  0,
+                                                                                 "descendant_track_ids":  [
+
+                                                                                                          ],
+                                                                                 "direct_child_track_ids":  [
+
+                                                                                                            ],
+                                                                                 "fader_db":  0,
+                                                                                 "folder_behavior":  null,
+                                                                                 "gain_db":  0,
+                                                                                 "has_child_tracks":  false,
+                                                                                 "id":  "1013",
+                                                                                 "is_armed":  false,
+                                                                                 "is_audio":  true,
+                                                                                 "is_audio_track":  true,
+                                                                                 "is_folder_container":  false,
+                                                                                 "is_folder_track":  false,
+                                                                                 "is_submix_folder":  false,
+                                                                                 "mute":  false,
+                                                                                 "name":  "Track 3",
+                                                                                 "pan":  0,
+                                                                                 "pan_value":  0,
+                                                                                 "parent_folder_track_id":  null,
+                                                                                 "parent_track_id":  null,
+                                                                                 "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                                 "routing_bus_enabled":  false,
+                                                                                 "solo":  false,
+                                                                                 "track_depth":  0,
+                                                                                 "track_id":  "1013",
+                                                                                 "track_state_revision":  "3038f738510bd32b",
+                                                                                 "track_type":  "hybrid",
+                                                                                 "volume_db":  0
+                                                                             }
+                                                               },
+                                                               {
+                                                                   "clip_id":  "1016",
+                                                                   "op":  "replace",
+                                                                   "path":  "/tracks/1013/clips/1016",
+                                                                   "track_id":  "1013",
+                                                                   "value":  {
+                                                                                 "active_take_id":  "",
+                                                                                 "asset_job_id":  "",
+                                                                                 "asset_ref":  "",
+                                                                                 "asset_state":  "",
+                                                                                 "clip_id":  "1016",
+                                                                                 "clip_state_revision":  "780131b5ca093e69",
+                                                                                 "clip_type":  "midi",
+                                                                                 "end_seconds":  2,
+                                                                                 "ghost_state":  "",
+                                                                                 "id":  "1016",
+                                                                                 "length_seconds":  2,
+                                                                                 "name":  "midi_register_fixture",
+                                                                                 "offset_in_source_seconds":  0,
+                                                                                 "start_seconds":  0,
+                                                                                 "take_stack_id":  "",
+                                                                                 "track_id":  "1013",
+                                                                                 "warp_state":  ""
+                                                                             }
+                                                               }
+                                                           ],
+                                                   "ops_count":  2,
+                                                   "project_epoch":  "epoch_c3adc632e660c070",
+                                                   "resync":  false,
+                                                   "resync_hint":  false,
+                                                   "revision":  4,
+                                                   "scope":  "project.timeline",
+                                                   "snapshot_hash":  "950d3928db0685a4",
+                                                   "source":  "vsp.state.delta",
+                                                   "stage":  "completed",
+                                                   "type":  "state.delta"
+                                               },
+                               "state_resync":  {
+                                                    "ack":  {
+                                                                "message":  "State resynchronised",
+                                                                "stage":  "completed"
+                                                            },
+                                                    "base_revision":  0,
+                                                    "changed_clips":  null,
+                                                    "changed_tracks":  null,
+                                                    "ops_count":  0,
+                                                    "project":  {
+                                                                    "clip_count":  1,
+                                                                    "legacy_graph_active_revision":  0,
+                                                                    "legacy_graph_last_diff_kind":  "",
+                                                                    "legacy_graph_lifecycle_state":  "idle",
+                                                                    "legacy_graph_pending_revision":  0,
+                                                                    "legacy_graph_publish_mode":  "idle",
+                                                                    "legacy_graph_revision":  0,
+                                                                    "parent_project_uuid":  "",
+                                                                    "project_id":  "project_current",
+                                                                    "project_path":  "",
+                                                                    "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                                                                    "scope":  "project.timeline",
+                                                                    "track_count":  3
+                                                                },
+                                                    "project_epoch":  "epoch_c3adc632e660c070",
+                                                    "resync":  true,
+                                                    "resync_hint":  false,
+                                                    "revision":  4,
+                                                    "scope":  "project.timeline",
+                                                    "snapshot_hash":  "950d3928db0685a4",
+                                                    "source":  "vsp.state.resync",
+                                                    "stage":  "completed",
+                                                    "tracks":  [
+                                                                   {
+                                                                       "armed":  false,
+                                                                       "can_contain_child_tracks":  false,
+                                                                       "child_track_count":  0,
+                                                                       "child_track_ids":  [
+
+                                                                                           ],
+                                                                       "clip_count":  0,
+                                                                       "clips":  [
+
+                                                                                 ],
+                                                                       "depth":  0,
+                                                                       "descendant_track_count":  0,
+                                                                       "descendant_track_ids":  [
+
+                                                                                                ],
+                                                                       "direct_child_track_ids":  [
+
+                                                                                                  ],
+                                                                       "fader_db":  0,
+                                                                       "folder_behavior":  null,
+                                                                       "gain_db":  0,
+                                                                       "has_child_tracks":  false,
+                                                                       "id":  "1007",
+                                                                       "is_armed":  false,
+                                                                       "is_audio":  true,
+                                                                       "is_audio_track":  true,
+                                                                       "is_folder_container":  false,
+                                                                       "is_folder_track":  false,
+                                                                       "is_submix_folder":  false,
+                                                                       "mute":  false,
+                                                                       "name":  "Track 1",
+                                                                       "pan":  0,
+                                                                       "pan_value":  0,
+                                                                       "parent_folder_track_id":  null,
+                                                                       "parent_track_id":  null,
+                                                                       "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                       "routing_bus_enabled":  false,
+                                                                       "solo":  false,
+                                                                       "track_depth":  0,
+                                                                       "track_id":  "1007",
+                                                                       "track_state_revision":  "cf5c9d64b65a0c57",
+                                                                       "track_type":  "hybrid",
+                                                                       "volume_db":  0
+                                                                   },
+                                                                   {
+                                                                       "armed":  false,
+                                                                       "can_contain_child_tracks":  false,
+                                                                       "child_track_count":  0,
+                                                                       "child_track_ids":  [
+
+                                                                                           ],
+                                                                       "clip_count":  0,
+                                                                       "clips":  [
+
+                                                                                 ],
+                                                                       "depth":  0,
+                                                                       "descendant_track_count":  0,
+                                                                       "descendant_track_ids":  [
+
+                                                                                                ],
+                                                                       "direct_child_track_ids":  [
+
+                                                                                                  ],
+                                                                       "fader_db":  0,
+                                                                       "folder_behavior":  null,
+                                                                       "gain_db":  0,
+                                                                       "has_child_tracks":  false,
+                                                                       "id":  "1010",
+                                                                       "is_armed":  false,
+                                                                       "is_audio":  true,
+                                                                       "is_audio_track":  true,
+                                                                       "is_folder_container":  false,
+                                                                       "is_folder_track":  false,
+                                                                       "is_submix_folder":  false,
+                                                                       "mute":  false,
+                                                                       "name":  "Track 2",
+                                                                       "pan":  0,
+                                                                       "pan_value":  0,
+                                                                       "parent_folder_track_id":  null,
+                                                                       "parent_track_id":  null,
+                                                                       "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                       "routing_bus_enabled":  false,
+                                                                       "solo":  false,
+                                                                       "track_depth":  0,
+                                                                       "track_id":  "1010",
+                                                                       "track_state_revision":  "fa87f1d6b19de4d9",
+                                                                       "track_type":  "hybrid",
+                                                                       "volume_db":  0
+                                                                   },
+                                                                   {
+                                                                       "armed":  false,
+                                                                       "can_contain_child_tracks":  false,
+                                                                       "child_track_count":  0,
+                                                                       "child_track_ids":  [
+
+                                                                                           ],
+                                                                       "clip_count":  1,
+                                                                       "clips":  [
+                                                                                     {
+                                                                                         "active_take_id":  "",
+                                                                                         "asset_job_id":  "",
+                                                                                         "asset_ref":  "",
+                                                                                         "asset_state":  "",
+                                                                                         "clip_id":  "1016",
+                                                                                         "clip_state_revision":  "780131b5ca093e69",
+                                                                                         "clip_type":  "midi",
+                                                                                         "end_seconds":  2,
+                                                                                         "ghost_state":  "",
+                                                                                         "id":  "1016",
+                                                                                         "length_seconds":  2,
+                                                                                         "name":  "midi_register_fixture",
+                                                                                         "offset_in_source_seconds":  0,
+                                                                                         "start_seconds":  0,
+                                                                                         "take_stack_id":  "",
+                                                                                         "track_id":  "1013",
+                                                                                         "warp_state":  ""
+                                                                                     }
+                                                                                 ],
+                                                                       "depth":  0,
+                                                                       "descendant_track_count":  0,
+                                                                       "descendant_track_ids":  [
+
+                                                                                                ],
+                                                                       "direct_child_track_ids":  [
+
+                                                                                                  ],
+                                                                       "fader_db":  0,
+                                                                       "folder_behavior":  null,
+                                                                       "gain_db":  0,
+                                                                       "has_child_tracks":  false,
+                                                                       "id":  "1013",
+                                                                       "is_armed":  false,
+                                                                       "is_audio":  true,
+                                                                       "is_audio_track":  true,
+                                                                       "is_folder_container":  false,
+                                                                       "is_folder_track":  false,
+                                                                       "is_submix_folder":  false,
+                                                                       "mute":  false,
+                                                                       "name":  "Track 3",
+                                                                       "pan":  0,
+                                                                       "pan_value":  0,
+                                                                       "parent_folder_track_id":  null,
+                                                                       "parent_track_id":  null,
+                                                                       "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                       "routing_bus_enabled":  false,
+                                                                       "solo":  false,
+                                                                       "track_depth":  0,
+                                                                       "track_id":  "1013",
+                                                                       "track_state_revision":  "3038f738510bd32b",
+                                                                       "track_type":  "hybrid",
+                                                                       "volume_db":  0
+                                                                   }
+                                                               ],
+                                                    "type":  "state.snapshot"
+                                                },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           }
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261006T111942_de62fa6a",
+                            "baseline_created":  true,
+                            "branches":  {
+
+                                         },
+                            "commit_count":  0,
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "",
+                            "initialized":  true,
+                            "project_label":  "Unsaved",
+                            "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T121244_dbc5292e\\Unsaved.vit",
+                            "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                            "recent_checkpoints":  [
+
+                                                   ],
+                            "refs":  {
+
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "created_at":  "2026-10-06T12:12:49.4921189Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T121244_dbc5292e",
+                                                  "project_file_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T121244_dbc5292e\\Unsaved.vit",
+                                                  "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T121244_dbc5292e\\Unsaved.vit",
+                                                  "root_project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261006T121244_dbc5292e\\Unsaved.vit"
+                                              }
+                                          ]
+                        }
+}

@@ -1,0 +1,27 @@
+﻿{
+    "selected_track_id":  "1007",
+    "baseline_plugin_count":  0,
+    "track_names":  [
+                        "Bass",
+                        "Lead Vocal"
+                    ],
+    "pca_gate_denial_lines_before":  0,
+    "pca_gate_denial_lines_after":  0,
+    "plugin_identifier":  "VST3-bx_hybrid V2-d0ef306f-c141eb4b",
+    "load_graph_last_diff_kind":  "node_add",
+    "after_rack_plugin_rows":  1,
+    "load_plugin_instance_ready":  true,
+    "load_plugin_id":  "1020",
+    "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+    "after_rack_track":  "Bass",
+    "journey":  "journey_plugin_load",
+    "authority_probe":  "authority_smoke_ok",
+    "after_rack_plugin_ids":  [
+                                  "1020"
+                              ],
+    "after_plugin_count":  1,
+    "selected_track":  "Bass",
+    "finished_at":  "2026-10-07T11:07:37.9927036+08:00",
+    "pca_gate_denial_delta":  0,
+    "after_rack_plugins_type":  "System.Object[]"
+}

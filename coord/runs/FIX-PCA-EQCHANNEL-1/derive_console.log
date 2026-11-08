@@ -1,0 +1,4 @@
+=== phase derive (run 20260924_005622) ===
+[derive] EQ whitelist: +5 entries merged into live (1 excluded with reasons); backup D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\live_backup_pre_eq.json
+[derive] whitelist counts: {'static_eq': 6, 'broadband_compression': 24, 'de_esser': 6, 'limiter': 9, 'gate_expander': 3, 'transient_shaper': 2, 'multiband': 8}
+[derive] whitelist_v6_full applied to live (C:\Users\timoz\.vit\free_state_experiment_plugins.json); backup D:\Vit_DAW\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\live_backup_pre_apply.json

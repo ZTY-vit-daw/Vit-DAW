@@ -1,0 +1,4 @@
+[     132ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=fb82b8ea:20100
+[     146ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:121
+[   50051ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:5178/app/@vite/client:963
+[   52056ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034

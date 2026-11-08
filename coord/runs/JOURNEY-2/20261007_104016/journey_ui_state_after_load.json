@@ -1,0 +1,1200 @@
+﻿{
+    "agent_plan":  {
+                       "goal_id":  "goal_363d5fe1ad1aa461",
+                       "run_id":  "run_6886a6c19ad223e9",
+                       "status":  "completed",
+                       "summary":  "/smoke authority",
+                       "project_history":  {
+                                               "active_branch":  "main",
+                                               "active_node_id":  "n_20261007T024036_8c3dd28b",
+                                               "active_worktree":  "",
+                                               "available":  true,
+                                               "baseline_commit":  "c_20261007T024035_a6a03e60",
+                                               "baseline_created":  true,
+                                               "branches":  {
+                                                                "main":  "c_20261007T024036_214e8401"
+                                                            },
+                                               "commit_count":  2,
+                                               "conversation_graph":  {
+                                                                          "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                                                                          "project_uuid":  "vitproj_12fcf1a60b2d424ba4be412b31584643",
+                                                                          "active_node_id":  "n_20261007T024036_8c3dd28b",
+                                                                          "active_branch":  "main",
+                                                                          "nodes":  [
+                                                                                        {
+                                                                                            "id":  "n_20261007T024035_ab48f210",
+                                                                                            "kind":  "ask",
+                                                                                            "commit_id":  "c_20261007T024035_a6a03e60",
+                                                                                            "branch":  "main",
+                                                                                            "text":  "/smoke authority",
+                                                                                            "text_preview":  "/smoke authority",
+                                                                                            "goal_id":  "goal_363d5fe1ad1aa461",
+                                                                                            "run_id":  "run_6886a6c19ad223e9",
+                                                                                            "lifecycle":  "durable",
+                                                                                            "persistence":  "project_history",
+                                                                                            "message_kind":  "user",
+                                                                                            "turn_id":  "run_6886a6c19ad223e9",
+                                                                                            "logical_message_id":  "n_20261007T024035_ab48f210",
+                                                                                            "created_at":  "2026-10-07T02:40:35.5392047Z"
+                                                                                        },
+                                                                                        {
+                                                                                            "id":  "n_20261007T024036_8c3dd28b",
+                                                                                            "kind":  "vit",
+                                                                                            "commit_id":  "c_20261007T024036_214e8401",
+                                                                                            "parent_node_id":  "n_20261007T024035_ab48f210",
+                                                                                            "branch":  "main",
+                                                                                            "text":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                                                            "text_preview":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                                                            "goal_id":  "goal_363d5fe1ad1aa461",
+                                                                                            "run_id":  "run_6886a6c19ad223e9",
+                                                                                            "lifecycle":  "durable",
+                                                                                            "persistence":  "project_history",
+                                                                                            "message_kind":  "assistant",
+                                                                                            "turn_id":  "run_6886a6c19ad223e9",
+                                                                                            "logical_message_id":  "n_20261007T024036_8c3dd28b",
+                                                                                            "created_at":  "2026-10-07T02:40:36.1802424Z"
+                                                                                        }
+                                                                                    ]
+                                                                      },
+                                               "conversation_messages":  [
+                                                                             {
+                                                                                 "role":  "user",
+                                                                                 "content":  "/smoke authority",
+                                                                                 "node_id":  "n_20261007T024035_ab48f210",
+                                                                                 "commit_id":  "c_20261007T024035_a6a03e60",
+                                                                                 "branch":  "main",
+                                                                                 "lifecycle":  "durable",
+                                                                                 "persistence":  "project_history",
+                                                                                 "message_kind":  "user",
+                                                                                 "turn_id":  "run_6886a6c19ad223e9",
+                                                                                 "logical_message_id":  "n_20261007T024035_ab48f210",
+                                                                                 "created_at":  "2026-10-07T02:40:35.5392047Z"
+                                                                             },
+                                                                             {
+                                                                                 "role":  "assistant",
+                                                                                 "content":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                                                 "node_id":  "n_20261007T024036_8c3dd28b",
+                                                                                 "commit_id":  "c_20261007T024036_214e8401",
+                                                                                 "branch":  "main",
+                                                                                 "lifecycle":  "durable",
+                                                                                 "persistence":  "project_history",
+                                                                                 "message_kind":  "assistant",
+                                                                                 "turn_id":  "run_6886a6c19ad223e9",
+                                                                                 "logical_message_id":  "n_20261007T024036_8c3dd28b",
+                                                                                 "created_at":  "2026-10-07T02:40:36.1802424Z"
+                                                                             }
+                                                                         ],
+                                               "detached":  false,
+                                               "draft":  false,
+                                               "goal_active_branch":  "main",
+                                               "goal_detached":  false,
+                                               "head":  "c_20261007T024036_214e8401",
+                                               "history_dir":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\.vit_history\\.sessions\\vitproj_12fcf1a60b2d424ba4be412b31584643\\session_20261007T024023_b29381a5\\workspace",
+                                               "initialized":  true,
+                                               "project_label":  "journey_fixture",
+                                               "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                                               "project_uuid":  "vitproj_12fcf1a60b2d424ba4be412b31584643",
+                                               "recent_checkpoints":  [
+                                                                          {
+                                                                              "branch":  "main",
+                                                                              "checkpoint_kind":  "manual",
+                                                                              "created_at":  "2026-10-07T02:40:36.1918229Z",
+                                                                              "goal_id":  "goal_363d5fe1ad1aa461",
+                                                                              "id":  "c_20261007T024036_214e8401",
+                                                                              "message":  "Vit: authority smoke: bound=full_project_access server=full_project_access"
+                                                                          },
+                                                                          {
+                                                                              "branch":  "main",
+                                                                              "checkpoint_kind":  "manual",
+                                                                              "created_at":  "2026-10-07T02:40:35.5186853Z",
+                                                                              "goal_id":  "goal_363d5fe1ad1aa461",
+                                                                              "id":  "c_20261007T024035_a6a03e60",
+                                                                              "message":  "Conversation ask"
+                                                                          }
+                                                                      ],
+                                               "refs":  {
+                                                            "refs/heads/main":  "c_20261007T024036_214e8401"
+                                                        },
+                                               "root_project_path":  "",
+                                               "state_dir":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\.vit_history\\.sessions\\vitproj_12fcf1a60b2d424ba4be412b31584643\\session_20261007T024023_b29381a5\\workspace\\state",
+                                               "unsaved":  false,
+                                               "warnings":  [
+
+                                                            ],
+                                               "worktree_count":  1,
+                                               "worktrees":  [
+                                                                 {
+                                                                     "commit_id":  "c_20261007T024036_214e8401",
+                                                                     "created_at":  "2026-10-07T02:40:37.8782037Z",
+                                                                     "is_root":  true,
+                                                                     "label":  "主工作树",
+                                                                     "name":  "main",
+                                                                     "origin_commit_id":  "c_20261007T024036_214e8401",
+                                                                     "path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project",
+                                                                     "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                                                                     "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                                                                     "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit"
+                                                                 }
+                                                             ]
+                                           }
+                   },
+    "artifacts":  [
+
+                  ],
+    "authority_mode":  "full_project_access",
+    "capabilities":  {
+                         "direct_commands":  [
+                                                 "add_audio_track",
+                                                 "add_track",
+                                                 "aigc_register_job",
+                                                 "append_ghost_track",
+                                                 "arm_track",
+                                                 "artifact_extract",
+                                                 "artifact_list",
+                                                 "artifact_read",
+                                                 "browser_fetch",
+                                                 "browser_search",
+                                                 "cancel_render",
+                                                 "ccb_observation_catalog",
+                                                 "ccb_observation_request",
+                                                 "clip.fade.read",
+                                                 "clip.gain.read",
+                                                 "clip.strip_silence.analyze",
+                                                 "clip.strip_silence.suggest",
+                                                 "control_rename_macro",
+                                                 "control_set_macro_values",
+                                                 "control_set_node_value",
+                                                 "folder_track.create",
+                                                 "get_audio_device_types",
+                                                 "get_audio_devices",
+                                                 "get_midi_clip_data",
+                                                 "get_midi_clip_notes",
+                                                 "get_plugin_parameters",
+                                                 "get_project_state",
+                                                 "get_recent_projects",
+                                                 "get_wave_input_devices",
+                                                 "goal_cancel",
+                                                 "goal_status",
+                                                 "goal_tick",
+                                                 "list_tracks",
+                                                 "logs_read",
+                                                 "logs_search",
+                                                 "media.inspect_files",
+                                                 "media_index_authorized_folder",
+                                                 "media_register_assets",
+                                                 "mix_apply_tick",
+                                                 "mix_derive",
+                                                 "mix_observe",
+                                                 "mix_propose_tick",
+                                                 "mix_read",
+                                                 "mix_report",
+                                                 "mix_request_observation",
+                                                 "mix_rollback_tick",
+                                                 "open_plugin_ui",
+                                                 "ping",
+                                                 "play",
+                                                 "plugin_grabber_apply_compressor_controls",
+                                                 "plugin_grabber_apply_de_esser_controls",
+                                                 "plugin_grabber_apply_eq_edits",
+                                                 "plugin_grabber_apply_gate_expander_controls",
+                                                 "plugin_grabber_apply_limiter_controls",
+                                                 "plugin_grabber_apply_multiband_controls",
+                                                 "plugin_grabber_apply_transient_shaper_controls",
+                                                 "plugin_grabber_explain_controls",
+                                                 "plugin_grabber_inspect_compressor",
+                                                 "plugin_grabber_inspect_de_esser",
+                                                 "plugin_grabber_inspect_gate_expander",
+                                                 "plugin_grabber_inspect_limiter",
+                                                 "plugin_grabber_inspect_multiband",
+                                                 "plugin_grabber_inspect_spectral_dynamics",
+                                                 "plugin_grabber_inspect_transient_shaper",
+                                                 "plugin_grabber_set_eq_point",
+                                                 "plugin_list_available",
+                                                 "plugin_search",
+                                                 "plugin_semantic_get",
+                                                 "plugin_semantic_search",
+                                                 "project.audio_analysis_cancel",
+                                                 "project.audio_analysis_start",
+                                                 "project.audio_analysis_status",
+                                                 "project.get_audio_settings",
+                                                 "project.import_preflight",
+                                                 "project.markers.list",
+                                                 "project.markers.rename",
+                                                 "project.markers.upsert",
+                                                 "project.set_audio_settings",
+                                                 "project.validate_audio_settings_change",
+                                                 "project_health_check",
+                                                 "project_snapshot_export",
+                                                 "project_undo_state",
+                                                 "redo",
+                                                 "ref_diff",
+                                                 "ref_query",
+                                                 "rename_track",
+                                                 "render_profile_bind",
+                                                 "render_profile_list",
+                                                 "return_to_zero",
+                                                 "route_wave_input_to_track",
+                                                 "seek",
+                                                 "select_clip",
+                                                 "select_plugin",
+                                                 "select_track",
+                                                 "set_async_ghost_state",
+                                                 "set_click",
+                                                 "set_mute",
+                                                 "set_pan",
+                                                 "set_plugin_param",
+                                                 "set_solo",
+                                                 "set_tempo",
+                                                 "set_volume",
+                                                 "show_plugin_editor",
+                                                 "start_recording",
+                                                 "stop",
+                                                 "stop_recording",
+                                                 "toggle_click",
+                                                 "track.group.create",
+                                                 "track.group.list",
+                                                 "track.group.set_members",
+                                                 "track.group.update",
+                                                 "track.move_to_folder",
+                                                 "transport_option_stop_return_to_start",
+                                                 "undo",
+                                                 "version_diff",
+                                                 "version_list",
+                                                 "version_project_new",
+                                                 "version_project_opened",
+                                                 "version_project_save_prepare",
+                                                 "version_project_saved",
+                                                 "version_restore_preview",
+                                                 "version_show",
+                                                 "version_status",
+                                                 "version_worktree_list",
+                                                 "warm_waveform_bake",
+                                                 "workspace_blob_info",
+                                                 "workspace_edit_preview",
+                                                 "workspace_file_info",
+                                                 "workspace_glob",
+                                                 "workspace_grep",
+                                                 "workspace_read_file"
+                                             ],
+                         "macro_control_ui":  {
+                                                  "source":  "godot_rack",
+                                                  "supports_live_cards":  true,
+                                                  "supports_reference":  true
+                                              },
+                         "macro_controls":  [
+
+                                            ],
+                         "tools":  265
+                     },
+    "checkout_blocked":  false,
+    "goal":  {
+                 "goal_id":  "goal_363d5fe1ad1aa461",
+                 "run_id":  "run_6886a6c19ad223e9",
+                 "task":  {
+                              "task_id":  "task_173b32c015b49e61",
+                              "goal_id":  "goal_363d5fe1ad1aa461",
+                              "original_intent":  "/smoke authority",
+                              "status":  "settled",
+                              "run":  {
+                                          "run_id":  "run_6886a6c19ad223e9",
+                                          "task_id":  "task_173b32c015b49e61",
+                                          "next_slice":  1,
+                                          "next_turn":  1
+                                      },
+                              "created_at":  "2026-10-07T10:40:35.5166846+08:00",
+                              "updated_at":  "2026-10-07T10:40:36.1958312+08:00"
+                          },
+                 "status":  "completed",
+                 "summary":  "/smoke authority",
+                 "created_at":  "2026-10-07T10:40:35.5166846+08:00",
+                 "updated_at":  "2026-10-07T10:40:36.1958312+08:00",
+                 "cancel_requested":  false,
+                 "project_history":  {
+                                         "baseline_commit_id":  "c_20261007T024035_a6a03e60",
+                                         "baseline_created":  true,
+                                         "active_branch":  "main",
+                                         "head":  "c_20261007T024035_a6a03e60"
+                                     }
+             },
+    "macro_controls":  [
+
+                       ],
+    "plugin_rack":  {
+                        "plugins":  [
+                                        {
+                                            "audio_reachable_from_rack_input":  true,
+                                            "clip_scope":  "track",
+                                            "enabled":  true,
+                                            "format":  "VST3",
+                                            "id":  "1020",
+                                            "item_id":  "1020",
+                                            "name":  "bx_hybrid V2",
+                                            "node_id":  "1020",
+                                            "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                            "plugin_format":  "VST3",
+                                            "plugin_id":  "1020",
+                                            "plugin_item_id":  "1020",
+                                            "plugin_name":  "bx_hybrid V2",
+                                            "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                            "supports_param_grabber":  true,
+                                            "template_role":  "other",
+                                            "type":  "vst",
+                                            "vit_effective_in_output_path":  true,
+                                            "vit_orphan_bypass_candidate":  false,
+                                            "x":  0,
+                                            "y":  0,
+                                            "zone_id":  "Z3"
+                                        }
+                                    ],
+                        "rack":  {
+                                     "clip_proxy_nodes":  [
+                                                              {
+                                                                  "clip_id":  "1011",
+                                                                  "clip_type":  "audio",
+                                                                  "is_scope_hidden":  false,
+                                                                  "line_color_hint":  "FF50E676",
+                                                                  "name":  "Bass",
+                                                                  "node_id":  "clip_proxy:1011",
+                                                                  "node_role":  "clip_proxy",
+                                                                  "shared_by_clip_ids":  [
+                                                                                             "1011"
+                                                                                         ],
+                                                                  "source_clip_id":  "1011"
+                                                              }
+                                                          ],
+                                     "clip_routes":  [
+                                                         {
+                                                             "clip_id":  "1011",
+                                                             "dest_node_id":  "1020",
+                                                             "is_scope_hidden":  false,
+                                                             "line_color_hint":  "FF50E676",
+                                                             "proxy_node_id":  "clip_proxy:1011",
+                                                             "shared_by_clip_ids":  [
+                                                                                        "1011"
+                                                                                    ],
+                                                             "source_clip_id":  "1011"
+                                                         }
+                                                     ],
+                                     "edges":  [
+                                                   {
+                                                       "dest_id":  "1020",
+                                                       "dest_pin":  1,
+                                                       "edge_id":  "RACK_INPUT|1|1020|1",
+                                                       "is_scope_hidden":  false,
+                                                       "line_color_hint":  "#9AA4B2",
+                                                       "shared_by_clip_ids":  [
+
+                                                                              ],
+                                                       "source_clip_id":  "",
+                                                       "source_id":  "RACK_INPUT",
+                                                       "source_pin":  1,
+                                                       "vit_internal_default_audio":  false
+                                                   },
+                                                   {
+                                                       "dest_id":  "1020",
+                                                       "dest_pin":  2,
+                                                       "edge_id":  "RACK_INPUT|2|1020|2",
+                                                       "is_scope_hidden":  false,
+                                                       "line_color_hint":  "#9AA4B2",
+                                                       "shared_by_clip_ids":  [
+
+                                                                              ],
+                                                       "source_clip_id":  "",
+                                                       "source_id":  "RACK_INPUT",
+                                                       "source_pin":  2,
+                                                       "vit_internal_default_audio":  false
+                                                   },
+                                                   {
+                                                       "dest_id":  "RACK_OUTPUT",
+                                                       "dest_pin":  1,
+                                                       "edge_id":  "1020|1|RACK_OUTPUT|1",
+                                                       "is_scope_hidden":  false,
+                                                       "line_color_hint":  "FF50E676",
+                                                       "shared_by_clip_ids":  [
+                                                                                  "1011"
+                                                                              ],
+                                                       "source_clip_id":  "1011",
+                                                       "source_id":  "1020",
+                                                       "source_pin":  1,
+                                                       "vit_internal_default_audio":  false
+                                                   },
+                                                   {
+                                                       "dest_id":  "RACK_OUTPUT",
+                                                       "dest_pin":  2,
+                                                       "edge_id":  "1020|2|RACK_OUTPUT|2",
+                                                       "is_scope_hidden":  false,
+                                                       "line_color_hint":  "FF50E676",
+                                                       "shared_by_clip_ids":  [
+                                                                                  "1011"
+                                                                              ],
+                                                       "source_clip_id":  "1011",
+                                                       "source_id":  "1020",
+                                                       "source_pin":  2,
+                                                       "vit_internal_default_audio":  false
+                                                   },
+                                                   {
+                                                       "dest_id":  "1020",
+                                                       "dest_pin":  0,
+                                                       "edge_id":  "RACK_INPUT|0|1020|0",
+                                                       "is_scope_hidden":  false,
+                                                       "line_color_hint":  "#9AA4B2",
+                                                       "shared_by_clip_ids":  [
+
+                                                                              ],
+                                                       "source_clip_id":  "",
+                                                       "source_id":  "RACK_INPUT",
+                                                       "source_pin":  0,
+                                                       "vit_internal_default_audio":  false
+                                                   },
+                                                   {
+                                                       "dest_id":  "RACK_OUTPUT",
+                                                       "dest_pin":  0,
+                                                       "edge_id":  "1020|0|RACK_OUTPUT|0",
+                                                       "is_scope_hidden":  false,
+                                                       "line_color_hint":  "FF50E676",
+                                                       "shared_by_clip_ids":  [
+                                                                                  "1011"
+                                                                              ],
+                                                       "source_clip_id":  "1011",
+                                                       "source_id":  "1020",
+                                                       "source_pin":  0,
+                                                       "vit_internal_default_audio":  false
+                                                   }
+                                               ],
+                                     "id":  "1019",
+                                     "item_id":  "1019",
+                                     "node_count":  1,
+                                     "nodes":  [
+                                                   {
+                                                       "audio_reachable_from_rack_input":  true,
+                                                       "clip_scope":  "track",
+                                                       "enabled":  true,
+                                                       "format":  "VST3",
+                                                       "id":  "1020",
+                                                       "item_id":  "1020",
+                                                       "name":  "bx_hybrid V2",
+                                                       "node_id":  "1020",
+                                                       "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                       "plugin_format":  "VST3",
+                                                       "plugin_id":  "1020",
+                                                       "plugin_item_id":  "1020",
+                                                       "plugin_name":  "bx_hybrid V2",
+                                                       "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                       "supports_param_grabber":  true,
+                                                       "template_role":  "other",
+                                                       "type":  "vst",
+                                                       "vit_effective_in_output_path":  true,
+                                                       "vit_orphan_bypass_candidate":  false,
+                                                       "x":  0,
+                                                       "y":  0,
+                                                       "zone_id":  "Z3"
+                                                   }
+                                               ],
+                                     "rack_item_id":  "1019",
+                                     "scope":  "track"
+                                 },
+                        "track":  {
+                                      "track_id":  "1007",
+                                      "track_name":  "Bass"
+                                  }
+                    },
+    "project":  {
+                    "delta_seq_gaps":  1,
+                    "graph_revision":  null,
+                    "initialized":  true,
+                    "last_delta_seq":  104,
+                    "observability":  null,
+                    "pending_job_data":  null,
+                    "project_health":  null,
+                    "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                    "track_count":  2,
+                    "user_track_count":  2
+                },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261007T024036_8c3dd28b",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261007T024035_a6a03e60",
+                            "baseline_created":  true,
+                            "branches":  {
+                                             "main":  "c_20261007T024036_214e8401"
+                                         },
+                            "commit_count":  2,
+                            "conversation_graph":  {
+                                                       "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                                                       "project_uuid":  "vitproj_12fcf1a60b2d424ba4be412b31584643",
+                                                       "active_node_id":  "n_20261007T024036_8c3dd28b",
+                                                       "active_branch":  "main",
+                                                       "nodes":  [
+                                                                     {
+                                                                         "id":  "n_20261007T024035_ab48f210",
+                                                                         "kind":  "ask",
+                                                                         "commit_id":  "c_20261007T024035_a6a03e60",
+                                                                         "branch":  "main",
+                                                                         "text":  "/smoke authority",
+                                                                         "text_preview":  "/smoke authority",
+                                                                         "goal_id":  "goal_363d5fe1ad1aa461",
+                                                                         "run_id":  "run_6886a6c19ad223e9",
+                                                                         "lifecycle":  "durable",
+                                                                         "persistence":  "project_history",
+                                                                         "message_kind":  "user",
+                                                                         "turn_id":  "run_6886a6c19ad223e9",
+                                                                         "logical_message_id":  "n_20261007T024035_ab48f210",
+                                                                         "created_at":  "2026-10-07T02:40:35.5392047Z"
+                                                                     },
+                                                                     {
+                                                                         "id":  "n_20261007T024036_8c3dd28b",
+                                                                         "kind":  "vit",
+                                                                         "commit_id":  "c_20261007T024036_214e8401",
+                                                                         "parent_node_id":  "n_20261007T024035_ab48f210",
+                                                                         "branch":  "main",
+                                                                         "text":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                                         "text_preview":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                                         "goal_id":  "goal_363d5fe1ad1aa461",
+                                                                         "run_id":  "run_6886a6c19ad223e9",
+                                                                         "lifecycle":  "durable",
+                                                                         "persistence":  "project_history",
+                                                                         "message_kind":  "assistant",
+                                                                         "turn_id":  "run_6886a6c19ad223e9",
+                                                                         "logical_message_id":  "n_20261007T024036_8c3dd28b",
+                                                                         "created_at":  "2026-10-07T02:40:36.1802424Z"
+                                                                     }
+                                                                 ]
+                                                   },
+                            "conversation_messages":  [
+                                                          {
+                                                              "role":  "user",
+                                                              "content":  "/smoke authority",
+                                                              "node_id":  "n_20261007T024035_ab48f210",
+                                                              "commit_id":  "c_20261007T024035_a6a03e60",
+                                                              "branch":  "main",
+                                                              "lifecycle":  "durable",
+                                                              "persistence":  "project_history",
+                                                              "message_kind":  "user",
+                                                              "turn_id":  "run_6886a6c19ad223e9",
+                                                              "logical_message_id":  "n_20261007T024035_ab48f210",
+                                                              "created_at":  "2026-10-07T02:40:35.5392047Z"
+                                                          },
+                                                          {
+                                                              "role":  "assistant",
+                                                              "content":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                              "node_id":  "n_20261007T024036_8c3dd28b",
+                                                              "commit_id":  "c_20261007T024036_214e8401",
+                                                              "branch":  "main",
+                                                              "lifecycle":  "durable",
+                                                              "persistence":  "project_history",
+                                                              "message_kind":  "assistant",
+                                                              "turn_id":  "run_6886a6c19ad223e9",
+                                                              "logical_message_id":  "n_20261007T024036_8c3dd28b",
+                                                              "created_at":  "2026-10-07T02:40:36.1802424Z"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "c_20261007T024036_214e8401",
+                            "history_dir":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\.vit_history\\.sessions\\vitproj_12fcf1a60b2d424ba4be412b31584643\\session_20261007T024023_b29381a5\\workspace",
+                            "initialized":  true,
+                            "project_label":  "journey_fixture",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                            "project_uuid":  "vitproj_12fcf1a60b2d424ba4be412b31584643",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-07T02:40:36.1918229Z",
+                                                           "goal_id":  "goal_363d5fe1ad1aa461",
+                                                           "id":  "c_20261007T024036_214e8401",
+                                                           "message":  "Vit: authority smoke: bound=full_project_access server=full_project_access"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-07T02:40:35.5186853Z",
+                                                           "goal_id":  "goal_363d5fe1ad1aa461",
+                                                           "id":  "c_20261007T024035_a6a03e60",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261007T024036_214e8401"
+                                     },
+                            "root_project_path":  "",
+                            "state_dir":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\.vit_history\\.sessions\\vitproj_12fcf1a60b2d424ba4be412b31584643\\session_20261007T024023_b29381a5\\workspace\\state",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261007T024036_214e8401",
+                                                  "created_at":  "2026-10-07T02:40:37.8782037Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261007T024036_214e8401",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\project\\journey_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "selected_plugin":  null,
+    "selected_track":  {
+                           "armed":  false,
+                           "automation_lane_count":  0,
+                           "clips":  [
+                                         {
+                                             "active_take_id":  "",
+                                             "asset_job_id":  "",
+                                             "asset_ref":  "",
+                                             "asset_state":  "",
+                                             "auto_crossfade":  false,
+                                             "clip_gain_db":  0,
+                                             "clip_id":  "1011",
+                                             "clip_mute":  false,
+                                             "clip_pan":  0,
+                                             "clip_state_revision":  "668034bbfd146726",
+                                             "clip_type":  "wave",
+                                             "current_source_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\fixture_stems\\Bass.wav",
+                                             "end_seconds":  2.2,
+                                             "fade_in_behaviour":  "gain",
+                                             "fade_in_behaviour_type":  0,
+                                             "fade_in_curve":  "linear",
+                                             "fade_in_curve_type":  1,
+                                             "fade_in_seconds":  0,
+                                             "fade_out_behaviour":  "gain",
+                                             "fade_out_behaviour_type":  0,
+                                             "fade_out_curve":  "linear",
+                                             "fade_out_curve_type":  1,
+                                             "fade_out_seconds":  0,
+                                             "gain_db":  0,
+                                             "ghost_state":  "",
+                                             "id":  "1011",
+                                             "length_seconds":  2.2,
+                                             "mute":  false,
+                                             "name":  "Bass",
+                                             "offset_in_source_seconds":  0,
+                                             "pan":  0,
+                                             "playback_source_valid":  true,
+                                             "start_seconds":  0,
+                                             "take_stack_id":  "",
+                                             "track_id":  "1007",
+                                             "warp_state":  ""
+                                         }
+                                     ],
+                           "fader_db":  0,
+                           "gain_db":  0,
+                           "group_ids":  [
+
+                                         ],
+                           "group_names":  [
+
+                                           ],
+                           "id":  "1007",
+                           "is_armed":  false,
+                           "is_audio_track":  true,
+                           "is_user_visible":  true,
+                           "left_level_db":  null,
+                           "level_db":  null,
+                           "mute":  false,
+                           "name":  "Bass",
+                           "pan":  0,
+                           "pan_value":  0,
+                           "plugin_count":  1,
+                           "plugins":  null,
+                           "rack":  {
+                                        "clip_proxy_nodes":  [
+                                                                 {
+                                                                     "clip_id":  "1011",
+                                                                     "clip_type":  "audio",
+                                                                     "is_scope_hidden":  false,
+                                                                     "line_color_hint":  "FF50E676",
+                                                                     "name":  "Bass",
+                                                                     "node_id":  "clip_proxy:1011",
+                                                                     "node_role":  "clip_proxy",
+                                                                     "shared_by_clip_ids":  [
+                                                                                                "1011"
+                                                                                            ],
+                                                                     "source_clip_id":  "1011"
+                                                                 }
+                                                             ],
+                                        "clip_routes":  [
+                                                            {
+                                                                "clip_id":  "1011",
+                                                                "dest_node_id":  "1020",
+                                                                "is_scope_hidden":  false,
+                                                                "line_color_hint":  "FF50E676",
+                                                                "proxy_node_id":  "clip_proxy:1011",
+                                                                "shared_by_clip_ids":  [
+                                                                                           "1011"
+                                                                                       ],
+                                                                "source_clip_id":  "1011"
+                                                            }
+                                                        ],
+                                        "edges":  [
+                                                      {
+                                                          "dest_id":  "1020",
+                                                          "dest_pin":  1,
+                                                          "edge_id":  "RACK_INPUT|1|1020|1",
+                                                          "is_scope_hidden":  false,
+                                                          "line_color_hint":  "#9AA4B2",
+                                                          "shared_by_clip_ids":  [
+
+                                                                                 ],
+                                                          "source_clip_id":  "",
+                                                          "source_id":  "RACK_INPUT",
+                                                          "source_pin":  1,
+                                                          "vit_internal_default_audio":  false
+                                                      },
+                                                      {
+                                                          "dest_id":  "1020",
+                                                          "dest_pin":  2,
+                                                          "edge_id":  "RACK_INPUT|2|1020|2",
+                                                          "is_scope_hidden":  false,
+                                                          "line_color_hint":  "#9AA4B2",
+                                                          "shared_by_clip_ids":  [
+
+                                                                                 ],
+                                                          "source_clip_id":  "",
+                                                          "source_id":  "RACK_INPUT",
+                                                          "source_pin":  2,
+                                                          "vit_internal_default_audio":  false
+                                                      },
+                                                      {
+                                                          "dest_id":  "RACK_OUTPUT",
+                                                          "dest_pin":  1,
+                                                          "edge_id":  "1020|1|RACK_OUTPUT|1",
+                                                          "is_scope_hidden":  false,
+                                                          "line_color_hint":  "FF50E676",
+                                                          "shared_by_clip_ids":  [
+                                                                                     "1011"
+                                                                                 ],
+                                                          "source_clip_id":  "1011",
+                                                          "source_id":  "1020",
+                                                          "source_pin":  1,
+                                                          "vit_internal_default_audio":  false
+                                                      },
+                                                      {
+                                                          "dest_id":  "RACK_OUTPUT",
+                                                          "dest_pin":  2,
+                                                          "edge_id":  "1020|2|RACK_OUTPUT|2",
+                                                          "is_scope_hidden":  false,
+                                                          "line_color_hint":  "FF50E676",
+                                                          "shared_by_clip_ids":  [
+                                                                                     "1011"
+                                                                                 ],
+                                                          "source_clip_id":  "1011",
+                                                          "source_id":  "1020",
+                                                          "source_pin":  2,
+                                                          "vit_internal_default_audio":  false
+                                                      },
+                                                      {
+                                                          "dest_id":  "1020",
+                                                          "dest_pin":  0,
+                                                          "edge_id":  "RACK_INPUT|0|1020|0",
+                                                          "is_scope_hidden":  false,
+                                                          "line_color_hint":  "#9AA4B2",
+                                                          "shared_by_clip_ids":  [
+
+                                                                                 ],
+                                                          "source_clip_id":  "",
+                                                          "source_id":  "RACK_INPUT",
+                                                          "source_pin":  0,
+                                                          "vit_internal_default_audio":  false
+                                                      },
+                                                      {
+                                                          "dest_id":  "RACK_OUTPUT",
+                                                          "dest_pin":  0,
+                                                          "edge_id":  "1020|0|RACK_OUTPUT|0",
+                                                          "is_scope_hidden":  false,
+                                                          "line_color_hint":  "FF50E676",
+                                                          "shared_by_clip_ids":  [
+                                                                                     "1011"
+                                                                                 ],
+                                                          "source_clip_id":  "1011",
+                                                          "source_id":  "1020",
+                                                          "source_pin":  0,
+                                                          "vit_internal_default_audio":  false
+                                                      }
+                                                  ],
+                                        "id":  "1019",
+                                        "item_id":  "1019",
+                                        "node_count":  1,
+                                        "nodes":  [
+                                                      {
+                                                          "audio_reachable_from_rack_input":  true,
+                                                          "clip_scope":  "track",
+                                                          "enabled":  true,
+                                                          "format":  "VST3",
+                                                          "id":  "1020",
+                                                          "item_id":  "1020",
+                                                          "name":  "bx_hybrid V2",
+                                                          "node_id":  "1020",
+                                                          "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                          "plugin_format":  "VST3",
+                                                          "plugin_id":  "1020",
+                                                          "plugin_item_id":  "1020",
+                                                          "plugin_name":  "bx_hybrid V2",
+                                                          "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                          "supports_param_grabber":  true,
+                                                          "template_role":  "other",
+                                                          "type":  "vst",
+                                                          "vit_effective_in_output_path":  true,
+                                                          "vit_orphan_bypass_candidate":  false,
+                                                          "x":  0,
+                                                          "y":  0,
+                                                          "zone_id":  "Z3"
+                                                      }
+                                                  ],
+                                        "rack_item_id":  "1019",
+                                        "scope":  "track"
+                                    },
+                           "right_level_db":  null,
+                           "routing_edge_count":  0,
+                           "solo":  false,
+                           "track_group_ids":  [
+
+                                               ],
+                           "track_group_names":  [
+
+                                                 ],
+                           "track_groups":  [
+
+                                            ],
+                           "track_id":  "1007",
+                           "track_name":  "Bass",
+                           "track_state_revision":  "1d2aba7c2c130f2f",
+                           "track_type":  "hybrid",
+                           "type":  "hybrid",
+                           "user_track_index":  1,
+                           "volume_db":  0
+                       },
+    "status":  "ok",
+    "tracks":  [
+                   {
+                       "armed":  false,
+                       "automation_lane_count":  0,
+                       "clips":  [
+                                     {
+                                         "active_take_id":  "",
+                                         "asset_job_id":  "",
+                                         "asset_ref":  "",
+                                         "asset_state":  "",
+                                         "auto_crossfade":  false,
+                                         "clip_gain_db":  0,
+                                         "clip_id":  "1011",
+                                         "clip_mute":  false,
+                                         "clip_pan":  0,
+                                         "clip_state_revision":  "668034bbfd146726",
+                                         "clip_type":  "wave",
+                                         "current_source_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\fixture_stems\\Bass.wav",
+                                         "end_seconds":  2.2,
+                                         "fade_in_behaviour":  "gain",
+                                         "fade_in_behaviour_type":  0,
+                                         "fade_in_curve":  "linear",
+                                         "fade_in_curve_type":  1,
+                                         "fade_in_seconds":  0,
+                                         "fade_out_behaviour":  "gain",
+                                         "fade_out_behaviour_type":  0,
+                                         "fade_out_curve":  "linear",
+                                         "fade_out_curve_type":  1,
+                                         "fade_out_seconds":  0,
+                                         "gain_db":  0,
+                                         "ghost_state":  "",
+                                         "id":  "1011",
+                                         "length_seconds":  2.2,
+                                         "mute":  false,
+                                         "name":  "Bass",
+                                         "offset_in_source_seconds":  0,
+                                         "pan":  0,
+                                         "playback_source_valid":  true,
+                                         "start_seconds":  0,
+                                         "take_stack_id":  "",
+                                         "track_id":  "1007",
+                                         "warp_state":  ""
+                                     }
+                                 ],
+                       "fader_db":  0,
+                       "gain_db":  0,
+                       "group_ids":  [
+
+                                     ],
+                       "group_names":  [
+
+                                       ],
+                       "id":  "1007",
+                       "is_armed":  false,
+                       "is_audio_track":  true,
+                       "is_user_visible":  true,
+                       "left_level_db":  null,
+                       "level_db":  null,
+                       "mute":  false,
+                       "name":  "Bass",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "plugin_count":  1,
+                       "plugins":  null,
+                       "rack":  {
+                                    "clip_proxy_nodes":  [
+                                                             {
+                                                                 "clip_id":  "1011",
+                                                                 "clip_type":  "audio",
+                                                                 "is_scope_hidden":  false,
+                                                                 "line_color_hint":  "FF50E676",
+                                                                 "name":  "Bass",
+                                                                 "node_id":  "clip_proxy:1011",
+                                                                 "node_role":  "clip_proxy",
+                                                                 "shared_by_clip_ids":  [
+                                                                                            "1011"
+                                                                                        ],
+                                                                 "source_clip_id":  "1011"
+                                                             }
+                                                         ],
+                                    "clip_routes":  [
+                                                        {
+                                                            "clip_id":  "1011",
+                                                            "dest_node_id":  "1020",
+                                                            "is_scope_hidden":  false,
+                                                            "line_color_hint":  "FF50E676",
+                                                            "proxy_node_id":  "clip_proxy:1011",
+                                                            "shared_by_clip_ids":  [
+                                                                                       "1011"
+                                                                                   ],
+                                                            "source_clip_id":  "1011"
+                                                        }
+                                                    ],
+                                    "edges":  [
+                                                  {
+                                                      "dest_id":  "1020",
+                                                      "dest_pin":  1,
+                                                      "edge_id":  "RACK_INPUT|1|1020|1",
+                                                      "is_scope_hidden":  false,
+                                                      "line_color_hint":  "#9AA4B2",
+                                                      "shared_by_clip_ids":  [
+
+                                                                             ],
+                                                      "source_clip_id":  "",
+                                                      "source_id":  "RACK_INPUT",
+                                                      "source_pin":  1,
+                                                      "vit_internal_default_audio":  false
+                                                  },
+                                                  {
+                                                      "dest_id":  "1020",
+                                                      "dest_pin":  2,
+                                                      "edge_id":  "RACK_INPUT|2|1020|2",
+                                                      "is_scope_hidden":  false,
+                                                      "line_color_hint":  "#9AA4B2",
+                                                      "shared_by_clip_ids":  [
+
+                                                                             ],
+                                                      "source_clip_id":  "",
+                                                      "source_id":  "RACK_INPUT",
+                                                      "source_pin":  2,
+                                                      "vit_internal_default_audio":  false
+                                                  },
+                                                  {
+                                                      "dest_id":  "RACK_OUTPUT",
+                                                      "dest_pin":  1,
+                                                      "edge_id":  "1020|1|RACK_OUTPUT|1",
+                                                      "is_scope_hidden":  false,
+                                                      "line_color_hint":  "FF50E676",
+                                                      "shared_by_clip_ids":  [
+                                                                                 "1011"
+                                                                             ],
+                                                      "source_clip_id":  "1011",
+                                                      "source_id":  "1020",
+                                                      "source_pin":  1,
+                                                      "vit_internal_default_audio":  false
+                                                  },
+                                                  {
+                                                      "dest_id":  "RACK_OUTPUT",
+                                                      "dest_pin":  2,
+                                                      "edge_id":  "1020|2|RACK_OUTPUT|2",
+                                                      "is_scope_hidden":  false,
+                                                      "line_color_hint":  "FF50E676",
+                                                      "shared_by_clip_ids":  [
+                                                                                 "1011"
+                                                                             ],
+                                                      "source_clip_id":  "1011",
+                                                      "source_id":  "1020",
+                                                      "source_pin":  2,
+                                                      "vit_internal_default_audio":  false
+                                                  },
+                                                  {
+                                                      "dest_id":  "1020",
+                                                      "dest_pin":  0,
+                                                      "edge_id":  "RACK_INPUT|0|1020|0",
+                                                      "is_scope_hidden":  false,
+                                                      "line_color_hint":  "#9AA4B2",
+                                                      "shared_by_clip_ids":  [
+
+                                                                             ],
+                                                      "source_clip_id":  "",
+                                                      "source_id":  "RACK_INPUT",
+                                                      "source_pin":  0,
+                                                      "vit_internal_default_audio":  false
+                                                  },
+                                                  {
+                                                      "dest_id":  "RACK_OUTPUT",
+                                                      "dest_pin":  0,
+                                                      "edge_id":  "1020|0|RACK_OUTPUT|0",
+                                                      "is_scope_hidden":  false,
+                                                      "line_color_hint":  "FF50E676",
+                                                      "shared_by_clip_ids":  [
+                                                                                 "1011"
+                                                                             ],
+                                                      "source_clip_id":  "1011",
+                                                      "source_id":  "1020",
+                                                      "source_pin":  0,
+                                                      "vit_internal_default_audio":  false
+                                                  }
+                                              ],
+                                    "id":  "1019",
+                                    "item_id":  "1019",
+                                    "node_count":  1,
+                                    "nodes":  [
+                                                  {
+                                                      "audio_reachable_from_rack_input":  true,
+                                                      "clip_scope":  "track",
+                                                      "enabled":  true,
+                                                      "format":  "VST3",
+                                                      "id":  "1020",
+                                                      "item_id":  "1020",
+                                                      "name":  "bx_hybrid V2",
+                                                      "node_id":  "1020",
+                                                      "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                      "plugin_format":  "VST3",
+                                                      "plugin_id":  "1020",
+                                                      "plugin_item_id":  "1020",
+                                                      "plugin_name":  "bx_hybrid V2",
+                                                      "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                      "supports_param_grabber":  true,
+                                                      "template_role":  "other",
+                                                      "type":  "vst",
+                                                      "vit_effective_in_output_path":  true,
+                                                      "vit_orphan_bypass_candidate":  false,
+                                                      "x":  0,
+                                                      "y":  0,
+                                                      "zone_id":  "Z3"
+                                                  }
+                                              ],
+                                    "rack_item_id":  "1019",
+                                    "scope":  "track"
+                                },
+                       "right_level_db":  null,
+                       "routing_edge_count":  0,
+                       "solo":  false,
+                       "track_group_ids":  [
+
+                                           ],
+                       "track_group_names":  [
+
+                                             ],
+                       "track_groups":  [
+
+                                        ],
+                       "track_id":  "1007",
+                       "track_name":  "Bass",
+                       "track_state_revision":  "1d2aba7c2c130f2f",
+                       "track_type":  "hybrid",
+                       "type":  "hybrid",
+                       "user_track_index":  1,
+                       "volume_db":  0
+                   },
+                   {
+                       "armed":  false,
+                       "automation_lane_count":  0,
+                       "clips":  [
+                                     {
+                                         "active_take_id":  "",
+                                         "asset_job_id":  "",
+                                         "asset_ref":  "",
+                                         "asset_state":  "",
+                                         "auto_crossfade":  false,
+                                         "clip_gain_db":  0,
+                                         "clip_id":  "1016",
+                                         "clip_mute":  false,
+                                         "clip_pan":  0,
+                                         "clip_state_revision":  "80c16feb49a3d084",
+                                         "clip_type":  "wave",
+                                         "current_source_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104016\\fixture_stems\\Lead Vocal.wav",
+                                         "end_seconds":  2.2,
+                                         "fade_in_behaviour":  "gain",
+                                         "fade_in_behaviour_type":  0,
+                                         "fade_in_curve":  "linear",
+                                         "fade_in_curve_type":  1,
+                                         "fade_in_seconds":  0,
+                                         "fade_out_behaviour":  "gain",
+                                         "fade_out_behaviour_type":  0,
+                                         "fade_out_curve":  "linear",
+                                         "fade_out_curve_type":  1,
+                                         "fade_out_seconds":  0,
+                                         "gain_db":  0,
+                                         "ghost_state":  "",
+                                         "id":  "1016",
+                                         "length_seconds":  2.2,
+                                         "mute":  false,
+                                         "name":  "Lead Vocal",
+                                         "offset_in_source_seconds":  0,
+                                         "pan":  0,
+                                         "playback_source_valid":  true,
+                                         "start_seconds":  0,
+                                         "take_stack_id":  "",
+                                         "track_id":  "1012",
+                                         "warp_state":  ""
+                                     }
+                                 ],
+                       "fader_db":  0,
+                       "gain_db":  0,
+                       "group_ids":  [
+
+                                     ],
+                       "group_names":  [
+
+                                       ],
+                       "id":  "1012",
+                       "is_armed":  false,
+                       "is_audio_track":  true,
+                       "is_user_visible":  true,
+                       "left_level_db":  null,
+                       "level_db":  null,
+                       "mute":  false,
+                       "name":  "Lead Vocal",
+                       "pan":  0,
+                       "pan_value":  0,
+                       "plugin_count":  0,
+                       "plugins":  null,
+                       "rack":  null,
+                       "right_level_db":  null,
+                       "routing_edge_count":  0,
+                       "solo":  false,
+                       "track_group_ids":  [
+
+                                           ],
+                       "track_group_names":  [
+
+                                             ],
+                       "track_groups":  [
+
+                                        ],
+                       "track_id":  "1012",
+                       "track_name":  "Lead Vocal",
+                       "track_state_revision":  "454057312e08d388",
+                       "track_type":  "hybrid",
+                       "type":  "hybrid",
+                       "user_track_index":  2,
+                       "volume_db":  0
+                   }
+               ],
+    "transport":  {
+
+                  },
+    "ui_context":  {
+                       "selected_track_name":  "Bass"
+                   }
+}

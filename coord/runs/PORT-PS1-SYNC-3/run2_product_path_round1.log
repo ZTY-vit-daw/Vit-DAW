@@ -1,0 +1,21 @@
+
+== Product-path lifecycle smoke
+repo: D:\Vit_DAW
+artifact_dir: D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\product_path_20260920_200010
+interaction_path=agent_http_after_godot_project_lifecycle
+godot: D:\Godot\Godot_v4.6.1-stable_win64.exe
+godot_launch: D:\Godot\Godot_v4.6.1-stable_win64_console.exe
+godot_project: D:\Godot\project\vit-daw-frontend
+expected kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+vsp_hub: D:\Vit_DAW\agent\bin\VspHub.exe
+agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== Prepare agent + VSP Hub
+warn: failed: 文件“D:\Vit_DAW\agent\bin\VitAgent.exe”正由另一进程使用，因此该进程无法访问此文件。
+Copy-Item : 文件“D:\Vit_DAW\agent\bin\VitAgent.exe”正由另一进程使用，因此该进程无法访问此文件。
+所在位置 D:\Vit_DAW\scripts\run_vit_product_path_smoke.ps1:540 字符: 9
++         Copy-Item -LiteralPath $buildExe -Destination $AgentPath -For ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:) [Copy-Item], IOException
+    + FullyQualifiedErrorId : System.IO.IOException,Microsoft.PowerShell.Commands.CopyItemCommand
+ 

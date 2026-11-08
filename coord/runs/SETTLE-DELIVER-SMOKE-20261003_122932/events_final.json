@@ -1,0 +1,1306 @@
+﻿[
+    {
+        "seq":  1,
+        "type":  "turn.started",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_type":  "turn",
+        "status":  "running",
+        "title":  "正在处理",
+        "body":  "对低音轨做一次混音改进实验，改完让我 A/B 试听对比一下",
+        "payload":  {
+                        "completed_steps":  0,
+                        "error":  "",
+                        "executed_count":  0,
+                        "needs_confirmation":  false,
+                        "stop_reason":  "",
+                        "typed_events":  null
+                    },
+        "created_at":  "2026-10-03T12:30:42.3230741+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "agent_turn:run_a96d61a2cd63c54d"
+    },
+    {
+        "seq":  2,
+        "type":  "trajectory.turn.started",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_id":  "turn:run_a96d61a2cd63c54d",
+        "item_type":  "trajectory",
+        "status":  "running",
+        "body":  "正在处理",
+        "payload":  {
+                        "node_kind":  "turn",
+                        "phase":  "framing",
+                        "schema_version":  "vit.observable_trajectory.v1",
+                        "source_turn_id":  "run_a96d61a2cd63c54d",
+                        "status":  "running",
+                        "terminal":  false,
+                        "trace_node_id":  "turn:run_a96d61a2cd63c54d",
+                        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+                        "turn_id":  "run_a96d61a2cd63c54d"
+                    },
+        "created_at":  "2026-10-03T12:30:42.3230741+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "trajectory:run_a96d61a2cd63c54d:turn:run_a96d61a2cd63c54d"
+    },
+    {
+        "seq":  3,
+        "type":  "item.started",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_id":  "tool_step_1",
+        "item_type":  "daw_action",
+        "status":  "running",
+        "title":  "正在执行操作",
+        "body":  "需要先拿到可用的观察视图 ID 列表，才能为低音轨选择工程级与轨道级证据视图",
+        "payload":  {
+                        "args":  null,
+                        "command":  "",
+                        "command_raw":  {
+                                            "tool":  "ccb.observation_catalog"
+                                        },
+                        "confirmed":  false,
+                        "plan_item":  "",
+                        "source":  "agentloop",
+                        "tool":  "ccb.observation_catalog"
+                    },
+        "created_at":  "2026-10-03T12:30:47.7113248+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "agent_item:run_a96d61a2cd63c54d:tool_step_1"
+    },
+    {
+        "seq":  4,
+        "type":  "item.completed",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_id":  "tool_step_1",
+        "item_type":  "daw_action",
+        "status":  "completed",
+        "title":  "已完成 ccb_observation_catalog",
+        "payload":  {
+                        "agent_action_id":  "act_749ab8177eacd672",
+                        "command_name":  "ccb_observation_catalog",
+                        "confirmed":  false,
+                        "error":  "",
+                        "preview":  "",
+                        "requires_confirmation":  false,
+                        "result":  {
+                                       "catalog":  {
+                                                       "schema_version":  "ccb_observation_catalog.v1",
+                                                       "boundary":  "semantic_views_only",
+                                                       "target_ref":  {
+                                                                          "kind":  "",
+                                                                          "id":  "",
+                                                                          "source":  "ccb_request"
+                                                                      },
+                                                       "dimensions":  [
+                                                                          "dynamics",
+                                                                          "frequency_occupancy",
+                                                                          "level_headroom",
+                                                                          "stereo_space",
+                                                                          "transient_event"
+                                                                      ],
+                                                       "views":  [
+                                                                     {
+                                                                         "view_id":  "project.structure",
+                                                                         "questions":  [
+                                                                                           "What tracks and sources are present?",
+                                                                                           "What is the current project/selection structure?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "project",
+                                                                                                        "track",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "state snapshot",
+                                                                         "availability":  "ready_on_observation",
+                                                                         "cost_latency_class":  "cheap",
+                                                                         "quality_ceiling":  "compact project and TOM-adjacent identity summary",
+                                                                         "limitations":  [
+                                                                                             "Does not disclose a full TOM tree."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "project state",
+                                                                                                       "MixBoard observation"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "project.change_delta",
+                                                                         "questions":  [
+                                                                                           "What deterministic engineering changes occurred since the prior state?",
+                                                                                           "Which current observations must be refreshed after the latest project change?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "project",
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "processor"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "latest state transition",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "cheap",
+                                                                         "quality_ceiling":  "bounded Shadow Project change receipt",
+                                                                         "limitations":  [
+                                                                                             "Change receipts confirm engineering mutations occurred. Acoustic evaluation requires fresh observation of the new state."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "Shadow Project change monitor",
+                                                                                                       "MixBoard observation binding"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.basic_energy",
+                                                                         "questions":  [
+                                                                                           "How loud and peaky is the target?",
+                                                                                           "Is headroom or crest factor unusual?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "whole window",
+                                                                         "availability":  "ready_on_observation",
+                                                                         "cost_latency_class":  "cheap",
+                                                                         "quality_ceiling":  "bounded level summary",
+                                                                         "required_dependencies":  [
+                                                                                                       "waveform envelope summary"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "level_headroom"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.time_dynamics",
+                                                                         "questions":  [
+                                                                                           "How does energy evolve over time?",
+                                                                                           "What transient and macro-dynamic structure is observable?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "macro and short-window summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "COM plus bounded time-energy summaries",
+                                                                         "limitations":  [
+                                                                                             "Fine envelopes and event lists stay in evidence storage."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "time-energy summary",
+                                                                                                       "COM projection"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "dynamics"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.timbre_frequency",
+                                                                         "questions":  [
+                                                                                           "Where is energy concentrated by band?",
+                                                                                           "Which broad tonal regions need inspection?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "whole-window band summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "broad-band energy only",
+                                                                         "limitations":  [
+                                                                                             "Not a raw spectrum or a static-EQ decision."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "band-energy summary"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "frequency_occupancy"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.peak_structure",
+                                                                         "questions":  [
+                                                                                           "How are sample peaks, headroom, and crest distributed?",
+                                                                                           "Are peak events concentrated or broadly elevated?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "whole-window and bounded segment summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "sample-peak structure with explicit true-peak limitation",
+                                                                         "limitations":  [
+                                                                                             "Sample-peak structure provides bounded clipping-risk evidence. Extreme values suggest peak-management improvement candidates, though true-peak confirmation requires additional measurement."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "DOM source-only projection"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.activity_structure",
+                                                                         "questions":  [
+                                                                                           "How are active, low-energy, and silent intervals distributed?",
+                                                                                           "How long are observed low-energy runs?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "bounded segment summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "declared activity states and interval coverage",
+                                                                         "limitations":  [
+                                                                                             "Noise floor and a control threshold are not inferred from coarse states."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "DOM source-only projection"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.frequency_time_events",
+                                                                         "questions":  [
+                                                                                           "Is frequency energy localized to events over time?",
+                                                                                           "Which time-localized frequency facts are actually available?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "frequency-time event summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "bounded time-frequency evidence with explicit omissions",
+                                                                         "limitations":  [
+                                                                                             "Whole-window bands never become time-localized events."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "DOM source-only projection"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.transient_structure",
+                                                                         "questions":  [
+                                                                                           "What onset, body, and sustain structure is observable?",
+                                                                                           "How consistent are transient contrasts across events?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "event and envelope summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "bounded transient evidence with macro-only fallback",
+                                                                         "limitations":  [
+                                                                                             "Macro crest does not establish onset or sustain behavior."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "DOM source-only projection"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "transient_event"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.band_dynamics",
+                                                                         "questions":  [
+                                                                                           "How does dynamic behavior differ by frequency band?",
+                                                                                           "Are per-band crest and time variation actually available?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "per-band time summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "bounded band-dynamics evidence with whole-window fallback",
+                                                                         "limitations":  [
+                                                                                             "Whole-window band energy does not establish per-band dynamics."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "DOM source-only projection"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "track.stereo_space",
+                                                                         "questions":  [
+                                                                                           "How wide or correlated is the target?",
+                                                                                           "Is left-right balance unusual?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "track",
+                                                                                                        "clip",
+                                                                                                        "selection"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "whole-window stereo summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "balance/correlation summary",
+                                                                         "required_dependencies":  [
+                                                                                                       "stereo-relation summary"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "stereo_space"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "mix.multitrack_relationship",
+                                                                         "questions":  [
+                                                                                           "How do track levels and risks relate?",
+                                                                                           "Which track deserves attention first?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "project",
+                                                                                                        "track_group"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "project snapshot",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "bounded MOM and project relationship summaries",
+                                                                         "limitations":  [
+                                                                                             "This is observation, not a B2/B3 solver result."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "MOM multitrack projection",
+                                                                                                       "project acoustic summaries"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "level_headroom"
+                                                                                                   ],
+                                                                         "sortable_fields":  [
+                                                                                                 "unit_energy",
+                                                                                                 "energy_db"
+                                                                                             ],
+                                                                         "interpretation_guidance":  {
+                                                                                                         "patterns":  [
+                                                                                                                          {
+                                                                                                                              "name":  "level_difference",
+                                                                                                                              "signal":  "consistent RMS or peak differences across tracks",
+                                                                                                                              "suggests":  [
+                                                                                                                                               "level_imbalance",
+                                                                                                                                               "track_gain"
+                                                                                                                                           ],
+                                                                                                                              "description":  "Consistent level differences suggest gain adjustment candidates"
+                                                                                                                          }
+                                                                                                                      ]
+                                                                                                     }
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "mix.frequency_relationship",
+                                                                         "questions":  [
+                                                                                           "How do track band occupancies relate?",
+                                                                                           "Where are broad frequency conflicts plausible?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "project",
+                                                                                                        "track_group"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "project snapshot",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "compact MOM frequency relationship projection",
+                                                                         "limitations":  [
+                                                                                             "Band overlaps suggest frequency-relationship improvement candidates. This is plausible evidence for bounded experiments, not deterministic masking proof."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "MOM frequency relationship",
+                                                                                                       "project band-energy coverage"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "frequency_occupancy"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "mix.masking_relationship",
+                                                                         "questions":  [
+                                                                                           "Which directional source pairs and frequency bands are plausible masking-risk improvement candidates?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "project",
+                                                                                                        "track_group"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "synchronized project range",
+                                                                         "availability":  "ready_on_request",
+                                                                         "cost_latency_class":  "expensive",
+                                                                         "quality_ceiling":  "compact MOM directional masking-risk projection",
+                                                                         "limitations":  [
+                                                                                             "Candidates are relative energetic-risk evidence showing directional energy relationships. Large consistent margins often indicate level-imbalance improvement opportunities; band-specific patterns may indicate frequency considerations. This is plausible evidence for bounded improvement hypotheses, not proof of defects."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "same-window track_post_fader probes",
+                                                                                                       "DAD masking measurement",
+                                                                                                       "MOM masking projection"
+                                                                                                   ],
+                                                                         "diagnostic_dimensions":  [
+                                                                                                       "level_headroom",
+                                                                                                       "frequency_occupancy"
+                                                                                                   ],
+                                                                         "sortable_fields":  [
+                                                                                                 "median_margin_db",
+                                                                                                 "p90_margin_db",
+                                                                                                 "max_margin_db",
+                                                                                                 "risk_coverage_ratio"
+                                                                                             ],
+                                                                         "interpretation_guidance":  {
+                                                                                                         "patterns":  [
+                                                                                                                          {
+                                                                                                                              "name":  "large_consistent_margin",
+                                                                                                                              "signal":  "median_margin_db \u003e 20 and risk_coverage_ratio \u003e 0.9",
+                                                                                                                              "suggests":  [
+                                                                                                                                               "level_imbalance",
+                                                                                                                                               "track_gain"
+                                                                                                                                           ],
+                                                                                                                              "description":  "Large consistent margins across time and bands suggest level-imbalance improvement candidates"
+                                                                                                                          },
+                                                                                                                          {
+                                                                                                                              "name":  "band_specific_margin",
+                                                                                                                              "signal":  "margin concentrated in specific frequency bands",
+                                                                                                                              "suggests":  [
+                                                                                                                                               "frequency_conflict",
+                                                                                                                                               "eq"
+                                                                                                                                           ],
+                                                                                                                              "description":  "Band-specific patterns may indicate frequency-domain considerations"
+                                                                                                                          }
+                                                                                                                      ]
+                                                                                                     }
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "processor.identity_and_controls",
+                                                                         "questions":  [
+                                                                                           "Which processor is bound to this observation?",
+                                                                                           "Which semantic controls are available?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "processor"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "processor state snapshot",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "cheap",
+                                                                         "quality_ceiling":  "processor scope only",
+                                                                         "limitations":  [
+                                                                                             "COM does not disclose a live control surface; use the processor inspector separately."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "COM processor scope",
+                                                                                                       "read-only processor inspector"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "processor.behavior",
+                                                                         "questions":  [
+                                                                                           "What gain action and transient/recovery behavior is observed?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "processor",
+                                                                                                        "track"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "paired input/output summary",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "compact COM behavior projection",
+                                                                         "limitations":  [
+                                                                                             "Requires paired evidence for processor-caused behavior."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "COM paired_io projection"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "processor.change_delta",
+                                                                         "questions":  [
+                                                                                           "How did processor behavior change between observations?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "processor",
+                                                                                                        "track"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "change delta",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "medium",
+                                                                         "quality_ceiling":  "compact COM change projection",
+                                                                         "limitations":  [
+                                                                                             "Requires compatible before/after COM evidence."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "COM change_delta projection"
+                                                                                                   ]
+                                                                     },
+                                                                     {
+                                                                         "view_id":  "comparison.before_after",
+                                                                         "questions":  [
+                                                                                           "What changed between the current and previous observation?"
+                                                                                       ],
+                                                                         "supported_target_kinds":  [
+                                                                                                        "project",
+                                                                                                        "track",
+                                                                                                        "processor"
+                                                                                                    ],
+                                                                         "temporal_resolution":  "observation pair",
+                                                                         "availability":  "conditional",
+                                                                         "cost_latency_class":  "cheap",
+                                                                         "quality_ceiling":  "bounded delta summary",
+                                                                         "limitations":  [
+                                                                                             "Requires a prior observation in the same mix session."
+                                                                                         ],
+                                                                         "required_dependencies":  [
+                                                                                                       "MixBoard observation history"
+                                                                                                   ]
+                                                                     }
+                                                                 ],
+                                                       "exclusions":  [
+                                                                          "raw PCM or audio buffers",
+                                                                          "waveform and spectrogram arrays",
+                                                                          "full DAD packages or evidence blobs",
+                                                                          "processor selection, parameter decisions, and mutation authority"
+                                                                      ]
+                                                   },
+                                       "status":  "ok"
+                                   },
+                        "tool":  "ccb.observation_catalog",
+                        "undo_label":  ""
+                    },
+        "created_at":  "2026-10-03T12:30:47.7302014+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "agent_item:run_a96d61a2cd63c54d:tool_step_1"
+    },
+    {
+        "seq":  5,
+        "type":  "turn.completed",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_type":  "turn",
+        "status":  "waiting_continue",
+        "title":  "处理完成",
+        "body":  "我还在继续处理这个任务，完成后再向你汇报。",
+        "payload":  {
+                        "completed_steps":  1,
+                        "error":  "",
+                        "executed_count":  1,
+                        "needs_confirmation":  false,
+                        "stop_reason":  "limit_reached",
+                        "typed_events":  null
+                    },
+        "created_at":  "2026-10-03T12:30:47.8123509+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "agent_turn:run_a96d61a2cd63c54d"
+    },
+    {
+        "seq":  6,
+        "type":  "item.started",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_id":  "tool_step_1",
+        "item_type":  "daw_action",
+        "status":  "running",
+        "title":  "正在执行操作",
+        "body":  "需要轨道身份来锁定低音轨，并用工程级相互关系视图建立响度/频段层面的候选证据，之后才能对该轨道做目标级观察",
+        "payload":  {
+                        "args":  {
+                                     "target_id":  "current",
+                                     "target_kind":  "project",
+                                     "target_label":  "Current project",
+                                     "view_ids":  [
+                                                      "project.structure",
+                                                      "mix.multitrack_relationship",
+                                                      "mix.frequency_relationship"
+                                                  ]
+                                 },
+                        "command":  "",
+                        "command_raw":  {
+                                            "target_id":  "current",
+                                            "target_kind":  "project",
+                                            "target_label":  "Current project",
+                                            "tool":  "ccb.observation_request",
+                                            "view_ids":  [
+                                                             "project.structure",
+                                                             "mix.multitrack_relationship",
+                                                             "mix.frequency_relationship"
+                                                         ]
+                                        },
+                        "confirmed":  false,
+                        "plan_item":  "",
+                        "source":  "agentloop",
+                        "tool":  "ccb.observation_request"
+                    },
+        "created_at":  "2026-10-03T12:30:52.1414342+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "agent_item:run_a96d61a2cd63c54d:tool_step_1"
+    },
+    {
+        "seq":  7,
+        "type":  "item.completed",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_id":  "tool_step_1",
+        "item_type":  "daw_action",
+        "status":  "completed",
+        "title":  "已完成 ccb_observation_request",
+        "payload":  {
+                        "agent_action_id":  "act_3027345c18b4f9d2",
+                        "command_name":  "ccb_observation_request",
+                        "confirmed":  false,
+                        "error":  "",
+                        "preview":  "",
+                        "requires_confirmation":  false,
+                        "result":  {
+                                       "bundle":  {
+                                                      "schema_version":  "ccb_observation_bundle.v1",
+                                                      "bundle_id":  "ccbobs_obs_20261003T043054_74fad2b12189",
+                                                      "status":  "partial",
+                                                      "read_only":  true,
+                                                      "mutation_authority":  false,
+                                                      "observation_id":  "obs_20261003T043054_74fad2b12189",
+                                                      "mix_session_id":  "mix_b0b7642a9413",
+                                                      "target_ref":  {
+                                                                         "confidence":  "high",
+                                                                         "id":  "current",
+                                                                         "kind":  "project",
+                                                                         "label":  "Current project",
+                                                                         "source":  "mix_observation_scope"
+                                                                     },
+                                                      "project_binding":  {
+                                                                              "project_epoch":  "epoch_c5f90896ff97db7b",
+                                                                              "project_revision":  "1",
+                                                                              "project_state_hash":  "19f38e952d435ebe",
+                                                                              "project_uuid":  "vitproj_f9f02a88e08043da8e635859d41ec23f"
+                                                                          },
+                                                      "freshness":  {
+                                                                        "class":  "current_observation",
+                                                                        "observed_at":  "2026-10-03T04:30:54.7942915Z",
+                                                                        "project_epoch":  "epoch_c5f90896ff97db7b",
+                                                                        "project_revision":  "1",
+                                                                        "project_uuid":  "vitproj_f9f02a88e08043da8e635859d41ec23f",
+                                                                        "status":  "ready"
+                                                                    },
+                                                      "requested_views":  [
+                                                                              "project.structure",
+                                                                              "mix.multitrack_relationship",
+                                                                              "mix.frequency_relationship"
+                                                                          ],
+                                                      "views":  {
+                                                                    "mix.multitrack_relationship":  {
+                                                                                                        "facts":  {
+                                                                                                                      "observation.mom_projection":  {
+                                                                                                                                                         "intent":  "project_frequency_relationship_observation",
+                                                                                                                                                         "llm_context":  {
+                                                                                                                                                                             "compact_facts":  [
+                                                                                                                                                                                                   "@{evidence_refs=System.Object[]; freshness=fresh; layer=project_structure; status=ready; summary=Project/target identity and revision context.}",
+                                                                                                                                                                                                   "@{freshness=fresh; layer=intent_policy; optional_layers=System.Object[]; output_contract=System.Object[]; required_layers=System.Object[]; status=ready; summary=required=project_structure,frequency_relationship,frequency_relationship.coverage,frequency_relationship.tap_point,trust_quality optional=project_mix_profile,multitrack_relation,basic_energy,time_dynamics_structure,ab_result_comparison contract=compact_projection_only,evidence_refs_required,quality_summary_required,do_not_include_raw_package,no_waveform_time_segments_in_llm_context,do_not_use_suspect_stale_missing_as_action_evidence}",
+                                                                                                                                                                                                   "@{conflict_candidates=System.Object[]; coverage=; evidence_refs=System.Object[]; frequency_regions=System.Object[]; freshness=suspect; layer=frequency_relationship; limitations=System.Object[]; persistence_summary=; project_cut_ref=project-state:vitproj_f9f02a88e08043da8e635859d41ec23f:epoch_c5f90896ff97db7b:1:19f38e952d435ebe; schema_version=mom.frequency_relationship.v1; scope=; status=suspect; summary=Compact project frequency relationship projection; overlap rows are candidates, not masking facts.; tap_point=source_file_pre_fx; tonal_tendencies=System.Object[]; track_profiles=System.Object[]; verification_dimensions=System.Object[]}",
+                                                                                                                                                                                                   "@{evidence_refs=System.Object[]; freshness=partial; layer=trust_quality.frequency_relationship; status=partial; summary=Frequency relationship readiness is bounded by tap point, whole-project coverage, freshness, and persistence limitations.}",
+                                                                                                                                                                                                   "@{deferred_layers=System.Object[]; evidence_refs=System.Object[]; freshness=deferred; layer=deferred_layers; status=deferred; summary=Non-requested or deferred analyzers do not affect the current intent status.}"
+                                                                                                                                                                                               ],
+                                                                                                                                                                             "do_not_include_raw_package":  true,
+                                                                                                                                                                             "evidence_refs":  [
+                                                                                                                                                                                                   "observation:obs_20261003T043054_74fad2b12189",
+                                                                                                                                                                                                   "mix.read:project.static.summary",
+                                                                                                                                                                                                   "mix.read:project.limitations",
+                                                                                                                                                                                                   "acoustic_package_status",
+                                                                                                                                                                                                   "mix.read:project.tracks.summary",
+                                                                                                                                                                                                   "mix.read:project.relationship_inputs",
+                                                                                                                                                                                                   "mix.derive:rank_tracks",
+                                                                                                                                                                                                   "mix.read:project.frequency_relationship_inputs",
+                                                                                                                                                                                                   "dad.band_energy_summary:1007:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                                   "dad.band_energy_summary:1012:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                                   "dad.band_energy_summary:1017:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                                   "dad.band_energy_summary:1022:mixboard_20261003T043052_166516400"
+                                                                                                                                                                                               ],
+                                                                                                                                                                             "limitation_notes":  [
+                                                                                                                                                                                                      "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+                                                                                                                                                                                                      "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+                                                                                                                                                                                                      "measurement_conditions_not_comparable_cross_track_relations_withheld",
+                                                                                                                                                                                                      "measurement_condition_fields_incomplete",
+                                                                                                                                                                                                      "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+                                                                                                                                                                                                      "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+                                                                                                                                                                                                      "one_or_more_tracks_missing_fresh_frequency_evidence",
+                                                                                                                                                                                                      "required_observation_evidence_not_ready",
+                                                                                                                                                                                                      "suspect_data_cannot_support_suggestion",
+                                                                                                                                                                                                      "some_tracks_missing_band_or_stereo_evidence"
+                                                                                                                                                                                                  ],
+                                                                                                                                                                             "quality_summary":  {
+                                                                                                                                                                                                     "approximate_fields":  "mix.current.loudness mix.current.loudness.approximate_lufs mix.current.loudness.algorithm time_dynamics_structure.loudness_summary time_dynamics_structure.loudness_summary.approximate_lufs time_dynamics_structure.loudness_summary.algorithm",
+                                                                                                                                                                                                     "blocked_reasons":  "required_observation_evidence_not_ready suspect_data_cannot_support_suggestion",
+                                                                                                                                                                                                     "can_support_ab_result":  false,
+                                                                                                                                                                                                     "can_support_action_preflight":  false,
+                                                                                                                                                                                                     "can_support_observation":  false,
+                                                                                                                                                                                                     "can_support_suggestion":  false,
+                                                                                                                                                                                                     "clip_revision_status":  "missing",
+                                                                                                                                                                                                     "l2_tap_point":  "",
+                                                                                                                                                                                                     "missing_fields":  "",
+                                                                                                                                                                                                     "overall_status":  "partial",
+                                                                                                                                                                                                     "render_revision_status":  "missing",
+                                                                                                                                                                                                     "schema_version":  "mom_trust_quality.v1",
+                                                                                                                                                                                                     "source_revision_status":  "missing",
+                                                                                                                                                                                                     "stale_fields":  "",
+                                                                                                                                                                                                     "suspect_fields":  "frequency_relationship"
+                                                                                                                                                                                                 },
+                                                                                                                                                                             "safety_gates":  [
+                                                                                                                                                                                                  "frequency_relationship:suspect",
+                                                                                                                                                                                                  "frequency_relationship.tap_point:source_file_pre_fx",
+                                                                                                                                                                                                  "frequency_relationship.post_fx_compare:false",
+                                                                                                                                                                                                  "approximate_fields:6",
+                                                                                                                                                                                                  "suspect_fields:1"
+                                                                                                                                                                                              ],
+                                                                                                                                                                             "suggested_next_step":  "Refresh or complete the missing/suspect evidence before using this observation for action.",
+                                                                                                                                                                             "summary_md":  "MOM v1.5 intent=project_frequency_relationship_observation overall=partial.\nRequired layers: project_structure, frequency_relationship, frequency_relationship.coverage, frequency_relationship.tap_point, trust_quality.\nMOM frequency_relationship is primary; tap_point=source_file_pre_fx; eligible_tracks=5; overlap rows are candidates rather than masking facts; limitations=energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact,no_eq_parameters_plugin_choices_proposals_or_pending_actions,measurement_conditions_not_comparable_cross_track_relations_withheld,measurement_condition_fields_incomplete,measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point,source_file_pre_fx_does_not_represent_current_post_plugin_signal,one_or_more_tracks_missing_fresh_frequency_evidence.\nSample arrays, spectral tile payloads, and full acoustic packages are excluded from LLM context; use evidence_refs for traceability.",
+                                                                                                                                                                             "task_policy":  {
+                                                                                                                                                                                                 "intent":  "project_frequency_relationship_observation",
+                                                                                                                                                                                                 "optional_layers":  "project_mix_profile multitrack_relation basic_energy time_dynamics_structure ab_result_comparison",
+                                                                                                                                                                                                 "output_contract":  "compact_projection_only evidence_refs_required quality_summary_required do_not_include_raw_package no_waveform_time_segments_in_llm_context do_not_use_suspect_stale_missing_as_action_evidence",
+                                                                                                                                                                                                 "required_layers":  "project_structure frequency_relationship frequency_relationship.coverage frequency_relationship.tap_point trust_quality"
+                                                                                                                                                                                             }
+                                                                                                                                                                         },
+                                                                                                                                                         "mom_version":  "v1.5",
+                                                                                                                                                         "multitrack_relation":  {
+                                                                                                                                                                                     "band_conflict_candidates":  [
+                                                                                                                                                                                                                      "@{band=mid; status=candidate; tracks=System.Object[]}"
+                                                                                                                                                                                                                  ],
+                                                                                                                                                                                     "coverage":  {
+                                                                                                                                                                                                      "compared_track_count":  6,
+                                                                                                                                                                                                      "missing_track_count":  1
+                                                                                                                                                                                                  },
+                                                                                                                                                                                     "evidence_refs":  [
+                                                                                                                                                                                                           "observation:obs_20261003T043054_74fad2b12189",
+                                                                                                                                                                                                           "mix.read:project.tracks.summary",
+                                                                                                                                                                                                           "mix.read:project.relationship_inputs",
+                                                                                                                                                                                                           "mix.derive:rank_tracks"
+                                                                                                                                                                                                       ],
+                                                                                                                                                                                     "freshness":  "partial",
+                                                                                                                                                                                     "level_summary":  {
+                                                                                                                                                                                                           "tracks_with_level":  6
+                                                                                                                                                                                                       },
+                                                                                                                                                                                     "limitations":  [
+                                                                                                                                                                                                         "some_tracks_missing_band_or_stereo_evidence"
+                                                                                                                                                                                                     ],
+                                                                                                                                                                                     "risk_summary":  {
+                                                                                                                                                                                                          "band_conflict_count":  1,
+                                                                                                                                                                                                          "band_occupancy_count":  6,
+                                                                                                                                                                                                          "phase_risk_count":  0
+                                                                                                                                                                                                      },
+                                                                                                                                                                                     "status":  "partial",
+                                                                                                                                                                                     "track_count":  6
+                                                                                                                                                                                 }
+                                                                                                                                                     },
+                                                                                                                      "project.rankings.level":  {
+                                                                                                                                                     "rows":  null,
+                                                                                                                                                     "status":  "partial"
+                                                                                                                                                 },
+                                                                                                                      "project.rankings.peak":  {
+                                                                                                                                                    "rows":  null,
+                                                                                                                                                    "status":  "partial"
+                                                                                                                                                },
+                                                                                                                      "project.relationship_inputs":  {
+                                                                                                                                                          "status":  "ready",
+                                                                                                                                                          "track_count":  6,
+                                                                                                                                                          "tracks_with_acoustic":  6
+                                                                                                                                                      },
+                                                                                                                      "project.risks.headroom":  {
+                                                                                                                                                     "rows":  null,
+                                                                                                                                                     "status":  "partial"
+                                                                                                                                                 }
+                                                                                                                  },
+                                                                                                        "limitations":  [
+                                                                                                                            "This is observation, not a B2/B3 solver result."
+                                                                                                                        ],
+                                                                                                        "status":  "partial",
+                                                                                                        "view_id":  "mix.multitrack_relationship"
+                                                                                                    },
+                                                                    "project.structure":  {
+                                                                                              "facts":  {
+                                                                                                            "observation.mom_projection":  {
+                                                                                                                                               "intent":  "project_frequency_relationship_observation",
+                                                                                                                                               "llm_context":  {
+                                                                                                                                                                   "compact_facts":  [
+                                                                                                                                                                                         "@{evidence_refs=System.Object[]; freshness=fresh; layer=project_structure; status=ready; summary=Project/target identity and revision context.}",
+                                                                                                                                                                                         "@{freshness=fresh; layer=intent_policy; optional_layers=System.Object[]; output_contract=System.Object[]; required_layers=System.Object[]; status=ready; summary=required=project_structure,frequency_relationship,frequency_relationship.coverage,frequency_relationship.tap_point,trust_quality optional=project_mix_profile,multitrack_relation,basic_energy,time_dynamics_structure,ab_result_comparison contract=compact_projection_only,evidence_refs_required,quality_summary_required,do_not_include_raw_package,no_waveform_time_segments_in_llm_context,do_not_use_suspect_stale_missing_as_action_evidence}",
+                                                                                                                                                                                         "@{conflict_candidates=System.Object[]; coverage=; evidence_refs=System.Object[]; frequency_regions=System.Object[]; freshness=suspect; layer=frequency_relationship; limitations=System.Object[]; persistence_summary=; project_cut_ref=project-state:vitproj_f9f02a88e08043da8e635859d41ec23f:epoch_c5f90896ff97db7b:1:19f38e952d435ebe; schema_version=mom.frequency_relationship.v1; scope=; status=suspect; summary=Compact project frequency relationship projection; overlap rows are candidates, not masking facts.; tap_point=source_file_pre_fx; tonal_tendencies=System.Object[]; track_profiles=System.Object[]; verification_dimensions=System.Object[]}",
+                                                                                                                                                                                         "@{evidence_refs=System.Object[]; freshness=partial; layer=trust_quality.frequency_relationship; status=partial; summary=Frequency relationship readiness is bounded by tap point, whole-project coverage, freshness, and persistence limitations.}",
+                                                                                                                                                                                         "@{deferred_layers=System.Object[]; evidence_refs=System.Object[]; freshness=deferred; layer=deferred_layers; status=deferred; summary=Non-requested or deferred analyzers do not affect the current intent status.}"
+                                                                                                                                                                                     ],
+                                                                                                                                                                   "do_not_include_raw_package":  true,
+                                                                                                                                                                   "evidence_refs":  [
+                                                                                                                                                                                         "observation:obs_20261003T043054_74fad2b12189",
+                                                                                                                                                                                         "mix.read:project.static.summary",
+                                                                                                                                                                                         "mix.read:project.limitations",
+                                                                                                                                                                                         "acoustic_package_status",
+                                                                                                                                                                                         "mix.read:project.tracks.summary",
+                                                                                                                                                                                         "mix.read:project.relationship_inputs",
+                                                                                                                                                                                         "mix.derive:rank_tracks",
+                                                                                                                                                                                         "mix.read:project.frequency_relationship_inputs",
+                                                                                                                                                                                         "dad.band_energy_summary:1007:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                         "dad.band_energy_summary:1012:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                         "dad.band_energy_summary:1017:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                         "dad.band_energy_summary:1022:mixboard_20261003T043052_166516400"
+                                                                                                                                                                                     ],
+                                                                                                                                                                   "limitation_notes":  [
+                                                                                                                                                                                            "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+                                                                                                                                                                                            "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+                                                                                                                                                                                            "measurement_conditions_not_comparable_cross_track_relations_withheld",
+                                                                                                                                                                                            "measurement_condition_fields_incomplete",
+                                                                                                                                                                                            "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+                                                                                                                                                                                            "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+                                                                                                                                                                                            "one_or_more_tracks_missing_fresh_frequency_evidence",
+                                                                                                                                                                                            "required_observation_evidence_not_ready",
+                                                                                                                                                                                            "suspect_data_cannot_support_suggestion",
+                                                                                                                                                                                            "some_tracks_missing_band_or_stereo_evidence"
+                                                                                                                                                                                        ],
+                                                                                                                                                                   "quality_summary":  {
+                                                                                                                                                                                           "approximate_fields":  "mix.current.loudness mix.current.loudness.approximate_lufs mix.current.loudness.algorithm time_dynamics_structure.loudness_summary time_dynamics_structure.loudness_summary.approximate_lufs time_dynamics_structure.loudness_summary.algorithm",
+                                                                                                                                                                                           "blocked_reasons":  "required_observation_evidence_not_ready suspect_data_cannot_support_suggestion",
+                                                                                                                                                                                           "can_support_ab_result":  false,
+                                                                                                                                                                                           "can_support_action_preflight":  false,
+                                                                                                                                                                                           "can_support_observation":  false,
+                                                                                                                                                                                           "can_support_suggestion":  false,
+                                                                                                                                                                                           "clip_revision_status":  "missing",
+                                                                                                                                                                                           "l2_tap_point":  "",
+                                                                                                                                                                                           "missing_fields":  "",
+                                                                                                                                                                                           "overall_status":  "partial",
+                                                                                                                                                                                           "render_revision_status":  "missing",
+                                                                                                                                                                                           "schema_version":  "mom_trust_quality.v1",
+                                                                                                                                                                                           "source_revision_status":  "missing",
+                                                                                                                                                                                           "stale_fields":  "",
+                                                                                                                                                                                           "suspect_fields":  "frequency_relationship"
+                                                                                                                                                                                       },
+                                                                                                                                                                   "safety_gates":  [
+                                                                                                                                                                                        "frequency_relationship:suspect",
+                                                                                                                                                                                        "frequency_relationship.tap_point:source_file_pre_fx",
+                                                                                                                                                                                        "frequency_relationship.post_fx_compare:false",
+                                                                                                                                                                                        "approximate_fields:6",
+                                                                                                                                                                                        "suspect_fields:1"
+                                                                                                                                                                                    ],
+                                                                                                                                                                   "suggested_next_step":  "Refresh or complete the missing/suspect evidence before using this observation for action.",
+                                                                                                                                                                   "summary_md":  "MOM v1.5 intent=project_frequency_relationship_observation overall=partial.\nRequired layers: project_structure, frequency_relationship, frequency_relationship.coverage, frequency_relationship.tap_point, trust_quality.\nMOM frequency_relationship is primary; tap_point=source_file_pre_fx; eligible_tracks=5; overlap rows are candidates rather than masking facts; limitations=energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact,no_eq_parameters_plugin_choices_proposals_or_pending_actions,measurement_conditions_not_comparable_cross_track_relations_withheld,measurement_condition_fields_incomplete,measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point,source_file_pre_fx_does_not_represent_current_post_plugin_signal,one_or_more_tracks_missing_fresh_frequency_evidence.\nSample arrays, spectral tile payloads, and full acoustic packages are excluded from LLM context; use evidence_refs for traceability.",
+                                                                                                                                                                   "task_policy":  {
+                                                                                                                                                                                       "intent":  "project_frequency_relationship_observation",
+                                                                                                                                                                                       "optional_layers":  "project_mix_profile multitrack_relation basic_energy time_dynamics_structure ab_result_comparison",
+                                                                                                                                                                                       "output_contract":  "compact_projection_only evidence_refs_required quality_summary_required do_not_include_raw_package no_waveform_time_segments_in_llm_context do_not_use_suspect_stale_missing_as_action_evidence",
+                                                                                                                                                                                       "required_layers":  "project_structure frequency_relationship frequency_relationship.coverage frequency_relationship.tap_point trust_quality"
+                                                                                                                                                                                   }
+                                                                                                                                                               },
+                                                                                                                                               "mom_version":  "v1.5",
+                                                                                                                                               "project_structure":  {
+                                                                                                                                                                         "duration_seconds":  20,
+                                                                                                                                                                         "evidence_refs":  [
+                                                                                                                                                                                               "observation:obs_20261003T043054_74fad2b12189",
+                                                                                                                                                                                               "mix.read:project.static.summary",
+                                                                                                                                                                                               "mix.read:project.limitations",
+                                                                                                                                                                                               "acoustic_package_status"
+                                                                                                                                                                                           ],
+                                                                                                                                                                         "freshness":  "fresh",
+                                                                                                                                                                         "gui_id":  "current",
+                                                                                                                                                                         "limitations":  [
+                                                                                                                                                                                             "project_rankings_are_agent_side_lightweight_o1",
+                                                                                                                                                                                             "kernel_project_contrast_analyzer_deferred_o3",
+                                                                                                                                                                                             "lufs_analysis_deferred_phase_5",
+                                                                                                                                                                                             "reference_match_deferred_phase_5",
+                                                                                                                                                                                             "post_fx_probe_unavailable_phase_4_1",
+                                                                                                                                                                                             "masking_analysis_not_ready_on_current_project_cut"
+                                                                                                                                                                                         ],
+                                                                                                                                                                         "listen_scope":  {
+                                                                                                                                                                                              "source":  "@{mode=full_project}",
+                                                                                                                                                                                              "time":  "@{mode=full_song; source=scope_full_project}"
+                                                                                                                                                                                          },
+                                                                                                                                                                         "project_id":  "current",
+                                                                                                                                                                         "session_id":  "mix_b0b7642a9413",
+                                                                                                                                                                         "status":  "ready",
+                                                                                                                                                                         "target_ref":  {
+                                                                                                                                                                                            "confidence":  "high",
+                                                                                                                                                                                            "id":  "current",
+                                                                                                                                                                                            "kind":  "project",
+                                                                                                                                                                                            "label":  "Current project",
+                                                                                                                                                                                            "source":  "mix_observation_scope"
+                                                                                                                                                                                        },
+                                                                                                                                                                         "track_id":  "current"
+                                                                                                                                                                     },
+                                                                                                                                               "trust_quality":  {
+                                                                                                                                                                     "clip_revision_status":  "missing",
+                                                                                                                                                                     "evidence_refs":  [
+                                                                                                                                                                                           "observation:obs_20261003T043054_74fad2b12189",
+                                                                                                                                                                                           "mix.read:project.static.summary",
+                                                                                                                                                                                           "mix.read:project.limitations",
+                                                                                                                                                                                           "acoustic_package_status",
+                                                                                                                                                                                           "mix.read:project.tracks.summary",
+                                                                                                                                                                                           "mix.read:project.relationship_inputs",
+                                                                                                                                                                                           "mix.derive:rank_tracks",
+                                                                                                                                                                                           "mix.read:project.frequency_relationship_inputs",
+                                                                                                                                                                                           "dad.band_energy_summary:1007:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                           "dad.band_energy_summary:1012:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                           "dad.band_energy_summary:1017:mixboard_20261003T043052_166516400",
+                                                                                                                                                                                           "dad.band_energy_summary:1022:mixboard_20261003T043052_166516400"
+                                                                                                                                                                                       ],
+                                                                                                                                                                     "limitations":  [
+                                                                                                                                                                                         "energy_overlap_is_candidate_only_not_psychoacoustic_masking_fact",
+                                                                                                                                                                                         "no_eq_parameters_plugin_choices_proposals_or_pending_actions",
+                                                                                                                                                                                         "measurement_conditions_not_comparable_cross_track_relations_withheld",
+                                                                                                                                                                                         "measurement_condition_fields_incomplete",
+                                                                                                                                                                                         "measurement_condition_mismatch_fields=analyzer_version,channel_count,end_seconds,sample_rate,start_seconds,tap_point",
+                                                                                                                                                                                         "source_file_pre_fx_does_not_represent_current_post_plugin_signal",
+                                                                                                                                                                                         "one_or_more_tracks_missing_fresh_frequency_evidence",
+                                                                                                                                                                                         "required_observation_evidence_not_ready",
+                                                                                                                                                                                         "suspect_data_cannot_support_suggestion"
+                                                                                                                                                                                     ],
+                                                                                                                                                                     "overall_status":  "partial",
+                                                                                                                                                                     "render_revision_status":  "missing",
+                                                                                                                                                                     "schema_version":  "mom_trust_quality.v1",
+                                                                                                                                                                     "source_revision_status":  "missing"
+                                                                                                                                                                 }
+                                                                                                                                           },
+                                                                                                            "observation.tim_projection":  {
+                                                                                                                                               "coverage":  {
+                                                                                                                                                                "acoustic_package":  {
+                                                                                                                                                                                         "known_count":  6,
+                                                                                                                                                                                         "status":  "ready",
+                                                                                                                                                                                         "total_count":  6
+                                                                                                                                                                                     },
+                                                                                                                                                                "bit_depth":  {
+                                                                                                                                                                                  "known_count":  0,
+                                                                                                                                                                                  "missing_count":  6,
+                                                                                                                                                                                  "status":  "missing",
+                                                                                                                                                                                  "total_count":  6
+                                                                                                                                                                              },
+                                                                                                                                                                "channel_count":  {
+                                                                                                                                                                                      "known_count":  0,
+                                                                                                                                                                                      "missing_count":  6,
+                                                                                                                                                                                      "status":  "missing",
+                                                                                                                                                                                      "total_count":  6
+                                                                                                                                                                                  },
+                                                                                                                                                                "format_family":  {
+                                                                                                                                                                                      "known_count":  6,
+                                                                                                                                                                                      "status":  "ready",
+                                                                                                                                                                                      "total_count":  6
+                                                                                                                                                                                  },
+                                                                                                                                                                "playback_validity":  {
+                                                                                                                                                                                          "known_count":  6,
+                                                                                                                                                                                          "status":  "ready",
+                                                                                                                                                                                          "total_count":  6
+                                                                                                                                                                                      },
+                                                                                                                                                                "sample_rate":  {
+                                                                                                                                                                                    "known_count":  0,
+                                                                                                                                                                                    "missing_count":  6,
+                                                                                                                                                                                    "status":  "missing",
+                                                                                                                                                                                    "total_count":  6
+                                                                                                                                                                                }
+                                                                                                                                                            },
+                                                                                                                                               "evidence_refs":  [
+                                                                                                                                                                     "mix.read:project.tracks.summary",
+                                                                                                                                                                     "mix.read:project.acoustic.tracks",
+                                                                                                                                                                     "mix.read:project.limitations",
+                                                                                                                                                                     "dad:track_waveform_envelopes"
+                                                                                                                                                                 ],
+                                                                                                                                               "limitations":  [
+                                                                                                                                                                   "source_sample_rate_not_fully_exposed_by_project_state",
+                                                                                                                                                                   "pcm_bit_depth_not_fully_exposed_by_project_state",
+                                                                                                                                                                   "source_channel_count_not_fully_exposed_by_project_state",
+                                                                                                                                                                   "assert_level_ceiling_sample_peak_only",
+                                                                                                                                                                   "assert_signal_nonfinite_not_evaluable",
+                                                                                                                                                                   "assert_signal_dc_offset_not_evaluable",
+                                                                                                                                                                   "assert_sample_rate_not_evaluable",
+                                                                                                                                                                   "assert_routing_not_evaluable",
+                                                                                                                                                                   "assert_plugin_legality_not_evaluable",
+                                                                                                                                                                   "assert_plugin_hygiene_not_evaluable",
+                                                                                                                                                                   "assert_block_size_not_evaluable",
+                                                                                                                                                                   "assert_plugin_load_not_evaluable"
+                                                                                                                                                               ],
+                                                                                                                                               "risk_summary":  {
+                                                                                                                                                                    "issue_count":  0,
+                                                                                                                                                                    "overall_risk":  "none"
+                                                                                                                                                                },
+                                                                                                                                               "schema_version":  "tim.projection.v0",
+                                                                                                                                               "status":  "partial",
+                                                                                                                                               "technical_summary":  {
+                                                                                                                                                                         "acoustic_ready_track_count":  6,
+                                                                                                                                                                         "clip_count":  6,
+                                                                                                                                                                         "format_family_counts":  {
+                                                                                                                                                                                                      "pcm_like_or_lossless":  6
+                                                                                                                                                                                                  },
+                                                                                                                                                                         "pcm_source_count":  6,
+                                                                                                                                                                         "playback_valid_count":  6,
+                                                                                                                                                                         "source_present_count":  6,
+                                                                                                                                                                         "track_count":  6
+                                                                                                                                                                     },
+                                                                                                                                               "tim_version":  "v0"
+                                                                                                                                           },
+                                                                                                            "project.static.summary":  {
+                                                                                                                                           "listen_scope":  {
+                                                                                                                                                                "source":  {
+                                                                                                                                                                               "mode":  "full_project"
+                                                                                                                                                                           },
+                                                                                                                                                                "time":  {
+                                                                                                                                                                             "mode":  "full_song",
+                                                                                                                                                                             "source":  "scope_full_project"
+                                                                                                                                                                         }
+                                                                                                                                                            },
+                                                                                                                                           "schema_version":  "mixboard_environment.v1",
+                                                                                                                                           "source_capabilities":  {
+                                                                                                                                                                       "band_energy":  "ready",
+                                                                                                                                                                       "l2_render_probe":  "missing",
+                                                                                                                                                                       "loudness_summary":  "ready",
+                                                                                                                                                                       "lufs_analysis":  "deferred",
+                                                                                                                                                                       "masking_analysis":  "missing",
+                                                                                                                                                                       "post_fx_probe":  "unavailable",
+                                                                                                                                                                       "realtime_band_energy":  "missing",
+                                                                                                                                                                       "realtime_stereo_relation":  "missing",
+                                                                                                                                                                       "reference_match":  "deferred",
+                                                                                                                                                                       "stereo_relation":  "ready"
+                                                                                                                                                                   },
+                                                                                                                                           "status":  "ready",
+                                                                                                                                           "target_ref":  {
+                                                                                                                                                              "confidence":  "high",
+                                                                                                                                                              "id":  "current",
+                                                                                                                                                              "kind":  "project",
+                                                                                                                                                              "label":  "Current project",
+                                                                                                                                                              "source":  "mix_observation_scope"
+                                                                                                                                                          },
+                                                                                                                                           "time_ruler":  {
+                                                                                                                                                              "bar_map_available":  false,
+                                                                                                                                                              "duration_seconds":  20,
+                                                                                                                                                              "frame_seconds":  0.01,
+                                                                                                                                                              "segment_seconds":  2,
+                                                                                                                                                              "tempo_bpm":  null
+                                                                                                                                                          }
+                                                                                                                                       },
+                                                                                                            "project.tracks.summary":  {
+                                                                                                                                           "active_track_count":  6,
+                                                                                                                                           "status":  "ready",
+                                                                                                                                           "track_count":  6,
+                                                                                                                                           "tracks":  [
+                                                                                                                                                          {
+                                                                                                                                                              "active_state":  "active",
+                                                                                                                                                              "name":  "bass",
+                                                                                                                                                              "role_guess":  "bass",
+                                                                                                                                                              "track_id":  "1007",
+                                                                                                                                                              "track_name":  "bass"
+                                                                                                                                                          },
+                                                                                                                                                          {
+                                                                                                                                                              "active_state":  "active",
+                                                                                                                                                              "name":  "drums",
+                                                                                                                                                              "role_guess":  "drums",
+                                                                                                                                                              "track_id":  "1012",
+                                                                                                                                                              "track_name":  "drums"
+                                                                                                                                                          },
+                                                                                                                                                          {
+                                                                                                                                                              "active_state":  "active",
+                                                                                                                                                              "name":  "guitar",
+                                                                                                                                                              "role_guess":  "guitar",
+                                                                                                                                                              "track_id":  "1017",
+                                                                                                                                                              "track_name":  "guitar"
+                                                                                                                                                          },
+                                                                                                                                                          {
+                                                                                                                                                              "active_state":  "active",
+                                                                                                                                                              "name":  "other",
+                                                                                                                                                              "role_guess":  "unknown",
+                                                                                                                                                              "track_id":  "1022",
+                                                                                                                                                              "track_name":  "other"
+                                                                                                                                                          },
+                                                                                                                                                          {
+                                                                                                                                                              "active_state":  "active",
+                                                                                                                                                              "name":  "piano",
+                                                                                                                                                              "role_guess":  "keys_or_synth",
+                                                                                                                                                              "track_id":  "1027",
+                                                                                                                                                              "track_name":  "piano"
+                                                                                                                                                          },
+                                                                                                                                                          {
+                                                                                                                                                              "active_state":  "active",
+                                                                                                                                                              "name":  "vocals",
+                                                                                                                                                              "role_guess":  "vocal",
+                                                                                                                                                              "track_id":  "1032",
+                                                                                                                                                              "track_name":  "vocals"
+                                                                                                                                                          }
+                                                                                                                                                      ]
+                                                                                                                                       }
+                                                                                                        },
+                                                                                              "limitations":  [
+                                                                                                                  "Does not disclose a full TOM tree."
+                                                                                                              ],
+                                                                                              "status":  "ready",
+                                                                                              "view_id":  "project.structure"
+                                                                                          }
+                                                                },
+                                                      "evidence_refs":  [
+                                                                            "obs_20261003T043054_74fad2b12189",
+                                                                            "evidence://16d07d472acdbc31b0f2a2096168c37fe7317ff92f3de04413785d634f143eb6"
+                                                                        ],
+                                                      "limitations":  [
+                                                                          "mix.multitrack_relationship: evidence status is partial"
+                                                                      ],
+                                                      "omission_reasons":  [
+                                                                               "mix.frequency_relationship: omitted by disclosure budget"
+                                                                           ],
+                                                      "omissions":  {
+                                                                        "mix.frequency_relationship":  "omitted_budget"
+                                                                    },
+                                                      "disclosure_bytes":  41002,
+                                                      "max_disclosure_bytes":  65536,
+                                                      "audit_receipt":  {
+                                                                            "schema_version":  "ccb_observation_receipt.v1",
+                                                                            "receipt_id":  "ccbr_obs_20261003T043054_74fad2b12189",
+                                                                            "requested_by":  "model",
+                                                                            "model_requested_view_ids":  [
+                                                                                                             "project.structure",
+                                                                                                             "mix.multitrack_relationship",
+                                                                                                             "mix.frequency_relationship"
+                                                                                                         ],
+                                                                            "actual_executed_view_ids":  [
+                                                                                                             "project.structure",
+                                                                                                             "mix.multitrack_relationship",
+                                                                                                             "mix.frequency_relationship"
+                                                                                                         ],
+                                                                            "view_set_matches":  true,
+                                                                            "scope":  "full_project",
+                                                                            "freshness":  {
+                                                                                              "class":  "current_observation",
+                                                                                              "observed_at":  "2026-10-03T04:30:54.7942915Z",
+                                                                                              "project_epoch":  "epoch_c5f90896ff97db7b",
+                                                                                              "project_revision":  "1",
+                                                                                              "project_uuid":  "vitproj_f9f02a88e08043da8e635859d41ec23f",
+                                                                                              "status":  "ready"
+                                                                                          },
+                                                                            "project_binding":  {
+                                                                                                    "project_epoch":  "epoch_c5f90896ff97db7b",
+                                                                                                    "project_revision":  "1",
+                                                                                                    "project_state_hash":  "19f38e952d435ebe",
+                                                                                                    "project_uuid":  "vitproj_f9f02a88e08043da8e635859d41ec23f"
+                                                                                                },
+                                                                            "project_revision":  "1",
+                                                                            "status":  "partial",
+                                                                            "rejection_reasons":  [
+                                                                                                      "mix.frequency_relationship: omitted by disclosure budget"
+                                                                                                  ]
+                                                                        }
+                                                  },
+                                       "status":  "partial"
+                                   },
+                        "tool":  "ccb.observation_request",
+                        "undo_label":  ""
+                    },
+        "created_at":  "2026-10-03T12:30:54.9194898+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "agent_item:run_a96d61a2cd63c54d:tool_step_1"
+    },
+    {
+        "seq":  8,
+        "type":  "turn.completed",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_id":  "chain_result",
+        "item_type":  "turn",
+        "status":  "completed",
+        "title":  "处理完成",
+        "body":  "任务已到达明确的能力边界；没有把能力不足解释为改善完成。",
+        "payload":  {
+                        "completed_steps":  0,
+                        "error":  "",
+                        "executed_count":  0,
+                        "goal_status":  "completed",
+                        "needs_confirmation":  false,
+                        "scheduler_chain":  true,
+                        "stop_reason":  "capability_blocked",
+                        "turn_kind":  "settle_slice"
+                    },
+        "created_at":  "2026-10-03T12:36:30.8335198+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "agent_turn:run_a96d61a2cd63c54d"
+    },
+    {
+        "seq":  9,
+        "type":  "trajectory.turn.completed",
+        "conversation_id":  "settledeliver_20261003_123042",
+        "goal_id":  "goal_96e5de6c976b2cdd",
+        "run_id":  "run_a96d61a2cd63c54d",
+        "item_id":  "turn:run_a96d61a2cd63c54d",
+        "item_type":  "trajectory",
+        "status":  "completed",
+        "title":  "回合已完成",
+        "payload":  {
+                        "contract_id":  "contract_task_9e0dbd3f491c99a4",
+                        "contract_scope":  {
+                                               "id":  "vitproj_f9f02a88e08043da8e635859d41ec23f",
+                                               "kind":  "project"
+                                           },
+                        "node_kind":  "turn",
+                        "phase":  "completed",
+                        "schema_version":  "vit.observable_trajectory.v1",
+                        "source_turn_id":  "run_a96d61a2cd63c54d",
+                        "status":  "completed",
+                        "summary":  "capability_blocked",
+                        "task_state":  "capability_blocked",
+                        "task_state_revision":  2,
+                        "task_state_schema":  "vit.task_semantic_state.v1",
+                        "terminal":  true,
+                        "trace_node_id":  "turn:run_a96d61a2cd63c54d",
+                        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+                        "transition_reason":  "free-state capability boundary",
+                        "turn_id":  "run_a96d61a2cd63c54d"
+                    },
+        "created_at":  "2026-10-03T12:36:30.8340246+08:00",
+        "lifecycle":  "transient",
+        "persistence":  "none",
+        "message_kind":  "activity",
+        "turn_id":  "run_a96d61a2cd63c54d",
+        "trajectory_turn_id":  "run_a96d61a2cd63c54d",
+        "source_turn_id":  "run_a96d61a2cd63c54d",
+        "logical_message_id":  "trajectory:run_a96d61a2cd63c54d:turn:run_a96d61a2cd63c54d"
+    }
+]

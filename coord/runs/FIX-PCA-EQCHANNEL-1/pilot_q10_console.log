@@ -1,0 +1,16 @@
+=== phase certify (run 20260924_005622) ===
+[certify] targets=1
+[certify] kernel plugin list empty; scanning C:\Program Files\Common Files\VST3
+Traceback (most recent call last):
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 1709, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 1703, in main
+    getattr(sweep, f"phase_{phase}")()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 746, in phase_certify
+    self.ensure_kernel_plugin_list(targets[0][0]["name"])
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Vit_DAW\scripts\pca_autosweep.py", line 723, in ensure_kernel_plugin_list
+    raise RuntimeError("kernel plugin scan did not settle within 20 minutes")
+RuntimeError: kernel plugin scan did not settle within 20 minutes

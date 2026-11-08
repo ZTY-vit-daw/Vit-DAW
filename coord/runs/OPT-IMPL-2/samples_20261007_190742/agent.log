@@ -1,0 +1,80 @@
+2026-10-07T19:07:47 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-07T19:07:47 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-07T19:07:47 [INFO] HTTP agent API listening on http://127.0.0.1:8093
+2026-10-07T19:07:47 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-07T19:07:47 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-07T19:07:47 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-07T19:07:47 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:07:47 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-07T19:07:47 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:07:47 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:07:47 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-07T19:07:47 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:47 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_f5b51b6a84714d2d8ed99d5d17468dab
+2026-10-07T19:07:47 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190742\\agent_drafts\\draft_20261007T110747_da30125b\\Unsaved.vit" uuid=vitproj_f5b51b6a84714d2d8ed99d5d17468dab recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-07T19:07:47 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=0
+2026-10-07T19:07:47 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=open_project err=false
+2026-10-07T19:07:47 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190742\\project\\observe_fixture.vit" replayed_deltas=0
+2026-10-07T19:07:47 [INFO] [timing] harness.refresh_shadow ms=6 reason=open_project status=ok err=false
+2026-10-07T19:07:47 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190742\\project\\observe_fixture.vit" replayed_deltas=0
+2026-10-07T19:07:47 [INFO] [timing] kernel.send_command ms=70 command=open_project tool=project.open confirmed=true err=false
+2026-10-07T19:07:47 [INFO] [timing] harness.invoke total_ms=83 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-10-07T19:07:47 [INFO] [workspace] parent history recovery skipped parent=vitproj_911c03e85e0840bab498388bc381073d target=vitproj_fc9a34f6eb404167915d8880d67085d8 reason=parent project path not found for UUID vitproj_911c03e85e0840bab498388bc381073d
+2026-10-07T19:07:47 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:47 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_fc9a34f6eb404167915d8880d67085d8
+2026-10-07T19:07:47 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190742\\project\\observe_fixture.vit" uuid=vitproj_fc9a34f6eb404167915d8880d67085d8 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-07T19:07:47 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:48 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:48 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:48 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:48 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:48 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-10-07T19:07:48 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-10-07T19:07:49 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:49 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:49 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:49 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:50 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:50 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:50 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:50 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:51 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:51 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:51 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-07T19:07:52 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:07:52 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:07:54 [WARN] [semantic.entry] unresolved fallback conversation=observe_sample_q1_lowfreq_190751 stop=semantic_entry_unresolved route=unresolved confidence=0.10 err="" diagnostic="Request content is not legible or interpretable; cannot determine whether the user wants discussion, observation, or a project change."
+2026-10-07T19:07:54 [INFO] [timing] agent_loop_chat total_ms=1834 conversation=observe_sample_q1_lowfreq_190751 goal= mode=default status=waiting_clarification stop=semantic_entry_unresolved completed_steps=0 executed=0
+2026-10-07T19:07:54 [INFO] [media_refs] ms=0 conversation=observe_sample_q1_lowfreq_190751 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-07T19:07:54 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\OPT-IMPL-2\samples_20261007_190742\project\observe_fixture.vit revision=2
+2026-10-07T19:07:54 [INFO] [chat.artifacts] conversation=observe_sample_q1_lowfreq_190751 response_artifacts=0 request_artifacts=0 executed=0 reply_len=243
+2026-10-07T19:07:54 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\OPT-IMPL-2\samples_20261007_190742\project\observe_fixture.vit revision=2 commit=c_20261007T110754_c63a406d rebound=1 total_ms=17
+2026-10-07T19:07:54 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_fc9a34f6eb404167915d8880d67085d8
+2026-10-07T19:07:54 [INFO] [timing] http.chat total_ms=2373 conversation=observe_sample_q1_lowfreq_190751 message_len=24
+2026-10-07T19:07:57 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:07:57 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:07:57 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=capacity_project_facts err=false
+2026-10-07T19:07:57 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW\\coord\\runs\\OPT-IMPL-2\\samples_20261007_190742\\project\\observe_fixture.vit" replayed_deltas=0
+2026-10-07T19:07:57 [INFO] [timing] harness.refresh_shadow ms=4 reason=capacity_project_facts status=ok err=false
+2026-10-07T19:08:00 [INFO] [timing] message_loop.llm ms=3201 goal=goal_ea048e3234daa18a conversation=observe_sample_q2_levels_190754 turn=1 messages=2 chars=47065 message_chars=0:system:13612,1:user:33453 err=false
+2026-10-07T19:08:00 [INFO] [timing] harness.invoke total_ms=10 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-07T19:08:00 [INFO] [timing] message_loop.tool ms=10 goal=goal_ea048e3234daa18a tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-07T19:08:00 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_fc9a34f6eb404167915d8880d67085d8
+2026-10-07T19:08:00 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-07T19:08:00 [INFO] [continuation.arm] conversation=observe_sample_q2_levels_190754 goal=goal_ea048e3234daa18a status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_735d6ec5c6674f998297c0e8 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-07T19:08:00 [INFO] [timing] agent_loop_chat total_ms=6201 conversation=observe_sample_q2_levels_190754 goal=goal_ea048e3234daa18a mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-07T19:08:00 [INFO] [media_refs] ms=0 conversation=observe_sample_q2_levels_190754 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-07T19:08:00 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\OPT-IMPL-2\samples_20261007_190742\project\observe_fixture.vit revision=2
+2026-10-07T19:08:00 [INFO] [chat.artifacts] conversation=observe_sample_q2_levels_190754 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-07T19:08:01 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_fc9a34f6eb404167915d8880d67085d8
+2026-10-07T19:08:01 [INFO] [timing] http.chat total_ms=6734 conversation=observe_sample_q2_levels_190754 message_len=33
+2026-10-07T19:08:02 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:08:02 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-07T19:08:03 [WARN] [semantic.entry] unresolved fallback conversation=observe_sample_q3_stereo_190801 stop=semantic_entry_unresolved route=unresolved confidence=0.20 err="" diagnostic="The request text is unreadable/placeholder-only, providing no intent, target, or authorization to classify safely."
+2026-10-07T19:08:03 [INFO] [timing] agent_loop_chat total_ms=1675 conversation=observe_sample_q3_stereo_190801 goal= mode=default status=waiting_clarification stop=semantic_entry_unresolved completed_steps=0 executed=0
+2026-10-07T19:08:03 [INFO] [media_refs] ms=0 conversation=observe_sample_q3_stereo_190801 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-07T19:08:03 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\OPT-IMPL-2\samples_20261007_190742\project\observe_fixture.vit revision=2
+2026-10-07T19:08:03 [INFO] [chat.artifacts] conversation=observe_sample_q3_stereo_190801 response_artifacts=0 request_artifacts=0 executed=0 reply_len=243
+2026-10-07T19:08:03 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_fc9a34f6eb404167915d8880d67085d8
+2026-10-07T19:08:03 [INFO] [timing] http.chat total_ms=2167 conversation=observe_sample_q3_stereo_190801 message_len=25
+2026-10-07T19:08:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation

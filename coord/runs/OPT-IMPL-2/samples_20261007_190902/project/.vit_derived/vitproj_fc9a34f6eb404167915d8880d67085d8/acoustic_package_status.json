@@ -1,0 +1,411 @@
+{
+	"schema_version": "acoustic_package_status.v0",
+	"updated_at": "2026-10-07T11:09:24.5592506Z",
+	"packages": [
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "partial",
+			"project_id": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+			"track_id": "1012",
+			"clip_id": "1016",
+			"source_fingerprint": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+			"source_revision": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+			"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000",
+			"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=555491d62955f9e8|clip_state=6e8c0ded4c62768",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+			"duration_seconds": 2.219,
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_id": "1016",
+				"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000",
+				"clip_start_seconds": 0,
+				"duration_seconds": 2.219,
+				"project_id": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+				"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=555491d62955f9e8|clip_state=6e8c0ded4c62768",
+				"source_fingerprint": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+				"source_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+				"source_revision": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+				"track_id": "1012"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "stale",
+					"features": {
+						"peak_rms_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "incomplete_source_identity"
+						},
+						"time_energy": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "incomplete_source_identity"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "incomplete_source_identity"
+						},
+						"waveform_envelope": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "incomplete_source_identity"
+						}
+					},
+					"updated_at": "2026-10-07T11:09:24.5442352Z"
+				},
+				"l2_realtime": {
+					"status": "ready",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "ready",
+							"source": "l2_render_probe",
+							"progress": {
+								"coverage_ratio": 1,
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "ok"
+							},
+							"ref": {
+								"analyzed_range": {
+									"duration_seconds": 2.2,
+									"end_seconds": 2.2,
+									"start_seconds": 0
+								},
+								"analyzer_revision": "agent_lightweight_o1",
+								"balance_db": 0,
+								"balance_state": "centered",
+								"bands": {
+									"air": {
+										"coverage_ratio": 1,
+										"energy_db": -0.623833100727251,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"unit_energy": 8.481773788389743e-8
+									},
+									"bass": {
+										"coverage_ratio": 1,
+										"energy_db": 24.248680254791964,
+										"max_hz": 250,
+										"min_hz": 60,
+										"unit_energy": 0.000026045819172
+									},
+									"low_mid": {
+										"coverage_ratio": 1,
+										"energy_db": 70.09086454211361,
+										"max_hz": 500,
+										"min_hz": 250,
+										"unit_energy": 0.99989972696329
+									},
+									"mid": {
+										"coverage_ratio": 1,
+										"energy_db": 28.48707856491837,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"unit_energy": 0.000069115881613
+									},
+									"presence": {
+										"coverage_ratio": 1,
+										"energy_db": 5.612359648267471,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"unit_energy": 3.565381119998171e-7
+									},
+									"sub": {
+										"coverage_ratio": 1,
+										"energy_db": 16.78445033233026,
+										"max_hz": 60,
+										"min_hz": 20,
+										"unit_energy": 0.000004669980087992638
+									}
+								},
+								"channel_count": 2,
+								"clip_id": "1016",
+								"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000",
+								"correlation_estimate": 1,
+								"correlation_state": "highly_correlated",
+								"crest_db": 3.0471981060301,
+								"duration_seconds": 2.219,
+								"evidence_ref": "vit://dad.l2_render_probe/track:1012/t=all@l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D%3A\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|clip_revision=clip=1016|track=1012|source=D%3A\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=555491d62955f9e8|clip_state=6e8c0ded4c62768#-",
+								"feature_type": "l2_render_probe",
+								"file_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+								"headroom_db": 6.020652720815526,
+								"layer": "l2_realtime",
+								"peak_abs": 0.499996960163116,
+								"peak_dbfs": -6.020652720815526,
+								"project_id": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+								"quality_evidence": {
+									"coverage": 1,
+									"deterministic": true,
+									"latency_compensated": true,
+									"max_abs": 0.499996960163116,
+									"nan_inf_count": 0,
+									"nonzero": true,
+									"sum_abs": 67224.88177101078,
+									"tail_captured": true
+								},
+								"quality_status": "ready",
+								"reason": "ok",
+								"render_mode": "offline_probe",
+								"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=555491d62955f9e8|clip_state=6e8c0ded4c62768",
+								"request_id": "mixboard_l2_render_probe_1012_20261007T110923.832132700",
+								"rms": 0.352052521055824,
+								"rms_dbfs": -9.067850826845627,
+								"sample_rate": 48000,
+								"schema_version": "dad_l2_render_probe.v1",
+								"source_fingerprint": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+								"source_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+								"source_revision": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+								"status": "ready",
+								"tap_point": "track_post_fader",
+								"track_id": "1012",
+								"track_state_fingerprint": "trackstate_53f638070c92bf38"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "ok"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "ready",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"coverage_ratio": 1,
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "ok"
+							},
+							"ref": {
+								"analyzed_range": {
+									"duration_seconds": 2.2,
+									"end_seconds": 2.2,
+									"start_seconds": 0
+								},
+								"analyzer_revision": "agent_lightweight_o1",
+								"balance_db": 0,
+								"balance_state": "centered",
+								"bands": {
+									"air": {
+										"coverage_ratio": 1,
+										"energy_db": -0.623833100727251,
+										"max_hz": 20000,
+										"min_hz": 6000,
+										"unit_energy": 8.481773788389743e-8
+									},
+									"bass": {
+										"coverage_ratio": 1,
+										"energy_db": 24.248680254791964,
+										"max_hz": 250,
+										"min_hz": 60,
+										"unit_energy": 0.000026045819172
+									},
+									"low_mid": {
+										"coverage_ratio": 1,
+										"energy_db": 70.09086454211361,
+										"max_hz": 500,
+										"min_hz": 250,
+										"unit_energy": 0.99989972696329
+									},
+									"mid": {
+										"coverage_ratio": 1,
+										"energy_db": 28.48707856491837,
+										"max_hz": 2000,
+										"min_hz": 500,
+										"unit_energy": 0.000069115881613
+									},
+									"presence": {
+										"coverage_ratio": 1,
+										"energy_db": 5.612359648267471,
+										"max_hz": 6000,
+										"min_hz": 2000,
+										"unit_energy": 3.565381119998171e-7
+									},
+									"sub": {
+										"coverage_ratio": 1,
+										"energy_db": 16.78445033233026,
+										"max_hz": 60,
+										"min_hz": 20,
+										"unit_energy": 0.000004669980087992638
+									}
+								},
+								"channel_count": 2,
+								"clip_id": "1016",
+								"clip_revision": "clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000",
+								"correlation_estimate": 1,
+								"correlation_state": "highly_correlated",
+								"crest_db": 3.0471981060301,
+								"duration_seconds": 2.219,
+								"evidence_ref": "vit://dad.l2_render_probe/track:1012/t=all@l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D%3A\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|clip_revision=clip=1016|track=1012|source=D%3A\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=555491d62955f9e8|clip_state=6e8c0ded4c62768#-",
+								"feature_type": "l2_render_probe",
+								"file_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+								"headroom_db": 6.020652720815526,
+								"layer": "l2_realtime",
+								"peak_abs": 0.499996960163116,
+								"peak_dbfs": -6.020652720815526,
+								"project_id": "vitproj_fc9a34f6eb404167915d8880d67085d8",
+								"quality_evidence": {
+									"coverage": 1,
+									"deterministic": true,
+									"latency_compensated": true,
+									"max_abs": 0.499996960163116,
+									"nan_inf_count": 0,
+									"nonzero": true,
+									"sum_abs": 67224.88177101078,
+									"tail_captured": true
+								},
+								"quality_status": "ready",
+								"reason": "ok",
+								"render_mode": "offline_probe",
+								"render_revision": "l2rp.v1|tap=track_post_fader|mode=offline_probe|track=1012|clip=1016|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|clip_revision=clip=1016|track=1012|source=D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000|offset=0.0000|length=2.2000|range=0.0000-2.2000|tail=0.2500|track_state=555491d62955f9e8|clip_state=6e8c0ded4c62768",
+								"request_id": "mixboard_l2_render_probe_1012_20261007T110923.832132700",
+								"rms": 0.352052521055824,
+								"rms_dbfs": -9.067850826845627,
+								"sample_rate": 48000,
+								"schema_version": "dad_l2_render_probe.v1",
+								"source_fingerprint": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+								"source_path": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+								"source_revision": "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav|size=194084|mtime=1791342441929|length=2.2000",
+								"status": "ready",
+								"tap_point": "track_post_fader",
+								"track_id": "1012",
+								"track_state_fingerprint": "trackstate_53f638070c92bf38"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "ok"
+						}
+					},
+					"updated_at": "2026-10-07T11:09:24.5442352Z"
+				},
+				"l3_deep": {
+					"status": "stale",
+					"features": {
+						"band_energy_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "incomplete_source_identity"
+						},
+						"loudness_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "incomplete_source_identity"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "incomplete_source_identity"
+						},
+						"stereo_relation_summary": {
+							"status": "stale",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-07T11:09:24.5442352Z",
+								"reason": "incomplete_source_identity"
+							},
+							"updated_at": "2026-10-07T11:09:24.5442352Z",
+							"reason": "incomplete_source_identity"
+						}
+					},
+					"updated_at": "2026-10-07T11:09:24.5442352Z"
+				}
+			},
+			"updated_at": "2026-10-07T11:09:24.5442352Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-07T11:09:24.5442352Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-07T11:09:24.5592506Z"
+				}
+			]
+		}
+	]
+}

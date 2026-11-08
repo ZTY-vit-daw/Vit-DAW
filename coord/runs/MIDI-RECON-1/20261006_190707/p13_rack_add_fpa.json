@@ -1,0 +1,1 @@
+{"status":"error","tool":"rack.add_node","requires_confirmation":false,"result":{"error_code":"authority_mode_not_active"},"error":"authority_mode_not_active: full_project_access must be selected through the authority control before invoking an action"}

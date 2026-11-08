@@ -1,0 +1,20 @@
+﻿{
+    "requested_before_post":  false,
+    "seat_found":  false,
+    "capability_blocked_face":  "not_triggered",
+    "blind_eligible":  false,
+    "recorded_rows":  0,
+    "disclosure_event_after":  false,
+    "requested_rows":  0,
+    "classification":  "no_candidate_found",
+    "seat_event_type":  "",
+    "capability_blocked_responses":  0,
+    "fixture_open_authority":  "pass (threw otherwise)",
+    "session_blind":  false,
+    "recorded_blind_flagged":  false,
+    "disclosure_in_response":  false,
+    "hop_gate":  "not_driven_no_card",
+    "blind_expected":  false,
+    "judgment_gate":  "not_driven_no_seat",
+    "candidate_ready_seen":  false
+}

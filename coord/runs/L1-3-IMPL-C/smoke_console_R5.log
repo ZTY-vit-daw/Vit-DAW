@@ -1,0 +1,59 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_worktrees\l1-3-impl-c
+agent http: http://127.0.0.1:7878
+
+== Start or reuse agent
+ok: agent HTTP port already listening: 7878 pid=9700
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=34008
+ok: ZMQ SUB listening: 5556 pid=34008
+
+== Project state invoke
+project.state status=ok error=
+
+== ref.query read-only smoke (L1-3-IMPL-C)
+ok: ref.query/ref.diff are advertised
+ok: ref.query returned rows: 50 (cost_class=index)
+ok: ref.query degraded path surfaces compile + payload_index_unavailable (T11)
+Invoke-WebRequest : {"status":"error","agent_action_id":"act_8072411a4569d03b","tool":"ref.query","command_name":"ref_q
+uery","risk_level":"direct","requires_confirmation":false,"result":{"error":"ref.query: empty predicate set rejected (a
+t least one of kinds/scope/time_window(object)/payload_conditions is required; full-store pulls are not allowed)","stat
+us":"error"},"project_history":{"active_branch":"main","active_node_id":"n_20260929T105114_fbc8e3a0","active_worktree":
+"","available":true,"branches":{"main":"c_20260929T105114_9dbd70cc"},"commit_count":3,"detached":false,"draft":false,"h
+ead":"c_20260929T105114_9dbd70cc","initialized":true,"project_label":"Unsaved","project_path":"C:\\Users\\timoz\\AppDat
+a\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vit","project_uuid":"vitproj_b3f2838183d
+64add9ca7824b8b3ac557","recent_checkpoints":[{"branch":"main","checkpoint_kind":"manual","created_at":"2026-09-29T10:51
+:14.5938366Z","goal_id":"goal_3375aad71a097b0a","id":"c_20260929T105114_9dbd70cc","message":"Vit: range_context smoke o
+k: top_level, current_selection, ui_context, prompt_context"},{"branch":"main","checkpoint_kind":"manual","created_at":
+"2026-09-29T10:49:57.3698359Z","goal_id":"goal_5f5184b08c7dddc2","id":"c_20260929T104957_5f752814","message":"Vit: rang
+e_context smoke ok: top_level, current_selection, ui_context, prompt_context"},{"branch":"main","checkpoint_kind":"manu
+al","created_at":"2026-09-29T10:49:56.2755312Z","goal_id":"goal_5f5184b08c7dddc2","id":"c_20260929T104956_6ad3d723","me
+ssage":"Conversation ask"}],"refs":{"refs/heads/main":"c_20260929T105114_9dbd70cc"},"root_project_path":"","unsaved":fa
+lse,"warnings":[],"worktree_count":1,"worktrees":[{"commit_id":"c_20260929T105114_9dbd70cc","created_at":"2026-09-29T10
+:51:43.4763579Z","is_root":true,"label":"主工作树","name":"main","origin_commit_id":"c_20260929T105114_9dbd70cc","path"
+:"C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b","project_file_path":"C
+:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vit","project_pat
+h":"C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vit","root_p
+roject_path":"C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vi
+t"}]},"error":"ref.query: empty predicate set rejected (at least one of kinds/scope/time_window(object)/payload_conditi
+ons is required; full-store pulls are not allowed)"}
+所在位置 D:\Vit_DAW_worktrees\l1-3-impl-c\scripts\dev_agent_smoke.ps1:1065 字符: 25
++ ...     $resp = Invoke-WebRequest -UseBasicParsing -Method POST -Uri $inv ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce
+    ption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand

@@ -1,0 +1,34 @@
+(空=端口已释放)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_impld_review
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_impld_review\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_impld_review\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_impld_review\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_impld_review\Export\staging\runtime\VitApp.exe pid=42080 workdir=D:\Vit_DAW_wt_impld_review\coord\runs\L1-4-IMPL-D\20261008_182612\kernel_workspace
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_impld_review\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=True track_count=6
+ok: scenario berth project identity stable: vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+
+== Scenario context_layering: L1-4 four-layer prefix + exit-hook telemetry faces
+ok: context_layering chat turn 1 completed (reply text not asserted)
+ok: context_layering chat turn 2 completed (reply text not asserted)
+ok: context_layering: L1-4 telemetry keys in place, prefix bytes stable across runs
+
+== Scenario berth teardown
+ok: stopped scenario agent pid=19240
+ok: stopped scenario kernel pid=42080
+
+== Summary
+ok: dev agent smoke completed (scenario=context_layering, artifacts=D:\Vit_DAW_wt_impld_review\coord\runs\L1-4-IMPL-D\20261008_182612)
+SMOKE_EXIT=0

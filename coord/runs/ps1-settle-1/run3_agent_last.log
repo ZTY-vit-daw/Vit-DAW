@@ -1,0 +1,318 @@
+2026-09-19T23:39:38 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-09-19T23:39:38 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-09-19T23:39:38 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-09-19T23:39:38 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-19T23:39:38 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-09-19T23:39:38 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-09-19T23:39:38 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-09-19T23:39:38 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1789832378015_177904604 type=session.hello_ack
+2026-09-19T23:39:38 [INFO] [shadow] initialized tracks=5 project_path="" replayed_deltas=0
+2026-09-19T23:39:38 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:38 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_418938c7bf394edd9ff2acffa70eb6b9
+2026-09-19T23:39:38 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260919T153530_5f68a025\\Unsaved.vit" uuid=vitproj_418938c7bf394edd9ff2acffa70eb6b9 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-09-19T23:39:39 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-19T23:39:39 [INFO] [timing] kernel.send_command ms=6 command=get_project_state tool=project.state confirmed=false err=false
+2026-09-19T23:39:39 [INFO] [timing] harness.invoke total_ms=16 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-09-19T23:39:39 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:40 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:40 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-19T23:39:40 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=new_project err=false
+2026-09-19T23:39:40 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-19T23:39:40 [INFO] [timing] harness.refresh_shadow ms=4 reason=new_project status=ok err=false
+2026-09-19T23:39:40 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-19T23:39:40 [INFO] [timing] kernel.send_command ms=46 command=new_project tool=project.new confirmed=true err=false
+2026-09-19T23:39:40 [INFO] [timing] harness.invoke total_ms=112 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-09-19T23:39:41 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:41 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:41 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:39:41 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260919T153940_8b71c179\\Unsaved.vit" uuid=vitproj_ce8e89c73c1948df8e2d61836fb36044 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-09-19T23:39:41 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-09-19T23:39:41 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:41 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:41 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-19T23:39:41 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=clear_project err=false
+2026-09-19T23:39:41 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-19T23:39:41 [INFO] [timing] harness.refresh_shadow ms=3 reason=clear_project status=ok err=false
+2026-09-19T23:39:41 [INFO] [shadow] initialized tracks=0 project_path="<nil>" replayed_deltas=0
+2026-09-19T23:39:41 [INFO] [timing] kernel.send_command ms=21 command=clear_project tool=project.clear confirmed=true err=false
+2026-09-19T23:39:41 [INFO] [timing] harness.invoke total_ms=29 tool=project.clear command=clear_project status=ok confirmed=true err=false
+2026-09-19T23:39:41 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="0/6452e2" action="property_changed:lastSignificantChange"
+2026-09-19T23:39:41 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-09-19T23:39:41 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=add_audio_track err=false
+2026-09-19T23:39:41 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=1
+2026-09-19T23:39:41 [INFO] [timing] harness.refresh_shadow ms=7 reason=add_audio_track status=ok err=false
+2026-09-19T23:39:41 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=1
+2026-09-19T23:39:41 [INFO] [timing] kernel.send_command ms=22 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-09-19T23:39:41 [INFO] [timing] harness.invoke total_ms=36 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-09-19T23:39:42 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:42 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:42 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:42 [INFO] [shadow] initialized tracks=1 project_path="" replayed_deltas=1
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="1010" action="property_changed:id"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-09-19T23:39:42 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=add_audio_track err=false
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-09-19T23:39:42 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-09-19T23:39:42 [INFO] [timing] harness.refresh_shadow ms=15 reason=add_audio_track status=ok err=false
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-09-19T23:39:42 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-09-19T23:39:42 [INFO] [timing] kernel.send_command ms=35 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="1012" action="node_added"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="1011" action="property_changed:remapOnTempoChange"
+2026-09-19T23:39:42 [INFO] [timing] harness.invoke total_ms=59 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="0/6452e2" action="property_changed:lastSignificantChange"
+2026-09-19T23:39:42 [DEBUG] [shadow] live delta uid="1010" action="property_changed:name"
+2026-09-19T23:39:42 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:43 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:43 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:43 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=2
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="1014" action="property_changed:elastiqueMode"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="1014" action="property_changed:pan"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-19T23:39:43 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=import_media_to_track err=false
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-09-19T23:39:43 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=3
+2026-09-19T23:39:43 [INFO] [timing] harness.refresh_shadow ms=21 reason=import_media_to_track status=ok err=false
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-19T23:39:43 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=3
+2026-09-19T23:39:43 [INFO] [timing] kernel.send_command ms=59 command=import_media_to_track tool=clip.import_media_to_track confirmed=true err=false
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-19T23:39:43 [INFO] [timing] harness.invoke total_ms=86 tool=clip.import_media_to_track command=import_media_to_track status=ok confirmed=true err=false
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="1014" action="property_changed:colour"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="1014" action="property_changed:proxyAllowed"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="1014" action="property_changed:resamplingQuality"
+2026-09-19T23:39:43 [DEBUG] [shadow] live delta uid="0/6452e2" action="property_changed:lastSignificantChange"
+2026-09-19T23:39:43 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1014 project_id=vitproj_ce8e89c73c1948df8e2d61836fb36044 target_path=D:\Vit_DAW\test_100hz_10s.wav status=ready
+2026-09-19T23:39:43 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1014 project_id=vitproj_ce8e89c73c1948df8e2d61836fb36044 target_path=D:\Vit_DAW\test_100hz_10s.wav status=ready
+2026-09-19T23:39:43 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1014 project_id=vitproj_ce8e89c73c1948df8e2d61836fb36044 target_path=D:\Vit_DAW\test_100hz_10s.wav status=ready
+2026-09-19T23:39:43 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:44 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:44 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:44 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=3
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="1016" action="property_changed:elastiqueMode"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="1016" action="property_changed:pan"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-19T23:39:44 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=import_media_to_track err=false
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-19T23:39:44 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:39:44 [INFO] [timing] harness.refresh_shadow ms=23 reason=import_media_to_track status=ok err=false
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-09-19T23:39:44 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:39:44 [INFO] [timing] kernel.send_command ms=65 command=import_media_to_track tool=clip.import_media_to_track confirmed=true err=false
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-19T23:39:44 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-09-19T23:39:44 [INFO] [timing] harness.invoke total_ms=87 tool=clip.import_media_to_track command=import_media_to_track status=ok confirmed=true err=false
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="1016" action="node_added"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="1016" action="property_changed:colour"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="1016" action="property_changed:proxyAllowed"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="1016" action="property_changed:resamplingQuality"
+2026-09-19T23:39:44 [DEBUG] [shadow] live delta uid="0/6452e2" action="property_changed:lastSignificantChange"
+2026-09-19T23:39:44 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1010 clip_id=1016 project_id=vitproj_ce8e89c73c1948df8e2d61836fb36044 target_path=D:\Vit_DAW\test_target_3s.wav status=ready
+2026-09-19T23:39:44 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1010 clip_id=1016 project_id=vitproj_ce8e89c73c1948df8e2d61836fb36044 target_path=D:\Vit_DAW\test_target_3s.wav status=ready
+2026-09-19T23:39:44 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1010 clip_id=1016 project_id=vitproj_ce8e89c73c1948df8e2d61836fb36044 target_path=D:\Vit_DAW\test_target_3s.wav status=ready
+2026-09-19T23:39:44 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:44 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:45 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-09-19T23:39:48 [INFO] [timing] harness.invoke total_ms=7 tool=clip.gain.set command=clip.gain.set status=needs_confirmation confirmed=false err=false
+2026-09-19T23:39:48 [INFO] [timing] message_loop.tool ms=16 goal=goal_741f6fd8177eab16 tool=clip.gain.set confirmed=false clip_fade_gain_set=true stopped=true status=waiting_confirmation
+2026-09-19T23:39:48 [INFO] [continuation.arm] conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_741f6fd8177eab16 status=waiting_confirmation stop=needs_confirmation limit= continuation=true durable=cont_f35fb0128f3f9eaed5a98cfa lifecycle=waiting_interaction scheduled=false budget_stop=false requires_user_interaction=true owes_outcome=false settle_checkpoint=false
+2026-09-19T23:39:48 [INFO] [timing] agent_loop_chat total_ms=2127 conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_741f6fd8177eab16 mode=default status=waiting_confirmation stop=needs_confirmation completed_steps=0 executed=1
+2026-09-19T23:39:48 [INFO] [media_refs] ms=0 conversation=product_path_clip_fade_gain_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-19T23:39:48 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=6
+2026-09-19T23:39:48 [INFO] [chat.artifacts] conversation=product_path_clip_fade_gain_20260919_233932 response_artifacts=0 request_artifacts=0 executed=1 reply_len=45
+2026-09-19T23:39:48 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=6 commit=c_20260919T153948_83fdddd7 rebound=1 total_ms=22
+2026-09-19T23:39:48 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:39:48 [INFO] [timing] http.chat total_ms=3646 conversation=product_path_clip_fade_gain_20260919_233932 message_len=30
+2026-09-19T23:39:49 [INFO] [clip.fade_gain.guard] expired pending mix state conversation=product_path_clip_fade_gain_20260919_233932 message="读取当前选中 clip 的 fade 和 gain 状态"
+2026-09-19T23:39:51 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=capacity_project_facts err=false
+2026-09-19T23:39:51 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:39:51 [INFO] [timing] harness.refresh_shadow ms=5 reason=capacity_project_facts status=ok err=false
+2026-09-19T23:39:51 [INFO] [timing] kernel.send_command ms=1 command=clip.fade.read tool=clip.fade.read confirmed=false err=false
+2026-09-19T23:39:51 [INFO] [timing] harness.invoke total_ms=19 tool=clip.fade.read command=clip.fade.read status=ok confirmed=false err=false
+2026-09-19T23:39:51 [INFO] [timing] message_loop.tool ms=20 goal=goal_741f6fd8177eab16 tool=clip.fade.read confirmed=false clip_fade_gain_read=true stopped=false status=
+2026-09-19T23:39:51 [INFO] [timing] kernel.send_command ms=1 command=clip.gain.read tool=clip.gain.read confirmed=false err=false
+2026-09-19T23:39:51 [INFO] [timing] harness.invoke total_ms=16 tool=clip.gain.read command=clip.gain.read status=ok confirmed=false err=false
+2026-09-19T23:39:51 [INFO] [timing] message_loop.tool ms=17 goal=goal_741f6fd8177eab16 tool=clip.gain.read confirmed=false clip_fade_gain_read=true stopped=false status=
+2026-09-19T23:39:51 [INFO] [continuation.arm] conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_741f6fd8177eab16 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-09-19T23:39:51 [INFO] [timing] agent_loop_chat total_ms=1808 conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_741f6fd8177eab16 mode=default status=completed stop=done completed_steps=2 executed=2
+2026-09-19T23:39:51 [INFO] [media_refs] ms=0 conversation=product_path_clip_fade_gain_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-19T23:39:51 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=6
+2026-09-19T23:39:51 [INFO] [chat.artifacts] conversation=product_path_clip_fade_gain_20260919_233932 response_artifacts=0 request_artifacts=0 executed=2 reply_len=87
+2026-09-19T23:39:51 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_741f6fd8177eab16
+2026-09-19T23:39:51 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:39:51 [INFO] [timing] http.chat total_ms=3218 conversation=product_path_clip_fade_gain_20260919_233932 message_len=48
+2026-09-19T23:39:54 [INFO] [timing] harness.invoke total_ms=8 tool=clip.fade.set command=clip.fade.set status=needs_confirmation confirmed=false err=false
+2026-09-19T23:39:54 [INFO] [timing] message_loop.tool ms=16 goal=goal_cb0faa41c193de53 tool=clip.fade.set confirmed=false clip_fade_gain_set=true stopped=true status=waiting_confirmation
+2026-09-19T23:39:54 [INFO] [continuation.arm] conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_cb0faa41c193de53 status=waiting_confirmation stop=needs_confirmation limit= continuation=true durable=cont_12d0ceb216fecbc53903f1dd lifecycle=waiting_interaction scheduled=false budget_stop=false requires_user_interaction=true owes_outcome=false settle_checkpoint=false
+2026-09-19T23:39:54 [INFO] [timing] agent_loop_chat total_ms=1617 conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_cb0faa41c193de53 mode=default status=waiting_confirmation stop=needs_confirmation completed_steps=0 executed=1
+2026-09-19T23:39:54 [INFO] [media_refs] ms=0 conversation=product_path_clip_fade_gain_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-19T23:39:54 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=6
+2026-09-19T23:39:54 [INFO] [chat.artifacts] conversation=product_path_clip_fade_gain_20260919_233932 response_artifacts=0 request_artifacts=0 executed=1 reply_len=45
+2026-09-19T23:39:55 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:39:55 [INFO] [timing] http.chat total_ms=3118 conversation=product_path_clip_fade_gain_20260919_233932 message_len=81
+2026-09-19T23:39:56 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:39:56 [DEBUG] [shadow] live delta uid="1014" action="property_changed:fadeIn"
+2026-09-19T23:39:56 [DEBUG] [shadow] live delta uid="1014" action="property_changed:fadeOut"
+2026-09-19T23:39:56 [DEBUG] [shadow] live delta uid="0/6452e2" action="property_changed:lastSignificantChange"
+2026-09-19T23:39:56 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=clip.fade.set err=false
+2026-09-19T23:39:56 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:39:56 [INFO] [timing] harness.refresh_shadow ms=16 reason=clip.fade.set status=ok err=false
+2026-09-19T23:39:56 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:39:56 [INFO] [timing] kernel.send_command ms=46 command=clip.fade.set tool=clip.fade.set confirmed=true err=false
+2026-09-19T23:39:56 [INFO] [timing] harness.invoke total_ms=89 tool=clip.fade.set command=clip.fade.set status=ok confirmed=true err=false
+2026-09-19T23:39:56 [INFO] [timing] message_loop.tool ms=91 goal=goal_cb0faa41c193de53 tool=clip.fade.set confirmed=true stopped=false status=
+2026-09-19T23:39:56 [INFO] [timing] agent_loop_confirm.resume ms=113 plan=plan_9b92981cae92ef4f goal=goal_cb0faa41c193de53 mode=default status=completed stop=done executed=1
+2026-09-19T23:39:56 [INFO] [continuation.arm] conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_cb0faa41c193de53 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-09-19T23:39:56 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:39:56 [INFO] [timing] agent_loop_confirm total_ms=168 plan=plan_9b92981cae92ef4f status_code=200 response_status=ok goal=goal_cb0faa41c193de53 next_plan= needs_confirmation=false err=false
+2026-09-19T23:39:56 [INFO] [media_refs] ms=0 conversation=product_path_clip_fade_gain_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-19T23:39:56 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:39:56 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7 commit=c_20260919T153956_b9e16a37 rebound=1 total_ms=32
+2026-09-19T23:39:56 [INFO] [chat.artifacts] conversation=product_path_clip_fade_gain_20260919_233932 response_artifacts=0 request_artifacts=0 executed=1 reply_len=62
+2026-09-19T23:39:56 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:39:56 [INFO] [timing] http.chat total_ms=1772 conversation=product_path_clip_fade_gain_20260919_233932 message_len=12
+2026-09-19T23:39:59 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=capacity_project_facts err=false
+2026-09-19T23:39:59 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:39:59 [INFO] [timing] harness.refresh_shadow ms=6 reason=capacity_project_facts status=ok err=false
+2026-09-19T23:39:59 [INFO] [timing] kernel.send_command ms=2 command=clip.fade.read tool=clip.fade.read confirmed=false err=false
+2026-09-19T23:39:59 [INFO] [timing] harness.invoke total_ms=28 tool=clip.fade.read command=clip.fade.read status=ok confirmed=false err=false
+2026-09-19T23:39:59 [INFO] [timing] message_loop.tool ms=28 goal=goal_0352212313c776c2 tool=clip.fade.read confirmed=false clip_fade_gain_read=true stopped=false status=
+2026-09-19T23:39:59 [INFO] [timing] kernel.send_command ms=3 command=clip.gain.read tool=clip.gain.read confirmed=false err=false
+2026-09-19T23:39:59 [INFO] [timing] harness.invoke total_ms=26 tool=clip.gain.read command=clip.gain.read status=ok confirmed=false err=false
+2026-09-19T23:39:59 [INFO] [timing] message_loop.tool ms=26 goal=goal_0352212313c776c2 tool=clip.gain.read confirmed=false clip_fade_gain_read=true stopped=false status=
+2026-09-19T23:39:59 [INFO] [continuation.arm] conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_0352212313c776c2 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-09-19T23:39:59 [INFO] [timing] agent_loop_chat total_ms=1739 conversation=product_path_clip_fade_gain_20260919_233932 goal=goal_0352212313c776c2 mode=default status=completed stop=done completed_steps=2 executed=2
+2026-09-19T23:39:59 [INFO] [media_refs] ms=0 conversation=product_path_clip_fade_gain_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-19T23:39:59 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:39:59 [INFO] [chat.artifacts] conversation=product_path_clip_fade_gain_20260919_233932 response_artifacts=0 request_artifacts=0 executed=2 reply_len=87
+2026-09-19T23:39:59 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_0352212313c776c2
+2026-09-19T23:40:00 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:40:00 [INFO] [timing] http.chat total_ms=3400 conversation=product_path_clip_fade_gain_20260919_233932 message_len=48
+2026-09-19T23:40:03 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-09-19T23:40:03 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:03 [INFO] [timing] harness.refresh_shadow ms=7 reason=capacity_project_facts status=ok err=false
+2026-09-19T23:40:03 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=mix_request_observation_project_scope_state err=false
+2026-09-19T23:40:03 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:03 [INFO] [timing] harness.refresh_shadow ms=6 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-09-19T23:40:04 [INFO] [timing] harness.invoke total_ms=976 tool=mix.observe command=mix_observe status=ok confirmed=false err=false
+2026-09-19T23:40:04 [INFO] [timing] message_loop.tool ms=988 goal=goal_b07d0726a9821e5e tool=mix.observe confirmed=false preflight=true stopped=false status=
+2026-09-19T23:40:13 [INFO] [timing] message_loop.llm ms=8662 goal=goal_b07d0726a9821e5e conversation=product_path_mix_20260919_233932 turn=1 messages=4 chars=85793 message_chars=0:system:21855,1:user:7,2:user:41242,3:user:22689 err=false
+2026-09-19T23:40:13 [INFO] [continuation.arm] conversation=product_path_mix_20260919_233932 goal=goal_b07d0726a9821e5e status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-09-19T23:40:13 [INFO] [timing] agent_loop_chat total_ms=11704 conversation=product_path_mix_20260919_233932 goal=goal_b07d0726a9821e5e mode=default status=completed stop=done completed_steps=1 executed=1
+2026-09-19T23:40:13 [INFO] [media_refs] ms=0 conversation=product_path_mix_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=true artifacts=0
+2026-09-19T23:40:13 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:40:13 [INFO] [chat.artifacts] conversation=product_path_mix_20260919_233932 response_artifacts=0 request_artifacts=0 executed=1 reply_len=1755
+2026-09-19T23:40:13 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_b07d0726a9821e5e
+2026-09-19T23:40:13 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:40:13 [INFO] [timing] http.chat total_ms=13385 conversation=product_path_mix_20260919_233932 message_len=21
+2026-09-19T23:40:13 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:40:14 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:40:14 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:40:16 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=capacity_project_facts err=false
+2026-09-19T23:40:16 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:16 [INFO] [timing] harness.refresh_shadow ms=6 reason=capacity_project_facts status=ok err=false
+2026-09-19T23:40:17 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=mix_request_observation_project_scope_state err=false
+2026-09-19T23:40:17 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:17 [INFO] [timing] harness.refresh_shadow ms=14 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-09-19T23:40:17 [INFO] [timing] harness.invoke total_ms=113 tool=mix.observe command=mix_observe status=ok confirmed=false err=false
+2026-09-19T23:40:17 [INFO] [timing] message_loop.tool ms=121 goal=goal_78da9447ddea3367 tool=mix.observe confirmed=false preflight=true stopped=false status=
+2026-09-19T23:40:23 [INFO] [timing] message_loop.llm ms=6672 goal=goal_78da9447ddea3367 conversation=product_path_multitrack_20260919_233932 turn=1 messages=4 chars=80557 message_chars=0:system:21855,1:user:21,2:user:35331,3:user:23350 err=false
+2026-09-19T23:40:23 [INFO] [continuation.arm] conversation=product_path_multitrack_20260919_233932 goal=goal_78da9447ddea3367 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-09-19T23:40:23 [INFO] [timing] agent_loop_chat total_ms=8410 conversation=product_path_multitrack_20260919_233932 goal=goal_78da9447ddea3367 mode=default status=completed stop=done completed_steps=1 executed=1
+2026-09-19T23:40:23 [INFO] [media_refs] ms=0 conversation=product_path_multitrack_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=true artifacts=0
+2026-09-19T23:40:23 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:40:23 [INFO] [chat.artifacts] conversation=product_path_multitrack_20260919_233932 response_artifacts=0 request_artifacts=0 executed=1 reply_len=2131
+2026-09-19T23:40:23 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_78da9447ddea3367
+2026-09-19T23:40:24 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:40:24 [INFO] [timing] http.chat total_ms=10143 conversation=product_path_multitrack_20260919_233932 message_len=63
+2026-09-19T23:40:24 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:40:24 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:40:26 [INFO] [mix.tick.pending] explicit confirmation had no candidate conversation=product_path_no_pending_20260919_233932 message="可以执行"
+2026-09-19T23:40:26 [INFO] [media_refs] ms=0 conversation=product_path_no_pending_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-19T23:40:26 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:40:26 [INFO] [chat.artifacts] conversation=product_path_no_pending_20260919_233932 response_artifacts=0 request_artifacts=0 executed=0 reply_len=126
+2026-09-19T23:40:26 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:40:26 [INFO] [timing] http.chat total_ms=1768 conversation=product_path_no_pending_20260919_233932 message_len=12
+2026-09-19T23:40:30 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=capacity_project_facts err=false
+2026-09-19T23:40:30 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:30 [INFO] [timing] harness.refresh_shadow ms=5 reason=capacity_project_facts status=ok err=false
+2026-09-19T23:40:32 [INFO] [timing] message_loop.llm ms=2380 goal=goal_bc4f7b49c6ba819b conversation=product_path_vocal_focus_20260919_233932 turn=1 messages=2 chars=26753 message_chars=0:system:23215,1:user:3538 err=false
+2026-09-19T23:40:32 [INFO] [timing] harness.invoke total_ms=23 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-09-19T23:40:32 [INFO] [timing] message_loop.tool ms=25 goal=goal_bc4f7b49c6ba819b tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-09-19T23:40:32 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-09-19T23:40:32 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:40:32 [INFO] [continuation.arm] conversation=product_path_vocal_focus_20260919_233932 goal=goal_bc4f7b49c6ba819b status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_22de152b5d04cb90305f1a48 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-09-19T23:40:32 [INFO] [timing] agent_loop_chat total_ms=5006 conversation=product_path_vocal_focus_20260919_233932 goal=goal_bc4f7b49c6ba819b mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-09-19T23:40:32 [INFO] [media_refs] ms=0 conversation=product_path_vocal_focus_20260919_233932 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-09-19T23:40:32 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:40:32 [INFO] [chat.artifacts] conversation=product_path_vocal_focus_20260919_233932 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-09-19T23:40:33 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:40:33 [INFO] [timing] http.chat total_ms=6593 conversation=product_path_vocal_focus_20260919_233932 message_len=32
+2026-09-19T23:40:33 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:40:33 [INFO] [continuation.claim] claimed id=cont_22de152b5d04cb90305f1a48 goal=goal_bc4f7b49c6ba819b conversation=product_path_vocal_focus_20260919_233932 attempt=1 lease_until=2026-09-19T15:42:33Z
+2026-09-19T23:40:33 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-09-19T23:40:33 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:33 [INFO] [timing] harness.refresh_shadow ms=7 reason=capacity_project_facts status=ok err=false
+2026-09-19T23:40:41 [INFO] [timing] message_loop.llm ms=8114 goal=goal_bc4f7b49c6ba819b conversation=product_path_vocal_focus_20260919_233932 turn=2 messages=2 chars=33386 message_chars=0:system:23462,1:user:9924 err=false
+2026-09-19T23:40:41 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=mix_request_observation_project_scope_state err=false
+2026-09-19T23:40:41 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:41 [INFO] [timing] harness.refresh_shadow ms=12 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-09-19T23:40:42 [INFO] [timing] harness.invoke total_ms=887 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-09-19T23:40:42 [INFO] [timing] message_loop.tool ms=891 goal=goal_bc4f7b49c6ba819b tool=ccb.observation_request confirmed=false stopped=false status=
+2026-09-19T23:40:42 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ce8e89c73c1948df8e2d61836fb36044
+2026-09-19T23:40:42 [INFO] [continuation.arm] conversation=product_path_vocal_focus_20260919_233932 goal=goal_bc4f7b49c6ba819b status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_f6e3db5ebf468bb3cb4a8932 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-09-19T23:40:42 [INFO] [timing] agent_loop_chat total_ms=9187 conversation=product_path_vocal_focus_20260919_233932 goal=goal_bc4f7b49c6ba819b mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-09-19T23:40:42 [INFO] [f6.gate] conversation=product_path_vocal_focus_20260919_233932 goal=goal_bc4f7b49c6ba819b chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-09-19T23:40:42 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:40:42 [INFO] [continuation.claim] claimed id=cont_f6e3db5ebf468bb3cb4a8932 goal=goal_bc4f7b49c6ba819b conversation=product_path_vocal_focus_20260919_233932 attempt=1 lease_until=2026-09-19T15:42:42Z
+2026-09-19T23:40:42 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=capacity_project_facts err=false
+2026-09-19T23:40:42 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-09-19T23:40:42 [INFO] [timing] harness.refresh_shadow ms=13 reason=capacity_project_facts status=ok err=false
+2026-09-19T23:40:52 [INFO] [timing] message_loop.llm ms=9637 goal=goal_bc4f7b49c6ba819b conversation=product_path_vocal_focus_20260919_233932 turn=3 messages=2 chars=35668 message_chars=0:system:22968,1:user:12700 err=false
+2026-09-19T23:41:00 [INFO] [timing] message_loop.llm ms=8247 goal=goal_bc4f7b49c6ba819b conversation=product_path_vocal_focus_20260919_233932 turn=4 messages=3 chars=37072 message_chars=0:system:22968,1:user:1404,2:user:12700 err=false
+2026-09-19T23:41:00 [INFO] [timing] agent_loop_chat total_ms=18103 conversation=product_path_vocal_focus_20260919_233932 goal=goal_bc4f7b49c6ba819b mode=default status=failed stop=failed completed_steps=0 executed=0
+2026-09-19T23:41:00 [INFO] [vit_checkpoint] gate skipped zero-change turn project=C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260919T153940_8b71c179\Unsaved.vit revision=7
+2026-09-19T23:41:00 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:01 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:02 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:02 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:02 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:02 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-09-19T23:41:03 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation

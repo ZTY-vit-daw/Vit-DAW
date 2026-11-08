@@ -1,0 +1,1306 @@
+﻿{
+    "status":  "ok",
+    "agent_action_id":  "act_1d09f92c915b8f1f",
+    "tool":  "rack.add_node",
+    "command_name":  "rack_add_node",
+    "risk_level":  "confirm",
+    "requires_confirmation":  false,
+    "undo_label":  "Agent: rack_add_node",
+    "result":  {
+                   "clip_scope":  "track",
+                   "command_ack":  {
+                                       "ack":  {
+                                                   "message":  "Rack node added",
+                                                   "stage":  "completed"
+                                               },
+                                       "command":  "legacy.command",
+                                       "legacy_command":  "rack_add_node",
+                                       "resync_hint":  true,
+                                       "revision":  0,
+                                       "source":  "vsp.command.response",
+                                       "stage":  "completed",
+                                       "transaction_id":  "tx_1791342457113109600_96"
+                                   },
+                   "graph_active_revision":  1,
+                   "graph_last_diff_kind":  "node_add",
+                   "graph_last_diff_summary":  "Added rack node bx_hybrid V2",
+                   "graph_last_retired_revision":  0,
+                   "graph_lifecycle_state":  "active",
+                   "graph_pending_revision":  0,
+                   "graph_publish_mode":  "context_rebuild_idle",
+                   "graph_recent_changes":  [
+                                                {
+                                                    "dest_id":  "",
+                                                    "kind":  "node_add",
+                                                    "node_id":  "1020",
+                                                    "rack_item_id":  "1019",
+                                                    "revision":  1,
+                                                    "source_id":  "",
+                                                    "summary":  "Added rack node bx_hybrid V2",
+                                                    "timestamp_ms":  1791342457314,
+                                                    "track_id":  "1007"
+                                                }
+                                            ],
+                   "graph_retired_snapshot_count":  0,
+                   "graph_revision":  1,
+                   "message":  "Rack node added",
+                   "plugin_id":  "1020",
+                   "plugin_identifier":  "VST3-bx_hybrid V2-d0ef306f-c141eb4b",
+                   "plugin_instance_ready":  true,
+                   "plugin_item_id":  "1020",
+                   "plugin_load_state":  "name=bx_hybrid V2 id=1020 format=VST3 path=C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3 enabled=true processing=true edit_should_load_plugins=true async=false load_error=",
+                   "plugin_name":  "bx_hybrid V2",
+                   "rack_item_id":  "1019",
+                   "state_delta":  {
+                                       "ack":  {
+                                                   "message":  "State delta captured",
+                                                   "stage":  "completed"
+                                               },
+                                       "base_revision":  6,
+                                       "changed_clips":  null,
+                                       "changed_tracks":  [
+                                                              "1007"
+                                                          ],
+                                       "ops":  [
+                                                   {
+                                                       "op":  "replace",
+                                                       "path":  "/project",
+                                                       "value":  {
+                                                                     "clip_count":  2,
+                                                                     "legacy_graph_active_revision":  1,
+                                                                     "legacy_graph_last_diff_kind":  "node_add",
+                                                                     "legacy_graph_lifecycle_state":  "active",
+                                                                     "legacy_graph_pending_revision":  0,
+                                                                     "legacy_graph_publish_mode":  "context_rebuild_idle",
+                                                                     "legacy_graph_revision":  1,
+                                                                     "parent_project_uuid":  "vitproj_911c03e85e0840bab498388bc381073d",
+                                                                     "project_id":  "project_current",
+                                                                     "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+                                                                     "project_uuid":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                                     "scope":  "project.timeline",
+                                                                     "track_count":  2
+                                                                 }
+                                                   },
+                                                   {
+                                                       "op":  "replace",
+                                                       "path":  "/tracks/1007",
+                                                       "track_id":  "1007",
+                                                       "value":  {
+                                                                     "armed":  false,
+                                                                     "can_contain_child_tracks":  false,
+                                                                     "child_track_count":  0,
+                                                                     "child_track_ids":  [
+
+                                                                                         ],
+                                                                     "clip_count":  1,
+                                                                     "depth":  0,
+                                                                     "descendant_track_count":  0,
+                                                                     "descendant_track_ids":  [
+
+                                                                                              ],
+                                                                     "direct_child_track_ids":  [
+
+                                                                                                ],
+                                                                     "fader_db":  0,
+                                                                     "folder_behavior":  null,
+                                                                     "gain_db":  0,
+                                                                     "has_child_tracks":  false,
+                                                                     "id":  "1007",
+                                                                     "is_armed":  false,
+                                                                     "is_audio":  true,
+                                                                     "is_audio_track":  true,
+                                                                     "is_folder_container":  false,
+                                                                     "is_folder_track":  false,
+                                                                     "is_submix_folder":  false,
+                                                                     "mute":  false,
+                                                                     "name":  "Bass",
+                                                                     "pan":  0,
+                                                                     "pan_value":  0,
+                                                                     "parent_folder_track_id":  null,
+                                                                     "parent_track_id":  null,
+                                                                     "plugin_param_digest":  "21256ccbd8e27bca",
+                                                                     "rack":  {
+                                                                                  "clip_proxy_nodes":  [
+                                                                                                           {
+                                                                                                               "clip_id":  "1011",
+                                                                                                               "clip_type":  "audio",
+                                                                                                               "is_scope_hidden":  false,
+                                                                                                               "line_color_hint":  "FF50E676",
+                                                                                                               "name":  "Bass",
+                                                                                                               "node_id":  "clip_proxy:1011",
+                                                                                                               "node_role":  "clip_proxy",
+                                                                                                               "shared_by_clip_ids":  [
+                                                                                                                                          "1011"
+                                                                                                                                      ],
+                                                                                                               "source_clip_id":  "1011"
+                                                                                                           }
+                                                                                                       ],
+                                                                                  "clip_routes":  [
+                                                                                                      {
+                                                                                                          "clip_id":  "1011",
+                                                                                                          "dest_node_id":  "1020",
+                                                                                                          "is_scope_hidden":  false,
+                                                                                                          "line_color_hint":  "FF50E676",
+                                                                                                          "proxy_node_id":  "clip_proxy:1011",
+                                                                                                          "shared_by_clip_ids":  [
+                                                                                                                                     "1011"
+                                                                                                                                 ],
+                                                                                                          "source_clip_id":  "1011"
+                                                                                                      }
+                                                                                                  ],
+                                                                                  "edges":  [
+                                                                                                {
+                                                                                                    "dest_id":  "1020",
+                                                                                                    "dest_pin":  1,
+                                                                                                    "edge_id":  "RACK_INPUT|1|1020|1",
+                                                                                                    "is_scope_hidden":  false,
+                                                                                                    "line_color_hint":  "#9AA4B2",
+                                                                                                    "shared_by_clip_ids":  [
+
+                                                                                                                           ],
+                                                                                                    "source_clip_id":  "",
+                                                                                                    "source_id":  "RACK_INPUT",
+                                                                                                    "source_pin":  1,
+                                                                                                    "vit_internal_default_audio":  false
+                                                                                                },
+                                                                                                {
+                                                                                                    "dest_id":  "1020",
+                                                                                                    "dest_pin":  2,
+                                                                                                    "edge_id":  "RACK_INPUT|2|1020|2",
+                                                                                                    "is_scope_hidden":  false,
+                                                                                                    "line_color_hint":  "#9AA4B2",
+                                                                                                    "shared_by_clip_ids":  [
+
+                                                                                                                           ],
+                                                                                                    "source_clip_id":  "",
+                                                                                                    "source_id":  "RACK_INPUT",
+                                                                                                    "source_pin":  2,
+                                                                                                    "vit_internal_default_audio":  false
+                                                                                                },
+                                                                                                {
+                                                                                                    "dest_id":  "RACK_OUTPUT",
+                                                                                                    "dest_pin":  1,
+                                                                                                    "edge_id":  "1020|1|RACK_OUTPUT|1",
+                                                                                                    "is_scope_hidden":  false,
+                                                                                                    "line_color_hint":  "FF50E676",
+                                                                                                    "shared_by_clip_ids":  [
+                                                                                                                               "1011"
+                                                                                                                           ],
+                                                                                                    "source_clip_id":  "1011",
+                                                                                                    "source_id":  "1020",
+                                                                                                    "source_pin":  1,
+                                                                                                    "vit_internal_default_audio":  false
+                                                                                                },
+                                                                                                {
+                                                                                                    "dest_id":  "RACK_OUTPUT",
+                                                                                                    "dest_pin":  2,
+                                                                                                    "edge_id":  "1020|2|RACK_OUTPUT|2",
+                                                                                                    "is_scope_hidden":  false,
+                                                                                                    "line_color_hint":  "FF50E676",
+                                                                                                    "shared_by_clip_ids":  [
+                                                                                                                               "1011"
+                                                                                                                           ],
+                                                                                                    "source_clip_id":  "1011",
+                                                                                                    "source_id":  "1020",
+                                                                                                    "source_pin":  2,
+                                                                                                    "vit_internal_default_audio":  false
+                                                                                                },
+                                                                                                {
+                                                                                                    "dest_id":  "1020",
+                                                                                                    "dest_pin":  0,
+                                                                                                    "edge_id":  "RACK_INPUT|0|1020|0",
+                                                                                                    "is_scope_hidden":  false,
+                                                                                                    "line_color_hint":  "#9AA4B2",
+                                                                                                    "shared_by_clip_ids":  [
+
+                                                                                                                           ],
+                                                                                                    "source_clip_id":  "",
+                                                                                                    "source_id":  "RACK_INPUT",
+                                                                                                    "source_pin":  0,
+                                                                                                    "vit_internal_default_audio":  false
+                                                                                                },
+                                                                                                {
+                                                                                                    "dest_id":  "RACK_OUTPUT",
+                                                                                                    "dest_pin":  0,
+                                                                                                    "edge_id":  "1020|0|RACK_OUTPUT|0",
+                                                                                                    "is_scope_hidden":  false,
+                                                                                                    "line_color_hint":  "FF50E676",
+                                                                                                    "shared_by_clip_ids":  [
+                                                                                                                               "1011"
+                                                                                                                           ],
+                                                                                                    "source_clip_id":  "1011",
+                                                                                                    "source_id":  "1020",
+                                                                                                    "source_pin":  0,
+                                                                                                    "vit_internal_default_audio":  false
+                                                                                                }
+                                                                                            ],
+                                                                                  "id":  "1019",
+                                                                                  "item_id":  "1019",
+                                                                                  "node_count":  1,
+                                                                                  "nodes":  [
+                                                                                                {
+                                                                                                    "audio_reachable_from_rack_input":  true,
+                                                                                                    "clip_scope":  "track",
+                                                                                                    "enabled":  true,
+                                                                                                    "format":  "VST3",
+                                                                                                    "id":  "1020",
+                                                                                                    "item_id":  "1020",
+                                                                                                    "name":  "bx_hybrid V2",
+                                                                                                    "node_id":  "1020",
+                                                                                                    "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                                    "plugin_format":  "VST3",
+                                                                                                    "plugin_id":  "1020",
+                                                                                                    "plugin_item_id":  "1020",
+                                                                                                    "plugin_name":  "bx_hybrid V2",
+                                                                                                    "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                                    "supports_param_grabber":  true,
+                                                                                                    "template_role":  "other",
+                                                                                                    "type":  "vst",
+                                                                                                    "vit_effective_in_output_path":  true,
+                                                                                                    "vit_orphan_bypass_candidate":  false,
+                                                                                                    "x":  0,
+                                                                                                    "y":  0,
+                                                                                                    "zone_id":  "Z3"
+                                                                                                }
+                                                                                            ],
+                                                                                  "rack_item_id":  "1019",
+                                                                                  "scope":  "track"
+                                                                              },
+                                                                     "routing_bus_enabled":  false,
+                                                                     "solo":  false,
+                                                                     "track_depth":  0,
+                                                                     "track_id":  "1007",
+                                                                     "track_state_revision":  "a02159d15746828f",
+                                                                     "track_type":  "hybrid",
+                                                                     "volume_db":  0
+                                                                 }
+                                                   }
+                                               ],
+                                       "ops_count":  2,
+                                       "project_epoch":  "epoch_361b41f8658587a1",
+                                       "resync":  false,
+                                       "resync_hint":  false,
+                                       "revision":  7,
+                                       "scope":  "project.timeline",
+                                       "snapshot_hash":  "cfff6778f60a46e0",
+                                       "source":  "vsp.state.delta",
+                                       "stage":  "completed",
+                                       "type":  "state.delta"
+                                   },
+                   "state_resync":  {
+                                        "ack":  {
+                                                    "message":  "State resynchronised",
+                                                    "stage":  "completed"
+                                                },
+                                        "base_revision":  0,
+                                        "changed_clips":  null,
+                                        "changed_tracks":  null,
+                                        "ops_count":  0,
+                                        "project":  {
+                                                        "clip_count":  2,
+                                                        "legacy_graph_active_revision":  1,
+                                                        "legacy_graph_last_diff_kind":  "node_add",
+                                                        "legacy_graph_lifecycle_state":  "active",
+                                                        "legacy_graph_pending_revision":  0,
+                                                        "legacy_graph_publish_mode":  "context_rebuild_idle",
+                                                        "legacy_graph_revision":  1,
+                                                        "parent_project_uuid":  "vitproj_911c03e85e0840bab498388bc381073d",
+                                                        "project_id":  "project_current",
+                                                        "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+                                                        "project_uuid":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                        "scope":  "project.timeline",
+                                                        "track_count":  2
+                                                    },
+                                        "project_epoch":  "epoch_361b41f8658587a1",
+                                        "resync":  true,
+                                        "resync_hint":  false,
+                                        "revision":  7,
+                                        "scope":  "project.timeline",
+                                        "snapshot_hash":  "cfff6778f60a46e0",
+                                        "source":  "vsp.state.resync",
+                                        "stage":  "completed",
+                                        "tracks":  [
+                                                       {
+                                                           "armed":  false,
+                                                           "can_contain_child_tracks":  false,
+                                                           "child_track_count":  0,
+                                                           "child_track_ids":  [
+
+                                                                               ],
+                                                           "clip_count":  1,
+                                                           "clips":  [
+                                                                         {
+                                                                             "active_take_id":  "",
+                                                                             "asset_job_id":  "",
+                                                                             "asset_ref":  "",
+                                                                             "asset_state":  "",
+                                                                             "auto_crossfade":  false,
+                                                                             "clip_gain_db":  0,
+                                                                             "clip_id":  "1011",
+                                                                             "clip_mute":  false,
+                                                                             "clip_pan":  0,
+                                                                             "clip_state_revision":  "82b6588a23066e4a",
+                                                                             "clip_type":  "wave",
+                                                                             "current_source_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Bass.wav",
+                                                                             "end_seconds":  2.2,
+                                                                             "fade_in_behaviour":  "gain",
+                                                                             "fade_in_behaviour_type":  0,
+                                                                             "fade_in_curve":  "linear",
+                                                                             "fade_in_curve_type":  1,
+                                                                             "fade_in_seconds":  0,
+                                                                             "fade_out_behaviour":  "gain",
+                                                                             "fade_out_behaviour_type":  0,
+                                                                             "fade_out_curve":  "linear",
+                                                                             "fade_out_curve_type":  1,
+                                                                             "fade_out_seconds":  0,
+                                                                             "gain_db":  0,
+                                                                             "ghost_state":  "",
+                                                                             "id":  "1011",
+                                                                             "length_seconds":  2.2,
+                                                                             "mute":  false,
+                                                                             "name":  "Bass",
+                                                                             "offset_in_source_seconds":  0,
+                                                                             "pan":  0,
+                                                                             "playback_source_valid":  true,
+                                                                             "start_seconds":  0,
+                                                                             "take_stack_id":  "",
+                                                                             "track_id":  "1007",
+                                                                             "warp_state":  ""
+                                                                         }
+                                                                     ],
+                                                           "depth":  0,
+                                                           "descendant_track_count":  0,
+                                                           "descendant_track_ids":  [
+
+                                                                                    ],
+                                                           "direct_child_track_ids":  [
+
+                                                                                      ],
+                                                           "fader_db":  0,
+                                                           "folder_behavior":  null,
+                                                           "gain_db":  0,
+                                                           "has_child_tracks":  false,
+                                                           "id":  "1007",
+                                                           "is_armed":  false,
+                                                           "is_audio":  true,
+                                                           "is_audio_track":  true,
+                                                           "is_folder_container":  false,
+                                                           "is_folder_track":  false,
+                                                           "is_submix_folder":  false,
+                                                           "mute":  false,
+                                                           "name":  "Bass",
+                                                           "pan":  0,
+                                                           "pan_value":  0,
+                                                           "parent_folder_track_id":  null,
+                                                           "parent_track_id":  null,
+                                                           "plugin_param_digest":  "21256ccbd8e27bca",
+                                                           "rack":  {
+                                                                        "clip_proxy_nodes":  [
+                                                                                                 {
+                                                                                                     "clip_id":  "1011",
+                                                                                                     "clip_type":  "audio",
+                                                                                                     "is_scope_hidden":  false,
+                                                                                                     "line_color_hint":  "FF50E676",
+                                                                                                     "name":  "Bass",
+                                                                                                     "node_id":  "clip_proxy:1011",
+                                                                                                     "node_role":  "clip_proxy",
+                                                                                                     "shared_by_clip_ids":  [
+                                                                                                                                "1011"
+                                                                                                                            ],
+                                                                                                     "source_clip_id":  "1011"
+                                                                                                 }
+                                                                                             ],
+                                                                        "clip_routes":  [
+                                                                                            {
+                                                                                                "clip_id":  "1011",
+                                                                                                "dest_node_id":  "1020",
+                                                                                                "is_scope_hidden":  false,
+                                                                                                "line_color_hint":  "FF50E676",
+                                                                                                "proxy_node_id":  "clip_proxy:1011",
+                                                                                                "shared_by_clip_ids":  [
+                                                                                                                           "1011"
+                                                                                                                       ],
+                                                                                                "source_clip_id":  "1011"
+                                                                                            }
+                                                                                        ],
+                                                                        "edges":  [
+                                                                                      {
+                                                                                          "dest_id":  "1020",
+                                                                                          "dest_pin":  1,
+                                                                                          "edge_id":  "RACK_INPUT|1|1020|1",
+                                                                                          "is_scope_hidden":  false,
+                                                                                          "line_color_hint":  "#9AA4B2",
+                                                                                          "shared_by_clip_ids":  [
+
+                                                                                                                 ],
+                                                                                          "source_clip_id":  "",
+                                                                                          "source_id":  "RACK_INPUT",
+                                                                                          "source_pin":  1,
+                                                                                          "vit_internal_default_audio":  false
+                                                                                      },
+                                                                                      {
+                                                                                          "dest_id":  "1020",
+                                                                                          "dest_pin":  2,
+                                                                                          "edge_id":  "RACK_INPUT|2|1020|2",
+                                                                                          "is_scope_hidden":  false,
+                                                                                          "line_color_hint":  "#9AA4B2",
+                                                                                          "shared_by_clip_ids":  [
+
+                                                                                                                 ],
+                                                                                          "source_clip_id":  "",
+                                                                                          "source_id":  "RACK_INPUT",
+                                                                                          "source_pin":  2,
+                                                                                          "vit_internal_default_audio":  false
+                                                                                      },
+                                                                                      {
+                                                                                          "dest_id":  "RACK_OUTPUT",
+                                                                                          "dest_pin":  1,
+                                                                                          "edge_id":  "1020|1|RACK_OUTPUT|1",
+                                                                                          "is_scope_hidden":  false,
+                                                                                          "line_color_hint":  "FF50E676",
+                                                                                          "shared_by_clip_ids":  [
+                                                                                                                     "1011"
+                                                                                                                 ],
+                                                                                          "source_clip_id":  "1011",
+                                                                                          "source_id":  "1020",
+                                                                                          "source_pin":  1,
+                                                                                          "vit_internal_default_audio":  false
+                                                                                      },
+                                                                                      {
+                                                                                          "dest_id":  "RACK_OUTPUT",
+                                                                                          "dest_pin":  2,
+                                                                                          "edge_id":  "1020|2|RACK_OUTPUT|2",
+                                                                                          "is_scope_hidden":  false,
+                                                                                          "line_color_hint":  "FF50E676",
+                                                                                          "shared_by_clip_ids":  [
+                                                                                                                     "1011"
+                                                                                                                 ],
+                                                                                          "source_clip_id":  "1011",
+                                                                                          "source_id":  "1020",
+                                                                                          "source_pin":  2,
+                                                                                          "vit_internal_default_audio":  false
+                                                                                      },
+                                                                                      {
+                                                                                          "dest_id":  "1020",
+                                                                                          "dest_pin":  0,
+                                                                                          "edge_id":  "RACK_INPUT|0|1020|0",
+                                                                                          "is_scope_hidden":  false,
+                                                                                          "line_color_hint":  "#9AA4B2",
+                                                                                          "shared_by_clip_ids":  [
+
+                                                                                                                 ],
+                                                                                          "source_clip_id":  "",
+                                                                                          "source_id":  "RACK_INPUT",
+                                                                                          "source_pin":  0,
+                                                                                          "vit_internal_default_audio":  false
+                                                                                      },
+                                                                                      {
+                                                                                          "dest_id":  "RACK_OUTPUT",
+                                                                                          "dest_pin":  0,
+                                                                                          "edge_id":  "1020|0|RACK_OUTPUT|0",
+                                                                                          "is_scope_hidden":  false,
+                                                                                          "line_color_hint":  "FF50E676",
+                                                                                          "shared_by_clip_ids":  [
+                                                                                                                     "1011"
+                                                                                                                 ],
+                                                                                          "source_clip_id":  "1011",
+                                                                                          "source_id":  "1020",
+                                                                                          "source_pin":  0,
+                                                                                          "vit_internal_default_audio":  false
+                                                                                      }
+                                                                                  ],
+                                                                        "id":  "1019",
+                                                                        "item_id":  "1019",
+                                                                        "node_count":  1,
+                                                                        "nodes":  [
+                                                                                      {
+                                                                                          "audio_reachable_from_rack_input":  true,
+                                                                                          "clip_scope":  "track",
+                                                                                          "enabled":  true,
+                                                                                          "format":  "VST3",
+                                                                                          "id":  "1020",
+                                                                                          "item_id":  "1020",
+                                                                                          "name":  "bx_hybrid V2",
+                                                                                          "node_id":  "1020",
+                                                                                          "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                          "plugin_format":  "VST3",
+                                                                                          "plugin_id":  "1020",
+                                                                                          "plugin_item_id":  "1020",
+                                                                                          "plugin_name":  "bx_hybrid V2",
+                                                                                          "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                          "supports_param_grabber":  true,
+                                                                                          "template_role":  "other",
+                                                                                          "type":  "vst",
+                                                                                          "vit_effective_in_output_path":  true,
+                                                                                          "vit_orphan_bypass_candidate":  false,
+                                                                                          "x":  0,
+                                                                                          "y":  0,
+                                                                                          "zone_id":  "Z3"
+                                                                                      }
+                                                                                  ],
+                                                                        "rack_item_id":  "1019",
+                                                                        "scope":  "track"
+                                                                    },
+                                                           "routing_bus_enabled":  false,
+                                                           "solo":  false,
+                                                           "track_depth":  0,
+                                                           "track_id":  "1007",
+                                                           "track_state_revision":  "a02159d15746828f",
+                                                           "track_type":  "hybrid",
+                                                           "volume_db":  0
+                                                       },
+                                                       {
+                                                           "armed":  false,
+                                                           "can_contain_child_tracks":  false,
+                                                           "child_track_count":  0,
+                                                           "child_track_ids":  [
+
+                                                                               ],
+                                                           "clip_count":  1,
+                                                           "clips":  [
+                                                                         {
+                                                                             "active_take_id":  "",
+                                                                             "asset_job_id":  "",
+                                                                             "asset_ref":  "",
+                                                                             "asset_state":  "",
+                                                                             "auto_crossfade":  false,
+                                                                             "clip_gain_db":  0,
+                                                                             "clip_id":  "1016",
+                                                                             "clip_mute":  false,
+                                                                             "clip_pan":  0,
+                                                                             "clip_state_revision":  "6e8c0ded4c62768",
+                                                                             "clip_type":  "wave",
+                                                                             "current_source_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+                                                                             "end_seconds":  2.2,
+                                                                             "fade_in_behaviour":  "gain",
+                                                                             "fade_in_behaviour_type":  0,
+                                                                             "fade_in_curve":  "linear",
+                                                                             "fade_in_curve_type":  1,
+                                                                             "fade_in_seconds":  0,
+                                                                             "fade_out_behaviour":  "gain",
+                                                                             "fade_out_behaviour_type":  0,
+                                                                             "fade_out_curve":  "linear",
+                                                                             "fade_out_curve_type":  1,
+                                                                             "fade_out_seconds":  0,
+                                                                             "gain_db":  0,
+                                                                             "ghost_state":  "",
+                                                                             "id":  "1016",
+                                                                             "length_seconds":  2.2,
+                                                                             "mute":  false,
+                                                                             "name":  "Lead Vocal",
+                                                                             "offset_in_source_seconds":  0,
+                                                                             "pan":  0,
+                                                                             "playback_source_valid":  true,
+                                                                             "start_seconds":  0,
+                                                                             "take_stack_id":  "",
+                                                                             "track_id":  "1012",
+                                                                             "warp_state":  ""
+                                                                         }
+                                                                     ],
+                                                           "depth":  0,
+                                                           "descendant_track_count":  0,
+                                                           "descendant_track_ids":  [
+
+                                                                                    ],
+                                                           "direct_child_track_ids":  [
+
+                                                                                      ],
+                                                           "fader_db":  0,
+                                                           "folder_behavior":  null,
+                                                           "gain_db":  0,
+                                                           "has_child_tracks":  false,
+                                                           "id":  "1012",
+                                                           "is_armed":  false,
+                                                           "is_audio":  true,
+                                                           "is_audio_track":  true,
+                                                           "is_folder_container":  false,
+                                                           "is_folder_track":  false,
+                                                           "is_submix_folder":  false,
+                                                           "mute":  false,
+                                                           "name":  "Lead Vocal",
+                                                           "pan":  0,
+                                                           "pan_value":  0,
+                                                           "parent_folder_track_id":  null,
+                                                           "parent_track_id":  null,
+                                                           "plugin_param_digest":  "krev1_no_external_plugins",
+                                                           "routing_bus_enabled":  false,
+                                                           "solo":  false,
+                                                           "track_depth":  0,
+                                                           "track_id":  "1012",
+                                                           "track_state_revision":  "555491d62955f9e8",
+                                                           "track_type":  "hybrid",
+                                                           "volume_db":  0
+                                                       }
+                                                   ],
+                                        "type":  "state.snapshot"
+                                    },
+                   "status":  "ok",
+                   "template_role":  "other",
+                   "track_id":  "1007",
+                   "vsp":  {
+                               "command_ack":  {
+                                                   "ack":  {
+                                                               "message":  "Rack node added",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "command":  "legacy.command",
+                                                   "legacy_command":  "rack_add_node",
+                                                   "resync_hint":  true,
+                                                   "revision":  0,
+                                                   "source":  "vsp.command.response",
+                                                   "stage":  "completed",
+                                                   "transaction_id":  "tx_1791342457113109600_96"
+                                               },
+                               "state_delta":  {
+                                                   "ack":  {
+                                                               "message":  "State delta captured",
+                                                               "stage":  "completed"
+                                                           },
+                                                   "base_revision":  6,
+                                                   "changed_clips":  null,
+                                                   "changed_tracks":  [
+                                                                          "1007"
+                                                                      ],
+                                                   "ops":  [
+                                                               {
+                                                                   "op":  "replace",
+                                                                   "path":  "/project",
+                                                                   "value":  {
+                                                                                 "clip_count":  2,
+                                                                                 "legacy_graph_active_revision":  1,
+                                                                                 "legacy_graph_last_diff_kind":  "node_add",
+                                                                                 "legacy_graph_lifecycle_state":  "active",
+                                                                                 "legacy_graph_pending_revision":  0,
+                                                                                 "legacy_graph_publish_mode":  "context_rebuild_idle",
+                                                                                 "legacy_graph_revision":  1,
+                                                                                 "parent_project_uuid":  "vitproj_911c03e85e0840bab498388bc381073d",
+                                                                                 "project_id":  "project_current",
+                                                                                 "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+                                                                                 "project_uuid":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                                                 "scope":  "project.timeline",
+                                                                                 "track_count":  2
+                                                                             }
+                                                               },
+                                                               {
+                                                                   "op":  "replace",
+                                                                   "path":  "/tracks/1007",
+                                                                   "track_id":  "1007",
+                                                                   "value":  {
+                                                                                 "armed":  false,
+                                                                                 "can_contain_child_tracks":  false,
+                                                                                 "child_track_count":  0,
+                                                                                 "child_track_ids":  [
+
+                                                                                                     ],
+                                                                                 "clip_count":  1,
+                                                                                 "depth":  0,
+                                                                                 "descendant_track_count":  0,
+                                                                                 "descendant_track_ids":  [
+
+                                                                                                          ],
+                                                                                 "direct_child_track_ids":  [
+
+                                                                                                            ],
+                                                                                 "fader_db":  0,
+                                                                                 "folder_behavior":  null,
+                                                                                 "gain_db":  0,
+                                                                                 "has_child_tracks":  false,
+                                                                                 "id":  "1007",
+                                                                                 "is_armed":  false,
+                                                                                 "is_audio":  true,
+                                                                                 "is_audio_track":  true,
+                                                                                 "is_folder_container":  false,
+                                                                                 "is_folder_track":  false,
+                                                                                 "is_submix_folder":  false,
+                                                                                 "mute":  false,
+                                                                                 "name":  "Bass",
+                                                                                 "pan":  0,
+                                                                                 "pan_value":  0,
+                                                                                 "parent_folder_track_id":  null,
+                                                                                 "parent_track_id":  null,
+                                                                                 "plugin_param_digest":  "21256ccbd8e27bca",
+                                                                                 "rack":  {
+                                                                                              "clip_proxy_nodes":  [
+                                                                                                                       {
+                                                                                                                           "clip_id":  "1011",
+                                                                                                                           "clip_type":  "audio",
+                                                                                                                           "is_scope_hidden":  false,
+                                                                                                                           "line_color_hint":  "FF50E676",
+                                                                                                                           "name":  "Bass",
+                                                                                                                           "node_id":  "clip_proxy:1011",
+                                                                                                                           "node_role":  "clip_proxy",
+                                                                                                                           "shared_by_clip_ids":  [
+                                                                                                                                                      "1011"
+                                                                                                                                                  ],
+                                                                                                                           "source_clip_id":  "1011"
+                                                                                                                       }
+                                                                                                                   ],
+                                                                                              "clip_routes":  [
+                                                                                                                  {
+                                                                                                                      "clip_id":  "1011",
+                                                                                                                      "dest_node_id":  "1020",
+                                                                                                                      "is_scope_hidden":  false,
+                                                                                                                      "line_color_hint":  "FF50E676",
+                                                                                                                      "proxy_node_id":  "clip_proxy:1011",
+                                                                                                                      "shared_by_clip_ids":  [
+                                                                                                                                                 "1011"
+                                                                                                                                             ],
+                                                                                                                      "source_clip_id":  "1011"
+                                                                                                                  }
+                                                                                                              ],
+                                                                                              "edges":  [
+                                                                                                            {
+                                                                                                                "dest_id":  "1020",
+                                                                                                                "dest_pin":  1,
+                                                                                                                "edge_id":  "RACK_INPUT|1|1020|1",
+                                                                                                                "is_scope_hidden":  false,
+                                                                                                                "line_color_hint":  "#9AA4B2",
+                                                                                                                "shared_by_clip_ids":  [
+
+                                                                                                                                       ],
+                                                                                                                "source_clip_id":  "",
+                                                                                                                "source_id":  "RACK_INPUT",
+                                                                                                                "source_pin":  1,
+                                                                                                                "vit_internal_default_audio":  false
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "dest_id":  "1020",
+                                                                                                                "dest_pin":  2,
+                                                                                                                "edge_id":  "RACK_INPUT|2|1020|2",
+                                                                                                                "is_scope_hidden":  false,
+                                                                                                                "line_color_hint":  "#9AA4B2",
+                                                                                                                "shared_by_clip_ids":  [
+
+                                                                                                                                       ],
+                                                                                                                "source_clip_id":  "",
+                                                                                                                "source_id":  "RACK_INPUT",
+                                                                                                                "source_pin":  2,
+                                                                                                                "vit_internal_default_audio":  false
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "dest_id":  "RACK_OUTPUT",
+                                                                                                                "dest_pin":  1,
+                                                                                                                "edge_id":  "1020|1|RACK_OUTPUT|1",
+                                                                                                                "is_scope_hidden":  false,
+                                                                                                                "line_color_hint":  "FF50E676",
+                                                                                                                "shared_by_clip_ids":  [
+                                                                                                                                           "1011"
+                                                                                                                                       ],
+                                                                                                                "source_clip_id":  "1011",
+                                                                                                                "source_id":  "1020",
+                                                                                                                "source_pin":  1,
+                                                                                                                "vit_internal_default_audio":  false
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "dest_id":  "RACK_OUTPUT",
+                                                                                                                "dest_pin":  2,
+                                                                                                                "edge_id":  "1020|2|RACK_OUTPUT|2",
+                                                                                                                "is_scope_hidden":  false,
+                                                                                                                "line_color_hint":  "FF50E676",
+                                                                                                                "shared_by_clip_ids":  [
+                                                                                                                                           "1011"
+                                                                                                                                       ],
+                                                                                                                "source_clip_id":  "1011",
+                                                                                                                "source_id":  "1020",
+                                                                                                                "source_pin":  2,
+                                                                                                                "vit_internal_default_audio":  false
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "dest_id":  "1020",
+                                                                                                                "dest_pin":  0,
+                                                                                                                "edge_id":  "RACK_INPUT|0|1020|0",
+                                                                                                                "is_scope_hidden":  false,
+                                                                                                                "line_color_hint":  "#9AA4B2",
+                                                                                                                "shared_by_clip_ids":  [
+
+                                                                                                                                       ],
+                                                                                                                "source_clip_id":  "",
+                                                                                                                "source_id":  "RACK_INPUT",
+                                                                                                                "source_pin":  0,
+                                                                                                                "vit_internal_default_audio":  false
+                                                                                                            },
+                                                                                                            {
+                                                                                                                "dest_id":  "RACK_OUTPUT",
+                                                                                                                "dest_pin":  0,
+                                                                                                                "edge_id":  "1020|0|RACK_OUTPUT|0",
+                                                                                                                "is_scope_hidden":  false,
+                                                                                                                "line_color_hint":  "FF50E676",
+                                                                                                                "shared_by_clip_ids":  [
+                                                                                                                                           "1011"
+                                                                                                                                       ],
+                                                                                                                "source_clip_id":  "1011",
+                                                                                                                "source_id":  "1020",
+                                                                                                                "source_pin":  0,
+                                                                                                                "vit_internal_default_audio":  false
+                                                                                                            }
+                                                                                                        ],
+                                                                                              "id":  "1019",
+                                                                                              "item_id":  "1019",
+                                                                                              "node_count":  1,
+                                                                                              "nodes":  [
+                                                                                                            {
+                                                                                                                "audio_reachable_from_rack_input":  true,
+                                                                                                                "clip_scope":  "track",
+                                                                                                                "enabled":  true,
+                                                                                                                "format":  "VST3",
+                                                                                                                "id":  "1020",
+                                                                                                                "item_id":  "1020",
+                                                                                                                "name":  "bx_hybrid V2",
+                                                                                                                "node_id":  "1020",
+                                                                                                                "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                                                "plugin_format":  "VST3",
+                                                                                                                "plugin_id":  "1020",
+                                                                                                                "plugin_item_id":  "1020",
+                                                                                                                "plugin_name":  "bx_hybrid V2",
+                                                                                                                "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                                                "supports_param_grabber":  true,
+                                                                                                                "template_role":  "other",
+                                                                                                                "type":  "vst",
+                                                                                                                "vit_effective_in_output_path":  true,
+                                                                                                                "vit_orphan_bypass_candidate":  false,
+                                                                                                                "x":  0,
+                                                                                                                "y":  0,
+                                                                                                                "zone_id":  "Z3"
+                                                                                                            }
+                                                                                                        ],
+                                                                                              "rack_item_id":  "1019",
+                                                                                              "scope":  "track"
+                                                                                          },
+                                                                                 "routing_bus_enabled":  false,
+                                                                                 "solo":  false,
+                                                                                 "track_depth":  0,
+                                                                                 "track_id":  "1007",
+                                                                                 "track_state_revision":  "a02159d15746828f",
+                                                                                 "track_type":  "hybrid",
+                                                                                 "volume_db":  0
+                                                                             }
+                                                               }
+                                                           ],
+                                                   "ops_count":  2,
+                                                   "project_epoch":  "epoch_361b41f8658587a1",
+                                                   "resync":  false,
+                                                   "resync_hint":  false,
+                                                   "revision":  7,
+                                                   "scope":  "project.timeline",
+                                                   "snapshot_hash":  "cfff6778f60a46e0",
+                                                   "source":  "vsp.state.delta",
+                                                   "stage":  "completed",
+                                                   "type":  "state.delta"
+                                               },
+                               "state_resync":  {
+                                                    "ack":  {
+                                                                "message":  "State resynchronised",
+                                                                "stage":  "completed"
+                                                            },
+                                                    "base_revision":  0,
+                                                    "changed_clips":  null,
+                                                    "changed_tracks":  null,
+                                                    "ops_count":  0,
+                                                    "project":  {
+                                                                    "clip_count":  2,
+                                                                    "legacy_graph_active_revision":  1,
+                                                                    "legacy_graph_last_diff_kind":  "node_add",
+                                                                    "legacy_graph_lifecycle_state":  "active",
+                                                                    "legacy_graph_pending_revision":  0,
+                                                                    "legacy_graph_publish_mode":  "context_rebuild_idle",
+                                                                    "legacy_graph_revision":  1,
+                                                                    "parent_project_uuid":  "vitproj_911c03e85e0840bab498388bc381073d",
+                                                                    "project_id":  "project_current",
+                                                                    "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+                                                                    "project_uuid":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                                                                    "scope":  "project.timeline",
+                                                                    "track_count":  2
+                                                                },
+                                                    "project_epoch":  "epoch_361b41f8658587a1",
+                                                    "resync":  true,
+                                                    "resync_hint":  false,
+                                                    "revision":  7,
+                                                    "scope":  "project.timeline",
+                                                    "snapshot_hash":  "cfff6778f60a46e0",
+                                                    "source":  "vsp.state.resync",
+                                                    "stage":  "completed",
+                                                    "tracks":  [
+                                                                   {
+                                                                       "armed":  false,
+                                                                       "can_contain_child_tracks":  false,
+                                                                       "child_track_count":  0,
+                                                                       "child_track_ids":  [
+
+                                                                                           ],
+                                                                       "clip_count":  1,
+                                                                       "clips":  [
+                                                                                     {
+                                                                                         "active_take_id":  "",
+                                                                                         "asset_job_id":  "",
+                                                                                         "asset_ref":  "",
+                                                                                         "asset_state":  "",
+                                                                                         "auto_crossfade":  false,
+                                                                                         "clip_gain_db":  0,
+                                                                                         "clip_id":  "1011",
+                                                                                         "clip_mute":  false,
+                                                                                         "clip_pan":  0,
+                                                                                         "clip_state_revision":  "82b6588a23066e4a",
+                                                                                         "clip_type":  "wave",
+                                                                                         "current_source_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Bass.wav",
+                                                                                         "end_seconds":  2.2,
+                                                                                         "fade_in_behaviour":  "gain",
+                                                                                         "fade_in_behaviour_type":  0,
+                                                                                         "fade_in_curve":  "linear",
+                                                                                         "fade_in_curve_type":  1,
+                                                                                         "fade_in_seconds":  0,
+                                                                                         "fade_out_behaviour":  "gain",
+                                                                                         "fade_out_behaviour_type":  0,
+                                                                                         "fade_out_curve":  "linear",
+                                                                                         "fade_out_curve_type":  1,
+                                                                                         "fade_out_seconds":  0,
+                                                                                         "gain_db":  0,
+                                                                                         "ghost_state":  "",
+                                                                                         "id":  "1011",
+                                                                                         "length_seconds":  2.2,
+                                                                                         "mute":  false,
+                                                                                         "name":  "Bass",
+                                                                                         "offset_in_source_seconds":  0,
+                                                                                         "pan":  0,
+                                                                                         "playback_source_valid":  true,
+                                                                                         "start_seconds":  0,
+                                                                                         "take_stack_id":  "",
+                                                                                         "track_id":  "1007",
+                                                                                         "warp_state":  ""
+                                                                                     }
+                                                                                 ],
+                                                                       "depth":  0,
+                                                                       "descendant_track_count":  0,
+                                                                       "descendant_track_ids":  [
+
+                                                                                                ],
+                                                                       "direct_child_track_ids":  [
+
+                                                                                                  ],
+                                                                       "fader_db":  0,
+                                                                       "folder_behavior":  null,
+                                                                       "gain_db":  0,
+                                                                       "has_child_tracks":  false,
+                                                                       "id":  "1007",
+                                                                       "is_armed":  false,
+                                                                       "is_audio":  true,
+                                                                       "is_audio_track":  true,
+                                                                       "is_folder_container":  false,
+                                                                       "is_folder_track":  false,
+                                                                       "is_submix_folder":  false,
+                                                                       "mute":  false,
+                                                                       "name":  "Bass",
+                                                                       "pan":  0,
+                                                                       "pan_value":  0,
+                                                                       "parent_folder_track_id":  null,
+                                                                       "parent_track_id":  null,
+                                                                       "plugin_param_digest":  "21256ccbd8e27bca",
+                                                                       "rack":  {
+                                                                                    "clip_proxy_nodes":  [
+                                                                                                             {
+                                                                                                                 "clip_id":  "1011",
+                                                                                                                 "clip_type":  "audio",
+                                                                                                                 "is_scope_hidden":  false,
+                                                                                                                 "line_color_hint":  "FF50E676",
+                                                                                                                 "name":  "Bass",
+                                                                                                                 "node_id":  "clip_proxy:1011",
+                                                                                                                 "node_role":  "clip_proxy",
+                                                                                                                 "shared_by_clip_ids":  [
+                                                                                                                                            "1011"
+                                                                                                                                        ],
+                                                                                                                 "source_clip_id":  "1011"
+                                                                                                             }
+                                                                                                         ],
+                                                                                    "clip_routes":  [
+                                                                                                        {
+                                                                                                            "clip_id":  "1011",
+                                                                                                            "dest_node_id":  "1020",
+                                                                                                            "is_scope_hidden":  false,
+                                                                                                            "line_color_hint":  "FF50E676",
+                                                                                                            "proxy_node_id":  "clip_proxy:1011",
+                                                                                                            "shared_by_clip_ids":  [
+                                                                                                                                       "1011"
+                                                                                                                                   ],
+                                                                                                            "source_clip_id":  "1011"
+                                                                                                        }
+                                                                                                    ],
+                                                                                    "edges":  [
+                                                                                                  {
+                                                                                                      "dest_id":  "1020",
+                                                                                                      "dest_pin":  1,
+                                                                                                      "edge_id":  "RACK_INPUT|1|1020|1",
+                                                                                                      "is_scope_hidden":  false,
+                                                                                                      "line_color_hint":  "#9AA4B2",
+                                                                                                      "shared_by_clip_ids":  [
+
+                                                                                                                             ],
+                                                                                                      "source_clip_id":  "",
+                                                                                                      "source_id":  "RACK_INPUT",
+                                                                                                      "source_pin":  1,
+                                                                                                      "vit_internal_default_audio":  false
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "dest_id":  "1020",
+                                                                                                      "dest_pin":  2,
+                                                                                                      "edge_id":  "RACK_INPUT|2|1020|2",
+                                                                                                      "is_scope_hidden":  false,
+                                                                                                      "line_color_hint":  "#9AA4B2",
+                                                                                                      "shared_by_clip_ids":  [
+
+                                                                                                                             ],
+                                                                                                      "source_clip_id":  "",
+                                                                                                      "source_id":  "RACK_INPUT",
+                                                                                                      "source_pin":  2,
+                                                                                                      "vit_internal_default_audio":  false
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "dest_id":  "RACK_OUTPUT",
+                                                                                                      "dest_pin":  1,
+                                                                                                      "edge_id":  "1020|1|RACK_OUTPUT|1",
+                                                                                                      "is_scope_hidden":  false,
+                                                                                                      "line_color_hint":  "FF50E676",
+                                                                                                      "shared_by_clip_ids":  [
+                                                                                                                                 "1011"
+                                                                                                                             ],
+                                                                                                      "source_clip_id":  "1011",
+                                                                                                      "source_id":  "1020",
+                                                                                                      "source_pin":  1,
+                                                                                                      "vit_internal_default_audio":  false
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "dest_id":  "RACK_OUTPUT",
+                                                                                                      "dest_pin":  2,
+                                                                                                      "edge_id":  "1020|2|RACK_OUTPUT|2",
+                                                                                                      "is_scope_hidden":  false,
+                                                                                                      "line_color_hint":  "FF50E676",
+                                                                                                      "shared_by_clip_ids":  [
+                                                                                                                                 "1011"
+                                                                                                                             ],
+                                                                                                      "source_clip_id":  "1011",
+                                                                                                      "source_id":  "1020",
+                                                                                                      "source_pin":  2,
+                                                                                                      "vit_internal_default_audio":  false
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "dest_id":  "1020",
+                                                                                                      "dest_pin":  0,
+                                                                                                      "edge_id":  "RACK_INPUT|0|1020|0",
+                                                                                                      "is_scope_hidden":  false,
+                                                                                                      "line_color_hint":  "#9AA4B2",
+                                                                                                      "shared_by_clip_ids":  [
+
+                                                                                                                             ],
+                                                                                                      "source_clip_id":  "",
+                                                                                                      "source_id":  "RACK_INPUT",
+                                                                                                      "source_pin":  0,
+                                                                                                      "vit_internal_default_audio":  false
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "dest_id":  "RACK_OUTPUT",
+                                                                                                      "dest_pin":  0,
+                                                                                                      "edge_id":  "1020|0|RACK_OUTPUT|0",
+                                                                                                      "is_scope_hidden":  false,
+                                                                                                      "line_color_hint":  "FF50E676",
+                                                                                                      "shared_by_clip_ids":  [
+                                                                                                                                 "1011"
+                                                                                                                             ],
+                                                                                                      "source_clip_id":  "1011",
+                                                                                                      "source_id":  "1020",
+                                                                                                      "source_pin":  0,
+                                                                                                      "vit_internal_default_audio":  false
+                                                                                                  }
+                                                                                              ],
+                                                                                    "id":  "1019",
+                                                                                    "item_id":  "1019",
+                                                                                    "node_count":  1,
+                                                                                    "nodes":  [
+                                                                                                  {
+                                                                                                      "audio_reachable_from_rack_input":  true,
+                                                                                                      "clip_scope":  "track",
+                                                                                                      "enabled":  true,
+                                                                                                      "format":  "VST3",
+                                                                                                      "id":  "1020",
+                                                                                                      "item_id":  "1020",
+                                                                                                      "name":  "bx_hybrid V2",
+                                                                                                      "node_id":  "1020",
+                                                                                                      "path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                                      "plugin_format":  "VST3",
+                                                                                                      "plugin_id":  "1020",
+                                                                                                      "plugin_item_id":  "1020",
+                                                                                                      "plugin_name":  "bx_hybrid V2",
+                                                                                                      "plugin_path":  "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\bx_hybrid V2.vst3",
+                                                                                                      "supports_param_grabber":  true,
+                                                                                                      "template_role":  "other",
+                                                                                                      "type":  "vst",
+                                                                                                      "vit_effective_in_output_path":  true,
+                                                                                                      "vit_orphan_bypass_candidate":  false,
+                                                                                                      "x":  0,
+                                                                                                      "y":  0,
+                                                                                                      "zone_id":  "Z3"
+                                                                                                  }
+                                                                                              ],
+                                                                                    "rack_item_id":  "1019",
+                                                                                    "scope":  "track"
+                                                                                },
+                                                                       "routing_bus_enabled":  false,
+                                                                       "solo":  false,
+                                                                       "track_depth":  0,
+                                                                       "track_id":  "1007",
+                                                                       "track_state_revision":  "a02159d15746828f",
+                                                                       "track_type":  "hybrid",
+                                                                       "volume_db":  0
+                                                                   },
+                                                                   {
+                                                                       "armed":  false,
+                                                                       "can_contain_child_tracks":  false,
+                                                                       "child_track_count":  0,
+                                                                       "child_track_ids":  [
+
+                                                                                           ],
+                                                                       "clip_count":  1,
+                                                                       "clips":  [
+                                                                                     {
+                                                                                         "active_take_id":  "",
+                                                                                         "asset_job_id":  "",
+                                                                                         "asset_ref":  "",
+                                                                                         "asset_state":  "",
+                                                                                         "auto_crossfade":  false,
+                                                                                         "clip_gain_db":  0,
+                                                                                         "clip_id":  "1016",
+                                                                                         "clip_mute":  false,
+                                                                                         "clip_pan":  0,
+                                                                                         "clip_state_revision":  "6e8c0ded4c62768",
+                                                                                         "clip_type":  "wave",
+                                                                                         "current_source_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\fixture_stems\\Lead Vocal.wav",
+                                                                                         "end_seconds":  2.2,
+                                                                                         "fade_in_behaviour":  "gain",
+                                                                                         "fade_in_behaviour_type":  0,
+                                                                                         "fade_in_curve":  "linear",
+                                                                                         "fade_in_curve_type":  1,
+                                                                                         "fade_in_seconds":  0,
+                                                                                         "fade_out_behaviour":  "gain",
+                                                                                         "fade_out_behaviour_type":  0,
+                                                                                         "fade_out_curve":  "linear",
+                                                                                         "fade_out_curve_type":  1,
+                                                                                         "fade_out_seconds":  0,
+                                                                                         "gain_db":  0,
+                                                                                         "ghost_state":  "",
+                                                                                         "id":  "1016",
+                                                                                         "length_seconds":  2.2,
+                                                                                         "mute":  false,
+                                                                                         "name":  "Lead Vocal",
+                                                                                         "offset_in_source_seconds":  0,
+                                                                                         "pan":  0,
+                                                                                         "playback_source_valid":  true,
+                                                                                         "start_seconds":  0,
+                                                                                         "take_stack_id":  "",
+                                                                                         "track_id":  "1012",
+                                                                                         "warp_state":  ""
+                                                                                     }
+                                                                                 ],
+                                                                       "depth":  0,
+                                                                       "descendant_track_count":  0,
+                                                                       "descendant_track_ids":  [
+
+                                                                                                ],
+                                                                       "direct_child_track_ids":  [
+
+                                                                                                  ],
+                                                                       "fader_db":  0,
+                                                                       "folder_behavior":  null,
+                                                                       "gain_db":  0,
+                                                                       "has_child_tracks":  false,
+                                                                       "id":  "1012",
+                                                                       "is_armed":  false,
+                                                                       "is_audio":  true,
+                                                                       "is_audio_track":  true,
+                                                                       "is_folder_container":  false,
+                                                                       "is_folder_track":  false,
+                                                                       "is_submix_folder":  false,
+                                                                       "mute":  false,
+                                                                       "name":  "Lead Vocal",
+                                                                       "pan":  0,
+                                                                       "pan_value":  0,
+                                                                       "parent_folder_track_id":  null,
+                                                                       "parent_track_id":  null,
+                                                                       "plugin_param_digest":  "krev1_no_external_plugins",
+                                                                       "routing_bus_enabled":  false,
+                                                                       "solo":  false,
+                                                                       "track_depth":  0,
+                                                                       "track_id":  "1012",
+                                                                       "track_state_revision":  "555491d62955f9e8",
+                                                                       "track_type":  "hybrid",
+                                                                       "volume_db":  0
+                                                                   }
+                                                               ],
+                                                    "type":  "state.snapshot"
+                                                },
+                               "transport":  "vsp",
+                               "version":  "1.0"
+                           },
+                   "x":  0,
+                   "y":  0,
+                   "zone_id":  "Z3"
+               },
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261007T030736_e366eb5a",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "baseline_commit":  "c_20261007T030735_a10cbd22",
+                            "baseline_created":  true,
+                            "branches":  {
+                                             "main":  "c_20261007T030736_a879b10f"
+                                         },
+                            "commit_count":  2,
+                            "detached":  false,
+                            "draft":  false,
+                            "goal_active_branch":  "main",
+                            "goal_detached":  false,
+                            "head":  "c_20261007T030736_a879b10f",
+                            "initialized":  true,
+                            "project_label":  "journey_fixture",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+                            "project_uuid":  "vitproj_fc9a34f6eb404167915d8880d67085d8",
+                            "recent_checkpoints":  [
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-07T03:07:36.4730699Z",
+                                                           "goal_id":  "goal_35b6f3629c9c9194",
+                                                           "id":  "c_20261007T030736_a879b10f",
+                                                           "message":  "Vit: authority smoke: bound=full_project_access server=full_project_access"
+                                                       },
+                                                       {
+                                                           "branch":  "main",
+                                                           "checkpoint_kind":  "manual",
+                                                           "created_at":  "2026-10-07T03:07:35.9729591Z",
+                                                           "goal_id":  "goal_35b6f3629c9c9194",
+                                                           "id":  "c_20261007T030735_a10cbd22",
+                                                           "message":  "Conversation ask"
+                                                       }
+                                                   ],
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261007T030736_a879b10f"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktree_count":  1,
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261007T030736_a879b10f",
+                                                  "created_at":  "2026-10-07T03:07:37.3756876Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261007T030736_a879b10f",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_110716\\project\\journey_fixture.vit"
+                                              }
+                                          ]
+                        }
+}

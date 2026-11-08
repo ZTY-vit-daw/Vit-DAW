@@ -1,0 +1,10 @@
+=== phase certify (run 20260924_005622) ===
+[certify] targets=7
+[certify] 1/7 Bettermaker Bus Compressor DSP [broadband_compression] -> failed (30.1s)
+[certify] 2/7 Bettermaker Mastering Compressor DSP [broadband_compression] -> failed (33.1s)
+[certify] 3/7 NEOLD WUNDERLICH [broadband_compression] -> failed (27.1s)
+[certify] 4/7 ZamGate [broadband_compression] -> failed (24.1s)
+[certify] 5/7 ZamGateX2 [broadband_compression] -> failed (27.0s)
+[certify] 6/7 bx_console N [broadband_compression] -> failed (42.1s)
+[certify] 7/7 Vertigo VSC-2 [broadband_compression] -> completed (45.1s)
+[certify] ledger: {'already_promoted': 45, 'completed': 65, 'failed': 116, 'load_gate_blocked': 57, 'vendor_kind_missing': 3}

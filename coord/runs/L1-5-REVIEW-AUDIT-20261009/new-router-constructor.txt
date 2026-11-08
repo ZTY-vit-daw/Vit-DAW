@@ -1,0 +1,18 @@
+func (l *MessageLoop) newFastPathRouter() *fastpath.Router[*Runner, *runState, Result] {
+	router := fastpath.NewRouter(
+		fastpath.Entry[*Runner, *runState, Result]{Name: "static_mix_capability_contract", Handler: l.preflightStaticMixCapabilityContract},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "project_blackboard_status", Handler: l.preflightProjectBlackboardStatus},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "clip_fade_gain_set", Handler: l.preflightClipFadeGainSet},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "clip_fade_gain_read", Handler: l.preflightClipFadeGainRead},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "strip_silence_suggest", Handler: l.preflightStripSilenceSuggest},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "clip_range_split", Handler: l.preflightClipRangeSplit},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "stems_folder_import", Handler: l.preflightStemsFolderImport},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "pending_section_markers_apply", Handler: l.preflightPendingSectionMarkersApply},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "natural_mix_observation", Handler: l.preflightNaturalMixObservation},
+		fastpath.Entry[*Runner, *runState, Result]{Name: "static_mix_gain_staging_context_pack", Handler: l.preflightStaticMixGainStagingContextPack},
+	)
+	if names := router.Names(); !slices.Equal(names, fastpath.DefaultEntryNames) {
+		panic(fmt.Sprintf("fastpath 注册面漂移：Names()=%v want=%v（L1-5-IMPL-C 完整性契约）", names, fastpath.DefaultEntryNames))
+	}
+	return router
+}

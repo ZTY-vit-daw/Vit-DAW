@@ -1,0 +1,57 @@
+﻿{
+  "schema_version": "vit_note_sessions.v1",
+  "project_uuid": "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+  "sessions": {
+    "note_smoke_v31_20261004_223802": {
+      "conversation_id": "note_smoke_v31_20261004_223802",
+      "note_id": "note_smoke_v31",
+      "title": "便签 note_smoke_v31",
+      "created_at": "2026-10-04T14:38:06.1001512Z",
+      "updated_at": "2026-10-04T14:38:06.1001512Z",
+      "archived": false,
+      "messages": [
+        {
+          "role": "user",
+          "content": "What does this circled range contain? Include the time span.",
+          "created_at": "2026-10-04T14:38:06.1001512Z"
+        },
+        {
+          "role": "assistant",
+          "content": "Circled range: the timeline face only (72% of the selection). No rack / library / control-surface faces were hit.\n\nTime span: 0:03.2 – 0:08.5 (3.2s–8.5s).\n\nClips hit (2, both on track smoke_track_1):\n- smoke_clip_full — full length 0:03.2–0:07.8; segment inside the range: 0:03.2–0:07.8 (entirely contained).\n- smoke_clip_part — full length 0:05.0–0:12.0; segment inside the range: 0:05.0–0:08.5 (cut off at the range end).\n\nSo the range covers one complete clip and the first 3.5s of a second clip, laid end to end on the same track.\n\nCaveat: the read-only project state reports track_count 0 and an empty tracks list, so the clip details above come from the note's time digest only — I can't cross-check them against live project state.",
+          "created_at": "2026-10-04T14:38:06.1001512Z"
+        }
+      ],
+      "faces": [
+        {
+          "domain": {
+            "entries": [
+              {
+                "clip_id": "smoke_clip_full",
+                "end_seconds": 7.8,
+                "range_clip_end": 7.8,
+                "range_clip_start": 3.2,
+                "start_seconds": 3.2,
+                "track_id": "smoke_track_1"
+              },
+              {
+                "clip_id": "smoke_clip_part",
+                "end_seconds": 12,
+                "range_clip_end": 8.5,
+                "range_clip_start": 5,
+                "start_seconds": 5,
+                "track_id": "smoke_track_1"
+              }
+            ],
+            "range_time_span": {
+              "end_s": 8.5,
+              "start_s": 3.2
+            }
+          },
+          "face_kind": "timeline",
+          "label": "timeline",
+          "selection_share": 0.72
+        }
+      ]
+    }
+  }
+}

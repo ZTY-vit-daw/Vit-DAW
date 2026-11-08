@@ -1,0 +1,56 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW-wt-m3k1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW-wt-m3k1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW-wt-m3k1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW-wt-m3k1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW-wt-m3k1\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=4016 workdir=D:\Vit_DAW-wt-m3k1\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW-wt-m3k1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=285
+shadow.initialized=True track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=4016
+ok: ZMQ SUB listening: 5556 pid=4016
+
+== Project state invoke
+project.state status=ok error=
+
+== automation curve smoke (M3-KERNEL-1)
+automation curve smoke: PASS
+  - new_project
+  - save_as_project
+  - add_audio_track
+  - volume_plugin_discovered
+  - automation.get_curve.empty
+  - automation.set_points.fail_closed
+  - automation.set_points.write3
+  - automation.get_curve.readback3
+  - automation.clear_region
+  - vsp.automation.set_points.no_cas
+  - vsp.automation.set_points.cas_rejected
+  - automation.get_curve.after_cas_rejection
+  - vsp.automation.clear_region.cleanup
+summary written: D:\Vit_DAW-wt-m3k1\coord\runs\M3-KERNEL-1\automation_curve_smoke_20261012_221700\automation_curve_summary.json
+ok: automation curve smoke passed (kernel command face; summary: D:\Vit_DAW-wt-m3k1\coord\runs\M3-KERNEL-1\automation_curve_smoke_20261012_221700\automation_curve_summary.json)
+
+== Summary
+ok: dev agent smoke completed
+SMOKE2_EXIT=0

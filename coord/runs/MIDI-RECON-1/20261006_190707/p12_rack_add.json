@@ -1,0 +1,1 @@
+{"status":"error","tool":"rack.add_node","command_name":"rack_add_node","risk_level":"confirm","requires_confirmation":false,"error":"pca_load_gate: missing non-forgeable exact selection authorization"}

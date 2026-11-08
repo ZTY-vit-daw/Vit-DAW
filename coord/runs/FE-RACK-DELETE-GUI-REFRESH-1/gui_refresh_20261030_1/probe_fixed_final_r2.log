@@ -1,0 +1,332 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[VIT221] ipc diag armed; pid=36176
+[stack-probe] STACK-OCCUPATION-WARNING card=FE-RACK-DELETE-GUI-REFRESH-1(221)
+[stack-probe] scene=res://tools/stack_probe_rack_delete_gui_refresh.tscn started=2026-10-30 19:46:13
+[stack-probe] !!! 任何模式（含只读腿）都走生产传输链：
+[stack-probe]     VitIpcClient UDP 4445 (cmd) / 4444 (telemetry) → agent bridge → kernel ZMQ 5555/5556
+[stack-probe] !!! PC-RUNTIME-STACK.md §2.2 占用登记是本探针任何运行的前置义务
+[stack-probe] mode=FIXED(修复断言) window-form(non-headless)=true
+[VIT221] queued rid=ipc_1 cmd=clear_project soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_1 cmd=clear_project queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_1 cmd=clear_project status=ok elapsed_ms=22 depth=0
+[VIT221] await_done cmd=clear_project rid=ipc_1 status=ok msg=Project cleared total_ms=62 (incl queue wait)
+[stack-probe] PASS P0 setup clear_project
+[VIT221] queued rid=ipc_2 cmd=add_track soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_2 cmd=add_track queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_2 cmd=add_track status=ok elapsed_ms=12 depth=0
+[VIT221] await_done cmd=add_track rid=ipc_2 status=ok msg=Track added total_ms=55 (incl queue wait)
+[stack-probe] PASS P0 setup probe track created
+[VIT221] queued rid=ipc_3 cmd=plugin_search soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_3 cmd=plugin_search queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_3 cmd=plugin_search status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=plugin_search rid=ipc_3 status=ok msg= total_ms=48 (incl queue wait)
+[stack-probe] PASS P0 setup plugin_search (fallback=false)
+[VIT221] queued rid=ipc_4 cmd=rack_add_node soft_to_sec=60.0 depth=1 active=<none>
+[VIT221] send rid=ipc_4 cmd=rack_add_node queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_4 cmd=rack_add_node status=ok elapsed_ms=35 depth=0
+[VIT221] await_done cmd=rack_add_node rid=ipc_4 status=ok msg=Rack node added total_ms=43 (incl queue wait)
+[stack-probe] PASS P0 setup rack_add_node loads external VST#1
+[stack-probe] TELEMETRY P0 track_id=1099 vst1=1105
+[stack-probe] PASS P1a production main scene loads (VitDockRoot.tscn)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:467)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:467)
+       [7] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:467)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:467)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:467)
+       [7] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:467)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+[VIT221] queued rid=library_plugin_list_3318915 cmd=plugin_list_available soft_to_sec=8.0 depth=1 active=<none>
+[VIT221] send rid=library_plugin_list_3318915 cmd=plugin_list_available queue_wait_ms=2 depth=0
+[stack-probe] PASS P1b production assembly: repo/hub group nodes present
+[stack-probe] PASS P1c dock ProjectStore lazy-create tolerated at assembly (B2 guard counter verifies presence)
+[stack-probe] PASS P1d production stage chain yields live rack in dock subtree
+[VIT221] queued rid=ipc_5 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=library_plugin_list_3318915(plugin_list_available,state=waiting,age_ms=44)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+[VIT221][dock] dock_refresh_enter: pulling kernel state (force_legacy=false)
+[VIT221] queued rid=track_send_list cmd=track.send.list soft_to_sec=5.0 depth=2 active=library_plugin_list_3318915(plugin_list_available,state=waiting,age_ms=211)
+[VIT221] queued rid=track_list_send_routes cmd=list_tracks soft_to_sec=8.0 depth=3 active=library_plugin_list_3318915(plugin_list_available,state=waiting,age_ms=214)
+[VIT221] reply rid=library_plugin_list_3318915 cmd=plugin_list_available status=ok elapsed_ms=245 depth=3
+[VIT221] send rid=ipc_5 cmd=get_audio_device_status queue_wait_ms=204 depth=2
+[VIT221] reply rid=ipc_5 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=2
+[VIT221] send rid=track_send_list cmd=track.send.list queue_wait_ms=43 depth=1
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_5 status=ok msg= total_ms=216 (incl queue wait)
+[VIT221] queued rid=ipc_6 cmd=project.get_audio_settings soft_to_sec=2.5 depth=2 active=track_send_list(track.send.list,state=waiting,age_ms=8)
+[VIT221] reply rid=track_send_list cmd=track.send.list status=ok elapsed_ms=12 depth=2
+[VIT221] send rid=track_list_send_routes cmd=list_tracks queue_wait_ms=54 depth=1
+[VIT221] reply rid=track_list_send_routes cmd=list_tracks status=ok elapsed_ms=4 depth=1
+[VIT221] send rid=ipc_6 cmd=project.get_audio_settings queue_wait_ms=12 depth=0
+[VIT221] reply rid=ipc_6 cmd=project.get_audio_settings status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_6 status=ok msg= total_ms=19 (incl queue wait)
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] refresh: straight legacy (no prior state)
+[VIT221][store] legacy_enter: issuing get_project_state over UDP queue
+[VIT221] queued rid=ipc_7 cmd=get_project_state soft_to_sec=8.0 depth=1 active=<none>
+[VIT221] send rid=ipc_7 cmd=get_project_state queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_7 cmd=get_project_state status=ok elapsed_ms=18 depth=0
+[VIT221] await_done cmd=get_project_state rid=ipc_7 status=ok msg= total_ms=40 (incl queue wait)
+[VIT221][store] legacy_return: status=ok msg=
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] queued rid=ipc_8 cmd=get_wave_input_devices soft_to_sec=8.0 depth=1 active=<none>
+[VIT221] send rid=ipc_8 cmd=get_wave_input_devices queue_wait_ms=3 depth=0
+[VIT221] queued rid=track_send_list cmd=track.send.list soft_to_sec=5.0 depth=1 active=ipc_8(get_wave_input_devices,state=waiting,age_ms=80)
+[VIT221] reply rid=ipc_8 cmd=get_wave_input_devices status=ok elapsed_ms=98 depth=1
+[VIT221] send rid=track_send_list cmd=track.send.list queue_wait_ms=20 depth=0
+[VIT221] reply rid=track_send_list cmd=track.send.list status=ok elapsed_ms=2 depth=0
+[VIT221] await_done cmd=get_wave_input_devices rid=ipc_8 status=ok msg= total_ms=109 (incl queue wait)
+[VIT221][dock] dock_refresh_enter: pulling kernel state (force_legacy=false)
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] refresh: vsp delta ok (no legacy hop)
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[stack-probe] PASS P1e rack adapter bound to probe track via production context face
+[stack-probe] PASS P2a repo rack_nodes contains VST#1 (kernel→repo feed)
+[stack-probe] PASS P2b canvas plugin nodes contain VST#1 (adapter reload face)
+[VIT221] queued rid=ipc_9 cmd=add_track soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_9 cmd=add_track queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_9 cmd=add_track status=ok elapsed_ms=17 depth=0
+[VIT221][dock] dock_refresh_enter: pulling kernel state (force_legacy=false)
+[VIT221] await_done cmd=add_track rid=ipc_9 status=ok msg=Track added total_ms=26 (incl queue wait)
+[stack-probe] PASS B0 add_track creates track B
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+WARNING: FE-LANE-CATALOG-VSPDELTA-GUARD-1: VSP delta applied but project_state tracks lack array-typed plugins rows; falling back to legacy get_project_state full feed (one-time warn)
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_vsp_delta_reply (res://app/state/stores/project_store.gd:203)
+       [1] _refresh_project_state_from_vsp_delta (res://app/state/stores/project_store.gd:83)
+       [2] state_delta (res://app/kernel/clients/vsp_client.gd:101)
+       [3] _send_envelope (res://app/kernel/clients/vsp_client.gd:374)
+       [4] _send_http_raw (res://app/kernel/clients/vsp_client.gd:464)
+[VIT221][store] refresh: vsp delta not ok msg=vsp_delta_schema_guard_tracks_plugins_missing -> falling back to legacy
+[VIT221][store] legacy_enter: issuing get_project_state over UDP queue
+[VIT221] queued rid=ipc_10 cmd=get_project_state soft_to_sec=8.0 depth=1 active=<none>
+[VIT221] send rid=ipc_10 cmd=get_project_state queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_10 cmd=get_project_state status=ok elapsed_ms=19 depth=0
+[VIT221] await_done cmd=get_project_state rid=ipc_10 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221][store] legacy_return: status=ok msg=
+[VIT221] queued rid=track_send_list cmd=track.send.list soft_to_sec=5.0 depth=1 active=<none>
+[VIT221] send rid=track_send_list cmd=track.send.list queue_wait_ms=2 depth=0
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] reply rid=track_send_list cmd=track.send.list status=ok elapsed_ms=22 depth=0
+[VIT221][dock] dock_refresh_enter: pulling kernel state (force_legacy=false)
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] refresh: vsp delta ok (no legacy hop)
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] queued rid=ipc_11 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_11 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_11 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_11 status=ok msg= total_ms=47 (incl queue wait)
+[stack-probe] PASS B1 track B delivered to repo via receipt-triggered refresh
+[stack-probe] PASS B2 delta schema guard triggered by add-track refresh (guard→legacy hop chain live)
+[stack-probe] PASS W0 production envelope lane container located in dock subtree
+[stack-probe] PASS W0a lane bound to probe track
+[VIT221][lane] descriptor_request pid=1100 track=1099 catalog=1 expanded=true force=false
+[VIT221] queued rid=env_lane_params_1100 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=env_lane_params_1100 cmd=get_plugin_parameters queue_wait_ms=2 depth=0
+[VIT221][lane] descriptor_request pid=1105 track=1099 catalog=1 expanded=true force=false
+[VIT221] queued rid=env_lane_params_1105 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=env_lane_params_1100(get_plugin_parameters,state=waiting,age_ms=4)
+[stack-probe] PASS W1 lane opened via production two-state API
+[stack-probe] PASS W2 descriptor requests entered IPC queue (queued counter grew)
+[VIT221] reply rid=env_lane_params_1100 cmd=get_plugin_parameters status=ok elapsed_ms=16 depth=1
+[VIT221] queued rid=env_lane_curve_1100_volume cmd=automation.get_curve soft_to_sec=5.0 depth=2 active=<none>
+[VIT221] send rid=env_lane_params_1105 cmd=get_plugin_parameters queue_wait_ms=16 depth=1
+[VIT221] reply rid=env_lane_params_1105 cmd=get_plugin_parameters status=ok elapsed_ms=66 depth=1
+[VIT221] send rid=env_lane_curve_1100_volume cmd=automation.get_curve queue_wait_ms=153 depth=0
+[VIT221] reply rid=env_lane_curve_1100_volume cmd=automation.get_curve status=ok elapsed_ms=7 depth=0
+[stack-probe] TELEMETRY W3 lane descriptor states={"1100":"loaded","1105":"loaded"} settled=true
+[stack-probe] PASS W3 lane descriptor requests settled (loaded/error recorded as-is)
+[stack-probe] PASS P3a target plugin GraphNode found on canvas for VST#1
+[VIT221] queued rid=delete_plugin cmd=delete_plugin soft_to_sec=5.0 depth=1 active=<none>
+[VIT221] send rid=delete_plugin cmd=delete_plugin queue_wait_ms=1 depth=0
+[VIT221] queued rid=ipc_12 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=delete_plugin(delete_plugin,state=waiting,age_ms=3)
+[VIT221] reply rid=delete_plugin cmd=delete_plugin status=ok elapsed_ms=10 depth=1
+[VIT221][dock] dock_refresh_enter: pulling kernel state (force_legacy=true)
+[VIT221][dock] dock_refresh: forced legacy (rack structure command); store refresh next
+[VIT221][store] refresh: forced legacy (rack structure command refresh)
+[VIT221][store] legacy_enter: issuing get_project_state over UDP queue
+[VIT221] queued rid=ipc_13 cmd=get_project_state soft_to_sec=8.0 depth=2 active=<none>
+[VIT221] send rid=ipc_12 cmd=get_audio_device_status queue_wait_ms=19 depth=1
+[VIT221] reply rid=ipc_12 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=1
+[VIT221] send rid=ipc_13 cmd=get_project_state queue_wait_ms=8 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_12 status=ok msg= total_ms=33 (incl queue wait)
+[VIT221] reply rid=ipc_13 cmd=get_project_state status=ok elapsed_ms=32 depth=0
+[VIT221] await_done cmd=get_project_state rid=ipc_13 status=ok msg= total_ms=86 (incl queue wait)
+[VIT221][store] legacy_return: status=ok msg=
+[VIT221] queued rid=track_send_list cmd=track.send.list soft_to_sec=5.0 depth=1 active=<none>
+[VIT221] send rid=track_send_list cmd=track.send.list queue_wait_ms=1 depth=0
+[VIT221] queued rid=track_list_send_routes cmd=list_tracks soft_to_sec=8.0 depth=1 active=track_send_list(track.send.list,state=waiting,age_ms=2)
+[VIT221][lane] descriptor_request pid=1101 track=1099 catalog=2 expanded=true force=false
+[VIT221] queued rid=env_lane_params_1101 cmd=get_plugin_parameters soft_to_sec=30.0 depth=2 active=track_send_list(track.send.list,state=waiting,age_ms=6)
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] reply rid=track_send_list cmd=track.send.list status=ok elapsed_ms=20 depth=2
+[VIT221] send rid=track_list_send_routes cmd=list_tracks queue_wait_ms=20 depth=1
+[VIT221] reply rid=track_list_send_routes cmd=list_tracks status=ok elapsed_ms=6 depth=1
+[VIT221] send rid=env_lane_params_1101 cmd=get_plugin_parameters queue_wait_ms=24 depth=0
+[VIT221] reply rid=env_lane_params_1101 cmd=get_plugin_parameters status=error elapsed_ms=2 depth=0
+[VIT221][dock] dock_refresh_enter: pulling kernel state (force_legacy=false)
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] refresh: vsp delta ok (no legacy hop)
+[VIT221][lane] descriptor_request pid=1100 track=1099 catalog=2 expanded=true force=false
+[VIT221] queued rid=env_lane_params_1100 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=env_lane_params_1100 cmd=get_plugin_parameters queue_wait_ms=2 depth=0
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] reply rid=env_lane_params_1100 cmd=get_plugin_parameters status=ok elapsed_ms=14 depth=0
+[VIT221] queued rid=ipc_14 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_14 cmd=get_audio_device_status queue_wait_ms=11 depth=0
+[VIT221] reply rid=ipc_14 cmd=get_audio_device_status status=ok elapsed_ms=3 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_14 status=ok msg= total_ms=52 (incl queue wait)
+[VIT221] queued rid=ipc_15 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_15 cmd=get_audio_device_status queue_wait_ms=12 depth=0
+[VIT221] reply rid=ipc_15 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_15 status=ok msg= total_ms=52 (incl queue wait)
+[stack-probe] PASS P3b event-pipeline KEY_DELETE reached kernel (delete_plugin receipt)
+[stack-probe] TELEMETRY D1 counters before_delete={"await_error":0,"await_ok":11,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":3,"max_queue_wait_ms":204,"orphan_drop":0,"queued":19,"sent":19,"soft_timeout":0}
+[stack-probe] TELEMETRY D2 counters after_window={"await_error":0,"await_ok":15,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":3,"max_queue_wait_ms":204,"orphan_drop":0,"queued":28,"sent":28,"soft_timeout":0}
+[stack-probe] TELEMETRY D3 legacy get_project_state ipc receipts=[{"at_msec":3694,"kind":"ipc_completed","message":"","request_id":"ipc_7","status":"ok"},{"at_msec":4900,"kind":"ipc_completed","message":"","request_id":"ipc_10","status":"ok"},{"at_msec":6780,"kind":"ipc_completed","message":"","request_id":"ipc_13","status":"ok"}] store_failures=[]
+[stack-probe] TELEMETRY D4 counter series (queued/sent/soft/hard per sample) len=1
+[stack-probe] TELEMETRY D4[0] t=10387 queued=28 sent=28 soft_to=0 hard_to=0 await_err=0 max_wait=204 depth=3
+[stack-probe] PASS D5 diag counters readable through window
+[stack-probe] PASS D6 legacy refresh path observable during window (canvas healed or failure visible)
+[stack-probe] TELEMETRY L2 project_loaded during delete window=2
+[stack-probe] TELEMETRY L3 repo rack_nodes=["1100", "1101"]
+[stack-probe] TELEMETRY L3b repo plugins_by_track=["1100", "1101"]
+[stack-probe] TELEMETRY L4 canvas plugin nodes=[]
+[stack-probe] PASS P4a repo rack_nodes drops VST#1 after delete (data face)
+[stack-probe] PASS P4b canvas drops VST#1 node after delete (GUI face redraw)
+[stack-probe] PASS P4c refresh broadcast emitted during delete window
+[stack-probe] PASS P4d dual-side consistency (canvas subset of repo; lane lazy volume nodes allowed)
+[stack-probe] PASS P5 repo plugins_by_track drops VST#1
+[VIT221] queued rid=ipc_16 cmd=clear_project soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_16 cmd=clear_project queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_16 cmd=clear_project status=ok elapsed_ms=21 depth=0
+[VIT221] await_done cmd=clear_project rid=ipc_16 status=ok msg=Project cleared total_ms=62 (incl queue wait)
+[stack-probe] PASS P6 cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":0,"checks_total":29,"failures":[],"mode":"fixed","stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"res://tools/stack_probe_rack_delete_gui_refresh.tscn","time":"2026-10-30 19:46:13"},"status":"pass","telemetry":{"delete_receipts":[{"at_msec":6742,"message":"Plugin deleted","request_id":"delete_plugin","status":"ok"}],"dispatch_route":"event_pipeline","gesture_dispatched":true,"ipc_counters":{"after_window":{"await_error":0,"await_ok":15,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":3,"max_queue_wait_ms":204,"orphan_drop":0,"queued":28,"sent":28,"soft_timeout":0},"before_delete":{"await_error":0,"await_ok":11,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":3,"max_queue_wait_ms":204,"orphan_drop":0,"queued":19,"sent":19,"soft_timeout":0},"series_len":1},"legacy_receipts":[{"at_msec":3694,"kind":"ipc_completed","message":"","request_id":"ipc_7","status":"ok"},{"at_msec":4900,"kind":"ipc_completed","message":"","request_id":"ipc_10","status":"ok"},{"at_msec":6780,"kind":"ipc_completed","message":"","request_id":"ipc_13","status":"ok"}],"project_loaded_at_msec":[4051,4349,4982,5128,6863,7299],"project_loaded_count":6,"store_request_failed":[]}}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)

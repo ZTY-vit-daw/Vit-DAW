@@ -1,0 +1,141 @@
+﻿{
+    "authority_mode":  "manual_confirmation",
+    "capability_routes":  [
+
+                          ],
+    "checked_at":  "2026-10-04T22:38:11.4873757+08:00",
+    "checkout_blocked":  false,
+    "continuations":  [
+
+                      ],
+    "goal":  {
+                 "goal_id":  "goal_7404cff0c4318e03",
+                 "run_id":  "run_59fbace88536939c",
+                 "task":  {
+                              "task_id":  "task_8d6a5eb7c49b6e81",
+                              "goal_id":  "goal_7404cff0c4318e03",
+                              "original_intent":  "把这段拆出来",
+                              "status":  "settled",
+                              "run":  {
+                                          "run_id":  "run_59fbace88536939c",
+                                          "task_id":  "task_8d6a5eb7c49b6e81",
+                                          "next_slice":  1,
+                                          "next_turn":  1
+                                      },
+                              "created_at":  "2026-10-04T22:37:17.5336007+08:00",
+                              "updated_at":  "2026-10-04T22:37:23.6147886+08:00"
+                          },
+                 "status":  "completed",
+                 "summary":  "把这段拆出来",
+                 "created_at":  "2026-10-04T22:37:17.5336007+08:00",
+                 "updated_at":  "2026-10-04T22:37:23.6147886+08:00",
+                 "cancel_requested":  false
+             },
+    "kernel":  {
+                   "connected":  true,
+                   "endpoint":  "tcp://127.0.0.1:5555",
+                   "latency_ms":  1,
+                   "message":  "pong",
+                   "reply_status":  "ok",
+                   "status":  "online"
+               },
+    "note_sessions":  [
+                          {
+                              "archived":  false,
+                              "conversation_id":  "note_smoke_legacy_20261004_223802",
+                              "created_at":  "2026-10-04T14:38:10.8455629Z",
+                              "messages":  [
+                                               {
+                                                   "role":  "user",
+                                                   "content":  "What does this circled range contain? Include the time span.",
+                                                   "created_at":  "2026-10-04T14:38:10.8455629Z"
+                                               },
+                                               {
+                                                   "role":  "assistant",
+                                                   "content":  "Circled range: timeline face only (selection share 0.72), on track smoke_track_1 — 2 clips.\n\nMapped time span: 0:03.2 – 0:12.0 (union of the two clips).\n\nClips intersecting the range:\n- smoke_clip_full (track smoke_track_1) — full extent 0:03.2–0:07.8; intersecting segment 0:03.2–0:07.8 (entirely inside the range).\n- smoke_clip_part (track smoke_track_1) — full extent 0:05.0–0:12.0; intersecting segment 0:05.0–0:12.0 (entirely inside the range).\n\nBoth clips sit on the same track and overlap on 0:05.0–0:07.8, so the range\u0027s dense portion is that overlap plus the tail 0:07.8–0:12.0.\n\nRead-only state: project initialized, 2 clips, 0 user tracks, no groups, no pending jobs. No other faces (rack / library / control surfaces) are part of this note.",
+                                                   "created_at":  "2026-10-04T14:38:10.8455629Z"
+                                               }
+                                           ],
+                              "note_id":  "note_smoke_legacy",
+                              "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T143801_c3fb5695\\Unsaved.vit",
+                              "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                              "title":  "便签 note_smoke_legacy",
+                              "updated_at":  "2026-10-04T14:38:10.8455629Z"
+                          },
+                          {
+                              "archived":  false,
+                              "conversation_id":  "note_smoke_v31_20261004_223802",
+                              "created_at":  "2026-10-04T14:38:06.1001512Z",
+                              "messages":  [
+                                               {
+                                                   "role":  "user",
+                                                   "content":  "What does this circled range contain? Include the time span.",
+                                                   "created_at":  "2026-10-04T14:38:06.1001512Z"
+                                               },
+                                               {
+                                                   "role":  "assistant",
+                                                   "content":  "Circled range: the timeline face only (72% of the selection). No rack / library / control-surface faces were hit.\n\nTime span: 0:03.2 – 0:08.5 (3.2s–8.5s).\n\nClips hit (2, both on track smoke_track_1):\n- smoke_clip_full — full length 0:03.2–0:07.8; segment inside the range: 0:03.2–0:07.8 (entirely contained).\n- smoke_clip_part — full length 0:05.0–0:12.0; segment inside the range: 0:05.0–0:08.5 (cut off at the range end).\n\nSo the range covers one complete clip and the first 3.5s of a second clip, laid end to end on the same track.\n\nCaveat: the read-only project state reports track_count 0 and an empty tracks list, so the clip details above come from the note\u0027s time digest only — I can\u0027t cross-check them against live project state.",
+                                                   "created_at":  "2026-10-04T14:38:06.1001512Z"
+                                               }
+                                           ],
+                              "note_id":  "note_smoke_v31",
+                              "project_path":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261004T143801_c3fb5695\\Unsaved.vit",
+                              "project_uuid":  "vitproj_19a2b6fbc94f49a7ba4a1505bc96be07",
+                              "title":  "便签 note_smoke_v31",
+                              "updated_at":  "2026-10-04T14:38:06.1001512Z"
+                          }
+                      ],
+    "pid":  27100,
+    "service":  "VitAgent",
+    "shadow":  {
+                   "delta_seq_gaps":  0,
+                   "graph_revision":  0,
+                   "initialized":  true,
+                   "last_delta_seq":  0,
+                   "project_path":  "",
+                   "track_count":  0,
+                   "user_track_count":  0
+               },
+    "status":  "ok",
+    "task":  {
+                 "task_id":  "task_8d6a5eb7c49b6e81",
+                 "goal_id":  "goal_7404cff0c4318e03",
+                 "original_intent":  "把这段拆出来",
+                 "status":  "settled",
+                 "run":  {
+                             "run_id":  "run_59fbace88536939c",
+                             "task_id":  "task_8d6a5eb7c49b6e81",
+                             "next_slice":  1,
+                             "next_turn":  1
+                         },
+                 "created_at":  "2026-10-04T22:37:17.5336007+08:00",
+                 "updated_at":  "2026-10-04T22:37:23.6147886+08:00"
+             },
+    "task_trajectory":  {
+                            "run":  {
+                                        "current_slice_id":  "",
+                                        "current_turn_id":  "",
+                                        "run_id":  "run_59fbace88536939c",
+                                        "slices":  null,
+                                        "turns":  null
+                                    },
+                            "schema_version":  "vit.task_runtime_trajectory.v1",
+                            "semantic":  {
+
+                                         },
+                            "task":  {
+                                         "conversation_id":  "",
+                                         "created_at":  "2026-10-04T22:37:17.5336007+08:00",
+                                         "goal_id":  "goal_7404cff0c4318e03",
+                                         "goal_status":  "completed",
+                                         "original_intent":  "把这段拆出来",
+                                         "run_id":  "run_59fbace88536939c",
+                                         "status":  "settled",
+                                         "task_id":  "task_8d6a5eb7c49b6e81",
+                                         "updated_at":  "2026-10-04T22:37:23.6147886+08:00"
+                                     },
+                            "transitions":  [
+
+                                            ]
+                        }
+}

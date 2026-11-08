@@ -1,0 +1,165 @@
+[    1453ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=fb82b8ea:20100
+[    1468ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:120
+[    1542ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/downloads/scan' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/downloads/scan:0
+[    1543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[    1543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[    1559ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1559ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[    1560ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/downloads/scan' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1560ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/downloads/scan:0
+[    1560ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1560ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[    1560ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1560ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[    1589ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1589ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[    1589ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/downloads/watch' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1589ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[    1589ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2u9ox3&since=0&limit=120' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    1589ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2u9ox3&since=0&limit=120:0
+[    2079ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2u9ox3&since=0&limit=120' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    2079ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2u9ox3&since=0&limit=120:0
+[    2580ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2u9ox3&since=0&limit=120' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    2580ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2u9ox3&since=0&limit=120:0
+[    9544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    9544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[    9545ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    9545ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[    9546ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[    9547ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   16591ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/downloads/watch' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   16591ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[   17543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   17543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   17544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   17544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   17545ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   17545ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   25543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   25543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   25544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   25544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   25545ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   25545ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   31594ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/downloads/watch' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   31595ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[   33542ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   33543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   33543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   33543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   33544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   33544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   41543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   41543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   41544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   41544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   41545ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   41545ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   46598ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/downloads/watch' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   46598ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[   49543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   49543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   49543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   49543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   49544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   49545ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   57543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   57543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   57544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   57544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   57545ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   57545ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   61601ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/downloads/watch' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   61601ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[   65544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   65544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   65545ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   65545ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   65546ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   65546ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   73543ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/runtime/status' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   73543ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   73544ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/agent/ui/state' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   73544ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/agent/ui/state:0
+[   73545ms] [ERROR] Access to fetch at 'http://127.0.0.1:7879/health' from origin 'http://127.0.0.1:5178' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ http://127.0.0.1:5178/app/:0
+[   73546ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:7879/health:0
+[   78607ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[   83543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   83544ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[   83794ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[   91543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   91543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[   91793ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[   95610ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[   99543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[   99543ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[   99794ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  102768ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=fb82b8ea:20100
+[  102777ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:120
+[  104831ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/scan:0
+[  104832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  104833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/scan:0
+[  104833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  104833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  104833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  106832ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  106833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  106834ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  106844ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  106845ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  106845ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[  108833ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  108835ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  108835ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  108837ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  108839ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2ubv3i&since=0&limit=120:0
+[  112835ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  112837ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  113086ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  120837ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  120842ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  121087ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  122841ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[  128838ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  128838ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  129088ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  134069ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:5178/app/@vite/client:963
+[  135307ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=fb82b8ea:20100
+[  135314ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:120
+[  137345ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/scan:0
+[  137346ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/scan:0
+[  137346ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  137346ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  137348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  137348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  139348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  139348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[  139348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  139348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  139348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  139358ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  141348ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  141349ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  141349ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  141349ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  141352ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/events?conversation_id=webui_mt2uck6x&since=0&limit=120:0
+[  145349ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  145351ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  145599ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  149158ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:5178/app/@vite/client:963
+[  151161ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[  153349ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/runtime/status:0
+[  153353ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/ui/state:0
+[  153600ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/health:0
+[  154165ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[  155352ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:7879/agent/downloads/watch:0
+[  157169ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[  161068ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=fb82b8ea:20100
+[  161077ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:120
+[  161136ms] [ERROR] Failed to load resource: the server responded with a status of 405 (Method Not Allowed) @ http://127.0.0.1:5178/agent/downloads/scan:0
+[  161137ms] [ERROR] Failed to load resource: the server responded with a status of 405 (Method Not Allowed) @ http://127.0.0.1:5178/agent/downloads/scan:0
+[  161166ms] [ERROR] Failed to load resource: the server responded with a status of 405 (Method Not Allowed) @ http://127.0.0.1:5178/agent/downloads/watch:0
+[  176191ms] [ERROR] Failed to load resource: the server responded with a status of 405 (Method Not Allowed) @ http://127.0.0.1:5178/agent/downloads/watch:0

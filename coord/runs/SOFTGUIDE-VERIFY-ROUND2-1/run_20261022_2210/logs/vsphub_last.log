@@ -1,0 +1,15 @@
+2026-10-22T22:07:26 [INFO] VspHub started listen=127.0.0.1:8787 kernel_req=tcp://127.0.0.1:5555 kernel_sub=tcp://127.0.0.1:5556 telemetry=true
+2026-10-22T22:07:26 [INFO] VspHub HTTP listening on http://127.0.0.1:8787
+2026-10-22T22:07:27 [INFO] VSP telemetry relay started: tcp://127.0.0.1:5556 -> vsp.hub.websocket
+2026-10-22T22:07:27 [INFO] VSP session registered role=agent client_id=vit.agent.transport_publisher session_id=sess_kernel_1792678047498_453227363 transport=vsp.hub.http
+2026-10-22T22:07:27 [INFO] VSP session registered role=agent client_id=vit.agent.realtime_publisher session_id=sess_kernel_1792678047500_721775588 transport=vsp.hub.http
+2026-10-22T22:07:28 [INFO] VSP session registered role=agent client_id=vit.agent.official session_id=sess_kernel_1792678048993_30989772 transport=vsp.hub.http
+2026-10-22T22:22:39 [INFO] VSP stream connected id=stream_1792678959718789500_35838 remote=127.0.0.1:57515
+2026-10-22T22:22:39 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1792678959726_116710191 transport=vsp.hub.websocket
+2026-10-22T22:22:53 [INFO] VSP stream connected id=stream_1792678973032212700_36416 remote=127.0.0.1:57989
+2026-10-22T22:22:53 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1792678973039_62945992 transport=vsp.hub.websocket
+2026-10-22T22:23:01 [INFO] VSP stream connected id=stream_1792678981091748100_36864 remote=127.0.0.1:58278
+2026-10-22T22:23:01 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1792678981099_7591022 transport=vsp.hub.websocket
+2026-10-22T22:23:55 [INFO] VSP session registered role=agent client_id=vit.agent.transport_publisher session_id=sess_kernel_1792679035808_493769374 transport=vsp.hub.http
+2026-10-22T22:24:20 [INFO] VSP stream connected id=stream_1792679060146844300_40093 remote=127.0.0.1:55280
+2026-10-22T22:24:20 [INFO] VSP session registered role=gui client_id=godot.gui.realtime_adapter session_id=sess_kernel_1792679060154_347161935 transport=vsp.hub.websocket

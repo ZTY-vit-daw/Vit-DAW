@@ -1,0 +1,39 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_worktrees\l1-3-impl-c
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe
+
+== Start UI
+ok: started Godot project UI: D:\Godot\Godot_v4.6.1-stable_win64_console.exe --path D:\Godot\project\vit-daw-frontend
+godot log: D:\Vit_DAW_worktrees\l1-3-impl-c\VitApp\Workspace\Logs\godot_dev_agent_smoke.log
+warn: UI did not expose kernel command port within 60s
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=False track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+warn: ZMQ REQ port not listening: 5555
+warn: ZMQ SUB port not listening: 5556
+
+== Summary
+ok: dev agent smoke completed

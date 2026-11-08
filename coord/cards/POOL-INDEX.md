@@ -47,7 +47,7 @@
 | 319 | PLUGIN-CONTROL-EVAL-BAREFREE-T1-1 | done 终验 pass 合入（**T1 3/3——barefree 线四案全清**：守卫许可下 T1/T2/T3 全 3/3，唯 T4=真实编码边界） |
 | 320 | PLUGIN-CONTROL-EVAL-PROQ3-FREE-1 | done 终验 pass 收口（六批纪律链+三轮诚实对账：r1 提案链被断连/r2 LLM 超时/r3 能力边界拒调[频段测量真实]；产品面零 rogue 裸写；GUI 终审物交付；「实际调好 EQ」演示候 322 裁定） |
 | 321 | RACK-PARAM-PERSIST-FIX-1 | done 终验 pass 合入（probe 3/3 存活亲证 0.7→reopen 0.7；320 解锁） |
-| 322 | PROQ3-CERTIFY-AND-T7-1 | doing（**323 已合入解锁——终演在飞**：Pro-Q 3 认证落库→T7×3 裸面终演→用户 GUI 终审） |
+| 322 | PROQ3-CERTIFY-AND-T7-1 | done 终验 pass 合入（**r1/r3 裸写逐项吻合+S5 零 typed 铁证+persisted×3**——Pro-Q 3 认证落库+derive 带锚修复；早期首碰壁目标闭环；GUI 终审物交付） |
 | 323 | EQ-RECEIPT-VENDOR-EXPAND-1 | done 终验 pass 合入（vendor-scoped 最保守+双门干跑亲证——322 解锁） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | done 终验 pass 合入（runA 零 env 产品级装载实证）

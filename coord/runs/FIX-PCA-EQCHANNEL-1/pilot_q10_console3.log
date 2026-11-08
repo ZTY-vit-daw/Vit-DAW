@@ -1,0 +1,4 @@
+=== phase certify (run 20260924_005622) ===
+[certify] targets=1
+[certify] 1/1 Q10 Stereo [static_eq] -> failed (16.7s)
+[certify] ledger: {'already_promoted': 46, 'completed': 57, 'failed': 116}

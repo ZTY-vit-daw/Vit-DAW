@@ -1,0 +1,74 @@
+
+== Mix single tick E2E
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+start kernel: True
+kernel exe: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+track 1: D:\Vit_DAW\test_100hz_10s.wav
+track 2: D:\Vit_DAW\test_target_3s.wav
+warning: this test creates a fresh DAW project and imports fixture audio.
+
+== Prepare agent and kernel
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Start or reuse agent
+ok: agent HTTP port already listening: 7878 pid=19080
+
+== HTTP state
+ok: tool_count=261
+shadow.initialized=True track_count=2
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=21908
+ok: ZMQ SUB listening: 5556 pid=21908
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1018 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=completed message=已执行片段清理：1018 已删除 3 个静音区域。
+ok: Strip Silence chat confirmation executed apply
+strip.chat.cleanup status=ok ids=1018
+
+== Summary
+ok: dev agent smoke completed
+
+== Prepare kernel
+ok: reusing existing kernel command port: 5555 pid=21908
+ok: kernel command port listening: 5555 pid=21908
+
+== Create two-track fixture
+
+== Reset fixture project
+ok: project.new reset completed
+ok: no existing audio tracks to delete
+ok: fixture ready: Track 1=1007 Track 2=1010
+
+== Run chat observe turn
+warn: chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget 720s, conversation mix_single_tick_e2e_20260920_182906)
+warn: settle poll: goal=running
+warn: settle poll: goal=waiting_confirmation
+Timed out waiting for log pattern: [mix.tick.pending] stored conversation=mix_single_tick_e2e_20260920_182906
+所在位置 D:\Vit_DAW\scripts\run_mix_single_tick_e2e.ps1:55 字符: 5
++     throw $Message
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (Timed out waiti...20260920_182906:String) [], RuntimeException
+    + FullyQualifiedErrorId : Timed out waiting for log pattern: [mix.tick.pending] stored conversation=mix_single_tic 
+   k_e2e_20260920_182906
+ 

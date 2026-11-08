@@ -1,0 +1,52 @@
+
+== Product-path lifecycle smoke
+repo: D:\Vit_DAW
+artifact_dir: D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\product_path_20260921_103431
+interaction_path=agent_http_after_godot_project_lifecycle
+godot: D:\Godot\Godot_v4.6.1-stable_win64_console.exe
+godot_launch: D:\Godot\Godot_v4.6.1-stable_win64_console.exe
+godot_project: D:\Godot\project\vit-daw-frontend
+expected kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+vsp_hub: D:\Vit_DAW\agent\bin\VspHub.exe
+agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== Prepare agent + VSP Hub
+
+== Start or reuse Godot project lifecycle
+ok: Godot product path Kernel binary recorded path=D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe sha256=5C9D01EC78F65B0D7310CE09A2C6269200EAAFD892E46F2E1F33C4F57608F08A
+ok: Godot product path VSP Hub binary verified sha256=0D2DF7FD249EBB26B8E831FE02BDE7CB099FC972F1EDEBA07F10C63313C771BB
+ok: Godot product path agent binary verified sha256=B8EBDE6BE3694B80E5958124D56A7C70F8CE4A4C450DCA009FB3A4394954A437
+
+== Health checks
+ok: VSP Hub health/status passed with VitAgent session
+
+== Create fixture project through agent + live kernel
+
+== Clip fade/gain agent closed-loop smoke
+ok: clip fade/gain agent read cleared stale confirmation and fade set round-tripped through typed clip tools
+
+== Ask product-path mix question through agent HTTP
+ok: product observe stayed read-only with no pending event or confirmation
+
+== Chinese multitrack MOM observation scope
+ok: Chinese multitrack observe used project MOM scope with no pending event or confirmation
+
+== No-pending confirmation guard
+
+== Vocal focus relationship observation
+warn: chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget 720s, conversation product_path_vocal_focus_20260921_103431)
+warn: settle poll: goal=running
+warn: settle poll: goal=waiting_confirmation
+
+== Vocal clarification loop
+warn: chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget 720s, conversation product_path_vocal_clarify_20260921_103431)
+warn: settle poll: goal=running
+warn: settle poll: goal=completed
+ok: product-path lifecycle + mix smoke passed
+
+== Summary
+artifact_dir: D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\product_path_20260921_103431
+conversation_id: product_path_mix_20260921_103431
+observation_id: 
+route: 
+interaction_path: agent_http_after_godot_project_lifecycle

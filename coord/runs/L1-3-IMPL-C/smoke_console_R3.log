@@ -1,0 +1,60 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_worktrees\l1-3-impl-c
+agent http: http://127.0.0.1:7878
+
+== Start or reuse agent
+ok: agent HTTP port already listening: 7878 pid=19888
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=34008
+ok: ZMQ SUB listening: 5556 pid=34008
+
+== Project state invoke
+project.state status=ok error=
+
+== ref.query read-only smoke (L1-3-IMPL-C)
+ok: ref.query/ref.diff are advertised
+Invoke-WebRequest : {"status":"error","agent_action_id":"act_9c48082ea0c0ee32","tool":"ref.query","command_name":"ref_q
+uery","risk_level":"direct","requires_confirmation":false,"result":{"error":"ref.query: unknown field(s) agent_action_i
+d, tool_call_id rejected (allowed: cmd, query_id, kinds, scope_kind, scope_values, scope_value_prefix, time_window, sna
+pshot, payload_conditions, sort, limit, cursor, expand, expand_max_bytes)","status":"error"},"project_history":{"active
+_branch":"main","active_node_id":"n_20260929T104825_282ab77e","active_worktree":"","available":true,"branches":{"main":
+"c_20260929T104826_ae2e6494"},"commit_count":4,"detached":false,"draft":false,"head":"c_20260929T104826_ae2e6494","init
+ialized":true,"project_label":"Unsaved","project_path":"C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\
+draft_20260929T104447_dc9ce5cb\\Unsaved.vit","project_uuid":"vitproj_b3f2838183d64add9ca7824b8b3ac557","recent_checkpoi
+nts":[{"branch":"main","checkpoint_kind":"manual","created_at":"2026-09-29T10:48:26.1977486Z","goal_id":"goal_d8aca699d
+d4eb8a0","id":"c_20260929T104826_ae2e6494","message":"Vit: range_context smoke ok: top_level, current_selection, ui_con
+text, prompt_context"},{"branch":"main","checkpoint_kind":"manual","created_at":"2026-09-29T10:46:39.549024Z","goal_id"
+:"goal_9b29297dfc0f3b11","id":"c_20260929T104639_741b1282","message":"Vit: range_context smoke ok: top_level, current_s
+election, ui_context, prompt_context"},{"branch":"main","checkpoint_kind":"manual","created_at":"2026-09-29T10:44:50.33
+40116Z","goal_id":"goal_bf166451e1a926de","id":"c_20260929T104450_bb1c90c5","message":"Vit: range_context smoke ok: top
+_level, current_selection, ui_context, prompt_context"},{"branch":"main","checkpoint_kind":"manual","created_at":"2026-
+09-29T10:44:48.664035Z","goal_id":"goal_bf166451e1a926de","id":"c_20260929T104448_4df2941d","message":"Conversation ask
+"}],"refs":{"refs/heads/main":"c_20260929T104826_ae2e6494"},"root_project_path":"","unsaved":false,"warnings":[],"workt
+ree_count":1,"worktrees":[{"commit_id":"c_20260929T104826_ae2e6494","created_at":"2026-09-29T10:48:38.7135631Z","is_roo
+t":true,"label":"主工作树","name":"main","origin_commit_id":"c_20260929T104826_ae2e6494","path":"C:\\Users\\timoz\\AppD
+ata\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104447_dc9ce5cb","project_file_path":"C:\\Users\\timoz\\AppData
+\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104447_dc9ce5cb\\Unsaved.vit","project_path":"C:\\Users\\timoz\\Ap
+pData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104447_dc9ce5cb\\Unsaved.vit","root_project_path":"C:\\Users\
+\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104447_dc9ce5cb\\Unsaved.vit"}]},"error":"ref.query
+: unknown field(s) agent_action_id, tool_call_id rejected (allowed: cmd, query_id, kinds, scope_kind, scope_values, sco
+pe_value_prefix, time_window, snapshot, payload_conditions, sort, limit, cursor, expand, expand_max_bytes)"}
+所在位置 D:\Vit_DAW_worktrees\l1-3-impl-c\scripts\dev_agent_smoke.ps1:108 字符: 17
++ ...     $resp = Invoke-WebRequest -UseBasicParsing -Method POST -Uri $Uri ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce
+    ption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand

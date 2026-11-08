@@ -1,0 +1,104 @@
+[     232ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=fb82b8ea:20100
+[     256ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:127
+[    8932ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5178/agent/downloads/watch:0
+[    8933ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5178/agent/ui/state:0
+[    8954ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5178/agent/ui/state:0
+[  242264ms] [ERROR] Failed to load resource: the server responded with a status of 409 (Conflict) @ http://127.0.0.1:5178/agent/authority:0
+[  370594ms] [ERROR] Failed to load resource: the server responded with a status of 409 (Conflict) @ http://127.0.0.1:5178/agent/authority:0
+[ 1104375ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1104381ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1104384ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:5178/health:0
+[ 1104816ms] [LOG] [vite] server connection lost. Polling for restart... @ http://127.0.0.1:5178/app/@vite/client:963
+[ 1106820ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1109824ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1112826ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1114376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1114377ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1114629ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1115831ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1118837ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1121841ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1122376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1122376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1122627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1124852ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1127866ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1130378ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1130378ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1130627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1130879ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1133919ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1136945ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1138374ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1138375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1138628ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1140026ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1143328ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1146375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1146378ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1146627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1146914ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1150521ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1154376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1154376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1154626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1154662ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1162163ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1162376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1162377ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1162627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1167162ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1170376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1170376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1170626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1171338ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1178373ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1178374ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1178416ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1178625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1185043ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1186376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1186377ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1186628ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1191142ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1194374ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1194376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1194627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1196318ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1202376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1202377ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1202627ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1202790ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1210376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1210378ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1210626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1210711ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1217488ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1218375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1218375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1218625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1224099ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1226374ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1226376ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1226624ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1227105ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1230110ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1233113ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1234375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1234375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1234626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1236117ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1239120ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1242125ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1242373ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1242374ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1242626ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1245130ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1248137ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1250374ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/runtime/status:0
+[ 1250375ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/agent/ui/state:0
+[ 1250625ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/health:0
+[ 1251162ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1254195ms] [ERROR] WebSocket connection to 'ws://127.0.0.1:5178/app/' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:5178/app/@vite/client:1034
+[ 1258080ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://127.0.0.1:5178/app/node_modules/.vite/deps/react-dom_client.js?v=fb82b8ea:20100
+[ 1258090ms] [INFO] [VitWebUI] loaded vit-confirmation-consumption-v1-20260801 @ http://127.0.0.1:5178/app/src/App.tsx:127

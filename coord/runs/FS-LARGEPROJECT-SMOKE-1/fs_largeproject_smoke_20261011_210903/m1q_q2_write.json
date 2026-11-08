@@ -1,0 +1,79 @@
+﻿{
+    "conversation_id":  "dev_fs_largeproject_20261011_210903_m1q",
+    "task_id":  "task_69a80932ad0dfc74",
+    "goal_id":  "goal_b5736dd0a9806bb7",
+    "run_id":  "run_4f33b84d7d09e0b7",
+    "original_intent":  "队列标记 E1 延期 烟测写回验证",
+    "reply":  "已回写节点标注：E1 母带 EQ[延期]（烟测写回验证）",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "workflow":  "mix_workflow_queue",
+    "workflow_data":  {
+                          "node_id":  "E1",
+                          "node_state":  "deferred",
+                          "status":  "recorded"
+                      },
+    "goal_status":  "completed",
+    "goal_summary":  "队列标记 E1 延期 烟测写回验证",
+    "stop_reason":  "done",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261011T131154_3d8a75e4",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261011T131147_ebe52d60"
+                                         },
+                            "commit_count":  2,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "队列标记 E1 延期 烟测写回验证",
+                                                              "logical_message_id":  "n_20261011T131153_ac8746bc",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261011T131153_ac8746bc",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "已回写节点标注：E1 母带 EQ[延期]（烟测写回验证）",
+                                                              "logical_message_id":  "n_20261011T131154_3d8a75e4",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261011T131154_3d8a75e4",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261011T131147_ebe52d60",
+                            "initialized":  true,
+                            "project_label":  "sattelites_61",
+                            "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\project\\sattelites_61.vit",
+                            "project_uuid":  "vitproj_1c97a192dbde4e9c9ac4359d9f40283e",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261011T131147_ebe52d60"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261011T131147_ebe52d60",
+                                                  "created_at":  "2026-10-11T13:11:54.4785068Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261011T131147_ebe52d60",
+                                                  "path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\project\\sattelites_61.vit",
+                                                  "project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\project\\sattelites_61.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW_wt_mixlayer_m1_5\\coord\\runs\\FS-LARGEPROJECT-SMOKE-1\\fs_largeproject_smoke_20261011_210903\\project\\sattelites_61.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_4f33b84d7d09e0b7",
+    "logical_message_id":  "n_20261011T131154_3d8a75e4"
+}

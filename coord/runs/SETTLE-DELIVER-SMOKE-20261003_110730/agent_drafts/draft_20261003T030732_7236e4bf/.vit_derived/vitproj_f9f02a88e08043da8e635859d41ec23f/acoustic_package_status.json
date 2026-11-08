@@ -1,0 +1,204 @@
+{
+	"schema_version": "acoustic_package_status.v0",
+	"updated_at": "2026-10-03T03:08:47.5688262Z",
+	"packages": [
+		{
+			"schema_version": "acoustic_package_status.v0",
+			"status": "missing",
+			"project_id": "vitproj_f9f02a88e08043da8e635859d41ec23f",
+			"track_id": "1007",
+			"clip_id": "1011",
+			"source_fingerprint": "rev_be3db58246007d1d",
+			"source_revision": "rev_be3db58246007d1d",
+			"clip_revision": "cliprev_d122f30c2941a273",
+			"analyzer_revision": "agent_lightweight_o1",
+			"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p02\\stems\\bass.wav",
+			"duration_seconds": 20,
+			"source_identity": {
+				"analyzer_revision": "agent_lightweight_o1",
+				"clip_id": "1011",
+				"clip_revision": "cliprev_d122f30c2941a273",
+				"clip_start_seconds": 0,
+				"duration_seconds": 20,
+				"project_id": "vitproj_f9f02a88e08043da8e635859d41ec23f",
+				"source_fingerprint": "rev_be3db58246007d1d",
+				"source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_02be6193fbc17bed\\cases\\spv1_p02\\stems\\bass.wav",
+				"source_revision": "rev_be3db58246007d1d",
+				"track_id": "1007"
+			},
+			"package_layers": {
+				"l1_static": {
+					"status": "missing",
+					"features": {
+						"peak_rms_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z"
+						},
+						"time_energy": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z"
+							},
+							"ref": {
+								"time_segment_count": 0
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "waveform_envelope_required_for_time_energy"
+						},
+						"waveform_envelope": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z"
+						}
+					},
+					"updated_at": "2026-10-03T03:08:47.5688262Z"
+				},
+				"l2_realtime": {
+					"status": "deferred",
+					"features": {
+						"live_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"post_fx_meter": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "l2_render_probe_missing"
+						},
+						"realtime_spectrum": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"realtime_stereo_correlation": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "phase_4_5_l2_realtime_requires_playback"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "phase_4_5_l2_realtime_requires_playback"
+						},
+						"render_probe": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "l2_render_probe_missing"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "l2_render_probe_missing"
+						}
+					},
+					"updated_at": "2026-10-03T03:08:47.5688262Z"
+				},
+				"l3_deep": {
+					"status": "missing",
+					"features": {
+						"band_energy_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z"
+						},
+						"loudness_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z"
+						},
+						"lufs_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "phase_5_deferred"
+						},
+						"masking_analysis": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "phase_5_deferred"
+						},
+						"reference_match": {
+							"status": "deferred",
+							"source": "phase_4_5_schema",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z",
+								"reason": "phase_5_deferred"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z",
+							"reason": "phase_5_deferred"
+						},
+						"spectrogram_tiles": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z"
+						},
+						"stereo_relation_summary": {
+							"status": "missing",
+							"source": "mix.observe_read_first",
+							"progress": {
+								"updated_at": "2026-10-03T03:08:47.5688262Z"
+							},
+							"updated_at": "2026-10-03T03:08:47.5688262Z"
+						}
+					},
+					"updated_at": "2026-10-03T03:08:47.5688262Z"
+				}
+			},
+			"updated_at": "2026-10-03T03:08:47.5688262Z",
+			"audit": [
+				{
+					"source": "mix.observe_read_first",
+					"reason": "derived_from_feature_snapshot",
+					"updated_at": "2026-10-03T03:08:47.5688262Z"
+				},
+				{
+					"source": "acoustic_package_store",
+					"reason": "upsert",
+					"updated_at": "2026-10-03T03:08:47.5688262Z"
+				}
+			]
+		}
+	]
+}

@@ -1,0 +1,666 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[VIT221] ipc diag armed; pid=38220
+[stack-probe] STACK-OCCUPATION-WARNING card=FE-RACK-DELETE-GUI-REFRESH-1(221)
+[stack-probe] scene=res://tools/stack_probe_rack_delete_gui_refresh.tscn started=2026-10-30 19:31:03
+[stack-probe] !!! 任何模式（含只读腿）都走生产传输链：
+[stack-probe]     VitIpcClient UDP 4445 (cmd) / 4444 (telemetry) → agent bridge → kernel ZMQ 5555/5556
+[stack-probe] !!! PC-RUNTIME-STACK.md §2.2 占用登记是本探针任何运行的前置义务
+[stack-probe] mode=DIAG(缺陷复现轮,pre-fix baseline) window-form(non-headless)=true
+[VIT221] queued rid=ipc_1 cmd=clear_project soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_1 cmd=clear_project queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_1 cmd=clear_project status=ok elapsed_ms=31 depth=0
+[VIT221] await_done cmd=clear_project rid=ipc_1 status=ok msg=Project cleared total_ms=57 (incl queue wait)
+[stack-probe] PASS P0 setup clear_project
+[VIT221] queued rid=ipc_2 cmd=add_track soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_2 cmd=add_track queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_2 cmd=add_track status=ok elapsed_ms=17 depth=0
+[VIT221] await_done cmd=add_track rid=ipc_2 status=ok msg=Track added total_ms=53 (incl queue wait)
+[stack-probe] PASS P0 setup probe track created
+[VIT221] queued rid=ipc_3 cmd=plugin_search soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_3 cmd=plugin_search queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_3 cmd=plugin_search status=ok elapsed_ms=8 depth=0
+[VIT221] await_done cmd=plugin_search rid=ipc_3 status=ok msg= total_ms=46 (incl queue wait)
+[stack-probe] PASS P0 setup plugin_search (fallback=false)
+[VIT221] queued rid=ipc_4 cmd=rack_add_node soft_to_sec=60.0 depth=1 active=<none>
+[VIT221] send rid=ipc_4 cmd=rack_add_node queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_4 cmd=rack_add_node status=ok elapsed_ms=30 depth=0
+[VIT221] await_done cmd=rack_add_node rid=ipc_4 status=ok msg=Rack node added total_ms=39 (incl queue wait)
+[stack-probe] PASS P0 setup rack_add_node loads external VST#1
+[stack-probe] TELEMETRY P0 track_id=1042 vst1=1048
+[stack-probe] PASS P1a production main scene loads (VitDockRoot.tscn)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1648)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1449)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1421)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:452)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1648)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1449)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1421)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:452)
+       [7] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1648)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1449)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1421)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:452)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1648)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1449)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1421)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:452)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1648)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1449)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1421)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [6] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:452)
+       [7] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [8] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [9] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [10] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1648)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1449)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1421)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+       [7] _run_suite (res://tools/stack_probe_rack_delete_gui_refresh.gd:452)
+       [8] _send_setup (res://tools/stack_probe_rack_delete_gui_refresh.gd:154)
+       [9] send (res://app/kernel/clients/kernel_command_client.gd:16)
+       [10] send_raw (res://app/kernel/clients/kernel_command_client.gd:25)
+       [11] send_command_async_await (res://app/kernel/autoloads/vit_ipc_client.gd:456)
+[VIT221] queued rid=library_plugin_list_4504027 cmd=plugin_list_available soft_to_sec=8.0 depth=1 active=<none>
+[VIT221] send rid=library_plugin_list_4504027 cmd=plugin_list_available queue_wait_ms=1 depth=0
+[stack-probe] PASS P1b production assembly: repo/hub group nodes present
+[stack-probe] FAIL P1c dock ProjectStore located + request_failed wired | <lazy-not-yet-created>
+[stack-probe] PASS P1d production stage chain yields live rack in dock subtree
+[VIT221] queued rid=ipc_5 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=library_plugin_list_4504027(plugin_list_available,state=waiting,age_ms=67)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+[VIT221][dock] dock_refresh_enter: pulling kernel state
+[VIT221] queued rid=track_send_list cmd=track.send.list soft_to_sec=5.0 depth=2 active=library_plugin_list_4504027(plugin_list_available,state=waiting,age_ms=292)
+[VIT221] queued rid=track_list_send_routes cmd=list_tracks soft_to_sec=8.0 depth=3 active=library_plugin_list_4504027(plugin_list_available,state=waiting,age_ms=293)
+[VIT221] reply rid=library_plugin_list_4504027 cmd=plugin_list_available status=ok elapsed_ms=342 depth=3
+[VIT221] send rid=ipc_5 cmd=get_audio_device_status queue_wait_ms=281 depth=2
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] legacy_enter: issuing get_project_state over UDP queue
+[VIT221] queued rid=ipc_6 cmd=get_project_state soft_to_sec=8.0 depth=3 active=ipc_5(get_audio_device_status,state=waiting,age_ms=17)
+[VIT221] reply rid=ipc_5 cmd=get_audio_device_status status=ok elapsed_ms=24 depth=3
+[VIT221] send rid=track_send_list cmd=track.send.list queue_wait_ms=82 depth=2
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_5 status=ok msg= total_ms=309 (incl queue wait)
+[VIT221] queued rid=ipc_7 cmd=project.get_audio_settings soft_to_sec=2.5 depth=3 active=track_send_list(track.send.list,state=waiting,age_ms=4)
+[VIT221] reply rid=track_send_list cmd=track.send.list status=ok elapsed_ms=7 depth=3
+[VIT221] send rid=track_list_send_routes cmd=list_tracks queue_wait_ms=91 depth=2
+[VIT221] reply rid=track_list_send_routes cmd=list_tracks status=ok elapsed_ms=8 depth=2
+[VIT221] send rid=ipc_6 cmd=get_project_state queue_wait_ms=29 depth=1
+[VIT221] reply rid=ipc_6 cmd=get_project_state status=ok elapsed_ms=21 depth=1
+[VIT221] send rid=ipc_7 cmd=project.get_audio_settings queue_wait_ms=40 depth=0
+[VIT221] reply rid=ipc_7 cmd=project.get_audio_settings status=ok elapsed_ms=7 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_7 status=ok msg= total_ms=50 (incl queue wait)
+[VIT221] await_done cmd=get_project_state rid=ipc_6 status=ok msg= total_ms=65 (incl queue wait)
+[VIT221][store] legacy_return: status=ok msg=
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] queued rid=ipc_8 cmd=get_wave_input_devices soft_to_sec=8.0 depth=1 active=<none>
+[VIT221] send rid=ipc_8 cmd=get_wave_input_devices queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_8 cmd=get_wave_input_devices status=ok elapsed_ms=67 depth=0
+[VIT221] await_done cmd=get_wave_input_devices rid=ipc_8 status=ok msg= total_ms=75 (incl queue wait)
+[VIT221][dock] dock_refresh_enter: pulling kernel state
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] refresh: vsp delta ok (no legacy hop)
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] queued rid=track_send_list cmd=track.send.list soft_to_sec=5.0 depth=1 active=<none>
+[VIT221] send rid=track_send_list cmd=track.send.list queue_wait_ms=2 depth=0
+[VIT221] reply rid=track_send_list cmd=track.send.list status=ok elapsed_ms=12 depth=0
+[stack-probe] PASS P1e rack adapter bound to probe track via production context face
+[stack-probe] PASS P2a repo rack_nodes contains VST#1 (kernel→repo feed)
+[stack-probe] PASS P2b canvas plugin nodes contain VST#1 (adapter reload face)
+[stack-probe] PASS W0 production envelope lane container located in dock subtree
+[VIT221][lane] descriptor_request pid=1043 track=1042 catalog=1 expanded=true
+[VIT221] queued rid=env_lane_params_1043 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=env_lane_params_1043 cmd=get_plugin_parameters queue_wait_ms=2 depth=0
+[VIT221][lane] descriptor_request pid=1048 track=1042 catalog=1 expanded=true
+[VIT221] queued rid=env_lane_params_1048 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=env_lane_params_1043(get_plugin_parameters,state=waiting,age_ms=5)
+[stack-probe] PASS W1 lane opened via production two-state API
+[stack-probe] PASS W2 descriptor requests entered IPC queue (queued counter grew)
+[VIT221] reply rid=env_lane_params_1043 cmd=get_plugin_parameters status=ok elapsed_ms=19 depth=1
+[VIT221] queued rid=env_lane_curve_1043_volume cmd=automation.get_curve soft_to_sec=5.0 depth=2 active=<none>
+[VIT221] send rid=env_lane_params_1048 cmd=get_plugin_parameters queue_wait_ms=18 depth=1
+[VIT221] reply rid=env_lane_params_1048 cmd=get_plugin_parameters status=ok elapsed_ms=21 depth=1
+[VIT221] send rid=env_lane_curve_1043_volume cmd=automation.get_curve queue_wait_ms=26 depth=0
+[VIT221] reply rid=env_lane_curve_1043_volume cmd=automation.get_curve status=ok elapsed_ms=5 depth=0
+[stack-probe] TELEMETRY W3 lane descriptor states={"1043":"loaded","1048":"loaded"} settled=true
+[stack-probe] PASS W3 lane descriptor requests settled (loaded/error recorded as-is)
+[stack-probe] PASS P3a target plugin GraphNode found on canvas for VST#1
+[VIT221] queued rid=delete_plugin cmd=delete_plugin soft_to_sec=5.0 depth=1 active=<none>
+[VIT221] send rid=delete_plugin cmd=delete_plugin queue_wait_ms=3 depth=0
+[VIT221] reply rid=delete_plugin cmd=delete_plugin status=ok elapsed_ms=21 depth=0
+[VIT221][dock] dock_refresh_enter: pulling kernel state
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] refresh: vsp delta ok (no legacy hop)
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=2 depth=0
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=4)
+[VIT221][lane] descriptor_request pid=1009 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1009 cmd=get_plugin_parameters soft_to_sec=30.0 depth=2 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=8)
+[VIT221] queued rid=track_send_list cmd=track.send.list soft_to_sec=5.0 depth=3 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=30)
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=4 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=34)
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=5 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=38)
+[VIT221][lane] descriptor_request pid=1009 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1009 cmd=get_plugin_parameters soft_to_sec=30.0 depth=6 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=42)
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=7 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=46)
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=8 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=50)
+[VIT221][lane] descriptor_request pid=1009 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1009 cmd=get_plugin_parameters soft_to_sec=30.0 depth=9 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=54)
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=72 depth=9
+[VIT221] queued rid=env_lane_curve_1008_volume cmd=automation.get_curve soft_to_sec=5.0 depth=10 active=<none>
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=72 depth=9
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=8 depth=9
+[VIT221] send rid=env_lane_params_1009 cmd=get_plugin_parameters queue_wait_ms=78 depth=8
+[VIT221] reply rid=env_lane_params_1009 cmd=get_plugin_parameters status=error elapsed_ms=7 depth=8
+[VIT221] send rid=track_send_list cmd=track.send.list queue_wait_ms=66 depth=7
+[VIT221] reply rid=track_send_list cmd=track.send.list status=ok elapsed_ms=4 depth=7
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=69 depth=6
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=6 depth=6
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=72 depth=5
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=4 depth=5
+[VIT221] send rid=env_lane_params_1009 cmd=get_plugin_parameters queue_wait_ms=74 depth=4
+[VIT221] reply rid=env_lane_params_1009 cmd=get_plugin_parameters status=error elapsed_ms=6 depth=4
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=78 depth=3
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=4 depth=3
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=80 depth=2
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=4 depth=2
+[VIT221] send rid=env_lane_params_1009 cmd=get_plugin_parameters queue_wait_ms=82 depth=1
+[VIT221] reply rid=env_lane_params_1009 cmd=get_plugin_parameters status=error elapsed_ms=2 depth=1
+[VIT221] send rid=env_lane_curve_1008_volume cmd=automation.get_curve queue_wait_ms=66 depth=0
+[VIT221] reply rid=env_lane_curve_1008_volume cmd=automation.get_curve status=ok elapsed_ms=7 depth=0
+[VIT221] queued rid=ipc_9 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_9 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_9 cmd=get_audio_device_status status=ok elapsed_ms=10 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_9 status=ok msg= total_ms=54 (incl queue wait)
+[VIT221][dock] dock_refresh_enter: pulling kernel state
+[VIT221][dock] dock_refresh: vsp snapshot fell back (guard or transport); store refresh next
+[VIT221][store] refresh: vsp delta ok (no legacy hop)
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=2 depth=0
+[VIT221][lane] descriptor_request pid=1008 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1008 cmd=get_plugin_parameters soft_to_sec=30.0 depth=1 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=4)
+[VIT221][lane] descriptor_request pid=1009 track=1007 catalog=2 expanded=true
+[VIT221] queued rid=env_lane_params_1009 cmd=get_plugin_parameters soft_to_sec=30.0 depth=2 active=env_lane_params_1008(get_plugin_parameters,state=waiting,age_ms=9)
+[VIT221][dock] dock_refresh_done: legacy path applied=true
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=26 depth=2
+[VIT221] send rid=env_lane_params_1008 cmd=get_plugin_parameters queue_wait_ms=25 depth=1
+[VIT221] reply rid=env_lane_params_1008 cmd=get_plugin_parameters status=ok elapsed_ms=27 depth=1
+[VIT221] send rid=env_lane_params_1009 cmd=get_plugin_parameters queue_wait_ms=51 depth=0
+[VIT221] reply rid=env_lane_params_1009 cmd=get_plugin_parameters status=error elapsed_ms=10 depth=0
+[VIT221] queued rid=ipc_10 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_10 cmd=get_audio_device_status queue_wait_ms=4 depth=0
+[VIT221] reply rid=ipc_10 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_10 status=ok msg= total_ms=49 (incl queue wait)
+[VIT221] queued rid=ipc_11 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_11 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_11 cmd=get_audio_device_status status=ok elapsed_ms=10 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_11 status=ok msg= total_ms=47 (incl queue wait)
+[stack-probe] PASS P3b event-pipeline KEY_DELETE reached kernel (delete_plugin receipt)
+[VIT221] queued rid=ipc_12 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_12 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_12 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_12 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_13 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_13 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_13 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_13 status=ok msg= total_ms=51 (incl queue wait)
+[VIT221] queued rid=ipc_14 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_14 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_14 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_14 status=ok msg= total_ms=50 (incl queue wait)
+[VIT221] queued rid=ipc_15 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_15 cmd=project.get_audio_settings queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_15 cmd=project.get_audio_settings status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_15 status=ok msg= total_ms=46 (incl queue wait)
+[VIT221] queued rid=ipc_16 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_16 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_16 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_16 status=ok msg= total_ms=44 (incl queue wait)
+[VIT221] queued rid=ipc_17 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_17 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_17 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_17 status=ok msg= total_ms=52 (incl queue wait)
+[VIT221] queued rid=ipc_18 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_18 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_18 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_18 status=ok msg= total_ms=45 (incl queue wait)
+[VIT221] queued rid=ipc_19 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_19 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_19 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_19 status=ok msg= total_ms=49 (incl queue wait)
+[VIT221] queued rid=ipc_20 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_20 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_20 cmd=get_audio_device_status status=ok elapsed_ms=17 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_20 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_21 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_21 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_21 cmd=get_audio_device_status status=ok elapsed_ms=7 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_21 status=ok msg= total_ms=52 (incl queue wait)
+[VIT221] queued rid=ipc_22 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_22 cmd=project.get_audio_settings queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_22 cmd=project.get_audio_settings status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_22 status=ok msg= total_ms=44 (incl queue wait)
+[VIT221] queued rid=ipc_23 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_23 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_23 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_23 status=ok msg= total_ms=46 (incl queue wait)
+[VIT221] queued rid=ipc_24 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_24 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_24 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_24 status=ok msg= total_ms=44 (incl queue wait)
+[VIT221] queued rid=ipc_25 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_25 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_25 cmd=get_audio_device_status status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_25 status=ok msg= total_ms=44 (incl queue wait)
+[VIT221] queued rid=ipc_26 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_26 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_26 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_26 status=ok msg= total_ms=52 (incl queue wait)
+[VIT221] queued rid=ipc_27 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_27 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_27 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_27 status=ok msg= total_ms=50 (incl queue wait)
+[VIT221] queued rid=ipc_28 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_28 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_28 cmd=get_audio_device_status status=ok elapsed_ms=12 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_28 status=ok msg= total_ms=41 (incl queue wait)
+[VIT221] queued rid=ipc_29 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_29 cmd=project.get_audio_settings queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_29 cmd=project.get_audio_settings status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_29 status=ok msg= total_ms=62 (incl queue wait)
+[VIT221] queued rid=ipc_30 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_30 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_30 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_30 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_31 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_31 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_31 cmd=get_audio_device_status status=ok elapsed_ms=13 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_31 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_32 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_32 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_32 cmd=get_audio_device_status status=ok elapsed_ms=14 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_32 status=ok msg= total_ms=49 (incl queue wait)
+[VIT221] queued rid=ipc_33 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_33 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_33 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_33 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_34 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_34 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_34 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_34 status=ok msg= total_ms=36 (incl queue wait)
+[stack-probe] TELEMETRY D1 counters before_delete={"await_error":0,"await_ok":8,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":3,"max_queue_wait_ms":281,"orphan_drop":0,"queued":15,"sent":15,"soft_timeout":0}
+[stack-probe] TELEMETRY D2 counters after_window={"await_error":0,"await_ok":34,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":10,"max_queue_wait_ms":281,"orphan_drop":0,"queued":56,"sent":56,"soft_timeout":0}
+[stack-probe] TELEMETRY D3 legacy get_project_state ipc receipts=[{"at_msec":4922,"kind":"ipc_completed","message":"","request_id":"ipc_6","status":"ok"}] store_failures=[]
+[stack-probe] TELEMETRY D4 counter series (queued/sent/soft/hard per sample) len=119
+[stack-probe] TELEMETRY D4[0] t=9605 queued=33 sent=33 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[1] t=9854 queued=33 sent=33 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[2] t=10107 queued=33 sent=33 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[3] t=10360 queued=33 sent=33 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[4] t=10615 queued=33 sent=33 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[5] t=10867 queued=34 sent=34 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[6] t=11121 queued=34 sent=34 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[7] t=11376 queued=34 sent=34 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[8] t=11625 queued=34 sent=34 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[9] t=11878 queued=34 sent=34 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[10] t=12131 queued=34 sent=34 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[11] t=12383 queued=35 sent=35 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[12] t=12634 queued=35 sent=35 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[13] t=12886 queued=35 sent=35 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[14] t=13140 queued=35 sent=35 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[15] t=13396 queued=35 sent=35 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[16] t=13643 queued=35 sent=35 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[17] t=13903 queued=37 sent=37 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[18] t=14152 queued=37 sent=37 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[19] t=14407 queued=37 sent=37 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[20] t=14656 queued=37 sent=37 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[21] t=14911 queued=37 sent=37 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[22] t=15161 queued=37 sent=37 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[23] t=15414 queued=38 sent=38 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[24] t=15672 queued=38 sent=38 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[25] t=15919 queued=38 sent=38 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[26] t=16166 queued=38 sent=38 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[27] t=16419 queued=38 sent=38 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[28] t=16677 queued=38 sent=38 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[29] t=16920 queued=39 sent=39 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[30] t=17172 queued=39 sent=39 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[31] t=17428 queued=39 sent=39 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[32] t=17678 queued=39 sent=39 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[33] t=17937 queued=39 sent=39 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[34] t=18186 queued=39 sent=39 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[35] t=18440 queued=40 sent=40 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[36] t=18690 queued=40 sent=40 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[37] t=18943 queued=40 sent=40 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[38] t=19197 queued=40 sent=40 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[39] t=19453 queued=40 sent=40 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[40] t=19704 queued=40 sent=40 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[41] t=19957 queued=41 sent=41 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[42] t=20208 queued=41 sent=41 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[43] t=20464 queued=41 sent=41 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[44] t=20716 queued=41 sent=41 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[45] t=20967 queued=41 sent=41 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[46] t=21222 queued=41 sent=41 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[47] t=21477 queued=42 sent=42 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[48] t=21728 queued=42 sent=42 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[49] t=21978 queued=42 sent=42 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[50] t=22235 queued=42 sent=42 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[51] t=22489 queued=42 sent=42 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[52] t=22737 queued=42 sent=42 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[53] t=22991 queued=44 sent=44 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[54] t=23244 queued=44 sent=44 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[55] t=23496 queued=44 sent=44 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[56] t=23750 queued=44 sent=44 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[57] t=24003 queued=44 sent=44 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[58] t=24256 queued=44 sent=44 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[59] t=24508 queued=45 sent=45 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[60] t=24758 queued=45 sent=45 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[61] t=25008 queued=45 sent=45 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[62] t=25263 queued=45 sent=45 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[63] t=25516 queued=45 sent=45 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[64] t=25770 queued=45 sent=45 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[65] t=26019 queued=46 sent=46 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[66] t=26274 queued=46 sent=46 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[67] t=26526 queued=46 sent=46 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[68] t=26781 queued=46 sent=46 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[69] t=27035 queued=46 sent=46 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[70] t=27286 queued=46 sent=46 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[71] t=27539 queued=47 sent=47 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[72] t=27790 queued=47 sent=47 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[73] t=28042 queued=47 sent=47 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[74] t=28296 queued=47 sent=47 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[75] t=28544 queued=47 sent=47 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[76] t=28790 queued=47 sent=47 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[77] t=29049 queued=48 sent=48 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[78] t=29302 queued=48 sent=48 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[79] t=29555 queued=48 sent=48 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[80] t=29808 queued=48 sent=48 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[81] t=30061 queued=48 sent=48 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[82] t=30314 queued=48 sent=48 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[83] t=30561 queued=49 sent=49 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[84] t=30813 queued=49 sent=49 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[85] t=31072 queued=49 sent=49 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[86] t=31326 queued=49 sent=49 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[87] t=31585 queued=49 sent=49 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[88] t=31820 queued=49 sent=49 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[89] t=32084 queued=51 sent=51 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[90] t=32349 queued=51 sent=51 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[91] t=32587 queued=51 sent=51 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[92] t=32855 queued=51 sent=51 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[93] t=33102 queued=51 sent=51 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[94] t=33355 queued=52 sent=52 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[95] t=33609 queued=52 sent=52 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[96] t=33861 queued=52 sent=52 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[97] t=34114 queued=52 sent=52 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[98] t=34379 queued=52 sent=52 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[99] t=34611 queued=52 sent=52 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[100] t=34887 queued=53 sent=53 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[101] t=35142 queued=53 sent=53 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[102] t=35395 queued=53 sent=53 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[103] t=35637 queued=53 sent=53 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[104] t=35902 queued=53 sent=53 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[105] t=36150 queued=53 sent=53 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[106] t=36425 queued=54 sent=54 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[107] t=36680 queued=54 sent=54 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[108] t=36921 queued=54 sent=54 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[109] t=37190 queued=54 sent=54 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[110] t=37427 queued=54 sent=54 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[111] t=37694 queued=54 sent=54 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[112] t=37949 queued=55 sent=55 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[113] t=38202 queued=55 sent=55 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[114] t=38449 queued=55 sent=55 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[115] t=38702 queued=55 sent=55 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[116] t=38955 queued=55 sent=55 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[117] t=39207 queued=55 sent=55 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] TELEMETRY D4[118] t=39449 queued=56 sent=56 soft_to=0 hard_to=0 await_err=0 max_wait=281 depth=10
+[stack-probe] PASS D5 diag counters readable through window
+[stack-probe] PASS D6[DIAG] legacy hop observability (receipts or store failure or silent-stop counters)
+[VIT221] queued rid=ipc_35 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_35 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_35 cmd=get_audio_device_status status=ok elapsed_ms=7 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_35 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_36 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_36 cmd=project.get_audio_settings queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_36 cmd=project.get_audio_settings status=ok elapsed_ms=8 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_36 status=ok msg= total_ms=54 (incl queue wait)
+[VIT221] queued rid=ipc_37 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_37 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_37 cmd=get_audio_device_status status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_37 status=ok msg= total_ms=49 (incl queue wait)
+[VIT221] queued rid=ipc_38 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_38 cmd=get_audio_device_status queue_wait_ms=12 depth=0
+[VIT221] reply rid=ipc_38 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_38 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_39 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_39 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_39 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_39 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_40 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_40 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_40 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_40 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_41 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_41 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_41 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_41 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_42 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_42 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_42 cmd=get_audio_device_status status=ok elapsed_ms=22 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_42 status=ok msg= total_ms=27 (incl queue wait)
+[VIT221] queued rid=ipc_43 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_43 cmd=project.get_audio_settings queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_43 cmd=project.get_audio_settings status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_43 status=ok msg= total_ms=38 (incl queue wait)
+[VIT221] queued rid=ipc_44 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_44 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_44 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_44 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_45 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_45 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_45 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_45 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_46 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_46 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_46 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_46 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_47 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_47 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_47 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_47 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_48 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_48 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_48 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_48 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_49 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_49 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_49 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_49 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_50 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_50 cmd=project.get_audio_settings queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_50 cmd=project.get_audio_settings status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_50 status=ok msg= total_ms=51 (incl queue wait)
+[VIT221] queued rid=ipc_51 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_51 cmd=get_audio_device_status queue_wait_ms=3 depth=0
+[VIT221] reply rid=ipc_51 cmd=get_audio_device_status status=ok elapsed_ms=3 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_51 status=ok msg= total_ms=52 (incl queue wait)
+[VIT221] queued rid=ipc_52 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_52 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_52 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_52 status=ok msg= total_ms=42 (incl queue wait)
+[VIT221] queued rid=ipc_53 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_53 cmd=get_audio_device_status queue_wait_ms=12 depth=0
+[VIT221] reply rid=ipc_53 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_53 status=ok msg= total_ms=51 (incl queue wait)
+[VIT221] queued rid=ipc_54 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_54 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_54 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_54 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_55 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_55 cmd=get_audio_device_status queue_wait_ms=12 depth=0
+[VIT221] reply rid=ipc_55 cmd=get_audio_device_status status=ok elapsed_ms=3 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_55 status=ok msg= total_ms=49 (incl queue wait)
+[VIT221] queued rid=ipc_56 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_56 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_56 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_56 status=ok msg= total_ms=47 (incl queue wait)
+[VIT221] queued rid=ipc_57 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_57 cmd=project.get_audio_settings queue_wait_ms=4 depth=0
+[VIT221] reply rid=ipc_57 cmd=project.get_audio_settings status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_57 status=ok msg= total_ms=50 (incl queue wait)
+[VIT221] queued rid=ipc_58 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_58 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_58 cmd=get_audio_device_status status=ok elapsed_ms=8 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_58 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_59 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_59 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_59 cmd=get_audio_device_status status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_59 status=ok msg= total_ms=41 (incl queue wait)
+[VIT221] queued rid=ipc_60 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_60 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_60 cmd=get_audio_device_status status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_60 status=ok msg= total_ms=49 (incl queue wait)
+[VIT221] queued rid=ipc_61 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_61 cmd=get_audio_device_status queue_wait_ms=12 depth=0
+[VIT221] reply rid=ipc_61 cmd=get_audio_device_status status=ok elapsed_ms=3 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_61 status=ok msg= total_ms=50 (incl queue wait)
+[VIT221] queued rid=ipc_62 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_62 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_62 cmd=get_audio_device_status status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_62 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_63 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_63 cmd=get_audio_device_status queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_63 cmd=get_audio_device_status status=ok elapsed_ms=6 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_63 status=ok msg= total_ms=48 (incl queue wait)
+[VIT221] queued rid=ipc_64 cmd=project.get_audio_settings soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_64 cmd=project.get_audio_settings queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_64 cmd=project.get_audio_settings status=ok elapsed_ms=4 depth=0
+[VIT221] await_done cmd=project.get_audio_settings rid=ipc_64 status=ok msg= total_ms=53 (incl queue wait)
+[VIT221] queued rid=ipc_65 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_65 cmd=get_audio_device_status queue_wait_ms=12 depth=0
+[VIT221] reply rid=ipc_65 cmd=get_audio_device_status status=ok elapsed_ms=2 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_65 status=ok msg= total_ms=49 (incl queue wait)
+[VIT221] queued rid=ipc_66 cmd=get_audio_device_status soft_to_sec=2.5 depth=1 active=<none>
+[VIT221] send rid=ipc_66 cmd=get_audio_device_status queue_wait_ms=2 depth=0
+[VIT221] reply rid=ipc_66 cmd=get_audio_device_status status=ok elapsed_ms=5 depth=0
+[VIT221] await_done cmd=get_audio_device_status rid=ipc_66 status=ok msg= total_ms=48 (incl queue wait)
+[stack-probe] TELEMETRY L2 project_loaded during delete window=2
+[stack-probe] TELEMETRY L3 repo rack_nodes=["1048"]
+[stack-probe] TELEMETRY L3b repo plugins_by_track=["1047", "1043", "1044"]
+[stack-probe] TELEMETRY L4 canvas plugin nodes=["1048"]
+[stack-probe] FAIL P4a[DIAG] data face: repo rack_nodes dropped VST#1 (datum) | ids=["1048"]
+[stack-probe] FAIL P4b[DIAG] GUI face: canvas dropped VST#1 (datum; user symptom=stale) | ids=["1048"]
+[stack-probe] PASS P4c[DIAG] refresh broadcast during delete window (datum)
+[stack-probe] PASS P4d[DIAG] dual-side consistency (datum)
+[stack-probe] PASS P5 repo plugins_by_track drops VST#1
+[VIT221] queued rid=ipc_67 cmd=clear_project soft_to_sec=30.0 depth=1 active=<none>
+[VIT221] send rid=ipc_67 cmd=clear_project queue_wait_ms=1 depth=0
+[VIT221] reply rid=ipc_67 cmd=clear_project status=ok elapsed_ms=15 depth=0
+[VIT221] await_done cmd=clear_project rid=ipc_67 status=ok msg=Project cleared total_ms=43 (incl queue wait)
+[stack-probe] PASS P6 cleanup clear_project
+[stack-probe] SUMMARY_JSON {"checks_failed":3,"checks_total":25,"failures":["P1c dock ProjectStore located + request_failed wired | <lazy-not-yet-created>","P4a[DIAG] data face: repo rack_nodes dropped VST#1 (datum) | ids=[\"1048\"]","P4b[DIAG] GUI face: canvas dropped VST#1 (datum; user symptom=stale) | ids=[\"1048\"]"],"mode":"diag","stack_warning":{"card":"PROBE-DRYRUN-WARNING-1","rule":"ANY mode incl. so-called dry-run goes production transport VitIpcClient UDP(cmd 4445/telemetry 4444)->agent bridge->kernel ZMQ; PC-RUNTIME-STACK 2.2 occupation registration REQUIRED before any run","scene":"res://tools/stack_probe_rack_delete_gui_refresh.tscn","time":"2026-10-30 19:31:03"},"status":"fail","telemetry":{"delete_receipts":[{"at_msec":5981,"message":"Plugin deleted","request_id":"delete_plugin","status":"ok"}],"dispatch_route":"event_pipeline","gesture_dispatched":true,"ipc_counters":{"after_window":{"await_error":0,"await_ok":34,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":10,"max_queue_wait_ms":281,"orphan_drop":0,"queued":56,"sent":56,"soft_timeout":0},"before_delete":{"await_error":0,"await_ok":8,"hard_timeout":0,"late_reply_drop":0,"max_queue_depth":3,"max_queue_wait_ms":281,"orphan_drop":0,"queued":15,"sent":15,"soft_timeout":0},"series_len":119},"legacy_receipts":[{"at_msec":4922,"kind":"ipc_completed","message":"","request_id":"ipc_6","status":"ok"}],"project_loaded_at_msec":[5166,5395,6140,6537],"project_loaded_count":4,"store_request_failed":[]}}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)
+ERROR: 1 resources still in use at exit (run with --verbose for details).
+   at: clear (core/io/resource.cpp:810)

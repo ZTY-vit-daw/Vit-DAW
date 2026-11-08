@@ -1,0 +1,1 @@
+function equivalence: 15/15 (12 moved + 3 copies)

@@ -1,0 +1,65 @@
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_worktrees\l1-3-impl-c
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\bin\VitAgent.dev-smoke.exe
+warn: stopping existing agent pid=19888
+warn: port 7878 is still listening after restart request; pid=19888
+ok: installed agent bin: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\vitagent.exe
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_worktrees\l1-3-impl-c\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=265
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=34008
+ok: ZMQ SUB listening: 5556 pid=34008
+
+== Project state invoke
+project.state status=ok error=
+
+== ref.query read-only smoke (L1-3-IMPL-C)
+ok: ref.query/ref.diff are advertised
+ok: ref.query returned rows: 50 (cost_class=index)
+ok: ref.query degraded path surfaces compile + payload_index_unavailable (T11)
+Invoke-WebRequest : {"status":"error","agent_action_id":"act_3302e698d85c3d25","tool":"ref.query","command_name":"ref_q
+uery","risk_level":"direct","requires_confirmation":false,"result":{"error":"ref.query: empty predicate set rejected (a
+t least one of kinds/scope/time_window(object)/payload_conditions is required; full-store pulls are not allowed)","stat
+us":"error"},"project_history":{"active_branch":"main","active_node_id":"n_20260929T104957_42edb5f9","active_worktree":
+"","available":true,"baseline_commit":"c_20260929T104956_6ad3d723","baseline_created":true,"branches":{"main":"c_202609
+29T104957_5f752814"},"commit_count":2,"detached":false,"draft":false,"goal_active_branch":"main","goal_detached":false,
+"head":"c_20260929T104957_5f752814","initialized":true,"project_label":"Unsaved","project_path":"C:\\Users\\timoz\\AppD
+ata\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vit","project_uuid":"vitproj_b3f283818
+3d64add9ca7824b8b3ac557","recent_checkpoints":[{"branch":"main","checkpoint_kind":"manual","created_at":"2026-09-29T10:
+49:57.3698359Z","goal_id":"goal_5f5184b08c7dddc2","id":"c_20260929T104957_5f752814","message":"Vit: range_context smoke
+ ok: top_level, current_selection, ui_context, prompt_context"},{"branch":"main","checkpoint_kind":"manual","created_at
+":"2026-09-29T10:49:56.2755312Z","goal_id":"goal_5f5184b08c7dddc2","id":"c_20260929T104956_6ad3d723","message":"Convers
+ation ask"}],"refs":{"refs/heads/main":"c_20260929T104957_5f752814"},"root_project_path":"","unsaved":false,"warnings":
+[],"worktree_count":1,"worktrees":[{"commit_id":"c_20260929T104957_5f752814","created_at":"2026-09-29T10:50:26.6403076Z
+","is_root":true,"label":"主工作树","name":"main","origin_commit_id":"c_20260929T104957_5f752814","path":"C:\\Users\\ti
+moz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b","project_file_path":"C:\\Users\\timoz
+\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vit","project_path":"C:\\Users\\
+timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vit","root_project_path":"C
+:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20260929T104953_40c6ae7b\\Unsaved.vit"}]},"error":"
+ref.query: empty predicate set rejected (at least one of kinds/scope/time_window(object)/payload_conditions is required
+; full-store pulls are not allowed)"}
+所在位置 D:\Vit_DAW_worktrees\l1-3-impl-c\scripts\dev_agent_smoke.ps1:108 字符: 17
++ ...     $resp = Invoke-WebRequest -UseBasicParsing -Method POST -Uri $Uri ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (System.Net.HttpWebRequest:HttpWebRequest) [Invoke-WebRequest]，WebExce
+    ption
+    + FullyQualifiedErrorId : WebCmdletWebResponseException,Microsoft.PowerShell.Commands.InvokeWebRequestCommand

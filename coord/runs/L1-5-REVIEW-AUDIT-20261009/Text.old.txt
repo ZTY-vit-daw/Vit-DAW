@@ -1,0 +1,7 @@
+func messageLoopText(value any) string {
+	text := strings.TrimSpace(fmt.Sprint(value))
+	if text == "<nil>" {
+		return ""
+	}
+	return text
+}

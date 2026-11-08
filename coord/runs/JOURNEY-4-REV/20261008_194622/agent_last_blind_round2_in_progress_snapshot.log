@@ -1,0 +1,222 @@
+2026-10-08T20:01:57 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-08T20:01:57 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-08T20:01:57 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-08T20:01:57 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-08T20:01:57 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-08T20:01:57 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-08T20:01:57 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:01:57 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-08T20:01:57 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:01:57 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:01:57 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-10-08T20:01:57 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:01:57 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-10-08T20:01:57 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\agent_drafts\\draft_20261008T120157_2ffb6e93\\Unsaved.vit" uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-08T20:01:58 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:01:58 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-08T20:01:58 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=new_project err=false
+2026-10-08T20:01:58 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-08T20:01:58 [INFO] [timing] harness.refresh_shadow ms=10 reason=new_project status=ok err=false
+2026-10-08T20:01:58 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-08T20:01:58 [INFO] [timing] kernel.send_command ms=48 command=new_project tool=project.new confirmed=true err=false
+2026-10-08T20:01:58 [INFO] [timing] harness.invoke total_ms=85 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-10-08T20:01:58 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:01:58 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_de2c60573e6d4f53be9b7161799bfe22
+2026-10-08T20:01:58 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\agent_drafts\\draft_20261008T120158_55def09b\\Unsaved.vit" uuid=vitproj_de2c60573e6d4f53be9b7161799bfe22 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-08T20:01:58 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-10-08T20:01:58 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=project.import_folder_as_stems err=false
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-10-08T20:01:58 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-08T20:01:58 [INFO] [timing] harness.refresh_shadow ms=19 reason=project.import_folder_as_stems status=ok err=false
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_role"
+2026-10-08T20:01:58 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=1
+2026-10-08T20:01:58 [INFO] [timing] kernel.send_command ms=49 command=project.import_folder_as_stems tool=project.import_folder_as_stems confirmed=true err=false
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_source_file"
+2026-10-08T20:01:58 [WARN] [tim.assert] asserter=sample_rate check=consistency status=fail track=1007 value=44100 threshold=48000 code=assert_sample_rate_mismatch
+2026-10-08T20:01:58 [WARN] [tim.assert] asserter=sample_rate check=consistency status=fail track=1012 value=44100 threshold=48000 code=assert_sample_rate_mismatch
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1007" action="property_changed:vit_import_media_copy_policy"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-08T20:01:58 [DEBUG] [shadow] live delta uid="1011" action="property_changed:elastiqueMode"
+2026-10-08T20:01:59 [INFO] [timing] harness.invoke total_ms=75 tool=project.import_folder_as_stems command=project.import_folder_as_stems status=ok confirmed=true err=false
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="property_changed:pan"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="property_changed:colour"
+2026-10-08T20:01:59 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="property_changed:proxyAllowed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="property_changed:resamplingQuality"
+2026-10-08T20:01:59 [INFO] [timing] kernel.send_command ms=2 command=project.audio_analysis_start tool=project.audio_analysis_start confirmed=true err=false
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_source_file"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_insert_file"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1011" action="property_changed:vit_import_media_copy_policy"
+2026-10-08T20:01:59 [INFO] [timing] harness.invoke total_ms=28 tool=project.audio_analysis_start command=project.audio_analysis_start status=ok confirmed=true err=false
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1012" action="property_changed:id"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1013" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1014" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1013" action="property_changed:remapOnTempoChange"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1012" action="property_changed:name"
+2026-10-08T20:01:59 [INFO] [timing] kernel.send_command ms=3 command=project.audio_analysis_status tool=project.audio_analysis_status confirmed=true err=false
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_role"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_source_file"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1012" action="property_changed:vit_import_media_copy_policy"
+2026-10-08T20:01:59 [INFO] [timing] harness.invoke total_ms=26 tool=project.audio_analysis_status command=project.audio_analysis_status status=ok confirmed=true err=false
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:elastiqueMode"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:pan"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:colour"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:proxyAllowed"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:resamplingQuality"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_source_file"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_insert_file"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="1016" action="property_changed:vit_import_media_copy_policy"
+2026-10-08T20:01:59 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="0/f690e5" action="property_changed:lastSignificantChange"
+2026-10-08T20:01:59 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=vitproj_de2c60573e6d4f53be9b7161799bfe22 target_path=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\fixture_stems\Bass.wav status=ready
+2026-10-08T20:01:59 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=vitproj_de2c60573e6d4f53be9b7161799bfe22 target_path=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\fixture_stems\Bass.wav status=ready
+2026-10-08T20:01:59 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=vitproj_de2c60573e6d4f53be9b7161799bfe22 target_path=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\fixture_stems\Bass.wav status=ready
+2026-10-08T20:01:59 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1012 clip_id=1016 project_id=vitproj_de2c60573e6d4f53be9b7161799bfe22 target_path=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\fixture_stems\Lead Vocal.wav status=ready
+2026-10-08T20:01:59 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1012 clip_id=1016 project_id=vitproj_de2c60573e6d4f53be9b7161799bfe22 target_path=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\fixture_stems\Lead Vocal.wav status=ready
+2026-10-08T20:01:59 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1012 clip_id=1016 project_id=vitproj_de2c60573e6d4f53be9b7161799bfe22 target_path=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\fixture_stems\Lead Vocal.wav status=ready
+2026-10-08T20:01:59 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-10-08T20:01:59 [DEBUG] [shadow] live delta uid="INPUTDEVICE" action="node_added"
+2026-10-08T20:01:59 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:00 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:00 [INFO] [timing] kernel.send_command ms=3 command=project.audio_analysis_status tool=project.audio_analysis_status confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [timing] harness.invoke total_ms=17 tool=project.audio_analysis_status command=project.audio_analysis_status status=ok confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=2 project_path="" replayed_deltas=4
+2026-10-08T20:02:00 [DEBUG] [shadow] live delta uid="0/f690e5" action="property_changed:vit_agent_history_generation"
+2026-10-08T20:02:00 [DEBUG] [shadow] live delta uid="0/f690e5" action="property_changed:vit_project_uuid"
+2026-10-08T20:02:00 [DEBUG] [shadow] live delta uid="0/f690e5" action="property_changed:vit_project_parent_uuid"
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\project\\journey_fixture.vit" replayed_deltas=4
+2026-10-08T20:02:00 [INFO] [timing] kernel.send_command ms=35 command=save_as_project tool=project.save_as confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [timing] harness.invoke total_ms=103 tool=project.save_as command=save_as_project status=ok confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:00 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2835e002137e413fb179f4fdfc1d4b28
+2026-10-08T20:02:00 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\project\\journey_fixture.vit" uuid=vitproj_2835e002137e413fb179f4fdfc1d4b28 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\project\\journey_fixture.vit" replayed_deltas=4
+2026-10-08T20:02:00 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:00 [INFO] [timing] kernel.vsp_state_snapshot ms=2 reason=new_project err=false
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-08T20:02:00 [INFO] [timing] harness.refresh_shadow ms=6 reason=new_project status=ok err=false
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-08T20:02:00 [INFO] [timing] kernel.send_command ms=43 command=new_project tool=project.new confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [timing] harness.invoke total_ms=80 tool=project.new command=new_project status=ok confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:00 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_7bd0d87cc20f433690685d847560200d
+2026-10-08T20:02:00 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\agent_drafts\\draft_20261008T120200_12536f02\\Unsaved.vit" uuid=vitproj_7bd0d87cc20f433690685d847560200d recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=0 project_path="" replayed_deltas=0
+2026-10-08T20:02:00 [INFO] [timing] kernel.vsp_state_snapshot ms=3 reason=open_project err=false
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-08T20:02:00 [INFO] [timing] harness.refresh_shadow ms=11 reason=open_project status=ok err=false
+2026-10-08T20:02:00 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-08T20:02:00 [INFO] [timing] kernel.send_command ms=54 command=open_project tool=project.open confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [timing] harness.invoke total_ms=86 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-10-08T20:02:00 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:00 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2835e002137e413fb179f4fdfc1d4b28
+2026-10-08T20:02:00 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\project\\journey_fixture.vit" uuid=vitproj_2835e002137e413fb179f4fdfc1d4b28 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-08T20:02:00 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:01 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:01 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:01 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:01 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:02 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:02 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:02 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:02 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:02 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:02 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:03 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:03 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:03 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:03 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:04 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:04 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:04 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:04 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-08T20:02:04 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-08T20:02:04 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2835e002137e413fb179f4fdfc1d4b28
+2026-10-08T20:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:07 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:07 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:07 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:08 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:09 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:10 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:11 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:12 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:12 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:12 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:13 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-08T20:02:13 [INFO] [media_refs] ms=0 conversation=dev_journey_ab_judg_authority_20261008_200158 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-08T20:02:13 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\project\journey_fixture.vit revision=6
+2026-10-08T20:02:13 [INFO] [chat.artifacts] conversation=dev_journey_ab_judg_authority_20261008_200158 response_artifacts=0 request_artifacts=0 executed=0 reply_len=69
+2026-10-08T20:02:13 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_2835e002137e413fb179f4fdfc1d4b28
+2026-10-08T20:02:13 [INFO] [timing] http.chat total_ms=738 conversation=dev_journey_ab_judg_authority_20261008_200158 message_len=16
+2026-10-08T20:02:13 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW_wt_j4rev\coord\runs\JOURNEY-4-REV\20261008_200153\project\journey_fixture.vit revision=6 commit=c_20261008T120213_b0763ecf rebound=1 total_ms=22
+2026-10-08T20:02:15 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:16 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-08T20:02:16 [INFO] [shadow] initialized tracks=2 project_path="D:\\Vit_DAW_wt_j4rev\\coord\\runs\\JOURNEY-4-REV\\20261008_200153\\project\\journey_fixture.vit" replayed_deltas=0
+2026-10-08T20:02:16 [INFO] [timing] harness.refresh_shadow ms=8 reason=capacity_project_facts status=ok err=false
+2026-10-08T20:02:17 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-08T20:02:17 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

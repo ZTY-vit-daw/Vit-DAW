@@ -1,0 +1,26 @@
+﻿[
+    {
+        "question":  "帮我只读观察一下这首歌的低频情况，不要做任何修改",
+        "stop_reason":  "semantic_entry_unresolved",
+        "has_presentation":  false,
+        "summary_lines":  0,
+        "summary":  "",
+        "evidence_entries":  0
+    },
+    {
+        "question":  "分析一下 Lead Vocal 和 Bass 的整体电平关系，只读",
+        "stop_reason":  "limit_reached",
+        "has_presentation":  false,
+        "summary_lines":  0,
+        "summary":  "",
+        "evidence_entries":  0
+    },
+    {
+        "question":  "看一下这首歌的立体声声场与相位相关度，只观察不改动",
+        "stop_reason":  "semantic_entry_unresolved",
+        "has_presentation":  false,
+        "summary_lines":  0,
+        "summary":  "",
+        "evidence_entries":  0
+    }
+]

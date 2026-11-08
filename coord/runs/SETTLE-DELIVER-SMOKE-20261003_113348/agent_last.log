@@ -1,0 +1,256 @@
+2026-10-03T11:33:51 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-10-03T11:33:51 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-10-03T11:33:51 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-10-03T11:33:51 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-03T11:33:51 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-10-03T11:33:51 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-10-03T11:33:51 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:33:51 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-10-03T11:33:51 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:33:51 [WARN] VSP realtime publish pending failures=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:33:51 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=state_summary err=false
+2026-10-03T11:33:51 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:33:51 [INFO] [timing] harness.refresh_shadow ms=17 reason=state_summary status=ok err=false
+2026-10-03T11:33:51 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-10-03T11:33:51 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:33:51 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\SETTLE-DELIVER-SMOKE-20261003_113348\\agent_drafts\\draft_20261003T033351_3c67048a\\Unsaved.vit" uuid=vitproj_f9f02a88e08043da8e635859d41ec23f recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-03T11:33:56 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:33:56 [WARN] VSP realtime publish pending failures=21 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:01 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:01 [WARN] VSP realtime publish pending failures=41 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:06 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:06 [WARN] VSP realtime publish pending failures=61 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:09 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:11 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:11 [WARN] VSP realtime publish pending failures=81 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:16 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:16 [WARN] VSP realtime publish pending failures=101 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:21 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:21 [WARN] VSP realtime publish pending failures=121 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:26 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:26 [WARN] VSP realtime publish pending failures=141 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:29 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:31 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:31 [WARN] VSP realtime publish pending failures=161 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:36 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:36 [WARN] VSP realtime publish pending failures=181 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:41 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:41 [WARN] VSP realtime publish pending failures=201 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:46 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:46 [WARN] VSP realtime publish pending failures=221 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:49 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:51 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-10-03T11:34:51 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:34:51 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:51 [WARN] VSP realtime publish pending failures=241 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:54 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-03T11:34:54 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:34:54 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-03T11:34:56 [WARN] VSP realtime publish pending failures=261 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:56 [WARN] VSP realtime publish pending failures=261 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:34:56 [INFO] [timing] message_loop.llm ms=2256 goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 turn=1 messages=2 chars=47652 message_chars=0:system:33067,1:user:14585 err=false
+2026-10-03T11:34:56 [INFO] [timing] harness.invoke total_ms=10 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-03T11:34:56 [INFO] [timing] message_loop.tool ms=11 goal=goal_16c43224ff15d4fb tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-03T11:34:56 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:34:56 [INFO] [continuation.arm] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_f2688c999203953c94f8e241 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-03T11:34:56 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-03T11:34:56 [INFO] [timing] agent_loop_chat total_ms=4573 conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-03T11:34:56 [INFO] [media_refs] ms=0 conversation=settledeliver_20261003_113451 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-03T11:34:56 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\agent_drafts\draft_20261003T033351_3c67048a\Unsaved.vit revision=1
+2026-10-03T11:34:56 [INFO] [chat.artifacts] conversation=settledeliver_20261003_113451 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-03T11:34:56 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\agent_drafts\draft_20261003T033351_3c67048a\Unsaved.vit revision=1 commit=c_20261003T033456_65d0656b rebound=1 total_ms=17
+2026-10-03T11:34:56 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:34:56 [INFO] [timing] http.chat total_ms=5139 conversation=settledeliver_20261003_113451 message_len=77
+2026-10-03T11:34:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:34:56 [INFO] [continuation.claim] claimed id=cont_f2688c999203953c94f8e241 goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 attempt=1 lease_until=2026-10-03T03:36:56Z
+2026-10-03T11:34:56 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-03T11:34:56 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:34:56 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-03T11:35:01 [WARN] VSP realtime publish pending failures=281 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:01 [WARN] VSP realtime publish pending failures=281 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:03 [INFO] [timing] message_loop.llm ms=7380 goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 turn=2 messages=2 chars=54083 message_chars=0:system:33314,1:user:20769 err=false
+2026-10-03T11:35:03 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=mix_request_observation_project_scope_state err=false
+2026-10-03T11:35:03 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:35:03 [INFO] [timing] harness.refresh_shadow ms=20 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-03T11:35:04 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\bass.wav status=ready
+2026-10-03T11:35:04 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\bass.wav status=ready
+2026-10-03T11:35:04 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\bass.wav status=ready
+2026-10-03T11:35:04 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1012 clip_id=1016 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\drums.wav status=ready
+2026-10-03T11:35:04 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=33871 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\BridgeReplies\20261003_113504_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T11:35:04 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1012 clip_id=1016 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\drums.wav status=ready
+2026-10-03T11:35:04 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1012 clip_id=1016 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\drums.wav status=ready
+2026-10-03T11:35:05 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1017 clip_id=1021 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\guitar.wav status=ready
+2026-10-03T11:35:05 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=36221 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\BridgeReplies\20261003_113505_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T11:35:05 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1017 clip_id=1021 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\guitar.wav status=ready
+2026-10-03T11:35:05 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1017 clip_id=1021 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\guitar.wav status=ready
+2026-10-03T11:35:05 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1022 clip_id=1026 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\other.wav status=ready
+2026-10-03T11:35:05 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=34219 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\BridgeReplies\20261003_113505_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T11:35:05 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1022 clip_id=1026 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\other.wav status=ready
+2026-10-03T11:35:05 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1022 clip_id=1026 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\other.wav status=ready
+2026-10-03T11:35:06 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1027 clip_id=1031 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\piano.wav status=ready
+2026-10-03T11:35:06 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=37048 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\BridgeReplies\20261003_113506_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T11:35:06 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1027 clip_id=1031 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\piano.wav status=ready
+2026-10-03T11:35:06 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1027 clip_id=1031 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\piano.wav status=ready
+2026-10-03T11:35:06 [WARN] VSP realtime publish pending failures=301 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:06 [WARN] VSP realtime publish pending failures=301 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:06 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1032 clip_id=1036 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\vocals.wav status=ready
+2026-10-03T11:35:06 [INFO] telemetry spilled to file label=audio_feature_data_ready bytes=36719 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\BridgeReplies\20261003_113506_000000000_telemetry_audio_feature_data_ready.json
+2026-10-03T11:35:06 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1032 clip_id=1036 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\vocals.wav status=ready
+2026-10-03T11:35:06 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1032 clip_id=1036 project_id=vitproj_f9f02a88e08043da8e635859d41ec23f target_path=D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_02be6193fbc17bed\cases\spv1_p02\stems\vocals.wav status=ready
+2026-10-03T11:35:06 [INFO] [timing] harness.invoke total_ms=2770 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-03T11:35:06 [INFO] [timing] message_loop.tool ms=2773 goal=goal_16c43224ff15d4fb tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-03T11:35:06 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:35:06 [INFO] [continuation.arm] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_b51193cd8c3affeae734b77c lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-03T11:35:06 [INFO] [timing] agent_loop_chat total_ms=10240 conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-03T11:35:06 [INFO] [f6.gate] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-03T11:35:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:06 [INFO] [continuation.claim] claimed id=cont_b51193cd8c3affeae734b77c goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 attempt=1 lease_until=2026-10-03T03:37:06Z
+2026-10-03T11:35:06 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-03T11:35:06 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:35:06 [INFO] [timing] harness.refresh_shadow ms=17 reason=capacity_project_facts status=ok err=false
+2026-10-03T11:35:09 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:11 [WARN] VSP realtime publish pending failures=321 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:11 [WARN] VSP realtime publish pending failures=321 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:12 [INFO] [timing] message_loop.llm ms=5492 goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 turn=3 messages=2 chars=56175 message_chars=0:system:33372,1:user:22803 err=false
+2026-10-03T11:35:13 [INFO] telemetry spilled to file label=l2_render_probe_ready bytes=57414 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\BridgeReplies\20261003_113513_000000000_telemetry_l2_render_probe_ready.json
+2026-10-03T11:35:13 [INFO] [timing] harness.invoke total_ms=1000 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-03T11:35:13 [INFO] [timing] message_loop.tool ms=1000 goal=goal_16c43224ff15d4fb tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-03T11:35:16 [WARN] VSP realtime publish pending failures=341 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:16 [WARN] VSP realtime publish pending failures=341 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:21 [WARN] VSP realtime publish pending failures=361 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:21 [WARN] VSP realtime publish pending failures=361 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:26 [WARN] VSP realtime publish pending failures=381 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:26 [WARN] VSP realtime publish pending failures=381 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:29 [INFO] [timing] message_loop.llm ms=15758 goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 turn=4 messages=2 chars=55380 message_chars=0:system:33203,1:user:22177 err=false
+2026-10-03T11:35:29 [INFO] [timing] harness.invoke total_ms=23 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-03T11:35:29 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=50 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:29 [INFO] [continuation.arm] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-03T11:35:29 [INFO] [domain-route] domain=static_eq route=legacy_native source=default
+2026-10-03T11:35:29 [INFO] [mix.tick.pending] stored conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb run=run_0fe329df53cc98bc 对 Track 1007 执行一次有界的静态 EQ 频段增益调整 observation=obs_20261003T033513_64f60875fce2
+2026-10-03T11:35:31 [WARN] VSP realtime publish pending failures=401 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:31 [WARN] VSP realtime publish pending failures=401 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="1037" action="property_changed:name"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="1037" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="1038" action="property_changed:id"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="1038" action="property_changed:remapOnTempoChange"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="1039" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="1040" action="property_changed:state"
+2026-10-03T11:35:33 [WARN] [shadow] delta seq gap #1 last=27 current=29
+2026-10-03T11:35:33 [DEBUG] [shadow] live delta uid="0/273c406" action="property_changed:lastSignificantChange"
+2026-10-03T11:35:33 [WARN] [telemetry] delta seq gap last=27 current=29
+2026-10-03T11:35:34 [DEBUG] [shadow] live delta uid="0/273c406" action="property_changed:lastSignificantChange"
+2026-10-03T11:35:34 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=mix_request_observation_project_scope_state err=false
+2026-10-03T11:35:34 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:35:34 [INFO] [timing] harness.refresh_shadow ms=13 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-03T11:35:34 [INFO] [timing] harness.invoke total_ms=215 tool=mix.observe command=mix_observe status=ok confirmed=true err=false
+2026-10-03T11:35:36 [INFO] telemetry spilled to file label=l2_render_probe_ready bytes=57415 file=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\BridgeReplies\20261003_113536_000000000_telemetry_l2_render_probe_ready.json
+2026-10-03T11:35:36 [INFO] [timing] harness.invoke total_ms=1049 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-03T11:35:36 [INFO] [continuation.settle] armed at the applied boundary conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb durable=cont_b475b69101639a71548bc8b0 used=3 budget=6
+2026-10-03T11:35:36 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:35:36 [INFO] [timing] harness.invoke total_ms=21 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-03T11:35:36 [WARN] VSP realtime publish pending failures=417 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:36 [WARN] VSP realtime publish pending failures=418 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:37 [INFO] [audition] blind A/B tier disabled source=config_invalid:D:\Vit_DAW\VitApp\Workspace\agent_runtime_config.json session=audition:turn:free_state_fe477218520753bb:round-1-2ef12bc090cc1884
+2026-10-03T11:35:37 [INFO] [audition] judgment request declined until the round records its human_audition_ready target response session=audition:turn:free_state_fe477218520753bb:round-1-2ef12bc090cc1884
+2026-10-03T11:35:37 [INFO] [timing] agent_loop_chat total_ms=30309 conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb mode= status=waiting_continue stop=d1_post_action_evaluation_required completed_steps=0 executed=0
+2026-10-03T11:35:37 [INFO] [f6.gate] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-03T11:35:37 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:37 [INFO] [continuation.claim] claimed id=cont_b475b69101639a71548bc8b0 goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 attempt=1 lease_until=2026-10-03T03:37:37Z
+2026-10-03T11:35:37 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-03T11:35:37 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:35:37 [INFO] [timing] harness.refresh_shadow ms=17 reason=capacity_project_facts status=ok err=false
+2026-10-03T11:35:41 [WARN] VSP realtime publish pending failures=437 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:41 [WARN] VSP realtime publish pending failures=438 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:44 [INFO] [timing] message_loop.llm ms=7501 goal=goal_16c43224ff15d4fb conversation= turn=1 messages=2 chars=51756 message_chars=0:system:31182,1:user:20574 err=false
+2026-10-03T11:35:44 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:35:44 [INFO] [continuation.arm] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_904239802d731671b6f8c69a lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=true settle_checkpoint=false
+2026-10-03T11:35:44 [INFO] [timing] agent_loop_chat total_ms=7610 conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb mode=default status=waiting_continue stop=limit_reached completed_steps=0 executed=0
+2026-10-03T11:35:44 [INFO] [f6.gate] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-03T11:35:44 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:44 [INFO] [continuation.claim] claimed id=cont_904239802d731671b6f8c69a goal=goal_16c43224ff15d4fb conversation=settledeliver_20261003_113451 attempt=1 lease_until=2026-10-03T03:37:44Z
+2026-10-03T11:35:44 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-03T11:35:44 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-10-03T11:35:44 [INFO] [timing] harness.refresh_shadow ms=18 reason=capacity_project_facts status=ok err=false
+2026-10-03T11:35:46 [WARN] VSP realtime publish pending failures=457 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:46 [WARN] VSP realtime publish pending failures=458 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:49 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=60 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:51 [WARN] VSP realtime publish pending failures=477 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:51 [WARN] VSP realtime publish pending failures=478 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:55 [INFO] [timing] message_loop.llm ms=11091 goal=goal_16c43224ff15d4fb conversation= turn=2 messages=3 chars=52991 message_chars=0:system:31182,1:user:1142,2:user:20667 err=false
+2026-10-03T11:35:56 [INFO] [timing] harness.invoke total_ms=26 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-03T11:35:56 [INFO] [audition] blind A/B tier disabled source=config_invalid:D:\Vit_DAW\VitApp\Workspace\agent_runtime_config.json session=audition:turn:free_state_fe477218520753bb:round-1-2ef12bc090cc1884
+2026-10-03T11:35:56 [INFO] [continuation.arm] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_0f9daf3e152da83a2723e40d lifecycle=completed scheduled=false budget_stop=false requires_user_interaction=true owes_outcome=true settle_checkpoint=false
+2026-10-03T11:35:56 [INFO] [timing] agent_loop_chat total_ms=11302 conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb mode=default status=waiting_continue stop=limit_reached completed_steps=0 executed=0
+2026-10-03T11:35:56 [INFO] [f6.gate] conversation=settledeliver_20261003_113451 goal=goal_16c43224ff15d4fb chainEnded=true status=completed respGoal=waiting_continue runtimeGoal=waiting_confirmation
+2026-10-03T11:35:56 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\agent_drafts\draft_20261003T033351_3c67048a\Unsaved.vit revision=3
+2026-10-03T11:35:56 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\SETTLE-DELIVER-SMOKE-20261003_113348\agent_drafts\draft_20261003T033351_3c67048a\Unsaved.vit revision=3 commit=c_20261003T033556_5317c30d rebound=1 total_ms=18
+2026-10-03T11:35:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:56 [WARN] VSP realtime publish pending failures=497 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:56 [WARN] VSP realtime publish pending failures=498 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:35:56 [INFO] [judgment-settle] settled judged park closure=audio_closure_497af79c061c3009 goal=goal_16c43224ff15d4fb
+2026-10-03T11:35:56 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_f9f02a88e08043da8e635859d41ec23f
+2026-10-03T11:35:56 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:57 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:58 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:35:59 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:00 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:01 [WARN] VSP realtime publish pending failures=517 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:36:01 [WARN] VSP realtime publish pending failures=518 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:36:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:01 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:02 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:03 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:04 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:05 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access
+2026-10-03T11:36:06 [WARN] VSP realtime publish pending failures=537 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:36:06 [WARN] VSP realtime publish pending failures=538 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-10-03T11:36:06 [INFO] [authority] restore kept explicit mode=full_project_access disk=full_project_access

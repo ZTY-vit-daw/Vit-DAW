@@ -1,0 +1,85 @@
+
+== Mix single tick E2E
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+start kernel: True
+kernel exe: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+track 1: D:\Vit_DAW\test_100hz_10s.wav
+track 2: D:\Vit_DAW\test_target_3s.wav
+warning: this test creates a fresh DAW project and imports fixture audio.
+
+== Prepare agent and kernel
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+warn: stopping existing agent pid=13404
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=261
+shadow.initialized=True track_count=2
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=11128
+ok: ZMQ SUB listening: 5556 pid=11128
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1021 track_id=1007
+strip.chat.stop_reason=durable_checkpoint_persist_failed
+strip.chat.reply=前面的工具操作已完成，但最终回复生成失败：agent runtime state lock still held after retry: agent runtime state locked by another owner: owner=scheduler_e1561506548e40cb expires_at=2026-09-22T12:38:55Z
+warn: Strip Silence chat route did not return a parameter suggestion or pending confirmation
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== Summary
+ok: dev agent smoke completed
+
+== Prepare kernel
+ok: desired kernel already listening: 5555 pid=11128
+ok: kernel command port listening: 5555 pid=11128
+
+== Create two-track fixture
+
+== Reset fixture project
+ok: project.new reset completed
+ok: no existing audio tracks to delete
+ok: fixture ready: Track 1=1007 Track 2=1010
+
+== Run chat observe turn
+warn: chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget 720s, conversation mix_single_tick_e2e_20260922_203726)
+warn: settle poll: goal=running
+warn: settle poll: goal=waiting_confirmation
+ok: observe parked on the improvement-proposal face (hop 1): needs_confirmation
+
+== Run unresolved vocal clarification guard
+warn: chat turn sliced out (waiting_continue/limit_reached) - waiting for the durable continuation to settle (budget 720s, conversation mix_single_tick_vocal_clarify_20260922_203818)
+warn: settle poll: goal=waiting_continue
+warn: settle poll: goal=running
+warn: settle poll: goal=waiting_clarification
+unresolved vocal reply did not ask which track is vocal: 已完成 ccb_observation_request
+所在位置 D:\Vit_DAW\scripts\run_mix_single_tick_e2e.ps1:55 字符: 5
++     throw $Message
++     ~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (unresolved voca...rvation_request:String) [], RuntimeException
+    + FullyQualifiedErrorId : unresolved vocal reply did not ask which track is vocal: 已完成 ccb_observation_request
+ 

@@ -1,0 +1,10 @@
+# 盲听轮 1（run 20261008_194622）判定 POST 拒绝证据
+# 来源：执行会话转录（agent_last.log 800 行轮转日志已被下一轮运行覆盖，
+# 以下为覆盖前 grep 所得的原始行，逐字转录）。
+2026-10-08T19:51:50 [WARN] [audition] judgment rejected (free-state) conversation=dev_journey_ab_judg_20261008_194627 session=audition:turn:free_state_18afca8c7207d2a1:round-1-a6881e471ec2f18d turn=turn:free_state_18afca8c7207d2a1
+HTTP 响应体（Invoke-JsonTolerant 捕获，脚本 throw 消息内逐字）：
+{"error":"audition session identity mismatch","status":"error"}
+失败位置：LEG 7 Step 4（judgment POST），status/select A/B 三步先已 ok
+（journey_ab_status_pre.json / journey_ab_select_1.json / journey_ab_select_2.json 在案）。
+处置：LEG 7 重构为"每次尝试重发现当前 seat + identity mismatch 单次重试"（脚本修复，
+对齐 webui 驱动当前卡的语义）；本 run 工件保留原样作为失败形证据。

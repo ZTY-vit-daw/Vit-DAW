@@ -1,0 +1,31 @@
+{
+  "schema_version": "free_state_conclusion.v1",
+  "conclusion_id": "fsc_turn_free_state_ced12cd065528438_experiment_settle",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "conversation_id": "settledeliver_20261011_115554",
+  "goal_id": "goal_701debac3c779b27",
+  "run_id": "run_055fa97528090617",
+  "loop_id": "free_state_ced12cd065528438",
+  "experiment_id": "turn:free_state_ced12cd065528438",
+  "kind": "experiment_settle",
+  "outcome": "improved",
+  "decision_status": "needs_experiment",
+  "summary": "user preferred B; treatment candidate retained",
+  "project_revision": "3",
+  "target_ref": {
+    "id": "1007",
+    "kind": "track"
+  },
+  "judgment": {
+    "evidence_id": "judgment-e67328ce4397042d",
+    "audition_session_id": "audition:turn:free_state_ced12cd065528438:round-1-0763978d64eff561",
+    "preference": "b",
+    "heard_difference": "yes",
+    "blind": true
+  },
+  "evidence_refs": [
+    "judgment-e67328ce4397042d"
+  ],
+  "settled_at": "2026-10-11T03:57:37.834337Z",
+  "recorded_at": "2026-10-11T03:57:37.834337Z"
+}

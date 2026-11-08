@@ -1,0 +1,17 @@
+﻿{
+    "journey":  "journey_free_state_nl",
+    "success_policy_chain":  false,
+    "classification":  "auto_applied_no_card",
+    "hop_gate":  "not_driven_no_card",
+    "track_names":  [
+                        "Bass",
+                        "Lead Vocal"
+                    ],
+    "authority_probe":  "authority_smoke_ok",
+    "hops_driven":  0,
+    "success_strict_card_chain":  false,
+    "conversation_id":  "dev_journey_fs_nl_20261008_184339",
+    "finished_at":  "2026-10-08T18:44:46.9067431+08:00",
+    "ab_card_mounted":  true,
+    "project_path":  "D:\\Vit_DAW_wt_fs_cap\\coord\\runs\\FS-CAPABILITY-BLOCKED-SURFACE-1\\repro1_20261008_184329\\project\\journey_fixture.vit"
+}

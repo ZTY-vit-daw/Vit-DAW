@@ -1,0 +1,500 @@
+2026-10-22T21:46:40 [INFO] [media_refs] ms=0 conversation=softguide_b1_A5_20261022_214632 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-22T21:46:40 [INFO] [vit_checkpoint] async checkpoint launched project=D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit revision=6
+2026-10-22T21:46:40 [INFO] [chat.artifacts] conversation=softguide_b1_A5_20261022_214632 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-22T21:46:40 [INFO] [vit_checkpoint] async checkpoint done project=D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit revision=6 commit=c_20261022T134640_54eb8e8c rebound=1 total_ms=20
+2026-10-22T21:46:40 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:46:40 [INFO] [timing] http.chat total_ms=8750 conversation=softguide_b1_A5_20261022_214632 message_len=93
+2026-10-22T21:46:40 [INFO] [authority] restore kept explicit mode=manual_confirmation disk=manual_confirmation
+2026-10-22T21:46:40 [INFO] [continuation.claim] claimed id=cont_32ca0d0abd4b84f0f9eb37ef goal=goal_0cd5f00f7292d203 conversation=softguide_b1_A5_20261022_214632 attempt=1 lease_until=2026-10-22T13:48:40Z
+2026-10-22T21:46:40 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-22T21:46:40 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:46:40 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-22T21:46:40 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=user_named_target_resolution err=false
+2026-10-22T21:46:40 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:46:40 [INFO] [timing] harness.refresh_shadow ms=20 reason=user_named_target_resolution status=ok err=false
+2026-10-22T21:46:46 [INFO] [timing] message_loop.llm ms=5531 goal=goal_0cd5f00f7292d203 conversation=softguide_b1_A5_20261022_214632 turn=2 messages=2 chars=56584 message_chars=0:system:14772,1:user:41812 err=false
+2026-10-22T21:46:53 [INFO] [timing] message_loop.llm ms=7141 goal=goal_0cd5f00f7292d203 conversation=softguide_b1_A5_20261022_214632 turn=3 messages=3 chars=56726 message_chars=0:system:14772,1:user:142,2:user:41812 err=false
+2026-10-22T21:46:54 [INFO] [timing] harness.invoke total_ms=931 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-22T21:46:54 [INFO] [timing] message_loop.tool ms=932 goal=goal_0cd5f00f7292d203 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-22T21:46:54 [INFO] [free-state.ledger] boundary conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 executed=1 ccb_observations=1 ids=[obs_20261022T134654_6cb876761958] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-22T21:46:54 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:46:54 [INFO] [continuation.arm] conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_a9b7014eb698dd6fb9ad4330 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T21:46:54 [INFO] [timing] agent_loop_chat total_ms=13759 conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-22T21:46:54 [INFO] [f6.gate] conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-22T21:46:54 [INFO] [continuation.claim] claimed id=cont_a9b7014eb698dd6fb9ad4330 goal=goal_0cd5f00f7292d203 conversation=softguide_b1_A5_20261022_214632 attempt=1 lease_until=2026-10-22T13:48:54Z
+2026-10-22T21:46:54 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-22T21:46:54 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:46:54 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-22T21:46:54 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=user_named_target_resolution err=false
+2026-10-22T21:46:54 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:46:54 [INFO] [timing] harness.refresh_shadow ms=20 reason=user_named_target_resolution status=ok err=false
+2026-10-22T21:47:03 [INFO] [timing] message_loop.llm ms=8663 goal=goal_0cd5f00f7292d203 conversation=softguide_b1_A5_20261022_214632 turn=4 messages=3 chars=54288 message_chars=0:system:14772,1:user:142,2:user:39374 err=false
+2026-10-22T21:47:03 [INFO] [free-state.ledger] boundary conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 executed=0 ccb_observations=1 ids=[obs_20261022T134654_6cb876761958] snapshot_loop=true continuation_loop=false stored_receipts=1
+2026-10-22T21:47:03 [INFO] [timing] harness.invoke total_ms=24 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-22T21:47:03 [INFO] [continuation.arm] conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T21:47:03 [INFO] [timing] agent_loop_chat total_ms=8903 conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 mode=default status=waiting_confirmation stop=improvement_proposal_confirmation_required completed_steps=2 executed=0
+2026-10-22T21:47:03 [INFO] [f6.gate] conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 chainEnded=true status=waiting_interaction respGoal=waiting_confirmation runtimeGoal=waiting_confirmation
+2026-10-22T21:47:03 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit revision=6
+2026-10-22T21:47:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:10 [INFO] [timing] kernel.send_command ms=5 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T21:47:10 [INFO] [timing] harness.invoke total_ms=17 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T21:47:14 [INFO] [timing] harness.invoke total_ms=4092 tool=plugin.semantic_search command=plugin_semantic_search status=ok confirmed=false err=false
+2026-10-22T21:47:18 [INFO] [continuation.arm] conversation=softguide_b1_A5_20261022_214632 goal=goal_0cd5f00f7292d203 status=waiting_clarification stop=plugin_selection_required limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T21:47:18 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit revision=6
+2026-10-22T21:47:18 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:18 [INFO] [timing] http.interaction_respond total_ms=12802 interaction=interaction_231eba2eb2b6d6ef action=approve
+2026-10-22T21:47:18 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit revision=6
+2026-10-22T21:47:18 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:18 [INFO] [timing] http.interaction_respond total_ms=116 interaction=interaction_2711f16adbacd158 action=approve
+2026-10-22T21:47:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:20 [INFO] [timing] kernel.send_command ms=1 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T21:47:20 [INFO] [timing] harness.invoke total_ms=20 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T21:47:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:20 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:20 [INFO] [timing] kernel.send_command ms=9 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T21:47:20 [INFO] [timing] harness.invoke total_ms=24 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T21:47:21 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:21 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=open_project err=false
+2026-10-22T21:47:21 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:21 [INFO] [timing] harness.refresh_shadow ms=15 reason=open_project status=ok err=false
+2026-10-22T21:47:21 [INFO] [shadow] initialized tracks=0 project_path="<nil>" replayed_deltas=0
+2026-10-22T21:47:21 [INFO] [timing] kernel.send_command ms=55 command=open_project tool=project.open confirmed=true err=false
+2026-10-22T21:47:21 [INFO] [timing] harness.invoke total_ms=97 tool=project.open command=open_project status=ok confirmed=true err=false
+2026-10-22T21:47:21 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:25 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:25 [INFO] [workspace] activated project="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" uuid=vitproj_ed51d8a45b8b48cd91fa6588f746b80f recovered=true conversations=1 retired_legacy_b2=0 retired_legacy_b3=0
+2026-10-22T21:47:25 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:25 [INFO] [timing] kernel.send_command ms=8 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T21:47:25 [INFO] [timing] harness.invoke total_ms=14 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T21:47:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:25 [INFO] [timing] kernel.send_command ms=1 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T21:47:25 [INFO] [timing] harness.invoke total_ms=12 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T21:47:27 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=capacity_project_facts err=false
+2026-10-22T21:47:27 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:27 [INFO] [timing] harness.refresh_shadow ms=16 reason=capacity_project_facts status=ok err=false
+2026-10-22T21:47:27 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=mix_request_observation_project_scope_state err=false
+2026-10-22T21:47:27 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:27 [INFO] [timing] harness.refresh_shadow ms=12 reason=mix_request_observation_project_scope_state status=ok err=false
+2026-10-22T21:47:27 [INFO] [timing] harness.invoke total_ms=204 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=true err=false
+2026-10-22T21:47:27 [INFO] [free-state.seed] booked conversation=softguide_b1_B1_20261022_214725 observation=obs_20261022T134727_c9bcb8c7e1dd receipt=ccbr_obs_20261022T134727_c9bcb8c7e1dd revision=6 scan_satisfied=true
+2026-10-22T21:47:27 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=user_named_target_resolution err=false
+2026-10-22T21:47:27 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:27 [INFO] [timing] harness.refresh_shadow ms=14 reason=user_named_target_resolution status=ok err=false
+2026-10-22T21:47:31 [INFO] [timing] message_loop.llm ms=3869 goal=goal_34c7f3a8a939a960 conversation=softguide_b1_B1_20261022_214725 turn=1 messages=2 chars=52663 message_chars=0:system:14772,1:user:37891 err=false
+2026-10-22T21:47:31 [INFO] [timing] harness.invoke total_ms=13 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-10-22T21:47:31 [INFO] [timing] message_loop.tool ms=14 goal=goal_34c7f3a8a939a960 tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-10-22T21:47:31 [INFO] [free-state.ledger] boundary conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 executed=1 ccb_observations=0 ids=[] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-22T21:47:31 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-22T21:47:31 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:31 [INFO] [continuation.arm] conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_8c88d5557c5dc11c739e6fb7 lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T21:47:31 [INFO] [timing] agent_loop_chat total_ms=5363 conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 mode=default status=waiting_continue stop=limit_reached completed_steps=1 executed=1
+2026-10-22T21:47:31 [INFO] [media_refs] ms=0 conversation=softguide_b1_B1_20261022_214725 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-10-22T21:47:31 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit revision=6
+2026-10-22T21:47:31 [INFO] [chat.artifacts] conversation=softguide_b1_B1_20261022_214725 response_artifacts=0 request_artifacts=0 executed=1 reply_len=63
+2026-10-22T21:47:31 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:31 [INFO] [timing] http.chat total_ms=6136 conversation=softguide_b1_B1_20261022_214725 message_len=111
+2026-10-22T21:47:31 [INFO] [continuation.claim] claimed id=cont_8c88d5557c5dc11c739e6fb7 goal=goal_34c7f3a8a939a960 conversation=softguide_b1_B1_20261022_214725 attempt=1 lease_until=2026-10-22T13:49:31Z
+2026-10-22T21:47:31 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=capacity_project_facts err=false
+2026-10-22T21:47:31 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:31 [INFO] [timing] harness.refresh_shadow ms=15 reason=capacity_project_facts status=ok err=false
+2026-10-22T21:47:31 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-22T21:47:31 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:31 [INFO] [timing] harness.refresh_shadow ms=12 reason=user_named_target_resolution status=ok err=false
+2026-10-22T21:47:35 [INFO] [timing] message_loop.llm ms=3744 goal=goal_34c7f3a8a939a960 conversation=softguide_b1_B1_20261022_214725 turn=2 messages=2 chars=60326 message_chars=0:system:14772,1:user:45554 err=false
+2026-10-22T21:47:44 [INFO] [timing] message_loop.llm ms=8586 goal=goal_34c7f3a8a939a960 conversation=softguide_b1_B1_20261022_214725 turn=3 messages=3 chars=60468 message_chars=0:system:14772,1:user:142,2:user:45554 err=false
+2026-10-22T21:47:45 [INFO] [timing] harness.invoke total_ms=935 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-10-22T21:47:45 [INFO] [timing] message_loop.tool ms=936 goal=goal_34c7f3a8a939a960 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-10-22T21:47:45 [INFO] [free-state.ledger] boundary conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 executed=1 ccb_observations=1 ids=[obs_20261022T134744_07dbe9e7e4a4] snapshot_loop=true continuation_loop=true stored_receipts=0
+2026-10-22T21:47:45 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:45 [INFO] [continuation.arm] conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 status=waiting_continue stop=limit_reached limit=max_turns continuation=true durable=cont_58b0730f1ce597f7d447fa1d lifecycle=pending scheduled=true budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T21:47:45 [INFO] [timing] agent_loop_chat total_ms=13448 conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 mode=default status=waiting_continue stop=limit_reached completed_steps=2 executed=1
+2026-10-22T21:47:45 [INFO] [f6.gate] conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 chainEnded=false status=completed respGoal=waiting_continue runtimeGoal=waiting_continue
+2026-10-22T21:47:45 [WARN] [continuation.stall] reason=invocations-active drivable=1: a request-boundary invocation still owns the in-memory runtime state
+2026-10-22T21:47:45 [INFO] [continuation.wake] has_scheduled_work=true executor=false workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:45 [INFO] [timing] http.interaction_respond total_ms=8651 interaction=interaction_2711f16adbacd158 action=approve
+2026-10-22T21:47:45 [INFO] [continuation.claim] claimed id=cont_58b0730f1ce597f7d447fa1d goal=goal_34c7f3a8a939a960 conversation=softguide_b1_B1_20261022_214725 attempt=1 lease_until=2026-10-22T13:49:45Z
+2026-10-22T21:47:45 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=capacity_project_facts err=false
+2026-10-22T21:47:45 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:45 [INFO] [timing] harness.refresh_shadow ms=12 reason=capacity_project_facts status=ok err=false
+2026-10-22T21:47:45 [INFO] [timing] kernel.vsp_state_snapshot ms=6 reason=user_named_target_resolution err=false
+2026-10-22T21:47:45 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:45 [INFO] [timing] harness.refresh_shadow ms=11 reason=user_named_target_resolution status=ok err=false
+2026-10-22T21:47:53 [INFO] [timing] message_loop.llm ms=8339 goal=goal_34c7f3a8a939a960 conversation=softguide_b1_B1_20261022_214725 turn=4 messages=3 chars=58646 message_chars=0:system:14772,1:user:142,2:user:43732 err=false
+2026-10-22T21:47:53 [INFO] [free-state.ledger] boundary conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 executed=0 ccb_observations=1 ids=[obs_20261022T134744_07dbe9e7e4a4] snapshot_loop=true continuation_loop=false stored_receipts=1
+2026-10-22T21:47:53 [INFO] [timing] harness.invoke total_ms=27 tool=version.checkpoint command=version_checkpoint status=ok confirmed=true err=false
+2026-10-22T21:47:53 [INFO] [continuation.arm] conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-10-22T21:47:53 [INFO] [timing] agent_loop_chat total_ms=8665 conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 mode=default status=waiting_confirmation stop=improvement_proposal_confirmation_required completed_steps=2 executed=0
+2026-10-22T21:47:53 [INFO] [f6.gate] conversation=softguide_b1_B1_20261022_214725 goal=goal_34c7f3a8a939a960 chainEnded=true status=waiting_interaction respGoal=waiting_confirmation runtimeGoal=waiting_confirmation
+2026-10-22T21:47:53 [INFO] [vit_checkpoint] gate skipped zero-change turn project=D:\Vit_DAW\coord\runs\FS-NAMED-DISCLOSE-SUPPLY-1\fs_disclose_chat_20261022_214407\driver\fixture\softguide_fixture.vit revision=6
+2026-10-22T21:47:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:54 [INFO] [timing] kernel.send_command ms=1 command=track.send.list tool=track.send.list confirmed=true err=false
+2026-10-22T21:47:54 [INFO] [timing] harness.invoke total_ms=15 tool=track.send.list command=track.send.list status=ok confirmed=true err=false
+2026-10-22T21:47:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:54 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW\\coord\\runs\\FS-NAMED-DISCLOSE-SUPPLY-1\\fs_disclose_chat_20261022_214407\\driver\\fixture\\softguide_fixture.vit" replayed_deltas=0
+2026-10-22T21:47:54 [INFO] [timing] kernel.send_command ms=8 command=get_project_state tool=project.state confirmed=true err=false
+2026-10-22T21:47:54 [INFO] [timing] harness.invoke total_ms=17 tool=project.state command=get_project_state status=ok confirmed=true err=false
+2026-10-22T21:47:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:47:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:18 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:22 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:23 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:24 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:25 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:29 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:30 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:31 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:35 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:36 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:37 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:38 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:42 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:43 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:44 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:45 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:49 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:50 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:51 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:56 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:57 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:58 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:48:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:02 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:03 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:04 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:05 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:08 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:09 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:10 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:11 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:12 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:15 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:16 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f
+2026-10-22T21:49:17 [INFO] [continuation.park] answerable park holds the chain non_terminal=2 skipped_status=4 workspace=vitproj_ed51d8a45b8b48cd91fa6588f746b80f

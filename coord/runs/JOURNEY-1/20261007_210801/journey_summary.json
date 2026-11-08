@@ -1,0 +1,26 @@
+﻿{
+    "propose_session":  "cap_v1_b2_dev_journey_first_probe_20261007_210806_1_1",
+    "probe_events_audition_types":  [
+
+                                    ],
+    "probe_events_conversation":  "dev_journey_first_probe_20261007_210806_1",
+    "session_dirs":  [
+                         "session_20261007T130808_adf28199",
+                         "session_20261007T130808_f6eb1a47"
+                     ],
+    "authority_probe":  "authority_smoke_ok",
+    "probe_events_audition_count":  0,
+    "probe_events_audition_session_id_seen":  false,
+    "propose_probes":  1,
+    "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-1\\20261007_210801\\project\\journey_fixture.vit",
+    "project_uuid":  "vitproj_3ca1c8515a3a418488efa7c764c80082",
+    "track_names":  [
+                        "Bass",
+                        "Lead Vocal"
+                    ],
+    "finished_at":  "2026-10-07T21:08:37.6448475+08:00",
+    "journey":  "journey_first",
+    "probe_events_count":  5,
+    "probe_events_audition_candidate_ready":  false,
+    "approve_stage":  "executed_verified"
+}

@@ -1,0 +1,50 @@
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+ERROR: [MixboardFreshnessProbe] FAIL case_stale_superseded:freshness expected=stale actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_stale_superseded:superseded_by_request expected=kernel_prepared_waveform_envelope_probe_clip_a actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_current_cleared:freshness expected=current actual=stale
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_current_cleared:superseded_by_request expected absent actual=agent_probe_older_request
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_current_cleared:superseded_at expected absent actual=2026-09-24T09:00:00Z
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_material_reuse:freshness expected=material_reuse actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_material_reuse:reused_for_request expected=kernel_prepared_waveform_envelope_probe_clip_a actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_summary_rows:old_freshness expected=stale actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_summary_rows:old_superseded_by_request expected=kernel_prepared_waveform_envelope_probe_clip_a actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_summary_rows:bell_freshness expected=current actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_track_waveform_reuse:freshness expected=material_reuse actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)
+ERROR: [MixboardFreshnessProbe] FAIL case_track_waveform_reuse:reused_for_request expected=kernel_prepared_waveform_envelope_probe_clip_a actual=
+   at: push_error (core/variant/variant_utility.cpp:1024)
+   GDScript backtrace (most recent call first):
+       [0] _initialize (res://tools/diagnostics/mixboard_snapshot_freshness_annotation_probe.gd:52)

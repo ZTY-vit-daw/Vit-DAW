@@ -1,0 +1,52 @@
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: Condition "!FileAccess::exists(path)" is true. Returning: ERR_FILE_NOT_FOUND
+   at: open_dynamic_library (platform/windows/os_windows.cpp:487)
+ERROR: GDExtension dynamic library not found: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: open_library (core/extension/gdextension.cpp:740)
+ERROR: Error loading extension: 'res://addons/godot_cef/godot_cef.gdextension'.
+   at: load_extensions (core/extension/gdextension_manager.cpp:329)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+[probe] PASS P0 production autoloads assembled (adapter/manager/perf real instances)
+[probe] PASS S0 adapter state injection roundtrip (set/get on production autoload)
+[probe] DIAG stale_sec=3.0 ws_state=3 disabled=true
+[probe] PASS H0 stale threshold env face active (3.0s from VIT_GUI_VSP_REALTIME_WS_STALE_SEC)
+[VitPerf] long_frame frame_ms=150.00 fps=1.0 nodes=32 objects=1542 draw_calls=0 primitives=0 vram_mb=0.0 texture_mb=0.0 buffer_mb=0.0 counters={}
+WARNING: VspRealtimeAdapter: websocket stale for 6500 ms (no packets incl. hub.heartbeat) — emitting websocket_stale
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _check_ws_stale_watchdog (res://app/kernel/autoloads/vsp_realtime_adapter.gd:742)
+       [1] _run (res://tools/probe_telem_ws_hardrecover_scene.gd:140)
+WARNING: VspRealtimeAdapter: websocket stale 6500 ms exceeds hard threshold — forcing ws reconnect
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _check_ws_stale_watchdog (res://app/kernel/autoloads/vsp_realtime_adapter.gd:745)
+       [1] _run (res://tools/probe_telem_ws_hardrecover_scene.gd:140)
+[probe] PASS H1a hard-threshold run emits stale edge consumed by production manager (+1)
+[probe] PASS H1b hard-threshold branch clears _ws_stale_latched (gap root cause face)
+[probe] PASS H1c armed survives hard clear (recover pending not discharged by hard disconnect)
+[probe] PASS H1d stale edge debounced re-pull exactly once via production entry method
+[probe] PASS H1e stale edge scheduled project refresh +1
+[probe] PASS H2a armed discharged by open edge (one-shot latch)
+[probe] PASS H2b reconnect-open edge emits recovered consumed by manager (+1)
+[probe] PASS H2c outage-window residual re-pull exactly once (gap closed)
+[probe] PASS H2d recovered edge scheduled project refresh +1
+[probe] PASS H3a disarmed open edge: zero recovered emission (non-polling one-shot)
+[probe] PASS H3b disarmed open edge: zero host re-pull
+WARNING: VspRealtimeAdapter: websocket stale for 3200 ms (no packets incl. hub.heartbeat) — emitting websocket_stale
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _check_ws_stale_watchdog (res://app/kernel/autoloads/vsp_realtime_adapter.gd:742)
+       [1] _run (res://tools/probe_telem_ws_hardrecover_scene.gd:206)
+[probe] PASS H4a soft stale latches and arms pending recover
+[probe] PASS H4b soft recovery edge emits recovered (213 regression, +1)
+[probe] PASS H4c soft recovery discharges armed and clears latch
+[probe] PASS H4d soft stale edge counted (+1, unchanged 213 form)
+[probe] PASS H4e soft window re-pull exactly once
+[probe] PASS H5a adapter source readable
+[probe] PASS H5b armed pending-recover marker present in adapter source
+[probe] PASS H5c open-edge gated recovered emission present (_handle_ws_opened)
+[probe] PASS H5d card marker present in adapter source
+[probe] PASS H5e manager 213 recovered branch present (reuse face, zero consumer change)
+[probe] SUMMARY_JSON {"checks_failed":0,"checks_total":24,"failures":[],"status":"pass"}

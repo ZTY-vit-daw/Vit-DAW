@@ -1,0 +1,9 @@
+func messageLoopTextHasAny(text string, tokens ...string) bool {
+	for _, token := range tokens {
+		token = strings.ToLower(strings.TrimSpace(token))
+		if token != "" && strings.Contains(text, token) {
+			return true
+		}
+	}
+	return false
+}

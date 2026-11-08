@@ -1,0 +1,61 @@
+kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe
+material: fixture_100hz_wav -> D:\Vit_DAW\test_100hz_10s.wav
+material: aigc_song_mp3_paper_crown -> D:\Vit_DAW\Paper Crown.mp3
+material: repo_demo_ogg -> D:\Vit_DAW\tracktion_engine\examples\DemoRunner\resources\edm_song.ogg
+material: live_mp3_aigei_com -> D:\Vit_DAW\茉莉花四重奏_爱给网_aigei_com.mp3
+
+== Prepare agent
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW\agent\vitagent.exe
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=261
+shadow.initialized=False track_count=0
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+warn: ZMQ REQ port not listening: 5555
+warn: ZMQ SUB port not listening: 5556
+
+== Summary
+ok: dev agent smoke completed
+
+== Prepare kernel
+ok: started kernel: D:\Vit_DAW\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=10088
+
+== Create material project
+ok: project.new reset completed
+ok: imported test_100hz_10s.wav on track 1007 clip 1011
+ok: imported Paper Crown.mp3 on track 1012 clip 1016
+ok: imported edm_song.ogg on track 1017 clip 1021
+ok: imported 茉莉花四重奏_爱给网_aigei_com.mp3 on track 1022 clip 1026
+
+== Observe acoustic package lifecycle immediately after import
+ok: immediate acoustic_package_status captured at C:\Users\timoz\AppData\Local\Vit\ProjectHistory\drafts\draft_20260920T102354_887506d8\.vit_derived\vitproj_3a0a374fd3784ceba239779ed9761569\acoustic_package_status.json
+
+== Observe full project acoustics
+ok: live material observation smoke passed
+
+== Summary
+artifact_dir: D:\Vit_DAW\VitApp\Workspace\Artifacts\smoke\live_material_observation_20260920_182336
+observation_id: obs_20260920T102411_51f19def3348
+active_acoustic_track_count: 4
+materials: 4
+EXIT=0

@@ -1,0 +1,73 @@
+﻿{
+    "conversation_id":  "dev_journey_plugin_load_authority_20261007_104823",
+    "task_id":  "task_5312ee47be1f8ffc",
+    "goal_id":  "goal_4c29093fb12f456f",
+    "run_id":  "run_acc2afb324e80d32",
+    "original_intent":  "/smoke authority",
+    "reply":  "authority smoke: bound=full_project_access server=full_project_access",
+    "agent_mode":  "default",
+    "needs_confirmation":  false,
+    "goal_status":  "completed",
+    "goal_summary":  "/smoke authority",
+    "stop_reason":  "authority_smoke_ok",
+    "project_history":  {
+                            "active_branch":  "main",
+                            "active_node_id":  "n_20261007T024838_465a73bd",
+                            "active_worktree":  "",
+                            "available":  true,
+                            "branches":  {
+                                             "main":  "c_20261007T024837_6f08b9f1"
+                                         },
+                            "commit_count":  1,
+                            "conversation_messages":  [
+                                                          {
+                                                              "content":  "/smoke authority",
+                                                              "logical_message_id":  "n_20261007T024837_cc323c0e",
+                                                              "message_kind":  "user",
+                                                              "node_id":  "n_20261007T024837_cc323c0e",
+                                                              "role":  "user"
+                                                          },
+                                                          {
+                                                              "content":  "authority smoke: bound=full_project_access server=full_project_access",
+                                                              "logical_message_id":  "n_20261007T024838_465a73bd",
+                                                              "message_kind":  "assistant",
+                                                              "node_id":  "n_20261007T024838_465a73bd",
+                                                              "role":  "assistant"
+                                                          }
+                                                      ],
+                            "detached":  false,
+                            "draft":  false,
+                            "head":  "c_20261007T024837_6f08b9f1",
+                            "initialized":  true,
+                            "project_label":  "journey_fixture",
+                            "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104819\\project\\journey_fixture.vit",
+                            "project_uuid":  "vitproj_eae3920436c946c989846cc951027fbe",
+                            "refs":  {
+                                         "refs/heads/main":  "c_20261007T024837_6f08b9f1"
+                                     },
+                            "root_project_path":  "",
+                            "unsaved":  false,
+                            "warnings":  [
+
+                                         ],
+                            "worktrees":  [
+                                              {
+                                                  "commit_id":  "c_20261007T024837_6f08b9f1",
+                                                  "created_at":  "2026-10-07T02:48:38.4837793Z",
+                                                  "is_root":  true,
+                                                  "label":  "主工作树",
+                                                  "name":  "main",
+                                                  "origin_commit_id":  "c_20261007T024837_6f08b9f1",
+                                                  "path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104819\\project",
+                                                  "project_file_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104819\\project\\journey_fixture.vit",
+                                                  "project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104819\\project\\journey_fixture.vit",
+                                                  "root_project_path":  "D:\\Vit_DAW\\coord\\runs\\JOURNEY-2\\20261007_104819\\project\\journey_fixture.vit"
+                                              }
+                                          ]
+                        },
+    "lifecycle":  "durable",
+    "persistence":  "project_history",
+    "message_kind":  "assistant",
+    "turn_id":  "run_acc2afb324e80d32",
+    "logical_message_id":  "n_20261007T024838_465a73bd"
+}
