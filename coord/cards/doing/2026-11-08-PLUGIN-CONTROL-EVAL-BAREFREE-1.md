@@ -28,4 +28,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-08 深夜 / origin/main=7ddae343（≥7ddae343 含 317 装置与 BR1 缝；worktree 基线干净：status 零行、diff --stat 空）/ owner=GLM-5.3（ZCode）L2 执行子代理·PC·本会话 / 分支=port/plugin-control-eval-barefree-1 / worktree=D:/Vit_DAW_wt_318barefree / 领取提交=coord/318-claim
+- 回执：（执行侧回填）
+- 验收：（主管回填）
