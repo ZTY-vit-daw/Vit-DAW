@@ -27,3 +27,9 @@
   - **端测边界声明**：本卡为实验腿（agent HTTP/ZMQ 真栈 3 任务轮+probe 轮+零 LLM 活体 GW probe），不涉渲染面与用户旅程——无 E2E-WEBUI/JOURNEY 覆盖主张；agent 侧源码改动=harness 第三层守卫许可缝单点（37 行），默认 unset 字节不变，生产启动路径永不设置。
   - **栈登记**：coord/resources/PC-RUNTIME-STACK.md 头两条（占用 23:06/释放 23:15）；TEARDOWN_ALL_ZERO 编排 finally+执行侧复核 23:14:16 双亲证；320（PROQ3-FREE）可承接已注记。
 - 验收：（主管回填）
+
+### 终验（主管，2026-11-08 深夜）
+
+- **pass 整卡收口+缝合入 main**——主管直读 round_record 亲证（T1_r1 回读 display 35.0==target 35.0/value_text "35.0%"+non_target_unchanged ok；三轮 pass+guard_rejection 0）；GW-LIVE-T1 双味活体 probe（open 落地+off 守卫拒+broad_mix 文本归层亲证）=第三层缝因果闭环；断点续跑合规（环境中断分类在案，未重做已完成段）；环境重建 1 次预冻结内（Waves 冷载签名#1 同型）；栈协议全链（e7fe425c→b7ed5c07）；预算 26 调用 caps 内。
+- **终局结论**：写入四案守卫许可下 **T1 3/3+T2 3/3+T3 3/3+T4 0/3（真实编码边界）**——「模型裸写受护族能力」全案闭合：三层守卫全部剥开后，4 案中 3 案裸写全对，唯一失败=T4 参数面选择+联动对纪律。
+- 273 同文件域预声明兑现亲证（diff 只增 37 行守卫函数区）；合入冲突风险消除。
