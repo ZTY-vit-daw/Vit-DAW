@@ -1,0 +1,29 @@
+{
+  "mode": "off",
+  "case": "T1",
+  "param_id": "6",
+  "value": 0.35,
+  "user_message": "请把 Pro-R 混响的 Mix 设为 35%。",
+  "probed_at": "2026-11-08T23:10:59+0800",
+  "ok": true,
+  "track_id": "1100",
+  "plugin_id": "1106",
+  "value_before": 1.0,
+  "parameters_changed": null,
+  "rejection_code": null,
+  "write_status": "error",
+  "write_error": "ordinary acoustic mixing requests must run mix.request_observation and receive a concrete observation before loading plugins, changing volume, applying controls, or writing parameters",
+  "broad_mix_text_present": true,
+  "typed_text_present": false,
+  "guard_rejected": true,
+  "value_after": 1.0,
+  "label_after": "100%",
+  "criteria": {
+    "guard_rejected": true,
+    "write_status_not_ok": true,
+    "broad_mix_text_present": true,
+    "typed_text_present": false,
+    "value_unchanged": true
+  },
+  "fixture_torn_down": true
+}
