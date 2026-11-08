@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD c70276a7591e19479812bdfa482add1de2e9f6a8:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-11-08T19:45:16.9863344+08:00",
+    "marker_path":  "D:\\Vit_DAW_wt_311prep\\coord\\runs\\M2-HANDTEST-PREP-1\\prep1_20261108_194514\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_311prep\\coord\\runs\\M2-HANDTEST-PREP-1\\prep1_20261108_194514\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}
