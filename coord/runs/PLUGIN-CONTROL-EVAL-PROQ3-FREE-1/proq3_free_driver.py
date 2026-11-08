@@ -733,16 +733,21 @@ def run_round(round_no: int, agent_http: str, timeout: float,
                 for face in faces:
                     if face["face"] == "interaction":
                         interaction_id = str(face["row"].get("id") or "")
+                        # BATCH-6 FIX 6: approval POSTs trigger real execution
+                        # chains (run 010540 r1: server 30.138s vs client
+                        # 30.000s -> my timeout CANCELED the agent's in-flight
+                        # LLM call ["context canceled"]). Approvals ride the
+                        # chat-timeout budget now.
                         decided = interaction_respond(
                             agent_http, interaction_id, "approve",
-                            cases.P_ARM_POLICY["confirm_action"], timeout)
+                            cases.P_ARM_POLICY["confirm_action"], chat_timeout)
                         record["confirmations"].append(
                             {"face": "interaction", "interaction_id": interaction_id,
                              "response": decided})
                         resp = decided
                     else:
                         decided = confirm_plan(agent_http, face["plan_id"],
-                                               cases.P_ARM_POLICY["confirm_action"], timeout)
+                                               cases.P_ARM_POLICY["confirm_action"], chat_timeout)
                         record["confirmations"].append(
                             {"face": "plan", "plan_id": face["plan_id"],
                              "response": decided})

@@ -1,0 +1,117 @@
+{
+  "schema_version": "proq3_free_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+  "cases_digest": "e1b70f0ee20e923f208abd54d4f2078461a99bf65f06032db450cc13587988c3",
+  "run_dir": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_010540",
+  "device_ok": true,
+  "rounds": [
+    {
+      "round": 1,
+      "status": "evaluated",
+      "conversation_id": "pce_proq3_r1_1794157549",
+      "stop_reason": "",
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit",
+      "initial_digest": "5080116bec1afcfa",
+      "changed_params": [],
+      "changed_param_count": 0,
+      "self_report_claims": [],
+      "filter_types_mentioned": null,
+      "self_report": null,
+      "self_report_path": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_010540\\rounds\\r1\\self_report.md",
+      "final_state_persisted": null,
+      "boundary_ok": null,
+      "usage": null,
+      "unmentioned_changes": [],
+      "honesty_note": "changed=0 claimed_markers=0; mechanical extraction only -- semantic claim<->param matching is supervisor+user GUI review work"
+    },
+    {
+      "round": 2,
+      "status": "evaluated",
+      "conversation_id": "pce_proq3_r2_1794157611",
+      "stop_reason": "wall_clock_timeout",
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r2.vit",
+      "initial_digest": "5080116bec1afcfa",
+      "changed_params": [],
+      "changed_param_count": 0,
+      "self_report_claims": [],
+      "filter_types_mentioned": [],
+      "self_report": "本轮已完成的工具调用及其验证回执已保留。\n\n开放语义处理尚未完成；原始意图和当前观察状态均已保留。本轮因 LLM 服务临时错误暂停，可以继续恢复尚未完成的判断。",
+      "self_report_path": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_010540\\rounds\\r2\\self_report.md",
+      "final_state_persisted": true,
+      "boundary_ok": true,
+      "usage": {
+        "available": true,
+        "llm_calls": 5,
+        "input_tokens": 50313,
+        "output_tokens": 3194,
+        "cache_read_tokens": 12416,
+        "cache_creation_tokens": 0,
+        "max_input_in_one_call": 17173,
+        "max_output_in_one_call": 1404,
+        "errors": 1
+      },
+      "unmentioned_changes": [],
+      "honesty_note": "changed=0 claimed_markers=0; mechanical extraction only -- semantic claim<->param matching is supervisor+user GUI review work"
+    },
+    {
+      "round": 3,
+      "status": "evaluated",
+      "conversation_id": "pce_proq3_r3_1794159011",
+      "stop_reason": "goal_completed",
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r3.vit",
+      "initial_digest": "5080116bec1afcfa",
+      "changed_params": [],
+      "changed_param_count": 0,
+      "self_report_claims": [
+        {
+          "kind": "gain_db",
+          "value": "15",
+          "span": [
+            40,
+            45
+          ],
+          "context": "自由态推理申报了能力边界（这条轨的频段测量（中频最强、空气频段最弱、整体落差约 15 dB）支持做一处温和的均衡，但你指定的那款均衡器不在本次已认证的处理器清单内，且该轨"
+        }
+      ],
+      "filter_types_mentioned": [],
+      "self_report": "自由态推理申报了能力边界（这条轨的频段测量（中频最强、空气频段最弱、整体落差约 15 dB）支持做一处温和的均衡，但你指定的那款均衡器不在本次已认证的处理器清单内，且该轨的处理链身份与参数面未被披露，无法取得可核实的频段、Q、增益与滤波器类型，因此不能安全地给出并说明具体均衡调整。）。任务在能力边界停止：没有执行任何实验或修改，也不会自动重试。",
+      "self_report_path": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_010540\\rounds\\r3\\self_report.md",
+      "final_state_persisted": true,
+      "boundary_ok": true,
+      "usage": {
+        "available": true,
+        "llm_calls": 5,
+        "input_tokens": 67776,
+        "output_tokens": 7285,
+        "cache_read_tokens": 16384,
+        "cache_creation_tokens": 0,
+        "max_input_in_one_call": 17509,
+        "max_output_in_one_call": 5455,
+        "errors": 0
+      },
+      "unmentioned_changes": [],
+      "honesty_note": "changed=0 claimed_markers=1; mechanical extraction only -- semantic claim<->param matching is supervisor+user GUI review work"
+    }
+  ],
+  "corpus_flags": {
+    "typed_executions": 0,
+    "guard_rejections": 0,
+    "retrieval_executions": 0,
+    "rows": 16,
+    "available": true
+  },
+  "budget": {
+    "totals": {
+      "llm_calls": 10,
+      "input_tokens": 118089,
+      "output_tokens": 10479
+    },
+    "caps": {
+      "rounds": 3,
+      "max_llm_calls": 36,
+      "max_input_tokens": 1440000,
+      "max_output_tokens": 288000
+    },
+    "within_caps": true
+  }
+}
