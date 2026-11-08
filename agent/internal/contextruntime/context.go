@@ -512,6 +512,104 @@ func CompactValue(value any, opts Options) any {
 	return compactValue(value, normalizeOptions(opts), 0)
 }
 
+// pluginControlEvalSeamEnv is the PLUGIN-CONTROL-EVAL-SEAM-1/-2 test-only
+// master switch (B4/C4 ablation-hook precedent). Exactly "1" opens the
+// seams; unset keeps production behavior byte-for-byte and production
+// startup paths never set it.
+const pluginControlEvalSeamEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM"
+
+func pluginControlEvalSeamOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamEnv)) == "1"
+}
+
+// pluginControlEvalSeamBindingTargetStripFields are the kernel-baked semantic
+// overlay keys on binding_targets rows that seam S2b (render-face strip) of
+// PLUGIN-CONTROL-EVAL-SEAM2-1 removes before result rendering. Plugin-native
+// row keys (param_id/param_name/plugin_id/plugin_name/plugin_type/target_kind)
+// stay.
+var pluginControlEvalSeamBindingTargetStripFields = map[string]bool{
+	"alias":           true,
+	"normalized_role": true,
+	"template_role":   true,
+}
+
+// stripBindingTargetsSemanticOverlay returns a render-purified copy of value
+// in which every "binding_targets" list has its rows rebuilt without the
+// semantic overlay keys. It never mutates the input (the planner tool result
+// stays untouched); unvisited subtrees are shared by reference and the copy
+// is only walked when the seam is open, so the closed path stays
+// byte-for-byte. Depth-bounded like the rest of the render helpers.
+func stripBindingTargetsSemanticOverlay(value any, depth int) any {
+	if depth > 6 {
+		return value
+	}
+	switch v := value.(type) {
+	case map[string]any:
+		out := make(map[string]any, len(v))
+		for key, child := range v {
+			if key == "binding_targets" {
+				out[key] = stripBindingTargetRows(child)
+				continue
+			}
+			out[key] = stripBindingTargetsSemanticOverlay(child, depth+1)
+		}
+		return out
+	case []any:
+		out := make([]any, len(v))
+		for i, child := range v {
+			out[i] = stripBindingTargetsSemanticOverlay(child, depth+1)
+		}
+		return out
+	case []map[string]any:
+		out := make([]map[string]any, len(v))
+		for i, child := range v {
+			stripped := stripBindingTargetsSemanticOverlay(child, depth+1)
+			if m, ok := stripped.(map[string]any); ok {
+				out[i] = m
+			} else {
+				out[i] = child
+			}
+		}
+		return out
+	default:
+		return v
+	}
+}
+
+func stripBindingTargetRows(rows any) any {
+	switch v := rows.(type) {
+	case []any:
+		out := make([]any, len(v))
+		for i, row := range v {
+			if m, ok := row.(map[string]any); ok {
+				out[i] = stripBindingTargetRow(m)
+			} else {
+				out[i] = row
+			}
+		}
+		return out
+	case []map[string]any:
+		out := make([]map[string]any, len(v))
+		for i, row := range v {
+			out[i] = stripBindingTargetRow(row)
+		}
+		return out
+	default:
+		return rows
+	}
+}
+
+func stripBindingTargetRow(row map[string]any) map[string]any {
+	out := make(map[string]any, len(row))
+	for key, value := range row {
+		if pluginControlEvalSeamBindingTargetStripFields[key] {
+			continue
+		}
+		out[key] = value
+	}
+	return out
+}
+
 func summarizeToolResult(result planner.ToolResult, opts Options) map[string]any {
 	out := map[string]any{
 		"tool_call_id": result.ToolCallID,
@@ -522,13 +620,28 @@ func summarizeToolResult(result planner.ToolResult, opts Options) map[string]any
 		out["error"] = compactText(result.Error, opts.MaxTextRunes)
 	}
 	if len(result.Result) > 0 {
+		// PLUGIN-CONTROL-EVAL-SEAM2-1 S2b (render-face strip): the kernel
+		// plugin_grabber_explain_controls reply carries binding_targets rows
+		// whose alias/normalized_role/template_role semantic overlay the 305
+		// S2 ingestion strip does not cover (it strips parameters /
+		// quick_controls / recommended_groups rows and the top-level
+		// template_role only); the 307 A-arm observed the overlay re-entering
+		// model context through this result_preview render face. Seam open
+		// renders from a purified copy (input untouched); closed/unset passes
+		// the original map through unchanged.
+		render := result.Result
+		if pluginControlEvalSeamOpen() {
+			if purified, ok := stripBindingTargetsSemanticOverlay(render, 0).(map[string]any); ok {
+				render = purified
+			}
+		}
 		out["result_keys"] = sortedKeys(result.Result)
 		important := map[string]any{}
-		collectImportantFields(important, "", result.Result, 0, opts.MaxListItems)
+		collectImportantFields(important, "", render, 0, opts.MaxListItems)
 		if len(important) > 0 {
 			out["important_fields"] = important
 		}
-		out["result_preview"] = compactResultPreview(result.Result, compactValue(result.Result, opts, 0), opts)
+		out["result_preview"] = compactResultPreview(render, compactValue(render, opts, 0), opts)
 	}
 	return out
 }
