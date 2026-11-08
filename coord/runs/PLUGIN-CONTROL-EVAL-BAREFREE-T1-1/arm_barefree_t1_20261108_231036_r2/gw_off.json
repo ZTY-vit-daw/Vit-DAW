@@ -1,0 +1,24 @@
+{
+  "mode": "off",
+  "case": "T3",
+  "param_id": "1",
+  "value": 0.7,
+  "probed_at": "2026-11-08T23:10:58+0800",
+  "ok": true,
+  "track_id": "1093",
+  "plugin_id": "1099",
+  "value_before": 0.200000002980232,
+  "parameters_changed": null,
+  "rejection_code": null,
+  "write_status": "error",
+  "write_error": "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology",
+  "guard_rejected": true,
+  "value_after": 0.200000002980232,
+  "criteria": {
+    "guard_rejected": true,
+    "write_status_not_ok": true,
+    "typed_text_present": true,
+    "value_unchanged": true
+  },
+  "fixture_torn_down": true
+}

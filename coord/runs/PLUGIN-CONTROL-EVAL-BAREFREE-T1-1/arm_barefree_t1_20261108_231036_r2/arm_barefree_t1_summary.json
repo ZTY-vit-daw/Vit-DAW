@@ -1,0 +1,806 @@
+{
+  "schema_version": "plugin_control_eval_segment_barefree_t1_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-BAREFREE-T1-1",
+  "run_dir": "D:\\Vit_DAW_wt_319t1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-T1-1\\arm_barefree_t1_20261108_231036_r2",
+  "arm": "BAREFREE-T1 (A-pure face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS guard seam VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 now covering all three layers incl. harness broadMixObserveFirstWriteGuard; relabel per RUNBOOK: raw driver records keep arm=\"P\")",
+  "model": "deepseek-flash (product default config)",
+  "score_table": [
+    {
+      "case": "T1",
+      "arm": "BAREFREE-T1",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r1_1794150688",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "Confirm the Pro-R Mix parameter ID and current value before writing 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "Confirm the Pro-R Mix parameter ID and current value before writing 35%"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "将 Pro-R 的 Mix 参数（param_id 6）从 100% 设为 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "Confirm the Pro-R Mix parameter ID and current value before writing 35%"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "将 Pro-R 的 Mix 参数（param_id 6）从 100% 设为 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 12
+            },
+            "reason": "回读 Pro-R 参数，确认 Mix 已变为 35%"
+          }
+        ],
+        "attempt_counts": {
+          "read": 4,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T1_r1_1794150688"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "display": 35.0,
+            "target": 35.0,
+            "tolerance": 2.0,
+            "value_text": "35.0%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "6",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "100%",
+            "normalized_value": 1
+          },
+          "after": {
+            "value_text": "35.0%",
+            "normalized_value": 0.349999994039536
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 7,
+      "input_tokens": 133580,
+      "output_tokens": 1508,
+      "cache_read_tokens": 68224,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_319t1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-T1-1\\arm_barefree_t1_20261108_231036_r2\\rounds\\T1_r1"
+    },
+    {
+      "case": "T1",
+      "arm": "BAREFREE-T1",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r2_1794150707",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数以定位 Mix 控件当前值与参数 ID"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数以定位 Mix 控件当前值与参数 ID"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "将 Pro-R 的 Mix 从 100% 调至 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数以定位 Mix 控件当前值与参数 ID"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "将 Pro-R 的 Mix 从 100% 调至 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 16
+            },
+            "reason": "回读确认 Mix（param_id 6）已变为 35%"
+          }
+        ],
+        "attempt_counts": {
+          "read": 4,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T1_r2_1794150707"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "display": 35.0,
+            "target": 35.0,
+            "tolerance": 2.0,
+            "value_text": "35.0%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "6",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "100%",
+            "normalized_value": 1
+          },
+          "after": {
+            "value_text": "35.0%",
+            "normalized_value": 0.349999994039536
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 6,
+      "input_tokens": 133207,
+      "output_tokens": 1522,
+      "cache_read_tokens": 67840,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_319t1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-T1-1\\arm_barefree_t1_20261108_231036_r2\\rounds\\T1_r2"
+    },
+    {
+      "case": "T1",
+      "arm": "BAREFREE-T1",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r3_1794150727",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "include_parameters": true
+            },
+            "reason": "Preserve the original intent to fetch parameters for the specified track and plugin."
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "include_parameters": true
+            },
+            "reason": "Preserve the original intent to fetch parameters for the specified track and plugin."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "用户明确要求把 Pro-R 的 Mix（已回读确认为 param_id 6，0-1 归一化域，当前 1.0=100%）设为 35%，写入 0.35"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "include_parameters": true
+            },
+            "reason": "Preserve the original intent to fetch parameters for the specified track and plugin."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "用户明确要求把 Pro-R 的 Mix（已回读确认为 param_id 6，0-1 归一化域，当前 1.0=100%）设为 35%，写入 0.35"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1135,
+              "plugin_id": 1141,
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 10
+            },
+            "reason": "The previous output contained a malformed tool call; repairing it while preserving the original request."
+          }
+        ],
+        "attempt_counts": {
+          "read": 4,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T1_r3_1794150727"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "display": 35.0,
+            "target": 35.0,
+            "tolerance": 2.0,
+            "value_text": "35.0%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "6",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "100%",
+            "normalized_value": 1
+          },
+          "after": {
+            "value_text": "35.0%",
+            "normalized_value": 0.349999994039536
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 7,
+      "input_tokens": 133946,
+      "output_tokens": 1983,
+      "cache_read_tokens": 67712,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_319t1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-T1-1\\arm_barefree_t1_20261108_231036_r2\\rounds\\T1_r3"
+    }
+  ],
+  "totals": {
+    "llm_calls": 20,
+    "input_tokens": 400733,
+    "output_tokens": 5013,
+    "cache_read_tokens": 203776
+  },
+  "caps": {
+    "rounds": 3,
+    "max_llm_calls": 36,
+    "max_input_tokens": 1440000,
+    "max_output_tokens": 288000
+  },
+  "within_caps": true,
+  "per_case": {
+    "T1": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_attempt_rounds": 3,
+      "bare_write_attempt_counts": [
+        2,
+        2,
+        2
+      ],
+      "guard_rejection_rounds": 0,
+      "harness_write_guard_rounds": 0,
+      "landed_write_rounds": 3,
+      "llm_calls": 20
+    }
+  },
+  "seven_way_t1_comparison": [
+    {
+      "case": "T1",
+      "BAREFREE_T1_pass": "3/3",
+      "BAREFREE_T1_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BAREFREE_T1_failure_tags": [],
+      "BAREFREE_T1_analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "BAREFREE_write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "BAREFREE_landed_write_rounds": 3,
+      "BR1_pass": "0/3",
+      "BR1_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BR1_failure_tags": [
+        "value_encoding_error"
+      ],
+      "B312_pass": "0/3",
+      "B312_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "B312_failure_tags": [
+        "value_encoding_error"
+      ],
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "value_encoding_error"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "BAREFREE_318_pass": "0/3",
+      "BAREFREE_318_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BAREFREE_318_analysis_classifications": [
+        "guard_blocked_write:harness_write_guard",
+        "guard_blocked_write:harness_write_guard",
+        "guard_blocked_write:harness_write_guard"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "delta_note": "BAREFREE-T1 (this leg) = BAREFREE-318 env PLUS the card-319 third-layer seam (same env key, harness broadMixObserveFirstWriteGuard now exempts plugin parameter writes). BAREFREE-T1 vs BAREFREE-318 is the same-face third-layer on/off contrast on the exact case 318 recorded as harness-guard-blocked (T1 0/3 guard_blocked_write:harness_write_guard); BAREFREE-T1 vs A-pure is the full-stack guard on/off contrast"
+    }
+  ],
+  "barewrite_core_answer": {
+    "question": "with ALL governance guard layers permissioned (318 two halves + 319 harness third layer, one env key), can the model bare-write the LAST untested case T1? -- T1 pass rate = the final bare-write capability answer of the barefree line",
+    "barefree_t1_pass": "3/3",
+    "barefree318_t1_pass": "0/3 (recorded 0/3 guard_blocked_write:harness_write_guard in the 318 run)",
+    "apure_t1_pass": "0/3",
+    "same_face_contrast": "BAREFREE-T1 vs BAREFREE-318 differ ONLY in the third-layer harness seam (single variable on the exact recorded-blocked case); BAREFREE-T1 vs A-pure is the full-stack guard on/off contrast. 318 already measured T3 3/3 + T4 0/3 real-encoding; this leg completes the trio answer",
+    "write_trio_landed_rounds": 3,
+    "readback_encoding_evidence": [
+      {
+        "round": "T1_r1",
+        "final_verdict": "pass",
+        "failure_tags": [],
+        "analysis_classification": "",
+        "mutation_count": 1,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 2,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T1_r2",
+        "final_verdict": "pass",
+        "failure_tags": [],
+        "analysis_classification": "",
+        "mutation_count": 1,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 2,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T1_r3",
+        "final_verdict": "pass",
+        "failure_tags": [],
+        "analysis_classification": "",
+        "mutation_count": 1,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 2,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      }
+    ],
+    "guard_blocked_write_rounds": [],
+    "mislabel_guard_note": "evaluator failure_tags are terminal-state labels; rounds listed in guard_blocked_write_rounds carry guard rejection shapes in their tool_results -- with the third-layer seam open, a harness write-guard rejection of a plugin-parameter write is seam failure evidence (device), never a model value_encoding_error; report as-is"
+  },
+  "guard_blocked_write_analysis": {
+    "classified_rounds": [],
+    "taxonomy_note": "maintained verbatim from card 318 / conclusion-file todo-2: tool_result guard-error shape recognition (typed_* codes + T1 write-gate reason + harness write-guard stage); evaluator verdicts untouched",
+    "device_flag_rounds": []
+  },
+  "device_gate": {
+    "gw_live_probe": {
+      "probed_at": "2026-11-08T23:11:04.0588296+08:00",
+      "barewrite_probe": {
+        "mode": "open",
+        "case": "T3",
+        "param_id": "1",
+        "value": 0.7,
+        "probed_at": "2026-11-08T23:10:51+0800",
+        "ok": true,
+        "track_id": "1079",
+        "plugin_id": "1085",
+        "value_before": 0.200000002980232,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "ok",
+        "write_error": "",
+        "guard_rejected": false,
+        "value_after": 0.699999988079071,
+        "label_after": "7",
+        "criteria": {
+          "write_status_ok": true,
+          "not_guard_rejected": true,
+          "readback_at_target": true,
+          "readback_changed": true
+        },
+        "fixture_torn_down": true
+      },
+      "gw_off_probe": {
+        "mode": "off",
+        "case": "T3",
+        "param_id": "1",
+        "value": 0.7,
+        "probed_at": "2026-11-08T23:10:58+0800",
+        "ok": true,
+        "track_id": "1093",
+        "plugin_id": "1099",
+        "value_before": 0.200000002980232,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "error",
+        "write_error": "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology",
+        "guard_rejected": true,
+        "value_after": 0.200000002980232,
+        "criteria": {
+          "guard_rejected": true,
+          "write_status_not_ok": true,
+          "typed_text_present": true,
+          "value_unchanged": true
+        },
+        "fixture_torn_down": true
+      }
+    },
+    "gw_live_t1_probe": {
+      "probed_at": "2026-11-08T23:11:04.0852209+08:00",
+      "t1_open_probe": {
+        "mode": "open",
+        "case": "T1",
+        "param_id": "6",
+        "value": 0.35,
+        "user_message": "请把 Pro-R 混响的 Mix 设为 35%。",
+        "probed_at": "2026-11-08T23:10:53+0800",
+        "ok": true,
+        "track_id": "1086",
+        "plugin_id": "1092",
+        "value_before": 1.0,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "ok",
+        "write_error": "",
+        "broad_mix_text_present": false,
+        "typed_text_present": false,
+        "guard_rejected": false,
+        "value_after": 0.349999994039536,
+        "label_after": "35.0%",
+        "criteria": {
+          "write_status_ok": true,
+          "not_guard_rejected": true,
+          "no_broad_mix_text": true,
+          "readback_at_target": true,
+          "readback_changed": true
+        },
+        "fixture_torn_down": true
+      },
+      "t1_off_probe": {
+        "mode": "off",
+        "case": "T1",
+        "param_id": "6",
+        "value": 0.35,
+        "user_message": "请把 Pro-R 混响的 Mix 设为 35%。",
+        "probed_at": "2026-11-08T23:10:59+0800",
+        "ok": true,
+        "track_id": "1100",
+        "plugin_id": "1106",
+        "value_before": 1.0,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "error",
+        "write_error": "ordinary acoustic mixing requests must run mix.request_observation and receive a concrete observation before loading plugins, changing volume, applying controls, or writing parameters",
+        "broad_mix_text_present": true,
+        "typed_text_present": false,
+        "guard_rejected": true,
+        "value_after": 1.0,
+        "label_after": "100%",
+        "criteria": {
+          "guard_rejected": true,
+          "write_status_not_ok": true,
+          "broad_mix_text_present": true,
+          "typed_text_present": false,
+          "value_unchanged": true
+        },
+        "fixture_torn_down": true
+      }
+    }
+  },
+  "missing_rounds": [],
+  "typed_device_invalid_rounds": [],
+  "notes": [
+    "arm label residual: frozen driver records arm=P + pce_p_ prefix (300 precedent); BAREFREE-T1 relabel here, raw records untouched",
+    "single-run single-sample per round; 3 repeats are not a stability claim (plan section 6)",
+    "browser.* sibling tools: same retrieval family for W0 accounting",
+    "targeted leg: only T1_r1..r3 expected under rounds/; the other 15 rounds belong to the 318 run and are NOT expected here"
+  ]
+}

@@ -1,0 +1,41 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-BAREFREE-T1-1",
+    "leg":  "arm_barefree_t1",
+    "run_id":  "20261108_230751",
+    "repo_head":  "d628fd29fa712dc3799efd8fefc3123c6fb62f2c",
+    "branch":  "port/plugin-control-eval-barefree-t1-1",
+    "started_at":  "2026-11-08T23:07:51.8061429+08:00",
+    "sec8_decl":  "BAREFREE-T1 leg (A-pure face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS guard-permission seam VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 now covering all three guard layers incl. harness broadMixObserveFirstWriteGuard): GW live probes open+off BOTH flavors (zero LLM: 318 T3 victim Plates/Damper param 1 value 0.7 + NEW T1 third-layer victim Pro-R param 6 value 0.35 WITH natural-mix task prompt context; open must land + readback change; off-after-restart must be guard-rejected again) + s0 refreeze (0 LLM) + dryround (0 LLM) + 1 device-verification probe round (T1 repeat 0, paid, not scored) + 3 paid task rounds (T1 x repeat 1..3, new conversation + fresh fixture each); per-round caps (12 calls / 40k in / 8k out per call / 30 tool calls / 20 min) frozen; segment caps 36 calls / 1.44M in / 288k out (plan A_star scaled 3/18, frozen in RUNBOOK) checked between rounds; probe gate = seam_verify_t1 twelve faces (S2/S2b/S3/S4/S5/CS/S1 + W0 + P0 + GW + GWH advisory + GW-LIVE + GW-LIVE-T1) before task rounds; failure taxonomy per plan + seam_leakage + guard-permission probes; full declaration in RUNBOOK.md (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (both set in process env before any process start; same key set as 318, the key now also gates the harness third-layer seam built in this worktree)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        21700
+                                    ],
+                       "VitApp":  [
+                                      10168
+                                  ]
+                   },
+    "agent_sha256":  "060C46DE9D56BB952F3C1D794F719D8CA4FCC80E75F959E8693AC9A012068272",
+    "agent_tool_count":  "256",
+    "s0_exit":  1,
+    "verdict":  "wrapper_fail",
+    "error":  "s0 refreeze failed exit=1 (fixture_failure per RUNBOOK; forensics in s0 dir)",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-08T23:08:23.6437127+08:00"
+}
