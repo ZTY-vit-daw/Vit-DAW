@@ -431,7 +431,20 @@ param(
     # coord/runs/M2-HANDTEST-PREP-1/RUNBOOK.md。退出码：0=PASS（=手测放行）；
     # 2=环境；4=确定性面缺陷（取证上交不重跑）。腿需三件套
     # （-StartKernel -RestartAgent -StartUI；GUI 面不在断言面，AGENTS §5）。
-    [switch]$M2HandtestPrep
+    [switch]$M2HandtestPrep,
+    # LEGAME L1 三件组（314/315/316）真栈腿：dir314=无 env 产品级目录解析
+    # （乐局卡自 ~/.vit/levels 装载，agent cwd 非 repo 根——违例一对症验收）；
+    # intro=自动开场+恢复播报（白话触发 edu_jam_entered/新会话 recovery
+    # broadcast；含 316 重铺后再开场=「新工程」语义）。断言体在
+    # scripts/legame_intro_smoke.py；布位面=scripts/legame_placement.py
+    # （place-copy 隔离副本/relay 重铺——预演副本制，%APPDATA% 目标工程只读
+    # 哈希断言不实跑）；§8 口径冻结在 coord/runs/LEGAME-L1-STACK-1/RUNBOOK.md。
+    # 退出码：0=PASS；2=环境；4=确定性面缺陷（取证上交不重跑）。腿需
+    # -StartKernel -RestartAgent（不启 UI）；本腿 env 块显式清除
+    # VIT_EDU_LEVELS_DIR（产品级解析证明面）。
+    [switch]$LegameSmoke,
+    [string]$LegameMode = "dir314",
+    [string]$LegameProject = ""
 )
 
 Set-StrictMode -Version Latest
@@ -1374,7 +1387,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $M2HandtestPrep) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $M2HandtestPrep -or $LegameSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1555,6 +1568,30 @@ if ($M2HandtestPrep -and -not $ScenarioMode) {
     Set-Item -LiteralPath "env:VIT_EDU_LEVELS_DIR" -Value (Join-Path $RepoRoot "coord\levels")
     Set-Item -LiteralPath "env:VIT_GENAPI_CONFIG" -Value $M2PrepGenapiConfig
     Write-Ok ("m2 prep env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " render=" + $env:VIT_AGENT_PROMPT_RENDER_PATH + " levels_dir=" + $env:VIT_EDU_LEVELS_DIR + " genapi=" + $env:VIT_GENAPI_CONFIG)
+}
+
+# LEGAME L1 三件组（314/315/316）真栈腿 env：agent 进程启动前就位。
+# ① telemetry jsonl（乐局面零 LLM 断言证据面）；② **显式清除
+#    VIT_EDU_LEVELS_DIR**（本腿的产品级证明面=无任何 env 下三级解析走到
+#    ~/.vit/levels——继承自调用 shell 的残留 env 会静默作废证明，必须在
+#    agent 启动前清掉）；③ dir314 模式预检 ~/.vit/levels 布位在位
+#    （布位=调用方跑 scripts/legame_placement.py install-levels，腿内核
+#    只做在位断言不自行安装）。
+if ($LegameSmoke -and -not $ScenarioMode) {
+    $LegameTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($LegameTelemetryRoot)) {
+        $LegameTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\legame_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $LegameTelemetryRoot -Force | Out-Null
+    $LegameLogsDir = Join-Path $LegameTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $LegameLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $LegameLogsDir "agent_llm_telemetry.jsonl")
+    [System.Environment]::SetEnvironmentVariable("VIT_EDU_LEVELS_DIR", $null, "Process")
+    $LegameHomeLevels = Join-Path $HOME ".vit\levels\first-run-twinkle\level.yaml"
+    if ($LegameMode -eq "dir314" -and -not (Test-Path -LiteralPath $LegameHomeLevels)) {
+        throw ("legame dir314 requires ~/.vit/levels pre-installed (run scripts/legame_placement.py install-levels first); missing: " + $LegameHomeLevels)
+    }
+    Write-Ok ("legame env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " levels_dir=<unset-by-design> home_levels_present=" + (Test-Path -LiteralPath $LegameHomeLevels))
 }
 
 Write-Step "VitAgent dev smoke"
@@ -9133,6 +9170,84 @@ if ($M2HandtestPrep) {
     }
     else {
         throw ("m2 prep failed with exit code $m2PrepExit (console: " + $m2PrepConsolePath + ")")
+    }
+}
+
+if ($LegameSmoke) {
+    Write-Step ("legame L1 stack leg (mode=" + $LegameMode + "; LEGAME-DIR-1/AUTOINTRO-1/FRESH-1)")
+    $legameScript = Join-Path $RepoRoot "scripts\legame_intro_smoke.py"
+    $legamePlacementScript = Join-Path $RepoRoot "scripts\legame_placement.py"
+    if (-not (Test-Path -LiteralPath $legameScript)) {
+        throw ("legame smoke script missing: " + $legameScript)
+    }
+    $legameArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($legameArtifactsDir)) {
+        $legameArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\legame_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $legameArtifactsDir)) {
+        New-Item -ItemType Directory -Path $legameArtifactsDir -Force | Out-Null
+    }
+    # Project isolation: same shared GUI-leg isolation block family ($LegameSmoke
+    # is in its condition list). The leg project is an ISOLATED fixture copy
+    # (rehearsal-copy rule, LEGAME-FRESH-1): -LegameProject empty = place-copy
+    # into this run's artifacts dir; non-empty = caller pre-placed/relayed path
+    # (the relay-restart leg passes the same path after relay to prove fresh
+    # re-intro). The %APPDATA% user target is never opened by this leg.
+    $legamePriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if (-not [string]::IsNullOrWhiteSpace($legamePriorProjectXml)) {
+        Write-Ok ("legame project isolation: VIT_PROJECT_XML=" + $legamePriorProjectXml)
+    }
+    else {
+        throw "legame smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    if ([string]::IsNullOrWhiteSpace([System.Environment]::GetEnvironmentVariable("VIT_AGENT_LLM_TELEMETRY_PATH", "Process"))) {
+        throw "legame smoke requires VIT_AGENT_LLM_TELEMETRY_PATH (unset after the env block)"
+    }
+    if (-not [string]::IsNullOrWhiteSpace([System.Environment]::GetEnvironmentVariable("VIT_EDU_LEVELS_DIR", "Process"))) {
+        throw "legame smoke requires VIT_EDU_LEVELS_DIR to stay UNSET (product-tier proof face; env block clears it)"
+    }
+    $legameProjectPath = $LegameProject
+    if ([string]::IsNullOrWhiteSpace($legameProjectPath)) {
+        $legameProjectPath = Join-Path $legameArtifactsDir "legame_fixture_copy.vit"
+        $legamePlaceArgs = @($legamePlacementScript, "place-copy", "--dest", $legameProjectPath, "--output", (Join-Path $legameArtifactsDir "legame_place_copy_summary.json"))
+        & python @legamePlaceArgs > (Join-Path $legameArtifactsDir "legame_place_copy_console.txt") 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            throw ("legame place-copy failed with exit code $LASTEXITCODE (console: " + (Join-Path $legameArtifactsDir "legame_place_copy_console.txt") + ")")
+        }
+        Write-Ok ("legame isolated fixture copy placed: " + $legameProjectPath)
+    }
+    else {
+        Write-Ok ("legame using caller-provided project path: " + $legameProjectPath)
+    }
+    $legameSummaryPath = Join-Path $legameArtifactsDir ("legame_" + $LegameMode + "_summary.json")
+    $legameConsolePath = Join-Path $legameArtifactsDir ("legame_" + $LegameMode + "_console.txt")
+    $legamePythonArgs = @(
+        $legameScript,
+        "--mode", $LegameMode,
+        "--agent-http", $AgentHttp,
+        "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort),
+        "--project-path", $legameProjectPath,
+        "--output", $legameSummaryPath,
+        "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH
+    )
+    $legameUserTarget = Join-Path $env:APPDATA "Vit-DAW\projects\手测·小星星乐局.vit"
+    if ($LegameMode -eq "intro" -and (Test-Path -LiteralPath $legameUserTarget)) {
+        $legamePythonArgs += @("--user-target", $legameUserTarget)
+    }
+    & python @legamePythonArgs > $legameConsolePath 2>&1
+    $legameExit = $LASTEXITCODE
+    Get-Content -LiteralPath $legameConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $legameSummaryPath)) {
+        throw ("legame smoke produced no summary artifact (exit code " + $legameExit + "; console: " + $legameConsolePath + ")")
+    }
+    if ($legameExit -eq 0) {
+        Write-Ok ("legame smoke PASS (" + $LegameMode + "): summary: " + $legameSummaryPath)
+    }
+    elseif ($legameExit -eq 2) {
+        throw ("legame smoke environment failure (raw evidence on disk) - see " + $legameSummaryPath)
+    }
+    else {
+        throw ("legame smoke failed with exit code $legameExit (console: " + $legameConsolePath + ")")
     }
 }
 

@@ -38,9 +38,11 @@ card's evidence domain); this tool follows the same script family pattern
      Idempotent: consecutive runs converge to the identical end state.
      place-copy: rehearsal-copy rule (design 2.3-2) - place the SAME
      fixture to an ISOLATED destination path (run artifacts dir / %TEMP%)
-     with its own binding; never touches the user target project. All
-     rehearsal/smoke jam faces run on copies; the target project is a
-     read-only reference until relay time.
+     with its own binding, resetting any destination workspace residue from
+     an earlier rehearsal session (converges to relay's fresh semantics);
+     never touches the user target project. All rehearsal/smoke jam faces
+     run on copies; the target project is a read-only reference until
+     relay time.
 
 Exit codes (fixed before any run; single run, no rerun unless declared):
   0 pass            install verified (every file hash matches source)
@@ -352,6 +354,13 @@ def cmd_place_copy(args: argparse.Namespace, summary: Dict[str, Any]) -> int:
         summary["place_copy"] = {"error": "dest == template"}
         return EXIT_ENV
     dest.parent.mkdir(parents=True, exist_ok=True)
+    # Reset the destination workspace siblings too: re-placing a copy over a
+    # dest that a previous rehearsal session used must converge to the same
+    # fresh state as relay (residue from the earlier session is rehearsal
+    # state, not evidence - it must not leak into the next copy session).
+    delete_workspace_residue(workspace_siblings(dest))
+    if dest.exists():
+        dest.unlink()
     shutil.copyfile(template, dest)
     placed_sha = sha256_file(dest)
     template_sha = sha256_file(template)
