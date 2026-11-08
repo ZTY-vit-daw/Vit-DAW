@@ -1,0 +1,144 @@
+{
+  "schema_version": "plugin_control_eval_segment_p.v1",
+  "card": "PLUGIN-CONTROL-EVAL-RUNNER-1",
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "arm": "P",
+  "model": "deepseek-flash (product default config)",
+  "started_at": "2026-11-07T20:54:14+0800",
+  "rounds": [
+    {
+      "case_id": "T1",
+      "repeat": 1,
+      "conversation_id": "pce_p_T1_r1_1794056054",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe"
+        ]
+      },
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "llm_calls": 5,
+      "input_tokens": 103972,
+      "output_tokens": 1450,
+      "cache_read_tokens": 45824,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_300runner\\coord\\runs\\PLUGIN-CONTROL-EVAL-RUNNER-1\\segment-p_20261107_205406\\rounds\\T1_r1"
+    },
+    {
+      "case_id": "T2",
+      "repeat": 1,
+      "conversation_id": "pce_p_T2_r1_1794056067",
+      "first_action": null,
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "llm_calls": 5,
+      "input_tokens": 74679,
+      "output_tokens": 1875,
+      "cache_read_tokens": 29440,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_300runner\\coord\\runs\\PLUGIN-CONTROL-EVAL-RUNNER-1\\segment-p_20261107_205406\\rounds\\T2_r1"
+    },
+    {
+      "case_id": "T3",
+      "repeat": 1,
+      "conversation_id": "pce_p_T3_r1_1794056082",
+      "first_action": null,
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "llm_calls": 7,
+      "input_tokens": 103406,
+      "output_tokens": 2250,
+      "cache_read_tokens": 52352,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_300runner\\coord\\runs\\PLUGIN-CONTROL-EVAL-RUNNER-1\\segment-p_20261107_205406\\rounds\\T3_r1"
+    },
+    {
+      "case_id": "T4",
+      "repeat": 1,
+      "conversation_id": "pce_p_T4_r1_1794056100",
+      "first_action": null,
+      "final_verdict": "fail",
+      "failure_tags": [
+        "unexpected_mutation"
+      ],
+      "behavior_tags": [
+        "asked_or_searched"
+      ],
+      "mutation_count": 2,
+      "llm_calls": 9,
+      "input_tokens": 189572,
+      "output_tokens": 20104,
+      "cache_read_tokens": 61952,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_300runner\\coord\\runs\\PLUGIN-CONTROL-EVAL-RUNNER-1\\segment-p_20261107_205406\\rounds\\T4_r1"
+    },
+    {
+      "case_id": "T5",
+      "repeat": 1,
+      "conversation_id": "pce_p_T5_r1_1794056224",
+      "first_action": null,
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "llm_calls": 5,
+      "input_tokens": 50591,
+      "output_tokens": 2350,
+      "cache_read_tokens": 19840,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_300runner\\coord\\runs\\PLUGIN-CONTROL-EVAL-RUNNER-1\\segment-p_20261107_205406\\rounds\\T5_r1"
+    },
+    {
+      "case_id": "T6",
+      "repeat": 1,
+      "conversation_id": "pce_p_T6_r1_1794056242",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin_grabber.explain_controls",
+        "sequence": [
+          "plugin_grabber.explain_controls",
+          "plugin.get_parameters"
+        ]
+      },
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "mutation_count": 0,
+      "llm_calls": 7,
+      "input_tokens": 72512,
+      "output_tokens": 2921,
+      "cache_read_tokens": 28288,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_300runner\\coord\\runs\\PLUGIN-CONTROL-EVAL-RUNNER-1\\segment-p_20261107_205406\\rounds\\T6_r1"
+    }
+  ],
+  "budget": {
+    "llm_calls": 38,
+    "input_tokens": 594732,
+    "output_tokens": 30950,
+    "within_caps": true
+  },
+  "caps": {
+    "rounds": 6,
+    "max_llm_calls": 72,
+    "max_input_tokens": 2880000,
+    "max_output_tokens": 576000
+  },
+  "finished_at": "2026-11-07T20:57:44+0800"
+}
