@@ -47,6 +47,8 @@
 | 319 | PLUGIN-CONTROL-EVAL-BAREFREE-T1-1 | done 终验 pass 合入（**T1 3/3——barefree 线四案全清**：守卫许可下 T1/T2/T3 全 3/3，唯 T4=真实编码边界） |
 | 320 | PLUGIN-CONTROL-EVAL-PROQ3-FREE-1 | done 终验 pass 收口（六批纪律链+三轮诚实对账：r1 提案链被断连/r2 LLM 超时/r3 能力边界拒调[频段测量真实]；产品面零 rogue 裸写；GUI 终审物交付；「实际调好 EQ」演示候 322 裁定） |
 | 321 | RACK-PARAM-PERSIST-FIX-1 | done 终验 pass 合入（probe 3/3 存活亲证 0.7→reopen 0.7；320 解锁） |
+| 322 | PROQ3-CERTIFY-AND-T7-1 | blocked 候 323（勘察 pass：识别器早认 Pro-Q3=static_eq/24 对，卡点=两道厂商门[autosweep+receipts 枚举]；9 月验收注记预言的扩容小卡现开 323） |
+| 323 | EQ-RECEIPT-VENDOR-EXPAND-1 | todo 在派（FabFilter static_eq 收据种类扩容——vendor-neutral 倾向；解锁 322 认证+T7 收官） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | done 终验 pass 合入（runA 零 env 产品级装载实证）
 | 315 | LEGAME-AUTOINTRO-1 | done 终验 pass 合入（runB 白话开场+「接着上局 1/7」恢复播报亲证）
