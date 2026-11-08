@@ -56,6 +56,14 @@ Pro-Q 3 不在 registry/无法装载→取证上交（换 EQ 插件须用户裁�
   - **修复#4（分支候用）**：ps1 存 UTF-8 BOM+round 改 --projects-dir（路径由 python 构造）+PS 侧 CJK 卫生检查移交 python 布位门；selftest 25/25+PARSE_OK；
   - **栈协议（第四批）**：占用 fbc7d32a（净空 00:44:01+≤60s 复核 00:44:33+psutil env 门 PASS）→run6→owner 亲拆 **TEARDOWN_ALL_ZERO 00:50:10**→释放 1d28710f；三布位已清除；
   - **晨批（候授权）**：修复#4 后一次栈窗口：device→T7×3→对账表→用户 GUI 终审交付物（三工程保留+三轮自报告全文）——全部前提已活栈验证（321 修复×2 批亲证+六门×2 批全绿+T7 话术冻结）。
+- 回执五（晨批=真·收官批，2026-11-09 01:03 收口，付费段两连环境类止损）：run7 proq3_free_20261109_005453+释放登记 a34cc848；状态=**第五停（doing→blocked）——付费段止损，候授权续**
+  - **装置六门第三批连续全 TRUE**（321 修复三批稳定：registry+布位 r1-r3+启动页+初始态等价+known-op 裸写+持久化 0.7 过重载）；psutil env 门 PASS；修复#4（BOM+python 路径）生效——三轮工程路径正确解析无乱码；
+  - **r1（唯一到达模型的轮）**：T7 话术发出→模型调 mix.observe（观察完成，38,868 字符观察结果入上下文）→**第 4 次 LLM 调用 API 错误**（agent 日志 message_loop.llm err=true+telemetry 0 token 错误行；goal status=failed stop=failed，终答 79 字符）；客户端 chat POST 30.0s 超时与代理 30.085s 完成几乎同时（round_record exception=timed out，exchanges 未收）——**零参数写入**（agent 日志工具面仅 mix.observe）；分类=模型面/环境类（LLM API 错误，§四 296 模式）；
+  - **r2**：open r2 内核成功后 **agent workspace 90s 未跟随**（/agent/ui/state project 停 r1）→exit 2 环境类；r3=not_run（两连环境止损线触发，exit 3 批终——止损执行正确，非迭代对象）；
+  - **计费如实**：4 行 deepseek-flash=11,646→实为 11,664 in/1,005 out（3 实调用+1 零 token 错误行）≪¥0.01；五批累计仍 ≪¥0.01，≈¥1 预算基本未动；
+  - **修复候选两枚（候授权，止损纪律内不自跑）**：①chat 客户端超时 30s→150s（m2 GEN_CHAT 先例——r1 代理完成仅超客户端 85ms）；②workspace 激活门降级为记录不拦或加 nudge 重试（m2 nudge 先例；318 冻结轮从无 activation 等待，agent chat 面向内核 active 工程工作）；
+  - **栈协议（晨批）**：占用 aedd895d（净空 00:54:16+≤60s 复核 00:54:48）→run7→owner 亲拆 **TEARDOWN_ALL_ZERO 01:02:00**→释放 a34cc848；三布位工程已清除（默认态无可审物；布位为确定性零 LLM 腿可重）；
+  - **端测边界**：无完整任务轮数据（r1 模型面失败+r2/r3 未跑）；无渲染面/用户旅程主张；用户 GUI 终审物未产生（模型零写入，工程无对账内容）。
 - 验收：（主管回填+用户 GUI 终审）
 
 ### 续批授权（主管，2026-11-08 深夜）
