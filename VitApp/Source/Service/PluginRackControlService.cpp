@@ -2,6 +2,7 @@
 
 #include "PluginListHygiene.h"
 #include "TiledSpectrogramBaker.h"
+#include "VitPluginParamPersist.h"
 
 #include "../Core/VitAIGCJobRuntime.h"
 #include "../Core/VitClipRouteRegistry.h"
@@ -1426,6 +1427,19 @@ void normaliseAndRegisterExternalPluginDescription (te::Edit& edit,
                               + " added=" + juce::String (added ? "true" : "false"));
 }
 
+// RACK-PARAM-PERSIST-FIX-1: returns the rack hosting this plugin, or nullptr
+// for plugins living on a track (or clip/master) list. Rack members are not
+// contained by any Track::pluginList (Track::containsPlugin only checks the
+// track's own list), which is exactly why track-level flush misses them.
+static te::RackType* findRackTypeContainingPlugin (te::Edit& edit, te::Plugin& plugin)
+{
+    for (auto* rackType : edit.getRackList().getTypes())
+        if (rackType != nullptr && rackType->getPlugins().contains (&plugin))
+            return rackType;
+
+    return nullptr;
+}
+
 te::Plugin* findPluginInEdit (te::Edit& edit, const juce::String& pluginIdStr)
 {
     const auto trimmed = pluginIdStr.trim();
@@ -2052,6 +2066,25 @@ juce::String PluginRackControlService::handleSetPluginParam (const juce::Dynamic
         owner->flushStateToValueTree();
     else
         plugin->flushPluginStateToValueTree();
+
+    // RACK-PARAM-PERSIST-FIX-1: rack-internal plugins hang off the RackType's
+    // own plugin list, so neither the owner-track flush above (they have no
+    // owner track) nor any Edit-wide track-tree walk ever reaches them. Flush
+    // the hosting rack as well -- same pattern the rack_add_node / rack
+    // control handlers already use (rack->type->flushStateToValueTree()).
+    if (auto* rackType = findRackTypeContainingPlugin (*edit, *plugin))
+        rackType->flushStateToValueTree();
+
+    // RACK-PARAM-PERSIST-FIX-1: the explicit-parameter override property on
+    // the plugin state is replayed after the chunk on reload and therefore
+    // survives plugin-dependent VST3 chunk staleness; persist the applied
+    // value for external plugins (built-in plugins already persist through
+    // their own track-level state). Keyed by the resolved parameter id (the
+    // volume/pan aliases above may map a request id onto a different
+    // AutomatableParameter::paramID, which is what replay looks up).
+    if (dynamic_cast<te::ExternalPlugin*> (plugin) != nullptr)
+        vit::upsertExplicitParamOverride (plugin->state, param->paramID,
+                                          param->getCurrentValue());
 
     edit->dispatchPendingUpdatesSynchronously();
     edit->getTransport().ensureContextAllocated (true);

@@ -1,0 +1,66 @@
+{
+  "schema_version": "proq3_persistence_forensics.v1",
+  "card": "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+  "project": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit",
+  "probed_at": "2026-11-09T00:21:41+0800",
+  "anchors": {
+    "save_path_vit": "VitApp/Source/Service/VitHeadlessService.cpp ipcSaveEncryptedProjectToPath ~1316-1320 (track-level flush only, no Edit::flushState / edit-wide plugin flush)",
+    "save_path_default_xml": "VitHeadlessService.cpp saveProjectToDefaultXml ~671-675 (same shape)",
+    "track_flush": "tracktion_engine .../model/tracks/tracktion_Track.cpp ~49-53 (flush cascades to the track's own pluginList only)",
+    "track_getallplugins": "tracktion_Track.cpp ~277-280 (getAllPlugins == pluginList.getPlugins(); rack-internal plugins are NOT in the host track's list)",
+    "set_plugin_param_flush": "VitApp/Source/Service/PluginRackControlService.cpp ~2051-2054 (owner-track flush only)"
+  },
+  "registry": {
+    "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+    "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3"
+  },
+  "fixture": {
+    "track_id": "1007",
+    "plugin_id": "1015",
+    "rack_nodes": 1,
+    "volume_plugin_id": "1008",
+    "volume_row": {
+      "id": "1008",
+      "item_id": "1008",
+      "plugin_item_id": "1008",
+      "name": "Volume & Pan Plugin",
+      "type": "volume",
+      "enabled": true
+    }
+  },
+  "baseline": {
+    "proq3_param3_normalized": 0.5,
+    "volume": {
+      "db": -100.0,
+      "pan": 0.0,
+      "volume_db": -100.0
+    }
+  },
+  "arm_a_rack_internal_proq3": {
+    "param": "Band 1 Gain (id 3)",
+    "target": 0.7,
+    "write_status": "ok",
+    "value_after_write": 0.699999988079071,
+    "value_after_reopen": 0.699999988079071,
+    "persisted": true
+  },
+  "arm_b_track_volume": {
+    "plugin_id": "1008",
+    "read_status": "ok",
+    "read_rows": 2,
+    "write_status": "ok",
+    "write_response_head": "{'status': 'ok', 'agent_action_id': 'act_7e85b1edfefb1873', 'tool': 'plugin.set_parameter', 'command_name': 'set_plugin_param', 'risk_level': 'undoable', 'requires_confirmation': False, 'undo_label': 'Agent: set_plugin_param', 'result': {'actual_normalized_value': 0.300000011920929, 'command_ack': {'ack': {'message': 'Legacy command completed', 'stage': 'completed'}, 'command': 'legacy.command', 'legacy_command': 'set_plugin_param', 'resync_hint': True, 'revision': 0, 'source': 'vsp.command.response', 'stage': 'completed', 'transaction_id': 'tx_1794154902045848100_207'}, 'display_text': '-18.08 dB', 'new_normalised_value': 0.300000011920929, 'new_value': 0.300000011920929, 'new_value_text': '-18.08 dB', 'param_id': 'volume', 'plugin_id': '1008', 'state_delta': {'ack': {'message': 'State de",
+    "db_after_write": -18.079456329345703,
+    "db_after_reopen": -18.079456329345703,
+    "write_changed_db": true,
+    "persisted": true
+  },
+  "discriminator": {
+    "a_rack_internal_reverted": false,
+    "b_track_level_persisted": true,
+    "shape": "unexplained"
+  },
+  "restored_digest": "5080116bec1afcfa",
+  "initial_digest_from_placement": "5080116bec1afcfa",
+  "restore_matches_initial": true
+}

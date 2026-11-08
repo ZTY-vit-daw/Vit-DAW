@@ -152,6 +152,24 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_recommended_config_flags)
     add_test(NAME VitTrackPluginDisclosureTests COMMAND VitTrackPluginDisclosureTests)
 
+    # RACK-PARAM-PERSIST-FIX-1: explicit-parameter override channel — engine
+    # wire-format compatibility (writeString/writeFloat pair), upsert
+    # replace-or-append semantics, torn-tail tolerance. JUCE-only: no
+    # tracktion linkage; engine side pinned via reference streams.
+    juce_add_console_app(VitRackParamPersistOverrideTests PRODUCT_NAME "VitRackParamPersistOverrideTests")
+    juce_generate_juce_header(VitRackParamPersistOverrideTests)
+    target_sources(VitRackParamPersistOverrideTests PRIVATE
+        RackParamPersistOverrideTests.cpp
+        ../Source/Service/VitPluginParamPersist.h)
+    target_compile_features(VitRackParamPersistOverrideTests PRIVATE cxx_std_20)
+    target_include_directories(VitRackParamPersistOverrideTests PRIVATE ../Source)
+    target_compile_definitions(VitRackParamPersistOverrideTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries(VitRackParamPersistOverrideTests PRIVATE
+        juce::juce_core
+        juce::juce_data_structures
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitRackParamPersistOverrideTests COMMAND VitRackParamPersistOverrideTests)
+
     # L2-2-SEG-1: segmentation primitives v1 — deterministic replay, structural
     # onset/novelty contents, and explicit not_evaluable states. JUCE-only
     # linkage (L3AcousticAnalyzer + AudioFeatureTypes), no tracktion.

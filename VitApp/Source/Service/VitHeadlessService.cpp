@@ -672,6 +672,13 @@ bool VitHeadlessService::saveProjectToDefaultXml()
         if (track != nullptr)
             track->flushStateToValueTree();
 
+    // RACK-PARAM-PERSIST-FIX-1: rack-internal plugins live on the RackType's
+    // own list, which the track-level flush above never reaches -- flush every
+    // rack so live plugin state reaches the ValueTree before serialization.
+    for (auto* rackType : edit->getRackList().getTypes())
+        if (rackType != nullptr)
+            rackType->flushStateToValueTree();
+
     if (auto xml = edit->state.createXml())
     {
         if (xmlFile.replaceWithText (xml->toString()))
@@ -1316,6 +1323,13 @@ juce::String VitHeadlessService::ipcSaveEncryptedProjectToPath (const juce::File
     for (auto* track : te::getAllTracks (*activeEdit))
         if (track != nullptr)
             track->flushStateToValueTree();
+
+    // RACK-PARAM-PERSIST-FIX-1: rack-internal plugins live on the RackType's
+    // own list, which the track-level flush above never reaches -- flush every
+    // rack so live plugin state reaches the ValueTree before serialization.
+    for (auto* rackType : activeEdit->getRackList().getTypes())
+        if (rackType != nullptr)
+            rackType->flushStateToValueTree();
 
     if (auto xml = activeEdit->state.createXml())
     {

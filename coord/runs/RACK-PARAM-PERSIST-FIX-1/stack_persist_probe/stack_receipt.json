@@ -1,0 +1,24 @@
+{
+  "schema_version": "rack_param_persist_stack_receipt.v1",
+  "card": "RACK-PARAM-PERSIST-FIX-1",
+  "closed_at": "2026-11-09T00:22:05+0800",
+  "stack_pids": {
+    "VitApp": 28328,
+    "VitAgent": 12176
+  },
+  "kernel_exe": "D:\\Vit_DAW_wt_321persist\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+  "kernel_sha256": "950cf07b7b735749c2def5e9447b7260f1272694dc5b83a865790b8e24cd30f5",
+  "agent_exe": "D:\\Vit_DAW_wt_321persist\\agent\\bin\\VitAgent.exe",
+  "agent_sha256_head": "a0f0fad21170a10a355c1b02ebe1b3b3",
+  "agent_seam_env": {
+    "VIT_PLUGIN_CONTROL_EVAL_SEAM": "1",
+    "VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE": "1"
+  },
+  "probe_runs": {
+    "run1": "INVALID (F5 device-env: typed_eq guard active while agent lacked seam env; A write rejected before any persistence measurement; B arm still passed; restore ok)",
+    "run2": "VALID arm_a=0.7->0.7 persisted=true, arm_b persisted=true, restore ok",
+    "run3": "VALID arm_a=0.7->0.7 persisted=true, arm_b persisted=true, restore ok",
+    "run4": "VALID arm_a=0.7->0.7 persisted=true, arm_b persisted=true, restore ok"
+  },
+  "verdict": "PASS (three valid probes, rack-internal Pro-Q 3 param survives save/open, track-level regression held, restore hygiene held)"
+}
