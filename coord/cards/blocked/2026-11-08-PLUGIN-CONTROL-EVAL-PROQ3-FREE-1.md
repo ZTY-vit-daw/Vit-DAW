@@ -25,5 +25,11 @@ Pro-Q 3 不在 registry/无法装载→取证上交（换 EQ 插件须用户裁�
 ## 领取/回执/验收
 
 - 领取：2026-11-08 22:56 +0800 / origin/main=1883021b4ee0383c6b00e0c2223546be230f969d（fetch 亲证，=发卡要求基线；含 318 缝与全套工件）/ owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 320 proq3 free runner，派发已确认）/ 分支=port/plugin-control-eval-proq3-free-1 / worktree=D:/Vit_DAW_wt_320proq3 / 领取提交=coord/320-claim→main。领取基线：fresh worktree 自 origin/main 1883021b，`git status --short`=0 行、`git diff --stat`=空（全净）。在飞卡域核对：doing 九卡（319 BAREFREE-T1=harness.go 守卫区+T1 工件域、EDU-ASK-ANCHOR-1、ARRLOOP-AUTHBRIDGE-1、CLOSURE-ROUTE-ADAPT-1、WAVESHELL-OFFRENDER-FIX-1=C++ 域、LEGAME 三卡、S1B=工件目录+编排+tools 缝域）与本卡（coord/runs/PLUGIN-CONTROL-EVAL-PROQ3-FREE-1/ 工件目录 + 本卡面 + %APPDATA%\Vit-DAW\projects\ 三工程布位[用户数据域持久位，311 先例] + 冻结 runner 只读 import）不相交；agent 源码零改动（卡面约束，缝全在 main 亲证：318 双缝在 origin/main 1883021b）。Pro-Q 3 registry 在案预核：identifier=VST3-Pro-Q 3-a1aba170-ba5f7ab2、path=C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3（FE-LANE-VIEW-TUNING-1 BridgeReplies plugin_list 亲读；活栈装载亲证留装置门）。栈排队 319 之后：登记前重读 coord/resources/PC-RUNTIME-STACK.md 顶部，等待不抢。
-- 回执：（执行侧回填）
+- 回执：commit 3266fb8e @ port/plugin-control-eval-proq3-free-1（装置预冻结 7fd83995+修复#1 fe825a5b+修复#2 3266fb8e+run1/run2 取证工件全量在分支）；状态=**批止损上交（doing→blocked）——候主管授权续批**
+  - **装置就绪**：T7 单案四件（cases/driver/orchestrator/RUNBOOK §8 冻结）——话术卡面原文逐字；Pro-Q 3 registry 预核行；driver selftest 25/25+ps1 PARSE_OK；**agent 源码零改动亲证**（分支 diff 仅 coord/runs 工件+卡面）；
+  - **run1/run2 均装置腿 exit 4 停段（未进付费轮）**：registry 门两跑 PASS=**Pro-Q 3 装载亲证在卷**（plugin_search→冻结 identifier→.vst3 路径+rack_add_node 接受+save/open 往返）——卡面停止条件（无法装载）未触发；两次失败均 harness_invalid=runner 状态形状假设错（#1 plugins[] 含内建 volume/level 行；#2 外挂实例在 track.rack.nodes[]，kernel 源码锚点 CommandDispatcher.cpp ~1797/~3754 亲读）；**零 LLM/零计费**（失败点均在零 LLM 装置腿）；
+  - **止损依据**：RUNBOOK §四 预冻结「环境重建上限 1 次/批（含装置脚本缺陷类，312/318 先例）」——run2 即重建#1 已耗尽；§8 纪律禁止批内自改额度，故 run3 不自行启动；
+  - **上交点（候主管授权）**：修复#2 已提交分支待用；授权内容=新一批 §8 冻结（新 run 目录+device 门+三轮 T7；装置与预算无需改，预计仍 ≈¥1/批）；半布位 r1.vit 已清除（%APPDATA% projects 域回归卡前状态亲核）；
+  - **栈协议全链**：排队 319 后（319 占用 23:06→释放 23:15 亲证在卷）→净空亲核 23:16:35 全零→占用登记 bb952a03→≤60s 复核 23:17:57 全零→run×2→owner 亲拆 **TEARDOWN_ALL_ZERO 23:26:49 亲核**→释放登记（见栈记录本日 23:27 条）；
+  - **端测边界声明**：两 run 均未达付费轮——无任务轮数据、无渲染面/用户旅程主张；用户 GUI 终审物（三工程+自报告+对账表）未产生（候授权续批后交付）。
 - 验收：（主管回填+用户 GUI 终审）
