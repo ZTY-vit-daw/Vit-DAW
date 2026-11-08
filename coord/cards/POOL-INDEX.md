@@ -42,7 +42,7 @@
 | 310 | PLUGIN-CONTROL-EVAL-APURE-1 | done 终验 pass 收口（**A-pure 3/6 vs A 5/6 vs P 5/6：写入类=typed 承重，裸面 T1/T3/T4 全败/T2 裸写唯一过/读观察等价**；B 段 go 候手测后；开放录音棚=适配层须 typed 等价面） |
 | 311 | M2-HANDTEST-PREP-1 | done 终验 pass 合入（exit 0 手测放行：工程布位亲证+VIT_EDU_LEVELS_DIR/YuE2 前置入清单 §〇；282 离线兑现；GUI 最后一米=用户本体） |
 | 312 | PLUGIN-CONTROL-EVAL-S1B-1 | doing（**用户裁定立即续跑 2026-11-08 晚**：裸面+检索 18 轮=「检索能否补知识缺口」；四方对照 B/A-pure/A/P；栈空闲即占） |
-| 313 | LEGAME-UX-DESIGN-1 | todo 待用户（乐局产品式体验设计：L1 即修件[目录解析/自动开场/fresh/引擎]/L2 最小 onboarding/L3 personal-agent 壳分界——用户裁定 2026-11-08 产品式标准） |
+| 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 306 | GEN-VOCALSEP-1 | done 已验收 pass（三 vocals stem 候用户试听终审；集成腿候后续卡） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | done 已验收 pass（**候选②排除+定性 WaveShell 插件兼容**；M3 证活渲染管线；转卡 309） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
