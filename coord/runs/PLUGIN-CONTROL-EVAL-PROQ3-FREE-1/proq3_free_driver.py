@@ -239,24 +239,39 @@ def wait_agent_parameters(agent_http: str, fixture: dict[str, Any],
         f"{wait_s}s (last={len(param_rows(last))} rows)")
 
 
-def external_plugin_rows(row: dict[str, Any]) -> list[dict[str, Any]]:
-    """External (VST3 etc.) rack plugin rows only. The track plugins array
-    ALSO carries built-in volume/pan rows (automation_curve_smoke precedent)
-    -- those are track-template machinery, not rack contents."""
-    out = []
-    for plugin in track_plugins(row):
-        ident = first_text(plugin, "plugin_identifier", "identifier")
-        if ident:
-            out.append(plugin)
-    return out
+def rack_nodes(row: dict[str, Any]) -> list[dict[str, Any]]:
+    """External plugin instance nodes from the track's rack state.
+    get_project_state serializes external plugins under track.rack.nodes[]
+    (CommandDispatcher.cpp createRackState, ~1797/handler ~3754); the track
+    plugins[] array carries only the rack container + built-in volume/level
+    rows (run proq3_free_20261108_232138 forensics)."""
+    rack = row.get("rack")
+    if not isinstance(rack, dict):
+        return []
+    nodes = rack.get("nodes")
+    if not isinstance(nodes, list):
+        return []
+    return [n for n in nodes if isinstance(n, dict)]
+
+
+def proq3_node(nodes: list[dict[str, Any]], plugin_path: str,
+               plugin_name: str) -> Optional[dict[str, Any]]:
+    """Locate the Pro-Q 3 rack node: prefer an exact plugin_path match, fall
+    back to the plugin name. Returns the node row or None."""
+    for node in nodes:
+        if first_text(node, "plugin_path", "path") == plugin_path:
+            return node
+    for node in nodes:
+        if str(node.get("plugin_name") or node.get("name") or "").strip() == plugin_name:
+            return node
+    return None
 
 
 def locate_fixture_in_state(state: dict[str, Any],
-                            identifier: str) -> dict[str, Any]:
+                            spec: dict[str, Any]) -> dict[str, Any]:
     """Post-reload fixture location (card-311 discipline: ids come from the
-    RELOADED state, never from pre-save handles). The Pro-Q 3 row is located
-    BY IDENTIFIER among the external plugin rows (volume/pan built-ins are
-    skipped); exactly one match is required."""
+    RELOADED state, never from pre-save handles). The Pro-Q 3 instance is the
+    rack node whose plugin_path (or name) matches the resolved registry row."""
     user_rows = state_user_tracks(state)
     if len(user_rows) != 1:
         raise DeviceFailure(
@@ -268,26 +283,24 @@ def locate_fixture_in_state(state: dict[str, Any],
     clips = track_row.get("clips") if isinstance(track_row.get("clips"), list) else []
     if not clips:
         raise DeviceFailure("user track carries no audio clip after reload")
-    all_plugins = track_plugins(track_row)
-    matches = [p for p in external_plugin_rows(track_row)
-               if first_text(p, "plugin_identifier", "identifier") == identifier]
-    if len(matches) != 1:
+    nodes = rack_nodes(track_row)
+    node = proq3_node(nodes, spec["plugin_path"], spec["plugin_name"])
+    if node is None:
         raise DeviceFailure(
-            f"expected exactly 1 external plugin row for {identifier!r}, found "
-            f"{len(matches)} (all track plugin rows: "
-            f"{json.dumps(all_plugins, ensure_ascii=False)[:600]})")
-    plugin_row = matches[0]
-    plugin_id = first_text(plugin_row, "plugin_id", "plugin_item_id", "id", "item_id")
+            f"Pro-Q 3 rack node not found in reloaded state (rack nodes: "
+            f"{json.dumps(nodes, ensure_ascii=False)[:600]}; track plugins rows: "
+            f"{json.dumps(track_plugins(track_row), ensure_ascii=False)[:300]})")
+    plugin_id = first_text(node, "plugin_id", "plugin_item_id", "id", "item_id")
     if not track_id or not plugin_id:
         raise DeviceFailure(
             f"track/plugin id missing in reloaded state: "
             f"{json.dumps(track_row, ensure_ascii=False)[:400]}")
     return {"track_id": track_id, "plugin_id": plugin_id,
-            "track_row": track_row, "plugin_row": plugin_row,
-            "external_plugin_count": len(external_plugin_rows(track_row))}
+            "track_row": track_row, "plugin_row": node,
+            "rack_node_count": len(nodes)}
 
 
-def open_and_locate(project_path: str, identifier: str,
+def open_and_locate(project_path: str, spec: dict[str, Any],
                     timeout: float) -> dict[str, Any]:
     reply = kernel_command({"cmd": "open_project", "file_path": project_path,
                             "command_timeout_ms": 60000}, timeout)
@@ -297,7 +310,7 @@ def open_and_locate(project_path: str, identifier: str,
                            timeout)
     if str(state.get("status", "")) != "ok":
         raise DeviceFailure(f"get_project_state failed: {str(state)[:300]}")
-    located = locate_fixture_in_state(state, identifier)
+    located = locate_fixture_in_state(state, spec)
     located["project_state"] = state
     return located
 
@@ -395,7 +408,7 @@ def place_project_copy(round_no: int, spec: dict[str, Any], agent_http: str,
     reply = kernel_command({"cmd": "save_project", "command_timeout_ms": 60000}, timeout)
     if str(reply.get("status", "")).lower() not in {"ok", "success"}:
         raise DeviceFailure(f"save_project failed: {str(reply)[:300]}")
-    located = open_and_locate(project_path, spec["plugin_identifier"], timeout)
+    located = open_and_locate(project_path, spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
     params = wait_agent_parameters(agent_http, fixture, timeout)
     return {"round": round_no, "project_path": project_path,
@@ -568,7 +581,7 @@ def run_known_op_and_persistence(placement: dict[str, Any], spec: dict[str, Any]
     reply = kernel_command({"cmd": "save_project", "command_timeout_ms": 60000}, timeout)
     if str(reply.get("status", "")).lower() not in {"ok", "success"}:
         raise DeviceFailure(f"save_project failed in persistence gate: {str(reply)[:300]}")
-    located = open_and_locate(placement["project_path"], spec["plugin_identifier"], timeout)
+    located = open_and_locate(placement["project_path"], spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
     reopened = agent_get_parameters(agent_http, fixture, timeout)
     reopened_row = row_by_id(reopened, pid) or {}
@@ -590,7 +603,7 @@ def run_known_op_and_persistence(placement: dict[str, Any], spec: dict[str, Any]
     reply = kernel_command({"cmd": "save_project", "command_timeout_ms": 60000}, timeout)
     if str(reply.get("status", "")).lower() not in {"ok", "success"}:
         raise DeviceFailure(f"save_project failed in restore leg: {str(reply)[:300]}")
-    located = open_and_locate(placement["project_path"], spec["plugin_identifier"], timeout)
+    located = open_and_locate(placement["project_path"], spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
     final_state = agent_get_parameters(agent_http, fixture, timeout)
     final_digest = fixture_digest(final_state)
@@ -622,7 +635,7 @@ def run_round(round_no: int, agent_http: str, timeout: float,
     message = cases.T7_MESSAGE
     spec = resolve_proq3(timeout)
 
-    located = open_and_locate(project_path, spec["plugin_identifier"], timeout)
+    located = open_and_locate(project_path, spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
     activation = wait_workspace_activation(agent_http, project_path)
     (round_dir / "workspace_activation.json").write_text(
@@ -747,7 +760,7 @@ def run_round(round_no: int, agent_http: str, timeout: float,
         preservation: dict[str, Any] = {"project_path": project_path}
         reply = kernel_command({"cmd": "save_project", "command_timeout_ms": 60000}, timeout)
         preservation["save_status"] = str(reply.get("status", ""))
-        located2 = open_and_locate(project_path, spec["plugin_identifier"], timeout)
+        located2 = open_and_locate(project_path, spec, timeout)
         fixture2 = {"track_id": located2["track_id"], "plugin_id": located2["plugin_id"]}
         reopened = agent_get_parameters(agent_http, fixture2, timeout)
         (round_dir / "readback_reopen.json").write_text(
@@ -780,7 +793,7 @@ def round_boundary_check(timeout: float) -> dict[str, Any]:
     state = kernel_command({"cmd": "get_project_state", "command_timeout_ms": 60000},
                            timeout)
     user_rows = state_user_tracks(state)
-    external_counts = [len(external_plugin_rows(row)) for row in user_rows]
+    external_counts = [len(rack_nodes(row)) for row in user_rows]
     return {
         "user_track_count": len(user_rows),
         "external_plugin_counts": external_counts,

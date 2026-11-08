@@ -1,0 +1,78 @@
+2026-11-08T23:21:43 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-08T23:21:43 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-08T23:21:43 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-08T23:21:43 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-08T23:21:43 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-08T23:21:43 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-08T23:21:43 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-08T23:21:43 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T23:21:43 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-08T23:21:43 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T23:21:43 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T23:21:43 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-11-08T23:21:43 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T23:21:44 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T23:21:44 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T23:21:44 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T23:21:44 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-08T23:21:45 [INFO] [media_refs] ms=0 conversation=dev_range_context_20261108_232144 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T23:21:45 [INFO] [chat.artifacts] conversation=dev_range_context_20261108_232144 response_artifacts=0 request_artifacts=0 executed=0 reply_len=80
+2026-11-08T23:21:45 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-08T23:21:45 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T23:21:45 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_232140\\agent_drafts\\draft_20261108T152144_f6ba87d5\\Unsaved.vit" uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-08T23:21:45 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T23:21:45 [INFO] [timing] http.chat total_ms=690 conversation=dev_range_context_20261108_232144 message_len=20
+2026-11-08T23:21:45 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T23:21:45 [INFO] [timing] kernel.send_command ms=12 command=get_project_state tool=project.state confirmed=false err=false
+2026-11-08T23:21:45 [INFO] [timing] harness.invoke total_ms=24 tool=project.state command=get_project_state status=ok confirmed=false err=false
+2026-11-08T23:21:46 [INFO] [authority] switch accepted mode=full_project_access workspace_ready=true
+2026-11-08T23:21:46 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="0/2038f8d" action="property_changed:vit_project_uuid"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="0/2038f8d" action="property_changed:vit_project_parent_uuid"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1007" action="property_changed:id"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T23:21:46 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1008" action="node_added"
+2026-11-08T23:21:46 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=import_audio err=false
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1009" action="node_added"
+2026-11-08T23:21:46 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=3
+2026-11-08T23:21:46 [INFO] [timing] harness.refresh_shadow ms=25 reason=import_audio status=ok err=false
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1008" action="property_changed:remapOnTempoChange"
+2026-11-08T23:21:46 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=3
+2026-11-08T23:21:46 [INFO] [timing] kernel.send_command ms=73 command=import_audio tool=clip.import_audio confirmed=true err=false
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="0/2038f8d" action="property_changed:modifiedBy"
+2026-11-08T23:21:46 [INFO] [timing] harness.invoke total_ms=91 tool=clip.import_audio command=import_audio status=ok confirmed=true err=false
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="0/2038f8d" action="property_changed:lastSignificantChange"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1007" action="property_changed:name"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="0/2038f8d" action="property_changed:lastSignificantChange"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="AUTOMATIONCURVES" action="node_added"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1011" action="property_changed:elastiqueMode"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1011" action="property_changed:pan"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-08T23:21:46 [INFO] [authority] explicit latch dropped on identity switch from_uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb to_uuid=vitproj_aae0d5ddceb14d7495042229a4766543
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-08T23:21:46 [INFO] [workspace] parent history recovery skipped parent=vitproj_d003f8848ce0496a9657eb6142291912 target=vitproj_aae0d5ddceb14d7495042229a4766543 reason=parent project path not found for UUID vitproj_d003f8848ce0496a9657eb6142291912
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numerator"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-08T23:21:46 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_aae0d5ddceb14d7495042229a4766543
+2026-11-08T23:21:46 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" uuid=vitproj_aae0d5ddceb14d7495042229a4766543 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:denominator"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_removed"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="node_added"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="LOOPINFO" action="property_changed:numBeats"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1011" action="node_added"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1011" action="property_changed:colour"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1011" action="property_changed:proxyAllowed"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="1011" action="property_changed:resamplingQuality"
+2026-11-08T23:21:46 [DEBUG] [shadow] live delta uid="0/2038f8d" action="property_changed:lastSignificantChange"
+2026-11-08T23:21:46 [INFO] [mixboard] ingested L3 summary feature_type=band_energy_summary track_id=1007 clip_id=1011 project_id=vitproj_aae0d5ddceb14d7495042229a4766543 target_path=D:\Vit_DAW\artifacts\B6\20260911_181409\project\.vit_agent\vitproj_b3f2838183d64add9ca7824b8b3ac557\artifacts\d1_s1\turnfree_state_c5eee91577cfc5b5\before_revision_1.wav status=ready
+2026-11-08T23:21:46 [INFO] [mixboard] ingested L3 summary feature_type=stereo_relation_summary track_id=1007 clip_id=1011 project_id=vitproj_aae0d5ddceb14d7495042229a4766543 target_path=D:\Vit_DAW\artifacts\B6\20260911_181409\project\.vit_agent\vitproj_b3f2838183d64add9ca7824b8b3ac557\artifacts\d1_s1\turnfree_state_c5eee91577cfc5b5\before_revision_1.wav status=ready
+2026-11-08T23:21:46 [INFO] [mixboard] ingested L3 summary feature_type=loudness_summary track_id=1007 clip_id=1011 project_id=vitproj_aae0d5ddceb14d7495042229a4766543 target_path=D:\Vit_DAW\artifacts\B6\20260911_181409\project\.vit_agent\vitproj_b3f2838183d64add9ca7824b8b3ac557\artifacts\d1_s1\turnfree_state_c5eee91577cfc5b5\before_revision_1.wav status=ready
+2026-11-08T23:21:46 [INFO] [mixboard] ingested L3 summary feature_type=time_energy track_id=1007 clip_id=1011 project_id=vitproj_aae0d5ddceb14d7495042229a4766543 target_path=D:\Vit_DAW\artifacts\B6\20260911_181409\project\.vit_agent\vitproj_b3f2838183d64add9ca7824b8b3ac557\artifacts\d1_s1\turnfree_state_c5eee91577cfc5b5\before_revision_1.wav status=ready
