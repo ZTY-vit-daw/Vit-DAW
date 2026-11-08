@@ -222,7 +222,13 @@ func (s *Server) eduJamEnter(ctx context.Context, conversationID, mode, levelHin
 	levelID := eduJamResolveLevelID(levelHint)
 	card, err := loadEduJamLevelCard(levelID)
 	if err != nil {
-		base.Reply = "乐局卡装载失败（fail-closed）：" + err.Error()
+		// 产品式文案（LEGAME-DIR-1 / 设计稿 §2.1-5）：三级目录都解析不出可用卡时
+		// 不向用户暴露 env 名/内部路径；机器可读细节走 base.Error 与日志（布位腿
+		// 排查面），失败语义维持 fail-closed。
+		if s.logger != nil {
+			s.logger.Warn("[edu-jam] level card unavailable (fail-closed, levels_dir=%s): %v", eduJamLevelsDir(), err)
+		}
+		base.Reply = "乐局内容未安装或暂不可用——稍等片刻重试，或重新安装乐局内容后再说「开始乐局」。"
 		base.GoalStatus = "failed"
 		base.StopReason = "edu_jam_level_card_unavailable"
 		base.Error = err.Error()
@@ -1105,9 +1111,29 @@ func (s *Server) eduJamWorkflowData(session eduJamSession, extra map[string]any)
 
 var eduJamCardCache sync.Map // levelID -> *edu.LevelCard
 
+// eduJamLevelsDir 三级解析乐局卡根目录（LEGAME-DIR-1 / 313 设计稿 §2.1，产品式
+// 手测 v2 硬前置——用户手测路径零 env 零终端，违例一根因收口）：
+//
+//  1. env VIT_EDU_LEVELS_DIR（保留：测试/开发态覆写；设置即用、不静默回落——
+//     覆写指向坏路径属配置错误，fail-closed 报错优于悄悄换目录）
+//  2. ~/.vit/levels 产品主落点（安装布局 <dir>/<level_id>/ 整卡目录，与仓库
+//     coord/levels 同构；内容分发归布位/发布脚本[scripts/legame_placement.py
+//     install-levels；build_release 可选段]，agent 不自装）
+//  3. coord/levels 仓库相对路径回退（开发态现状：agent cwd=仓库根时可达；
+//     前端拉起 agent 时 cwd≠仓库根，此级不可达正是三级制的存在理由）
+//
+// 惯例对齐 F6（config.Path / genapi.DefaultConfigPath 的「用户目录默认 + env
+// 覆写」）：不进 config.json 键——零配置目标下多一个键=多一个出错面，未来确需
+// 用户改目录时再加键不迟（键缺省=走三级解析）。
 func eduJamLevelsDir() string {
 	if dir := strings.TrimSpace(os.Getenv("VIT_EDU_LEVELS_DIR")); dir != "" {
 		return dir
+	}
+	if home, err := os.UserHomeDir(); err == nil && strings.TrimSpace(home) != "" {
+		levels := filepath.Join(home, ".vit", "levels")
+		if info, statErr := os.Stat(levels); statErr == nil && info.IsDir() {
+			return levels
+		}
 	}
 	return filepath.Join("coord", "levels")
 }

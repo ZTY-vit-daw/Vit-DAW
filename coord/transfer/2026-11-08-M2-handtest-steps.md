@@ -8,9 +8,7 @@
 
 - **生效声明**：前置腿真栈单 run `prep1_20261108_194514` PS1 exit 0（run 详情=coord/runs/M2-HANDTEST-PREP-1/prep1_20261108_194514/evidence.md）——布位✓+旅程可达✓（enter 一次过→n0 过→exit 终态）+生成路由✓（turn1 三证据齐：编排受理+gen.generate 工具痕迹+prompt 披露；治理确认门在位）。**手测放行。**
 - **工程名与入口确认**：工程 **「手测·小星星乐局」** 已布位在 `%APPDATA%\Vit-DAW\projects\手测·小星星乐局.vit`，启动页最近列表**第一位**可见（API 级亲证：内核 get_recent_projects 首项=该路径；Godot 启动页列表与该 API 同源）。内容=3 轨（theme 42 音轨 / corrupted 平行轨[beat 37 有一个错音，已预置静音防剧透] / 空白伴奏轨）。
-- **必做环境前置（一、1 修订）**：拉起 Godot 的**同一 PowerShell** 先执行：
-  `$env:VIT_EDU_LEVELS_DIR = "D:\Vit_DAW\coord\levels"`
-  ——原因：前端自启的 agent 无此环境变量时乐局 enter 会 fail-closed（勘察锚点 agent/internal/chat/edu_jam_chat.go:1109 回退相对 cwd，前端拉起场景回退不可达；烟测栈由脚本设此变量所以腿内可达，用户栈必须手设）。
+- **环境前置=零（LEGAME-DIR-1 后修订）**：~~拉起前手设 `$env:VIT_EDU_LEVELS_DIR`~~ 已删除——乐局目录三级解析（env 覆写 → `~/.vit/levels` 产品主落点 → repo 回退，313 设计稿 §2.1）落地后，布位腿用 `scripts/legame_placement.py install-levels` 把乐局卡装入 `~/.vit/levels/`，前端拉起的 agent 无任何 env 也能装载乐局卡；无需在 shell 里设任何变量。
 - **旅程 B 前置（生成一首）**：需要 ①YuE2 引擎先启动（`E:\AI\YuE2`，参照 scripts/run_yue_dialect_smoke.ps1 内嵌形态：yue-server.exe --model …\YuE2-3B-Q8_0.gguf --vae …\YuE2-Vae-F32.gguf --host 127.0.0.1 --port 8087）②providers 配置就位（`~/.vit/genapi_providers.json` 不存在时从 agent/internal/genapi/config.go ExampleConfig 复制 yue-local 条目，或同 shell 设 `$env:VIT_GENAPI_CONFIG` 指向既有配置文件）。前置腿只验到「路由进生成域+确认门」（needs_confirmation 形态），wav 全链未在本腿跑（278 exit 0 在案）。
 - **282 标注**：transport.set_loop/clear_loop（A/B 听辨循环段）体验**随 282 合入 main 后生效**（282 已实现+离线证据四组全绿，未合入时 chat 侧 set_loop 不可驱动；前置腿按主管预裁以离线证据兑现）。
 
