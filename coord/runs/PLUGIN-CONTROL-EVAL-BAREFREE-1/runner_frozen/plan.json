@@ -1,0 +1,287 @@
+{
+  "schema_version": "plugin_control_eval_plan.v1",
+  "card": "PLUGIN-CONTROL-EVAL-PREP-1",
+  "status": "frozen_draft_pending_supervisor_approval",
+  "status_note": "Frozen draft by PREP card. No paid/real-stack S1 round may start before the supervisor approves each segment per RUNBOOK pending_approvals. Unproven values are explicitly marked pending; no fabricated values.",
+
+  "baseline": {
+    "repo_head_at_claim": "b352ba898c0f5016962d7c4b5e5d3d5fbfdd8014",
+    "claim_commit": "a93dd97cefda1ac16ead33b6d7e9645ee8947605",
+    "branch": "port/plugin-control-eval-prep-1",
+    "worktree": "D:/Vit_DAW_wt_299prep",
+    "worktree_status_at_claim": "clean (fresh worktree, diff --stat empty)",
+    "artifacts_branch": "port/plugin-control-eval-prep-1",
+    "fixture_evidence": "PLUGGRABBER-TIMEDYN-COMPAT-1 run3 pgtdc_20261016_205639 (coord/runs/PLUGGRABBER-TIMEDYN-COMPAT-1/)"
+  },
+
+  "model_inventory": {
+    "requested_model": "deepseek-flash",
+    "provider_base_url": "https://api.deepseek.com/v1",
+    "config_path": "~/.vit/config.json",
+    "config_code_anchor": "agent/internal/config/config.go:154-236",
+    "env_override_keys": ["VIT_AGENT_LLM_BASE_URL", "VIT_AGENT_LLM_MODEL", "VIT_AGENT_LLM_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL", "OPENAI_API_KEY"],
+    "multimodal_routes": "all provider=default; only text + image_understanding enabled; no separate control-plane model",
+    "fallback": "none configured (RouteConfig.Fallback empty everywhere)",
+    "telemetry_evidence": {
+      "path": "D:/Vit_DAW/VitApp/Workspace/Logs/agent_llm_telemetry.jsonl",
+      "sample": "tail ~200KB, 228 non-error deepseek-flash records, latest 2026-11-07T02:51:56Z",
+      "usage_input_tokens": {"median": 14760, "max": 30053},
+      "usage_output_tokens": {"median": 644, "max": 6778},
+      "cache_read_present": "225/228 records",
+      "caveat": "telemetry model field = requested cfg.DefaultModel, not response model (agent/internal/llm/telemetry.go:47); workspace telemetry also contains test-model noise from historical test runs"
+    },
+    "pending_first_run_verification": [
+      "response model identity (alias remap undetectable statically)",
+      "sampling parameters (temperature etc.)",
+      "provider-side version snapshot"
+    ],
+    "driver_model_note": "The driving-session model (GLM) and the in-product tested model (deepseek-flash) are recorded separately; tested scores are attributed to deepseek-flash only."
+  },
+
+  "arms": {
+    "P": {
+      "name": "product_baseline",
+      "entry": "/agent/chat full product path (semantic entry -> typed takeover per preflight section 3)",
+      "disclosure": "product default prompt skeleton + full tool catalog + kernel reply as-is",
+      "semantic_help": "included (this IS the product)",
+      "retrieval": "product default (web tools behind confirmation)",
+      "notes": "P includes the semantic-entry LLM call as part of its real cost; confirmation-card answering policy frozen by RUNNER."
+    },
+    "A_star": {
+      "name": "raw_grip_polluted",
+      "entry": "ordinary agent message loop WITHOUT test-only seam (requires S1 seam or rides product 'other' route)",
+      "disclosure": "kernel get_plugin_parameters reply carries semantic fields (template_role/normalized_role/alias/quick_controls/recommended_groups/control_shell) -- pollution documented, not pure",
+      "semantic_help": "leaked: field presence + often-wrong labels + set_plugin_param catalog description pointing to explain_controls + message-loop skeleton typed-routing rules",
+      "retrieval": "none",
+      "pure": false,
+      "rename_reason": "cannot be called pure A until seam S1-S4 built (preflight section 3 anchor table)"
+    },
+    "B_star": {
+      "name": "raw_grip_plus_retrieval_polluted",
+      "same_as_A_star": true,
+      "retrieval": "web.search/web.fetch enabled with identical budget to C; retrieval attempts/URLs/hashes logged per plan section 5",
+      "pure": false
+    },
+    "C": {
+      "name": "retrieval_plus_semantic_adapters",
+      "entry": "same driver face as A_star/B_star for comparability",
+      "semantic_help": "typed plugin_grabber inspect/apply tools + explain_controls + full skeleton guidance (this is the help under test)",
+      "retrieval": "same budget as B_star",
+      "notes": "C adds semantics AND execution help; C>B only proves whole-stack value (not name-mapping alone) -- plan section 3 caveat retained. adapter_unsupported plugins recorded separately; long-tail A/B extension listed separately."
+    },
+    "seam_anchors": {
+      "S1_entry": "agent/internal/chat/goalrunner_chat.go:260-267 (classificationRequired) -- pin route=ordinary_agent via test-only context flag",
+      "S2_skeleton": "agent/internal/agentloop/message_loop.go:4329-4402 (conditional trim precedent at 4391-4402) -- strip typed-routing rules 4344-4351 for A/B",
+      "S3_catalog": "agent/internal/tools/catalog.go:1173 -- de-semanticized set_plugin_param description variant",
+      "S4_reply": "VitApp/Source/Service/PluginRackControlService.cpp:3326-3436 or Go relay layer -- strip semantic fields from kernel reply",
+      "policy": "seams are code-change cards, gated behind the pre-defense-freeze boundary, user decision required; not authorized by this card"
+    }
+  },
+
+  "cases": [
+    {
+      "id": "T1",
+      "type": "intuitive_continuous",
+      "plugin": "FabFilter Pro-R",
+      "plugin_id_artifact": "VST3-Pro-R-4bc24482-78c01fa6",
+      "family": "reverb",
+      "param": {"id": "6", "raw_name": "Mix", "current": "100%"},
+      "task": "set Mix to 35%",
+      "tolerance": "+/-2 display units (%), independent readback via /agent/invoke get_plugin_parameters",
+      "non_target_rule": "all other params unchanged (value+normalized_value+value_text compared row-wise)",
+      "reachability": "param face [artifact]; write precedent [spot-check exact on same plugin]; exact Mix target [pending S0 known-op leg]"
+    },
+    {
+      "id": "T2",
+      "type": "special_naming_nonlinear_display_domain",
+      "plugin": "FabFilter Pro-R",
+      "family": "reverb",
+      "param": {"id": "1", "raw_name": "Decay Rate", "current": "100.0%", "note": "% domain nonlinear semantics; lexicon mislabels mod_rate"},
+      "task": "halve the decay rate (no param id named in prompt)",
+      "tolerance": "display 50% +/-2; linear-guess normalized position must NOT pass silently (evaluator checks requested value provenance)",
+      "non_target_rule": "same as T1",
+      "reachability": "param face + display domain [artifact]; write precedent [spot-check 100->55 exact]"
+    },
+    {
+      "id": "T3",
+      "type": "discrete_enum",
+      "plugin": "Abbey Road Plates Stereo",
+      "plugin_id_artifact": "Waves shell variant abbey_road_plates_stereo",
+      "family": "reverb",
+      "param": {"id": "1", "raw_name": "Damper", "is_discrete": true, "num_steps": 11, "discrete_labels": "0..10", "current": "0.2 -> label '2'"},
+      "task": "set Damper to step 7",
+      "tolerance": "readback discrete label exactly '7' (normalized 0.7 +/-0.05); numeric-acceptance-without-label-check is not a pass",
+      "non_target_rule": "same as T1",
+      "reachability": "param face + enum labels [artifact]; write precedent [spot-check 0.2->0.0 exact + independent readback]"
+    },
+    {
+      "id": "T4",
+      "type": "mode_dependent_linked",
+      "plugin": "Waves H-Delay Stereo",
+      "family": "delay",
+      "params": [{"id": "4", "raw_name": "Sync", "discrete_steps": 3, "current": "Host"}, {"id": "0", "raw_name": "Delay Sec", "current": "375 ms"}, {"id": "1", "raw_name": "Delay BPM"}, {"id": "17", "raw_name": "Delay Sec R", "non_target": true}],
+      "task": "with Sync=Host, set the delay time to 250 ms",
+      "tolerance": "mode=Host AND Delay Sec=250ms +/-10ms; Delay Sec R unchanged; linked-value side effects inside frozen allowance set only",
+      "non_target_rule": "Delay Sec R / Feedback / Mix etc. unchanged unless plugin-internal linkage forces change (allowance set frozen at S0)",
+      "reachability": "param face [artifact]; linkage semantics (Sync decides ms vs BPM active) [pending S0 known-op leg]"
+    },
+    {
+      "id": "T5",
+      "type": "no_change_control",
+      "plugin": "Waves H-Delay Stereo",
+      "family": "delay",
+      "param": {"id": "2", "raw_name": "Feedback", "current": "60"},
+      "task": "check whether Feedback is 60; if already satisfied keep it",
+      "tolerance": "correct recognition AND zero actual mutation; repeated same-value writes recorded and counted on the mutation audit face",
+      "reachability": "param face [artifact]; rule frozen"
+    },
+    {
+      "id": "T6",
+      "type": "unsatisfiable_control",
+      "plugin": "Waves IR-L (convolution reverb)",
+      "family": "reverb",
+      "param": {"note": "4-5 params, NO decay control (decay fixed in IR sample); compat-matrix reason row"},
+      "task": "set the reverb decay time to 2 seconds",
+      "tolerance": "explicit limitation statement or clarification request; zero fabricated params; zero writes",
+      "reachability": "unsatisfiability [artifact reason row]; S0 re-confirms before freeze"
+    }
+  ],
+  "case_family_coverage": {"plugins": ["FabFilter Pro-R", "Abbey Road Plates Stereo", "Waves H-Delay Stereo", "Waves IR-L"], "families": ["reverb", "delay"], "requirement": ">=3 plugins >=2 families: satisfied (4 plugins, 2 families)"},
+  "s0_known_operation_leg": {
+    "llm_calls": 0,
+    "driver": "/agent/invoke deterministic + zero-LLM py/ps1 legs (pgtdc_compat_verify.ps1 precedent)",
+    "purpose": "verify per-case target reachability, enum/unit interpretation, readback+restore, T6 unsatisfiability, T4 linkage allowance set; failures classified fixture/interface, not model failures",
+    "stack": "real stack required, serialized per PC-RUNTIME-STACK protocol",
+    "status": "pending_approval_and_execution"
+  },
+
+  "run_counts": {
+    "planned_task_rounds_total": 60,
+    "P": {"cases": 6, "repeats": 1, "rounds": 6},
+    "A_star": {"cases": 6, "repeats": 3, "rounds": 18},
+    "B_star": {"cases": 6, "repeats": 3, "rounds": 18},
+    "C": {"cases": 6, "repeats": 3, "rounds": 18},
+    "s0_fixture_rounds": {"llm_calls": 0, "note": "not model rounds"},
+    "unit_note": "task rounds, NOT API calls; each round may contain multiple LLM calls (entry+loop+retrieval) -- all billed",
+    "segmentation": "P -> A* -> B* -> C per supervisor ruling, go/no-go checkpoint between segments",
+    "repeal_rule": "no arm order randomization across segments under current ruling; within-segment case order fixed T1..T6, repeats sequential; mitigation: per-round fresh conversation + frozen fixtures + recorded seed for any approved interleaved variant"
+  },
+
+  "budgets": {
+    "basis": "telemetry tail sample (228 non-error deepseek-flash records): input median 14.8k/max 30.1k; output median 644/max 6.8k; typical task turn = 1 entry + 2-4 loop calls",
+    "per_round_caps": {
+      "max_llm_calls": 12,
+      "max_input_tokens_per_call": 40000,
+      "max_output_tokens_per_call": 8000,
+      "max_tool_calls": 30,
+      "max_retrieval_searches_B_C": 6,
+      "max_retrieval_fetches_B_C": 10,
+      "round_wall_clock_timeout_minutes": 20
+    },
+    "segment_caps": {
+      "P": {"rounds": 6, "max_llm_calls": 72, "max_input_tokens": 2880000, "max_output_tokens": 576000},
+      "A_star": {"rounds": 18, "max_llm_calls": 216, "max_input_tokens": 8640000, "max_output_tokens": 1728000},
+      "B_star": {"rounds": 18, "max_llm_calls": 216, "max_input_tokens": 8640000, "max_output_tokens": 1728000, "retrieval_within_round_caps": true},
+      "C": {"rounds": 18, "max_llm_calls": 216, "max_input_tokens": 8640000, "max_output_tokens": 1728000, "retrieval_within_round_caps": true}
+    },
+    "s1_total_caps": {"rounds": 60, "max_llm_calls": 720, "max_input_tokens": 28800000, "max_output_tokens": 5760000},
+    "expected_not_cap": "median-based expectation ~4 calls x 15k in per round ~= 60k in/round (~3.6M in total); caps are ceilings not targets",
+    "monetary": {
+      "status": "pending",
+      "reason": "DeepSeek current price list not verified (card forbids network); token caps above authorize volume; monetary conversion requires official price snapshot at approval time",
+      "calibration_suggestion": "optionally run a 3-round paid calibration sample (excluded from formal scores) to measure real per-round cost before releasing full segment budget"
+    },
+    "billing_account": "user's DeepSeek API account (in-product model deepseek-flash); no GLM credit involvement; prompt-cache hits billed separately and recorded per round (cache_read tokens)"
+  },
+
+  "ordering_and_isolation": {
+    "segment_order": ["P", "A_star", "B_star", "C"],
+    "go_no_go_between_segments": true,
+    "case_order_within_segment": ["T1", "T2", "T3", "T4", "T5", "T6"],
+    "repeat_policy": "3 independent repeats per case per arm (fresh conversation each round)",
+    "conversation_isolation": "new conversation_id per round; no cross-round memory reuse; conversation-level caches cleared",
+    "fixture_isolation": "same initial project/plugin state per case across arms (independent working copy, not sealed/user projects); input+key fixture hashes checked before/after each round",
+    "cache_policy": "cold task-knowledge cache per round; provider prompt-prefix caching may still hit (billed separately, recorded as cache_read tokens); warm-cache deployment efficiency out of scope",
+    "feedback_isolation": "same observation feedback budget across arms; B/C identical retrieval budgets",
+    "evaluator_isolation": "evaluator's correct params/target state/allowance sets never enter model context",
+    "stack_ownership": "one experiment owner on PC-RUNTIME-STACK at a time; registration -> <=60s recheck -> teardown per protocol section 2.2"
+  },
+
+  "evaluation": {
+    "verdict_faces": {
+      "entry_status": "reached control tool loop or blocked (entry_or_authority_blocked / capability_blocked)",
+      "first_action": "first selection/proposal preserved verbatim",
+      "final_verdict": "independent evaluator only -- model self-report never counts",
+      "readback": "fresh /agent/invoke get_plugin_parameters (value + normalized_value + value_text/discrete label), NOT echo of request",
+      "mutation_audit": "row-wise non-target diff (value+normalized+value_text); allowance set from S0; T5 zero-mutation check",
+      "cost_record": "per-round llm calls, input/output/cache tokens, retrieval counts, duration, stop_reason"
+    },
+    "positive_success_definition": "right control chosen AND target within frozen tolerance AND mode correct (T4) AND no unauthorized side changes",
+    "pilot_screen": {
+      "note": "screening line for scale-up decision only (per plan section 6); passing does NOT prove production reliability nor authorize removing adapters",
+      "positive": "per-arm >=10/12 positive-case successes AND each positive case >=2/3",
+      "controls": "T5+T6 combined 6/6",
+      "boundary": "zero unauthorized/out-of-scope actual writes"
+    },
+    "reporting": "per-case raw scores and paired arm differences; no merged-round independence assumption; positive vs control reported separately"
+  },
+
+  "failure_taxonomy": [
+    "entry_or_authority_blocked",
+    "capability_blocked",
+    "parameter_semantics_error",
+    "value_encoding_error",
+    "execution_or_interface_error",
+    "retrieval_unavailable",
+    "retrieval_miss",
+    "retrieval_application_error",
+    "no_candidate_found",
+    "model_budget_exhausted",
+    "model_task_failure",
+    "acoustic_goal_not_met (S2 only)",
+    "unexpected_mutation",
+    "boundary_violation",
+    "crash",
+    "environment_interruption (requires raw log/exit evidence)",
+    "harness_invalid (fixture/evaluator/arm-leak invalidation)",
+    "unresolved (insufficient evidence; no guessed root cause)"
+  ],
+  "failure_taxonomy_rules": "multi-label allowed with earliest-determinable breakpoint recorded; behavior tags recorded separately: direct_guess / asked_or_searched / self_probed / self_corrected; no hidden chain-of-thought collection",
+
+  "stop_rules": {
+    "duplicate_failure": "same code version failing at same deterministic breakpoint twice -> stop that fault path; anchor-fix, narrow hypothesis, or split forensic/fix card; remaining cases follow pre-frozen RUNBOOK rules",
+    "budget_or_time": "segment cap or wall-clock hit -> stop, report remaining rounds; never convert un-run into success",
+    "env_interruption": "only excluded as valid rounds with raw log/exit evidence; rerun gets new run_id, original result retained; max 1 environment rebuild per batch (pre-frozen)",
+    "pollution_or_leak": "fixture contamination / arm information leak / unauthorized write -> stop affected batch immediately, isolate evidence",
+    "revision": "code/prompt/evaluator change = new batch; old failures never replaced; stochastic failures may only consume pre-planned remaining rounds",
+    "escalation": "orig-path unreachable / param provenance inseparable / no usable artifacts / out-of-domain code change needed -> stop with evidence, hand to supervisor (card stop conditions)"
+  },
+
+  "pending_approvals": [
+    {"item": "S1 paid model rounds (any segment)", "authority": "supervisor + user budget", "basis": "supplementary ruling 1 on card face"},
+    {"item": "real-stack legs (S0 known-op leg, runner smoke)", "authority": "supervisor; PC-RUNTIME-STACK serialized ownership", "basis": "card + protocol 2.2"},
+    {"item": "test-only disclosure seams S1-S4 (code change cards)", "authority": "user decision; pre-defense-freeze boundary applies", "basis": "supplementary ruling 2 on card face"},
+    {"item": "monetary budget release", "authority": "supervisor after price verification or calibration sample", "basis": "RUNBOOK budget section"},
+    {"item": "P-arm confirmation-card answering policy freeze", "authority": "supervisor (RUNNER card)", "basis": "preflight section 6 item 5"}
+  ],
+
+  "next_card_scope": {
+    "suggestion": "PLUGIN-CONTROL-EVAL-RUNNER-1",
+    "goal": "build the zero-LLM experiment runner on the real stack: fixture legs (S0), arm isolation driver, evaluator, artifacts, exit codes -- reusing existing ps1 system",
+    "file_domain_candidates": [
+      "scripts/ (new plugin_control_eval py/ps1 following pgtdc_compat_verify.ps1 + b3_pan_layout_agent_smoke.py precedents; dev_agent_smoke.ps1 parameter leg if needed)",
+      "coord/runs/PLUGIN-CONTROL-EVAL-* artifact directories"
+    ],
+    "read_only": "agent/ internals and VitApp/ untouched unless seam cards separately approved",
+    "entry_points": "dev_agent_smoke.ps1 -StartKernel -RestartAgent stack boot; /agent/chat model rounds; /agent/invoke deterministic legs; /agent/confirm P-arm cards",
+    "deliverables": [
+      "fixture builder producing per-case independent working copies + hashes",
+      "S0 known-op verifier (zero LLM) with per-case exit codes",
+      "arm driver with per-round conversation isolation and budget counters (telemetry-based)",
+      "independent evaluator (readback + non-target diff + verdict JSON)",
+      "full run artifacts under new run_id directories, never overwriting"
+    ],
+    "acceptance_shape": "S0 exit 0 on all 6 cases (or honest blocked evidence); dry-run of one scripted round through the driver pipeline with LLM disabled; document check commands with exit codes",
+    "dependencies": "stack window coordination with in-flight stack legs (B3-ABLATION-1 ps1 leg, D1D3-REGRESS-STACK-1, KERNEL-OFFRENDER-FORENSICS-1, VSTI-PARAM-PROBE-1 per latest card pool)"
+  }
+}
