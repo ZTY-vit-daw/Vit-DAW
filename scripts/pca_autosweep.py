@@ -1212,6 +1212,25 @@ class Sweep:
                                                                 section)
                 if not bands:
                     reason = band_issues or "no derivable band anchors"
+                    if summary.get("eq_model") == "free_floating":
+                        # 322 in-card fix (supervisor authorization 2026-11-09):
+                        # free_floating EQs explain at DEFAULT state (certify_eq
+                        # loads a fresh instance and explains BEFORE any edit),
+                        # so active_bands is empty by construction and the frozen
+                        # rule excluded the whole class with "no derivable band
+                        # anchors". Receipt-backed anchor: the certification
+                        # itself proved a bounded band move -- the VERIFIED
+                        # upsert writes -- so derive the single band anchor from
+                        # the receipt's own evidence (S3 discipline unchanged).
+                        # Fail-closed semantics unchanged: any missing piece
+                        # keeps the honest exclusion.
+                        bands, anchor_note = self.eq_receipt_anchor_bands(
+                            receipt_dir, summary, entry, prov, section)
+                        if bands:
+                            reason = ""
+                        elif anchor_note:
+                            reason = (f"{reason}; receipt anchor unavailable: "
+                                      f"{anchor_note}")
             if explain is not None and not reason:
                 try:
                     receipt = load_json(receipt_path)
@@ -1347,6 +1366,76 @@ class Sweep:
                      "note": ("single shared/mono gain param mirrored to ch1/ch2"
                               if mirrored else "per-channel gain params")})
         return bands, ""
+
+    def eq_receipt_anchor_bands(self, receipt_dir: Path, summary: dict[str, Any],
+                                entry: dict[str, Any], prov: list[dict[str, Any]],
+                                section: str) -> tuple[list[dict[str, Any]], str]:
+        """(bands, failure_note) -- 322 in-card fix: free_floating single band
+        anchor backed by the certification receipt's own VERIFIED upsert
+        writes. Anchor source: apply.json writes with role=freq (verified
+        physical Hz = center) and role=gain (param id), required to match one
+        explain topology band row (freq_param_id/gain_param_id) and to pass the
+        same S3 dual-cycle probe cross-check as the fixed-topology path (zero
+        identity drift, stable_id). Any missing piece returns ([], note) and
+        the caller keeps the honest exclusion -- fail-closed unchanged (the
+        TBTECH/bx_tonebox class without this evidence stays excluded)."""
+        apply_path = receipt_dir / "apply.json"
+        if not apply_path.exists():
+            return [], "apply.json missing"
+        try:
+            apply_result = load_json(apply_path)
+        except Exception as error:
+            return [], f"apply.json unreadable: {error}"
+        writes = [w for w in apply_result.get("writes", []) if isinstance(w, dict)]
+        freq_write = next((w for w in writes if w.get("role") == "freq"
+                           and isinstance(w.get("requested_physical"), (int, float))), None)
+        gain_write = next((w for w in writes if w.get("role") == "gain"), None)
+        if freq_write is None or gain_write is None:
+            return [], "verified upsert writes lack freq/gain roles"
+        center_raw = freq_write.get("actual_physical", freq_write["requested_physical"])
+        if not isinstance(center_raw, (int, float)):
+            return [], "upsert freq write carries no physical Hz value"
+        center = float(center_raw)
+        freq_pid = str(freq_write.get("param_id", ""))
+        gain_pid = str(gain_write.get("param_id", ""))
+        if not (20 <= center <= 20000) or not freq_pid or not gain_pid:
+            return [], (f"anchor out of range or incomplete "
+                        f"({center}, freq={freq_pid!r}, gain={gain_pid!r})")
+        row_match = any(isinstance(r, dict)
+                        and str(r.get("freq_param_id")) == freq_pid
+                        and str(r.get("gain_param_id")) == gain_pid
+                        for r in summary.get("bands") or [])
+        if not row_match:
+            return [], "freq/gain write pair matches no explain band row"
+        slug = slug_of(entry["name"])
+        snap_path = self.probe_dir / f"{slug}.a.snapshot.json"
+        snap_b_path = self.probe_dir / f"{slug}.b.snapshot.json"
+        if not snap_path.exists() or not snap_b_path.exists():
+            return [], "dual-cycle probe snapshots missing for gain anchor"
+        try:
+            snap = load_json(snap_path)
+            snap_b = load_json(snap_b_path)
+            params_a = {str(p["id"]): p for p in snap["surface"]["parameters"]}
+            ident_a = {str(p["name"]): str(p["id"]) for p in snap["surface"]["parameters"]}
+            ident_b = {str(p["name"]): str(p["id"]) for p in snap_b["surface"]["parameters"]}
+        except Exception as error:
+            return [], f"probe snapshots unreadable: {error}"
+        if ident_a != ident_b:
+            return [], "probe identity drift across cycles"
+        for pid in (freq_pid, gain_pid):
+            param = params_a.get(pid)
+            if param is None or not param.get("stable_id"):
+                return [], f"param {pid} absent or not stable_id in cycle A"
+        prov.append({"section": section, "field": "bands",
+                     "value": [center],
+                     "source": "receipt-verified upsert writes (apply.json: freq "
+                               f"param {freq_pid} @ {center} Hz, gain param {gain_pid}) "
+                               "x explain topology band row x S3 dual-cycle probe "
+                               "(zero drift, stable_id)",
+                     "note": "free_floating receipt-backed single band anchor "
+                             "(322 in-card fix; fail-closed unchanged)"})
+        return [{"center_hz": center,
+                 "gain_param_id_ch1": gain_pid, "gain_param_id_ch2": gain_pid}], ""
 
     def poll_job(self, job_id: str) -> dict[str, Any]:
         deadline = time.time() + self.args.job_timeout
