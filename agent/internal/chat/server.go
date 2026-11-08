@@ -132,6 +132,11 @@ type Server struct {
 	// 会话级覆盖层）；eduJamKernelSendOverride 是乐局读面的测试注入缝。
 	eduJamSessions           map[string]eduJamSession
 	eduJamKernelSendOverride edu.KernelSendFunc
+	// eduJamIntroMu/eduJamIntroServed 是 LEGAME-AUTOINTRO-1 的自动开场/恢复播报
+	// 注入串行化与「本会话本进程已服务」标记（开场=工程级一次性[opened_at 落盘]，
+	// 播报=会话级一次性[进程内标记，跨进程重启后重播一次属设计语义]）。
+	eduJamIntroMu     sync.Mutex
+	eduJamIntroServed map[string]bool
 	loudnessWatchConfig                *loudnesswatch.Config
 	loudnessWatchRestoreDropped        int
 	noteSessionMu                      sync.Mutex
@@ -2749,6 +2754,18 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		resp = s.maybeContinueFreeStateAfterInteraction(r.Context(), interaction, resp, req.Message)
 		s.remember(conversationID, req.Message, resp.Reply)
 		writeChat(http.StatusOK, resp)
+		return
+	}
+
+	// LEGAME-AUTOINTRO-1（315 / 313 设计稿 §2.2）：进入工程自动开场/重进恢复播报
+	// 检查点。位置=activation+restore（前导段 activateCurrentProjectWorkspace）完成
+	// 之后、pending 确认面之后（确认轮不被开场劫持）、语义入口分类之前；note 会话
+	// 已在前导段早分叉排除。注入条件五项全查与幂等语义见 eduJamAutoIntroCheckpoint
+	//（F5 竞态防线：本检查点只观察 activation+restore 的最终态，绝不提前写会话表
+	// 或 binding）。
+	if introResp, introServed := s.eduJamAutoIntroCheckpoint(r.Context(), conversationID, agentMode, req.Message); introServed {
+		s.remember(conversationID, req.Message, introResp.Reply)
+		writeChat(http.StatusOK, introResp)
 		return
 	}
 

@@ -16,7 +16,15 @@ card's evidence domain); this tool follows the same script family pattern
      self-installs (design 2.1-3). Idempotent: consecutive runs converge
      to identical installed bytes.
 
-  write-binding  (LEGAME-AUTOINTRO-1, card 315 - added by that card)
+  write-binding  (LEGAME-AUTOINTRO-1, card 315)
+     Declare the project <-> level binding sidecar next to the target .vit
+     project file: <project_dir>/.vit_agent/legame_binding.json
+     (schema vit.legame_binding.v1, opened_at=null until the agent's
+     auto-intro fires and writes the markers back). The AGENT never authors
+     the binding - this placement face (or a future project wizard,
+     bound_source tag) does. Refuses to reset a binding whose opened_at is
+     already set unless --force (project-level intro marker discipline).
+
   relay / place-copy (LEGAME-FRESH-1, card 316 - added by that card)
 
 Exit codes (fixed before any run; single run, no rerun unless declared):
@@ -75,6 +83,75 @@ def resolve_levels_root(home_override: str) -> Path:
     return Path.home() / ".vit" / "levels"
 
 
+LEGAME_BINDING_SCHEMA = "vit.legame_binding.v1"
+LEGAME_BINDING_FILENAME = "legame_binding.json"
+LEGAME_AGENT_DIRNAME = ".vit_agent"
+
+
+def binding_path_for(project_path: str) -> Path:
+    return Path(project_path).resolve().parent / LEGAME_AGENT_DIRNAME / LEGAME_BINDING_FILENAME
+
+
+def cmd_write_binding(args: argparse.Namespace, summary: Dict[str, Any]) -> int:
+    """LEGAME-AUTOINTRO-1: declare a project <-> level binding sidecar next to
+    the project file (<project_dir>/.vit_agent/legame_binding.json). The agent
+    reads the binding and only writes back the opened markers; the binding
+    itself is authored by this placement face (or a future project wizard)."""
+    project = Path(args.project).resolve()
+    binding_path = binding_path_for(str(project))
+    summary["write_binding"] = {
+        "project": str(project),
+        "binding_path": str(binding_path),
+        "level_id": args.level_id,
+        "bound_source": args.bound_source,
+    }
+    block = summary["write_binding"]
+
+    if binding_path.exists():
+        try:
+            existing = json.loads(binding_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            print(f"[legame] FAIL environment: existing binding unreadable: {binding_path} ({exc})", flush=True)
+            block["error"] = f"existing binding unreadable: {exc}"
+            return EXIT_ENV
+        if existing.get("opened_at") and not args.force:
+            print(f"[legame] FAIL environment: binding already opened (opened_at={existing.get('opened_at')}); "
+                  f"refusing to reset the project-level intro marker without --force (use relay to reset the whole project)", flush=True)
+            block["error"] = "binding already opened (need --force or relay)"
+            return EXIT_ENV
+
+    binding = {
+        "schema_version": LEGAME_BINDING_SCHEMA,
+        "level_id": args.level_id,
+        "bound_at": datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
+        "bound_source": args.bound_source,
+        "opened_at": None,
+        "opened_conversation_id": None,
+    }
+    try:
+        binding_path.parent.mkdir(parents=True, exist_ok=True)
+        binding_path.write_text(json.dumps(binding, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    except OSError as exc:
+        print(f"[legame] FAIL environment: write binding: {exc}", flush=True)
+        block["error"] = f"write binding: {exc}"
+        return EXIT_ENV
+    # Readback verification (placement face asserts what the agent will read).
+    try:
+        back = json.loads(binding_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        print(f"[legame] FAIL environment: binding readback: {exc}", flush=True)
+        block["error"] = f"binding readback: {exc}"
+        return EXIT_ENV
+    if back.get("schema_version") != LEGAME_BINDING_SCHEMA or back.get("level_id") != args.level_id \
+            or back.get("opened_at") is not None:
+        print(f"[legame] FAIL environment: binding readback mismatch: {json.dumps(back, ensure_ascii=False)}", flush=True)
+        block["error"] = "binding readback mismatch"
+        return EXIT_ENV
+    block["verified"] = True
+    print(f"[legame] binding written+verified: {binding_path}", flush=True)
+    return EXIT_PASS
+
+
 def cmd_install_levels(args: argparse.Namespace, summary: Dict[str, Any]) -> int:
     levels_root = resolve_levels_root(args.home)
     source_root = Path(args.levels_source).resolve()
@@ -129,6 +206,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_install.add_argument("--home", default="", help="home dir override for tests (default: real user home)")
     p_install.add_argument("--output", default="", help="summary json path (stdout summary when empty)")
 
+    p_binding = sub.add_parser("write-binding", help="LEGAME-AUTOINTRO-1: declare project<->level binding sidecar (.vit_agent/legame_binding.json)")
+    p_binding.add_argument("--project", required=True, help="target .vit project path (binding lands next to it)")
+    p_binding.add_argument("--level-id", default="first-run-twinkle", help="bound level id")
+    p_binding.add_argument("--bound-source", default="placement_script", help="binding author tag (placement_script | project_wizard)")
+    p_binding.add_argument("--force", action="store_true", help="allow overwriting a binding whose opened_at is already set")
+    p_binding.add_argument("--output", default="", help="summary json path (stdout summary when empty)")
+
     return parser
 
 
@@ -136,7 +220,7 @@ def main() -> int:
     args = build_parser().parse_args()
     if getattr(args, "levels_source", "") == "":
         args.levels_source = str(Path(__file__).resolve().parent.parent / "coord" / "levels")
-    if hasattr(args, "level_id") and not args.level_id:
+    if args.command == "install-levels" and not args.level_id:
         args.level_id = ["first-run-twinkle"]
 
     summary: Dict[str, Any] = {
@@ -147,6 +231,8 @@ def main() -> int:
 
     if args.command == "install-levels":
         code = cmd_install_levels(args, summary)
+    elif args.command == "write-binding":
+        code = cmd_write_binding(args, summary)
     else:
         print(f"[legame] FAIL environment: unknown command {args.command}", flush=True)
         return EXIT_ENV

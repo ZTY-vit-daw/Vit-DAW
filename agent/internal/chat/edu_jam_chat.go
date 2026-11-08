@@ -1087,6 +1087,256 @@ func eduJamGateReasonText(reason string) string {
 	return "工作区还没就位"
 }
 
+// ---- 工程↔level 绑定元数据 + 自动开场/恢复播报（LEGAME-AUTOINTRO-1，315）----
+//
+// 声明性绑定（与 F4 会话态区分）：工程旁 `.vit_agent/legame_binding.json` sidecar，
+// 写入者=布位脚本（scripts/legame_placement.py write-binding）与未来新建工程向导
+//（bound_source 枚举预留）；agent 只读 binding 本体、只回写 opened_at/
+// opened_conversation_id 两个开场标记。无 binding 文件=普通工程，行为与现状零差异
+//（§11 兼容义务：缺文件非错误、零迁移）。
+
+const (
+	legameBindingSchemaVersion = "vit.legame_binding.v1"
+	legameBindingDirname       = ".vit_agent"
+	legameBindingFilename      = "legame_binding.json"
+)
+
+type legameBinding struct {
+	SchemaVersion        string  `json:"schema_version"`
+	LevelID              string  `json:"level_id"`
+	BoundAt              string  `json:"bound_at"`
+	BoundSource          string  `json:"bound_source"`
+	OpenedAt             *string `json:"opened_at"`
+	OpenedConversationID *string `json:"opened_conversation_id"`
+}
+
+// legameBindingPath 工程旁 sidecar 路径（projectPath=.vit 工程文件路径；binding
+// 落工程所在目录的 .vit_agent/ 下，与 projectstore.AgentDirName 同域）。
+func legameBindingPath(projectPath string) string {
+	projectPath = strings.TrimSpace(projectPath)
+	if projectPath == "" {
+		return ""
+	}
+	return filepath.Join(filepath.Dir(filepath.Clean(projectPath)), legameBindingDirname, legameBindingFilename)
+}
+
+// loadLegameBinding 读取 binding（fail-closed：缺文件/读失败/schema 未知/level id
+// 非法 → 视同无 binding，普通工程零差异；不写日志——每轮 chat 都会探测，普通工程
+// 的「无 binding」是常态而非事件）。
+func loadLegameBinding(projectPath string) (legameBinding, bool) {
+	path := legameBindingPath(projectPath)
+	if path == "" {
+		return legameBinding{}, false
+	}
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return legameBinding{}, false
+	}
+	var binding legameBinding
+	if err := json.Unmarshal(data, &binding); err != nil {
+		return legameBinding{}, false
+	}
+	if binding.SchemaVersion != legameBindingSchemaVersion {
+		return legameBinding{}, false
+	}
+	if !eduJamLevelIDRegex.MatchString(binding.LevelID) {
+		return legameBinding{}, false
+	}
+	return binding, true
+}
+
+// writeLegameBindingOpened 回写开场标记（agent 对 binding 的唯一写面：只填
+// opened_at/opened_conversation_id，不动绑定本体；temp+rename 原子落盘）。
+func writeLegameBindingOpened(projectPath string, binding legameBinding, conversationID string) error {
+	path := legameBindingPath(projectPath)
+	if path == "" {
+		return fmt.Errorf("legame binding: empty project path")
+	}
+	now := time.Now().UTC().Format(time.RFC3339)
+	binding.OpenedAt = &now
+	binding.OpenedConversationID = &conversationID
+	data, err := json.MarshalIndent(binding, "", "  ")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return err
+	}
+	temp := path + ".tmp"
+	if err := os.WriteFile(temp, data, 0o644); err != nil {
+		return err
+	}
+	if err := os.Rename(temp, path); err != nil {
+		_ = os.Remove(temp)
+		return err
+	}
+	return nil
+}
+
+// eduJamProjectActiveSession 返回该工程（按 ProjectUUID 匹配）最新的非终态乐局
+// 会话与其卡；无活跃局时 ok=false（活跃=非终态：active/awaiting_closure 都算——
+// 后者是「全关已过待收尾」，恢复播报的收尾话术分支正为此形态）。
+func (s *Server) eduJamProjectActiveSession(projectUUID string) (eduJamSession, *edu.LevelCard, bool) {
+	if s == nil || strings.TrimSpace(projectUUID) == "" {
+		return eduJamSession{}, nil, false
+	}
+	s.mu.Lock()
+	sessions := make([]eduJamSession, 0, len(s.eduJamSessions))
+	for _, session := range s.eduJamSessions {
+		sessions = append(sessions, session)
+	}
+	s.mu.Unlock()
+	var best eduJamSession
+	found := false
+	for _, session := range sessions {
+		if !strings.EqualFold(session.ProjectUUID, projectUUID) || eduJamSessionTerminal(session) {
+			continue
+		}
+		// 最新非终态局（EnteredAt 字典序可比：RFC3339 UTC；并列时按会话 id 定序
+		// 保证确定性）。
+		if !found || session.EnteredAt > best.EnteredAt ||
+			(session.EnteredAt == best.EnteredAt && session.ConversationID > best.ConversationID) {
+			best = session
+			found = true
+		}
+	}
+	if !found {
+		return eduJamSession{}, nil, false
+	}
+	card, err := loadEduJamLevelCard(best.LevelID)
+	if err != nil {
+		return eduJamSession{}, nil, false
+	}
+	return cloneEduJamSession(best), card, true
+}
+
+// eduJamRecoveryBroadcast 重进恢复播报（确定性模板，零 LLM；设计稿 §2.2-3）：
+// 「接着上局：{节点标题}（{n}/{total}）——继续或问我都行」；全节点已过（待收尾）
+// 形态给收尾引导。播报只读不动状态（不触碰挂起/切换语义，§7-5）。
+func (s *Server) eduJamRecoveryBroadcast(conversationID, mode string, session eduJamSession, card *edu.LevelCard) ChatResponse {
+	base := s.eduJamBaseResponse(conversationID, mode)
+	nodeID := eduJamCurrentNodeID(session, card)
+	data := map[string]any{
+		"schema_version":        eduJamSessionSchemaVersion,
+		"level_id":              session.LevelID,
+		"status":                session.Status,
+		"owner_conversation_id": session.ConversationID,
+		"current_node":          nodeID,
+	}
+	if nodeID != "" {
+		index, total := 0, len(card.Nodes)
+		for i, n := range card.Nodes {
+			if n.ID == nodeID {
+				index = i + 1
+				break
+			}
+		}
+		title := ""
+		for _, n := range card.Nodes {
+			if n.ID == nodeID {
+				title = n.Title
+				break
+			}
+		}
+		base.Reply = fmt.Sprintf("接着上局：%s（%d/%d）——继续或问我都行。", title, index, total)
+		data["node_index"] = index
+		data["node_total"] = total
+	} else {
+		base.Reply = fmt.Sprintf("接着上局：《%s》全部关卡都过了，就差收尾——说「乐局状态」看看，或「确认收尾」完成这一局。", card.Title)
+	}
+	base.StopReason = "edu_jam_recovery_broadcast"
+	base.WorkflowData = data
+	return base
+}
+
+func (s *Server) rememberEduJamIntroServedLocked(conversationID string) {
+	if s.eduJamIntroServed == nil {
+		s.eduJamIntroServed = map[string]bool{}
+	}
+	s.eduJamIntroServed[conversationID] = true
+}
+
+// eduJamAutoIntroCheckpoint 进入工程自动开场/重进恢复播报检查点（LEGAME-
+// AUTOINTRO-1；handleChat 在 activation+restore 完成后、语义入口分类前调用）。
+//
+// 注入条件（设计稿 §2.2-2 五项，全查）：
+//  1. binding 在案（`.vit_agent/legame_binding.json` 可读且 schema/id 合法）
+//  2. opened_at 为空（开场=工程级一次性事件；已开场工程的第二会话不重开场）
+//  3. restore 后该工程无活跃（非终态）EduJamSession（有活跃局→恢复播报分支）
+//  4. enter 门通过（复用 eduJamEnter 内核：其内建的 eduJamEnsureWorkspaceActivation
+//     双源门正是 F5 竞态防线——门未过=不拦本轮、不写任何状态，下轮重试）
+//  5. chat 主链路（handleChat 调用点已排除 note；乐局命令词形与 "/" 斜杠消息
+//     放行给既有命令面，不在此拦截）
+//
+// 幂等语义：开场工程级一次性（opened_at+opened_conversation_id 落盘回写）；恢复
+// 播报会话级一次性（eduJamIntroServed 进程内标记——跨进程重启后重播一次正是
+// 「重进工程」的设计形态）。终态局→静默（HUD/命令面照常，§2.2-3）。
+//
+// fail-soft 边界：自动开场是增强注入，任何 enter 失败（门拒绝/卡不可用/状态拒绝）
+// 都不拦截用户本轮对话——不写 opened_at，下一轮重试；手动「开始乐局」命令面语义
+// 单源不变。
+func (s *Server) eduJamAutoIntroCheckpoint(ctx context.Context, conversationID, mode, text string) (ChatResponse, bool) {
+	if s == nil {
+		return ChatResponse{}, false
+	}
+	trimmed := strings.TrimSpace(text)
+	if trimmed == "" {
+		return ChatResponse{}, false
+	}
+	if _, _, _, _, _, ok := parseEduJamCommand(trimmed); ok {
+		return ChatResponse{}, false // 命令词归命令面（自动开场与命令词同一 enter 内核，语义单源）
+	}
+	if strings.HasPrefix(trimmed, "/") {
+		return ChatResponse{}, false // 斜杠命令归既有命令路径
+	}
+	// eduJamIntroMu 串行化整个决策+动作：并发两个会话同时命中开场条件时，第二
+	// 个进入时 opened_at 已落盘（或活跃局已建立），不会双开场。
+	s.eduJamIntroMu.Lock()
+	defer s.eduJamIntroMu.Unlock()
+	s.mu.Lock()
+	projectPath := strings.TrimSpace(s.activeWorkspacePath)
+	projectUUID := strings.TrimSpace(s.activeWorkspaceUUID)
+	served := s.eduJamIntroServed[conversationID]
+	s.mu.Unlock()
+	if projectPath == "" || served {
+		return ChatResponse{}, false
+	}
+	binding, ok := loadLegameBinding(projectPath)
+	if !ok {
+		return ChatResponse{}, false // 普通工程：零行为差异
+	}
+	// 恢复播报（活跃局在场=已开场过或手动开过；先于开场判定）。
+	if session, card, has := s.eduJamProjectActiveSession(projectUUID); has {
+		resp := s.eduJamRecoveryBroadcast(conversationID, mode, session, card)
+		s.mu.Lock()
+		s.rememberEduJamIntroServedLocked(conversationID)
+		s.mu.Unlock()
+		return resp, true
+	}
+	if binding.OpenedAt != nil && strings.TrimSpace(*binding.OpenedAt) != "" {
+		return ChatResponse{}, false // 已开场且无活跃局（终态）→静默
+	}
+	resp, handled := s.eduJamEnter(ctx, conversationID, mode, binding.LevelID)
+	if !handled || resp.StopReason != "edu_jam_entered" {
+		// fail-soft：不拦本轮、不写 opened_at；门拒绝/卡不可用下轮重试。
+		if s.logger != nil {
+			s.logger.Info("[edu-jam] auto-intro deferred (enter not completed, will retry on a later turn): stop=%s", resp.StopReason)
+		}
+		return ChatResponse{}, false
+	}
+	if err := writeLegameBindingOpened(projectPath, binding, conversationID); err != nil {
+		// 开场已在本会话发生（session 已落盘）；回写失败只影响跨进程的
+		// opened_at 标记——活跃局在场仍会挡住二次开场，如实告警不回滚。
+		if s.logger != nil {
+			s.logger.Warn("[edu-jam] auto-intro binding opened_at write-back failed (in-session intro stands): %v", err)
+		}
+	}
+	s.mu.Lock()
+	s.rememberEduJamIntroServedLocked(conversationID)
+	s.mu.Unlock()
+	return resp, true
+}
+
 func (s *Server) eduJamWorkflowData(session eduJamSession, extra map[string]any) map[string]any {
 	data := map[string]any{
 		"schema_version": eduJamSessionSchemaVersion,
