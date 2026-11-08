@@ -1,0 +1,100 @@
+{
+  "schema_version": "proq3_device_report.v1",
+  "card": "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+  "cases_digest": "e1b70f0ee20e923f208abd54d4f2078461a99bf65f06032db450cc13587988c3",
+  "started_at": "2026-11-09T00:44:43+0800",
+  "gates": {
+    "registry_resolve": {
+      "ok": true,
+      "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+      "registry_row": {
+        "name": "Pro-Q 3",
+        "descriptive_name": "Pro-Q 3",
+        "manufacturer": "FabFilter",
+        "format": "VST3",
+        "category": "Fx|EQ",
+        "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+        "file_or_identifier": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+        "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+        "path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
+        "uid": "-1168147790",
+        "deprecated_uid": "-1941548311",
+        "is_instrument": false
+      }
+    },
+    "placement": {
+      "ok": true,
+      "copies": [
+        {
+          "round": 1,
+          "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit",
+          "fixture_digest": "5080116bec1afcfa",
+          "param_row_count": 348
+        },
+        {
+          "round": 2,
+          "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r2.vit",
+          "fixture_digest": "5080116bec1afcfa",
+          "param_row_count": 348
+        },
+        {
+          "round": 3,
+          "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r3.vit",
+          "fixture_digest": "5080116bec1afcfa",
+          "param_row_count": 348
+        }
+      ]
+    },
+    "start_page_recent": {
+      "ok": true,
+      "recent_head": [
+        "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r3.vit",
+        "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r2.vit",
+        "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit",
+        "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runB_20261109_000508\\legame_fixture_copy.vit",
+        "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runA_20261109_000437\\legame_fixture_copy.vit"
+      ],
+      "missing_from_recent": [],
+      "note": "start-page list face = kernel get_recent_projects (m2 twin)"
+    },
+    "initial_state_equivalence": {
+      "ok": true,
+      "digests": [
+        "5080116bec1afcfa"
+      ],
+      "note": "identical digest == same frozen initial state per copy"
+    },
+    "known_op_seam": {
+      "ok": true,
+      "param_id": "3",
+      "param_name": "Band 1 Gain",
+      "original_normalized": 0.5,
+      "target_normalized": 0.7,
+      "write_status": "ok",
+      "rejection_code": null,
+      "write_error": "",
+      "guard_rejected": false,
+      "value_after_write": 0.699999988079071,
+      "criteria": {
+        "write_status_ok": true,
+        "not_guard_rejected": true,
+        "readback_changed": true,
+        "readback_at_target": true
+      }
+    },
+    "persistence": {
+      "ok": true,
+      "param_id": "3",
+      "changed_value_after_reopen": 0.699999988079071,
+      "changed_value_persisted": true,
+      "restore_status": "ok",
+      "value_after_restore": 0.5,
+      "restore_ok": true,
+      "final_digest": "5080116bec1afcfa",
+      "final_digest_equals_initial": true
+    }
+  },
+  "ok": true,
+  "finished_at": "2026-11-09T00:44:46+0800"
+}

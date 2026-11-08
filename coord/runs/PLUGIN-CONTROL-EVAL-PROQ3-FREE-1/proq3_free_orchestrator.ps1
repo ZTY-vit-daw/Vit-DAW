@@ -1,4 +1,4 @@
-# PLUGIN-CONTROL-EVAL-PROQ3-FREE-1 (card 320) T7 free-control orchestrator.
+﻿# PLUGIN-CONTROL-EVAL-PROQ3-FREE-1 (card 320) T7 free-control orchestrator.
 #
 # Same-pattern new script per AGENTS section 5 (card 320 file domain = artifact
 # dir + card face + placement-script extension + the NEW T7 single-case driver
@@ -154,12 +154,9 @@ try {
     if ($modelEnv["VIT_AGENT_LLM_MODEL"] -ne "<unset>" -or $modelEnv["OPENAI_MODEL"] -ne "<unset>") {
         throw ("proq3_free refuses to run with an env model override in force: " + ($modelEnv | ConvertTo-Json -Compress))
     }
-    foreach ($r in 1..3) {
-        $existing = Join-Path $ProjectsDir ("实验·ProQ3 裸控 r" + $r + ".vit")
-        if (Test-Path -LiteralPath $existing) {
-            throw ("project copy already present (rerun hygiene, placement must not overwrite): " + $existing)
-        }
-    }
+    # rerun hygiene (project copies must not pre-exist) is enforced by the
+    # python placement gate itself (cases.py builds the UTF-8 CJK names; a PS
+    # literal here was mojibake under PS5.1 ANSI decoding -- run 004437).
     Write-Ok ("VIT_PROJECT_XML=" + $ProjectCopy)
     Write-Ok ("seam env VIT_PLUGIN_CONTROL_EVAL_SEAM=" + $env:VIT_PLUGIN_CONTROL_EVAL_SEAM + " + VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=" + $env:VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE)
 
@@ -269,10 +266,9 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
             continue
         }
         Write-Step ("round r" + $r + " ...")
-        $projectPath = Join-Path $ProjectsDir ("实验·ProQ3 裸控 r" + $r + ".vit")
         $rLog = Join-Path $RunRoot ("driver_round_r" + $r + "_console.log")
         $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
-        & python $Driver "round" "--repeat" $r "--project" $projectPath `
+        & python $Driver "round" "--repeat" $r "--projects-dir" $ProjectsDir `
             "--agent-http" $AgentHttp "--rounds-dir" $RoundsDir `
             "--telemetry-path" $TelemetryPath "--agent-log" $AgentLog 2>&1 | Tee-Object -FilePath $rLog | Out-Null
         $rExit = $LASTEXITCODE

@@ -1131,7 +1131,10 @@ def main() -> int:
 
     p_round = sub.add_parser("round")
     p_round.add_argument("--repeat", required=True, type=int)
-    p_round.add_argument("--project", required=True)
+    p_round.add_argument("--project", default="")
+    p_round.add_argument("--projects-dir", default="",
+                         help="build the copy path from cases.py (UTF-8) "
+                              "instead of a caller-supplied --project string")
     p_round.add_argument("--agent-http", default=DEFAULT_AGENT_HTTP)
     p_round.add_argument("--timeout", type=float, default=30.0)
     p_round.add_argument("--rounds-dir", required=True, type=Path)
@@ -1158,8 +1161,21 @@ def main() -> int:
     if args.cmd == "round":
         telemetry = Path(args.telemetry_path) if args.telemetry_path else None
         agent_log = Path(args.agent_log) if args.agent_log else None
+        # FINAL-BATCH FIX 4 (run proq3_free_20261109_004437): PS 5.1 reads a
+        # BOM-less UTF-8 ps1 as ANSI/GBK, so CJK literals in the orchestrator
+        # arrive as mojibake paths ("file does not exist"). The round project
+        # path is now built HERE from cases.py (UTF-8 python) via
+        # --projects-dir; --project remains as an explicit override.
+        if args.projects_dir:
+            project = str((Path(args.projects_dir)
+                           / f"{cases.PROJECT_BASENAME} r{args.repeat}.vit").resolve())
+        else:
+            project = args.project
+        if not project:
+            print(json.dumps({"error": "round requires --projects-dir or --project"}))
+            return 1
         return run_round(args.repeat, args.agent_http, args.timeout,
-                         args.rounds_dir, telemetry, agent_log, args.project)
+                         args.rounds_dir, telemetry, agent_log, project)
     if args.cmd == "consolidate":
         return run_consolidate(args.run_dir)
     return 1

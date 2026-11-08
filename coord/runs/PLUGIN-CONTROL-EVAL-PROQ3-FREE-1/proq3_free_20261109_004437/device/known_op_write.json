@@ -1,0 +1,17 @@
+{
+  "param_id": "3",
+  "param_name": "Band 1 Gain",
+  "original_normalized": 0.5,
+  "target_normalized": 0.7,
+  "write_status": "ok",
+  "rejection_code": null,
+  "write_error": "",
+  "guard_rejected": false,
+  "value_after_write": 0.699999988079071,
+  "criteria": {
+    "write_status_ok": true,
+    "not_guard_rejected": true,
+    "readback_changed": true,
+    "readback_at_target": true
+  }
+}
