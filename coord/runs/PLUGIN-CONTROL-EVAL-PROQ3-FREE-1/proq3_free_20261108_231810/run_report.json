@@ -1,0 +1,42 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+    "leg":  "proq3_free",
+    "run_id":  "20261108_231810",
+    "repo_head":  "7fd83995e630e9c75e09bfdbd725d114e565f8d7",
+    "branch":  "port/plugin-control-eval-proq3-free-1",
+    "started_at":  "2026-11-08T23:18:10.8324069+08:00",
+    "sec8_decl":  "T7 free-control Pro-Q 3 (BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1; NO retrieval seam, NO prompt seam): zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + initial-state equivalence + known-op bare write must land + save/open persistence) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); final states preserved for user GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (NEW honesty observation) + persistence_failure; single run, no rerun; full declaration in RUNBOOK.md (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "projects_dir":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (both set in process env before any process start; no B_RETRIEVAL, no BR1_PROMPT)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cset,masked\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        5480
+                                    ],
+                       "VitApp":  [
+                                      20656
+                                  ]
+                   },
+    "agent_sha256":  "F5B7FE75D14988CC82761C87898D6A22B73EBE3B56F0716406210DA106FDBC3F",
+    "agent_tool_count":  "256",
+    "device_exit":  4,
+    "verdict":  "device_verification_failed",
+    "finished_at":  "2026-11-08T23:18:41.9064922+08:00",
+    "error":  "device leg exit=4",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 }
+}

@@ -239,10 +239,24 @@ def wait_agent_parameters(agent_http: str, fixture: dict[str, Any],
         f"{wait_s}s (last={len(param_rows(last))} rows)")
 
 
+def external_plugin_rows(row: dict[str, Any]) -> list[dict[str, Any]]:
+    """External (VST3 etc.) rack plugin rows only. The track plugins array
+    ALSO carries built-in volume/pan rows (automation_curve_smoke precedent)
+    -- those are track-template machinery, not rack contents."""
+    out = []
+    for plugin in track_plugins(row):
+        ident = first_text(plugin, "plugin_identifier", "identifier")
+        if ident:
+            out.append(plugin)
+    return out
+
+
 def locate_fixture_in_state(state: dict[str, Any],
                             identifier: str) -> dict[str, Any]:
     """Post-reload fixture location (card-311 discipline: ids come from the
-    RELOADED state, never from pre-save handles)."""
+    RELOADED state, never from pre-save handles). The Pro-Q 3 row is located
+    BY IDENTIFIER among the external plugin rows (volume/pan built-ins are
+    skipped); exactly one match is required."""
     user_rows = state_user_tracks(state)
     if len(user_rows) != 1:
         raise DeviceFailure(
@@ -254,22 +268,23 @@ def locate_fixture_in_state(state: dict[str, Any],
     clips = track_row.get("clips") if isinstance(track_row.get("clips"), list) else []
     if not clips:
         raise DeviceFailure("user track carries no audio clip after reload")
-    plugins = track_plugins(track_row)
-    if len(plugins) != 1:
+    all_plugins = track_plugins(track_row)
+    matches = [p for p in external_plugin_rows(track_row)
+               if first_text(p, "plugin_identifier", "identifier") == identifier]
+    if len(matches) != 1:
         raise DeviceFailure(
-            f"expected exactly 1 plugin on the user track, found {len(plugins)}")
-    plugin_row = plugins[0]
+            f"expected exactly 1 external plugin row for {identifier!r}, found "
+            f"{len(matches)} (all track plugin rows: "
+            f"{json.dumps(all_plugins, ensure_ascii=False)[:600]})")
+    plugin_row = matches[0]
     plugin_id = first_text(plugin_row, "plugin_id", "plugin_item_id", "id", "item_id")
     if not track_id or not plugin_id:
         raise DeviceFailure(
             f"track/plugin id missing in reloaded state: "
             f"{json.dumps(track_row, ensure_ascii=False)[:400]}")
-    row_identifier = first_text(plugin_row, "plugin_identifier", "identifier")
-    if row_identifier and row_identifier != identifier:
-        raise DeviceFailure(
-            f"reloaded plugin identifier {row_identifier!r} != {identifier!r}")
     return {"track_id": track_id, "plugin_id": plugin_id,
-            "track_row": track_row, "plugin_row": plugin_row}
+            "track_row": track_row, "plugin_row": plugin_row,
+            "external_plugin_count": len(external_plugin_rows(track_row))}
 
 
 def open_and_locate(project_path: str, identifier: str,
@@ -765,11 +780,11 @@ def round_boundary_check(timeout: float) -> dict[str, Any]:
     state = kernel_command({"cmd": "get_project_state", "command_timeout_ms": 60000},
                            timeout)
     user_rows = state_user_tracks(state)
-    plugin_counts = [len(track_plugins(row)) for row in user_rows]
+    external_counts = [len(external_plugin_rows(row)) for row in user_rows]
     return {
         "user_track_count": len(user_rows),
-        "plugin_counts": plugin_counts,
-        "single_track_single_plugin": len(user_rows) == 1 and plugin_counts == [1],
+        "external_plugin_counts": external_counts,
+        "single_track_single_external_plugin": len(user_rows) == 1 and external_counts == [1],
     }
 
 
@@ -859,7 +874,7 @@ def run_consolidate(run_dir: Path) -> int:
             "final_state_persisted": ((record.get("final_state_preservation") or {})
                                       .get("final_state_persisted")),
             "boundary_ok": ((record.get("boundary_check") or {})
-                            .get("single_track_single_plugin")),
+                            .get("single_track_single_external_plugin")),
             "usage": record.get("usage"),
             "unmentioned_changes": [
                 {"param_id": c.get("param_id"), "param_name": c.get("param_name"),
