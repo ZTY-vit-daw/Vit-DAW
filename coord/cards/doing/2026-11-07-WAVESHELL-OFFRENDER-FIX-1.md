@@ -20,4 +20,6 @@
 根因进入 WaveShell 闭源二进制不可修面→取证上交转「黑名单+替代路径」纯策略方案裁定。
 
 ## 领取/回执/验收
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取（取证腿·零栈先行）：2026-11-08 / origin/main=8c68c186f86f32c9e9c97c0af135a19c1bc31393 / owner=ZCode GLM-5.3 L2-worker PC 子代理（309 取证腿） / 分支 port/waveshell-offrender-fix-1 / worktree D:/Vit_DAW_wt_309recon（领取基线：HEAD=8c68c186，status 全净，diff --stat 空；worktree 内 tracktion_engine 子模块未初始化=b4397498 gitlink，取证输入用主仓 D:/Vit_DAW/tracktion_engine @ 60ab1a49 只读——301 插桩已由主管处置①落为 engine repo 独立提交，主仓子模块指针 M 属预期态，不触碰）；领取提交=本笔 coord/runs/WAVESHELL-OFFRENDER-FIX-1/（PROGRESS.md）+卡面回填，推 port 分支（派发指令明示不合入 main，协调面处置交主管）
+- 回执：（执行侧回填）
+- 验收：（主管回填）
