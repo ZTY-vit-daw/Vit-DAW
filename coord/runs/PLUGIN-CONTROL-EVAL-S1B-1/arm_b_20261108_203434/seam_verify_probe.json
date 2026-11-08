@@ -1,0 +1,176 @@
+{
+  "schema_version": "plugin_control_eval_s1b_seam_verify.v1",
+  "a_capture": "D:\\Vit_DAW_wt_312s1b\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1B-1\\arm_b_20261108_203434\\logs\\agent_llm_payload_capture.jsonl",
+  "a_rows": 11,
+  "a_request_payloads": 11,
+  "p_rows": 38,
+  "checks": {
+    "S2_five_fields_absent": {
+      "detail": {
+        "normalized_role": {
+          "a_count": 0,
+          "p_control_count": 70,
+          "a_contexts": []
+        },
+        "display_group": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "control_relevance": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "template_role": {
+          "a_count": 0,
+          "p_control_count": 36,
+          "a_contexts": []
+        },
+        "alias": {
+          "a_keyform_count": 0,
+          "a_plain_count": 8,
+          "p_keyform_count": 0,
+          "a_plain_contexts": [
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|"
+          ]
+        }
+      },
+      "method_weak_fields": []
+    },
+    "S2b_render_surface_anchor": {
+      "anchor_capture": "D:\\Vit_DAW_wt_312s1b\\coord\\runs\\PLUGIN-CONTROL-EVAL-S1B-1\\a307_reference\\t3_r1_contaminated_capture.jsonl",
+      "anchor_detection": {
+        "normalized_role": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        },
+        "template_role": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        },
+        "binding_targets": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        }
+      },
+      "a_binding_targets_rows": 0,
+      "a_binding_targets_hits": 0,
+      "note": "binding_targets is a native key that SURVIVES S2b by design (only alias/normalized_role/template_role rows are stripped); its presence is informational -- the gating assertion is S2's three-key zero-hit"
+    },
+    "S3_bare_tool_description": {
+      "a_prod_tail_count": 0,
+      "a_prod_tail_contexts": [],
+      "a_bare_count": 0,
+      "p_prod_tail_count": 0,
+      "note": "bare_count>0 proves live-stack bare disclosure when the tool is disclosed; absence is only informational (bounded disclosure may omit the tool)"
+    },
+    "S4_typed_routing_rules_absent": {
+      "a_count": 0,
+      "a_contexts": [],
+      "p_control_count": 24
+    },
+    "S5_catalog_trim": {
+      "catalog_grabber_line_rows": 0,
+      "catalog_grabber_line_hits": 0,
+      "catalog_grabber_line_contexts": [],
+      "bare_plain_string_hits": 0,
+      "bare_plain_contexts": [],
+      "catalog_bare_read_rows": 8,
+      "catalog_bare_write_rows": 8,
+      "note": "catalog-line form 'tool=plugin_grabber.*' is the 307 disclosure form (5666 hits there); plain-string hits are informational (known permitted forms: repair-echo of model hallucination, goalrunner EQ guard text -- 308 ruling); the bare read/write pair MUST be disclosed in catalog-line form or the arm has no bare write face at all"
+    },
+    "CS_control_shell_content_form": {
+      "content_form_rows": 0,
+      "content_form_hits": 0,
+      "content_form_contexts": [],
+      "keyname_form_hits": 0,
+      "note": "content form (object value) = device invalid per 308 acceptance ruling; key-name list form (result_keys etc.) = declared residual, permitted, counted informationally"
+    },
+    "S1_no_typed_takeover": {
+      "conversation_id": "pce_p_T2_r0_1794141290",
+      "tool_calls": [
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters"
+      ],
+      "typed_apply_calls": [],
+      "typed_any_calls": [],
+      "loop_tool_sequence": [
+        "get_plugin_parameters",
+        "set_plugin_param",
+        "get_plugin_parameters",
+        "set_plugin_param",
+        "get_plugin_parameters",
+        "set_plugin_param",
+        "get_plugin_parameters"
+      ],
+      "capture_sources": {
+        "ordinary_agent_semantic_entry": 1,
+        "message_loop": 8,
+        "message_loop_repair": 2
+      },
+      "semantic_entry_present": true,
+      "message_loop_present": true,
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "final_verdict": "pass"
+    },
+    "R_retrieval_face": {
+      "catalog_web_search_line_rows": 8,
+      "catalog_web_search_line_hits": 8,
+      "catalog_web_search_line_contexts": [
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl"
+      ],
+      "catalog_web_fetch_line_rows": 8,
+      "catalog_web_fetch_line_hits": 8,
+      "catalog_web_fetch_line_contexts": [
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm "
+      ],
+      "conversation_route_face": {
+        "full_catalog_conversations": [
+          "pce_p_T2_r0_1794141290"
+        ],
+        "pack_catalog_conversations": [],
+        "full_without_web_pair": [],
+        "threshold": 150
+      },
+      "probe_executed_retrieval_calls": {},
+      "note": "retrieval execution is model-initiated: zero calls is a legitimate recorded outcome, not a device failure; pack-routed rounds cannot see the web pair at all (product bounded disclosure, recorded per conversation)"
+    },
+    "model_face": {
+      "response_models": {},
+      "note": "deepseek-flash expected (product default)"
+    }
+  },
+  "verdict": "pass",
+  "failures": []
+}
