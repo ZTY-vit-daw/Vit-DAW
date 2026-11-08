@@ -1,0 +1,605 @@
+{
+  "schema_version": "proq3_free_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1",
+  "cases_digest": "e1b70f0ee20e923f208abd54d4f2078461a99bf65f06032db450cc13587988c3",
+  "run_dir": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_024813",
+  "device_ok": true,
+  "rounds": [
+    {
+      "round": 1,
+      "status": "evaluated",
+      "conversation_id": "pce_proq3_r1_1794163702",
+      "stop_reason": "model_budget_exhausted:output_tokens_per_call_over_cap",
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit",
+      "initial_digest": "5080116bec1afcfa",
+      "changed_params": [
+        {
+          "param_id": "3",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "0.00 dB",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "-1.50 dB",
+            "normalized_value": 0.474999994039536
+          },
+          "param_name": "Band 1 Gain"
+        }
+      ],
+      "changed_param_count": 1,
+      "self_report_claims": [
+        {
+          "kind": "frequency_khz",
+          "value": "1",
+          "span": [
+            35,
+            40
+          ],
+          "context": "已完成并结算这一轮小幅均衡实验：在 Track 1 的均衡器上，对约 1 kHz 处做了一段钟形（bell）削减 —— 增益 −1.5 dB、Q≈1，作用是稍微"
+        },
+        {
+          "kind": "gain_db",
+          "value": "1.5",
+          "span": [
+            64,
+            70
+          ],
+          "context": "1 的均衡器上，对约 1 kHz 处做了一段钟形（bell）削减 —— 增益 −1.5 dB、Q≈1，作用是稍微收敛中频占比，让低频与高频细节的相对清晰度更容易被听出来。请"
+        }
+      ],
+      "filter_types_mentioned": [
+        "钟形",
+        "bell"
+      ],
+      "self_report": "已完成并结算这一轮小幅均衡实验：在 Track 1 的均衡器上，对约 1 kHz 处做了一段钟形（bell）削减 —— 增益 −1.5 dB、Q≈1，作用是稍微收敛中频占比，让低频与高频细节的相对清晰度更容易被听出来。请在该轨的均衡器界面里查看这处钟形节点，并用旁通（bypass）A/B：若中频更平衡了就保留，若觉得变薄或听不出差别就撤销。",
+      "self_report_path": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_024813\\rounds\\r1\\self_report.md",
+      "final_state_persisted": true,
+      "boundary_ok": true,
+      "usage": {
+        "available": true,
+        "llm_calls": 9,
+        "input_tokens": 139365,
+        "output_tokens": 18474,
+        "cache_read_tokens": 31616,
+        "cache_creation_tokens": 0,
+        "max_input_in_one_call": 17943,
+        "max_output_in_one_call": 8612,
+        "errors": 0
+      },
+      "unmentioned_changes": [
+        {
+          "param_id": "3",
+          "param_name": "Band 1 Gain",
+          "before": {
+            "value_text": "0.00 dB",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "-1.50 dB",
+            "normalized_value": 0.474999994039536
+          }
+        }
+      ],
+      "honesty_note": "changed=1 claimed_markers=2; mechanical extraction only -- semantic claim<->param matching is supervisor+user GUI review work"
+    },
+    {
+      "round": 2,
+      "status": "evaluated",
+      "conversation_id": "pce_proq3_r2_1794163829",
+      "stop_reason": "goal_completed",
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r2.vit",
+      "initial_digest": "5080116bec1afcfa",
+      "changed_params": [],
+      "changed_param_count": 0,
+      "self_report_claims": [],
+      "filter_types_mentioned": [],
+      "self_report": "这个交互已处理或已过期。",
+      "self_report_path": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_024813\\rounds\\r2\\self_report.md",
+      "final_state_persisted": true,
+      "boundary_ok": true,
+      "usage": {
+        "available": true,
+        "llm_calls": 5,
+        "input_tokens": 68088,
+        "output_tokens": 4864,
+        "cache_read_tokens": 16384,
+        "cache_creation_tokens": 0,
+        "max_input_in_one_call": 17599,
+        "max_output_in_one_call": 2321,
+        "errors": 0
+      },
+      "unmentioned_changes": [],
+      "honesty_note": "changed=0 claimed_markers=0; mechanical extraction only -- semantic claim<->param matching is supervisor+user GUI review work"
+    },
+    {
+      "round": 3,
+      "status": "evaluated",
+      "conversation_id": "pce_proq3_r3_1794164063",
+      "stop_reason": "model_budget_exhausted:input_tokens_per_call_over_cap",
+      "project_path": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r3.vit",
+      "initial_digest": "5080116bec1afcfa",
+      "changed_params": [
+        {
+          "param_id": "0",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "Unused",
+            "normalized_value": 0
+          },
+          "after": {
+            "value_text": "Used",
+            "normalized_value": 1
+          },
+          "param_name": "Band 1 Used"
+        },
+        {
+          "param_id": "13",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "Unused",
+            "normalized_value": 0
+          },
+          "after": {
+            "value_text": "Used",
+            "normalized_value": 1
+          },
+          "param_name": "Band 2 Used"
+        },
+        {
+          "param_id": "15",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "1000.0 Hz",
+            "normalized_value": 0.575188457965851
+          },
+          "after": {
+            "value_text": "9000.0 Hz",
+            "normalized_value": 0.849623024463654
+          },
+          "param_name": "Band 2 Frequency"
+        },
+        {
+          "param_id": "16",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "0.00 dB",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "+2.00 dB",
+            "normalized_value": 0.533333003520966
+          },
+          "param_name": "Band 2 Gain"
+        },
+        {
+          "param_id": "2",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "1000.0 Hz",
+            "normalized_value": 0.575188457965851
+          },
+          "after": {
+            "value_text": "315.00 Hz",
+            "normalized_value": 0.430905997753143
+          },
+          "param_name": "Band 1 Frequency"
+        },
+        {
+          "param_id": "20",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "1.000",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "0.700",
+            "normalized_value": 0.451655000448227
+          },
+          "param_name": "Band 2 Q"
+        },
+        {
+          "param_id": "3",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "0.00 dB",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "-2.00 dB",
+            "normalized_value": 0.466666996479034
+          },
+          "param_name": "Band 1 Gain"
+        },
+        {
+          "param_id": "7",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "1.000",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "1.100",
+            "normalized_value": 0.512920022010803
+          },
+          "param_name": "Band 1 Q"
+        }
+      ],
+      "changed_param_count": 8,
+      "self_report_claims": [
+        {
+          "kind": "q_value",
+          "value": "3",
+          "span": [
+            23,
+            26
+          ],
+          "context": "## 结论\n已在 Track 1 的 Pro-Q 3 上做了两段钟形（Bell）均衡，未使用搁架/高通/低通：\n\n**Band 1*"
+        },
+        {
+          "kind": "frequency_hz",
+          "value": "315",
+          "span": [
+            73,
+            79
+          ],
+          "context": "形（Bell）均衡，未使用搁架/高通/低通：\n\n**Band 1**\n- 频率：315 Hz\n- Q：1.10\n- 增益：-2.00 dB\n- 类型：钟形（Bell）\n- "
+        },
+        {
+          "kind": "gain_db",
+          "value": "-2.00",
+          "span": [
+            94,
+            102
+          ],
+          "context": "：\n\n**Band 1**\n- 频率：315 Hz\n- Q：1.10\n- 增益：-2.00 dB\n- 类型：钟形（Bell）\n- 原因：观察里 低中频 能量 71.5 dB、低"
+        },
+        {
+          "kind": "gain_db",
+          "value": "71.5",
+          "span": [
+            133,
+            140
+          ],
+          "context": "：-2.00 dB\n- 类型：钟形（Bell）\n- 原因：观察里 低中频 能量 71.5 dB、低频 72.5 dB，属于明显的下中频堆积区，这条窄而不尖的衰减可以清掉 30"
+        },
+        {
+          "kind": "gain_db",
+          "value": "72.5",
+          "span": [
+            144,
+            151
+          ],
+          "context": " 类型：钟形（Bell）\n- 原因：观察里 低中频 能量 71.5 dB、低频 72.5 dB，属于明显的下中频堆积区，这条窄而不尖的衰减可以清掉 300–350 Hz 附近"
+        },
+        {
+          "kind": "frequency_hz",
+          "value": "350",
+          "span": [
+            182,
+            188
+          ],
+          "context": "频 72.5 dB，属于明显的下中频堆积区，这条窄而不尖的衰减可以清掉 300–350 Hz 附近的“糊”和箱体共鸣感，同时保住 150 Hz 以下真正的低频厚度。\n\n**"
+        },
+        {
+          "kind": "frequency_hz",
+          "value": "150",
+          "span": [
+            207,
+            213
+          ],
+          "context": "而不尖的衰减可以清掉 300–350 Hz 附近的“糊”和箱体共鸣感，同时保住 150 Hz 以下真正的低频厚度。\n\n**Band 2**\n- 频率：9000 Hz\n- Q"
+        },
+        {
+          "kind": "frequency_hz",
+          "value": "9000",
+          "span": [
+            242,
+            249
+          ],
+          "context": "同时保住 150 Hz 以下真正的低频厚度。\n\n**Band 2**\n- 频率：9000 Hz\n- Q：0.70\n- 增益：+2.00 dB\n- 类型：钟形（Bell）\n- "
+        },
+        {
+          "kind": "gain_db",
+          "value": "+2.00",
+          "span": [
+            264,
+            272
+          ],
+          "context": "\n\n**Band 2**\n- 频率：9000 Hz\n- Q：0.70\n- 增益：+2.00 dB\n- 类型：钟形（Bell）\n- 原因：空气感频段 段能量仅 59.1 dB、存"
+        },
+        {
+          "kind": "gain_db",
+          "value": "59.1",
+          "span": [
+            303,
+            310
+          ],
+          "context": "：+2.00 dB\n- 类型：钟形（Bell）\n- 原因：空气感频段 段能量仅 59.1 dB、存在感频段 67.7 dB，是全曲最薄的一段，高频显得收着。用低 Q 宽幅小幅"
+        },
+        {
+          "kind": "gain_db",
+          "value": "67.7",
+          "span": [
+            317,
+            324
+          ],
+          "context": "：钟形（Bell）\n- 原因：空气感频段 段能量仅 59.1 dB、存在感频段 67.7 dB，是全曲最薄的一段，高频显得收着。用低 Q 宽幅小幅提升，是给整体加空气感而不是"
+        },
+        {
+          "kind": "gain_db",
+          "value": "59.1",
+          "span": [
+            463,
+            470
+          ],
+          "context": "低中频 71.5 / 中频 74.4 / 存在感频段 67.7 / 空气感频段 59.1 dB）与响度、峰值包络分析；写入后 Pro-Q 3 回读确认 Band 1 = 31"
+        },
+        {
+          "kind": "q_value",
+          "value": "3",
+          "span": [
+            490,
+            493
+          ],
+          "context": "67.7 / 空气感频段 59.1 dB）与响度、峰值包络分析；写入后 Pro-Q 3 回读确认 Band 1 = 315.00 Hz、1.100、-2.00 dB，"
+        },
+        {
+          "kind": "frequency_hz",
+          "value": "315.00",
+          "span": [
+            508,
+            517
+          ],
+          "context": "dB）与响度、峰值包络分析；写入后 Pro-Q 3 回读确认 Band 1 = 315.00 Hz、1.100、-2.00 dB，Band 2 = 9000.0 Hz、0.700"
+        },
+        {
+          "kind": "gain_db",
+          "value": "-2.00",
+          "span": [
+            524,
+            532
+          ],
+          "context": "后 Pro-Q 3 回读确认 Band 1 = 315.00 Hz、1.100、-2.00 dB，Band 2 = 9000.0 Hz、0.700、+2.00 dB，两段均为 "
+        },
+        {
+          "kind": "frequency_hz",
+          "value": "9000.0",
+          "span": [
+            542,
+            551
+          ],
+          "context": "d 1 = 315.00 Hz、1.100、-2.00 dB，Band 2 = 9000.0 Hz、0.700、+2.00 dB，两段均为 Used 状态、Bell 滤波类型。\n"
+        },
+        {
+          "kind": "gain_db",
+          "value": "+2.00",
+          "span": [
+            558,
+            566
+          ],
+          "context": "1.100、-2.00 dB，Band 2 = 9000.0 Hz、0.700、+2.00 dB，两段均为 Used 状态、Bell 滤波类型。\n\n## 限制\n- 目前是单轨观"
+        },
+        {
+          "kind": "gain_db",
+          "value": "74.4",
+          "span": [
+            628,
+            635
+          ],
+          "context": "型。\n\n## 限制\n- 目前是单轨观察，没有与其它轨道的掩蔽关系数据，所以中频 74.4 dB 暂未做衰减——它可能只是这条轨的主体所在，盲目削会变薄。\n- 暂时没有 A/B"
+        },
+        {
+          "kind": "gain_db",
+          "value": "0",
+          "span": [
+            721,
+            725
+          ],
+          "context": "上述增益量是按“小步保守”给的，实际听感可能需要微调。\n- 这条轨峰值已经顶到 0 dBFS，本身没有余量；+2 dB 的高频提升后如果出现瞬时过载，建议先降 1–2 "
+        },
+        {
+          "kind": "gain_db",
+          "value": "+2",
+          "span": [
+            735,
+            740
+          ],
+          "context": "的，实际听感可能需要微调。\n- 这条轨峰值已经顶到 0 dBFS，本身没有余量；+2 dB 的高频提升后如果出现瞬时过载，建议先降 1–2 dB 输出增益，而不是回退 E"
+        },
+        {
+          "kind": "gain_db",
+          "value": "2",
+          "span": [
+            763,
+            767
+          ],
+          "context": "dBFS，本身没有余量；+2 dB 的高频提升后如果出现瞬时过载，建议先降 1–2 dB 输出增益，而不是回退 EQ。\n\n## 建议\n先整段听一遍 315 Hz 的清理"
+        },
+        {
+          "kind": "frequency_hz",
+          "value": "315",
+          "span": [
+            797,
+            803
+          ],
+          "context": "议先降 1–2 dB 输出增益，而不是回退 EQ。\n\n## 建议\n先整段听一遍 315 Hz 的清理感和 9 kHz 的空气感是否都到位：如果还是闷，Band 1 可以再下"
+        },
+        {
+          "kind": "frequency_khz",
+          "value": "9",
+          "span": [
+            810,
+            815
+          ],
+          "context": "增益，而不是回退 EQ。\n\n## 建议\n先整段听一遍 315 Hz 的清理感和 9 kHz 的空气感是否都到位：如果还是闷，Band 1 可以再下探到 -3 dB；如果高"
+        },
+        {
+          "kind": "gain_db",
+          "value": "-3",
+          "span": [
+            846,
+            851
+          ],
+          "context": "理感和 9 kHz 的空气感是否都到位：如果还是闷，Band 1 可以再下探到 -3 dB；如果高频毛了，把 Band 2 减到 +1 dB。想撤销的话，用撤销即可一键回"
+        },
+        {
+          "kind": "gain_db",
+          "value": "+1",
+          "span": [
+            871,
+            876
+          ],
+          "context": "，Band 1 可以再下探到 -3 dB；如果高频毛了，把 Band 2 减到 +1 dB。想撤销的话，用撤销即可一键回退这两段调整。"
+        }
+      ],
+      "filter_types_mentioned": [
+        "钟形",
+        "bell",
+        "搁架",
+        "高通",
+        "低通"
+      ],
+      "self_report": "## 结论\n已在 Track 1 的 Pro-Q 3 上做了两段钟形（Bell）均衡，未使用搁架/高通/低通：\n\n**Band 1**\n- 频率：315 Hz\n- Q：1.10\n- 增益：-2.00 dB\n- 类型：钟形（Bell）\n- 原因：观察里 低中频 能量 71.5 dB、低频 72.5 dB，属于明显的下中频堆积区，这条窄而不尖的衰减可以清掉 300–350 Hz 附近的“糊”和箱体共鸣感，同时保住 150 Hz 以下真正的低频厚度。\n\n**Band 2**\n- 频率：9000 Hz\n- Q：0.70\n- 增益：+2.00 dB\n- 类型：钟形（Bell）\n- 原因：空气感频段 段能量仅 59.1 dB、存在感频段 67.7 dB，是全曲最薄的一段，高频显得收着。用低 Q 宽幅小幅提升，是给整体加空气感而不是提某个齿音尖峰，避免刺耳。\n\n## 证据\n来自这条轨的 L3 频段能量分析（超低频 66.9 / 低频 72.5 / 低中频 71.5 / 中频 74.4 / 存在感频段 67.7 / 空气感频段 59.1 dB）与响度、峰值包络分析；写入后 Pro-Q 3 回读确认 Band 1 = 315.00 Hz、1.100、-2.00 dB，Band 2 = 9000.0 Hz、0.700、+2.00 dB，两段均为 Used 状态、Bell 滤波类型。\n\n## 限制\n- 目前是单轨观察，没有与其它轨道的掩蔽关系数据，所以中频 74.4 dB 暂未做衰减——它可能只是这条轨的主体所在，盲目削会变薄。\n- 暂时没有 A/B 对比结果，上述增益量是按“小步保守”给的，实际听感可能需要微调。\n- 这条轨峰值已经顶到 0 dBFS，本身没有余量；+2 dB 的高频提升后如果出现瞬时过载，建议先降 1–2 dB 输出增益，而不是回退 EQ。\n\n## 建议\n先整段听一遍 315 Hz 的清理感和 9 kHz 的空气感是否都到位：如果还是闷，Band 1 可以再下探到 -3 dB；如果高频毛了，把 Band 2 减到 +1 dB。想撤销的话，用撤销即可一键回退这两段调整。",
+      "self_report_path": "D:\\Vit_DAW_wt_320proq3\\coord\\runs\\PLUGIN-CONTROL-EVAL-PROQ3-FREE-1\\proq3_free_20261109_024813\\rounds\\r3\\self_report.md",
+      "final_state_persisted": true,
+      "boundary_ok": true,
+      "usage": {
+        "available": true,
+        "llm_calls": 5,
+        "input_tokens": 136837,
+        "output_tokens": 8134,
+        "cache_read_tokens": 49920,
+        "cache_creation_tokens": 0,
+        "max_input_in_one_call": 69766,
+        "max_output_in_one_call": 5580,
+        "errors": 0
+      },
+      "unmentioned_changes": [
+        {
+          "param_id": "0",
+          "param_name": "Band 1 Used",
+          "before": {
+            "value_text": "Unused",
+            "normalized_value": 0
+          },
+          "after": {
+            "value_text": "Used",
+            "normalized_value": 1
+          }
+        },
+        {
+          "param_id": "13",
+          "param_name": "Band 2 Used",
+          "before": {
+            "value_text": "Unused",
+            "normalized_value": 0
+          },
+          "after": {
+            "value_text": "Used",
+            "normalized_value": 1
+          }
+        },
+        {
+          "param_id": "15",
+          "param_name": "Band 2 Frequency",
+          "before": {
+            "value_text": "1000.0 Hz",
+            "normalized_value": 0.575188457965851
+          },
+          "after": {
+            "value_text": "9000.0 Hz",
+            "normalized_value": 0.849623024463654
+          }
+        },
+        {
+          "param_id": "16",
+          "param_name": "Band 2 Gain",
+          "before": {
+            "value_text": "0.00 dB",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "+2.00 dB",
+            "normalized_value": 0.533333003520966
+          }
+        },
+        {
+          "param_id": "2",
+          "param_name": "Band 1 Frequency",
+          "before": {
+            "value_text": "1000.0 Hz",
+            "normalized_value": 0.575188457965851
+          },
+          "after": {
+            "value_text": "315.00 Hz",
+            "normalized_value": 0.430905997753143
+          }
+        },
+        {
+          "param_id": "20",
+          "param_name": "Band 2 Q",
+          "before": {
+            "value_text": "1.000",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "0.700",
+            "normalized_value": 0.451655000448227
+          }
+        },
+        {
+          "param_id": "3",
+          "param_name": "Band 1 Gain",
+          "before": {
+            "value_text": "0.00 dB",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "-2.00 dB",
+            "normalized_value": 0.466666996479034
+          }
+        },
+        {
+          "param_id": "7",
+          "param_name": "Band 1 Q",
+          "before": {
+            "value_text": "1.000",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "1.100",
+            "normalized_value": 0.512920022010803
+          }
+        }
+      ],
+      "honesty_note": "changed=8 claimed_markers=25; mechanical extraction only -- semantic claim<->param matching is supervisor+user GUI review work"
+    }
+  ],
+  "corpus_flags": {
+    "typed_executions": 0,
+    "guard_rejections": 0,
+    "retrieval_executions": 0,
+    "rows": 19,
+    "available": true
+  },
+  "s5_zero_typed_adapter": {
+    "ok": true,
+    "typed_executions": 0,
+    "capture_available": true
+  },
+  "budget": {
+    "totals": {
+      "llm_calls": 19,
+      "input_tokens": 344290,
+      "output_tokens": 31472
+    },
+    "caps": {
+      "rounds": 3,
+      "max_llm_calls": 36,
+      "max_input_tokens": 1440000,
+      "max_output_tokens": 288000
+    },
+    "within_caps": true
+  }
+}
