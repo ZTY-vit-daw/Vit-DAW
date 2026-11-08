@@ -24,4 +24,6 @@ Pro-Q 3 不在 registry/无法装载→取证上交（换 EQ 插件须用户裁�
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填+用户 GUI 终审）
+- 领取：2026-11-08 22:56 +0800 / origin/main=1883021b4ee0383c6b00e0c2223546be230f969d（fetch 亲证，=发卡要求基线；含 318 缝与全套工件）/ owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 320 proq3 free runner，派发已确认）/ 分支=port/plugin-control-eval-proq3-free-1 / worktree=D:/Vit_DAW_wt_320proq3 / 领取提交=coord/320-claim→main。领取基线：fresh worktree 自 origin/main 1883021b，`git status --short`=0 行、`git diff --stat`=空（全净）。在飞卡域核对：doing 九卡（319 BAREFREE-T1=harness.go 守卫区+T1 工件域、EDU-ASK-ANCHOR-1、ARRLOOP-AUTHBRIDGE-1、CLOSURE-ROUTE-ADAPT-1、WAVESHELL-OFFRENDER-FIX-1=C++ 域、LEGAME 三卡、S1B=工件目录+编排+tools 缝域）与本卡（coord/runs/PLUGIN-CONTROL-EVAL-PROQ3-FREE-1/ 工件目录 + 本卡面 + %APPDATA%\Vit-DAW\projects\ 三工程布位[用户数据域持久位，311 先例] + 冻结 runner 只读 import）不相交；agent 源码零改动（卡面约束，缝全在 main 亲证：318 双缝在 origin/main 1883021b）。Pro-Q 3 registry 在案预核：identifier=VST3-Pro-Q 3-a1aba170-ba5f7ab2、path=C:\Program Files\Common Files\VST3\FabFilter\FabFilter Pro-Q 3.vst3（FE-LANE-VIEW-TUNING-1 BridgeReplies plugin_list 亲读；活栈装载亲证留装置门）。栈排队 319 之后：登记前重读 coord/resources/PC-RUNTIME-STACK.md 顶部，等待不抢。
+- 回执：（执行侧回填）
+- 验收：（主管回填+用户 GUI 终审）
