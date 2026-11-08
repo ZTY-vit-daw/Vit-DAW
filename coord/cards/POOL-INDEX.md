@@ -40,7 +40,7 @@
 | 307 | PLUGIN-CONTROL-EVAL-S1A-1 | done 已验收 pass（A=P=5/6 同构；两装置发现→S5/S2b 开卡 308；T4 疑似规则缺陷批次前修） |
 | 308 | PLUGIN-CONTROL-EVAL-SEAM2-1 | done 已验收 pass 合入（S5 三出口裁族+S2b 渲染剥离+三态字节不变；control_shell=键名残留接受；310 解锁） |
 | 310 | PLUGIN-CONTROL-EVAL-APURE-1 | done 终验 pass 收口（**A-pure 3/6 vs A 5/6 vs P 5/6：写入类=typed 承重，裸面 T1/T3/T4 全败/T2 裸写唯一过/读观察等价**；B 段 go 候手测后；开放录音棚=适配层须 typed 等价面） |
-| 311 | M2-HANDTEST-PREP-1 | todo 在派候栈（手测前置腿：乐局工程持久布位+旅程可达+282 轻腿搭载+生成路由核验；候 310 释放栈；exit 0=手测放行） |
+| 311 | M2-HANDTEST-PREP-1 | done 终验 pass 合入（exit 0 手测放行：工程布位亲证+VIT_EDU_LEVELS_DIR/YuE2 前置入清单 §〇；282 离线兑现；GUI 最后一米=用户本体） |
 | 306 | GEN-VOCALSEP-1 | done 已验收 pass（三 vocals stem 候用户试听终审；集成腿候后续卡） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | done 已验收 pass（**候选②排除+定性 WaveShell 插件兼容**；M3 证活渲染管线；转卡 309） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |

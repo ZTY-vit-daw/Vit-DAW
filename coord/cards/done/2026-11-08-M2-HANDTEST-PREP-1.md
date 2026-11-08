@@ -48,3 +48,8 @@
 ## 验收
 
 - （主管回填）
+
+### 终验（主管，2026-11-08 晚窗）
+
+- **pass 整卡收口+合入 main**——工程布位亲证（%APPDATA%\Vit-DAW\projects\手测·小星星乐局.vit 在位+启动页列表同源 API 首项）；勘察修正采信（启动页列表=内核 VitGlobalProjectConfig 而非 agent workspace 体系——布位落点正确）；exit 0 全相（布位/旅程 enter→n0→exit/生成路由三证据+治理确认门在位）；**VIT_EDU_LEVELS_DIR 必做前置**（edu_jam_chat.go:1109 fail-closed 锚点）与 **YuE2/providers 前置**如实入清单 §〇；282 按预裁离线证据兑现+边界标注正确；预算超限 1 行（4 vs 申报 1-3）如实记录金额≪¥0.1 可容忍；-NoStripSilenceSmoke 新传参记录接受。
+- **手测放行生效**：步骤清单 §〇 自本合入起对用户生效。Godot GUI 最后一米=用户手测本体（AGENTS §5 边界如实）。
