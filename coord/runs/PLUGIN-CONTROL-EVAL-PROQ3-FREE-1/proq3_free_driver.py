@@ -859,7 +859,12 @@ def extract_first_action(record: dict[str, Any]) -> Optional[dict[str, Any]]:
 # consolidate leg (offline)
 # ---------------------------------------------------------------------------
 
-TYPED_EXECUTION_RE = re.compile(r"plugin_grabber\.(?:inspect|apply)_\w+")
+# 322 final-performance batch (coordinator directive): S5 trims the WHOLE
+# plugin_grabber family from the model-facing catalog (inspect_*/apply_* plus
+# explain_controls/apply_eq_edits/set_eq_point), so the corpus assertion
+# matches ANY plugin_grabber.* occurrence -- after S5 any typed call is a
+# device failure, which is the hard evidence that no control script ran.
+TYPED_EXECUTION_RE = re.compile(r"plugin_grabber\.\w+")
 GUARD_REJECTION_RE = re.compile(
     r"typed_(?:eq|compressor|limiter|de_esser|gate_expander|transient_shaper|multiband)"
     r"_(?:surface_unavailable|control_required)|tool_gate|broad_mix_observe_first_write_guard")
@@ -893,12 +898,24 @@ def run_consolidate(run_dir: Path) -> int:
     device_path = run_dir / "device" / "device_report.json"
     if device_path.exists():
         device = json.loads(device_path.read_text(encoding="utf-8"))
+    flags = corpus_flags(capture)
+    # 322 final-performance batch: S5 hard gate -- with the seam open the whole
+    # plugin_grabber family is off the model catalog, so ANY typed-adapter
+    # execution in the round corpus is a DEVICE failure (exit 4), never a
+    # model outcome. capture_available=false would mean the capture face broke
+    # (cannot prove zero-typed) -- also a device failure.
+    s5_ok = bool(flags.get("available")) and flags.get("typed_executions") == 0
     summary: dict[str, Any] = {
         "schema_version": "proq3_free_summary.v1", "card": cases.CARD,
         "cases_digest": cases.cases_digest(),
         "run_dir": str(run_dir),
         "device_ok": bool(device.get("ok")),
-        "rounds": [], "corpus_flags": corpus_flags(capture),
+        "rounds": [], "corpus_flags": flags,
+        "s5_zero_typed_adapter": {
+            "ok": s5_ok,
+            "typed_executions": flags.get("typed_executions"),
+            "capture_available": bool(flags.get("available")),
+        },
     }
     changed_rows_by_round: dict[int, list[dict[str, Any]]] = {}
     for round_no in cases.ROUNDS:
@@ -958,8 +975,12 @@ def run_consolidate(run_dir: Path) -> int:
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
     write_reconciliation_md(run_dir, summary)
     evaluated = sum(1 for r in summary["rounds"] if r.get("status") == "evaluated")
-    print(json.dumps({"evaluated": evaluated, "out": str(run_dir / "proq3_free_summary.json")},
+    print(json.dumps({"evaluated": evaluated, "s5_zero_typed_adapter": s5_ok,
+                      "out": str(run_dir / "proq3_free_summary.json")},
                      ensure_ascii=False))
+    if not s5_ok:
+        # S5 violation outranks the evaluated count: device failure (exit 4).
+        return 4
     return 0 if evaluated == len(cases.ROUNDS) else 1
 
 
@@ -1127,19 +1148,24 @@ def run_selftest() -> int:
     expect("digest equal for equal faces", d1 == d2)
     expect("digest differs for changed faces", d1 != d3)
 
-    # corpus flags on synthetic rows
+    # corpus flags on synthetic rows (322 final batch: whole plugin_grabber
+    # family counts as typed -- explain_controls row must trip the counter too)
     tmp = Path(__file__).parent / "_selftest_capture.jsonl"
     tmp.write_text(
         '{"row":1,"tool":"plugin_grabber.apply_eq_controls"}\n'
         '{"row":2,"text":"typed_eq_surface_unavailable"}\n'
         '{"row":3,"tool":"web.search"}\n'
-        '{"row":4,"tool":"plugin.get_parameters"}\n', encoding="utf-8")
+        '{"row":4,"tool":"plugin.get_parameters"}\n'
+        '{"row":5,"tool":"plugin_grabber.explain_controls"}\n', encoding="utf-8")
     flags = corpus_flags(tmp)
     tmp.unlink(missing_ok=True)
-    expect("corpus flags count", flags["typed_executions"] == 1
+    expect("corpus flags count", flags["typed_executions"] == 2
            and flags["guard_rejections"] == 1
-           and flags["retrieval_executions"] == 1 and flags["rows"] == 4,
+           and flags["retrieval_executions"] == 1 and flags["rows"] == 5,
            f"got {flags}")
+    expect("s5 gate logic", (bool(flags["available"])
+                             and flags["typed_executions"] == 0) is False,
+           "synthetic corpus with typed rows must fail the S5 gate")
 
     print(("selftest " + ("PASS" if not failures else f"FAIL ({len(failures)})")))
     return 0 if not failures else 1

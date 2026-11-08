@@ -52,7 +52,7 @@ $LogsDir = Join-Path $RunRoot "logs"
 New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null
 $ProjectsDir = Join-Path $env:APPDATA "Vit-DAW\projects"
 
-$sec8Decl = "T7 free-control Pro-Q 3 FINAL BATCH (kernel WITH 321 rack-param-persistence fix 950cf07b..30f5; BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 both set before any process start AND psutil-verified on the live agent process pre-paid; NO retrieval seam, NO prompt seam): zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + start-page recent + initial-state equivalence + known-op bare write must land + save/open persistence -- now expected PASS under the 321 fix) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); final states PRESERVED for the user's GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (honesty observation) + persistence_failure; single run, no rerun; device/env failure after paid rounds = forensics hand-over; full declaration in RUNBOOK.md final-batch section (frozen pre-run)"
+$sec8Decl = "T7 free-control Pro-Q 3 FINAL-PERFORMANCE BATCH (card 322 leg 2, supervisor unlock after 323 EQ-RECEIPT-VENDOR-EXPAND-1 merged f44dc31d; kernel WITH 321 rack-param-persistence fix 950cf07b..30f5; BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 both set before any process start AND psutil-verified on the live agent process pre-paid; NO retrieval seam, NO prompt seam): whitelist now contains Pro-Q 3 (card-322 leg-1 certification + derive applied BEFORE this stack starts), so the r3-type certified-list refusal is closed; S5 typed-catalog trim proven by seam unit tests pre-paid (phase 2c, TestSeamS5*) AND by a post-run corpus hard gate (consolidate: ANY plugin_grabber.* execution = device failure exit 4); zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + start-page recent + initial-state equivalence + known-op bare write must land + save/open persistence) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); fix#6 approve-face 150s in the round driver; KNOWN LLM-layer timeout family (agent 60s client timeout / transient_llm_error / waiting_continue / chat timeout) = single-round environmental record, batch CONTINUES (supervisor directive: only ALL rounds failing on the LLM layer routes to forensics, final exit 3 with forensics_flag); other environment failures keep the two-consecutive stop-loss; final states PRESERVED for the user's GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (honesty observation) + persistence_failure + llm_timeout_known_pattern; single run, no rerun; full declaration in RUNBOOK.md final-performance-batch section (frozen pre-run)"
 $report = [ordered]@{
     card            = "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1"
     leg             = "proq3_free"
@@ -219,6 +219,31 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
     }
     Write-Ok "agent process carries both seam envs (psutil-verified)"
 
+    # ---------------- phase 2c: S5 typed-catalog trim proof (322 final batch)
+    # Coordinator directive: the model must be UNABLE to use control scripts --
+    # S5 (SEAM2-1) trims every plugin_grabber.* spec from the model-facing
+    # catalog faces and the allowedTool admission gate rejects hallucinated
+    # calls. The seam unit tests pin that mechanism on this exact agent source
+    # (the running binary is built from this worktree); the behavioral face is
+    # covered post-run by the consolidate corpus hard gate (exit 4 on ANY
+    # plugin_grabber.* execution).
+    Write-Step "Phase 2c: S5 typed-catalog trim proof (seam unit tests, zero LLM)"
+    $s5Log = Join-Path $RunRoot "s5_seam_unit_tests.log"
+    Push-Location (Join-Path $RepoRoot "agent")
+    try {
+        & go test ./internal/tools -run 'TestSeamS5' -count=1 2>&1 | Tee-Object -FilePath $s5Log | Out-Null
+        $s5Exit = $LASTEXITCODE
+    } finally { Pop-Location }
+    $report.s5_seam_unit_test_exit = $s5Exit
+    if ($s5Exit -ne 0) {
+        $report.verdict = "device_invalid_s5_seam_unit_tests"
+        $report.finished_at = (Get-Date).ToString("o"); Save-Json $report "run_report.json"
+        Write-Fail "S5 seam unit tests FAILED -- exit 4, no paid rounds"
+        $driverExit = 0; $finalExit = 4
+        throw ("S5 seam unit tests exit=" + $s5Exit)
+    }
+    Write-Ok "S5 seam unit tests green (catalog trims typed adapters open / byte-for-byte closed)"
+
     # ---------------- phase 3: driver env
     $env:PYTHONPATH = (Join-Path $RepoRoot "scripts")
     $Driver = Join-Path $ArtifactRoot "proq3_free_driver.py"
@@ -252,6 +277,7 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
     $totals = @{ llm_calls = 0; input_tokens = 0; output_tokens = 0 }
     $roundsIndex = @()
     $consecEnvInterrupt = 0
+    $llmLayerFailures = 0
     $segmentStop = ""
     :outer foreach ($r in 1..3) {
         if ($segmentStop -ne "") {
@@ -291,15 +317,28 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
                 round_dir = (Join-Path $RoundsDir ("r" + $r))
             }
             $consecEnvInterrupt = 0
+            $stopTxt = [string]$rec.stop_reason
+            if ($stopTxt -match "wall_clock_timeout|transient_llm_error|llm_timeout") { $llmLayerFailures++ }
             Write-Ok ("r" + $r + " evaluated stop=" + $rec.stop_reason + " changed=" + @($rec.mutation_audit).Count + " persisted=" + $rec.final_state_preservation.final_state_persisted)
         }
         else {
             $errTail = ""
             if (Test-Path -LiteralPath $rLog) { $errTail = ((Get-Content -LiteralPath $rLog -Tail 6) -join " | ") }
+            # 322 final batch (supervisor directive): the KNOWN LLM-layer
+            # timeout family (agent 60s client timeout / transient_llm_error /
+            # waiting_continue spin / chat-timeout exception) is a single-round
+            # environmental record -- the batch CONTINUES and it does NOT feed
+            # the two-consecutive environment stop-loss; only ALL rounds
+            # failing on the LLM layer routes to forensics (flag below).
+            $isLlmLayer = $errTail -match "ms=60002|transient_llm_error|waiting_continue|timed out|context canceled|wall_clock_timeout"
             $isHarness = $errTail -match "RuntimeError|DeviceFailure|Traceback"
-            $class = $(if ($isHarness) { "harness_invalid" } else { "environment_interruption" })
+            $class = $(if ($isLlmLayer) { "llm_timeout_known_pattern" } elseif ($isHarness) { "harness_invalid" } else { "environment_interruption" })
             $roundsIndex += [ordered]@{ round = $r; exit = $rExit; status = $class; error_tail = $errTail }
-            if ($class -eq "environment_interruption") {
+            if ($class -eq "llm_timeout_known_pattern") {
+                $llmLayerFailures++
+                Write-Warn2 ("llm_timeout_known_pattern on r" + $r + " -- recorded (known pattern), batch continues")
+            }
+            elseif ($class -eq "environment_interruption") {
                 $consecEnvInterrupt += 1
                 Write-Fail ("environment_interruption on r" + $r + " (consecutive=" + $consecEnvInterrupt + ")")
                 if ($consecEnvInterrupt -ge 2) {
@@ -313,6 +352,13 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
         }
     }
     $report.task_rounds = $roundsIndex
+    $report.llm_layer_failures = $llmLayerFailures
+    if ($llmLayerFailures -ge 3) {
+        # supervisor directive: only ALL rounds failing on the LLM layer
+        # routes the batch to forensics hand-over (exit 3 + forensics_flag).
+        $report.forensics_flag = "all_rounds_llm_layer_failed"
+        Write-Fail "ALL rounds failed on the LLM layer -- forensics hand-over (LLM-layer evidence pack already on file)"
+    }
     $report.segment_budget = @{ totals = $totals; caps = $caps;
         within_caps = ($totals["llm_calls"] -le $caps["max_llm_calls"] -and
                        $totals["input_tokens"] -le $caps["max_input_tokens"] -and
@@ -329,11 +375,18 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
     $consExit = $LASTEXITCODE
     $ErrorActionPreference = $prevEap
     $report.consolidate_exit = $consExit
-    if ($consExit -ne 0) { Write-Warn2 ("consolidation exit=" + $consExit + " (raw round records remain authoritative)") }
+    if ($consExit -eq 4) {
+        # 322 final batch: the consolidate S5 hard gate tripped (a typed
+        # adapter executed in the corpus) -- device verification failure.
+        $report.verdict = "device_verification_failed_s5_typed_adapter"
+        Write-Fail "consolidate S5 hard gate VIOLATED (typed adapter execution in corpus) -- exit 4"
+    }
+    elseif ($consExit -ne 0) { Write-Warn2 ("consolidation exit=" + $consExit + " (raw round records remain authoritative)") }
 
     $driverExit = 0
-    if ($evaluated -eq 3 -and $segmentStop -eq "" -and $consExit -eq 0) { $finalExit = 0 }
-    elseif ($segmentStop -ne "") { $finalExit = 3 }
+    if ($consExit -eq 4) { $finalExit = 4 }
+    elseif ($evaluated -eq 3 -and $segmentStop -eq "" -and $consExit -eq 0) { $finalExit = 0 }
+    elseif ($segmentStop -ne "" -or $report.forensics_flag) { $finalExit = 3 }
     else { $finalExit = 1 }
     $report.verdict = "driver_complete"
 }

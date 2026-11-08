@@ -60,3 +60,13 @@
 - **agent env 透传**：两缝 env 在任何进程启动前置入编排进程（Start-Process 继承制，run3 known-op 落地=透传实证）；321 域外记录（-RestartAgent 链 env 语义）以**编排 phase 2b psutil 活体亲证**覆盖——agent 进程 env 两键非 "1" = exit 4 不进付费轮。
 - **运行次数/预算**：本批单 run 无重跑（新 run 目录）；任务轮恰好 3；预算 ≈¥1（≤36 调用/≤1.44M in/≤288k out，deepseek-flash 用户账户）；失败分类维持 §四全集（self_report_mismatch 观察类维持）；**付费轮后装置/环境失败=取证上交不重跑**；结果三态如实记录（写入落地与否/自报一致性/守卫拦截类）。
 - **交付物**：三轮终态工程保留在 %APPDATA%\Vit-DAW\projects（实验·ProQ3 裸控 r1/r2/r3.vit，不删——用户 GUI 终审物）+三轮自报告全文+对账表草稿（reconciliation_draft.md）——用户从 Godot 启动页打开→机架→Pro-Q 3 GUI 肉眼比对频段/频率/Q/增益/类型。
+
+## 八、终演批（322 腿二）跑前口径（§8 增补冻结，2026-11-09 凌晨，主管终演指令+协调者纠偏）
+
+- **解锁依据**：323 EQ-RECEIPT-VENDOR-EXPAND-1 终验 pass 合入 main（f44dc31d）——两道厂商门扩容（`fabfilter.static_eq.eq_channel_live_smoke.v1`）；322 腿一先行落库（Pro-Q 3 v1 static_eq promoted+白名单 static_eq 域含 Pro-Q 3）**先于本批栈启动完成**——r3 型拒调（认证清单缺件）由此关闭。用户实验意图（卡面）：验证**模型裸手控制 Pro-Q 3**——自选 EQ 调整（频段/频率/Q/增益/类型全自报）、裸参数写入落地、终态保留、用户 GUI 对账「它说的=它调的」；**控制脚本零参与**。
+- **配置**：BAREFREE 缝（SEAM=1+BAREWRITE=1，320 终局批同款）；S5（SEAM2-1 typed 目录剥除）随 SEAM=1 生效——**装置门增补两层亲证**：①phase 2c 零 LLM 跑 `go test ./internal/tools -run TestSeamS5 -count=1`（本 worktree 源=运行二进制同源；失败=exit 4 不进付费轮）；②consolidate 硬门——语料任何 `plugin_grabber.*` 执行=装置失效 exit 4（协调者指令：「没用控制脚本」的硬证据）。
+- **运行次数/预算**：单 run（run9）无重跑；任务轮恰好 3（r1/r2/r3 各一，独立工程副本）；预算 ≈¥1 上界（caps 同 §四：3 轮×12 调用/1.44M in/288k out，deepseek-flash 用户账户）。
+- **失败分类增补**：`llm_timeout_known_pattern`（**单轮环境类，批续跑**——60s 超时是已知模式非失败面，主管终演指令原文；含 transient_llm_error/waiting_continue/chat timeout 族）；其余维持 §四全集（device 门失败 exit 4 停；非 LLM 环境类两连止损；同型两连禁原样重跑；typed 执行→exit 4 装置失效）。
+- **止损线（LLM 层专项）**：**仅全轮（3/3）LLM 层失败→取证上交**（forensics_flag=all_rounds_llm_layer_failed，exit 3；LLM 层取证包已在卷）；单轮/两轮 LLM 层失败=如实记录批正常收口。
+- **fix#6**（approve 面 150s）在 round driver（--chat-timeout 150 默认已生效）；内核=321 修复构建 950cf07b…30f5 不变。
+- **交付物**：三工程保留+三轮自报告全文+对账表（reconciliation_draft.md：自报 vs readback diff vs 初始态+漏报项）+零 typed_adapter 断言结果。
