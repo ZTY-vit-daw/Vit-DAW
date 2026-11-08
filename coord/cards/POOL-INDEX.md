@@ -32,13 +32,14 @@
 | 293 | WE-MISMATCH-FORENSICS-1 | done 已验收 pass（取证型：设计内披露+物化链无罪+前提证伪；转卡 294；加固挂 PD-6） |
 | 294 | FIXTURE-WE-HYGIENE-1 | done 已验收 pass（三处剔除+离线四情景验证；三休眠行记录接受） |
 | 295 | CAPABILITYPACK-KEYADVERT-1 | done 已验收 pass 合入（A 案宣传面修正） |
-| 296 | D1D3-REGRESS-STACK-1 | todo（rework 重跑一次：D2 断言修正预收；基线=现 main 含 295 修；排 300 之后；blocked 两现开取证卡） |
+| 296 | D1D3-REGRESS-STACK-1 | doing（**R2 重跑腿在派 2026-11-08 早窗**：基线=现 main；D2 断言修正 272f27e9 cherry-pick；栈空闲窗口优先；blocked 两现开取证卡） |
 | 297 | KERNEL-OFFRENDER-FORENSICS-1 | done 已验收 pass（候选②fail-silent 守卫唯一不可排除；转卡 301 复现；PD-7=by-design 钉死） |
 | 300 | PLUGIN-CONTROL-EVAL-RUNNER-1 | done 已验收 pass（**P 基线 5/6 落地**；T4=纪律非能力；typed 承重声明→305 缝卡；守卫误拒扩 302 域+ms 反演转卡 304） |
 | 304 | DELAY-APPLY-MS-FIX-1 | done 已验收 pass 合入（分段反演+物理回读诚实降级） |
 | 305 | PLUGIN-CONTROL-EVAL-SEAM-1 | done 已验收 pass 合入（四缝+A 臂三面亲证；S2 残留=A 口径声明项） |
 | 307 | PLUGIN-CONTROL-EVAL-S1A-1 | done 已验收 pass（A=P=5/6 同构；两装置发现→S5/S2b 开卡 308；T4 疑似规则缺陷批次前修） |
-| 308 | PLUGIN-CONTROL-EVAL-SEAM2-1 | todo 可领（S5 工具目录裁剪+S2b 渲染面剥离→A-pure 前置；零栈） |
+| 308 | PLUGIN-CONTROL-EVAL-SEAM2-1 | doing（**零栈实现腿在派 2026-11-08 早窗**：S5 工具目录裁剪+S2b 渲染面剥离→A-pure 前置；今日主菜关键路径） |
+| 310 | PLUGIN-CONTROL-EVAL-APURE-1 | todo 可领但**候 308 合入**（A-pure 终测 18 轮=「越过控制脚本」正式答案+开放录音棚适配器形态依据；真栈） |
 | 306 | GEN-VOCALSEP-1 | done 已验收 pass（三 vocals stem 候用户试听终审；集成腿候后续卡） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | done 已验收 pass（**候选②排除+定性 WaveShell 插件兼容**；M3 证活渲染管线；转卡 309） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
@@ -84,4 +85,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 1. 各线发卡后在本索引登记行；卡状态流转（领取/完成/验收）由执行侧回执+主管验收更新；
 2. 新卡编号遵守编号空间裁定（主线 258–275 封块已满/三线 276–291 已分配；**292 起两线共用递增**，发卡登记本索引认领池序）；
 3. 挂起卡触发条件达成时由管辖线主管移入各自活跃段。
-| 309 | WAVESHELL-OFFRENDER-FIX-1 | todo 可领（WaveShell 离线渲染兼容修=M1 对照+根因+修法+自检断言；C++ 取证先行） |
+| 309 | WAVESHELL-OFFRENDER-FIX-1 | doing（**取证腿在派 2026-11-08 早窗**：WaveShell 离线路径根因+修法设计零栈先行；M1/插桩/验证腿候栈，排 296-R2/310 后） |
