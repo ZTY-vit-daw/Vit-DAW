@@ -232,9 +232,11 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
     Write-Step "Phase 4: device leg (registry resolve + placement r1-r3 + known-op + persistence; zero LLM)"
     $DeviceDir = Join-Path $RunRoot "device"
     $devLog = Join-Path $RunRoot "driver_device_console.log"
+    $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
     & python $Driver "device" "--agent-http" $AgentHttp "--out-dir" $DeviceDir `
         "--projects-dir" $ProjectsDir 2>&1 | Tee-Object -FilePath $devLog | Out-Null
     $deviceExit = $LASTEXITCODE
+    $ErrorActionPreference = $prevEap
     $report.device_exit = $deviceExit
     if ($deviceExit -ne 0) {
         $report.verdict = "device_verification_failed"
@@ -269,10 +271,12 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
         Write-Step ("round r" + $r + " ...")
         $projectPath = Join-Path $ProjectsDir ("实验·ProQ3 裸控 r" + $r + ".vit")
         $rLog = Join-Path $RunRoot ("driver_round_r" + $r + "_console.log")
+        $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
         & python $Driver "round" "--repeat" $r "--project" $projectPath `
             "--agent-http" $AgentHttp "--rounds-dir" $RoundsDir `
             "--telemetry-path" $TelemetryPath "--agent-log" $AgentLog 2>&1 | Tee-Object -FilePath $rLog | Out-Null
         $rExit = $LASTEXITCODE
+        $ErrorActionPreference = $prevEap
         $recordPath = Join-Path $RoundsDir ("r" + $r + "\round_record.json")
         if ($rExit -eq 0 -and (Test-Path -LiteralPath $recordPath)) {
             $rec = Get-Content -LiteralPath $recordPath -Raw -Encoding UTF8 | ConvertFrom-Json
@@ -324,8 +328,10 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
     # ---------------- phase 6: consolidation (offline)
     Write-Step "Phase 6: consolidation (three rounds side by side + reconciliation draft)"
     $consLog = Join-Path $RunRoot "consolidate_console.log"
+    $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
     & python $Driver "consolidate" "--run-dir" $RunRoot 2>&1 | Tee-Object -FilePath $consLog | Out-Null
     $consExit = $LASTEXITCODE
+    $ErrorActionPreference = $prevEap
     $report.consolidate_exit = $consExit
     if ($consExit -ne 0) { Write-Warn2 ("consolidation exit=" + $consExit + " (raw round records remain authoritative)") }
 

@@ -543,7 +543,7 @@ def run_known_op_and_persistence(placement: dict[str, Any], spec: dict[str, Any]
     # proven working by a probe that opens first; this gate now does too).
     located = open_and_locate(placement["project_path"], spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
-    initial = agent_get_parameters(agent_http, fixture, timeout)
+    initial = wait_agent_parameters(agent_http, fixture, timeout)
     probe_param = pick_probe_param(param_rows(initial))
     (out_dir / "known_op_probe_param.json").write_text(
         json.dumps(probe_param, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -591,7 +591,7 @@ def run_known_op_and_persistence(placement: dict[str, Any], spec: dict[str, Any]
         raise DeviceFailure(f"save_project failed in persistence gate: {str(reply)[:300]}")
     located = open_and_locate(placement["project_path"], spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
-    reopened = agent_get_parameters(agent_http, fixture, timeout)
+    reopened = wait_agent_parameters(agent_http, fixture, timeout)
     reopened_row = row_by_id(reopened, pid) or {}
     reopened_norm = _num(reopened_row.get("normalized_value"))
     persistence["changed_value_after_reopen"] = reopened_norm
@@ -613,7 +613,7 @@ def run_known_op_and_persistence(placement: dict[str, Any], spec: dict[str, Any]
         raise DeviceFailure(f"save_project failed in restore leg: {str(reply)[:300]}")
     located = open_and_locate(placement["project_path"], spec, timeout)
     fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
-    final_state = agent_get_parameters(agent_http, fixture, timeout)
+    final_state = wait_agent_parameters(agent_http, fixture, timeout)
     final_digest = fixture_digest(final_state)
     persistence["final_digest"] = final_digest
     persistence["final_digest_equals_initial"] = final_digest == placement["fixture_digest"]
@@ -652,7 +652,11 @@ def run_round(round_no: int, agent_http: str, timeout: float,
         print(json.dumps({"round": round_no, "error": "workspace_not_activated",
                           "detail": activation}, ensure_ascii=False))
         return 2
-    before = agent_get_parameters(agent_http, fixture, timeout)
+    # FINAL-BATCH FIX 2 (run proq3_free_20261109_003454 r1 crash): a single
+    # read right after open_project races the plugin instance's async face
+    # recreation (invoke replies ok with ZERO param rows -> RuntimeError
+    # outside the try -> batch killed). Poll like the placement gate does.
+    before = wait_agent_parameters(agent_http, fixture, timeout)
     (round_dir / "readback_before.json").write_text(
         json.dumps(before, ensure_ascii=False, indent=2), encoding="utf-8")
 
@@ -770,7 +774,7 @@ def run_round(round_no: int, agent_http: str, timeout: float,
         preservation["save_status"] = str(reply.get("status", ""))
         located2 = open_and_locate(project_path, spec, timeout)
         fixture2 = {"track_id": located2["track_id"], "plugin_id": located2["plugin_id"]}
-        reopened = agent_get_parameters(agent_http, fixture2, timeout)
+        reopened = wait_agent_parameters(agent_http, fixture2, timeout)
         (round_dir / "readback_reopen.json").write_text(
             json.dumps(reopened, ensure_ascii=False, indent=2), encoding="utf-8")
         reopen_changes_vs_after = diff_rows(rows_index(after), rows_index(reopened))
