@@ -1,0 +1,301 @@
+2026-11-09T00:18:32 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-09T00:18:32 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-09T00:18:32 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-09T00:18:32 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-09T00:18:32 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-09T00:18:32 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-09T00:18:32 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-09T00:18:32 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:32 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-09T00:18:32 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:32 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:32 [INFO] [shadow] initialized tracks=6 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=0
+2026-11-09T00:18:32 [INFO] [workspace] parent history recovery skipped parent=vitproj_fb6925e731b74b69bf331f83cb71c58c target=vitproj_32d584f81ee5423eabf7a12679c822d2 reason=parent project path not found for UUID vitproj_fb6925e731b74b69bf331f83cb71c58c
+2026-11-09T00:18:32 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-09T00:18:32 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:18:32 [INFO] [workspace] activated project="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" uuid=vitproj_32d584f81ee5423eabf7a12679c822d2 recovered=true conversations=2 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-09T00:18:32 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:18:38 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:38 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:39 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:18:40 [WARN] [harness] invoke pre_journal_validation_failed stage=validate_set_plugin_param tool=plugin.set_parameter command=set_plugin_param confirmed=false arg_keys=cmd,param_id,plugin_id,track_id,value error=Plugin parameters have not been read for track=1007 plugin=1015. Use get_plugin_parameters to read the current parameter set before writing
+2026-11-09T00:18:40 [INFO] [timing] harness.invoke total_ms=0 tool=plugin.set_parameter command=set_plugin_param status=error confirmed=false err=true
+2026-11-09T00:18:44 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:44 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:18:50 [WARN] VSP realtime publish pending failures=12 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:50 [WARN] VSP realtime publish pending failures=12 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=10 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:52 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:18:56 [WARN] VSP realtime publish pending failures=15 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:56 [WARN] VSP realtime publish pending failures=15 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:18:59 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:02 [WARN] VSP realtime publish pending failures=18 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:02 [WARN] VSP realtime publish pending failures=18 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:06 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:08 [WARN] VSP realtime publish pending failures=21 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:08 [WARN] VSP realtime publish pending failures=21 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=20 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:14 [WARN] VSP realtime publish pending failures=24 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:14 [WARN] VSP realtime publish pending failures=24 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:19 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:20 [WARN] VSP realtime publish pending failures=27 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:20 [WARN] VSP realtime publish pending failures=27 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:26 [WARN] VSP realtime publish pending failures=30 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:26 [WARN] VSP realtime publish pending failures=30 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:26 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=30 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:32 [WARN] VSP realtime publish pending failures=33 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:32 [WARN] VSP realtime publish pending failures=33 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:33 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:38 [WARN] VSP realtime publish pending failures=36 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:38 [WARN] VSP realtime publish pending failures=36 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:44 [WARN] VSP realtime publish pending failures=39 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:44 [WARN] VSP realtime publish pending failures=39 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:46 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:50 [WARN] VSP realtime publish pending failures=42 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:50 [WARN] VSP realtime publish pending failures=42 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=40 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:53 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:19:56 [WARN] VSP realtime publish pending failures=45 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:19:56 [WARN] VSP realtime publish pending failures=45 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:00 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:02 [WARN] VSP realtime publish pending failures=48 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:02 [WARN] VSP realtime publish pending failures=48 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:08 [WARN] VSP realtime publish pending failures=51 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:08 [WARN] VSP realtime publish pending failures=51 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=50 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:13 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:14 [WARN] VSP realtime publish pending failures=54 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:14 [WARN] VSP realtime publish pending failures=54 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:20 [WARN] VSP realtime publish pending failures=57 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:20 [WARN] VSP realtime publish pending failures=57 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:20 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:24 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.realtime_publisher
+2026-11-09T00:20:24 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.transport_publisher
+2026-11-09T00:20:25 [WARN] VSP realtime publish pending failures=4 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:25 [WARN] VSP realtime publish pending failures=4 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:27 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=60 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:31 [WARN] VSP realtime publish pending failures=7 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:31 [WARN] VSP realtime publish pending failures=7 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:37 [WARN] VSP realtime publish pending failures=10 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:37 [WARN] VSP realtime publish pending failures=10 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:40 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:43 [WARN] VSP realtime publish pending failures=13 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:43 [WARN] VSP realtime publish pending failures=13 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:47 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:49 [WARN] VSP realtime publish pending failures=16 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:49 [WARN] VSP realtime publish pending failures=16 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=70 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:54 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:20:55 [WARN] VSP realtime publish pending failures=19 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:20:55 [WARN] VSP realtime publish pending failures=19 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:01 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:01 [WARN] VSP realtime publish pending failures=22 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:01 [WARN] VSP realtime publish pending failures=22 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:07 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:07 [WARN] VSP realtime publish pending failures=25 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:07 [WARN] VSP realtime publish pending failures=25 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:10 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=80 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:13 [WARN] VSP realtime publish pending failures=28 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:13 [WARN] VSP realtime publish pending failures=28 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:14 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:15 [WARN] [harness] invoke pre_journal_validation_failed stage=validate_set_plugin_param tool=plugin.set_parameter command=set_plugin_param confirmed=false arg_keys=cmd,param_id,plugin_id,track_id,value error=Plugin parameters have not been read for track=1007 plugin=1015. Use get_plugin_parameters to read the current parameter set before writing
+2026-11-09T00:21:15 [INFO] [timing] harness.invoke total_ms=0 tool=plugin.set_parameter command=set_plugin_param status=error confirmed=false err=true
+2026-11-09T00:21:19 [WARN] VSP realtime publish pending failures=31 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:19 [WARN] VSP realtime publish pending failures=31 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:21 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:25 [WARN] VSP realtime publish pending failures=34 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:25 [WARN] VSP realtime publish pending failures=34 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:28 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:28 [INFO] [timing] kernel.send_command ms=114 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [timing] harness.invoke total_ms=127 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=0
+2026-11-09T00:21:28 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:28 [WARN] [shadow] delta seq gap #1 last=117 current=119
+2026-11-09T00:21:28 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:28 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:28 [WARN] [telemetry] delta seq gap last=117 current=119
+2026-11-09T00:21:28 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=0
+2026-11-09T00:21:28 [INFO] [timing] harness.refresh_shadow ms=17 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:28 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=0
+2026-11-09T00:21:28 [INFO] [timing] kernel.send_command ms=46 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [timing] harness.invoke total_ms=53 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [timing] kernel.send_command ms=116 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [timing] harness.invoke total_ms=124 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:28 [DEBUG] [shadow] live delta uid="1015" action="property_changed:parameters"
+2026-11-09T00:21:28 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:28 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:28 [INFO] [timing] kernel.send_command ms=119 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [timing] harness.invoke total_ms=128 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [timing] kernel.send_command ms=2 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:28 [INFO] [timing] harness.invoke total_ms=15 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=0
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:29 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [INFO] [timing] harness.refresh_shadow ms=14 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [INFO] [timing] kernel.send_command ms=35 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:29 [INFO] [timing] harness.invoke total_ms=45 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:29 [WARN] [shadow] delta seq gap #2 last=129 current=131
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:29 [WARN] [telemetry] delta seq gap last=129 current=131
+2026-11-09T00:21:29 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [INFO] [timing] harness.refresh_shadow ms=14 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [INFO] [timing] kernel.send_command ms=37 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:29 [INFO] [timing] harness.invoke total_ms=42 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:29 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [INFO] [timing] harness.refresh_shadow ms=13 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:29 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:29 [INFO] [timing] kernel.send_command ms=35 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:29 [INFO] [timing] harness.invoke total_ms=46 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="1015" action="property_changed:parameters"
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:29 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:29 [INFO] [timing] kernel.send_command ms=115 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:29 [INFO] [timing] harness.invoke total_ms=129 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:30 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=90 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:31 [WARN] VSP realtime publish pending failures=37 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:31 [WARN] VSP realtime publish pending failures=37 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:34 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:36 [INFO] [timing] kernel.send_command ms=129 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [timing] harness.invoke total_ms=142 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:36 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:36 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:36 [INFO] [timing] harness.refresh_shadow ms=11 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:36 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:36 [INFO] [timing] kernel.send_command ms=34 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [timing] harness.invoke total_ms=40 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [timing] kernel.send_command ms=122 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [timing] harness.invoke total_ms=137 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:36 [WARN] [shadow] delta seq gap #3 last=138 current=140
+2026-11-09T00:21:36 [DEBUG] [shadow] live delta uid="1015" action="property_changed:parameters"
+2026-11-09T00:21:36 [WARN] [telemetry] delta seq gap last=138 current=140
+2026-11-09T00:21:36 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:36 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:36 [INFO] [timing] kernel.send_command ms=124 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [timing] harness.invoke total_ms=136 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [timing] kernel.send_command ms=2 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:36 [INFO] [timing] harness.invoke total_ms=11 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:37 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=set_plugin_param err=false
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [INFO] [timing] harness.refresh_shadow ms=18 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [INFO] [timing] kernel.send_command ms=42 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:37 [INFO] [timing] harness.invoke total_ms=52 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:37 [WARN] [shadow] delta seq gap #4 last=149 current=151
+2026-11-09T00:21:37 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:37 [WARN] [telemetry] delta seq gap last=149 current=151
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [INFO] [timing] harness.refresh_shadow ms=19 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [INFO] [timing] kernel.send_command ms=43 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:37 [INFO] [timing] harness.invoke total_ms=51 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:37 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [INFO] [timing] harness.refresh_shadow ms=26 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:37 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:37 [INFO] [timing] kernel.send_command ms=49 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:37 [INFO] [timing] harness.invoke total_ms=62 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="1015" action="property_changed:parameters"
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:37 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:37 [INFO] [timing] kernel.send_command ms=139 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:37 [INFO] [timing] harness.invoke total_ms=155 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:37 [WARN] VSP realtime publish pending failures=40 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:37 [WARN] VSP realtime publish pending failures=40 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:41 [INFO] [timing] kernel.send_command ms=126 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [timing] harness.invoke total_ms=142 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:41 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=set_plugin_param err=false
+2026-11-09T00:21:41 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:41 [INFO] [timing] harness.refresh_shadow ms=11 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:41 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:41 [INFO] [timing] kernel.send_command ms=37 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [timing] harness.invoke total_ms=44 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:41 [INFO] [timing] kernel.send_command ms=130 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [timing] harness.invoke total_ms=146 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:41 [WARN] [shadow] delta seq gap #5 last=158 current=160
+2026-11-09T00:21:41 [DEBUG] [shadow] live delta uid="1015" action="property_changed:parameters"
+2026-11-09T00:21:41 [WARN] [telemetry] delta seq gap last=158 current=160
+2026-11-09T00:21:41 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:41 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:41 [INFO] [timing] kernel.send_command ms=122 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [timing] harness.invoke total_ms=138 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [timing] kernel.send_command ms=3 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:41 [INFO] [timing] harness.invoke total_ms=20 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:42 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [INFO] [timing] harness.refresh_shadow ms=10 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [INFO] [timing] kernel.send_command ms=36 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:42 [INFO] [timing] harness.invoke total_ms=42 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:42 [WARN] [shadow] delta seq gap #6 last=169 current=171
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:42 [WARN] [telemetry] delta seq gap last=169 current=171
+2026-11-09T00:21:42 [INFO] [timing] kernel.vsp_state_snapshot ms=4 reason=set_plugin_param err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [INFO] [timing] harness.refresh_shadow ms=18 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [INFO] [timing] kernel.send_command ms=42 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:42 [INFO] [timing] harness.invoke total_ms=54 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="1008" action="property_changed:volume"
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:42 [INFO] [timing] kernel.vsp_state_snapshot ms=5 reason=set_plugin_param err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [INFO] [timing] harness.refresh_shadow ms=14 reason=set_plugin_param status=ok err=false
+2026-11-09T00:21:42 [INFO] [shadow] initialized tracks=1 project_path="C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit" replayed_deltas=1
+2026-11-09T00:21:42 [INFO] [timing] kernel.send_command ms=38 command=set_plugin_param tool=plugin.set_parameter confirmed=false err=false
+2026-11-09T00:21:42 [INFO] [timing] harness.invoke total_ms=45 tool=plugin.set_parameter command=set_plugin_param status=ok confirmed=false err=false
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="1015" action="property_changed:parameters"
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="1015" action="property_changed:state"
+2026-11-09T00:21:42 [DEBUG] [shadow] live delta uid="0/a66cef" action="property_changed:lastSignificantChange"
+2026-11-09T00:21:42 [INFO] [timing] kernel.send_command ms=126 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-09T00:21:42 [INFO] [timing] harness.invoke total_ms=135 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-09T00:21:44 [WARN] VSP realtime publish pending failures=43 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:44 [WARN] VSP realtime publish pending failures=43 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:48 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:50 [WARN] VSP realtime publish pending failures=46 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:50 [WARN] VSP realtime publish pending failures=46 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:50 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=100 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:55 [INFO] [continuation.park] answerable park holds the chain non_terminal=1 skipped_status=2 workspace=vitproj_32d584f81ee5423eabf7a12679c822d2
+2026-11-09T00:21:56 [WARN] VSP realtime publish pending failures=49 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-09T00:21:56 [WARN] VSP realtime publish pending failures=49 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
