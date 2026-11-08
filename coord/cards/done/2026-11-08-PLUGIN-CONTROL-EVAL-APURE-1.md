@@ -61,3 +61,10 @@ A 段同款：plan.json A_star segment_caps（≤18 任务轮/≤216 调用/in�
   - **端测边界声明（AGENTS §5）**：s0/dryround=确定性腿（零 LLM）；18 任务轮=agent HTTP/ZMQ 真栈腿（缝开 env 产品 chat 普通工具循环）；装置门+语料收口=payload/log 取证面。渲染面（webui DOM）与用户旅程不涉及。单轮=单样本，3 repeat 非稳定性主张（plan §6）。A-pure=「真纯裸参数面」（S1-S5+S2b 全开：typed 工具不在目录+渲染面无语义回灌，均真栈亲证）。
   - 工件分支=`port/plugin-control-eval-apure-1`（a668dbd0 已推）；工件根=`coord/runs/PLUGIN-CONTROL-EVAL-APURE-1/`（RUNBOOK+冻结快照+P/307 对照+负锚+两个 run 目录）。**A-pure 结果落地回报主管**：B/C 段决策输入+开放录音棚适配器形态依据（「越过控制脚本」正式答案=上方三方对照表——typed 适配器承载写入类任务能力，纯裸面在 T1/T3/T4 型不成立、T2 型成立）。
 - 验收：（主管回填）
+
+### 终验（主管，2026-11-08 晚窗）
+
+- **pass 整卡收口**——主管直读 arm_apure_summary.json 亲证：18 轮成绩表/三方对照/装置门（typed_adapter_invalid_rounds=[] 空单=数据集干净）与回执逐项一致；语料 119 行零泄露+119/119 deepseek-flash 零错误（296 的晚窗超时模式未命中）；预算 119 调用/1.68M in 全在 caps 内；首试 fixture_failure 签名#1（307 同型冷载）RUNBOOK 预冻结重跑一次过=合规。
+- **「越过控制脚本」正式答案（用户核心问题）**：**写入类=不能**——纯裸参数面下 T1 0/3（value_encoding_error×3：模型自述完成但值编码错误、写入未落）、T3 0/3（model_task_failure）、T4 0/3（value_encoding_error，先于纪律面失败）；**T2=裸写唯一成功形态**（3/3，direct_guess+self_probed 行为链）；**读观察类=等价**（T5/T6 三臂 3/3）。**结论：写入类能力由 typed 适配器承重（A 5/6 的等值由 typed 层携带，非裸面能力）——P≈A 是适配器等价，不是裸参等价**。
+- **下游决策输入落档**：①**B 段（裸面+检索）go**——失败形态 value_encoding_error=知识/编码型，正是 B 段检索假设的靶面；排期=手测交付后（明早窗口优先），口径=plan.json B_star 段原样；②**开放录音棚适配器形态依据**：成员 harness 须自带 typed 适配器等价控制面（结构化控制词汇），raw 参数面不足以承载写入类控制——A2A 适配层=控制词汇层非参数代理层；③C 段候 B 结果。
+- 端测边界（AGENTS §5）如实：18 任务轮=agent HTTP/ZMQ 真栈；渲染面/旅程面不涉及；单轮=单样本。
