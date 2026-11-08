@@ -48,9 +48,9 @@
 | 320 | PLUGIN-CONTROL-EVAL-PROQ3-FREE-1 | todo 在派（**用户裁定新增**：T7 自由调控 Pro-Q 3=早期首碰壁目标终审——自选+自报+GUI 实物对账，用户亲验；排 319 后） （**blocked 候 321**：持久化门揭 rack 参数不随 save/open 存活产品缺陷；装置全就绪候解锁） |
 | 321 | RACK-PARAM-PERSIST-FIX-1 | todo 在派（VitApp C++ 持久化修复：写时 flush+保存路径 rack 遍历；验收=320 forensic probe 复跑存活；解锁 320） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
-| 314 | LEGAME-DIR-1 | todo 在派（L1-a 目录三级解析——零栈先行，真栈腿候队列）
-| 315 | LEGAME-AUTOINTRO-1 | todo 在派（L1-b 自动开场+恢复播报——依赖 314，同 owner 顺序）
-| 316 | LEGAME-FRESH-1 | todo 在派（L1-c 重铺+预演副本制——随 315 布位段协调） |
+| 314 | LEGAME-DIR-1 | done 终验 pass 合入（runA 零 env 产品级装载实证）
+| 315 | LEGAME-AUTOINTRO-1 | done 终验 pass 合入（runB 白话开场+「接着上局 1/7」恢复播报亲证）
+| 316 | LEGAME-FRESH-1 | done 终验 pass 合入（relay 幂等+用户工程哈希零触碰+runC 新工程语义） |
 | 306 | GEN-VOCALSEP-1 | done 已验收 pass（三 vocals stem 候用户试听终审；集成腿候后续卡） |
 | 301 | KERNEL-OFFRENDER-REPRO-1 | done 已验收 pass（**候选②排除+定性 WaveShell 插件兼容**；M3 证活渲染管线；转卡 309） |
 | 298 | VSTI-PARAM-PROBE-1 | done 已验收 pass（两件内核面控制实证零 mismatch=准入链②证据到手；agent 面守卫误拦转卡 302） |
