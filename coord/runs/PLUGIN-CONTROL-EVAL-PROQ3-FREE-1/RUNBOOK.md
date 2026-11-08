@@ -52,3 +52,11 @@
 5. **单轮=单样本**；3 轮=3 独立副本，非稳定性主张。
 6. **布位工程的 recent 面与用户工程共存**：%APPDATA%\Vit-DAW\projects 已有「手测·小星星乐局.vit」（311 布位，用户手测物）——本卡布位**不触碰**既有工程，仅新增三副本；run 后保留。
 7. **音频素材源**：B6 渲染 wav 只读引用（artifacts 运行时工件域，非权威 fixture）；clip.import_audio 后工程自带媒体副本，素材源文件本 run 不改不删。
+
+## 七、终章批（第三批）跑前口径（§8 增补冻结，2026-11-09 凌晨，主管终章指令）
+
+- **解锁依据**：321 RACK-PARAM-PERSIST-FIX-1 终验 pass 合入 main（01579d7b）——rack 内插件参数持久化修复亲证（probe 3/3：0.7→save→open→0.699999988 persisted，对照本卡未修基线三次全回 0.5）。第二批的持久化门拦截条件解除。
+- **内核**：wt_321persist 构建产物 VitApp.exe SHA256=950CF07B7B735749C2DEF5E9447B7260F1272694DC5B83A865790B8E24CD30F5（编排 hash 断言换新；wt_228 F9E3DA0A=未修基线弃用）。
+- **agent env 透传**：两缝 env 在任何进程启动前置入编排进程（Start-Process 继承制，run3 known-op 落地=透传实证）；321 域外记录（-RestartAgent 链 env 语义）以**编排 phase 2b psutil 活体亲证**覆盖——agent 进程 env 两键非 "1" = exit 4 不进付费轮。
+- **运行次数/预算**：本批单 run 无重跑（新 run 目录）；任务轮恰好 3；预算 ≈¥1（≤36 调用/≤1.44M in/≤288k out，deepseek-flash 用户账户）；失败分类维持 §四全集（self_report_mismatch 观察类维持）；**付费轮后装置/环境失败=取证上交不重跑**；结果三态如实记录（写入落地与否/自报一致性/守卫拦截类）。
+- **交付物**：三轮终态工程保留在 %APPDATA%\Vit-DAW\projects（实验·ProQ3 裸控 r1/r2/r3.vit，不删——用户 GUI 终审物）+三轮自报告全文+对账表草稿（reconciliation_draft.md）——用户从 Godot 启动页打开→机架→Pro-Q 3 GUI 肉眼比对频段/频率/Q/增益/类型。

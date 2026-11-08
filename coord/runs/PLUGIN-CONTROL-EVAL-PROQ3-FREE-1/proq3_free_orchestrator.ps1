@@ -36,7 +36,7 @@ param(
     [string]$RepoRoot = "",
     [string]$AgentHttp = "http://127.0.0.1:7878",
     [int]$WaitSeconds = 90,
-    [string]$KernelExe = "D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe",
+    [string]$KernelExe = "D:\Vit_DAW_wt_321persist\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe",
     [string]$RunIdSuffix = ""
 )
 
@@ -52,7 +52,7 @@ $LogsDir = Join-Path $RunRoot "logs"
 New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null
 $ProjectsDir = Join-Path $env:APPDATA "Vit-DAW\projects"
 
-$sec8Decl = "T7 free-control Pro-Q 3 (BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1; NO retrieval seam, NO prompt seam): zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + initial-state equivalence + known-op bare write must land + save/open persistence) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); final states preserved for user GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (NEW honesty observation) + persistence_failure; single run, no rerun; full declaration in RUNBOOK.md (frozen pre-run)"
+$sec8Decl = "T7 free-control Pro-Q 3 FINAL BATCH (kernel WITH 321 rack-param-persistence fix 950cf07b..30f5; BAREFREE face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 both set before any process start AND psutil-verified on the live agent process pre-paid; NO retrieval seam, NO prompt seam): zero-LLM device gates (registry resolve + placement of three persistent project copies with one real-audio track + Pro-Q 3 + start-page recent + initial-state equivalence + known-op bare write must land + save/open persistence -- now expected PASS under the 321 fix) then 3 paid rounds (one per copy, new conversation, frozen message with forced self-report, per-round caps 12 calls / 40k in / 8k out per call / 30 tools / 20 min, segment caps 36 calls / 1.44M in / 288k out); final states PRESERVED for the user's GUI review; failure taxonomy = frozen plan set + plugin_load_failure + guard_blocked_write + seam_leakage + self_report_mismatch (honesty observation) + persistence_failure; single run, no rerun; device/env failure after paid rounds = forensics hand-over; full declaration in RUNBOOK.md final-batch section (frozen pre-run)"
 $report = [ordered]@{
     card            = "PLUGIN-CONTROL-EVAL-PROQ3-FREE-1"
     leg             = "proq3_free"
@@ -123,8 +123,10 @@ try {
     if (-not (Test-Path -LiteralPath $KernelExe)) { throw ("kernel exe missing: " + $KernelExe) }
     $report.kernel_exe = $KernelExe
     $report.kernel_sha256 = (Get-FileHash -LiteralPath $KernelExe -Algorithm SHA256).Hash
-    if ($report.kernel_sha256 -ne "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A") {
-        throw ("kernel binary hash changed vs the 300-318 series: " + $report.kernel_sha256)
+    # final batch: kernel WITH the 321 rack-param-persistence fix (supervisor
+    # authorization message; the wt_228 F9E3DA0A baseline is the UNFIXED build)
+    if ($report.kernel_sha256 -ne "950CF07B7B735749C2DEF5E9447B7260F1272694DC5B83A865790B8E24CD30F5") {
+        throw ("kernel binary hash is not the 321-fixed build 950cf07b..30f5: " + $report.kernel_sha256)
     }
     $ProjectCopy = Join-Path $RunRoot "default_project.xml"
     & cmd /c ('git -C "' + $RepoRoot + '" show HEAD:VitApp/Workspace/default_project.xml > "' + $ProjectCopy + '"')
@@ -179,6 +181,46 @@ try {
     if ($null -eq $state -or [string]$state.status -ne "ok") { throw "agent health check failed" }
     $report.agent_tool_count = [string]$state.tool_count
     Write-Ok ("agent ok tool_count=" + [string]$state.tool_count)
+
+    # ---------------- phase 2b: agent-process env liveness (paid-round guard)
+    # 321 out-of-domain record: the -RestartAgent chain only carries env the
+    # agent INHERITS at start. This orchestrator sets both seam envs BEFORE
+    # any process start (run3 known-op landing is the empirical proof), and
+    # this leg re-proves it on the live agent PROCESS before any paid round
+    # (321's psutil precedent). Missing env = device verification failure.
+    Write-Step "Phase 2b: agent-process seam env liveness (psutil, pre-paid guard)"
+    $envProbe = @"
+import json, sys
+try:
+    import psutil
+except ImportError:
+    print(json.dumps({"ok": False, "error": "psutil unavailable"})); sys.exit(0)
+rows = []
+for p in psutil.process_iter(['name']):
+    try:
+        if (p.info['name'] or '').lower() == 'vitagent.exe':
+            env = p.environ()
+            rows.append({
+                'pid': p.pid,
+                'VIT_PLUGIN_CONTROL_EVAL_SEAM': env.get('VIT_PLUGIN_CONTROL_EVAL_SEAM'),
+                'VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE': env.get('VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE'),
+            })
+    except Exception:
+        continue
+ok = len(rows) > 0 and all(r['VIT_PLUGIN_CONTROL_EVAL_SEAM'] == '1' and
+                           r['VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE'] == '1' for r in rows)
+print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
+"@
+    $envOut = $envProbe | python -
+    $report.agent_env_liveness = $envOut
+    if ($envOut -notmatch '"ok": true') {
+        $report.verdict = "device_invalid_agent_env_not_live"
+        $report.finished_at = (Get-Date).ToString("o"); Save-Json $report "run_report.json"
+        Write-Fail "agent process is NOT carrying both seam envs -- exit 4, no paid rounds"
+        $driverExit = 0; $finalExit = 4
+        throw ("agent env liveness failed: " + $envOut)
+    }
+    Write-Ok "agent process carries both seam envs (psutil-verified)"
 
     # ---------------- phase 3: driver env
     $env:PYTHONPATH = (Join-Path $RepoRoot "scripts")
