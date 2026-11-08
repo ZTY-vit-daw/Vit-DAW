@@ -1115,7 +1115,11 @@ func (h *Harness) Invoke(ctx context.Context, req InvokeRequest) (resp InvokeRes
 		cmd["confirmation"] = true
 		cmd["confirmed"] = true
 	}
-	needsConfirmation := spec.RequiresConfirmation && !authorityAuthorized
+	// PLUGIN-CONTROL-EVAL-S1B-1 B-arm seam: with the test-only retrieval env
+	// set, web.search/web.fetch execute directly (plan.json B_star face);
+	// every other tool keeps the exact production confirmation decision.
+	needsConfirmation := spec.RequiresConfirmation && !authorityAuthorized &&
+		!pluginControlEvalSeamBRetrievalDirect(spec)
 	action := journal.Action{
 		AgentActionID:        actionID,
 		RunID:                runID,
@@ -13815,6 +13819,25 @@ func explicitFullProjectAccess(ctx map[string]any) bool {
 	mode, _ := ctx["authority_mode"].(string)
 	explicit, _ := ctx["authority_mode_explicit"].(bool)
 	return explicit && strings.EqualFold(strings.TrimSpace(mode), "full_project_access")
+}
+
+// pluginControlEvalSeamBRetrievalEnv is the PLUGIN-CONTROL-EVAL-S1B-1 B-arm
+// test-only retrieval switch (305/308 seam precedent). Exactly "1" lets the
+// model call web.search / web.fetch DIRECTLY (no confirmation card), which is
+// the plan.json B_star arm face ("web.search/web.fetch enabled"; the A-pure
+// S1-S5+S2b seams stay governed by VIT_PLUGIN_CONTROL_EVAL_SEAM so the two
+// arms remain separable). Disclosure is unchanged: web tools are already on
+// the product model catalog; this switch only bypasses the confirmation gate
+// for those two tools at execution time. Every other RiskConfirm semantics
+// (risk levels, catalog faces, journaling, undo) are untouched; unset keeps
+// production behavior byte-for-byte and production startup paths never set it.
+const pluginControlEvalSeamBRetrievalEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL"
+
+func pluginControlEvalSeamBRetrievalDirect(spec tools.CommandSpec) bool {
+	if strings.TrimSpace(os.Getenv(pluginControlEvalSeamBRetrievalEnv)) != "1" {
+		return false
+	}
+	return spec.ToolName == "web.search" || spec.ToolName == "web.fetch"
 }
 
 func confirmationStatus(needsConfirmation, confirmed bool) string {
