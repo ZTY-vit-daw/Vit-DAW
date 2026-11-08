@@ -42,4 +42,18 @@
   - **零 LLM 亲证**：本批全程零 LLM 零计费（certify 确定性 8.6s+derive 离线 pluginprobe）；白名单 live 文件未动（sha256=7fe392dc… 与备份前值一致；reverb/delay 段原样）。
   - **工件**：port/proq3-certify-and-t7-1 @ 0785322c（state.json/ledger/derive 全套+proq3_certify/derive_console_20261109.log+throwaway 充分性测试）；~/.vit 收据目录十件+双备份；栈记录占用/释放两条（827fbc5c/f9bcf621）。
   - **端测边界声明**：腿一仅认证扫面（零 LLM 确定性）；无任务轮数据、零渲染面/用户旅程主张；用户 GUI 终审物未产生（候白名单解锁+T7×3 后交付）。
+- 回执三（终演收官，2026-11-09 03:01 +0800）：状态=**执行侧完毕（blocked→done）候主管验收+用户 GUI 终审**——主管卡内修授权（2026-11-09 02:38）五条件全兑现。
+  - **derive 修复（独立 commit=纪律条件 1）**：`port/proq3-certify-and-t7-1 @ 8c0ef051`（+89 行纯 scripts）——commit message 含根因锚点（free_floating 只认 active_bands，certify 默认态 explain 必空）+充分性证明引用（TestProQ3SufficiencyProofWhitelistLoad）；修复形态=收据自证单带锚（apply.json verified upsert writes[role=freq 物理 Hz+role=gain pid]×explain 带行交叉×S3 双周期 stable_id 零漂移）——纪律条件 2 兑现；**fail-closed 不动**：bx_tonebox（无收据自证）仍诚实排除在卷；规则统一生效使 TBTECH Kirchhoff-EQ 亦派生出锚（其收据同样有 verified writes）——**超出订购范围 withheld 不落盘**（纪律条件 3 的「仅增 Pro-Q 3 行」），行保留在派生工件候主管点头。
+  - **外科 apply 亲证（纪律条件 3）**：diff=其他家族字节同+仅增 Pro-Q 3 行（锚 {3400,"3","3"} 逐字取自派生输出）+零删除；live 白名单 static_eq 48→49，reverb/delay 原样；双备份在案（前值 sha 7fe392dc…）。
+  - **零栈披露亲证（纪律条件 4 前半）**：TestProQ3LiveWhitelistLoad PASS（真 live 文件过 Go 严格解码+校验，Pro-Q 3 在 static_eq，reverb/delay 完好）——披露面=候选披露读白名单身份字段（run8 r3 拒调同面）。
+  - **T7×3 裸面终演（纪律条件 4 后半）**：run9=**proq3_free_20261109_024813 exit 0**（装置 @f9ef49f2=2a24433e+env 卫生修复；首跑 024318=phase 2c 在编排进程 SEAM=1 env 里跑 closed-seam 单测假阳拒——**被自身门保护性拦截 exit 4 零付费**，修复=go test 子进程清两缝 env save/restore）：
+    - **三轮成绩**（自报告全文+before/after/reopen 三面 readback 在卷）：**r1**=真实写入 1 参——Band 1 Gain 0→**-1.50 dB**（自报「约 1 kHz 钟形削减 增益 −1.5 dB Q≈1」与 readback 吻合；stop=output cap）；**r2**=零改动 goal_completed——模型经治理链**提案** 1000Hz/Q1.0/-2.0dB 钟形，驱动 approve 抵达时服务端交互已过期→未落地（终答「这个交互已处理或已过期」；交互时序工件非模型失败，观察项）；**r3**=真实写入 8 参——**Band 1: 315Hz/-2.00dB/Q1.10 + Band 2: 9000Hz/+2.00dB/Q0.70 双钟形**（自报逐项=读回逐项：频率/Q/增益/类型/Used 状态全吻合，附 L3 频段能量依据[低中频 71.5 堆积→315 衰减/空气感 59.1 最薄→9k 提升]+自报限制[单轨无掩蔽/无 A/B/0dBFS 提示]；stop=input cap）；
+    - **三轮全部 persisted=True**（save→reopen diff 空）+边界单轨单插件 True；
+    - **S5 零 typed 硬门 PASS**（typed_executions=0+capture available；语料三旗零：typed/守卫拒/检索全零）——「没用控制脚本」硬证据（协调者增补门兑现）；
+    - **预算**：19 调用/344,290 in/31,472 out（帽 36/1.44M/288k 内）≪¥1 上界（deepseek-flash 用户账户）；
+    - **栈协议**：占用 17b372d0（净空 02:42:32+≤60s 复核 02:43:10）→run9→TEARDOWN_ALL_ZERO（编排 finally+释放前复核）→释放 e8b2534a；
+    - **对账表**：reconciliation_draft.md+proq3_free_summary.json 在 run 目录（r1/r3 自报=实际零差异；r2 提案未落地如实列）。
+  - **用户 GUI 终审交付物清单（纪律条件 5）**：①三工程保留：`%APPDATA%\Vit-DAW\projects\实验·ProQ3 裸控 r1.vit`（Band1 -1.5dB）/`r2.vit`（默认态）/`r3.vit`（315Hz-2dB+9kHz+2dB 双钟形）——从 Godot 启动页打开→机架→Pro-Q 3 GUI 肉眼比对与三轮自报告；②run8 默认态三工程存档不销毁（`_320_run8_默认态存档_20261109/`）；③三轮自报告全文+对账表（run 目录 rounds/rN/self_report.md+reconciliation_draft.md）。
+  - **工件**：腿一=port/proq3-certify-and-t7-1 @ 375739b0（derive 修复 8c0ef051+收尾工件）；腿二=port/plugin-control-eval-proq3-free-1 @ b5fb54c3（run9 全套+首跑 024318 取证+装置修复 f9ef49f2）；栈记录本日 322 四条（腿一占/放+腿二占/放）。
+  - **端测边界声明**：三轮真栈 agent HTTP/ZMQ 面（chat 链+治理确认卡+ccb 观察+裸参数写+三面 readback）；渲染面/用户旅程不在断言面（AGENTS §5 如实声明）——用户 GUI 终审即最后一米；r2 交互过期=观察项（approve 时序，非本轮修面）。
 - 验收：（主管回填+用户 GUI 终审）
