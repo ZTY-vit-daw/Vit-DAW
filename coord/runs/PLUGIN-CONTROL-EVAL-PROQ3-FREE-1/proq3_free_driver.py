@@ -535,7 +535,15 @@ def run_known_op_and_persistence(placement: dict[str, Any], spec: dict[str, Any]
        (clean initial state for the paid round).
     """
     fixture = dict(placement["fixture"])
-    initial = placement["initial_parameters"]
+    # FINAL-BATCH FIX (run proq3_free_20261109_003004 forensics): the gate
+    # MUST make the target project ACTIVE before writing. The placement loop
+    # leaves the LAST copy active; writing with copy-r1 ids while copy-r3 is
+    # active silently hits r3's coincidentally-identical ids and then
+    # "verifies" r1 -- a cross-project measurement artifact (the 321 fix was
+    # proven working by a probe that opens first; this gate now does too).
+    located = open_and_locate(placement["project_path"], spec, timeout)
+    fixture = {"track_id": located["track_id"], "plugin_id": located["plugin_id"]}
+    initial = agent_get_parameters(agent_http, fixture, timeout)
     probe_param = pick_probe_param(param_rows(initial))
     (out_dir / "known_op_probe_param.json").write_text(
         json.dumps(probe_param, ensure_ascii=False, indent=2), encoding="utf-8")
