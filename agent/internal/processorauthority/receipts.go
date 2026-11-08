@@ -20,6 +20,7 @@ import (
 const (
 	SchemaWavesEQLive            = "waves.static_eq.phase3_live_smoke.v1"
 	SchemaPluginAllianceEQLive   = "plugin_alliance.eq_two_level_live_smoke.v1"
+	SchemaFabFilterEQLive        = "fabfilter.static_eq.eq_channel_live_smoke.v1" // EQ-RECEIPT-VENDOR-EXPAND-1: eqCandidate is vendor-neutral (resolveSubject keys on identifier, never manufacturer); this only extends the schema whitelist by one vendor-scoped kind, import gate stays fail-closed for all other vendors
 	SchemaCompressorCompat       = "plugin_grabber.compressor_compat_matrix_report.v1"
 	SchemaCompressorRegression11 = "plugin_grabber.compressor_plugin_alliance_regression.v1.1"
 	SchemaCompressorFix12        = "plugin_grabber.compressor_plugin_alliance_fix.v1.2"
@@ -153,7 +154,7 @@ func ReadReceipt(path string, index pluginsemantics.Index) (ReceiptReport, error
 	report := ReceiptReport{Path: path, Schema: receipt.SchemaVersion}
 	ref := evidenceRef(path, receipt.SchemaVersion, raw, receipt.CompletedAt)
 	switch receipt.SchemaVersion {
-	case SchemaWavesEQLive, SchemaPluginAllianceEQLive:
+	case SchemaWavesEQLive, SchemaPluginAllianceEQLive, SchemaFabFilterEQLive:
 		if receipt.Status != "passed" {
 			return report, fmt.Errorf("processor authority: EQ receipt status is not passed")
 		}

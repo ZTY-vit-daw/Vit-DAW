@@ -1,0 +1,27 @@
+== EQ-RECEIPT-VENDOR-EXPAND-1 zero-stack dry-run 2026-11-09 02:14 +0800 ==
+== worktree HEAD: 63d010793ceb3242351cab10e9244ba1586c9d38 branch: port/eq-receipt-vendor-expand-1 ==
+
+== [A0] real v1 store hash BEFORE (no-write proof): ==
+cbaecd42e4c1e8bfb8667c15df1d95e8130c848e03c8461c8737f90b28f6561f *C:/Users/timoz/.vit/processor_control_attestations.v1.json
+
+== [A] Python generation gate (certify_eq lookup, worktree copy): ==
+py_compile OK
+Pro-Q 3 (manufacturer='FabFilter') -> kind='fabfilter.static_eq.eq_channel_live_smoke.v1'
+=> vendor_kind_missing branch NOT taken for Pro-Q 3
+manufacturer='TDR' -> kind=None => vendor_kind_missing (fail-closed at generation intact)
+manufacturer='Unknown Vendor X' -> kind=None => vendor_kind_missing (fail-closed at generation intact)
+
+== [B] Go import gate with REAL semantic index + throwaway store: ==
+[dryrun] semantic index entries=991 proq3_identifier_matches=1
+[dryrun] promoted=1 skipped=0
+[dryrun] subject="VST3-Pro-Q 3-a1aba170-ba5f7ab2" manufacturer="FabFilter" family="static_eq" status="promoted"
+[dryrun] evidence kind="fabfilter.static_eq.eq_channel_live_smoke.v1" receipt_id=pcr1_e1abacbdf93714a950fb32f7 sha256=sha256:e1abacbdf93714a950fb32f7bc5fcef1807b42bc1da922abe4a6d76204816893
+[dryrun] coverage disable/bell
+[dryrun] coverage modify/bell
+[dryrun] coverage undo/bell
+[dryrun] coverage upsert/bell
+[dryrun] neutral-kind control: rejected (processor authority: unsupported receipt schema "static_eq.eq_channel_live_smoke.v1")
+[dryrun] PASS
+
+== [A0b] real v1 store hash AFTER: ==
+cbaecd42e4c1e8bfb8667c15df1d95e8130c848e03c8461c8737f90b28f6561f *C:/Users/timoz/.vit/processor_control_attestations.v1.json
