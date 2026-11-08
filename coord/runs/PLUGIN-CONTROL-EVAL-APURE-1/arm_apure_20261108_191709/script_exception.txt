@@ -1,0 +1,8 @@
+﻿s0 refreeze failed exit=1 (fixture_failure per RUNBOOK; forensics in s0 dir)
+所在位置 D:\Vit_DAW_wt_310apure\coord\runs\PLUGIN-CONTROL-EVAL-APURE-1\arm_apure_orchestrator.ps1:190 字符: 26
++ ... it -ne 0) { throw ("s0 refreeze failed exit=" + $s0Exit + " (fixture_ ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (s0 refreeze fai...sics in s0 dir):String) [], RuntimeException
+    + FullyQualifiedErrorId : s0 refreeze failed exit=1 (fixture_failure per RUNBOOK; forensics in s0 dir)
+ 
+

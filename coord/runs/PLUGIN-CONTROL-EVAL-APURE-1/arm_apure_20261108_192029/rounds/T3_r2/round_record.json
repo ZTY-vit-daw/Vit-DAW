@@ -1,0 +1,839 @@
+{
+  "case_id": "T3",
+  "arm": "P",
+  "repeat": 2,
+  "conversation_id": "pce_p_T3_r2_1794137093",
+  "message": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+  "fixture": {
+    "track_id": "1142",
+    "plugin_id": "1148",
+    "plugin_identifier": "VST3-Abbey Road Plates Stereo-695648d-5e0a41d9",
+    "fixture_digest": "c3a1fc472e19e10c"
+  },
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "started_at": "2026-11-08T19:24:53+0800",
+  "exchanges": [
+    {
+      "turn": 1,
+      "sent": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+      "response": {
+        "conversation_id": "pce_p_T3_r2_1794137093",
+        "task_id": "task_97f2593b1ea786df",
+        "goal_id": "goal_2275204f9f8fab93",
+        "run_id": "run_c2ead8f276b3dd18",
+        "slice_id": "slice_0d92ca442233958c",
+        "original_intent": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+        "reply": "结论：这次写入没有成功。Abbey Road Plates Stereo（位于 Track 7 机架）的 Damper 仍然停在档位 2，参数没有任何改动。\n\n证据：读取插件参数时，Damper 的归一化值是 0.20，显示为档位「2」；按同一显示刻度换算，你要的档位 7 大约对应 0.70。我尝试写入 0.70，但运行时安全门直接拒绝了这次写入，参数变更回执为「未发生改变」，随后回读仍然显示档位「2」。\n\n限制：拒绝原因是插件参数表面的类型判定无法完成——运行时无法证明这个参数不属于某个受控的瞬态整形表面，因此要求先解析该表面才能写入。本机当前可用的工具集里没有对应的检查/写入通道（所需的那两个专用工具未开放），所以任何绕过这道门的替代写法，都属于规避安全检查，我不会做。另外，Abbey Road Plates 的 Damper 显示刻度并非线性，但这不是失败原因；即使换算正确，也仍会被同一道门挡住。\n\n建议：最快的办法是我把该插件编辑器打开，你直接在界面上把 Damper 拖到「7」（需要的话我现在就开）；或者你确认改用自动化曲线随时间扫 Damper，我再评估那条路径是否同样被拦住。当前项目没有任何可撤销的改动，无需回滚。",
+        "agent_mode": "default",
+        "needs_confirmation": false,
+        "executed_kernel_reply": [
+          {
+            "agent_action_id": "act_5ae24b3e11ae6ddc",
+            "command_name": "get_plugin_parameters",
+            "elapsed_ms": 44,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "automation_param_surface": [
+                {
+                  "label": "Dry Level",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "dry level",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "-INF dB"
+                },
+                {
+                  "label": "Wet Level",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "wet level",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "+0.0 dB"
+                },
+                {
+                  "label": "Bypass",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "10000001",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Off"
+                },
+                {
+                  "label": "Plate Selector",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "0",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Plate A "
+                },
+                {
+                  "label": "Damper",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "1",
+                  "supports_automation": true,
+                  "value": 0.200000002980232,
+                  "value_text": "2 "
+                },
+                {
+                  "label": "BassCut",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "2",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "BassCut 0 "
+                },
+                {
+                  "label": "Drive",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "3",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "0.0 "
+                },
+                {
+                  "label": "Predelay",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "4",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "0 ms"
+                },
+                {
+                  "label": "Crosstalk",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "5",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "0 %"
+                },
+                {
+                  "label": "Treble",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "6",
+                  "supports_automation": true,
+                  "value": 0.5,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Analog",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "7",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Off "
+                },
+                {
+                  "label": "Input Level Left",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "8",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Input Level Right",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "9",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Dry/Wet",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "10",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "100 %"
+                },
+                {
+                  "label": "Output Level Left",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "11",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Output Level Right",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "12",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Output Link",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "13",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "On "
+                },
+                {
+                  "label": "Input Link",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "14",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "On "
+                }
+              ],
+              "capability_manifest": [
+                "open_ui",
+                "get_param",
+                "template_shell",
+                "quick_controls"
+              ],
+              "command_ack": {
+                "ack": {
+                  "message": "Legacy command completed",
+                  "stage": "completed"
+                },
+                "command": "plugin.parameters.get",
+                "legacy_command": "get_plugin_parameters",
+                "resync_hint": false,
+                "revision": 0,
+                "source": "vsp.command.response",
+                "stage": "completed",
+                "transaction_id": "tx_1794137102478042400_990"
+              },
+              "display_probe_summary": {
+                "display_domain_candidate_count": 18,
+                "high_confidence_candidate_count": 16,
+                "parameter_count": 18,
+                "parameters_with_display_probe": 18,
+                "probe_issue_count": 18,
+                "units": {
+                  "%": 2,
+                  "dB": 7,
+                  "enum": 3,
+                  "ms": 1,
+                  "toggle": 3
+                }
+              },
+              "parameter_count": 18,
+              "plugin_id": "1148",
+              "plugin_item_id": "1148",
+              "quick_control_count": 8,
+              "quick_controls": [
+                {
+                  "label": "Dry Level",
+                  "param_id": "dry level",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Input Level Left",
+                  "param_id": "8",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Bypass",
+                  "param_id": "10000001",
+                  "widget": "toggle"
+                },
+                {
+                  "label": "Drive",
+                  "param_id": "3",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Wet Level",
+                  "param_id": "wet level",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Input Level Right",
+                  "param_id": "9",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Dry/Wet",
+                  "param_id": "10",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Output Level Left",
+                  "param_id": "11",
+                  "widget": "slider"
+                }
+              ],
+              "recommended_group_count": 4,
+              "recommended_groups": [
+                {
+                  "name": "Tone",
+                  "parameter_count": 1,
+                  "sample_ids": [
+                    "3"
+                  ]
+                },
+                {
+                  "name": "Mix",
+                  "parameter_count": 9,
+                  "sample_ids": [
+                    "dry level",
+                    "wet level",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13"
+                  ]
+                },
+                {
+                  "name": "Utility",
+                  "parameter_count": 1,
+                  "sample_ids": [
+                    "10000001"
+                  ]
+                },
+                {
+                  "name": "Other",
+                  "parameter_count": 7,
+                  "sample_ids": [
+                    "0",
+                    "1",
+                    "2",
+                    "4",
+                    "5",
+                    "6",
+                    "7"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "supports_param_grabber": true,
+              "track_id": "1142",
+              "vsp": {
+                "command_ack": {
+                  "ack": {
+                    "message": "Legacy command completed",
+                    "stage": "completed"
+                  },
+                  "command": "plugin.parameters.get",
+                  "legacy_command": "get_plugin_parameters",
+                  "resync_hint": false,
+                  "revision": 0,
+                  "source": "vsp.command.response",
+                  "stage": "completed",
+                  "transaction_id": "tx_1794137102478042400_990"
+                },
+                "transport": "vsp",
+                "version": "1.0"
+              }
+            },
+            "status": "ok",
+            "tool": "plugin.get_parameters",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin.get_parameters",
+              "command_name": "get_plugin_parameters",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          },
+          {
+            "agent_action_id": "",
+            "command_name": "set_plugin_param",
+            "elapsed_ms": 19,
+            "error": "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology",
+            "preview": "",
+            "result": {
+              "message": "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology",
+              "param_id": "1",
+              "parameters_changed": false,
+              "plugin_id": "1148",
+              "rejection_code": "typed_transient_shaper_surface_unavailable",
+              "required_tools": [
+                "plugin_grabber.inspect_transient_shaper",
+                "plugin_grabber.apply_transient_shaper_controls"
+              ],
+              "status": "rejected",
+              "track_id": "1142"
+            },
+            "status": "error",
+            "tool": "plugin.set_parameter",
+            "tool_call_id": "tool_step_1",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_1",
+              "tool": "plugin.set_parameter",
+              "command_name": "set_plugin_param",
+              "status": "failed",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology"
+            }
+          },
+          {
+            "agent_action_id": "act_f96e5eb95c0ad59f",
+            "command_name": "get_plugin_parameters",
+            "elapsed_ms": 49,
+            "error": "",
+            "observed_state": true,
+            "preview": "",
+            "result": {
+              "automation_param_surface": [
+                {
+                  "label": "Dry Level",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "dry level",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "-INF dB"
+                },
+                {
+                  "label": "Wet Level",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "wet level",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "+0.0 dB"
+                },
+                {
+                  "label": "Bypass",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "10000001",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Off"
+                },
+                {
+                  "label": "Plate Selector",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "0",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Plate A "
+                },
+                {
+                  "label": "Damper",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "1",
+                  "supports_automation": true,
+                  "value": 0.200000002980232,
+                  "value_text": "2 "
+                },
+                {
+                  "label": "BassCut",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "2",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "BassCut 0 "
+                },
+                {
+                  "label": "Drive",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "3",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "0.0 "
+                },
+                {
+                  "label": "Predelay",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "4",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "0 ms"
+                },
+                {
+                  "label": "Crosstalk",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "5",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "0 %"
+                },
+                {
+                  "label": "Treble",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "6",
+                  "supports_automation": true,
+                  "value": 0.5,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Analog",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "7",
+                  "supports_automation": true,
+                  "value": 0,
+                  "value_text": "Off "
+                },
+                {
+                  "label": "Input Level Left",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "8",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Input Level Right",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "9",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Dry/Wet",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "10",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "100 %"
+                },
+                {
+                  "label": "Output Level Left",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "11",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Output Level Right",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "12",
+                  "supports_automation": true,
+                  "value": 0.71399998664856,
+                  "value_text": "0.0 dB"
+                },
+                {
+                  "label": "Output Link",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "13",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "On "
+                },
+                {
+                  "label": "Input Link",
+                  "max": 1,
+                  "min": 0,
+                  "param_id": "14",
+                  "supports_automation": true,
+                  "value": 1,
+                  "value_text": "On "
+                }
+              ],
+              "capability_manifest": [
+                "open_ui",
+                "get_param",
+                "template_shell",
+                "quick_controls"
+              ],
+              "command_ack": {
+                "ack": {
+                  "message": "Legacy command completed",
+                  "stage": "completed"
+                },
+                "command": "plugin.parameters.get",
+                "legacy_command": "get_plugin_parameters",
+                "resync_hint": false,
+                "revision": 0,
+                "source": "vsp.command.response",
+                "stage": "completed",
+                "transaction_id": "tx_1794137105736090700_994"
+              },
+              "display_probe_summary": {
+                "display_domain_candidate_count": 18,
+                "high_confidence_candidate_count": 16,
+                "parameter_count": 18,
+                "parameters_with_display_probe": 18,
+                "probe_issue_count": 18,
+                "units": {
+                  "%": 2,
+                  "dB": 7,
+                  "enum": 3,
+                  "ms": 1,
+                  "toggle": 3
+                }
+              },
+              "parameter_count": 18,
+              "plugin_id": "1148",
+              "plugin_item_id": "1148",
+              "quick_control_count": 8,
+              "quick_controls": [
+                {
+                  "label": "Dry Level",
+                  "param_id": "dry level",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Input Level Left",
+                  "param_id": "8",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Bypass",
+                  "param_id": "10000001",
+                  "widget": "toggle"
+                },
+                {
+                  "label": "Drive",
+                  "param_id": "3",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Wet Level",
+                  "param_id": "wet level",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Input Level Right",
+                  "param_id": "9",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Dry/Wet",
+                  "param_id": "10",
+                  "widget": "slider"
+                },
+                {
+                  "label": "Output Level Left",
+                  "param_id": "11",
+                  "widget": "slider"
+                }
+              ],
+              "recommended_group_count": 4,
+              "recommended_groups": [
+                {
+                  "name": "Tone",
+                  "parameter_count": 1,
+                  "sample_ids": [
+                    "3"
+                  ]
+                },
+                {
+                  "name": "Mix",
+                  "parameter_count": 9,
+                  "sample_ids": [
+                    "dry level",
+                    "wet level",
+                    "8",
+                    "9",
+                    "10",
+                    "11",
+                    "12",
+                    "13"
+                  ]
+                },
+                {
+                  "name": "Utility",
+                  "parameter_count": 1,
+                  "sample_ids": [
+                    "10000001"
+                  ]
+                },
+                {
+                  "name": "Other",
+                  "parameter_count": 7,
+                  "sample_ids": [
+                    "0",
+                    "1",
+                    "2",
+                    "4",
+                    "5",
+                    "6",
+                    "7"
+                  ]
+                }
+              ],
+              "status": "ok",
+              "supports_param_grabber": true,
+              "track_id": "1142",
+              "vsp": {
+                "command_ack": {
+                  "ack": {
+                    "message": "Legacy command completed",
+                    "stage": "completed"
+                  },
+                  "command": "plugin.parameters.get",
+                  "legacy_command": "get_plugin_parameters",
+                  "resync_hint": false,
+                  "revision": 0,
+                  "source": "vsp.command.response",
+                  "stage": "completed",
+                  "transaction_id": "tx_1794137105736090700_994"
+                },
+                "transport": "vsp",
+                "version": "1.0"
+              }
+            },
+            "status": "ok",
+            "tool": "plugin.get_parameters",
+            "tool_call_id": "tool_step_2",
+            "undo_label": "",
+            "verification": {
+              "tool_call_id": "tool_step_2",
+              "tool": "plugin.get_parameters",
+              "command_name": "get_plugin_parameters",
+              "status": "not_required",
+              "postcondition": "no_observable_daw_postcondition",
+              "message": "tool result recorded; no additional DAW state postcondition is required"
+            }
+          }
+        ],
+        "goal_status": "completed",
+        "goal_summary": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+        "completed_steps": 2,
+        "stop_reason": "done",
+        "project_history": {
+          "active_branch": "main",
+          "active_node_id": "n_20261108T112509_e8eb22c7",
+          "active_worktree": "",
+          "available": true,
+          "branches": {
+            "main": "c_20261108T112452_479f4263"
+          },
+          "commit_count": 14,
+          "conversation_messages": [
+            {
+              "content": "请把 Abbey Road Plates 的 Damper 设为档位 7。",
+              "logical_message_id": "n_20261108T112453_0eb38017",
+              "message_kind": "user",
+              "node_id": "n_20261108T112453_0eb38017",
+              "role": "user"
+            },
+            {
+              "content": "结论：这次写入没有成功。Abbey Road Plates Stereo（位于 Track 7 机架）的 Damper 仍然停在档位 2，参数没有任何改动。\n\n证据：读取插件参数时，Damper 的归一化值是 0.20，显示为档位「2」；按同一显示刻度换算，你要的档位 7 大约对应 0.70。我尝试写入 0.70，但运行时安全门直接拒绝了这次写入，参数变更回执为「未发生改变」，随后回读仍然显示档位「2」。\n\n限制：拒绝原因是插件参数表面的类型判定无法完成——运行时无法证明这个参数不属于某个受控的瞬态整形表面，因此要求先解析该表面才能写入。本机当前可用的工具集里没有对应的检查/写入通道（所需的那两个专用工具未开放），所以任何绕过这道门的替代写法，都属于规避安全检查，我不会做。另外，Abbey Road Plates 的 Damper 显示刻度并非线性，但这不是失败原因；即使换算正确，也仍会被同一道门挡住。\n\n建议：最快的办法是我把该插件编辑器打开，你直接在界面上把 Damper 拖到「7」（需要的话我现在就开）；或者你确认改用自动化曲线随时间扫 Damper，我再评估那条路径是否同样被拦住。当前项目没有任何可撤销的改动，无需回滚。",
+              "logical_message_id": "n_20261108T112509_e8eb22c7",
+              "message_kind": "execution_receipt",
+              "node_id": "n_20261108T112509_e8eb22c7",
+              "role": "assistant"
+            }
+          ],
+          "detached": false,
+          "draft": false,
+          "head": "c_20261108T112452_479f4263",
+          "initialized": true,
+          "project_label": "Unsaved",
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_192031\\agent_drafts\\draft_20261108T112036_2f6f11ee\\Unsaved.vit",
+          "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+          "refs": {
+            "refs/heads/main": "c_20261108T112452_479f4263"
+          },
+          "root_project_path": "",
+          "unsaved": false,
+          "warnings": [],
+          "worktrees": [
+            {
+              "commit_id": "c_20261108T112452_479f4263",
+              "created_at": "2026-11-08T11:25:09.8761013Z",
+              "is_root": true,
+              "label": "主工作树",
+              "name": "main",
+              "origin_commit_id": "c_20261108T112452_479f4263",
+              "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_192031\\agent_drafts\\draft_20261108T112036_2f6f11ee",
+              "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_192031\\agent_drafts\\draft_20261108T112036_2f6f11ee\\Unsaved.vit",
+              "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_192031\\agent_drafts\\draft_20261108T112036_2f6f11ee\\Unsaved.vit",
+              "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_192031\\agent_drafts\\draft_20261108T112036_2f6f11ee\\Unsaved.vit"
+            }
+          ]
+        },
+        "lifecycle": "durable",
+        "persistence": "project_history",
+        "message_kind": "execution_receipt",
+        "turn_id": "turn_867be056bbf018c8",
+        "logical_message_id": "n_20261108T112509_e8eb22c7"
+      }
+    }
+  ],
+  "confirmations": [],
+  "stop_reason": "goal_completed",
+  "first_action": null,
+  "agent_log_delta": "",
+  "tool_calls": 0,
+  "usage": {
+    "available": true,
+    "llm_calls": 5,
+    "input_tokens": 72201,
+    "output_tokens": 1705,
+    "cache_read_tokens": 33920,
+    "cache_creation_tokens": 0,
+    "max_input_in_one_call": 28630,
+    "max_output_in_one_call": 452,
+    "errors": 0
+  },
+  "mutation_audit": [],
+  "boundary_check": {
+    "case_track_present": true,
+    "track_count": null
+  },
+  "behavior_tags": [],
+  "verdict": {
+    "case_id": "T3",
+    "arm": "P",
+    "final_verdict": "fail",
+    "failure_tags": [
+      "model_task_failure"
+    ],
+    "checks": {
+      "label_exact": {
+        "ok": false,
+        "detail": {
+          "label": "2",
+          "want": "7"
+        }
+      },
+      "normalized_in_tolerance": {
+        "ok": false,
+        "detail": {
+          "normalized": 0.200000002980232,
+          "needle": 0.7
+        }
+      },
+      "non_target_unchanged": {
+        "ok": true,
+        "detail": []
+      }
+    },
+    "mutation_count": 0,
+    "changes": []
+  },
+  "finished_at": "2026-11-08T19:25:10+0800"
+}

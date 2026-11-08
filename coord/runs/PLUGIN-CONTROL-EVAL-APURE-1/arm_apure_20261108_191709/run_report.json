@@ -1,0 +1,41 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-APURE-1",
+    "leg":  "arm_apure",
+    "run_id":  "20261108_191709",
+    "repo_head":  "1ddca822bdbeed03f900e68905dbd6564eb69d71",
+    "branch":  "port/plugin-control-eval-apure-1",
+    "started_at":  "2026-11-08T19:17:09.0648279+08:00",
+    "sec8_decl":  "A-pure arm (seam open, VIT_PLUGIN_CONTROL_EVAL_SEAM=1 = 305 S1-S4 + 308 S5 catalog trim + S2b render strip): s0 refreeze (0 LLM) + dryround (0 LLM) + 1 device-verification probe round (T1 repeat 0, paid, not scored) + 18 paid task rounds (T1..T6 x repeat 1..3, new conversation + fresh fixture each); per-round caps (12 calls / 40k in / 8k out per call / 30 tool calls / 20 min) frozen; segment caps 216 calls / 8.64M in / 1.728M out checked between rounds (caps verbatim from plan A_star); probe gate must prove S2/S2b/S3/S4/S5/CS faces + zero executed typed calls before task rounds; failure taxonomy per plan + seam_leakage; full declaration in RUNBOOK.md (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 (set in process env before any process start; = 305 S1-S4 + 308 S5 + S2b)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        26176
+                                    ],
+                       "VitApp":  [
+                                      26836
+                                  ]
+                   },
+    "agent_sha256":  "E581108BA10E322F7D7C1CA346811B54B3E54A12C86F5CD9BC466AB23EBA2A5F",
+    "agent_tool_count":  "256",
+    "s0_exit":  1,
+    "verdict":  "wrapper_fail",
+    "error":  "s0 refreeze failed exit=1 (fixture_failure per RUNBOOK; forensics in s0 dir)",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-08T19:17:34.2440815+08:00"
+}

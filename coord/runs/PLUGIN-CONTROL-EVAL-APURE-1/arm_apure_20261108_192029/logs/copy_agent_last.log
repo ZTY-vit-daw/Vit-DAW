@@ -1,0 +1,800 @@
+2026-11-08T19:25:37 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:25:37 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:25:37 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:25:38 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:25:38 [INFO] [timing] harness.invoke total_ms=56 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:25:38 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:25:38 [DEBUG] [shadow] live delta uid="1162" action="property_changed:state"
+2026-11-08T19:25:38 [WARN] [shadow] delta seq gap #18 last=806 current=808
+2026-11-08T19:25:38 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:25:38 [WARN] [telemetry] delta seq gap last=806 current=808
+2026-11-08T19:25:38 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:25:38 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=68
+2026-11-08T19:25:40 [WARN] VSP realtime publish pending failures=44 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:40 [WARN] VSP realtime publish pending failures=44 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:44 [INFO] [timing] message_loop.llm ms=2947 goal=goal_e2d57b532699c69e conversation=pce_p_T4_r1_1794137137 turn=1 messages=3 chars=45757 message_chars=0:system:21135,1:user:45,2:user:24577 err=false
+2026-11-08T19:25:46 [WARN] VSP realtime publish pending failures=47 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:46 [WARN] VSP realtime publish pending failures=47 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:47 [INFO] [timing] kernel.send_command ms=10 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:25:47 [INFO] [timing] harness.invoke total_ms=55 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:25:47 [INFO] [timing] message_loop.tool ms=56 goal=goal_e2d57b532699c69e tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-08T19:25:52 [WARN] VSP realtime publish pending failures=50 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:52 [WARN] VSP realtime publish pending failures=50 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:52 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=160 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:55 [INFO] [timing] message_loop.llm ms=8116 goal=goal_e2d57b532699c69e conversation=pce_p_T4_r1_1794137137 turn=3 messages=5 chars=56629 message_chars=0:system:21135,1:user:45,2:assistant:242,3:user:6016,4:user:29191 err=false
+2026-11-08T19:25:55 [INFO] [timing] message_loop.tool ms=20 goal=goal_e2d57b532699c69e tool=plugin.set_parameter confirmed=false stopped=false status=
+2026-11-08T19:25:55 [INFO] [timing] kernel.send_command ms=11 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:25:55 [INFO] [timing] harness.invoke total_ms=57 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:25:55 [INFO] [timing] message_loop.tool ms=58 goal=goal_e2d57b532699c69e tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-08T19:25:58 [WARN] VSP realtime publish pending failures=53 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:58 [WARN] VSP realtime publish pending failures=53 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:25:58 [INFO] [timing] message_loop.llm ms=3198 goal=goal_e2d57b532699c69e conversation=pce_p_T4_r1_1794137137 turn=4 messages=8 chars=81287 message_chars=0:system:21135,1:user:45,2:assistant:242,3:user:6016,4:assistant:493,5:user:2624,6:user:6016,7:user:44716 err=false
+2026-11-08T19:25:58 [INFO] [continuation.arm] conversation=pce_p_T4_r1_1794137137 goal=goal_e2d57b532699c69e status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:25:58 [INFO] [timing] agent_loop_chat total_ms=20001 conversation=pce_p_T4_r1_1794137137 goal=goal_e2d57b532699c69e mode=default status=completed stop=done completed_steps=2 executed=3
+2026-11-08T19:25:58 [INFO] [media_refs] ms=0 conversation=pce_p_T4_r1_1794137137 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:25:58 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=68
+2026-11-08T19:25:58 [INFO] [chat.artifacts] conversation=pce_p_T4_r1_1794137137 response_artifacts=0 request_artifacts=0 executed=3 reply_len=1226
+2026-11-08T19:25:58 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=68 commit=c_20261108T112558_945a52f3 rebound=1 total_ms=78
+2026-11-08T19:25:59 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:25:59 [INFO] [timing] http.chat total_ms=20988 conversation=pce_p_T4_r1_1794137137 message_len=83
+2026-11-08T19:25:59 [INFO] [timing] kernel.send_command ms=10 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:25:59 [INFO] [timing] harness.invoke total_ms=57 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:25:59 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1156" action="node_removed"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:25:59 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=delete_track err=false
+2026-11-08T19:25:59 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:25:59 [INFO] [timing] harness.refresh_shadow ms=18 reason=delete_track status=ok err=false
+2026-11-08T19:25:59 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:25:59 [INFO] [timing] kernel.send_command ms=57 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:25:59 [INFO] [timing] harness.invoke total_ms=99 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:25:59 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1163" action="property_changed:id"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:25:59 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=add_audio_track err=false
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:25:59 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:25:59 [INFO] [timing] harness.refresh_shadow ms=25 reason=add_audio_track status=ok err=false
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:25:59 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:25:59 [INFO] [timing] kernel.send_command ms=68 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1164" action="node_added"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1165" action="node_added"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1164" action="property_changed:remapOnTempoChange"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1163" action="property_changed:name"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:25:59 [INFO] [timing] harness.invoke total_ms=121 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1163" action="property_changed:name"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:25:59 [DEBUG] [shadow] live delta uid="1166" action="property_changed:name"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="1166" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="1167" action="property_changed:id"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="1167" action="property_changed:remapOnTempoChange"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="1168" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:00 [INFO] [timing] kernel.send_command ms=10 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:26:00 [INFO] [timing] harness.invoke total_ms=68 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="1169" action="property_changed:state"
+2026-11-08T19:26:00 [WARN] [shadow] delta seq gap #19 last=849 current=851
+2026-11-08T19:26:00 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:00 [WARN] [telemetry] delta seq gap last=849 current=851
+2026-11-08T19:26:00 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:00 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=71
+2026-11-08T19:26:04 [WARN] VSP realtime publish pending failures=56 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:04 [WARN] VSP realtime publish pending failures=56 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:05 [INFO] [timing] message_loop.llm ms=1887 goal=goal_2519c6e46bfa30cb conversation=pce_p_T4_r2_1794137159 turn=1 messages=3 chars=46241 message_chars=0:system:21135,1:user:45,2:user:25061 err=false
+2026-11-08T19:26:05 [INFO] [timing] kernel.send_command ms=11 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:06 [INFO] [timing] harness.invoke total_ms=39 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:06 [INFO] [timing] message_loop.tool ms=39 goal=goal_2519c6e46bfa30cb tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-08T19:26:10 [WARN] VSP realtime publish pending failures=59 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:10 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.transport_publisher
+2026-11-08T19:26:10 [WARN] VSP realtime publish pending failures=59 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:10 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.realtime_publisher
+2026-11-08T19:26:12 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=170 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:13 [INFO] [timing] message_loop.llm ms=7296 goal=goal_2519c6e46bfa30cb conversation=pce_p_T4_r2_1794137159 turn=2 messages=5 chars=63971 message_chars=0:system:21135,1:user:45,2:assistant:246,3:user:6016,4:user:36529 err=false
+2026-11-08T19:26:15 [INFO] [continuation.arm] conversation=pce_p_T4_r2_1794137159 goal=goal_2519c6e46bfa30cb status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:26:15 [INFO] [timing] agent_loop_chat total_ms=14206 conversation=pce_p_T4_r2_1794137159 goal=goal_2519c6e46bfa30cb mode=default status=completed stop=done completed_steps=1 executed=1
+2026-11-08T19:26:15 [INFO] [media_refs] ms=0 conversation=pce_p_T4_r2_1794137159 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:26:15 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=71
+2026-11-08T19:26:15 [INFO] [chat.artifacts] conversation=pce_p_T4_r2_1794137159 response_artifacts=0 request_artifacts=0 executed=1 reply_len=87
+2026-11-08T19:26:15 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=71 commit=c_20261108T112615_57b0242d rebound=1 total_ms=98
+2026-11-08T19:26:15 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:26:15 [INFO] [timing] http.chat total_ms=15320 conversation=pce_p_T4_r2_1794137159 message_len=83
+2026-11-08T19:26:15 [INFO] [timing] kernel.send_command ms=10 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:15 [INFO] [timing] harness.invoke total_ms=61 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:15 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:15 [DEBUG] [shadow] live delta uid="1163" action="node_removed"
+2026-11-08T19:26:15 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:15 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=delete_track err=false
+2026-11-08T19:26:15 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:15 [INFO] [timing] harness.refresh_shadow ms=19 reason=delete_track status=ok err=false
+2026-11-08T19:26:15 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:15 [INFO] [timing] kernel.send_command ms=58 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:26:16 [INFO] [timing] harness.invoke total_ms=111 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:26:16 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:16 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:16 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1170" action="property_changed:id"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:26:16 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=add_audio_track err=false
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:26:16 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:26:16 [INFO] [timing] harness.refresh_shadow ms=29 reason=add_audio_track status=ok err=false
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:26:16 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:26:16 [INFO] [timing] kernel.send_command ms=78 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1171" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1172" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1171" action="property_changed:remapOnTempoChange"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1170" action="property_changed:name"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:16 [INFO] [timing] harness.invoke total_ms=142 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1170" action="property_changed:name"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1173" action="property_changed:name"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1173" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1174" action="property_changed:id"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1174" action="property_changed:remapOnTempoChange"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1175" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:16 [INFO] [timing] kernel.send_command ms=10 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="1176" action="property_changed:state"
+2026-11-08T19:26:16 [WARN] [shadow] delta seq gap #20 last=893 current=895
+2026-11-08T19:26:16 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:16 [WARN] [telemetry] delta seq gap last=893 current=895
+2026-11-08T19:26:16 [INFO] [timing] harness.invoke total_ms=69 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:16 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:16 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=74
+2026-11-08T19:26:22 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:22 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:22 [INFO] [timing] message_loop.llm ms=2018 goal=goal_e0bf9cc024997103 conversation=pce_p_T4_r3_1794137176 turn=1 messages=3 chars=46268 message_chars=0:system:21135,1:user:45,2:user:25088 err=false
+2026-11-08T19:26:24 [INFO] [timing] kernel.send_command ms=12 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:24 [INFO] [timing] harness.invoke total_ms=58 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:24 [INFO] [timing] message_loop.tool ms=59 goal=goal_e0bf9cc024997103 tool=get_plugin_parameters confirmed=false stopped=false status=
+2026-11-08T19:26:28 [WARN] VSP realtime publish pending failures=12 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:28 [WARN] VSP realtime publish pending failures=12 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:28 [INFO] [timing] message_loop.llm ms=4074 goal=goal_e0bf9cc024997103 conversation=pce_p_T4_r3_1794137176 turn=3 messages=5 chars=57346 message_chars=0:system:21135,1:user:45,2:assistant:268,3:user:6016,4:user:29882 err=false
+2026-11-08T19:26:28 [INFO] [timing] message_loop.tool ms=22 goal=goal_e0bf9cc024997103 tool=plugin.set_parameter confirmed=false stopped=false status=
+2026-11-08T19:26:32 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=180 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:34 [WARN] VSP realtime publish pending failures=15 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:34 [WARN] VSP realtime publish pending failures=15 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:34 [INFO] [timing] message_loop.llm ms=5659 goal=goal_e0bf9cc024997103 conversation=pce_p_T4_r3_1794137176 turn=4 messages=7 chars=64183 message_chars=0:system:21135,1:user:45,2:assistant:268,3:user:6016,4:assistant:316,5:user:2624,6:user:33779 err=false
+2026-11-08T19:26:34 [INFO] [timing] kernel.send_command ms=249 command=open_plugin_ui tool=plugin.open confirmed=false err=false
+2026-11-08T19:26:34 [INFO] [timing] harness.invoke total_ms=304 tool=plugin.open command=open_plugin_ui status=ok confirmed=false err=false
+2026-11-08T19:26:34 [INFO] [timing] message_loop.tool ms=304 goal=goal_e0bf9cc024997103 tool=plugin.open confirmed=false stopped=false status=
+2026-11-08T19:26:38 [INFO] [timing] message_loop.llm ms=3772 goal=goal_e0bf9cc024997103 conversation=pce_p_T4_r3_1794137176 turn=5 messages=9 chars=67627 message_chars=0:system:21135,1:user:45,2:assistant:268,3:user:6016,4:assistant:316,5:user:2624,6:assistant:263,7:user:2126,8:user:34834 err=false
+2026-11-08T19:26:38 [INFO] [continuation.arm] conversation=pce_p_T4_r3_1794137176 goal=goal_e0bf9cc024997103 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:26:38 [INFO] [timing] agent_loop_chat total_ms=20625 conversation=pce_p_T4_r3_1794137176 goal=goal_e0bf9cc024997103 mode=default status=completed stop=done completed_steps=2 executed=3
+2026-11-08T19:26:38 [INFO] [media_refs] ms=0 conversation=pce_p_T4_r3_1794137176 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:26:38 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=74
+2026-11-08T19:26:38 [INFO] [chat.artifacts] conversation=pce_p_T4_r3_1794137176 response_artifacts=0 request_artifacts=0 executed=3 reply_len=988
+2026-11-08T19:26:38 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=74 commit=c_20261108T112638_b05d87bc rebound=1 total_ms=90
+2026-11-08T19:26:38 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:26:38 [INFO] [timing] http.chat total_ms=21740 conversation=pce_p_T4_r3_1794137176 message_len=83
+2026-11-08T19:26:38 [INFO] [timing] kernel.send_command ms=10 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:38 [INFO] [timing] harness.invoke total_ms=85 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:39 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1170" action="node_removed"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:39 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=delete_track err=false
+2026-11-08T19:26:39 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:39 [INFO] [timing] harness.refresh_shadow ms=23 reason=delete_track status=ok err=false
+2026-11-08T19:26:39 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:39 [INFO] [timing] kernel.send_command ms=68 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:26:39 [INFO] [timing] harness.invoke total_ms=123 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:26:39 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1177" action="property_changed:id"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:26:39 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=add_audio_track err=false
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:26:39 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:26:39 [INFO] [timing] harness.refresh_shadow ms=29 reason=add_audio_track status=ok err=false
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:26:39 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:26:39 [INFO] [timing] kernel.send_command ms=79 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1178" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1179" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1178" action="property_changed:remapOnTempoChange"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1177" action="property_changed:name"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:39 [INFO] [timing] harness.invoke total_ms=146 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1177" action="property_changed:name"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1180" action="property_changed:name"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:26:39 [DEBUG] [shadow] live delta uid="1180" action="node_added"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="1181" action="property_changed:id"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="1181" action="property_changed:remapOnTempoChange"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="1182" action="node_added"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:40 [WARN] VSP realtime publish pending failures=18 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:40 [INFO] [timing] kernel.send_command ms=16 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:40 [WARN] VSP realtime publish pending failures=18 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:26:40 [INFO] [timing] harness.invoke total_ms=75 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="1183" action="property_changed:state"
+2026-11-08T19:26:40 [WARN] [shadow] delta seq gap #21 last=936 current=938
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:40 [WARN] [telemetry] delta seq gap last=936 current=938
+2026-11-08T19:26:40 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:40 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=77
+2026-11-08T19:26:40 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:44 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=capacity_project_facts err=false
+2026-11-08T19:26:44 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:44 [INFO] [timing] harness.refresh_shadow ms=18 reason=capacity_project_facts status=ok err=false
+2026-11-08T19:26:46 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:46 [WARN] VSP realtime publish pending failures=21 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:46 [WARN] VSP realtime publish pending failures=21 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:46 [INFO] [timing] message_loop.llm ms=1045 goal=goal_acacf03ab1f864aa conversation=pce_p_T5_r1_1794137199 turn=1 messages=3 chars=51475 message_chars=0:system:26961,1:user:43,2:user:24471 err=false
+2026-11-08T19:26:51 [INFO] [timing] kernel.send_command ms=12 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:51 [INFO] [timing] harness.invoke total_ms=63 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:51 [INFO] [timing] message_loop.tool ms=64 goal=goal_acacf03ab1f864aa tool=get_plugin_parameters confirmed=false stopped=false status=
+2026-11-08T19:26:52 [WARN] VSP realtime publish pending failures=24 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:52 [WARN] VSP realtime publish pending failures=24 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:52 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=190 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:53 [INFO] [timing] message_loop.llm ms=1443 goal=goal_acacf03ab1f864aa conversation=pce_p_T5_r1_1794137199 turn=3 messages=5 chars=62494 message_chars=0:system:26961,1:user:43,2:assistant:126,3:user:6016,4:user:29348 err=false
+2026-11-08T19:26:53 [INFO] [continuation.arm] conversation=pce_p_T5_r1_1794137199 goal=goal_acacf03ab1f864aa status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:26:53 [INFO] [timing] agent_loop_chat total_ms=12106 conversation=pce_p_T5_r1_1794137199 goal=goal_acacf03ab1f864aa mode=default status=completed stop=done completed_steps=1 executed=1
+2026-11-08T19:26:53 [INFO] [media_refs] ms=0 conversation=pce_p_T5_r1_1794137199 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:26:53 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=77
+2026-11-08T19:26:53 [INFO] [chat.artifacts] conversation=pce_p_T5_r1_1794137199 response_artifacts=0 request_artifacts=0 executed=1 reply_len=384
+2026-11-08T19:26:53 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_acacf03ab1f864aa
+2026-11-08T19:26:53 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=77 commit=c_20261108T112653_81b04db9 rebound=1 total_ms=100
+2026-11-08T19:26:53 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:26:53 [INFO] [timing] http.chat total_ms=13444 conversation=pce_p_T5_r1_1794137199 message_len=85
+2026-11-08T19:26:53 [INFO] [timing] kernel.send_command ms=11 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:53 [INFO] [timing] harness.invoke total_ms=58 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:53 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:53 [DEBUG] [shadow] live delta uid="1177" action="node_removed"
+2026-11-08T19:26:53 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:53 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=delete_track err=false
+2026-11-08T19:26:53 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:53 [INFO] [timing] harness.refresh_shadow ms=21 reason=delete_track status=ok err=false
+2026-11-08T19:26:54 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:54 [INFO] [timing] kernel.send_command ms=60 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:26:54 [INFO] [timing] harness.invoke total_ms=117 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:26:54 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1184" action="property_changed:id"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:26:54 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=add_audio_track err=false
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:26:54 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:26:54 [INFO] [timing] harness.refresh_shadow ms=31 reason=add_audio_track status=ok err=false
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:26:54 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:26:54 [INFO] [timing] kernel.send_command ms=77 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1185" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1186" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1185" action="property_changed:remapOnTempoChange"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1184" action="property_changed:name"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:54 [INFO] [timing] harness.invoke total_ms=131 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1184" action="property_changed:name"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1187" action="property_changed:name"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1187" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1188" action="property_changed:id"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1188" action="property_changed:remapOnTempoChange"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1189" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:54 [INFO] [timing] kernel.send_command ms=12 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:26:54 [INFO] [timing] harness.invoke total_ms=77 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:26:54 [DEBUG] [shadow] live delta uid="1190" action="property_changed:state"
+2026-11-08T19:26:54 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:26:54 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=80
+2026-11-08T19:26:54 [WARN] [shadow] delta seq gap #22 last=981 current=983
+2026-11-08T19:26:55 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:26:55 [WARN] [telemetry] delta seq gap last=981 current=983
+2026-11-08T19:26:58 [WARN] VSP realtime publish pending failures=27 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:26:58 [WARN] VSP realtime publish pending failures=27 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:00 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=capacity_project_facts err=false
+2026-11-08T19:27:00 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:00 [INFO] [timing] harness.refresh_shadow ms=20 reason=capacity_project_facts status=ok err=false
+2026-11-08T19:27:02 [INFO] [timing] message_loop.llm ms=1224 goal=goal_8de755e754b9b0c5 conversation=pce_p_T5_r2_1794137214 turn=1 messages=3 chars=51187 message_chars=0:system:26961,1:user:43,2:user:24183 err=false
+2026-11-08T19:27:04 [WARN] VSP realtime publish pending failures=30 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:04 [WARN] VSP realtime publish pending failures=30 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:09 [INFO] [timing] message_loop.llm ms=5288 goal=goal_8de755e754b9b0c5 conversation=pce_p_T5_r2_1794137214 turn=3 messages=5 chars=54264 message_chars=0:system:26961,1:user:43,2:assistant:126,3:user:270,4:user:26864 err=false
+2026-11-08T19:27:09 [INFO] [timing] harness.invoke total_ms=59 tool=ccb.observation_catalog command=ccb_observation_catalog status=ok confirmed=false err=false
+2026-11-08T19:27:09 [INFO] [timing] message_loop.tool ms=60 goal=goal_8de755e754b9b0c5 tool=ccb.observation_catalog confirmed=false stopped=false status=
+2026-11-08T19:27:10 [WARN] VSP realtime publish pending failures=33 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:10 [WARN] VSP realtime publish pending failures=33 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:12 [INFO] [timing] message_loop.llm ms=2826 goal=goal_8de755e754b9b0c5 conversation=pce_p_T5_r2_1794137214 turn=4 messages=7 chars=75726 message_chars=0:system:26961,1:user:43,2:assistant:126,3:user:270,4:assistant:141,5:user:18253,6:user:29932 err=false
+2026-11-08T19:27:12 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=200 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:16 [WARN] VSP realtime publish pending failures=36 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:16 [WARN] VSP realtime publish pending failures=36 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:18 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=mix_request_observation_target_resolution err=false
+2026-11-08T19:27:18 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:18 [INFO] [timing] harness.refresh_shadow ms=20 reason=mix_request_observation_target_resolution status=ok err=false
+2026-11-08T19:27:19 [INFO] [timing] harness.invoke total_ms=209 tool=ccb.observation_request command=ccb_observation_request status=ok confirmed=false err=false
+2026-11-08T19:27:19 [INFO] [timing] message_loop.tool ms=210 goal=goal_8de755e754b9b0c5 tool=ccb.observation_request confirmed=false stopped=false status=
+2026-11-08T19:27:22 [WARN] VSP realtime publish pending failures=39 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:22 [WARN] VSP realtime publish pending failures=39 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:23 [INFO] [timing] message_loop.llm ms=3997 goal=goal_8de755e754b9b0c5 conversation=pce_p_T5_r2_1794137214 turn=6 messages=9 chars=86458 message_chars=0:system:26961,1:user:43,2:assistant:126,3:user:270,4:assistant:141,5:user:18253,6:assistant:304,7:user:8001,8:user:32359 err=false
+2026-11-08T19:27:23 [INFO] [continuation.arm] conversation=pce_p_T5_r2_1794137214 goal=goal_8de755e754b9b0c5 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:27:23 [INFO] [timing] agent_loop_chat total_ms=27313 conversation=pce_p_T5_r2_1794137214 goal=goal_8de755e754b9b0c5 mode=default status=completed stop=done completed_steps=2 executed=2
+2026-11-08T19:27:23 [INFO] [media_refs] ms=0 conversation=pce_p_T5_r2_1794137214 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:27:23 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=80
+2026-11-08T19:27:23 [INFO] [chat.artifacts] conversation=pce_p_T5_r2_1794137214 response_artifacts=0 request_artifacts=0 executed=2 reply_len=930
+2026-11-08T19:27:23 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_8de755e754b9b0c5
+2026-11-08T19:27:23 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=80 commit=c_20261108T112723_6d260512 rebound=1 total_ms=110
+2026-11-08T19:27:23 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:27:23 [INFO] [timing] http.chat total_ms=28689 conversation=pce_p_T5_r2_1794137214 message_len=85
+2026-11-08T19:27:23 [INFO] [timing] kernel.send_command ms=12 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:27:23 [INFO] [timing] harness.invoke total_ms=65 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:27:24 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1184" action="node_removed"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:27:24 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=delete_track err=false
+2026-11-08T19:27:24 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:27:24 [INFO] [timing] harness.refresh_shadow ms=22 reason=delete_track status=ok err=false
+2026-11-08T19:27:24 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:27:24 [INFO] [timing] kernel.send_command ms=64 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:27:24 [INFO] [timing] harness.invoke total_ms=119 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:27:24 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1191" action="property_changed:id"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:27:24 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=add_audio_track err=false
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:27:24 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:27:24 [INFO] [timing] harness.refresh_shadow ms=38 reason=add_audio_track status=ok err=false
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:27:24 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:27:24 [INFO] [timing] kernel.send_command ms=88 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1192" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1193" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1192" action="property_changed:remapOnTempoChange"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1191" action="property_changed:name"
+2026-11-08T19:27:24 [INFO] [timing] harness.invoke total_ms=155 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1191" action="property_changed:name"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1194" action="property_changed:name"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1194" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1195" action="property_changed:id"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1195" action="property_changed:remapOnTempoChange"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="1196" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:24 [INFO] [timing] kernel.send_command ms=13 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:24 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:25 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:25 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:27:25 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:27:25 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:27:25 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:27:25 [INFO] [timing] harness.invoke total_ms=76 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:27:25 [DEBUG] [shadow] live delta uid="1197" action="property_changed:state"
+2026-11-08T19:27:25 [WARN] [shadow] delta seq gap #23 last=1024 current=1026
+2026-11-08T19:27:25 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:27:25 [WARN] [telemetry] delta seq gap last=1024 current=1026
+2026-11-08T19:27:25 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:25 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=83
+2026-11-08T19:27:28 [WARN] VSP realtime publish pending failures=42 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:28 [WARN] VSP realtime publish pending failures=42 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:31 [INFO] [timing] kernel.vsp_state_snapshot ms=10 reason=capacity_project_facts err=false
+2026-11-08T19:27:31 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:31 [INFO] [timing] harness.refresh_shadow ms=21 reason=capacity_project_facts status=ok err=false
+2026-11-08T19:27:32 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=210 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:34 [WARN] VSP realtime publish pending failures=45 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:34 [WARN] VSP realtime publish pending failures=45 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:34 [INFO] [timing] message_loop.llm ms=1222 goal=goal_c3c0189d077e98db conversation=pce_p_T5_r3_1794137244 turn=1 messages=3 chars=51847 message_chars=0:system:26961,1:user:43,2:user:24843 err=false
+2026-11-08T19:27:40 [WARN] VSP realtime publish pending failures=48 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:40 [WARN] VSP realtime publish pending failures=48 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:46 [WARN] VSP realtime publish pending failures=51 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:46 [WARN] VSP realtime publish pending failures=51 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:46 [INFO] [timing] message_loop.llm ms=9638 goal=goal_c3c0189d077e98db conversation=pce_p_T5_r3_1794137244 turn=3 messages=5 chars=54954 message_chars=0:system:26961,1:user:43,2:assistant:140,3:user:270,4:user:27540 err=false
+2026-11-08T19:27:46 [INFO] [continuation.arm] conversation=pce_p_T5_r3_1794137244 goal=goal_c3c0189d077e98db status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:27:46 [INFO] [timing] agent_loop_chat total_ms=20586 conversation=pce_p_T5_r3_1794137244 goal=goal_c3c0189d077e98db mode=default status=completed stop=done completed_steps=0 executed=0
+2026-11-08T19:27:46 [INFO] [media_refs] ms=0 conversation=pce_p_T5_r3_1794137244 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:27:46 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=83
+2026-11-08T19:27:46 [INFO] [chat.artifacts] conversation=pce_p_T5_r3_1794137244 response_artifacts=0 request_artifacts=0 executed=0 reply_len=1051
+2026-11-08T19:27:46 [INFO] [turn.close] closed orphan task state=observation_in_progress goal=goal_c3c0189d077e98db
+2026-11-08T19:27:46 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=83 commit=c_20261108T112746_2b8f2973 rebound=1 total_ms=98
+2026-11-08T19:27:46 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:27:46 [INFO] [timing] http.chat total_ms=21862 conversation=pce_p_T5_r3_1794137244 message_len=85
+2026-11-08T19:27:46 [INFO] [timing] kernel.send_command ms=11 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:27:47 [INFO] [timing] harness.invoke total_ms=66 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:27:47 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="1191" action="node_removed"
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:27:47 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=delete_track err=false
+2026-11-08T19:27:47 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:27:47 [INFO] [timing] harness.refresh_shadow ms=28 reason=delete_track status=ok err=false
+2026-11-08T19:27:47 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:27:47 [INFO] [timing] kernel.send_command ms=72 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:27:47 [INFO] [timing] harness.invoke total_ms=132 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:27:47 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="1198" action="property_changed:id"
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:27:47 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=add_audio_track err=false
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:27:47 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:27:47 [INFO] [timing] harness.refresh_shadow ms=35 reason=add_audio_track status=ok err=false
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:27:47 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:27:47 [INFO] [timing] kernel.send_command ms=90 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:27:47 [DEBUG] [shadow] live delta uid="1199" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1200" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1199" action="property_changed:remapOnTempoChange"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1198" action="property_changed:name"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1198" action="property_changed:name"
+2026-11-08T19:27:48 [INFO] [timing] harness.invoke total_ms=173 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1201" action="property_changed:name"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1201" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1202" action="property_changed:id"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1202" action="property_changed:remapOnTempoChange"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1203" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:48 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:48 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=86
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:27:48 [INFO] [timing] kernel.send_command ms=4 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="1204" action="property_changed:state"
+2026-11-08T19:27:48 [WARN] [shadow] delta seq gap #24 last=1068 current=1070
+2026-11-08T19:27:48 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:27:48 [WARN] [telemetry] delta seq gap last=1068 current=1070
+2026-11-08T19:27:48 [INFO] [timing] harness.invoke total_ms=85 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:27:49 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:27:49 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=86
+2026-11-08T19:27:52 [WARN] VSP realtime publish pending failures=54 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:52 [WARN] VSP realtime publish pending failures=54 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:52 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=220 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:53 [INFO] [timing] message_loop.llm ms=1276 goal=goal_0620bd95b81b7ef9 conversation=pce_p_T6_r1_1794137267 turn=1 messages=3 chars=45440 message_chars=0:system:21135,1:user:22,2:user:24283 err=false
+2026-11-08T19:27:55 [INFO] [timing] kernel.send_command ms=4 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:27:55 [INFO] [timing] harness.invoke total_ms=60 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:27:55 [INFO] [timing] message_loop.tool ms=61 goal=goal_0620bd95b81b7ef9 tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-08T19:27:58 [WARN] VSP realtime publish pending failures=57 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:27:58 [WARN] VSP realtime publish pending failures=57 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:00 [INFO] [timing] message_loop.llm ms=4964 goal=goal_0620bd95b81b7ef9 conversation=pce_p_T6_r1_1794137267 turn=3 messages=5 chars=58570 message_chars=0:system:21135,1:user:22,2:assistant:224,3:user:4853,4:user:32336 err=false
+2026-11-08T19:28:01 [INFO] [timing] kernel.send_command ms=43 command=show_plugin_editor tool=plugin.show_editor confirmed=false err=false
+2026-11-08T19:28:01 [INFO] [timing] harness.invoke total_ms=103 tool=plugin.show_editor command=show_plugin_editor status=ok confirmed=false err=false
+2026-11-08T19:28:01 [INFO] [timing] message_loop.tool ms=104 goal=goal_0620bd95b81b7ef9 tool=plugin.show_editor confirmed=false stopped=false status=
+2026-11-08T19:28:02 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.transport_publisher
+2026-11-08T19:28:02 [WARN] VSP realtime publish dropped after retry budget failures=59 client=vit.agent.realtime_publisher
+2026-11-08T19:28:03 [INFO] [timing] message_loop.llm ms=1796 goal=goal_0620bd95b81b7ef9 conversation=pce_p_T6_r1_1794137267 turn=5 messages=7 chars=58657 message_chars=0:system:21135,1:user:22,2:assistant:224,3:user:4853,4:assistant:396,5:user:2185,6:user:29842 err=false
+2026-11-08T19:28:03 [INFO] [timing] kernel.send_command ms=5 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:28:03 [INFO] [timing] harness.invoke total_ms=59 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:28:03 [INFO] [timing] message_loop.tool ms=60 goal=goal_0620bd95b81b7ef9 tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-08T19:28:03 [WARN] VSP realtime publish pending failures=4 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:03 [WARN] VSP realtime publish pending failures=4 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:06 [INFO] [timing] message_loop.llm ms=3425 goal=goal_0620bd95b81b7ef9 conversation=pce_p_T6_r1_1794137267 turn=6 messages=9 chars=68512 message_chars=0:system:21135,1:user:22,2:assistant:224,3:user:4853,4:assistant:396,5:user:2185,6:assistant:232,7:user:4853,8:user:34612 err=false
+2026-11-08T19:28:07 [INFO] [timing] harness.invoke total_ms=67 tool=plugin.semantic_get command=plugin_semantic_get status=ok confirmed=false err=false
+2026-11-08T19:28:07 [INFO] [timing] message_loop.tool ms=69 goal=goal_0620bd95b81b7ef9 tool=plugin.semantic_get confirmed=false stopped=false status=
+2026-11-08T19:28:09 [WARN] VSP realtime publish pending failures=7 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:09 [WARN] VSP realtime publish pending failures=7 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:12 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=230 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:14 [INFO] [timing] message_loop.llm ms=6951 goal=goal_0620bd95b81b7ef9 conversation=pce_p_T6_r1_1794137267 turn=7 messages=11 chars=72999 message_chars=0:system:21135,1:user:22,2:assistant:224,3:user:4853,4:assistant:396,5:user:2185,6:assistant:232,7:user:4853,8:assistant:205,9:user:1994,10:user:36900 err=false
+2026-11-08T19:28:14 [INFO] [continuation.arm] conversation=pce_p_T6_r1_1794137267 goal=goal_0620bd95b81b7ef9 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:28:14 [INFO] [timing] agent_loop_chat total_ms=24705 conversation=pce_p_T6_r1_1794137267 goal=goal_0620bd95b81b7ef9 mode=default status=completed stop=done completed_steps=4 executed=4
+2026-11-08T19:28:14 [INFO] [media_refs] ms=0 conversation=pce_p_T6_r1_1794137267 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:28:14 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=86
+2026-11-08T19:28:14 [INFO] [chat.artifacts] conversation=pce_p_T6_r1_1794137267 response_artifacts=0 request_artifacts=0 executed=4 reply_len=1324
+2026-11-08T19:28:14 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=86 commit=c_20261108T112814_3f85071e rebound=1 total_ms=100
+2026-11-08T19:28:14 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:28:14 [INFO] [timing] http.chat total_ms=25847 conversation=pce_p_T6_r1_1794137267 message_len=48
+2026-11-08T19:28:14 [INFO] [timing] kernel.send_command ms=4 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:28:14 [INFO] [timing] harness.invoke total_ms=65 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:28:14 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:28:14 [DEBUG] [shadow] live delta uid="1198" action="node_removed"
+2026-11-08T19:28:14 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:28:14 [INFO] [timing] kernel.vsp_state_snapshot ms=9 reason=delete_track err=false
+2026-11-08T19:28:14 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:28:14 [INFO] [timing] harness.refresh_shadow ms=23 reason=delete_track status=ok err=false
+2026-11-08T19:28:14 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:28:14 [INFO] [timing] kernel.send_command ms=63 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:28:14 [INFO] [timing] harness.invoke total_ms=125 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:28:15 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1205" action="property_changed:id"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:28:15 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=add_audio_track err=false
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:28:15 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:28:15 [INFO] [timing] harness.refresh_shadow ms=29 reason=add_audio_track status=ok err=false
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:28:15 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:28:15 [INFO] [timing] kernel.send_command ms=76 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1206" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1207" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1206" action="property_changed:remapOnTempoChange"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1205" action="property_changed:name"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:28:15 [INFO] [timing] harness.invoke total_ms=139 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1205" action="property_changed:name"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1208" action="property_changed:name"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1208" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1209" action="property_changed:id"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1209" action="property_changed:remapOnTempoChange"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1210" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:15 [INFO] [timing] kernel.send_command ms=4 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:28:15 [INFO] [timing] harness.invoke total_ms=66 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="1211" action="property_changed:state"
+2026-11-08T19:28:15 [WARN] [shadow] delta seq gap #25 last=1111 current=1113
+2026-11-08T19:28:15 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:28:15 [WARN] [telemetry] delta seq gap last=1111 current=1113
+2026-11-08T19:28:15 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:28:15 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=89
+2026-11-08T19:28:15 [WARN] VSP realtime publish pending failures=10 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:15 [WARN] VSP realtime publish pending failures=10 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:21 [WARN] VSP realtime publish pending failures=13 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:21 [WARN] VSP realtime publish pending failures=13 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:22 [INFO] [timing] message_loop.llm ms=2799 goal=goal_2c5170fde1d461f7 conversation=pce_p_T6_r2_1794137295 turn=1 messages=3 chars=46339 message_chars=0:system:21135,1:user:22,2:user:25182 err=false
+2026-11-08T19:28:25 [INFO] [timing] kernel.send_command ms=5 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:28:25 [INFO] [timing] harness.invoke total_ms=64 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:28:25 [INFO] [timing] message_loop.tool ms=66 goal=goal_2c5170fde1d461f7 tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-08T19:28:27 [WARN] VSP realtime publish pending failures=16 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:27 [WARN] VSP realtime publish pending failures=16 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:31 [INFO] [timing] message_loop.llm ms=5993 goal=goal_2c5170fde1d461f7 conversation=pce_p_T6_r2_1794137295 turn=3 messages=5 chars=59908 message_chars=0:system:21135,1:user:22,2:assistant:272,3:user:4853,4:user:33626 err=false
+2026-11-08T19:28:31 [INFO] [continuation.arm] conversation=pce_p_T6_r2_1794137295 goal=goal_2c5170fde1d461f7 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:28:31 [INFO] [timing] agent_loop_chat total_ms=14865 conversation=pce_p_T6_r2_1794137295 goal=goal_2c5170fde1d461f7 mode=default status=completed stop=done completed_steps=1 executed=1
+2026-11-08T19:28:31 [INFO] [media_refs] ms=0 conversation=pce_p_T6_r2_1794137295 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:28:31 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=89
+2026-11-08T19:28:31 [INFO] [chat.artifacts] conversation=pce_p_T6_r2_1794137295 response_artifacts=0 request_artifacts=0 executed=1 reply_len=1140
+2026-11-08T19:28:31 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=89 commit=c_20261108T112831_3e0dfe34 rebound=1 total_ms=106
+2026-11-08T19:28:31 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:28:31 [INFO] [timing] http.chat total_ms=16028 conversation=pce_p_T6_r2_1794137295 message_len=48
+2026-11-08T19:28:31 [INFO] [timing] kernel.send_command ms=4 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:28:31 [INFO] [timing] harness.invoke total_ms=64 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:28:32 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="1205" action="node_removed"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:28:32 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=delete_track err=false
+2026-11-08T19:28:32 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:28:32 [INFO] [timing] harness.refresh_shadow ms=21 reason=delete_track status=ok err=false
+2026-11-08T19:28:32 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:28:32 [INFO] [timing] kernel.send_command ms=59 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:28:32 [INFO] [timing] harness.invoke total_ms=113 tool=track.delete command=delete_track status=ok confirmed=true err=false
+2026-11-08T19:28:32 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="TRACK" action="node_added"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="1212" action="property_changed:id"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:28:32 [INFO] [timing] kernel.vsp_state_snapshot ms=12 reason=add_audio_track err=false
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="OUTPUTDEVICES" action="node_added"
+2026-11-08T19:28:32 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:28:32 [INFO] [timing] harness.refresh_shadow ms=33 reason=add_audio_track status=ok err=false
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="DEVICE" action="node_added"
+2026-11-08T19:28:32 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=1
+2026-11-08T19:28:32 [INFO] [timing] kernel.send_command ms=86 command=add_audio_track tool=track.add_audio confirmed=true err=false
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="CLIPSLOTS" action="node_added"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="DEVICE" action="property_changed:name"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="1213" action="node_added"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="1214" action="node_added"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="1213" action="property_changed:remapOnTempoChange"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="1212" action="property_changed:name"
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:28:32 [INFO] [timing] harness.invoke total_ms=156 tool=track.add_audio command=add_audio_track status=ok confirmed=true err=false
+2026-11-08T19:28:32 [DEBUG] [shadow] live delta uid="1212" action="property_changed:name"
+2026-11-08T19:28:32 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=240 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="WINDOWSTATE" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="1215" action="property_changed:name"
+2026-11-08T19:28:33 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=3
+2026-11-08T19:28:33 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=92
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="OUTPUT" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="INPUT" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="MODIFIERS" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="1215" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="MACROPARAMETERS" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="1216" action="property_changed:id"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="1216" action="property_changed:remapOnTempoChange"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="1217" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="CONNECTION" action="node_added"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:plugin_identifier"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_zone_id"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_clip_scope"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="PLUGININSTANCE" action="property_changed:vit_template_role"
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="1218" action="property_changed:state"
+2026-11-08T19:28:33 [WARN] [shadow] delta seq gap #26 last=1154 current=1156
+2026-11-08T19:28:33 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:28:33 [WARN] [telemetry] delta seq gap last=1154 current=1156
+2026-11-08T19:28:33 [INFO] [timing] kernel.send_command ms=4 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:28:33 [INFO] [timing] harness.invoke total_ms=78 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:28:33 [WARN] VSP realtime publish pending failures=19 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:33 [WARN] VSP realtime publish pending failures=19 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:34 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:28:34 [INFO] [shadow] refreshed after structural_delta source=vsp.state.snapshot revision=92
+2026-11-08T19:28:39 [WARN] VSP realtime publish pending failures=22 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:39 [WARN] VSP realtime publish pending failures=22 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:40 [INFO] [timing] message_loop.llm ms=3615 goal=goal_2062e293237b1213 conversation=pce_p_T6_r3_1794137312 turn=1 messages=3 chars=46004 message_chars=0:system:21135,1:user:22,2:user:24847 err=false
+2026-11-08T19:28:42 [INFO] [timing] kernel.send_command ms=5 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:28:42 [INFO] [timing] harness.invoke total_ms=68 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:28:42 [INFO] [timing] message_loop.tool ms=69 goal=goal_2062e293237b1213 tool=plugin.get_parameters confirmed=false stopped=false status=
+2026-11-08T19:28:45 [WARN] VSP realtime publish pending failures=25 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:45 [WARN] VSP realtime publish pending failures=25 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:49 [INFO] [timing] message_loop.llm ms=7216 goal=goal_2062e293237b1213 conversation=pce_p_T6_r3_1794137312 turn=3 messages=5 chars=59573 message_chars=0:system:21135,1:user:22,2:assistant:255,3:user:4853,4:user:33308 err=false
+2026-11-08T19:28:49 [INFO] [timing] kernel.send_command ms=41 command=open_plugin_ui tool=plugin.open confirmed=false err=false
+2026-11-08T19:28:49 [INFO] [timing] harness.invoke total_ms=98 tool=plugin.open command=open_plugin_ui status=ok confirmed=false err=false
+2026-11-08T19:28:49 [INFO] [timing] message_loop.tool ms=99 goal=goal_2062e293237b1213 tool=plugin.open confirmed=false stopped=false status=
+2026-11-08T19:28:51 [WARN] VSP realtime publish pending failures=28 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:51 [WARN] VSP realtime publish pending failures=28 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:52 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=250 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:56 [INFO] [timing] message_loop.llm ms=6463 goal=goal_2062e293237b1213 conversation=pce_p_T6_r3_1794137312 turn=4 messages=7 chars=58812 message_chars=0:system:21135,1:user:22,2:assistant:255,3:user:4853,4:assistant:220,5:user:2126,6:user:30201 err=false
+2026-11-08T19:28:57 [WARN] VSP realtime publish pending failures=31 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:28:57 [WARN] VSP realtime publish pending failures=31 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:03 [WARN] VSP realtime publish pending failures=34 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:03 [WARN] VSP realtime publish pending failures=34 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:04 [INFO] [timing] harness.invoke total_ms=6158 tool=plugin.semantic_search command=plugin_semantic_search status=ok confirmed=false err=false
+2026-11-08T19:29:04 [INFO] [timing] message_loop.tool ms=6159 goal=goal_2062e293237b1213 tool=plugin.semantic_search confirmed=false stopped=false status=
+2026-11-08T19:29:09 [WARN] VSP realtime publish pending failures=37 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:09 [WARN] VSP realtime publish pending failures=37 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:12 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=260 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:15 [WARN] VSP realtime publish pending failures=40 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:15 [WARN] VSP realtime publish pending failures=40 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:20 [INFO] [timing] message_loop.llm ms=15934 goal=goal_2062e293237b1213 conversation=pce_p_T6_r3_1794137312 turn=6 messages=9 chars=62014 message_chars=0:system:21135,1:user:22,2:assistant:255,3:user:4853,4:assistant:220,5:user:2126,6:assistant:233,7:user:1693,8:user:31477 err=false
+2026-11-08T19:29:20 [INFO] [timing] harness.invoke total_ms=60 tool=plugin.semantic_get command=plugin_semantic_get status=ok confirmed=false err=false
+2026-11-08T19:29:20 [INFO] [timing] message_loop.tool ms=61 goal=goal_2062e293237b1213 tool=plugin.semantic_get confirmed=false stopped=false status=
+2026-11-08T19:29:21 [WARN] VSP realtime publish pending failures=43 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:21 [WARN] VSP realtime publish pending failures=43 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:27 [WARN] VSP realtime publish pending failures=46 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:27 [WARN] VSP realtime publish pending failures=46 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-08T19:29:29 [INFO] [timing] message_loop.llm ms=8456 goal=goal_2062e293237b1213 conversation=pce_p_T6_r3_1794137312 turn=7 messages=11 chars=66806 message_chars=0:system:21135,1:user:22,2:assistant:255,3:user:4853,4:assistant:220,5:user:2126,6:assistant:233,7:user:1693,8:assistant:236,9:user:2094,10:user:33939 err=false
+2026-11-08T19:29:29 [INFO] [continuation.arm] conversation=pce_p_T6_r3_1794137312 goal=goal_2062e293237b1213 status=completed stop=done limit= continuation=false durable= lifecycle=none scheduled=false budget_stop=false requires_user_interaction=false owes_outcome=false settle_checkpoint=false
+2026-11-08T19:29:29 [INFO] [timing] agent_loop_chat total_ms=54790 conversation=pce_p_T6_r3_1794137312 goal=goal_2062e293237b1213 mode=default status=completed stop=done completed_steps=4 executed=4
+2026-11-08T19:29:29 [INFO] [media_refs] ms=0 conversation=pce_p_T6_r3_1794137312 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-08T19:29:29 [INFO] [vit_checkpoint] async checkpoint launched project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=92
+2026-11-08T19:29:29 [INFO] [chat.artifacts] conversation=pce_p_T6_r3_1794137312 response_artifacts=0 request_artifacts=0 executed=4 reply_len=1351
+2026-11-08T19:29:29 [INFO] [vit_checkpoint] async checkpoint done project=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261108_192031\agent_drafts\draft_20261108T112036_2f6f11ee\Unsaved.vit revision=92 commit=c_20261108T112929_5f8412a8 rebound=1 total_ms=107
+2026-11-08T19:29:29 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-08T19:29:29 [INFO] [timing] http.chat total_ms=55923 conversation=pce_p_T6_r3_1794137312 message_len=48
+2026-11-08T19:29:29 [INFO] [timing] kernel.send_command ms=5 command=get_plugin_parameters tool=plugin.get_parameters confirmed=false err=false
+2026-11-08T19:29:29 [INFO] [timing] harness.invoke total_ms=71 tool=plugin.get_parameters command=get_plugin_parameters status=ok confirmed=false err=false
+2026-11-08T19:29:29 [INFO] [shadow] initialized tracks=7 project_path="" replayed_deltas=4
+2026-11-08T19:29:29 [DEBUG] [shadow] live delta uid="1212" action="node_removed"
+2026-11-08T19:29:29 [DEBUG] [shadow] live delta uid="0/a696bc" action="property_changed:lastSignificantChange"
+2026-11-08T19:29:29 [INFO] [timing] kernel.vsp_state_snapshot ms=8 reason=delete_track err=false
+2026-11-08T19:29:29 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:29:30 [INFO] [timing] harness.refresh_shadow ms=27 reason=delete_track status=ok err=false
+2026-11-08T19:29:30 [INFO] [shadow] initialized tracks=6 project_path="" replayed_deltas=0
+2026-11-08T19:29:30 [INFO] [timing] kernel.send_command ms=70 command=delete_track tool=track.delete confirmed=true err=false
+2026-11-08T19:29:30 [INFO] [timing] harness.invoke total_ms=142 tool=track.delete command=delete_track status=ok confirmed=true err=false

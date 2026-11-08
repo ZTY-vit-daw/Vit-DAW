@@ -1,0 +1,1062 @@
+{
+  "schema_version": "plugin_control_eval_segment_apure_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-APURE-1",
+  "run_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029",
+  "arm": "A-pure (seam open VIT_PLUGIN_CONTROL_EVAL_SEAM=1 = 305 S1-S4 + 308 S5 catalog trim + S2b render strip; relabel per RUNBOOK: raw driver records keep arm=\"P\")",
+  "model": "deepseek-flash (product default config)",
+  "score_table": [
+    {
+      "case": "T1",
+      "arm": "A-pure",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r1_1794136869",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "mix.observe"
+        ],
+        "harness_tool_sequence": [
+          "mix.observe"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 59821,
+      "output_tokens": 1567,
+      "cache_read_tokens": 25600,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T1_r1"
+    },
+    {
+      "case": "T1",
+      "arm": "A-pure",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r2_1794136885",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "mix.observe"
+        ],
+        "harness_tool_sequence": [
+          "mix.observe"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 90511,
+      "output_tokens": 1714,
+      "cache_read_tokens": 44288,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T1_r2"
+    },
+    {
+      "case": "T1",
+      "arm": "A-pure",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r3_1794136903",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 61187,
+      "output_tokens": 1395,
+      "cache_read_tokens": 25472,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T1_r3"
+    },
+    {
+      "case": "T2",
+      "arm": "A-pure",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r1_1794136918",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.set_parameter",
+        "sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "set_plugin_param",
+          "get_plugin_parameters"
+        ],
+        "harness_tool_sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "set_plugin_param",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [
+        "self_probed",
+        "direct_guess"
+      ],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 10,
+      "input_tokens": 183173,
+      "output_tokens": 4807,
+      "cache_read_tokens": 81152,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "model_budget_exhausted:input_tokens_per_call_over_cap",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T2_r1"
+    },
+    {
+      "case": "T2",
+      "arm": "A-pure",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r2_1794136960",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.set_parameter",
+        "sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "set_plugin_param",
+          "get_plugin_parameters"
+        ],
+        "harness_tool_sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "set_plugin_param",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [
+        "self_probed",
+        "direct_guess"
+      ],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 11,
+      "input_tokens": 232032,
+      "output_tokens": 6313,
+      "cache_read_tokens": 115712,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "runtime_goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T2_r2"
+    },
+    {
+      "case": "T2",
+      "arm": "A-pure",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r3_1794137009",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.set_parameter",
+        "sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "harness_tool_sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [
+        "self_probed",
+        "direct_guess"
+      ],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 13,
+      "input_tokens": 262470,
+      "output_tokens": 8671,
+      "cache_read_tokens": 130304,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "model_budget_exhausted:llm_calls_over_cap",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T2_r3"
+    },
+    {
+      "case": "T3",
+      "arm": "A-pure",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r1_1794137074",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 69811,
+      "output_tokens": 2025,
+      "cache_read_tokens": 33920,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T3_r1"
+    },
+    {
+      "case": "T3",
+      "arm": "A-pure",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r2_1794137093",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 72201,
+      "output_tokens": 1705,
+      "cache_read_tokens": 33920,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T3_r2"
+    },
+    {
+      "case": "T3",
+      "arm": "A-pure",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r3_1794137110",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [
+        "asked_or_searched"
+      ],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 8,
+      "input_tokens": 91114,
+      "output_tokens": 2698,
+      "cache_read_tokens": 46464,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T3_r3"
+    },
+    {
+      "case": "T4",
+      "arm": "A-pure",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r1_1794137137",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 53953,
+      "output_tokens": 2474,
+      "cache_read_tokens": 14976,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T4_r1"
+    },
+    {
+      "case": "T4",
+      "arm": "A-pure",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r2_1794137159",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 34017,
+      "output_tokens": 1731,
+      "cache_read_tokens": 9728,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T4_r2"
+    },
+    {
+      "case": "T4",
+      "arm": "A-pure",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r3_1794137176",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.open",
+        "sequence": [
+          "plugin.open"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.open"
+        ],
+        "harness_tool_sequence": [
+          "plugin.open"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 6,
+      "input_tokens": 68795,
+      "output_tokens": 2229,
+      "cache_read_tokens": 23296,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T4_r3"
+    },
+    {
+      "case": "T5",
+      "arm": "A-pure",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r1_1794137199",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 33364,
+      "output_tokens": 1310,
+      "cache_read_tokens": 11136,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T5_r1"
+    },
+    {
+      "case": "T5",
+      "arm": "A-pure",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r2_1794137214",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 7,
+      "input_tokens": 74147,
+      "output_tokens": 3585,
+      "cache_read_tokens": 28544,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T5_r2"
+    },
+    {
+      "case": "T5",
+      "arm": "A-pure",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r3_1794137244",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 30869,
+      "output_tokens": 2672,
+      "cache_read_tokens": 12288,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T5_r3"
+    },
+    {
+      "case": "T6",
+      "arm": "A-pure",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r1_1794137267",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.semantic_get",
+        "sequence": [
+          "plugin.semantic_get"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.semantic_get"
+        ],
+        "harness_tool_sequence": [
+          "plugin.semantic_get"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 8,
+      "input_tokens": 89364,
+      "output_tokens": 2738,
+      "cache_read_tokens": 30848,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T6_r1"
+    },
+    {
+      "case": "T6",
+      "arm": "A-pure",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r2_1794137295",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 31838,
+      "output_tokens": 1737,
+      "cache_read_tokens": 9728,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T6_r2"
+    },
+    {
+      "case": "T6",
+      "arm": "A-pure",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r3_1794137312",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.semantic_search",
+        "sequence": [
+          "plugin.semantic_search",
+          "plugin.semantic_get"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.semantic_search",
+          "plugin.semantic_get"
+        ],
+        "harness_tool_sequence": [
+          "plugin.semantic_search",
+          "plugin.semantic_get"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 8,
+      "input_tokens": 87526,
+      "output_tokens": 5732,
+      "cache_read_tokens": 29824,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T6_r3"
+    }
+  ],
+  "totals": {
+    "llm_calls": 115,
+    "input_tokens": 1626193,
+    "output_tokens": 55103,
+    "cache_read_tokens": 707200
+  },
+  "caps": {
+    "rounds": 18,
+    "max_llm_calls": 216,
+    "max_input_tokens": 8640000,
+    "max_output_tokens": 1728000
+  },
+  "within_caps": true,
+  "per_case": {
+    "T1": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 13
+    },
+    "T2": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "behavior_tags": [
+        "direct_guess",
+        "self_probed"
+      ],
+      "write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 3,
+      "llm_calls": 34
+    },
+    "T3": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "behavior_tags": [
+        "asked_or_searched"
+      ],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 18
+    },
+    "T4": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 15,
+      "t4_linked_pair_note": "307 acceptance ruling in force: unexpected_mutation failures of the deliberate dual-channel-write form are a suspected frozen-rule defect (stereo linked pair), verdicts preserved as evaluated; rule fix deferred to before B/C batches -- analysis layer flag only, criteria unchanged"
+    },
+    "T5": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 15
+    },
+    "T6": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "llm_calls": 20
+    }
+  },
+  "three_way_comparison": [
+    {
+      "case": "T1",
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "value_encoding_error"
+      ],
+      "Apure_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "A307_write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "typed_adapter"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "Apure_llm_calls_total": 13,
+      "delta_note": "A-pure = seam set 305 S1-S4 + 308 S5/S2b (no typed tools in catalog, render surface stripped); A(307) = S1-S4 only (typed adapters selectable, 10/18 rounds used them); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T2",
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "Apure_write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "A307_write_paths": [
+        "typed_adapter",
+        "none_observed",
+        "none_observed"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "Apure_llm_calls_total": 34,
+      "delta_note": "A-pure = seam set 305 S1-S4 + 308 S5/S2b (no typed tools in catalog, render surface stripped); A(307) = S1-S4 only (typed adapters selectable, 10/18 rounds used them); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T3",
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "model_task_failure"
+      ],
+      "Apure_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "A307_write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "typed_adapter"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 7,
+      "Apure_llm_calls_total": 18,
+      "delta_note": "A-pure = seam set 305 S1-S4 + 308 S5/S2b (no typed tools in catalog, render surface stripped); A(307) = S1-S4 only (typed adapters selectable, 10/18 rounds used them); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T4",
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "value_encoding_error"
+      ],
+      "Apure_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "A307_pass": "1/3",
+      "A307_verdicts": [
+        "pass",
+        "fail",
+        "fail"
+      ],
+      "A307_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "A307_write_paths": [
+        "typed_adapter",
+        "typed_adapter",
+        "none_observed"
+      ],
+      "P_verdict": "fail",
+      "P_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "P_llm_calls": 9,
+      "Apure_llm_calls_total": 15,
+      "delta_note": "A-pure = seam set 305 S1-S4 + 308 S5/S2b (no typed tools in catalog, render surface stripped); A(307) = S1-S4 only (typed adapters selectable, 10/18 rounds used them); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T5",
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [],
+      "Apure_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "A307_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "Apure_llm_calls_total": 15,
+      "delta_note": "A-pure = seam set 305 S1-S4 + 308 S5/S2b (no typed tools in catalog, render surface stripped); A(307) = S1-S4 only (typed adapters selectable, 10/18 rounds used them); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T6",
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [],
+      "Apure_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "A307_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 7,
+      "Apure_llm_calls_total": 20,
+      "delta_note": "A-pure = seam set 305 S1-S4 + 308 S5/S2b (no typed tools in catalog, render surface stripped); A(307) = S1-S4 only (typed adapters selectable, 10/18 rounds used them); P = production seams all closed; single P repeat per plan run_counts.P"
+    }
+  ],
+  "p_baseline_source": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\p_baseline\\segment_p_summary.json",
+  "a307_source": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\a307_reference\\arm_a_summary_307.json",
+  "device_gate": {
+    "typed_adapter_invalid_rounds": [],
+    "note": "after S5 any executed typed adapter call = device invalid (card stop condition); empty list required for a clean A-pure dataset"
+  },
+  "seam_corpus_check": {
+    "source": "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\logs\\agent_llm_payload_capture.jsonl",
+    "verdict": "pass",
+    "leaking_conversations": [],
+    "note": "affected rounds carry device_flags; verdicts preserved as evaluated (supervisor adjudicates arm validity)"
+  },
+  "missing_rounds": [],
+  "notes": [
+    "probe round (T1 repeat 0, device verification carrier) excluded from scores",
+    "cost fields remain missing pending plan budgets.monetary price snapshot",
+    "single round = single sample; 3 repeats do not constitute a stability claim (plan section 6)",
+    "tool-face: S5 trims the plugin_grabber family from the model catalog (all three catalog exits); expected write_path domain = bare | none_observed"
+  ]
+}

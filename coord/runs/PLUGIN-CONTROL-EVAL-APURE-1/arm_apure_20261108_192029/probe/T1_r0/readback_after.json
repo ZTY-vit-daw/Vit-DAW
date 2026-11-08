@@ -1,0 +1,6793 @@
+{
+  "automation_param_surface": [
+    {
+      "label": "Dry Level",
+      "max": 1,
+      "min": 0,
+      "param_id": "dry level",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "-INF dB"
+    },
+    {
+      "label": "Wet Level",
+      "max": 1,
+      "min": 0,
+      "param_id": "wet level",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "+0.0 dB"
+    },
+    {
+      "label": "Space",
+      "max": 1,
+      "min": 0,
+      "param_id": "0",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "2.500 sec"
+    },
+    {
+      "label": "Decay Rate",
+      "max": 1,
+      "min": 0,
+      "param_id": "1",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "100.0%"
+    },
+    {
+      "label": "Brightness",
+      "max": 1,
+      "min": 0,
+      "param_id": "2",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "50.0%"
+    },
+    {
+      "label": "Character",
+      "max": 1,
+      "min": 0,
+      "param_id": "3",
+      "supports_automation": true,
+      "value": 0.300000011920929,
+      "value_text": "30.0%"
+    },
+    {
+      "label": "Distance",
+      "max": 1,
+      "min": 0,
+      "param_id": "4",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "50.0%"
+    },
+    {
+      "label": "Stereo Width",
+      "max": 1,
+      "min": 0,
+      "param_id": "5",
+      "supports_automation": true,
+      "value": 0.583333313465118,
+      "value_text": "70.00%"
+    },
+    {
+      "label": "Mix",
+      "max": 1,
+      "min": 0,
+      "param_id": "6",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "100%"
+    },
+    {
+      "label": "Lock Mix",
+      "max": 1,
+      "min": 0,
+      "param_id": "7",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "Locked"
+    },
+    {
+      "label": "Decay EQ Band 1 State",
+      "max": 1,
+      "min": 0,
+      "param_id": "8",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "Enabled"
+    },
+    {
+      "label": "Decay EQ Band 1 Frequency",
+      "max": 1,
+      "min": 0,
+      "param_id": "9",
+      "supports_automation": true,
+      "value": 0.050642840564251,
+      "value_text": "15.000 Hz"
+    },
+    {
+      "label": "Decay EQ Band 1 Rate",
+      "max": 1,
+      "min": 0,
+      "param_id": "10",
+      "supports_automation": true,
+      "value": 0.646240592002869,
+      "value_text": "75.00%"
+    },
+    {
+      "label": "Decay EQ Band 1 Q",
+      "max": 1,
+      "min": 0,
+      "param_id": "11",
+      "supports_automation": true,
+      "value": 0.36672580242157,
+      "value_text": "0.450"
+    },
+    {
+      "label": "Decay EQ Band 1 Shape",
+      "max": 1,
+      "min": 0,
+      "param_id": "12",
+      "supports_automation": true,
+      "value": 0.333333343267441,
+      "value_text": "Low Shelf"
+    },
+    {
+      "label": "Decay EQ Band 2 State",
+      "max": 1,
+      "min": 0,
+      "param_id": "13",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "Enabled"
+    },
+    {
+      "label": "Decay EQ Band 2 Frequency",
+      "max": 1,
+      "min": 0,
+      "param_id": "14",
+      "supports_automation": true,
+      "value": 0.673667371273041,
+      "value_text": "2200.0 Hz"
+    },
+    {
+      "label": "Decay EQ Band 2 Rate",
+      "max": 1,
+      "min": 0,
+      "param_id": "15",
+      "supports_automation": true,
+      "value": 0.655732572078705,
+      "value_text": "77.00%"
+    },
+    {
+      "label": "Decay EQ Band 2 Q",
+      "max": 1,
+      "min": 0,
+      "param_id": "16",
+      "supports_automation": true,
+      "value": 0.268621802330017,
+      "value_text": "0.250"
+    },
+    {
+      "label": "Decay EQ Band 2 Shape",
+      "max": 1,
+      "min": 0,
+      "param_id": "17",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "label": "Decay EQ Band 3 State",
+      "max": 1,
+      "min": 0,
+      "param_id": "18",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "label": "Decay EQ Band 3 Frequency",
+      "max": 1,
+      "min": 0,
+      "param_id": "19",
+      "supports_automation": true,
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "label": "Decay EQ Band 3 Rate",
+      "max": 1,
+      "min": 0,
+      "param_id": "20",
+      "supports_automation": true,
+      "value": 0.75,
+      "value_text": "100.0%"
+    },
+    {
+      "label": "Decay EQ Band 3 Q",
+      "max": 1,
+      "min": 0,
+      "param_id": "21",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "label": "Decay EQ Band 3 Shape",
+      "max": 1,
+      "min": 0,
+      "param_id": "22",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "label": "Decay EQ Band 4 State",
+      "max": 1,
+      "min": 0,
+      "param_id": "23",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "label": "Decay EQ Band 4 Frequency",
+      "max": 1,
+      "min": 0,
+      "param_id": "24",
+      "supports_automation": true,
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "label": "Decay EQ Band 4 Rate",
+      "max": 1,
+      "min": 0,
+      "param_id": "25",
+      "supports_automation": true,
+      "value": 0.75,
+      "value_text": "100.0%"
+    },
+    {
+      "label": "Decay EQ Band 4 Q",
+      "max": 1,
+      "min": 0,
+      "param_id": "26",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "label": "Decay EQ Band 4 Shape",
+      "max": 1,
+      "min": 0,
+      "param_id": "27",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "label": "Decay EQ Band 5 State",
+      "max": 1,
+      "min": 0,
+      "param_id": "28",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "label": "Decay EQ Band 5 Frequency",
+      "max": 1,
+      "min": 0,
+      "param_id": "29",
+      "supports_automation": true,
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    }
+  ],
+  "capability_manifest": [
+    "open_ui",
+    "get_param",
+    "template_shell",
+    "quick_controls"
+  ],
+  "command_ack": {
+    "ack": {
+      "message": "Legacy command completed",
+      "stage": "completed"
+    },
+    "command": "plugin.parameters.get",
+    "legacy_command": "get_plugin_parameters",
+    "resync_hint": false,
+    "revision": 0,
+    "source": "vsp.command.response",
+    "stage": "completed",
+    "transaction_id": "tx_1794136868418200300_446"
+  },
+  "display_probe_summary": {
+    "display_domain_candidate_count": 89,
+    "high_confidence_candidate_count": 75,
+    "parameter_count": 89,
+    "parameters_with_display_probe": 89,
+    "probe_issue_count": 89,
+    "units": {
+      "%": 13,
+      "Hz": 12,
+      "dB": 10,
+      "enum": 38,
+      "ms": 2
+    }
+  },
+  "parameter_count": 89,
+  "parameter_page": {
+    "limit": 512,
+    "offset": 0,
+    "total": 89
+  },
+  "parameters": [
+    {
+      "display_domain_candidate": {
+        "text": "-12~0 dB",
+        "unit": "dB",
+        "min": -12,
+        "max": 0,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-INF dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Dry Level",
+      "normalized_value": 0,
+      "param_id": "dry level",
+      "raw_param_name": "Dry Level",
+      "value": 0,
+      "value_text": "-INF dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-12~0 dB",
+        "unit": "dB",
+        "min": -12,
+        "max": 0,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "+0.0 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Wet Level",
+      "normalized_value": 1,
+      "param_id": "wet level",
+      "raw_param_name": "Wet Level",
+      "value": 1,
+      "value_text": "+0.0 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "200~10000 ms",
+        "unit": "ms",
+        "min": 200,
+        "max": 10000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "2.500 sec",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "200.0 ms"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "1000 ms"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "2.500 sec"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4.600 sec"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "10.00 sec"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Space",
+      "normalized_value": 0.5,
+      "param_id": "0",
+      "raw_param_name": "Space",
+      "value": 0.5,
+      "value_text": "2.500 sec"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "50~200 %",
+        "unit": "%",
+        "min": 50,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "50.00%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "70.71%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "100.0%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "141.4%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay Rate",
+      "normalized_value": 0.5,
+      "param_id": "1",
+      "raw_param_name": "Decay Rate",
+      "value": 0.5,
+      "value_text": "100.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~100 %",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "50.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.00%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.0%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.0%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "75.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "100%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Brightness",
+      "normalized_value": 0.5,
+      "param_id": "2",
+      "raw_param_name": "Brightness",
+      "value": 0.5,
+      "value_text": "50.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~100 %",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "30.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.00%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.0%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.0%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "75.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "100%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Character",
+      "normalized_value": 0.300000011920929,
+      "param_id": "3",
+      "raw_param_name": "Character",
+      "value": 0.300000011920929,
+      "value_text": "30.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~100 %",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "50.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.00%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.0%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.0%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "75.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "100%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Distance",
+      "normalized_value": 0.5,
+      "param_id": "4",
+      "raw_param_name": "Distance",
+      "value": 0.5,
+      "value_text": "50.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~120 %",
+        "unit": "%",
+        "min": 0,
+        "max": 120,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "70.00%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.000%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "30.00%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "60.00%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "90.00%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "120.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Stereo Width",
+      "normalized_value": 0.583333313465118,
+      "param_id": "5",
+      "raw_param_name": "Stereo Width",
+      "value": 0.583333313465118,
+      "value_text": "70.00%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~100 %",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.00%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.0%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.0%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "75.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "100%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Mix",
+      "normalized_value": 1,
+      "param_id": "6",
+      "raw_param_name": "Mix",
+      "value": 1,
+      "value_text": "100%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Unlocked / Locked",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Locked",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Unlocked"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Unlocked"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Locked"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Locked"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Locked"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Unlocked"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "Locked"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Lock Mix",
+      "normalized_value": 1,
+      "param_id": "7",
+      "raw_param_name": "Lock Mix",
+      "value": 1,
+      "value_text": "Locked"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Enabled",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 1 State",
+      "normalized_value": 0.5,
+      "param_id": "8",
+      "raw_param_name": "Decay EQ Band 1 State",
+      "value": 0.5,
+      "value_text": "Enabled"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "15.000 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 1 Frequency",
+      "normalized_value": 0.050642840564251,
+      "param_id": "9",
+      "raw_param_name": "Decay EQ Band 1 Frequency",
+      "value": 0.050642840564251,
+      "value_text": "15.000 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "12.5~200 %",
+        "unit": "%",
+        "min": 12.5,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "75.00%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "12.50%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.00%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.00%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "100.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 1 Rate",
+      "normalized_value": 0.646240592002869,
+      "param_id": "10",
+      "raw_param_name": "Decay EQ Band 1 Rate",
+      "value": 0.646240592002869,
+      "value_text": "75.00%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.05~1",
+        "min": 0.05,
+        "max": 1,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.450",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.050"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.224"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "1.000"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 1 Q",
+      "normalized_value": 0.36672580242157,
+      "param_id": "11",
+      "raw_param_name": "Decay EQ Band 1 Q",
+      "value": 0.36672580242157,
+      "value_text": "0.450"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / High Shelf / Notch",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Low Shelf",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Notch"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.333333343267441,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.666666686534882,
+            "label": "High Shelf"
+          },
+          {
+            "index": 3,
+            "value": 1,
+            "label": "Notch"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 1 Shape",
+      "normalized_value": 0.333333343267441,
+      "param_id": "12",
+      "raw_param_name": "Decay EQ Band 1 Shape",
+      "value": 0.333333343267441,
+      "value_text": "Low Shelf"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Enabled",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 2 State",
+      "normalized_value": 0.5,
+      "param_id": "13",
+      "raw_param_name": "Decay EQ Band 2 State",
+      "value": 0.5,
+      "value_text": "Enabled"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "2200.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 2 Frequency",
+      "normalized_value": 0.673667371273041,
+      "param_id": "14",
+      "raw_param_name": "Decay EQ Band 2 Frequency",
+      "value": 0.673667371273041,
+      "value_text": "2200.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "12.5~200 %",
+        "unit": "%",
+        "min": 12.5,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "77.00%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "12.50%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.00%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.00%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "100.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 2 Rate",
+      "normalized_value": 0.655732572078705,
+      "param_id": "15",
+      "raw_param_name": "Decay EQ Band 2 Rate",
+      "value": 0.655732572078705,
+      "value_text": "77.00%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.05~20",
+        "min": 0.05,
+        "max": 20,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.250",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.050"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.224"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4.472"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "20.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 2 Q",
+      "normalized_value": 0.268621802330017,
+      "param_id": "16",
+      "raw_param_name": "Decay EQ Band 2 Q",
+      "value": 0.268621802330017,
+      "value_text": "0.250"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / High Shelf / Notch",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Notch"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.333333343267441,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.666666686534882,
+            "label": "High Shelf"
+          },
+          {
+            "index": 3,
+            "value": 1,
+            "label": "Notch"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 2 Shape",
+      "normalized_value": 0,
+      "param_id": "17",
+      "raw_param_name": "Decay EQ Band 2 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 3 State",
+      "normalized_value": 1,
+      "param_id": "18",
+      "raw_param_name": "Decay EQ Band 3 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 3 Frequency",
+      "normalized_value": 0.575188457965851,
+      "param_id": "19",
+      "raw_param_name": "Decay EQ Band 3 Frequency",
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "12.5~200 %",
+        "unit": "%",
+        "min": 12.5,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "12.50%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.00%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.00%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "100.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 3 Rate",
+      "normalized_value": 0.75,
+      "param_id": "20",
+      "raw_param_name": "Decay EQ Band 3 Rate",
+      "value": 0.75,
+      "value_text": "100.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.05~20",
+        "min": 0.05,
+        "max": 20,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.050"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.224"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4.472"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "20.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 3 Q",
+      "normalized_value": 0.5,
+      "param_id": "21",
+      "raw_param_name": "Decay EQ Band 3 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / High Shelf / Notch",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Notch"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.333333343267441,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.666666686534882,
+            "label": "High Shelf"
+          },
+          {
+            "index": 3,
+            "value": 1,
+            "label": "Notch"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 3 Shape",
+      "normalized_value": 0,
+      "param_id": "22",
+      "raw_param_name": "Decay EQ Band 3 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 4 State",
+      "normalized_value": 1,
+      "param_id": "23",
+      "raw_param_name": "Decay EQ Band 4 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 4 Frequency",
+      "normalized_value": 0.575188457965851,
+      "param_id": "24",
+      "raw_param_name": "Decay EQ Band 4 Frequency",
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "12.5~200 %",
+        "unit": "%",
+        "min": 12.5,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "12.50%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.00%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.00%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "100.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 4 Rate",
+      "normalized_value": 0.75,
+      "param_id": "25",
+      "raw_param_name": "Decay EQ Band 4 Rate",
+      "value": 0.75,
+      "value_text": "100.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.05~20",
+        "min": 0.05,
+        "max": 20,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.050"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.224"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4.472"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "20.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 4 Q",
+      "normalized_value": 0.5,
+      "param_id": "26",
+      "raw_param_name": "Decay EQ Band 4 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / High Shelf / Notch",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Notch"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.333333343267441,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.666666686534882,
+            "label": "High Shelf"
+          },
+          {
+            "index": 3,
+            "value": 1,
+            "label": "Notch"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 4 Shape",
+      "normalized_value": 0,
+      "param_id": "27",
+      "raw_param_name": "Decay EQ Band 4 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 5 State",
+      "normalized_value": 1,
+      "param_id": "28",
+      "raw_param_name": "Decay EQ Band 5 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 5 Frequency",
+      "normalized_value": 0.575188457965851,
+      "param_id": "29",
+      "raw_param_name": "Decay EQ Band 5 Frequency",
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "12.5~200 %",
+        "unit": "%",
+        "min": 12.5,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "12.50%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.00%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.00%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "100.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 5 Rate",
+      "normalized_value": 0.75,
+      "param_id": "30",
+      "raw_param_name": "Decay EQ Band 5 Rate",
+      "value": 0.75,
+      "value_text": "100.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.05~20",
+        "min": 0.05,
+        "max": 20,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.050"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.224"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4.472"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "20.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 5 Q",
+      "normalized_value": 0.5,
+      "param_id": "31",
+      "raw_param_name": "Decay EQ Band 5 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / High Shelf / Notch",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Notch"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.333333343267441,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.666666686534882,
+            "label": "High Shelf"
+          },
+          {
+            "index": 3,
+            "value": 1,
+            "label": "Notch"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 5 Shape",
+      "normalized_value": 0,
+      "param_id": "32",
+      "raw_param_name": "Decay EQ Band 5 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 6 State",
+      "normalized_value": 1,
+      "param_id": "33",
+      "raw_param_name": "Decay EQ Band 6 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 6 Frequency",
+      "normalized_value": 0.575188457965851,
+      "param_id": "34",
+      "raw_param_name": "Decay EQ Band 6 Frequency",
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "12.5~200 %",
+        "unit": "%",
+        "min": 12.5,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100.0%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "12.50%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25.00%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.00%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "100.0%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200.0%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 6 Rate",
+      "normalized_value": 0.75,
+      "param_id": "35",
+      "raw_param_name": "Decay EQ Band 6 Rate",
+      "value": 0.75,
+      "value_text": "100.0%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.05~20",
+        "min": 0.05,
+        "max": 20,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.050"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.224"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4.472"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "20.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 6 Q",
+      "normalized_value": 0.5,
+      "param_id": "36",
+      "raw_param_name": "Decay EQ Band 6 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / High Shelf / Notch",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Notch"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.333333343267441,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.666666686534882,
+            "label": "High Shelf"
+          },
+          {
+            "index": 3,
+            "value": 1,
+            "label": "Notch"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Decay EQ Band 6 Shape",
+      "normalized_value": 0,
+      "param_id": "37",
+      "raw_param_name": "Decay EQ Band 6 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 1 State",
+      "normalized_value": 1,
+      "param_id": "38",
+      "raw_param_name": "Post EQ Band 1 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "2000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 1 Frequency",
+      "normalized_value": 0.661762952804565,
+      "param_id": "39",
+      "raw_param_name": "Post EQ Band 1 Frequency",
+      "value": 0.661762952804565,
+      "value_text": "2000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-30~30 dB",
+        "unit": "dB",
+        "min": -30,
+        "max": 30,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-2.00 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-30.00 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-15.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+15.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+30.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 1 Gain",
+      "normalized_value": 0.466666668653488,
+      "param_id": "40",
+      "raw_param_name": "Post EQ Band 1 Gain",
+      "value": 0.466666668653488,
+      "value_text": "-2.00 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.025~40",
+        "min": 0.025,
+        "max": 40,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "2.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.025"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.158"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "6.325"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "40.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 1 Q",
+      "normalized_value": 0.593950927257538,
+      "param_id": "41",
+      "raw_param_name": "Post EQ Band 1 Q",
+      "value": 0.593950927257538,
+      "value_text": "2.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / Low Cut / High Shelf / High Cut",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Low Cut"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "High Cut"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "Low Cut"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "High Shelf"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "High Cut"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 1 Shape",
+      "normalized_value": 0,
+      "param_id": "42",
+      "raw_param_name": "Post EQ Band 1 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 6 dB/oct / 12 dB/oct / 24 db/oct / 48 dB/oct / 96 dB/oct",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "12 dB/oct",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "6 dB/oct"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "12 dB/oct"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "24 db/oct"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "48 dB/oct"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "96 dB/oct"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "6 dB/oct"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "12 dB/oct"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "24 db/oct"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "48 dB/oct"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "96 dB/oct"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 1 Slope",
+      "normalized_value": 0.25,
+      "param_id": "43",
+      "raw_param_name": "Post EQ Band 1 Slope",
+      "value": 0.25,
+      "value_text": "12 dB/oct"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Enabled",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 2 State",
+      "normalized_value": 0.5,
+      "param_id": "44",
+      "raw_param_name": "Post EQ Band 2 State",
+      "value": 0.5,
+      "value_text": "Enabled"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "12000 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 2 Frequency",
+      "normalized_value": 0.885554850101471,
+      "param_id": "45",
+      "raw_param_name": "Post EQ Band 2 Frequency",
+      "value": 0.885554850101471,
+      "value_text": "12000 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-30~30 dB",
+        "unit": "dB",
+        "min": -30,
+        "max": 30,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-2.00 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-30.00 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-15.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+15.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+30.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 2 Gain",
+      "normalized_value": 0.466666668653488,
+      "param_id": "46",
+      "raw_param_name": "Post EQ Band 2 Gain",
+      "value": 0.466666668653488,
+      "value_text": "-2.00 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.025~40",
+        "min": 0.025,
+        "max": 40,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.025"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.158"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "6.325"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "40.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 2 Q",
+      "normalized_value": 0.5,
+      "param_id": "47",
+      "raw_param_name": "Post EQ Band 2 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / Low Cut / High Shelf / High Cut",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "High Cut",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Low Cut"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "High Cut"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "Low Cut"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "High Shelf"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "High Cut"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 2 Shape",
+      "normalized_value": 1,
+      "param_id": "48",
+      "raw_param_name": "Post EQ Band 2 Shape",
+      "value": 1,
+      "value_text": "High Cut"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 6 dB/oct / 12 dB/oct / 24 db/oct / 48 dB/oct / 96 dB/oct",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "12 dB/oct",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "6 dB/oct"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "12 dB/oct"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "24 db/oct"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "48 dB/oct"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "96 dB/oct"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "6 dB/oct"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "12 dB/oct"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "24 db/oct"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "48 dB/oct"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "96 dB/oct"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 2 Slope",
+      "normalized_value": 0.25,
+      "param_id": "49",
+      "raw_param_name": "Post EQ Band 2 Slope",
+      "value": 0.25,
+      "value_text": "12 dB/oct"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Enabled",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 3 State",
+      "normalized_value": 0.5,
+      "param_id": "50",
+      "raw_param_name": "Post EQ Band 3 State",
+      "value": 0.5,
+      "value_text": "Enabled"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "600.00 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 3 Frequency",
+      "normalized_value": 0.511386096477509,
+      "param_id": "51",
+      "raw_param_name": "Post EQ Band 3 Frequency",
+      "value": 0.511386096477509,
+      "value_text": "600.00 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-30~30 dB",
+        "unit": "dB",
+        "min": -30,
+        "max": 30,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-4.50 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-30.00 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-15.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+15.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+30.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 3 Gain",
+      "normalized_value": 0.425000011920929,
+      "param_id": "52",
+      "raw_param_name": "Post EQ Band 3 Gain",
+      "value": 0.425000011920929,
+      "value_text": "-4.50 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.025~40",
+        "min": 0.025,
+        "max": 40,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.500",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.025"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.158"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "6.325"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "40.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 3 Q",
+      "normalized_value": 0.406049102544785,
+      "param_id": "53",
+      "raw_param_name": "Post EQ Band 3 Q",
+      "value": 0.406049102544785,
+      "value_text": "0.500"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / Low Cut / High Shelf / High Cut",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Low Cut"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "High Cut"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "Low Cut"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "High Shelf"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "High Cut"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 3 Shape",
+      "normalized_value": 0,
+      "param_id": "54",
+      "raw_param_name": "Post EQ Band 3 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 6 dB/oct / 12 dB/oct / 24 db/oct / 48 dB/oct / 96 dB/oct",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "12 dB/oct",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "6 dB/oct"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "12 dB/oct"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "24 db/oct"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "48 dB/oct"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "96 dB/oct"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "6 dB/oct"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "12 dB/oct"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "24 db/oct"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "48 dB/oct"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "96 dB/oct"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 3 Slope",
+      "normalized_value": 0.25,
+      "param_id": "55",
+      "raw_param_name": "Post EQ Band 3 Slope",
+      "value": 0.25,
+      "value_text": "12 dB/oct"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 4 State",
+      "normalized_value": 1,
+      "param_id": "56",
+      "raw_param_name": "Post EQ Band 4 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 4 Frequency",
+      "normalized_value": 0.575188457965851,
+      "param_id": "57",
+      "raw_param_name": "Post EQ Band 4 Frequency",
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-30~30 dB",
+        "unit": "dB",
+        "min": -30,
+        "max": 30,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.00 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-30.00 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-15.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+15.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+30.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 4 Gain",
+      "normalized_value": 0.5,
+      "param_id": "58",
+      "raw_param_name": "Post EQ Band 4 Gain",
+      "value": 0.5,
+      "value_text": "0.00 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.025~40",
+        "min": 0.025,
+        "max": 40,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.025"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.158"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "6.325"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "40.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 4 Q",
+      "normalized_value": 0.5,
+      "param_id": "59",
+      "raw_param_name": "Post EQ Band 4 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / Low Cut / High Shelf / High Cut",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Low Cut"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "High Cut"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "Low Cut"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "High Shelf"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "High Cut"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 4 Shape",
+      "normalized_value": 0,
+      "param_id": "60",
+      "raw_param_name": "Post EQ Band 4 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 6 dB/oct / 12 dB/oct / 24 db/oct / 48 dB/oct / 96 dB/oct",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "12 dB/oct",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "6 dB/oct"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "12 dB/oct"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "24 db/oct"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "48 dB/oct"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "96 dB/oct"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "6 dB/oct"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "12 dB/oct"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "24 db/oct"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "48 dB/oct"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "96 dB/oct"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 4 Slope",
+      "normalized_value": 0.25,
+      "param_id": "61",
+      "raw_param_name": "Post EQ Band 4 Slope",
+      "value": 0.25,
+      "value_text": "12 dB/oct"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 5 State",
+      "normalized_value": 1,
+      "param_id": "62",
+      "raw_param_name": "Post EQ Band 5 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 5 Frequency",
+      "normalized_value": 0.575188457965851,
+      "param_id": "63",
+      "raw_param_name": "Post EQ Band 5 Frequency",
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-30~30 dB",
+        "unit": "dB",
+        "min": -30,
+        "max": 30,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.00 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-30.00 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-15.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+15.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+30.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 5 Gain",
+      "normalized_value": 0.5,
+      "param_id": "64",
+      "raw_param_name": "Post EQ Band 5 Gain",
+      "value": 0.5,
+      "value_text": "0.00 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.025~40",
+        "min": 0.025,
+        "max": 40,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.025"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.158"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "6.325"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "40.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 5 Q",
+      "normalized_value": 0.5,
+      "param_id": "65",
+      "raw_param_name": "Post EQ Band 5 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / Low Cut / High Shelf / High Cut",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Low Cut"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "High Cut"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "Low Cut"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "High Shelf"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "High Cut"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 5 Shape",
+      "normalized_value": 0,
+      "param_id": "66",
+      "raw_param_name": "Post EQ Band 5 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 6 dB/oct / 12 dB/oct / 24 db/oct / 48 dB/oct / 96 dB/oct",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "12 dB/oct",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "6 dB/oct"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "12 dB/oct"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "24 db/oct"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "48 dB/oct"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "96 dB/oct"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "6 dB/oct"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "12 dB/oct"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "24 db/oct"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "48 dB/oct"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "96 dB/oct"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 5 Slope",
+      "normalized_value": 0.25,
+      "param_id": "67",
+      "raw_param_name": "Post EQ Band 5 Slope",
+      "value": 0.25,
+      "value_text": "12 dB/oct"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Disabled / Enabled / Unused",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Unused",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Disabled"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Enabled"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Unused"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Unused"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Disabled"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Enabled"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Unused"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 6 State",
+      "normalized_value": 1,
+      "param_id": "68",
+      "raw_param_name": "Post EQ Band 6 State",
+      "value": 1,
+      "value_text": "Unused"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "10~30000 Hz",
+        "unit": "Hz",
+        "min": 10,
+        "max": 30000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1000.0 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "10.000 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "74.008 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "547.72 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "4053.6 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30000 Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 6 Frequency",
+      "normalized_value": 0.575188457965851,
+      "param_id": "69",
+      "raw_param_name": "Post EQ Band 6 Frequency",
+      "value": 0.575188457965851,
+      "value_text": "1000.0 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-30~30 dB",
+        "unit": "dB",
+        "min": -30,
+        "max": 30,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.00 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-30.00 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-15.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+15.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+30.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 6 Gain",
+      "normalized_value": 0.5,
+      "param_id": "70",
+      "raw_param_name": "Post EQ Band 6 Gain",
+      "value": 0.5,
+      "value_text": "0.00 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.025~40",
+        "min": 0.025,
+        "max": 40,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.025"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.158"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "6.325"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "40.00"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 6 Q",
+      "normalized_value": 0.5,
+      "param_id": "71",
+      "raw_param_name": "Post EQ Band 6 Q",
+      "value": 0.5,
+      "value_text": "1.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Bell / Low Shelf / Low Cut / High Shelf / High Cut",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Bell",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Bell"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Low Shelf"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Low Cut"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "High Shelf"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "High Cut"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Bell"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "Low Shelf"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "Low Cut"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "High Shelf"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "High Cut"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 6 Shape",
+      "normalized_value": 0,
+      "param_id": "72",
+      "raw_param_name": "Post EQ Band 6 Shape",
+      "value": 0,
+      "value_text": "Bell"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 6 dB/oct / 12 dB/oct / 24 db/oct / 48 dB/oct / 96 dB/oct",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "12 dB/oct",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "6 dB/oct"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "12 dB/oct"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "24 db/oct"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "48 dB/oct"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "96 dB/oct"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "6 dB/oct"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "12 dB/oct"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "24 db/oct"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "48 dB/oct"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "96 dB/oct"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Post EQ Band 6 Slope",
+      "normalized_value": 0.25,
+      "param_id": "73",
+      "raw_param_name": "Post EQ Band 6 Slope",
+      "value": 0.25,
+      "value_text": "12 dB/oct"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~500 ms",
+        "unit": "ms",
+        "min": 0,
+        "max": 500,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.645 ms",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.000 ms"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "10.00 ms"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50.00 ms"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "190.0 ms"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "500.0 ms"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Predelay",
+      "normalized_value": 0.064527779817581,
+      "param_id": "74",
+      "raw_param_name": "Predelay",
+      "value": 0.064527779817581,
+      "value_text": "0.645 ms"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "50~200 %",
+        "unit": "%",
+        "min": 50,
+        "max": 200,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100%",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "50.0%"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "70.7%"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "100%"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "141%"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200%"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Predelay Offset",
+      "normalized_value": 0.5,
+      "param_id": "75",
+      "raw_param_name": "Predelay Offset",
+      "value": 0.5,
+      "value_text": "100%"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Free / 1/4 / 1/8 / 1/16 / 1/32",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Free",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Free"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "1/4"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1/8"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1/16"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "1/32"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Free"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "1/4"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "1/8"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "1/16"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "1/32"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Predelay Sync",
+      "normalized_value": 0,
+      "param_id": "76",
+      "raw_param_name": "Predelay Sync",
+      "value": 0,
+      "value_text": "Free"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-18~36 dB",
+        "unit": "dB",
+        "min": -18,
+        "max": 36,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.00 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-18.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+18.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+36.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Input Level",
+      "normalized_value": 0.5,
+      "param_id": "77",
+      "raw_param_name": "Input Level",
+      "value": 0.5,
+      "value_text": "0.00 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-1~1",
+        "min": -1,
+        "max": 1,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-1.000"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-0.500"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.500"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "1.000"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Input Pan",
+      "normalized_value": 0.5,
+      "param_id": "78",
+      "raw_param_name": "Input Pan",
+      "value": 0.5,
+      "value_text": "0.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-18~36 dB",
+        "unit": "dB",
+        "min": -18,
+        "max": 36,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.00 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-18.00 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.00 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "+18.00 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+36.00 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Output Level",
+      "normalized_value": 0.5,
+      "param_id": "79",
+      "raw_param_name": "Output Level",
+      "value": 0.5,
+      "value_text": "0.00 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-1~1",
+        "min": -1,
+        "max": 1,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.000",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-1.000"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-0.500"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.000"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "0.500"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "1.000"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Output Pan",
+      "normalized_value": 0.5,
+      "param_id": "80",
+      "raw_param_name": "Output Pan",
+      "value": 0.5,
+      "value_text": "0.000"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Not Bypassed / Bypassed",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Not Bypassed",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Not Bypassed"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Not Bypassed"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Bypassed"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Bypassed"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Bypassed"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Not Bypassed"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "Bypassed"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Bypass",
+      "normalized_value": 0,
+      "param_id": "81",
+      "raw_param_name": "Bypass",
+      "value": 0,
+      "value_text": "Not Bypassed"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Off / Pre+Post / Reverb+Post",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Reverb+Post",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Pre+Post"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Pre+Post"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Reverb+Post"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Reverb+Post"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Off"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Pre+Post"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "Reverb+Post"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Analyzer Mode",
+      "normalized_value": 1,
+      "param_id": "82",
+      "raw_param_name": "Analyzer Mode",
+      "value": 1,
+      "value_text": "Reverb+Post"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 9 dB / 18 dB / 30 dB",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "18 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "9 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "18 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "18 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "30 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "30 dB"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "9 dB"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "18 dB"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "30 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Display Range",
+      "normalized_value": 0.5,
+      "param_id": "83",
+      "raw_param_name": "Display Range",
+      "value": 0.5,
+      "value_text": "18 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: 0 / 1",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "1"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "0"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "1"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Midi State",
+      "normalized_value": 0,
+      "param_id": "84",
+      "raw_param_name": "Midi State",
+      "value": 0,
+      "value_text": "0"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Not Bypassed / Bypassed",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Not Bypassed",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Not Bypassed"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Not Bypassed"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Bypassed"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Bypassed"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Bypassed"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Not Bypassed"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "Bypassed"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Host Bypass",
+      "normalized_value": 0,
+      "param_id": "1073741824",
+      "raw_param_name": "Host Bypass",
+      "value": 0,
+      "value_text": "Not Bypassed"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: -",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "-"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "-"
+          },
+          {
+            "index": 1,
+            "value": 0.007874015718699,
+            "label": "-"
+          },
+          {
+            "index": 2,
+            "value": 0.015748031437397,
+            "label": "-"
+          },
+          {
+            "index": 3,
+            "value": 0.023622047156096,
+            "label": "-"
+          },
+          {
+            "index": 4,
+            "value": 0.031496062874794,
+            "label": "-"
+          },
+          {
+            "index": 5,
+            "value": 0.039370078593493,
+            "label": "-"
+          },
+          {
+            "index": 6,
+            "value": 0.047244094312191,
+            "label": "-"
+          },
+          {
+            "index": 7,
+            "value": 0.05511811003089,
+            "label": "-"
+          },
+          {
+            "index": 8,
+            "value": 0.062992125749588,
+            "label": "-"
+          },
+          {
+            "index": 9,
+            "value": 0.070866137742996,
+            "label": "-"
+          },
+          {
+            "index": 10,
+            "value": 0.078740157186985,
+            "label": "-"
+          },
+          {
+            "index": 11,
+            "value": 0.086614176630974,
+            "label": "-"
+          },
+          {
+            "index": 12,
+            "value": 0.094488188624382,
+            "label": "-"
+          },
+          {
+            "index": 13,
+            "value": 0.10236220061779,
+            "label": "-"
+          },
+          {
+            "index": 14,
+            "value": 0.110236220061779,
+            "label": "-"
+          },
+          {
+            "index": 15,
+            "value": 0.118110239505768,
+            "label": "-"
+          },
+          {
+            "index": 16,
+            "value": 0.125984251499176,
+            "label": "-"
+          },
+          {
+            "index": 17,
+            "value": 0.133858263492584,
+            "label": "-"
+          },
+          {
+            "index": 18,
+            "value": 0.141732275485992,
+            "label": "-"
+          },
+          {
+            "index": 19,
+            "value": 0.149606302380562,
+            "label": "-"
+          },
+          {
+            "index": 20,
+            "value": 0.15748031437397,
+            "label": "-"
+          },
+          {
+            "index": 21,
+            "value": 0.165354326367378,
+            "label": "-"
+          },
+          {
+            "index": 22,
+            "value": 0.173228353261948,
+            "label": "-"
+          },
+          {
+            "index": 23,
+            "value": 0.181102365255356,
+            "label": "-"
+          },
+          {
+            "index": 24,
+            "value": 0.188976377248764,
+            "label": "-"
+          },
+          {
+            "index": 25,
+            "value": 0.196850389242172,
+            "label": "-"
+          },
+          {
+            "index": 26,
+            "value": 0.20472440123558,
+            "label": "-"
+          },
+          {
+            "index": 27,
+            "value": 0.21259842813015,
+            "label": "-"
+          },
+          {
+            "index": 28,
+            "value": 0.220472440123558,
+            "label": "-"
+          },
+          {
+            "index": 29,
+            "value": 0.228346452116966,
+            "label": "-"
+          },
+          {
+            "index": 30,
+            "value": 0.236220479011536,
+            "label": "-"
+          },
+          {
+            "index": 31,
+            "value": 0.244094491004944,
+            "label": "-"
+          },
+          {
+            "index": 32,
+            "value": 0.251968502998352,
+            "label": "-"
+          },
+          {
+            "index": 33,
+            "value": 0.25984251499176,
+            "label": "-"
+          },
+          {
+            "index": 34,
+            "value": 0.267716526985168,
+            "label": "-"
+          },
+          {
+            "index": 35,
+            "value": 0.275590538978577,
+            "label": "-"
+          },
+          {
+            "index": 36,
+            "value": 0.283464550971985,
+            "label": "-"
+          },
+          {
+            "index": 37,
+            "value": 0.291338592767715,
+            "label": "-"
+          },
+          {
+            "index": 38,
+            "value": 0.299212604761124,
+            "label": "-"
+          },
+          {
+            "index": 39,
+            "value": 0.307086616754532,
+            "label": "-"
+          },
+          {
+            "index": 40,
+            "value": 0.31496062874794,
+            "label": "-"
+          },
+          {
+            "index": 41,
+            "value": 0.322834640741348,
+            "label": "-"
+          },
+          {
+            "index": 42,
+            "value": 0.330708652734756,
+            "label": "-"
+          },
+          {
+            "index": 43,
+            "value": 0.338582664728165,
+            "label": "-"
+          },
+          {
+            "index": 44,
+            "value": 0.346456706523895,
+            "label": "-"
+          },
+          {
+            "index": 45,
+            "value": 0.354330718517303,
+            "label": "-"
+          },
+          {
+            "index": 46,
+            "value": 0.362204730510712,
+            "label": "-"
+          },
+          {
+            "index": 47,
+            "value": 0.37007874250412,
+            "label": "-"
+          },
+          {
+            "index": 48,
+            "value": 0.377952754497528,
+            "label": "-"
+          },
+          {
+            "index": 49,
+            "value": 0.385826766490936,
+            "label": "-"
+          },
+          {
+            "index": 50,
+            "value": 0.393700778484344,
+            "label": "-"
+          },
+          {
+            "index": 51,
+            "value": 0.401574790477753,
+            "label": "-"
+          },
+          {
+            "index": 52,
+            "value": 0.409448802471161,
+            "label": "-"
+          },
+          {
+            "index": 53,
+            "value": 0.417322844266891,
+            "label": "-"
+          },
+          {
+            "index": 54,
+            "value": 0.4251968562603,
+            "label": "-"
+          },
+          {
+            "index": 55,
+            "value": 0.433070868253708,
+            "label": "-"
+          },
+          {
+            "index": 56,
+            "value": 0.440944880247116,
+            "label": "-"
+          },
+          {
+            "index": 57,
+            "value": 0.448818892240524,
+            "label": "-"
+          },
+          {
+            "index": 58,
+            "value": 0.456692904233932,
+            "label": "-"
+          },
+          {
+            "index": 59,
+            "value": 0.464566916227341,
+            "label": "-"
+          },
+          {
+            "index": 60,
+            "value": 0.472440958023071,
+            "label": "-"
+          },
+          {
+            "index": 61,
+            "value": 0.480314970016479,
+            "label": "-"
+          },
+          {
+            "index": 62,
+            "value": 0.488188982009888,
+            "label": "-"
+          },
+          {
+            "index": 63,
+            "value": 0.496062994003296,
+            "label": "-"
+          },
+          {
+            "index": 64,
+            "value": 0.503937005996704,
+            "label": "-"
+          },
+          {
+            "index": 65,
+            "value": 0.511811017990112,
+            "label": "-"
+          },
+          {
+            "index": 66,
+            "value": 0.519685029983521,
+            "label": "-"
+          },
+          {
+            "index": 67,
+            "value": 0.527559041976929,
+            "label": "-"
+          },
+          {
+            "index": 68,
+            "value": 0.535433053970337,
+            "label": "-"
+          },
+          {
+            "index": 69,
+            "value": 0.543307065963745,
+            "label": "-"
+          },
+          {
+            "index": 70,
+            "value": 0.551181077957153,
+            "label": "-"
+          },
+          {
+            "index": 71,
+            "value": 0.559055089950562,
+            "label": "-"
+          },
+          {
+            "index": 72,
+            "value": 0.56692910194397,
+            "label": "-"
+          },
+          {
+            "index": 73,
+            "value": 0.574803173542023,
+            "label": "-"
+          },
+          {
+            "index": 74,
+            "value": 0.582677185535431,
+            "label": "-"
+          },
+          {
+            "index": 75,
+            "value": 0.590551197528839,
+            "label": "-"
+          },
+          {
+            "index": 76,
+            "value": 0.598425209522247,
+            "label": "-"
+          },
+          {
+            "index": 77,
+            "value": 0.606299221515656,
+            "label": "-"
+          },
+          {
+            "index": 78,
+            "value": 0.614173233509064,
+            "label": "-"
+          },
+          {
+            "index": 79,
+            "value": 0.622047245502472,
+            "label": "-"
+          },
+          {
+            "index": 80,
+            "value": 0.62992125749588,
+            "label": "-"
+          },
+          {
+            "index": 81,
+            "value": 0.637795269489288,
+            "label": "-"
+          },
+          {
+            "index": 82,
+            "value": 0.645669281482697,
+            "label": "-"
+          },
+          {
+            "index": 83,
+            "value": 0.653543293476105,
+            "label": "-"
+          },
+          {
+            "index": 84,
+            "value": 0.661417305469513,
+            "label": "-"
+          },
+          {
+            "index": 85,
+            "value": 0.669291317462921,
+            "label": "-"
+          },
+          {
+            "index": 86,
+            "value": 0.677165329456329,
+            "label": "-"
+          },
+          {
+            "index": 87,
+            "value": 0.685039341449738,
+            "label": "-"
+          },
+          {
+            "index": 88,
+            "value": 0.692913413047791,
+            "label": "-"
+          },
+          {
+            "index": 89,
+            "value": 0.700787425041199,
+            "label": "-"
+          },
+          {
+            "index": 90,
+            "value": 0.708661437034607,
+            "label": "-"
+          },
+          {
+            "index": 91,
+            "value": 0.716535449028015,
+            "label": "-"
+          },
+          {
+            "index": 92,
+            "value": 0.724409461021423,
+            "label": "-"
+          },
+          {
+            "index": 93,
+            "value": 0.732283473014832,
+            "label": "-"
+          },
+          {
+            "index": 94,
+            "value": 0.74015748500824,
+            "label": "-"
+          },
+          {
+            "index": 95,
+            "value": 0.748031497001648,
+            "label": "-"
+          },
+          {
+            "index": 96,
+            "value": 0.755905508995056,
+            "label": "-"
+          },
+          {
+            "index": 97,
+            "value": 0.763779520988464,
+            "label": "-"
+          },
+          {
+            "index": 98,
+            "value": 0.771653532981873,
+            "label": "-"
+          },
+          {
+            "index": 99,
+            "value": 0.779527544975281,
+            "label": "-"
+          },
+          {
+            "index": 100,
+            "value": 0.787401556968689,
+            "label": "-"
+          },
+          {
+            "index": 101,
+            "value": 0.795275568962097,
+            "label": "-"
+          },
+          {
+            "index": 102,
+            "value": 0.803149580955505,
+            "label": "-"
+          },
+          {
+            "index": 103,
+            "value": 0.811023592948914,
+            "label": "-"
+          },
+          {
+            "index": 104,
+            "value": 0.818897604942322,
+            "label": "-"
+          },
+          {
+            "index": 105,
+            "value": 0.826771676540375,
+            "label": "-"
+          },
+          {
+            "index": 106,
+            "value": 0.834645688533783,
+            "label": "-"
+          },
+          {
+            "index": 107,
+            "value": 0.842519700527191,
+            "label": "-"
+          },
+          {
+            "index": 108,
+            "value": 0.850393712520599,
+            "label": "-"
+          },
+          {
+            "index": 109,
+            "value": 0.858267724514008,
+            "label": "-"
+          },
+          {
+            "index": 110,
+            "value": 0.866141736507416,
+            "label": "-"
+          },
+          {
+            "index": 111,
+            "value": 0.874015748500824,
+            "label": "-"
+          },
+          {
+            "index": 112,
+            "value": 0.881889760494232,
+            "label": "-"
+          },
+          {
+            "index": 113,
+            "value": 0.88976377248764,
+            "label": "-"
+          },
+          {
+            "index": 114,
+            "value": 0.897637784481049,
+            "label": "-"
+          },
+          {
+            "index": 115,
+            "value": 0.905511796474457,
+            "label": "-"
+          },
+          {
+            "index": 116,
+            "value": 0.913385808467865,
+            "label": "-"
+          },
+          {
+            "index": 117,
+            "value": 0.921259820461273,
+            "label": "-"
+          },
+          {
+            "index": 118,
+            "value": 0.929133832454681,
+            "label": "-"
+          },
+          {
+            "index": 119,
+            "value": 0.93700784444809,
+            "label": "-"
+          },
+          {
+            "index": 120,
+            "value": 0.944881916046143,
+            "label": "-"
+          },
+          {
+            "index": 121,
+            "value": 0.952755928039551,
+            "label": "-"
+          },
+          {
+            "index": 122,
+            "value": 0.960629940032959,
+            "label": "-"
+          },
+          {
+            "index": 123,
+            "value": 0.968503952026367,
+            "label": "-"
+          },
+          {
+            "index": 124,
+            "value": 0.976377964019775,
+            "label": "-"
+          },
+          {
+            "index": 125,
+            "value": 0.984251976013184,
+            "label": "-"
+          },
+          {
+            "index": 126,
+            "value": 0.992125988006592,
+            "label": "-"
+          },
+          {
+            "index": 127,
+            "value": 1,
+            "label": "-"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "MIDI CC",
+      "normalized_value": 0,
+      "param_id": "1073741959",
+      "raw_param_name": "MIDI CC",
+      "value": 0,
+      "value_text": "-"
+    }
+  ],
+  "plugin_id": "1092",
+  "plugin_item_id": "1092",
+  "quick_control_count": 8,
+  "quick_controls": [
+    {
+      "label": "Dry Level",
+      "param_id": "dry level",
+      "widget": "slider"
+    },
+    {
+      "label": "Post EQ Band 1 Gain",
+      "param_id": "40",
+      "widget": "slider"
+    },
+    {
+      "label": "Input Pan",
+      "param_id": "78",
+      "widget": "knob"
+    },
+    {
+      "label": "Stereo Width",
+      "param_id": "5",
+      "widget": "slider"
+    },
+    {
+      "label": "Bypass",
+      "param_id": "81",
+      "widget": "toggle"
+    },
+    {
+      "label": "Decay Rate",
+      "param_id": "1",
+      "widget": "slider"
+    },
+    {
+      "label": "Wet Level",
+      "param_id": "wet level",
+      "widget": "slider"
+    },
+    {
+      "label": "Mix",
+      "param_id": "6",
+      "widget": "slider"
+    }
+  ],
+  "recommended_group_count": 4,
+  "recommended_groups": [
+    {
+      "name": "Mix",
+      "parameter_count": 15,
+      "sample_ids": [
+        "dry level",
+        "wet level",
+        "5",
+        "6",
+        "7",
+        "40",
+        "46",
+        "52"
+      ]
+    },
+    {
+      "name": "Modulation",
+      "parameter_count": 7,
+      "sample_ids": [
+        "1",
+        "10",
+        "15",
+        "20",
+        "25",
+        "30",
+        "35"
+      ]
+    },
+    {
+      "name": "Utility",
+      "parameter_count": 2,
+      "sample_ids": [
+        "81",
+        "1073741824"
+      ]
+    },
+    {
+      "name": "Other",
+      "parameter_count": 65,
+      "sample_ids": [
+        "0",
+        "2",
+        "3",
+        "4",
+        "8",
+        "9",
+        "11",
+        "12"
+      ]
+    }
+  ],
+  "status": "ok",
+  "supports_param_grabber": true,
+  "track_id": "1086",
+  "vsp": {
+    "command_ack": {
+      "ack": {
+        "message": "Legacy command completed",
+        "stage": "completed"
+      },
+      "command": "plugin.parameters.get",
+      "legacy_command": "get_plugin_parameters",
+      "resync_hint": false,
+      "revision": 0,
+      "source": "vsp.command.response",
+      "stage": "completed",
+      "transaction_id": "tx_1794136868418200300_446"
+    },
+    "transport": "vsp",
+    "version": "1.0"
+  }
+}

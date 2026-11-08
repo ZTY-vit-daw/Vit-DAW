@@ -1,0 +1,389 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-APURE-1",
+    "leg":  "arm_apure",
+    "run_id":  "20261108_192029",
+    "repo_head":  "1ddca822bdbeed03f900e68905dbd6564eb69d71",
+    "branch":  "port/plugin-control-eval-apure-1",
+    "started_at":  "2026-11-08T19:20:29.5686011+08:00",
+    "sec8_decl":  "A-pure arm (seam open, VIT_PLUGIN_CONTROL_EVAL_SEAM=1 = 305 S1-S4 + 308 S5 catalog trim + S2b render strip): s0 refreeze (0 LLM) + dryround (0 LLM) + 1 device-verification probe round (T1 repeat 0, paid, not scored) + 18 paid task rounds (T1..T6 x repeat 1..3, new conversation + fresh fixture each); per-round caps (12 calls / 40k in / 8k out per call / 30 tool calls / 20 min) frozen; segment caps 216 calls / 8.64M in / 1.728M out checked between rounds (caps verbatim from plan A_star); probe gate must prove S2/S2b/S3/S4/S5/CS faces + zero executed typed calls before task rounds; failure taxonomy per plan + seam_leakage; full declaration in RUNBOOK.md (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 (set in process env before any process start; = 305 S1-S4 + 308 S5 + S2b)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        11136
+                                    ],
+                       "VitApp":  [
+                                      14040
+                                  ]
+                   },
+    "agent_sha256":  "E581108BA10E322F7D7C1CA346811B54B3E54A12C86F5CD9BC466AB23EBA2A5F",
+    "agent_tool_count":  "256",
+    "s0_exit":  0,
+    "s0_all_verified":  true,
+    "t4_allowance":  "0",
+    "dryround_exit":  0,
+    "probe_exit":  0,
+    "seam_verify_exit":  0,
+    "task_rounds":  [
+                        {
+                            "case_id":  "T1",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T1_r1_1794136869",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"mix.observe\",\"sequence\":[\"mix.observe\"]}",
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  4,
+                            "input_tokens":  59821,
+                            "output_tokens":  1567,
+                            "cache_read_tokens":  25600,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T1_r1"
+                        },
+                        {
+                            "case_id":  "T1",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T1_r2_1794136885",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"mix.observe\",\"sequence\":[\"mix.observe\"]}",
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  5,
+                            "input_tokens":  90511,
+                            "output_tokens":  1714,
+                            "cache_read_tokens":  44288,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T1_r2"
+                        },
+                        {
+                            "case_id":  "T1",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T1_r3_1794136903",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  4,
+                            "input_tokens":  61187,
+                            "output_tokens":  1395,
+                            "cache_read_tokens":  25472,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T1_r3"
+                        },
+                        {
+                            "case_id":  "T2",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T2_r1_1794136918",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.set_parameter\",\"sequence\":[\"plugin.set_parameter\",\"plugin.get_parameters\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "model_budget_exhausted",
+                            "behavior_tags":  "self_probed,direct_guess",
+                            "mutation_count":  1,
+                            "llm_calls":  10,
+                            "input_tokens":  183173,
+                            "output_tokens":  4807,
+                            "cache_read_tokens":  81152,
+                            "stop_reason":  "model_budget_exhausted:input_tokens_per_call_over_cap",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T2_r1"
+                        },
+                        {
+                            "case_id":  "T2",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T2_r2_1794136960",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.set_parameter\",\"sequence\":[\"plugin.set_parameter\",\"plugin.get_parameters\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "self_probed,direct_guess",
+                            "mutation_count":  1,
+                            "llm_calls":  11,
+                            "input_tokens":  232032,
+                            "output_tokens":  6313,
+                            "cache_read_tokens":  115712,
+                            "stop_reason":  "runtime_goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T2_r2"
+                        },
+                        {
+                            "case_id":  "T2",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T2_r3_1794137009",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.set_parameter\",\"sequence\":[\"plugin.set_parameter\",\"plugin.get_parameters\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "model_budget_exhausted",
+                            "behavior_tags":  "self_probed,direct_guess",
+                            "mutation_count":  1,
+                            "llm_calls":  13,
+                            "input_tokens":  262470,
+                            "output_tokens":  8671,
+                            "cache_read_tokens":  130304,
+                            "stop_reason":  "model_budget_exhausted:llm_calls_over_cap",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T2_r3"
+                        },
+                        {
+                            "case_id":  "T3",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T3_r1_1794137074",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "model_task_failure",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  5,
+                            "input_tokens":  69811,
+                            "output_tokens":  2025,
+                            "cache_read_tokens":  33920,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T3_r1"
+                        },
+                        {
+                            "case_id":  "T3",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T3_r2_1794137093",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "model_task_failure",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  5,
+                            "input_tokens":  72201,
+                            "output_tokens":  1705,
+                            "cache_read_tokens":  33920,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T3_r2"
+                        },
+                        {
+                            "case_id":  "T3",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T3_r3_1794137110",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "model_task_failure",
+                            "behavior_tags":  "asked_or_searched",
+                            "mutation_count":  0,
+                            "llm_calls":  8,
+                            "input_tokens":  91114,
+                            "output_tokens":  2698,
+                            "cache_read_tokens":  46464,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T3_r3"
+                        },
+                        {
+                            "case_id":  "T4",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T4_r1_1794137137",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  5,
+                            "input_tokens":  53953,
+                            "output_tokens":  2474,
+                            "cache_read_tokens":  14976,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T4_r1"
+                        },
+                        {
+                            "case_id":  "T4",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T4_r2_1794137159",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  4,
+                            "input_tokens":  34017,
+                            "output_tokens":  1731,
+                            "cache_read_tokens":  9728,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T4_r2"
+                        },
+                        {
+                            "case_id":  "T4",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T4_r3_1794137176",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.open\",\"sequence\":[\"plugin.open\"]}",
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  6,
+                            "input_tokens":  68795,
+                            "output_tokens":  2229,
+                            "cache_read_tokens":  23296,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T4_r3"
+                        },
+                        {
+                            "case_id":  "T5",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T5_r1_1794137199",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  4,
+                            "input_tokens":  33364,
+                            "output_tokens":  1310,
+                            "cache_read_tokens":  11136,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T5_r1"
+                        },
+                        {
+                            "case_id":  "T5",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T5_r2_1794137214",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  7,
+                            "input_tokens":  74147,
+                            "output_tokens":  3585,
+                            "cache_read_tokens":  28544,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T5_r2"
+                        },
+                        {
+                            "case_id":  "T5",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T5_r3_1794137244",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  4,
+                            "input_tokens":  30869,
+                            "output_tokens":  2672,
+                            "cache_read_tokens":  12288,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T5_r3"
+                        },
+                        {
+                            "case_id":  "T6",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T6_r1_1794137267",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.semantic_get\",\"sequence\":[\"plugin.semantic_get\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  8,
+                            "input_tokens":  89364,
+                            "output_tokens":  2738,
+                            "cache_read_tokens":  30848,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T6_r1"
+                        },
+                        {
+                            "case_id":  "T6",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T6_r2_1794137295",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  4,
+                            "input_tokens":  31838,
+                            "output_tokens":  1737,
+                            "cache_read_tokens":  9728,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T6_r2"
+                        },
+                        {
+                            "case_id":  "T6",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T6_r3_1794137312",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.semantic_search\",\"sequence\":[\"plugin.semantic_search\",\"plugin.semantic_get\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "llm_calls":  8,
+                            "input_tokens":  87526,
+                            "output_tokens":  5732,
+                            "cache_read_tokens":  29824,
+                            "stop_reason":  "goal_completed",
+                            "round_dir":  "D:\\Vit_DAW_wt_310apure\\coord\\runs\\PLUGIN-CONTROL-EVAL-APURE-1\\arm_apure_20261108_192029\\rounds\\T6_r3"
+                        }
+                    ],
+    "segment_budget":  {
+                           "within_caps":  true,
+                           "totals":  {
+                                          "output_tokens":  55103,
+                                          "input_tokens":  1626193,
+                                          "llm_calls":  115
+                                      },
+                           "caps":  {
+                                        "max_output_tokens":  1728000,
+                                        "max_llm_calls":  216,
+                                        "max_input_tokens":  8640000,
+                                        "rounds":  18
+                                    }
+                       },
+    "seam_verify_corpus_exit":  0,
+    "consolidate_exit":  0,
+    "verdict":  "driver_complete",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-08T19:29:35.2555688+08:00"
+}
