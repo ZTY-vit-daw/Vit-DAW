@@ -30,3 +30,8 @@
   - **322 解锁条件达成**：两道门（sweep 生成门 EQ_RECEIPT_KIND+agent 导入门 ReadReceipt 枚举）均已扩容，derive/披露链勘察亲证零改动直通（derive_eq_whitelist 按 cert state+explain 证据推导不查 schema 字符串）；322 腿一可按原勘察路径直跑（token 在位亲证承 322 卡面）。
   - **端测边界声明**：零栈卡——无真实栈 run、无 LLM 轮、无渲染面/用户旅程主张；真实认证落库（真栈 certify→import→derive→白名单披露）归 322 腿一执行，本卡仅证明代码门与收据形态。
 - 验收：（主管回填）
+
+### 终验（主管，2026-11-09 凌晨）
+
+- **pass 整卡收口+合入 main**——形态取舍采信（vendor-scoped=最保守：白名单仅增 1 字符串+命名惯例一致；neutral 改动面实测等大条件不成立）；两停止红线亲核未触发（schema_version 零改动/收据往返零影响）；干跑双门亲证（vendor_kind_missing 消失+真实 ImportReceipts 临时库晋升+真实库 sha256 前后一致零写入）；三包绿+主管合入后定向复跑 ok；gofmt CRLF 预存假阳性处置正确。
+- **322 解锁生效**：认证链路直通，T7×3 裸面终演放行。
