@@ -51,6 +51,13 @@ TYPED_GUARD_REJECTION_RE = re.compile(
     r"typed_(transient_shaper|compressor|limiter|gate_expander|de_esser|eq|multiband)"
     r"_(surface_unavailable|control_required)")
 T1_WRITE_GATE_REASON = "broad mixing requests must stop here"
+# harness-layer third guard (discovered in this run's T1 rounds): Invoke
+# pre-journal stage broad_mix_observe_first_write_guard (harness.go:2590)
+# blocks set_plugin_param under a natural mixing request WITHOUT an
+# already-observed exemption -- invisible in B-R1 because the agentloop gate
+# fired first; visible here because the agentloop seam half was open
+HARNESS_WRITE_GUARD_RE = re.compile(
+    r"pre_journal_validation_failed stage=([a-z_]*write_guard[a-z_]*)")
 GUARD_CODES = ["typed_transient_shaper_surface_unavailable",
                "typed_compressor_surface_unavailable",
                "typed_limiter_surface_unavailable",
@@ -189,11 +196,13 @@ def barewrite_ledger_from_capture(capture_path: Path, conversation_id: str) -> d
 
 
 def guard_shape_hits(text: str) -> dict:
-    hits: dict = {"typed_guard_codes": [], "t1_write_gate": 0}
+    hits: dict = {"typed_guard_codes": [], "t1_write_gate": 0,
+                  "harness_write_guard_stages": []}
     for code in GUARD_CODES:
         if code in text:
             hits["typed_guard_codes"].append(code)
     hits["t1_write_gate"] = text.count(T1_WRITE_GATE_REASON)
+    hits["harness_write_guard_stages"] = sorted(set(HARNESS_WRITE_GUARD_RE.findall(text)))
     return hits
 
 
@@ -264,9 +273,20 @@ def main() -> int:
                     "gw_guard_rejection_observed: guard rejection shape(s) present "
                     f"despite the barewrite seam -- {shapes['typed_guard_codes'][:3]} "
                     f"t1_gate={shapes['t1_write_gate']}")
+            if shapes["harness_write_guard_stages"]:
+                # third-layer guard OUTSIDE the seam's two halves (discovered
+                # this run): flag as observed, never read as model failure
+                device_flags.append(
+                    "guard_outside_seam_observed: harness pre-journal write guard "
+                    f"stage(s) {shapes['harness_write_guard_stages']} blocked the "
+                    "write (broadMixObserveFirstWriteGuard, harness.go:2590) -- "
+                    "RUNBOOK section 7.8: report as-is, seam does not cover it")
             failed = v.get("final_verdict") != "pass"
             analysis = ""
-            if failed and (shapes["typed_guard_codes"] or shapes["t1_write_gate"]):
+            if failed and shapes["harness_write_guard_stages"]:
+                analysis = "guard_blocked_write:harness_write_guard"
+                guard_blocked_rounds.append(f"{case}_r{repeat}")
+            elif failed and (shapes["typed_guard_codes"] or shapes["t1_write_gate"]):
                 analysis = "guard_blocked_write"
                 guard_blocked_rounds.append(f"{case}_r{repeat}")
             elif failed and v.get("final_verdict") is not None:
@@ -325,6 +345,8 @@ def main() -> int:
             "guard_rejection_rounds": sum(
                 1 for r in c_rows
                 if r["guard_shapes"]["typed_guard_codes"] or r["guard_shapes"]["t1_write_gate"]),
+            "harness_write_guard_rounds": sum(
+                1 for r in c_rows if r["guard_shapes"]["harness_write_guard_stages"]),
             "landed_write_rounds": sum(1 for r in c_rows if (r["mutation_count"] or 0) > 0),
             "llm_calls": sum(r["llm_calls"] for r in c_rows),
         }

@@ -1,0 +1,52 @@
+﻿{
+    "probed_at":  "2026-11-08T22:16:54.7080372+08:00",
+    "barewrite_probe":  {
+                            "mode":  "open",
+                            "case":  "T3",
+                            "param_id":  "1",
+                            "value":  0.7,
+                            "probed_at":  "2026-11-08T22:16:48+0800",
+                            "ok":  true,
+                            "track_id":  "1079",
+                            "plugin_id":  "1085",
+                            "value_before":  0.200000002980232,
+                            "parameters_changed":  null,
+                            "rejection_code":  null,
+                            "write_status":  "ok",
+                            "write_error":  "",
+                            "guard_rejected":  false,
+                            "value_after":  0.699999988079071,
+                            "label_after":  "7",
+                            "criteria":  {
+                                             "write_status_ok":  true,
+                                             "not_guard_rejected":  true,
+                                             "readback_at_target":  true,
+                                             "readback_changed":  true
+                                         },
+                            "fixture_torn_down":  true
+                        },
+    "gw_off_probe":  {
+                         "mode":  "off",
+                         "case":  "T3",
+                         "param_id":  "1",
+                         "value":  0.7,
+                         "probed_at":  "2026-11-08T22:16:51+0800",
+                         "ok":  true,
+                         "track_id":  "1086",
+                         "plugin_id":  "1092",
+                         "value_before":  0.200000002980232,
+                         "parameters_changed":  null,
+                         "rejection_code":  null,
+                         "write_status":  "error",
+                         "write_error":  "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology",
+                         "guard_rejected":  true,
+                         "value_after":  0.200000002980232,
+                         "criteria":  {
+                                          "guard_rejected":  true,
+                                          "write_status_not_ok":  true,
+                                          "typed_text_present":  true,
+                                          "value_unchanged":  true
+                                      },
+                         "fixture_torn_down":  true
+                     }
+}

@@ -1,0 +1,218 @@
+{
+  "schema_version": "plugin_control_eval_barefree_seam_verify.v1",
+  "a_capture": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\logs\\agent_llm_payload_capture.jsonl",
+  "a_rows": 7,
+  "a_request_payloads": 7,
+  "p_rows": 38,
+  "checks": {
+    "S2_five_fields_absent": {
+      "detail": {
+        "normalized_role": {
+          "a_count": 0,
+          "p_control_count": 70,
+          "a_contexts": []
+        },
+        "display_group": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "control_relevance": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "template_role": {
+          "a_count": 0,
+          "p_control_count": 36,
+          "a_contexts": []
+        },
+        "alias": {
+          "a_keyform_count": 0,
+          "a_plain_count": 5,
+          "p_keyform_count": 0,
+          "a_plain_contexts": [
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/le",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/le",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/le",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/le",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/le"
+          ]
+        }
+      },
+      "method_weak_fields": []
+    },
+    "S2b_render_surface_anchor": {
+      "anchor_capture": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\a307_reference\\t3_r1_contaminated_capture.jsonl",
+      "anchor_detection": {
+        "normalized_role": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        },
+        "template_role": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        },
+        "binding_targets": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        }
+      },
+      "a_binding_targets_rows": 0,
+      "a_binding_targets_hits": 0,
+      "note": "binding_targets is a native key that SURVIVES S2b by design; presence is informational -- the gating assertion is S2's key-form zero-hit"
+    },
+    "S3_bare_tool_description": {
+      "a_prod_tail_count": 0,
+      "a_prod_tail_contexts": [],
+      "a_bare_count": 0,
+      "p_prod_tail_count": 0,
+      "note": "bare_count>0 proves live-stack bare disclosure; absence is informational (bounded disclosure may omit the tool)"
+    },
+    "S4_typed_routing_rules_absent": {
+      "a_count": 0,
+      "a_contexts": [],
+      "p_control_count": 24
+    },
+    "S5_catalog_trim": {
+      "catalog_grabber_line_rows": 0,
+      "catalog_grabber_line_hits": 0,
+      "catalog_grabber_line_contexts": [],
+      "bare_plain_string_hits": 0,
+      "bare_plain_contexts": [],
+      "catalog_bare_read_rows": 5,
+      "catalog_bare_write_rows": 5,
+      "note": "catalog-line form 'tool=plugin_grabber.*' is the 307 disclosure form; plain-string hits are informational (known permitted forms per 308 ruling); the bare read/write pair MUST be disclosed in catalog-line form or the arm has no bare write face at all"
+    },
+    "CS_control_shell_content_form": {
+      "content_form_rows": 0,
+      "content_form_hits": 0,
+      "content_form_contexts": [],
+      "keyname_form_hits": 0,
+      "note": "content form = device invalid per 308 acceptance ruling; key-name list form = declared residual, counted informationally"
+    },
+    "S1_no_typed_takeover": {
+      "conversation_id": "pce_p_T2_r0_1794147415",
+      "tool_calls": [
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters"
+      ],
+      "typed_apply_calls": [],
+      "typed_any_calls": [],
+      "loop_tool_sequence": [
+        "get_plugin_parameters",
+        "plugin.set_parameter",
+        "get_plugin_parameters",
+        "plugin.set_parameter",
+        "get_plugin_parameters",
+        "plugin.set_parameter",
+        "get_plugin_parameters"
+      ],
+      "capture_sources": {
+        "ordinary_agent_semantic_entry": 1,
+        "message_loop": 5,
+        "message_loop_repair": 1
+      },
+      "semantic_entry_present": true,
+      "message_loop_present": true,
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "final_verdict": "pass"
+    },
+    "W0_retrieval_equivalence": {
+      "probe_executed_retrieval_calls": {},
+      "corpus_exec_rows": 0,
+      "corpus_exec_hits": 0,
+      "corpus_exec_contexts": [],
+      "catalog_web_search_line_rows": 5,
+      "catalog_web_fetch_line_rows": 5,
+      "note": "BAREFREE has NO B_RETRIEVAL seam: retrieval visibility follows the product's routed bounded disclosure exactly like A-pure (informational counts); EXECUTION of any web/browser retrieval is a gating failure (seam residue or behavior break)"
+    },
+    "P0_br1_segment_absent": {
+      "segment_sha256": "51c403d8f8901d586ae1180cdc699ff308dbbc5a870e3fe3db7c2cf68c5a202c",
+      "segment_length_utf8_chars": 76,
+      "rows_with_segment": 0,
+      "segment_hits": 0,
+      "contexts": []
+    },
+    "GW_guard_permission_corpus": {
+      "typed_guard_rejection_rows": 0,
+      "typed_guard_rejection_hits": 0,
+      "typed_guard_rejection_contexts": [],
+      "t1_write_gate_rows": 0,
+      "t1_write_gate_hits": 0,
+      "t1_write_gate_contexts": [],
+      "note": "B-R1 dissection anchors: T3/T4 rejections were typed_transient_shaper_surface_unavailable tool_results (chat guard face); T1 was the tool_gate reason text (agentloop write-gate face). Zero of both = both halves of the barewrite seam live on every recorded turn"
+    },
+    "GW_LIVE_guard_permission_probe": {
+      "probe_path": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\guard_live_probe.json",
+      "barewrite_probe_ok": true,
+      "barewrite_probe_detail": {
+        "mode": "open",
+        "case": "T3",
+        "param_id": "1",
+        "value": 0.7,
+        "probed_at": "2026-11-08T22:16:48+0800",
+        "ok": true,
+        "track_id": "1079",
+        "plugin_id": "1085",
+        "value_before": 0.200000002980232,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "ok",
+        "write_error": "",
+        "guard_rejected": false,
+        "value_after": 0.699999988079071,
+        "label_after": "7",
+        "criteria": {
+          "write_status_ok": true,
+          "not_guard_rejected": true,
+          "readback_at_target": true,
+          "readback_changed": true
+        },
+        "fixture_torn_down": true
+      },
+      "gw_off_probe_ok": true,
+      "gw_off_probe_detail": {
+        "mode": "off",
+        "case": "T3",
+        "param_id": "1",
+        "value": 0.7,
+        "probed_at": "2026-11-08T22:16:51+0800",
+        "ok": true,
+        "track_id": "1086",
+        "plugin_id": "1092",
+        "value_before": 0.200000002980232,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "error",
+        "write_error": "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology",
+        "guard_rejected": true,
+        "value_after": 0.200000002980232,
+        "criteria": {
+          "guard_rejected": true,
+          "write_status_not_ok": true,
+          "typed_text_present": true,
+          "value_unchanged": true
+        },
+        "fixture_torn_down": true
+      }
+    }
+  },
+  "verdict": "pass",
+  "failures": []
+}

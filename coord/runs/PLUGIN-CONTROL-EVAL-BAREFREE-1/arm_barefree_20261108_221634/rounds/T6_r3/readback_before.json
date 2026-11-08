@@ -1,0 +1,451 @@
+{
+  "automation_param_surface": [
+    {
+      "label": "Dry Level",
+      "max": 1,
+      "min": 0,
+      "param_id": "dry level",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "-INF dB"
+    },
+    {
+      "label": "Wet Level",
+      "max": 1,
+      "min": 0,
+      "param_id": "wet level",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "+0.0 dB"
+    },
+    {
+      "label": "Bypass",
+      "max": 1,
+      "min": 0,
+      "param_id": "10000001",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Off"
+    },
+    {
+      "label": "Wet-Dry",
+      "max": 1,
+      "min": 0,
+      "param_id": "0",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "100 %"
+    },
+    {
+      "label": "Gain",
+      "max": 1,
+      "min": 0,
+      "param_id": "1",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "0.0 dB"
+    }
+  ],
+  "capability_manifest": [
+    "open_ui",
+    "get_param",
+    "template_shell",
+    "quick_controls"
+  ],
+  "command_ack": {
+    "ack": {
+      "message": "Legacy command completed",
+      "stage": "completed"
+    },
+    "command": "plugin.parameters.get",
+    "legacy_command": "get_plugin_parameters",
+    "resync_hint": false,
+    "revision": 0,
+    "source": "vsp.command.response",
+    "stage": "completed",
+    "transaction_id": "tx_1794147970511780200_1223"
+  },
+  "display_probe_summary": {
+    "display_domain_candidate_count": 5,
+    "high_confidence_candidate_count": 5,
+    "parameter_count": 5,
+    "parameters_with_display_probe": 5,
+    "probe_issue_count": 5,
+    "units": {
+      "%": 1,
+      "dB": 3,
+      "toggle": 1
+    }
+  },
+  "parameter_count": 5,
+  "parameter_page": {
+    "limit": 512,
+    "offset": 0,
+    "total": 5
+  },
+  "parameters": [
+    {
+      "display_domain_candidate": {
+        "text": "-12~0 dB",
+        "unit": "dB",
+        "min": -12,
+        "max": 0,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-INF dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Dry Level",
+      "normalized_value": 0,
+      "param_id": "dry level",
+      "raw_param_name": "Dry Level",
+      "value": 0,
+      "value_text": "-INF dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-12~0 dB",
+        "unit": "dB",
+        "min": -12,
+        "max": 0,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "+0.0 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Wet Level",
+      "normalized_value": 1,
+      "param_id": "wet level",
+      "raw_param_name": "Wet Level",
+      "value": 1,
+      "value_text": "+0.0 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~1 toggle",
+        "unit": "toggle",
+        "min": 0,
+        "max": 1,
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.92
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Off",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "On"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Off"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "On"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Bypass",
+      "normalized_value": 0,
+      "param_id": "10000001",
+      "raw_param_name": "Bypass",
+      "value": 0,
+      "value_text": "Off"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~100 %",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100 %",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.000 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "0.462 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "3.06 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "17.7 %"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "100 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Wet-Dry",
+      "normalized_value": 1,
+      "param_id": "0",
+      "raw_param_name": "Wet-Dry",
+      "value": 1,
+      "value_text": "100 %"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-50~0 dB",
+        "unit": "dB",
+        "min": -50,
+        "max": 0,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-50.0 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-37.5 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-25.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-12.5 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Gain",
+      "normalized_value": 1,
+      "param_id": "1",
+      "raw_param_name": "Gain",
+      "value": 1,
+      "value_text": "0.0 dB"
+    }
+  ],
+  "plugin_id": "1232",
+  "plugin_item_id": "1232",
+  "quick_control_count": 5,
+  "quick_controls": [
+    {
+      "label": "Dry Level",
+      "param_id": "dry level",
+      "widget": "slider"
+    },
+    {
+      "label": "Gain",
+      "param_id": "1",
+      "widget": "slider"
+    },
+    {
+      "label": "Bypass",
+      "param_id": "10000001",
+      "widget": "toggle"
+    },
+    {
+      "label": "Wet Level",
+      "param_id": "wet level",
+      "widget": "slider"
+    },
+    {
+      "label": "Wet-Dry",
+      "param_id": "0",
+      "widget": "slider"
+    }
+  ],
+  "recommended_group_count": 2,
+  "recommended_groups": [
+    {
+      "name": "Mix",
+      "parameter_count": 4,
+      "sample_ids": [
+        "dry level",
+        "wet level",
+        "0",
+        "1"
+      ]
+    },
+    {
+      "name": "Utility",
+      "parameter_count": 1,
+      "sample_ids": [
+        "10000001"
+      ]
+    }
+  ],
+  "status": "ok",
+  "supports_param_grabber": true,
+  "track_id": "1226",
+  "vsp": {
+    "command_ack": {
+      "ack": {
+        "message": "Legacy command completed",
+        "stage": "completed"
+      },
+      "command": "plugin.parameters.get",
+      "legacy_command": "get_plugin_parameters",
+      "resync_hint": false,
+      "revision": 0,
+      "source": "vsp.command.response",
+      "stage": "completed",
+      "transaction_id": "tx_1794147970511780200_1223"
+    },
+    "transport": "vsp",
+    "version": "1.0"
+  }
+}

@@ -1,0 +1,3526 @@
+{
+  "schema_version": "plugin_control_eval_segment_barefree_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-BAREFREE-1",
+  "run_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634",
+  "arm": "BAREFREE (A-pure face VIT_PLUGIN_CONTROL_EVAL_SEAM=1 PLUS guard seam VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1; relabel per RUNBOOK: raw driver records keep arm=\"P\")",
+  "model": "deepseek-flash (product default config)",
+  "score_table": [
+    {
+      "case": "T1",
+      "arm": "BAREFREE",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r1_1794147449",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [
+        "guard_outside_seam_observed: harness pre-journal write guard stage(s) ['broad_mix_observe_first_write_guard'] blocked the write (broadMixObserveFirstWriteGuard, harness.go:2590) -- RUNBOOK section 7.8: report as-is, seam does not cover it"
+      ],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1107",
+              "plugin_id": "1113",
+              "include_parameters": true
+            },
+            "reason": "The previous output used malformed DSML; preserve the requested plugin parameter lookup."
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1107",
+              "plugin_id": "1113",
+              "include_parameters": true
+            },
+            "reason": "The previous output used malformed DSML; preserve the requested plugin parameter lookup."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1107",
+              "plugin_id": "1113",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "Mix 参数当前值 1.0（显示 100%），目标 35% 对应归一化值 0.35"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1107",
+              "plugin_id": "1113",
+              "include_parameters": true
+            },
+            "reason": "The previous output used malformed DSML; preserve the requested plugin parameter lookup."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1107",
+              "plugin_id": "1113",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "Mix 参数当前值 1.0（显示 100%），目标 35% 对应归一化值 0.35"
+          }
+        ],
+        "attempt_counts": {
+          "read": 3,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T1_r1_1794147449"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": [
+          "broad_mix_observe_first_write_guard"
+        ]
+      },
+      "analysis_classification": "guard_blocked_write:harness_write_guard",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": false,
+          "detail": {
+            "display": 100.0,
+            "target": 35.0,
+            "tolerance": 2.0,
+            "value_text": "100%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 7,
+      "input_tokens": 129272,
+      "output_tokens": 2318,
+      "cache_read_tokens": 67840,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_failed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T1_r1"
+    },
+    {
+      "case": "T1",
+      "arm": "BAREFREE",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r2_1794147471",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [
+        "guard_outside_seam_observed: harness pre-journal write guard stage(s) ['broad_mix_observe_first_write_guard'] blocked the write (broadMixObserveFirstWriteGuard, harness.go:2590) -- RUNBOOK section 7.8: report as-is, seam does not cover it"
+      ],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1114",
+              "plugin_id": "1120",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "读取 Pro-R 参数列表，定位 Mix 参数的 id 与取值范围/显示映射"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1114",
+              "plugin_id": "1120",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "读取 Pro-R 参数列表，定位 Mix 参数的 id 与取值范围/显示映射"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1114",
+              "plugin_id": "1120",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 设为 35%（0.35 归一化值）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1114",
+              "plugin_id": "1120",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "读取 Pro-R 参数列表，定位 Mix 参数的 id 与取值范围/显示映射"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1114",
+              "plugin_id": "1120",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 设为 35%（0.35 归一化值）"
+          }
+        ],
+        "attempt_counts": {
+          "read": 3,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T1_r2_1794147471"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": [
+          "broad_mix_observe_first_write_guard"
+        ]
+      },
+      "analysis_classification": "guard_blocked_write:harness_write_guard",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": false,
+          "detail": {
+            "display": 100.0,
+            "target": 35.0,
+            "tolerance": 2.0,
+            "value_text": "100%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 6,
+      "input_tokens": 128341,
+      "output_tokens": 1890,
+      "cache_read_tokens": 66944,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_failed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T1_r2"
+    },
+    {
+      "case": "T1",
+      "arm": "BAREFREE",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r3_1794147492",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "plugin.set_parameter"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "mix.observe",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [
+        "guard_outside_seam_observed: harness pre-journal write guard stage(s) ['broad_mix_observe_first_write_guard'] blocked the write (broadMixObserveFirstWriteGuard, harness.go:2590) -- RUNBOOK section 7.8: report as-is, seam does not cover it"
+      ],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数表，定位 Mix 参数的 id 与当前值/显示值"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数表，定位 Mix 参数的 id 与当前值/显示值"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 改到 35%（归一化值 0.35）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "回读确认 Mix 参数显示值是否为 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数表，定位 Mix 参数的 id 与当前值/显示值"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 改到 35%（归一化值 0.35）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "回读确认 Mix 参数显示值是否为 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数表，定位 Mix 参数的 id 与当前值/显示值"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 改到 35%（归一化值 0.35）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "回读确认 Mix 参数显示值是否为 35%"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 设为 35%（归一化值 0.35）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "回读确认 Mix 的显示值是否为 35%"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "读取 Pro-R 参数表，定位 Mix 参数的 id 与当前值/显示值"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 改到 35%（归一化值 0.35）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "回读确认 Mix 参数显示值是否为 35%"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "param_id": "6",
+              "value": 0.35
+            },
+            "reason": "把 Pro-R 的 Mix 从 100% 设为 35%（归一化值 0.35）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1121",
+              "plugin_id": "1127",
+              "include_parameters": true
+            },
+            "reason": "回读确认 Mix 的显示值是否为 35%"
+          }
+        ],
+        "attempt_counts": {
+          "read": 11,
+          "write": 6
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T1_r3_1794147492"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": [
+          "broad_mix_observe_first_write_guard"
+        ]
+      },
+      "analysis_classification": "guard_blocked_write:harness_write_guard",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_budget_exhausted",
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": false,
+          "detail": {
+            "display": 100.0,
+            "target": 35.0,
+            "tolerance": 2.0,
+            "value_text": "100%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 8,
+      "input_tokens": 227059,
+      "output_tokens": 6074,
+      "cache_read_tokens": 117504,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "model_budget_exhausted:input_tokens_per_call_over_cap",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T1_r3"
+    },
+    {
+      "case": "T2",
+      "arm": "BAREFREE",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r1_1794147547",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "get_plugin_parameters",
+          "set_plugin_param",
+          "get_plugin_parameters",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "set_plugin_param",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "get_plugin_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "Original request was to retrieve the parameters of plugin 1134 on track 1128; arguments preserved as-is."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "Original request was to retrieve the parameters of plugin 1134 on track 1128; arguments preserved as-is."
+          },
+          {
+            "tool": "set_plugin_param",
+            "kind": "write",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "param_id": "1",
+              "value": 0.0
+            },
+            "reason": "Decay Rate 显示值 = 50%×2^(2n)，n=0.5 时为 100%，折半到 50% 对应 n=0.0"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "Original request was to retrieve the parameters of plugin 1134 on track 1128; arguments preserved as-is."
+          },
+          {
+            "tool": "set_plugin_param",
+            "kind": "write",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "param_id": "1",
+              "value": 0.0
+            },
+            "reason": "Decay Rate 显示值 = 50%×2^(2n)，n=0.5 时为 100%，折半到 50% 对应 n=0.0"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1128",
+              "plugin_id": "1134",
+              "include_parameters": true,
+              "limit": 5
+            },
+            "reason": "回读确认 Decay Rate 写入后的实际显示值"
+          }
+        ],
+        "attempt_counts": {
+          "read": 4,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T2_r1_1794147547"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "display": 50.0,
+            "target": 50.0,
+            "tolerance": 2.0,
+            "value_text": "50.00%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        },
+        "t2_display_domain_mastered": {
+          "ok": true,
+          "detail": {
+            "display": 50.0,
+            "linear_guess_would_show": "70.71"
+          }
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "100.0%",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "50.00%",
+            "normalized_value": 0
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 7,
+      "input_tokens": 93307,
+      "output_tokens": 2668,
+      "cache_read_tokens": 47616,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T2_r1"
+    },
+    {
+      "case": "T2",
+      "arm": "BAREFREE",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r2_1794147571",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "get_plugin_parameters",
+          "set_plugin_param",
+          "get_plugin_parameters",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "set_plugin_param",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "get_plugin_parameters",
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "include_parameters": true
+            },
+            "reason": "The original output requested plugin parameter details for the specified track and plugin."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "include_parameters": true
+            },
+            "reason": "The original output requested plugin parameter details for the specified track and plugin."
+          },
+          {
+            "tool": "set_plugin_param",
+            "kind": "write",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "param_id": "1",
+              "value": 0.0
+            },
+            "reason": "Decay Rate 显示 100.0%，折半目标 50.00%；该参数显示域为 50%×4^n，对应归一化值 0.0"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1135",
+              "plugin_id": "1141",
+              "include_parameters": true
+            },
+            "reason": "写入后回读确认 Decay Rate 显示值"
+          }
+        ],
+        "attempt_counts": {
+          "read": 3,
+          "write": 1
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T2_r2_1794147571"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "display": 50.0,
+            "target": 50.0,
+            "tolerance": 2.0,
+            "value_text": "50.00%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        },
+        "t2_display_domain_mastered": {
+          "ok": true,
+          "detail": {
+            "display": 50.0,
+            "linear_guess_would_show": "70.71"
+          }
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "100.0%",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "50.00%",
+            "normalized_value": 0
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 5,
+      "input_tokens": 71254,
+      "output_tokens": 2309,
+      "cache_read_tokens": 34176,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T2_r2"
+    },
+    {
+      "case": "T2",
+      "arm": "BAREFREE",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r3_1794147590",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.set_parameter",
+        "sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "plugin.set_parameter",
+          "get_plugin_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1142,
+              "plugin_id": 1148,
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "The original output intended to fetch parameters for the specified track and plugin."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1142,
+              "plugin_id": 1148,
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "The original output intended to fetch parameters for the specified track and plugin."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1142",
+              "plugin_id": "1148",
+              "param_id": "1",
+              "value": 0
+            },
+            "reason": "Decay Rate 显示 100.0% 对应归一化 0.5;该显示域为 50%×4^n,折半目标 50% 对应归一化 0.0"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1142",
+              "plugin_id": "1148",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "回读确认 Decay Rate 已变为 50.00% 且其余参数未变"
+          }
+        ],
+        "attempt_counts": {
+          "read": 3,
+          "write": 1
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T2_r3_1794147590"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "target_display_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "display": 50.0,
+            "target": 50.0,
+            "tolerance": 2.0,
+            "value_text": "50.00%"
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        },
+        "t2_display_domain_mastered": {
+          "ok": true,
+          "detail": {
+            "display": 50.0,
+            "linear_guess_would_show": "70.71"
+          }
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "100.0%",
+            "normalized_value": 0.5
+          },
+          "after": {
+            "value_text": "50.00%",
+            "normalized_value": 0
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed",
+        "direct_guess"
+      ],
+      "llm_calls": 5,
+      "input_tokens": 71426,
+      "output_tokens": 1620,
+      "cache_read_tokens": 34048,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T2_r3"
+    },
+    {
+      "case": "T3",
+      "arm": "BAREFREE",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r1_1794147608",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1149",
+              "plugin_id": "1155",
+              "include_parameters": true
+            },
+            "reason": "The previous output requested plugin parameter details for the given track and plugin."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1149",
+              "plugin_id": "1155",
+              "include_parameters": true
+            },
+            "reason": "The previous output requested plugin parameter details for the given track and plugin."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1149",
+              "plugin_id": "1155",
+              "param_id": "1",
+              "value": 0.7
+            },
+            "reason": "Damper 档位 0–10 映射到归一化 0–1，档位 7 对应 0.7"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1149",
+              "plugin_id": "1155",
+              "include_parameters": true
+            },
+            "reason": "写入后回读确认 Damper 显示为档位 7，且其它参数未变"
+          }
+        ],
+        "attempt_counts": {
+          "read": 3,
+          "write": 1
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T3_r1_1794147608"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "label_exact": {
+          "ok": true,
+          "detail": {
+            "label": "7",
+            "want": "7"
+          }
+        },
+        "normalized_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "normalized": 0.699999988079071,
+            "needle": 0.7
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "2",
+            "normalized_value": 0.200000002980232
+          },
+          "after": {
+            "value_text": "7",
+            "normalized_value": 0.699999988079071
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 5,
+      "input_tokens": 70604,
+      "output_tokens": 1389,
+      "cache_read_tokens": 34176,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T3_r1"
+    },
+    {
+      "case": "T3",
+      "arm": "BAREFREE",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r2_1794147623",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1156",
+              "plugin_id": "1162",
+              "include_parameters": true
+            },
+            "reason": "定位 Damper 参数 ID 与当前归一化值/档位刻度"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1156",
+              "plugin_id": "1162",
+              "include_parameters": true
+            },
+            "reason": "定位 Damper 参数 ID 与当前归一化值/档位刻度"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1156",
+              "plugin_id": "1162",
+              "param_id": "1",
+              "value": 0.7
+            },
+            "reason": "Damper 归一化 0.7 对应档位 7"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1156",
+              "plugin_id": "1162",
+              "include_parameters": true
+            },
+            "reason": "定位 Damper 参数 ID 与当前归一化值/档位刻度"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1156",
+              "plugin_id": "1162",
+              "param_id": "1",
+              "value": 0.7
+            },
+            "reason": "Damper 归一化 0.7 对应档位 7"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1156",
+              "plugin_id": "1162",
+              "include_parameters": true
+            },
+            "reason": "回读 Damper 参数，确认已落在档位 7"
+          }
+        ],
+        "attempt_counts": {
+          "read": 4,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T3_r2_1794147623"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "label_exact": {
+          "ok": true,
+          "detail": {
+            "label": "7",
+            "want": "7"
+          }
+        },
+        "normalized_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "normalized": 0.699999988079071,
+            "needle": 0.7
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "2",
+            "normalized_value": 0.200000002980232
+          },
+          "after": {
+            "value_text": "7",
+            "normalized_value": 0.699999988079071
+          }
+        }
+      ],
+      "behavior_tags": [],
+      "llm_calls": 5,
+      "input_tokens": 93395,
+      "output_tokens": 927,
+      "cache_read_tokens": 47360,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T3_r2"
+    },
+    {
+      "case": "T3",
+      "arm": "BAREFREE",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r3_1794147636",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1163,
+              "plugin_id": 1169,
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "Convert the malformed DSML tool call into a valid JSON tool call while preserving the original request."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1163,
+              "plugin_id": 1169,
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "Convert the malformed DSML tool call into a valid JSON tool call while preserving the original request."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": 1163,
+              "plugin_id": 1169,
+              "param_id": "1",
+              "value": 0.7
+            },
+            "reason": "Damper 为 0–10 离散档位，归一化 0.7 对应档位 7；当前读数 0.2=档位 2，需要写入 0.7。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1163,
+              "plugin_id": 1169,
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "写入后回读确认 Damper 实际显示为档位 7，并确认其他参数未变动。"
+          }
+        ],
+        "attempt_counts": {
+          "read": 3,
+          "write": 1
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T3_r3_1794147636"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "label_exact": {
+          "ok": true,
+          "detail": {
+            "label": "7",
+            "want": "7"
+          }
+        },
+        "normalized_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "normalized": 0.699999988079071,
+            "needle": 0.7
+          }
+        },
+        "non_target_unchanged": {
+          "ok": true,
+          "detail": []
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "2",
+            "normalized_value": 0.200000002980232
+          },
+          "after": {
+            "value_text": "7",
+            "normalized_value": 0.699999988079071
+          }
+        }
+      ],
+      "behavior_tags": [],
+      "llm_calls": 5,
+      "input_tokens": 70153,
+      "output_tokens": 1276,
+      "cache_read_tokens": 34176,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T3_r3"
+    },
+    {
+      "case": "T4",
+      "arm": "BAREFREE",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r1_1794147651",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "project.state",
+        "sequence": [
+          "project.state",
+          "plugin.set_parameter"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "project.state",
+          "plugin.set_parameter",
+          "project.state",
+          "plugin.set_parameter"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "1",
+              "value": 0.526315789473684
+            },
+            "reason": "Sync 为 Host 时，延迟时间由节拍分割值决定；按 0.579≈11/19 对应 1/8D 推断分割列表为 20 档，八分音符对应相邻档位 10/19≈0.5263。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "1",
+              "value": 0.526315789473684
+            },
+            "reason": "Sync 为 Host 时，延迟时间由节拍分割值决定；按 0.579≈11/19 对应 1/8D 推断分割列表为 20 档，八分音符对应相邻档位 10/19≈0.5263。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true",
+              "offset": 0,
+              "limit": 12
+            },
+            "reason": "回读确认 Delay BPM 分割值、Delay Sec 毫秒显示与 Sync 是否仍为 Host"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "1",
+              "value": 0.526315789473684
+            },
+            "reason": "Sync 为 Host 时，延迟时间由节拍分割值决定；按 0.579≈11/19 对应 1/8D 推断分割列表为 20 档，八分音符对应相邻档位 10/19≈0.5263。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true",
+              "offset": 0,
+              "limit": 12
+            },
+            "reason": "回读确认 Delay BPM 分割值、Delay Sec 毫秒显示与 Sync 是否仍为 Host"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "0",
+              "value": 0.25
+            },
+            "reason": "Repairing the malformed tool call and preserving the original parameter-setting intent."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "1",
+              "value": 0.526315789473684
+            },
+            "reason": "Sync 为 Host 时，延迟时间由节拍分割值决定；按 0.579≈11/19 对应 1/8D 推断分割列表为 20 档，八分音符对应相邻档位 10/19≈0.5263。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true",
+              "offset": 0,
+              "limit": 12
+            },
+            "reason": "回读确认 Delay BPM 分割值、Delay Sec 毫秒显示与 Sync 是否仍为 Host"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "0",
+              "value": 0.25
+            },
+            "reason": "Repairing the malformed tool call and preserving the original parameter-setting intent."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "plugin_id": "1176",
+              "track_id": "1170",
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 6
+            },
+            "reason": "Recover the intended plugin parameter lookup from the malformed tool call."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "1",
+              "value": 0.526315789473684
+            },
+            "reason": "Sync 为 Host 时，延迟时间由节拍分割值决定；按 0.579≈11/19 对应 1/8D 推断分割列表为 20 档，八分音符对应相邻档位 10/19≈0.5263。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true",
+              "offset": 0,
+              "limit": 12
+            },
+            "reason": "回读确认 Delay BPM 分割值、Delay Sec 毫秒显示与 Sync 是否仍为 Host"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "0",
+              "value": 0.25
+            },
+            "reason": "Repairing the malformed tool call and preserving the original parameter-setting intent."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "plugin_id": "1176",
+              "track_id": "1170",
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 6
+            },
+            "reason": "Recover the intended plugin parameter lookup from the malformed tool call."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "1",
+              "value": 0.526315789473684
+            },
+            "reason": "Sync 为 Host 时，延迟时间由节拍分割值决定；按 0.579≈11/19 对应 1/8D 推断分割列表为 20 档，八分音符对应相邻档位 10/19≈0.5263。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true",
+              "offset": 0,
+              "limit": 12
+            },
+            "reason": "回读确认 Delay BPM 分割值、Delay Sec 毫秒显示与 Sync 是否仍为 Host"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "0",
+              "value": 0.25
+            },
+            "reason": "Repairing the malformed tool call and preserving the original parameter-setting intent."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "plugin_id": "1176",
+              "track_id": "1170",
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 6
+            },
+            "reason": "Recover the intended plugin parameter lookup from the malformed tool call."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "0",
+              "value": 0.249
+            },
+            "reason": "按 375ms↔0.374、251ms↔0.25 的线性关系（毫秒≈归一化×1000+1），0.249 对应显示 250 ms，使显示与 Host 同步下的 1/8=250ms 一致"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true"
+            },
+            "reason": "The original output attempted to call get_plugin_parameters with these arguments."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "1",
+              "value": 0.526315789473684
+            },
+            "reason": "Sync 为 Host 时，延迟时间由节拍分割值决定；按 0.579≈11/19 对应 1/8D 推断分割列表为 20 档，八分音符对应相邻档位 10/19≈0.5263。"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "include_parameters": "true",
+              "offset": 0,
+              "limit": 12
+            },
+            "reason": "回读确认 Delay BPM 分割值、Delay Sec 毫秒显示与 Sync 是否仍为 Host"
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "0",
+              "value": 0.25
+            },
+            "reason": "Repairing the malformed tool call and preserving the original parameter-setting intent."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "plugin_id": "1176",
+              "track_id": "1170",
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 6
+            },
+            "reason": "Recover the intended plugin parameter lookup from the malformed tool call."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1170",
+              "plugin_id": "1176",
+              "param_id": "0",
+              "value": 0.249
+            },
+            "reason": "按 375ms↔0.374、251ms↔0.25 的线性关系（毫秒≈归一化×1000+1），0.249 对应显示 250 ms，使显示与 Host 同步下的 1/8=250ms 一致"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "plugin_id": "1176",
+              "track_id": "1170",
+              "include_parameters": true,
+              "offset": 0,
+              "limit": 6
+            },
+            "reason": "Repairing the malformed tool call while preserving the requested plugin parameter lookup."
+          }
+        ],
+        "attempt_counts": {
+          "read": 19,
+          "write": 14
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T4_r1_1794147651"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "evaluator_terminal_label:model_budget_exhausted,unexpected_mutation",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_budget_exhausted",
+        "unexpected_mutation"
+      ],
+      "failure_detail": null,
+      "verdict_checks": {
+        "mode_label": {
+          "ok": true,
+          "detail": {
+            "label": "Host",
+            "want": "Host"
+          }
+        },
+        "target_ms_in_tolerance": {
+          "ok": true,
+          "detail": {
+            "display_ms": 250.0,
+            "target": 250
+          }
+        },
+        "non_target_unchanged_except_allowance": {
+          "ok": false,
+          "detail": {
+            "outside": [
+              {
+                "param_id": "1",
+                "kind": "value_changed",
+                "before": {
+                  "value_text": "1/8D",
+                  "normalized_value": 0.578999996185303
+                },
+                "after": {
+                  "value_text": "1/8",
+                  "normalized_value": 0.526315808296204
+                }
+              }
+            ],
+            "allowance": [
+              "0",
+              "4"
+            ]
+          }
+        }
+      },
+      "mutation_count": 2,
+      "mutation_audit": [
+        {
+          "param_id": "0",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "375 ms",
+            "normalized_value": 0.374000012874603
+          },
+          "after": {
+            "value_text": "250 ms",
+            "normalized_value": 0.248999997973442
+          }
+        },
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "1/8D",
+            "normalized_value": 0.578999996185303
+          },
+          "after": {
+            "value_text": "1/8",
+            "normalized_value": 0.526315808296204
+          }
+        }
+      ],
+      "behavior_tags": [],
+      "llm_calls": 13,
+      "input_tokens": 181746,
+      "output_tokens": 13677,
+      "cache_read_tokens": 68096,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "model_budget_exhausted:llm_calls_over_cap",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T4_r1"
+    },
+    {
+      "case": "T4",
+      "arm": "BAREFREE",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r2_1794147766",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "plugin.set_parameter",
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1177,
+              "plugin_id": 1183,
+              "include_parameters": true
+            },
+            "reason": "The previous malformed output attempted to request plugin parameters for the specified track and plugin."
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1177,
+              "plugin_id": 1183,
+              "include_parameters": true
+            },
+            "reason": "The previous malformed output attempted to request plugin parameters for the specified track and plugin."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": 1177,
+              "plugin_id": 1183,
+              "param_id": "1",
+              "value": 0.5263157894736842
+            },
+            "reason": "Sync 为 Host 时决定实际延迟长度的是节拍分割；先把 Delay BPM 从 1/8D 下调到相邻更短的档位并回读确认是否为 1/8"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1177,
+              "plugin_id": 1183,
+              "include_parameters": true
+            },
+            "reason": "The previous malformed output attempted to request plugin parameters for the specified track and plugin."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": 1177,
+              "plugin_id": 1183,
+              "param_id": "1",
+              "value": 0.5263157894736842
+            },
+            "reason": "Sync 为 Host 时决定实际延迟长度的是节拍分割；先把 Delay BPM 从 1/8D 下调到相邻更短的档位并回读确认是否为 1/8"
+          },
+          {
+            "tool": "get_plugin_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1177,
+              "plugin_id": 1183,
+              "include_parameters": true
+            },
+            "reason": "上一步设置后的显示文本被压缩掉了，需要回读 Sync、Delay BPM、Delay Sec 的当前取值与文本，确认节拍分割是否已落到 250 ms 对应的档位"
+          }
+        ],
+        "attempt_counts": {
+          "read": 4,
+          "write": 2
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T4_r2_1794147766"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "evaluator_terminal_label:value_encoding_error,unexpected_mutation",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error",
+        "unexpected_mutation"
+      ],
+      "failure_detail": null,
+      "verdict_checks": {
+        "mode_label": {
+          "ok": true,
+          "detail": {
+            "label": "Host",
+            "want": "Host"
+          }
+        },
+        "target_ms_in_tolerance": {
+          "ok": false,
+          "detail": {
+            "display_ms": 375.0,
+            "target": 250
+          }
+        },
+        "non_target_unchanged_except_allowance": {
+          "ok": false,
+          "detail": {
+            "outside": [
+              {
+                "param_id": "1",
+                "kind": "value_changed",
+                "before": {
+                  "value_text": "1/8D",
+                  "normalized_value": 0.578999996185303
+                },
+                "after": {
+                  "value_text": "1/8",
+                  "normalized_value": 0.526315808296204
+                }
+              }
+            ],
+            "allowance": [
+              "0",
+              "4"
+            ]
+          }
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "1/8D",
+            "normalized_value": 0.578999996185303
+          },
+          "after": {
+            "value_text": "1/8",
+            "normalized_value": 0.526315808296204
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed"
+      ],
+      "llm_calls": 7,
+      "input_tokens": 69178,
+      "output_tokens": 6092,
+      "cache_read_tokens": 23424,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T4_r2"
+    },
+    {
+      "case": "T4",
+      "arm": "BAREFREE",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r3_1794147814",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.set_parameter",
+        "sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "all_tool_calls": [
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1184,
+              "plugin_id": 1190,
+              "offset": 4,
+              "limit": 1,
+              "include_parameters": true
+            },
+            "reason": "Retrieve the specified plugin parameters for the track."
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1184,
+              "plugin_id": 1190,
+              "offset": 4,
+              "limit": 1,
+              "include_parameters": true
+            },
+            "reason": "Retrieve the specified plugin parameters for the track."
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": 1184,
+              "plugin_id": 1190,
+              "offset": 4,
+              "limit": 1,
+              "include_parameters": true
+            },
+            "reason": "Retrieve the specified plugin parameters for the track."
+          },
+          {
+            "tool": "plugin.set_parameter",
+            "kind": "write",
+            "args": {
+              "track_id": "1184",
+              "plugin_id": "1190",
+              "param_id": "1",
+              "value": 0.5263157894736842
+            },
+            "reason": "在 Sync=Host 前提下把 Delay BPM 节拍分割从 1/8D 改为 1/8（120 BPM 下 = 250 ms）"
+          },
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1184",
+              "plugin_id": "1190",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "回读确认 Sync 仍为 Host、Delay BPM 与毫秒读数是否为 250 ms"
+          }
+        ],
+        "attempt_counts": {
+          "read": 4,
+          "write": 1
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T4_r3_1794147814"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "evaluator_terminal_label:value_encoding_error,unexpected_mutation",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error",
+        "unexpected_mutation"
+      ],
+      "failure_detail": null,
+      "verdict_checks": {
+        "mode_label": {
+          "ok": true,
+          "detail": {
+            "label": "Host",
+            "want": "Host"
+          }
+        },
+        "target_ms_in_tolerance": {
+          "ok": false,
+          "detail": {
+            "display_ms": 375.0,
+            "target": 250
+          }
+        },
+        "non_target_unchanged_except_allowance": {
+          "ok": false,
+          "detail": {
+            "outside": [
+              {
+                "param_id": "1",
+                "kind": "value_changed",
+                "before": {
+                  "value_text": "1/8D",
+                  "normalized_value": 0.578999996185303
+                },
+                "after": {
+                  "value_text": "1/8",
+                  "normalized_value": 0.526315808296204
+                }
+              }
+            ],
+            "allowance": [
+              "0",
+              "4"
+            ]
+          }
+        }
+      },
+      "mutation_count": 1,
+      "mutation_audit": [
+        {
+          "param_id": "1",
+          "kind": "value_changed",
+          "before": {
+            "value_text": "1/8D",
+            "normalized_value": 0.578999996185303
+          },
+          "after": {
+            "value_text": "1/8",
+            "normalized_value": 0.526315808296204
+          }
+        }
+      ],
+      "behavior_tags": [
+        "self_probed",
+        "direct_guess"
+      ],
+      "llm_calls": 7,
+      "input_tokens": 116089,
+      "output_tokens": 5645,
+      "cache_read_tokens": 37376,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T4_r3"
+    },
+    {
+      "case": "T5",
+      "arm": "BAREFREE",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r1_1794147862",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [],
+        "attempt_counts": {
+          "read": 0,
+          "write": 0
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T5_r1_1794147862"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "zero_mutation": {
+          "ok": true,
+          "detail": []
+        },
+        "recognition_stated": {
+          "ok": true,
+          "detail": {
+            "needle": "60"
+          }
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [],
+      "llm_calls": 8,
+      "input_tokens": 93610,
+      "output_tokens": 3787,
+      "cache_read_tokens": 38528,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T5_r1"
+    },
+    {
+      "case": "T5",
+      "arm": "BAREFREE",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r2_1794147899",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [],
+        "attempt_counts": {
+          "read": 0,
+          "write": 0
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T5_r2_1794147899"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "zero_mutation": {
+          "ok": true,
+          "detail": []
+        },
+        "recognition_stated": {
+          "ok": true,
+          "detail": {
+            "needle": "60"
+          }
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [],
+      "llm_calls": 4,
+      "input_tokens": 31636,
+      "output_tokens": 1603,
+      "cache_read_tokens": 12288,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T5_r2"
+    },
+    {
+      "case": "T5",
+      "arm": "BAREFREE",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r3_1794147916",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [],
+        "attempt_counts": {
+          "read": 0,
+          "write": 0
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T5_r3_1794147916"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "zero_mutation": {
+          "ok": true,
+          "detail": []
+        },
+        "recognition_stated": {
+          "ok": true,
+          "detail": {
+            "needle": "60"
+          }
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [],
+      "llm_calls": 4,
+      "input_tokens": 31874,
+      "output_tokens": 2254,
+      "cache_read_tokens": 12288,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T5_r3"
+    },
+    {
+      "case": "T6",
+      "arm": "BAREFREE",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r1_1794147935",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1212",
+              "plugin_id": "1218",
+              "include_parameters": true
+            },
+            "reason": "The previous output requested plugin parameters for the specified track and plugin."
+          }
+        ],
+        "attempt_counts": {
+          "read": 1,
+          "write": 0
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T6_r1_1794147935"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "zero_writes": {
+          "ok": true,
+          "detail": []
+        },
+        "limitation_statement": {
+          "ok": true,
+          "detail": {
+            "replies_len": 658
+          }
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [],
+      "llm_calls": 4,
+      "input_tokens": 32696,
+      "output_tokens": 1631,
+      "cache_read_tokens": 9856,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T6_r1"
+    },
+    {
+      "case": "T6",
+      "arm": "BAREFREE",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r2_1794147952",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1219",
+              "plugin_id": "1225",
+              "include_parameters": true,
+              "limit": 200
+            },
+            "reason": "读取 IR-L full Stereo 的完整参数面，确认是否存在衰减时间（Decay/RT60）参数"
+          }
+        ],
+        "attempt_counts": {
+          "read": 1,
+          "write": 0
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T6_r2_1794147952"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "zero_writes": {
+          "ok": true,
+          "detail": []
+        },
+        "limitation_statement": {
+          "ok": true,
+          "detail": {
+            "replies_len": 523
+          }
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [],
+      "llm_calls": 4,
+      "input_tokens": 32983,
+      "output_tokens": 1767,
+      "cache_read_tokens": 9728,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T6_r2"
+    },
+    {
+      "case": "T6",
+      "arm": "BAREFREE",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r3_1794147970",
+      "first_action": null,
+      "tool_faces": {
+        "all_tool_calls": [],
+        "retrieval_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "typed_adapter_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "barewrite_ledger": {
+        "attempts": [
+          {
+            "tool": "plugin.get_parameters",
+            "kind": "read",
+            "args": {
+              "track_id": "1226",
+              "plugin_id": "1232",
+              "include_parameters": true,
+              "limit": 100
+            },
+            "reason": "核对 IR-L full Stereo 是否存在可写的衰减时间参数"
+          }
+        ],
+        "attempt_counts": {
+          "read": 1,
+          "write": 0
+        },
+        "result_statuses": [],
+        "guard_rejections": [],
+        "tool_gate_blocks": [],
+        "conversation_id": "pce_p_T6_r3_1794147970"
+      },
+      "guard_shapes": {
+        "typed_guard_codes": [],
+        "t1_write_gate": 0,
+        "harness_write_guard_stages": []
+      },
+      "analysis_classification": "",
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "verdict_checks": {
+        "zero_writes": {
+          "ok": true,
+          "detail": []
+        },
+        "limitation_statement": {
+          "ok": true,
+          "detail": {
+            "replies_len": 511
+          }
+        }
+      },
+      "mutation_count": 0,
+      "mutation_audit": [],
+      "behavior_tags": [],
+      "llm_calls": 4,
+      "input_tokens": 33588,
+      "output_tokens": 1598,
+      "cache_read_tokens": 9728,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_318barefree\\coord\\runs\\PLUGIN-CONTROL-EVAL-BAREFREE-1\\arm_barefree_20261108_221634\\rounds\\T6_r3"
+    }
+  ],
+  "totals": {
+    "llm_calls": 108,
+    "input_tokens": 1578211,
+    "output_tokens": 58525,
+    "cache_read_tokens": 705152
+  },
+  "caps": {
+    "rounds": 18,
+    "max_llm_calls": 216,
+    "max_input_tokens": 8640000,
+    "max_output_tokens": 1728000
+  },
+  "within_caps": true,
+  "per_case": {
+    "T1": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "model_budget_exhausted",
+        "value_encoding_error"
+      ],
+      "analysis_classifications": [
+        "guard_blocked_write:harness_write_guard",
+        "guard_blocked_write:harness_write_guard",
+        "guard_blocked_write:harness_write_guard"
+      ],
+      "write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_attempt_rounds": 3,
+      "bare_write_attempt_counts": [
+        2,
+        2,
+        6
+      ],
+      "guard_rejection_rounds": 0,
+      "harness_write_guard_rounds": 3,
+      "landed_write_rounds": 0,
+      "llm_calls": 21
+    },
+    "T2": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_attempt_rounds": 3,
+      "bare_write_attempt_counts": [
+        2,
+        1,
+        1
+      ],
+      "guard_rejection_rounds": 0,
+      "harness_write_guard_rounds": 0,
+      "landed_write_rounds": 3,
+      "llm_calls": 17
+    },
+    "T3": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_attempt_rounds": 0,
+      "bare_write_attempt_counts": [
+        1,
+        2,
+        1
+      ],
+      "guard_rejection_rounds": 0,
+      "harness_write_guard_rounds": 0,
+      "landed_write_rounds": 3,
+      "llm_calls": 15
+    },
+    "T4": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "model_budget_exhausted",
+        "unexpected_mutation",
+        "value_encoding_error"
+      ],
+      "analysis_classifications": [
+        "evaluator_terminal_label:model_budget_exhausted,unexpected_mutation",
+        "evaluator_terminal_label:value_encoding_error,unexpected_mutation",
+        "evaluator_terminal_label:value_encoding_error,unexpected_mutation"
+      ],
+      "write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_attempt_rounds": 3,
+      "bare_write_attempt_counts": [
+        14,
+        2,
+        1
+      ],
+      "guard_rejection_rounds": 0,
+      "harness_write_guard_rounds": 0,
+      "landed_write_rounds": 3,
+      "llm_calls": 27,
+      "t4_linked_pair_note": "307 acceptance ruling in force (carried by 310/312/317, unchanged): unexpected_mutation failures of the deliberate dual-channel-write form are a suspected frozen-rule defect (stereo linked pair), verdicts preserved as evaluated; analysis layer flag only, criteria unchanged"
+    },
+    "T5": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_attempt_rounds": 0,
+      "bare_write_attempt_counts": [
+        0,
+        0,
+        0
+      ],
+      "guard_rejection_rounds": 0,
+      "harness_write_guard_rounds": 0,
+      "landed_write_rounds": 0,
+      "llm_calls": 16
+    },
+    "T6": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_attempt_rounds": 0,
+      "bare_write_attempt_counts": [
+        0,
+        0,
+        0
+      ],
+      "guard_rejection_rounds": 0,
+      "harness_write_guard_rounds": 0,
+      "landed_write_rounds": 0,
+      "llm_calls": 12
+    }
+  },
+  "six_way_comparison": [
+    {
+      "case": "T1",
+      "BAREFREE_pass": "0/3",
+      "BAREFREE_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BAREFREE_failure_tags": [
+        "model_budget_exhausted",
+        "value_encoding_error"
+      ],
+      "BAREFREE_analysis_classifications": [
+        "guard_blocked_write:harness_write_guard",
+        "guard_blocked_write:harness_write_guard",
+        "guard_blocked_write:harness_write_guard"
+      ],
+      "BAREFREE_write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "BAREFREE_landed_write_rounds": 0,
+      "BR1_pass": "0/3",
+      "BR1_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BR1_failure_tags": [
+        "value_encoding_error"
+      ],
+      "B312_pass": "0/3",
+      "B312_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "B312_failure_tags": [
+        "value_encoding_error"
+      ],
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "value_encoding_error"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "delta_note": "BAREFREE = A-pure face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1: 305 S1-S4 + 308 S5/S2b, NO retrieval seam, NO prompt seam) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (card 318 guard-permission seam: T1 write gate exempts plugin parameter read/write; chat typed generic-write guards pass bare writes). BAREFREE vs A-pure is the same-face guard on/off contrast = the true bare-write capability measurement"
+    },
+    {
+      "case": "T2",
+      "BAREFREE_pass": "3/3",
+      "BAREFREE_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BAREFREE_failure_tags": [],
+      "BAREFREE_analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "BAREFREE_write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "BAREFREE_landed_write_rounds": 3,
+      "BR1_pass": "3/3",
+      "BR1_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BR1_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "B312_pass": "3/3",
+      "B312_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "B312_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "delta_note": "BAREFREE = A-pure face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1: 305 S1-S4 + 308 S5/S2b, NO retrieval seam, NO prompt seam) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (card 318 guard-permission seam: T1 write gate exempts plugin parameter read/write; chat typed generic-write guards pass bare writes). BAREFREE vs A-pure is the same-face guard on/off contrast = the true bare-write capability measurement"
+    },
+    {
+      "case": "T3",
+      "BAREFREE_pass": "3/3",
+      "BAREFREE_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BAREFREE_failure_tags": [],
+      "BAREFREE_analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "BAREFREE_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "BAREFREE_landed_write_rounds": 3,
+      "BR1_pass": "0/3",
+      "BR1_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BR1_failure_tags": [
+        "model_task_failure"
+      ],
+      "B312_pass": "0/3",
+      "B312_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "B312_failure_tags": [
+        "model_task_failure"
+      ],
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "model_task_failure"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "delta_note": "BAREFREE = A-pure face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1: 305 S1-S4 + 308 S5/S2b, NO retrieval seam, NO prompt seam) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (card 318 guard-permission seam: T1 write gate exempts plugin parameter read/write; chat typed generic-write guards pass bare writes). BAREFREE vs A-pure is the same-face guard on/off contrast = the true bare-write capability measurement"
+    },
+    {
+      "case": "T4",
+      "BAREFREE_pass": "0/3",
+      "BAREFREE_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BAREFREE_failure_tags": [
+        "model_budget_exhausted",
+        "unexpected_mutation",
+        "value_encoding_error"
+      ],
+      "BAREFREE_analysis_classifications": [
+        "evaluator_terminal_label:model_budget_exhausted,unexpected_mutation",
+        "evaluator_terminal_label:value_encoding_error,unexpected_mutation",
+        "evaluator_terminal_label:value_encoding_error,unexpected_mutation"
+      ],
+      "BAREFREE_write_paths": [
+        "bare",
+        "bare",
+        "bare"
+      ],
+      "BAREFREE_landed_write_rounds": 3,
+      "BR1_pass": "0/3",
+      "BR1_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BR1_failure_tags": [
+        "value_encoding_error"
+      ],
+      "B312_pass": "0/3",
+      "B312_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "B312_failure_tags": [
+        "value_encoding_error"
+      ],
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "value_encoding_error"
+      ],
+      "A307_pass": "1/3",
+      "A307_verdicts": [
+        "pass",
+        "fail",
+        "fail"
+      ],
+      "A307_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "P_verdict": "fail",
+      "P_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "delta_note": "BAREFREE = A-pure face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1: 305 S1-S4 + 308 S5/S2b, NO retrieval seam, NO prompt seam) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (card 318 guard-permission seam: T1 write gate exempts plugin parameter read/write; chat typed generic-write guards pass bare writes). BAREFREE vs A-pure is the same-face guard on/off contrast = the true bare-write capability measurement"
+    },
+    {
+      "case": "T5",
+      "BAREFREE_pass": "3/3",
+      "BAREFREE_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BAREFREE_failure_tags": [],
+      "BAREFREE_analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "BAREFREE_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "BAREFREE_landed_write_rounds": 0,
+      "BR1_pass": "3/3",
+      "BR1_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BR1_failure_tags": [],
+      "B312_pass": "3/3",
+      "B312_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "B312_failure_tags": [],
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "delta_note": "BAREFREE = A-pure face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1: 305 S1-S4 + 308 S5/S2b, NO retrieval seam, NO prompt seam) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (card 318 guard-permission seam: T1 write gate exempts plugin parameter read/write; chat typed generic-write guards pass bare writes). BAREFREE vs A-pure is the same-face guard on/off contrast = the true bare-write capability measurement"
+    },
+    {
+      "case": "T6",
+      "BAREFREE_pass": "3/3",
+      "BAREFREE_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BAREFREE_failure_tags": [],
+      "BAREFREE_analysis_classifications": [
+        "",
+        "",
+        ""
+      ],
+      "BAREFREE_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "BAREFREE_landed_write_rounds": 0,
+      "BR1_pass": "3/3",
+      "BR1_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BR1_failure_tags": [],
+      "B312_pass": "3/3",
+      "B312_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "B312_failure_tags": [],
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "delta_note": "BAREFREE = A-pure face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1: 305 S1-S4 + 308 S5/S2b, NO retrieval seam, NO prompt seam) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 (card 318 guard-permission seam: T1 write gate exempts plugin parameter read/write; chat typed generic-write guards pass bare writes). BAREFREE vs A-pure is the same-face guard on/off contrast = the true bare-write capability measurement"
+    }
+  ],
+  "barewrite_core_answer": {
+    "question": "with the governance guards permissioned (seam open), can the model actually bare-write guarded-family plugin parameters? -- pass rate of the guard-blocked trio T1/T3/T4 = true bare-write capability",
+    "barefree_write_trio_pass": "3/9",
+    "apure_write_trio_pass": "0/9",
+    "same_face_contrast": "BAREFREE vs A-pure differ ONLY in guard permission (single variable); A-pure 0/9 was device-determined guard blocking per the 318 dissection, so any BAREFREE conversion isolates model bare-write capability",
+    "write_trio_landed_rounds": 6,
+    "readback_encoding_evidence": [
+      {
+        "round": "T1_r1",
+        "final_verdict": "fail",
+        "failure_tags": [
+          "value_encoding_error"
+        ],
+        "analysis_classification": "guard_blocked_write:harness_write_guard",
+        "mutation_count": 0,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 2,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T1_r2",
+        "final_verdict": "fail",
+        "failure_tags": [
+          "value_encoding_error"
+        ],
+        "analysis_classification": "guard_blocked_write:harness_write_guard",
+        "mutation_count": 0,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 2,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T1_r3",
+        "final_verdict": "fail",
+        "failure_tags": [
+          "model_budget_exhausted",
+          "value_encoding_error"
+        ],
+        "analysis_classification": "guard_blocked_write:harness_write_guard",
+        "mutation_count": 0,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 6,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T3_r1",
+        "final_verdict": "pass",
+        "failure_tags": [],
+        "analysis_classification": "",
+        "mutation_count": 1,
+        "label_exact_check": {
+          "ok": true,
+          "detail": {
+            "label": "7",
+            "want": "7"
+          }
+        },
+        "normalized_check": {
+          "ok": true,
+          "detail": {
+            "normalized": 0.699999988079071,
+            "needle": 0.7
+          }
+        },
+        "write_attempts": 1,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T3_r2",
+        "final_verdict": "pass",
+        "failure_tags": [],
+        "analysis_classification": "",
+        "mutation_count": 1,
+        "label_exact_check": {
+          "ok": true,
+          "detail": {
+            "label": "7",
+            "want": "7"
+          }
+        },
+        "normalized_check": {
+          "ok": true,
+          "detail": {
+            "normalized": 0.699999988079071,
+            "needle": 0.7
+          }
+        },
+        "write_attempts": 2,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T3_r3",
+        "final_verdict": "pass",
+        "failure_tags": [],
+        "analysis_classification": "",
+        "mutation_count": 1,
+        "label_exact_check": {
+          "ok": true,
+          "detail": {
+            "label": "7",
+            "want": "7"
+          }
+        },
+        "normalized_check": {
+          "ok": true,
+          "detail": {
+            "normalized": 0.699999988079071,
+            "needle": 0.7
+          }
+        },
+        "write_attempts": 1,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T4_r1",
+        "final_verdict": "fail",
+        "failure_tags": [
+          "model_budget_exhausted",
+          "unexpected_mutation"
+        ],
+        "analysis_classification": "evaluator_terminal_label:model_budget_exhausted,unexpected_mutation",
+        "mutation_count": 2,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 14,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T4_r2",
+        "final_verdict": "fail",
+        "failure_tags": [
+          "value_encoding_error",
+          "unexpected_mutation"
+        ],
+        "analysis_classification": "evaluator_terminal_label:value_encoding_error,unexpected_mutation",
+        "mutation_count": 1,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 2,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      },
+      {
+        "round": "T4_r3",
+        "final_verdict": "fail",
+        "failure_tags": [
+          "value_encoding_error",
+          "unexpected_mutation"
+        ],
+        "analysis_classification": "evaluator_terminal_label:value_encoding_error,unexpected_mutation",
+        "mutation_count": 1,
+        "label_exact_check": null,
+        "normalized_check": null,
+        "write_attempts": 1,
+        "guard_rejections": 0,
+        "t1_gate_blocks": 0
+      }
+    ],
+    "guard_blocked_write_rounds": [
+      "T1_r1",
+      "T1_r2",
+      "T1_r3"
+    ],
+    "mislabel_guard_note": "evaluator failure_tags are terminal-state labels; rounds listed in guard_blocked_write_rounds carry guard rejection shapes in their tool_results -- with the seam open their presence means either seam failure (see device_flags/gw faces) or a guard surface outside the seam's seven guards; report as-is, never read them as value_encoding_error"
+  },
+  "guard_blocked_write_analysis": {
+    "classified_rounds": [
+      "T1_r1",
+      "T1_r2",
+      "T1_r3"
+    ],
+    "taxonomy_note": "new analysis class per card 318 / conclusion-file todo-2: tool_result guard-error shape recognition (typed_* codes + T1 write-gate reason); evaluator verdicts untouched",
+    "device_flag_rounds": [
+      "T1_r1",
+      "T1_r2",
+      "T1_r3"
+    ]
+  },
+  "device_gate": {
+    "gw_live_probe": {
+      "probed_at": "2026-11-08T22:16:54.7080372+08:00",
+      "barewrite_probe": {
+        "mode": "open",
+        "case": "T3",
+        "param_id": "1",
+        "value": 0.7,
+        "probed_at": "2026-11-08T22:16:48+0800",
+        "ok": true,
+        "track_id": "1079",
+        "plugin_id": "1085",
+        "value_before": 0.200000002980232,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "ok",
+        "write_error": "",
+        "guard_rejected": false,
+        "value_after": 0.699999988079071,
+        "label_after": "7",
+        "criteria": {
+          "write_status_ok": true,
+          "not_guard_rejected": true,
+          "readback_at_target": true,
+          "readback_changed": true
+        },
+        "fixture_torn_down": true
+      },
+      "gw_off_probe": {
+        "mode": "off",
+        "case": "T3",
+        "param_id": "1",
+        "value": 0.7,
+        "probed_at": "2026-11-08T22:16:51+0800",
+        "ok": true,
+        "track_id": "1086",
+        "plugin_id": "1092",
+        "value_before": 0.200000002980232,
+        "parameters_changed": null,
+        "rejection_code": null,
+        "write_status": "error",
+        "write_error": "typed_transient_shaper_surface_unavailable: cannot prove this parameter is outside the typed transient-shaper surface: unresolved_transient_shaper_surface: no provable supported transient-shaper envelope topology",
+        "guard_rejected": true,
+        "value_after": 0.200000002980232,
+        "criteria": {
+          "guard_rejected": true,
+          "write_status_not_ok": true,
+          "typed_text_present": true,
+          "value_unchanged": true
+        },
+        "fixture_torn_down": true
+      }
+    }
+  },
+  "missing_rounds": [],
+  "typed_device_invalid_rounds": [],
+  "notes": [
+    "arm label residual: frozen driver records arm=P + pce_p_ prefix (300 precedent); BAREFREE relabel here, raw records untouched",
+    "single-run single-sample per round; 3 repeats are not a stability claim (plan section 6)",
+    "browser.* sibling tools: same retrieval family for W0 accounting"
+  ]
+}

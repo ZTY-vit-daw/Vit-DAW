@@ -1,0 +1,175 @@
+{
+  "schema_version": "plugin_control_eval_s0_report.v1",
+  "card": "PLUGIN-CONTROL-EVAL-RUNNER-1",
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "generated_at": "2026-11-08T22:16:42+0800",
+  "cases": [
+    {
+      "case_id": "T1",
+      "fixture": {
+        "track_id": "1037",
+        "plugin_id": "1043"
+      },
+      "fixture_digest": "46434b393c8ced28",
+      "write_faces": [
+        {
+          "param_id": "6",
+          "face": "set_plugin_param"
+        }
+      ],
+      "side_changes_on_write": [],
+      "restore_verified": true,
+      "observed": {
+        "6": {
+          "value_text": "35.0%",
+          "normalized_value": 0.349999994039536
+        }
+      },
+      "status": "verified"
+    },
+    {
+      "case_id": "T2",
+      "fixture": {
+        "track_id": "1044",
+        "plugin_id": "1050"
+      },
+      "fixture_digest": "46434b393c8ced28",
+      "write_faces": [
+        {
+          "param_id": "1",
+          "face": "set_plugin_param"
+        }
+      ],
+      "side_changes_on_write": [],
+      "restore_verified": true,
+      "observed": {
+        "1": {
+          "value_text": "50.00%",
+          "normalized_value": 0
+        }
+      },
+      "status": "verified"
+    },
+    {
+      "case_id": "T3",
+      "fixture": {
+        "track_id": "1051",
+        "plugin_id": "1057"
+      },
+      "fixture_digest": "c3a1fc472e19e10c",
+      "write_faces": [
+        {
+          "param_id": "1",
+          "face": "set_plugin_param"
+        }
+      ],
+      "side_changes_on_write": [],
+      "restore_verified": true,
+      "observed": {
+        "1": {
+          "value_text": "7",
+          "normalized_value": 0.699999988079071
+        }
+      },
+      "status": "verified"
+    },
+    {
+      "case_id": "T4",
+      "fixture": {
+        "track_id": "1058",
+        "plugin_id": "1064"
+      },
+      "fixture_digest": "e4d16dd4c7ea74a1",
+      "write_faces": [
+        {
+          "param_id": "0",
+          "agent_face_forensics": {
+            "param_id": "0",
+            "generic_response": {
+              "status": "ok",
+              "error": "",
+              "rejection_code": null
+            },
+            "typed_apply": {
+              "face": "plugin_grabber.apply_delay_controls",
+              "control": {
+                "control_ref": "dlcr1_eyJraW5kIjoiZGVsYXlfY29udHJvbF9yZWYudjEiLCJ0cmFja19pZCI6IjEwNTgiLCJwbHVnaW5faWQiOiIxMDY0IiwiZ2VuZXJhdGlvbiI6ImRsMXQxXzk1NzBlNzk5ZjYyZGI4MmI5ZTU0Y2E0NSIsInN0YWdlX2tleSI6ImRlbGF5Iiwic2VjdGlvbiI6InRpbWluZyIsInJvbGUiOiJ0aW1lIiwicGFyYW1faWQiOiIwIn0.edd2bdbeb652515b",
+                "value_ms": 250.0
+              },
+              "binding_unit": "ms",
+              "apply_status": "exact"
+            }
+          },
+          "face": "kernel_zmq.set_plugin_param",
+          "normalized": 0.25
+        }
+      ],
+      "side_changes_on_write": [],
+      "allowance_set_frozen": [
+        "0"
+      ],
+      "restore_verified": true,
+      "observed": {
+        "0": {
+          "value_text": "251 ms",
+          "normalized_value": 0.25
+        },
+        "4": {
+          "value_text": "Host",
+          "normalized_value": 0.5
+        }
+      },
+      "status": "verified"
+    },
+    {
+      "case_id": "T5",
+      "fixture": {
+        "track_id": "1065",
+        "plugin_id": "1071"
+      },
+      "fixture_digest": "e4d16dd4c7ea74a1",
+      "write_faces": [],
+      "side_changes_on_write": [],
+      "zero_mutation_verified": true,
+      "restore_verified": true,
+      "observed": {
+        "2": {
+          "value_text": "60",
+          "normalized_value": 0.300000011920929
+        }
+      },
+      "status": "verified"
+    },
+    {
+      "case_id": "T6",
+      "fixture": {
+        "track_id": "1072",
+        "plugin_id": "1078"
+      },
+      "fixture_digest": "965c4ed6917b49dc",
+      "unsatisfiable_check": {
+        "param_count": 5,
+        "names": [
+          "Dry Level",
+          "Wet Level",
+          "Bypass",
+          "Wet-Dry",
+          "Gain"
+        ],
+        "forbidden_fragment_hits": []
+      },
+      "zero_mutation_verified": true,
+      "observed": {
+        "param_count": 5
+      },
+      "status": "verified"
+    }
+  ],
+  "allowance_set": {
+    "T4": [
+      "0"
+    ]
+  },
+  "freeze_version": "s0",
+  "all_verified": true
+}
