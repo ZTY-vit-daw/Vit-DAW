@@ -25,12 +25,12 @@
 
 - [x] 必读材料（AGENTS.md/PROTOCOL §0§2/卡面/301 判决链/297 报告/301 evidence.md）
 - [x] 领取：worktree 建立+基线记录+卡面回填+PROGRESS.md
-- [ ] 推送领取提交（origin/port/waveshell-offrender-fix-1）
-- [ ] 取证 R1：tracktion_engine 渲染循环 non-realtime 全链源码读（Renderer/NodeRenderContext/ExternalPlugin/PluginNode/JUCE VST3 wrapper setNonRealtime 语义）
-- [ ] 取证 R2：VitApp 渲染入口层参数面读（TransportAudioService/VitProductionCoordinator）
-- [ ] 取证 R3：WaveShell 包装器架构行为链（主 DLL+Shell 子插件）与 301 三 run 观测对账 → 嫌疑分列（S1..Sn，代码锚点+吻合度）
-- [ ] M1 实时对照腿设计（复用 301 M2 直挂装置）
-- [ ] 修法三案评估（预热/黑名单+替代路径/包装器 workaround）
-- [ ] 渲染前自检断言形态建议（2-3 形态+利弊）
-- [ ] recon-design.md 成文
-- [ ] 回执回填卡面+推送 port 分支（终态）
+- [x] 推送领取提交（origin/port/waveshell-offrender-fix-1，领取 commit=8113a09a）
+- [x] 取证 R1：tracktion_engine 渲染循环 non-realtime 全链源码读（Renderer/NodeRenderContext/ExternalPlugin/PluginNode/JUCE VST3 wrapper setNonRealtime 语义）
+- [x] 取证 R2：VitApp 渲染入口层参数面读（TransportAudioService/VitProductionCoordinator）
+- [x] 取证 R3：WaveShell 包装器架构行为链（主 DLL+Shell 子插件）与 301 三 run 观测对账 → 嫌疑分列（S1 主+S2/S3/S4，代码锚点+吻合度）
+- [x] M1 实时对照腿设计（复用 301 M2 直挂装置+VIT309_RTLEVEL VitApp-only 插桩）
+- [x] 修法三案评估（预热/黑名单+替代路径/包装器 workaround；排序 B>C>A）
+- [x] 渲染前自检断言形态建议（3 形态+利弊；推荐形态 3 渲染后静音断言+自动降级）
+- [x] recon-design.md 成文
+- [x] 回执回填卡面+推送 port 分支（终态）
