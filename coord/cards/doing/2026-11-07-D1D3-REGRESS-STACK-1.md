@@ -45,3 +45,13 @@
   - **工件**：coord/runs/D1D3-REGRESS-STACK-1/run2/（RUNBOOK §8 跑前成文+evidence.md 取证+console+ps1_exit+meta+d1_smoke_report.json 全量+d1_settle_gates+d2_check_chat+d2_gates+d2_probe_chat+d2_queue_view+d2_verdict_store+agent_last.log+telemetry 9 行全量+二进制 SHA256），随 port/d1d3-regress-stack-r2 推送。
   - **交主管裁定项**：①D2 tracks 面两断言的**分支感知修正**（0-mutation=6/6/6/0；1-mutation=7 行含新建 FX 轨 read-无指标行，新建轨 id 非恒 1039 应按形状断言）——属断言块域内修正+离线干跑可先行，活栈兑现是否再跑一轮由主管定；②D3 门组两轮均未到达，回归门收口口径中 D3 面仍空；③D1 门 A 脚本位 0-mutation 分支结构性跳过——274 目标键已由 D2 carrier 旁证（loudness_peak_status=present+rankings），是否认可或需 1-mutation 分支跑 settle 门由主管定；④capability_blocked 取证卡两现条件未满足，暂无开卡依据。
   - **端测边界声明（AGENTS §5）**：本腿改动=cherry-pick 主管预收的 D2 断言块（零新改动）；真栈验收=run_free_state_d1_smoke.ps1 门组——**run2 exit 1 未达 §5 门槛**，274/292 回归门核心语义（global stereo present/track-key read+锚值/loudness face present）真栈实证在档但 PS1 整体未绿、D1-settle/D3 门组零活栈覆盖如实申报；两渲染面门槛（E2E-WEBUI-1/JOURNEY-1）不适用。
+
+### 验收（R2 腿，主管，2026-11-08 晚窗）
+
+- **实质 pass（274/292 消费面真栈全过亲证）+ R3 收尾腿授权**——主管亲读 run2 工件：d2_gates.json `runner_exit=0`+`mutation_performed=False`（0-mutation 合法分支，armrun2 同形态契约在案）+`global_stereo=true`/`stereo_face=present`+1007 锚值 corr 0.689/balance -1.475 逐字命中+`tracks 6/6/6/0`；d2_check_chat.json `loudness_peak_status=present`。失败两断言=**断言预期面漂移**（272f27e9 按 1-mutation 分支形态 7/7/6/1+1039 书写；本 run 0-mutation 分支 fixture 本体 6 轨，"track 1039"=1-mutation 轮 runner 新建 FX 轨专属），非修复缺陷回归，非追绿面。栈协议全链合规（bd0bf429→TEARDOWN_ALL_ZERO 18:28:21→5b3ecad9）。
+- **四项裁定**：
+  ① **D2 断言分支感知修正采纳**（0-mutation=6/6/6/0；1-mutation=7 行含新建 FX 轨——**按形状断言，禁硬编码轨道 id**，AGENTS §10 同源纪律；离线双形状干跑先行，与 272f27e9 预收同模式）；
+  ② **R3 收尾腿授权=断言修正+单 run**：D2 修正后门组通过即**D3 门组首次活栈执行**（两轮未达的覆盖缺口由 R3 补）；栈空闲窗口先行、**310 就绪即让栈**；预算沿用 ≈¥0.6；**若 R3 再在同型确定性断点失败→止损取证，禁第三轮重跑**；
+  ③ **D1 门 A 脚本位旁证认可**：274 目标键（loudness_peak_status=present+rankings）经 D2 carrier 真栈亲证，本轮认可；R3 若走 1-mutation 分支 settle 门自然执行，不强制；
+  ④ **capability_blocked 取证卡不开**（两现条件未满足：run2 9 调用 0 error，transient 未复现；run1 归因记录维持）。
+- 卡回 doing 候 R3；R3 后无论三态何态收口整卡（D3 结果三态处置照卡面原文）。
