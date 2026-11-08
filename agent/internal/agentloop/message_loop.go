@@ -4329,6 +4329,25 @@ func pluginControlEvalSeamOpen() bool {
 	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamEnv)) == "1"
 }
 
+// pluginControlEvalSeamBR1PromptEnv is the PLUGIN-CONTROL-EVAL-BR1-1 (card
+// 317) test-only thin-prompt seam: exactly "1" appends the frozen B-R1
+// guidance segment to the ordinary-family system skeleton as its final
+// block (after the S4 trim and the verified-entry trim, so ordering with
+// the other seams is stable); unset keeps the skeleton byte-for-byte and
+// production startup paths never set it. Same pattern as the S4 master
+// seam above and the 312 B-retrieval seam in the harness.
+const pluginControlEvalSeamBR1PromptEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT"
+
+// pluginControlEvalSeamBR1PromptSegment is byte-frozen from card
+// PLUGIN-CONTROL-EVAL-BR1-1 (「告知可查+遇不确定先查再写」显式薄提示).
+// The RUNBOOK freezes the same text plus its SHA-256; the paired unit test
+// pins the exact bytes so the injected guidance cannot drift silently.
+const pluginControlEvalSeamBR1PromptSegment = "你有 web.search/web.fetch 可查插件手册与参数文档；遇到不确定的参数编码（param_id/量纲/取值范围）先查再写，查过的不重复查"
+
+func pluginControlEvalSeamBR1PromptOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamBR1PromptEnv)) == "1"
+}
+
 // messageLoopOrdinaryFamilySystemSkeleton 渲染普通族字节稳定骨架（固定
 // 规则帧+输出格式示例；不含逐轮 modeRules/目录/allowed——它们随每轮
 // state 重算，归动态区）。verified-entry 裁剪按 state 触发，但它是真实
@@ -4424,6 +4443,13 @@ Rules:
 				skeleton = skeleton[:start] + "- For a verified semantic-entry turn, keep acoustic family and observation selection model-owned; use the free-state decision or the typed control protocol selected by the entry route.\n" + skeleton[start+end:]
 			}
 		}
+	}
+	// PLUGIN-CONTROL-EVAL-BR1-1 thin-prompt seam (card 317): with the B-R1
+	// env open, the frozen guidance segment is appended as the final block of
+	// the skeleton, after every trim so seam ordering cannot move it. Unset
+	// keeps the skeleton byte-for-byte (paired unit test pins both paths).
+	if pluginControlEvalSeamBR1PromptOpen() {
+		skeleton = skeleton + "\n" + pluginControlEvalSeamBR1PromptSegment
 	}
 	return skeleton
 }

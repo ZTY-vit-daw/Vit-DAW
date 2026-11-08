@@ -1,0 +1,221 @@
+{
+  "schema_version": "plugin_control_eval_br1_seam_verify.v1",
+  "a_capture": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\logs\\agent_llm_payload_capture.jsonl",
+  "a_rows": 110,
+  "a_request_payloads": 110,
+  "p_rows": 38,
+  "checks": {
+    "S2_five_fields_absent": {
+      "detail": {
+        "normalized_role": {
+          "a_count": 0,
+          "p_control_count": 70,
+          "a_contexts": []
+        },
+        "display_group": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "control_relevance": {
+          "a_count": 0,
+          "p_control_count": 30,
+          "a_contexts": []
+        },
+        "template_role": {
+          "a_count": 0,
+          "p_control_count": 36,
+          "a_contexts": []
+        },
+        "alias": {
+          "a_keyform_count": 0,
+          "a_plain_count": 33,
+          "p_keyform_count": 0,
+          "a_plain_contexts": [
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|",
+            "tring required non-empty (by-id lookup; note_id accepted as alias key; region form not accepted) optional pitch/start/length|"
+          ]
+        }
+      },
+      "method_weak_fields": []
+    },
+    "S2b_render_surface_anchor": {
+      "anchor_capture": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\a307_reference\\t3_r1_contaminated_capture.jsonl",
+      "anchor_detection": {
+        "normalized_role": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        },
+        "template_role": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        },
+        "binding_targets": {
+          "anchor_request_rows_hit": 7,
+          "expected_rows": 7
+        }
+      },
+      "a_binding_targets_rows": 0,
+      "a_binding_targets_hits": 0,
+      "note": "binding_targets is a native key that SURVIVES S2b by design (only alias/normalized_role/template_role rows are stripped); its presence is informational -- the gating assertion is S2's three-key zero-hit"
+    },
+    "S3_bare_tool_description": {
+      "a_prod_tail_count": 0,
+      "a_prod_tail_contexts": [],
+      "a_bare_count": 0,
+      "p_prod_tail_count": 0,
+      "note": "bare_count>0 proves live-stack bare disclosure when the tool is disclosed; absence is only informational (bounded disclosure may omit the tool)"
+    },
+    "S4_typed_routing_rules_absent": {
+      "a_count": 0,
+      "a_contexts": [],
+      "p_control_count": 24
+    },
+    "S5_catalog_trim": {
+      "catalog_grabber_line_rows": 0,
+      "catalog_grabber_line_hits": 0,
+      "catalog_grabber_line_contexts": [],
+      "bare_plain_string_hits": 20,
+      "bare_plain_contexts": [
+        "ransient_shaper_surface_unavailable\\\",\\\"required_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient",
+        "ired_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient_shaper_controls\\\"],\\\"status\\\":\\\"rejected\\\",",
+        "ransient_shaper_surface_unavailable\\\",\\\"required_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient",
+        "ired_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient_shaper_controls\\\"],\\\"status\\\":\\\"rejected\\\",",
+        "ransient_shaper_surface_unavailable\\\",\\\"required_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient",
+        "ired_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient_shaper_controls\\\"],\\\"status\\\":\\\"rejected\\\",",
+        "ransient_shaper_surface_unavailable\\\",\\\"required_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient",
+        "ired_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient_shaper_controls\\\"],\\\"status\\\":\\\"rejected\\\",",
+        "ransient_shaper_surface_unavailable\\\",\\\"required_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient",
+        "ired_tools\\\":[\\\"plugin_grabber.inspect_transient_shaper\\\",\\\"plugin_grabber.apply_transient_shaper_controls\\\"],\\\"status\\\":\\\"rejected\\\","
+      ],
+      "catalog_bare_read_rows": 63,
+      "catalog_bare_write_rows": 63,
+      "note": "catalog-line form 'tool=plugin_grabber.*' is the 307 disclosure form (5666 hits there); plain-string hits are informational (known permitted forms: repair-echo of model hallucination, goalrunner EQ guard text -- 308 ruling); the bare read/write pair MUST be disclosed in catalog-line form or the arm has no bare write face at all"
+    },
+    "CS_control_shell_content_form": {
+      "content_form_rows": 0,
+      "content_form_hits": 0,
+      "content_form_contexts": [],
+      "keyname_form_hits": 0,
+      "note": "content form (object value) = device invalid per 308 acceptance ruling; key-name list form (result_keys etc.) = declared residual, permitted, counted informationally"
+    },
+    "S1_no_typed_takeover": {
+      "conversation_id": "pce_p_T2_r0_1794143776",
+      "tool_calls": [
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters",
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters",
+        "plugin.set_parameter",
+        "plugin.get_parameters"
+      ],
+      "typed_apply_calls": [],
+      "typed_any_calls": [],
+      "loop_tool_sequence": [
+        "get_plugin_parameters",
+        "set_plugin_param",
+        "get_plugin_parameters",
+        "get_plugin_parameters",
+        "set_plugin_param",
+        "get_plugin_parameters",
+        "set_plugin_param",
+        "get_plugin_parameters"
+      ],
+      "capture_sources": {
+        "ordinary_agent_semantic_entry": 1,
+        "message_loop": 9,
+        "message_loop_repair": 4
+      },
+      "semantic_entry_present": true,
+      "message_loop_present": true,
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.get_parameters",
+        "sequence": [
+          "plugin.get_parameters",
+          "plugin.set_parameter",
+          "plugin.get_parameters",
+          "plugin.get_parameters",
+          "plugin.set_parameter"
+        ]
+      },
+      "final_verdict": "pass"
+    },
+    "R_retrieval_face": {
+      "catalog_web_search_line_rows": 33,
+      "catalog_web_search_line_hits": 33,
+      "catalog_web_search_line_contexts": [
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl",
+        "-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm required=- args=-\\nworkspace_apply_edit tool=workspace.appl"
+      ],
+      "catalog_web_fetch_line_rows": 33,
+      "catalog_web_fetch_line_hits": 33,
+      "catalog_web_fetch_line_contexts": [
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm ",
+        "tool=clip.warm_waveform_bake risk=direct required=- args=-\\nweb_fetch tool=web.fetch risk=confirm required=- args=-\\nweb_search tool=web.search risk=confirm "
+      ],
+      "conversation_route_face": {
+        "full_catalog_conversations": [
+          "pce_p_T2_r0_1794143776",
+          "pce_p_T2_r1_1794143917",
+          "pce_p_T2_r2_1794143940",
+          "pce_p_T2_r3_1794143962",
+          "pce_p_T3_r1_1794144090",
+          "pce_p_T3_r2_1794144110",
+          "pce_p_T3_r3_1794144128"
+        ],
+        "pack_catalog_conversations": [
+          "pce_p_T1_r1_1794143849",
+          "pce_p_T1_r2_1794143880",
+          "pce_p_T1_r3_1794143901",
+          "pce_p_T4_r1_1794144148",
+          "pce_p_T4_r2_1794144169",
+          "pce_p_T4_r3_1794144204",
+          "pce_p_T5_r1_1794144217",
+          "pce_p_T5_r2_1794144231",
+          "pce_p_T5_r3_1794144248",
+          "pce_p_T6_r1_1794144264",
+          "pce_p_T6_r2_1794144281",
+          "pce_p_T6_r3_1794144295"
+        ],
+        "full_without_web_pair": [],
+        "threshold": 150
+      },
+      "probe_executed_retrieval_calls": {},
+      "note": "retrieval execution is model-initiated: zero calls is a legitimate recorded outcome, not a device failure; pack-routed rounds cannot see the web pair at all (product bounded disclosure, recorded per conversation)"
+    },
+    "R1P_thin_prompt_face": {
+      "segment_sha256": "51c403d8f8901d586ae1180cdc699ff308dbbc5a870e3fe3db7c2cf68c5a202c",
+      "segment_length_utf8_chars": 76,
+      "message_loop_rows_total": 63,
+      "message_loop_rows_with_segment_in_system": 63,
+      "message_loop_rows_missing_segment_by_conversation": {},
+      "conversations_first_message_loop_without_segment": [],
+      "semantic_entry_rows_with_segment": 0,
+      "message_loop_repair_rows_with_segment": 0,
+      "probe_carrier": "pce_p_T2_r0_1794143776"
+    },
+    "model_face": {
+      "response_models": {},
+      "note": "deepseek-flash expected (product default)"
+    }
+  },
+  "verdict": "pass",
+  "failures": []
+}

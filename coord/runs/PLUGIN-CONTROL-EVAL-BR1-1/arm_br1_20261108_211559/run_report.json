@@ -1,0 +1,401 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-BR1-1",
+    "leg":  "arm_br1",
+    "run_id":  "20261108_211559",
+    "repo_head":  "3a0a3ab03a0ac096bfecdcc29e8655977757d841",
+    "branch":  "port/plugin-control-eval-br1-1",
+    "started_at":  "2026-11-08T21:15:59.5793731+08:00",
+    "sec8_decl":  "B-R1 arm (312 B seam set VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1, PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 = frozen thin-prompt segment appended to the ordinary-family system skeleton): live retrieval probe (zero LLM) + s0 refreeze (0 LLM) + dryround (0 LLM) + 1 device-verification probe round (T2 repeat 0, paid, not scored -- T2 routes to the FULL catalog so the R1 retrieval face is verifiable; 312 amendment) + 18 paid task rounds (T1..T6 x repeat 1..3, new conversation + fresh fixture each); per-round caps (12 calls / 40k in / 8k out per call / 30 tool calls / 6 retrieval searches / 10 retrieval fetches / 20 min) frozen; segment caps 216 calls / 8.64M in / 1.728M out checked between rounds (caps verbatim from plan B_star); live probe must prove the seams (no needs_confirmation) AND real network retrieval; probe gate must prove S2/S2b/S3/S4/S5/CS/R1/R1P faces + zero executed typed calls before task rounds; failure taxonomy per plan + seam_leakage + retrieval_unavailable (live probe) + repo-contamination watchlist; full declaration in RUNBOOK.md (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 (all three set in process env before any process start)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        20152
+                                    ],
+                       "VitApp":  [
+                                      29576
+                                  ]
+                   },
+    "agent_sha256":  "D182C2E78AC783110FD7A34F3C30B697219F83ADD7D740FF66D88C7628B8E087",
+    "agent_tool_count":  "256",
+    "retrieval_live_probe":  {
+                                 "search_status":  "ok",
+                                 "fetch_status":  "ok",
+                                 "search_ok":  true,
+                                 "fetch_ok":  true
+                             },
+    "s0_exit":  0,
+    "s0_all_verified":  true,
+    "t4_allowance":  "0",
+    "dryround_exit":  0,
+    "probe_exit":  0,
+    "seam_verify_exit":  0,
+    "task_rounds":  [
+                        {
+                            "case_id":  "T1",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T1_r1_1794143849",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"mix.observe\",\"sequence\":[\"mix.observe\",\"plugin.semantic_get\"]}",
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  7,
+                            "input_tokens":  119314,
+                            "output_tokens":  3099,
+                            "cache_read_tokens":  61184,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T1_r1"
+                        },
+                        {
+                            "case_id":  "T1",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T1_r2_1794143880",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  5,
+                            "input_tokens":  90722,
+                            "output_tokens":  1996,
+                            "cache_read_tokens":  44544,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T1_r2"
+                        },
+                        {
+                            "case_id":  "T1",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T1_r3_1794143901",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  4,
+                            "input_tokens":  61209,
+                            "output_tokens":  1482,
+                            "cache_read_tokens":  25600,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T1_r3"
+                        },
+                        {
+                            "case_id":  "T2",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T2_r1_1794143917",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"track.delete\",\"sequence\":[\"track.delete\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  1,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  5,
+                            "input_tokens":  71548,
+                            "output_tokens":  2548,
+                            "cache_read_tokens":  34304,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T2_r1"
+                        },
+                        {
+                            "case_id":  "T2",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T2_r2_1794143940",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.set_parameter\",\"sequence\":[\"plugin.set_parameter\",\"plugin.get_parameters\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "self_probed,direct_guess",
+                            "mutation_count":  1,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  5,
+                            "input_tokens":  72056,
+                            "output_tokens":  2520,
+                            "cache_read_tokens":  34304,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T2_r2"
+                        },
+                        {
+                            "case_id":  "T2",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T2_r3_1794143962",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.set_parameter\",\"sequence\":[\"plugin.set_parameter\",\"plugin.set_parameter\",\"plugin.get_parameters\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "model_budget_exhausted",
+                            "behavior_tags":  "self_probed,self_corrected,direct_guess",
+                            "mutation_count":  1,
+                            "stop_reason":  "model_budget_exhausted:llm_calls_over_cap",
+                            "llm_calls":  13,
+                            "input_tokens":  230362,
+                            "output_tokens":  17123,
+                            "cache_read_tokens":  114176,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T2_r3"
+                        },
+                        {
+                            "case_id":  "T3",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T3_r1_1794144090",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "model_task_failure",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  5,
+                            "input_tokens":  65932,
+                            "output_tokens":  2046,
+                            "cache_read_tokens":  34304,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T3_r1"
+                        },
+                        {
+                            "case_id":  "T3",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T3_r2_1794144110",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "model_task_failure",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  5,
+                            "input_tokens":  71565,
+                            "output_tokens":  1766,
+                            "cache_read_tokens":  34304,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T3_r2"
+                        },
+                        {
+                            "case_id":  "T3",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T3_r3_1794144128",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "model_task_failure",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  6,
+                            "input_tokens":  67102,
+                            "output_tokens":  2135,
+                            "cache_read_tokens":  34432,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T3_r3"
+                        },
+                        {
+                            "case_id":  "T4",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T4_r1_1794144148",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  6,
+                            "input_tokens":  49842,
+                            "output_tokens":  2276,
+                            "cache_read_tokens":  14976,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T4_r1"
+                        },
+                        {
+                            "case_id":  "T4",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T4_r2_1794144169",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_failed",
+                            "llm_calls":  5,
+                            "input_tokens":  50851,
+                            "output_tokens":  4097,
+                            "cache_read_tokens":  16384,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T4_r2"
+                        },
+                        {
+                            "case_id":  "T4",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T4_r3_1794144204",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "fail",
+                            "failure_tags":  "value_encoding_error",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_failed",
+                            "llm_calls":  4,
+                            "input_tokens":  31906,
+                            "output_tokens":  1427,
+                            "cache_read_tokens":  9856,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T4_r3"
+                        },
+                        {
+                            "case_id":  "T5",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T5_r1_1794144217",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  4,
+                            "input_tokens":  31749,
+                            "output_tokens":  1399,
+                            "cache_read_tokens":  9088,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T5_r1"
+                        },
+                        {
+                            "case_id":  "T5",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T5_r2_1794144231",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  4,
+                            "input_tokens":  31733,
+                            "output_tokens":  1900,
+                            "cache_read_tokens":  12544,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T5_r2"
+                        },
+                        {
+                            "case_id":  "T5",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T5_r3_1794144248",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  4,
+                            "input_tokens":  33937,
+                            "output_tokens":  1702,
+                            "cache_read_tokens":  12160,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T5_r3"
+                        },
+                        {
+                            "case_id":  "T6",
+                            "repeat":  1,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T6_r1_1794144264",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  4,
+                            "input_tokens":  31927,
+                            "output_tokens":  1777,
+                            "cache_read_tokens":  9856,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T6_r1"
+                        },
+                        {
+                            "case_id":  "T6",
+                            "repeat":  2,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T6_r2_1794144281",
+                            "first_action":  {
+
+                                             },
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  4,
+                            "input_tokens":  31856,
+                            "output_tokens":  1407,
+                            "cache_read_tokens":  9856,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T6_r2"
+                        },
+                        {
+                            "case_id":  "T6",
+                            "repeat":  3,
+                            "exit":  0,
+                            "conversation_id":  "pce_p_T6_r3_1794144295",
+                            "first_action":  "{\"kind\":\"tool_call\",\"tool\":\"plugin.open\",\"sequence\":[\"plugin.open\"]}",
+                            "final_verdict":  "pass",
+                            "failure_tags":  "",
+                            "behavior_tags":  "",
+                            "mutation_count":  0,
+                            "stop_reason":  "goal_completed",
+                            "llm_calls":  5,
+                            "input_tokens":  50094,
+                            "output_tokens":  2150,
+                            "cache_read_tokens":  16000,
+                            "round_dir":  "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T6_r3"
+                        }
+                    ],
+    "segment_budget":  {
+                           "within_caps":  true,
+                           "totals":  {
+                                          "output_tokens":  52850,
+                                          "input_tokens":  1193705,
+                                          "llm_calls":  95
+                                      },
+                           "caps":  {
+                                        "max_output_tokens":  1728000,
+                                        "max_llm_calls":  216,
+                                        "max_input_tokens":  8640000,
+                                        "rounds":  18
+                                    }
+                       },
+    "seam_verify_corpus_exit":  0,
+    "consolidate_exit":  0,
+    "verdict":  "driver_complete",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 },
+    "finished_at":  "2026-11-08T21:25:21.5198693+08:00"
+}
