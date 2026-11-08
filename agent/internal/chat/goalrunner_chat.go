@@ -141,6 +141,21 @@ func pluginControlEvalSeamOpen() bool {
 	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamEnv)) == "1"
 }
 
+// pluginControlEvalSeamBareWriteEnv is the PLUGIN-CONTROL-EVAL-BAREFREE-1
+// (card 318) test-only guard-permission seam, chat-side half of the same
+// env key used by internal/agentloop: exactly "1" makes the typed
+// generic-write guards (compressor/limiter/gate-expander/de-esser/
+// transient-shaper/EQ/multiband) pass generic plugin.set_parameter
+// requests through instead of blocking them, so the barewrite arm can
+// measure real raw-write capability on guarded families. Unset keeps every
+// guard byte-for-byte (fail-closed included); production startup paths
+// never set it. Same pattern as the seams above.
+const pluginControlEvalSeamBareWriteEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE"
+
+func pluginControlEvalSeamBareWriteOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamBareWriteEnv)) == "1"
+}
+
 // applyPluginControlEvalSeamEntryRewrite is seam S1 (typed-takeover bypass) of
 // PLUGIN-CONTROL-EVAL-SEAM-1: with the seam open, a semantic-entry decision
 // classified as explicit_control (control_mode=typed_control) is reclassified
@@ -1326,6 +1341,11 @@ func (s *Server) guardTransientShaperOwnedGenericParameterWrite(ctx context.Cont
 	if !pluginSetParameterInvokeRequest(req) {
 		return harness.InvokeResponse{}, false
 	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318): guard-permission seam —
+	// an open seam passes generic parameter writes through this typed guard.
+	if pluginControlEvalSeamBareWriteOpen() {
+		return harness.InvokeResponse{}, false
+	}
 	args := workflowCommandArgs(req.Command)
 	for key, value := range workflowCommandArgs(req.Args) {
 		args[key] = value
@@ -1377,6 +1397,11 @@ func transientShaperSummaryOwnsParameter(summary map[string]any, paramID string)
 
 func (s *Server) guardGateExpanderOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
 	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318): guard-permission seam —
+	// an open seam passes generic parameter writes through this typed guard.
+	if pluginControlEvalSeamBareWriteOpen() {
 		return harness.InvokeResponse{}, false
 	}
 	args := workflowCommandArgs(req.Command)
@@ -1438,6 +1463,11 @@ func gateExpanderSummaryOwnsParameter(summary map[string]any, paramID string) bo
 
 func (s *Server) guardLimiterOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
 	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318): guard-permission seam —
+	// an open seam passes generic parameter writes through this typed guard.
+	if pluginControlEvalSeamBareWriteOpen() {
 		return harness.InvokeResponse{}, false
 	}
 	args := workflowCommandArgs(req.Command)
@@ -1517,6 +1547,11 @@ func (s *Server) guardDeEsserOwnedGenericParameterWrite(ctx context.Context, req
 	if !pluginSetParameterInvokeRequest(req) {
 		return harness.InvokeResponse{}, false
 	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318): guard-permission seam —
+	// an open seam passes generic parameter writes through this typed guard.
+	if pluginControlEvalSeamBareWriteOpen() {
+		return harness.InvokeResponse{}, false
+	}
 	args := workflowCommandArgs(req.Command)
 	for key, value := range workflowCommandArgs(req.Args) {
 		args[key] = value
@@ -1578,6 +1613,11 @@ func (s *Server) guardCompressorOwnedGenericParameterWrite(ctx context.Context, 
 	if !pluginSetParameterInvokeRequest(req) {
 		return harness.InvokeResponse{}, false
 	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318): guard-permission seam —
+	// an open seam passes generic parameter writes through this typed guard.
+	if pluginControlEvalSeamBareWriteOpen() {
+		return harness.InvokeResponse{}, false
+	}
 	args := workflowCommandArgs(req.Command)
 	for key, value := range workflowCommandArgs(req.Args) {
 		args[key] = value
@@ -1612,6 +1652,11 @@ func (s *Server) guardCompressorOwnedGenericParameterWrite(ctx context.Context, 
 
 func (s *Server) guardEQOwnedGenericParameterWrite(ctx context.Context, req harness.InvokeRequest) (harness.InvokeResponse, bool) {
 	if !pluginSetParameterInvokeRequest(req) {
+		return harness.InvokeResponse{}, false
+	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318): guard-permission seam —
+	// an open seam passes generic parameter writes through this typed guard.
+	if pluginControlEvalSeamBareWriteOpen() {
 		return harness.InvokeResponse{}, false
 	}
 	args := workflowCommandArgs(req.Command)

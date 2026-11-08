@@ -332,6 +332,11 @@ func (s *Server) guardMultibandOwnedGenericParameterWrite(ctx context.Context, r
 	if !pluginSetParameterInvokeRequest(req) {
 		return harness.InvokeResponse{}, false
 	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318): guard-permission seam —
+	// an open seam passes generic parameter writes through this typed guard.
+	if pluginControlEvalSeamBareWriteOpen() {
+		return harness.InvokeResponse{}, false
+	}
 	args := workflowCommandArgs(req.Command)
 	for key, value := range workflowCommandArgs(req.Args) {
 		args[key] = value

@@ -1,0 +1,8 @@
+﻿seam_verify exit=4 -- see seam_verify_probe.json
+所在位置 D:\Vit_DAW_wt_318barefree\coord\runs\PLUGIN-CONTROL-EVAL-BAREFREE-1\barefree_orchestrator.ps1:311 字符: 9
++         throw ("seam_verify exit=" + $verifyExit + " -- see seam_veri ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (seam_verify exi...rify_probe.json:String) [], RuntimeException
+    + FullyQualifiedErrorId : seam_verify exit=4 -- see seam_verify_probe.json
+ 
+

@@ -1,0 +1,1689 @@
+{
+  "automation_param_surface": [
+    {
+      "label": "Dry Level",
+      "max": 1,
+      "min": 0,
+      "param_id": "dry level",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "-INF dB"
+    },
+    {
+      "label": "Wet Level",
+      "max": 1,
+      "min": 0,
+      "param_id": "wet level",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "+0.0 dB"
+    },
+    {
+      "label": "Bypass",
+      "max": 1,
+      "min": 0,
+      "param_id": "10000001",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Off"
+    },
+    {
+      "label": "Delay Sec",
+      "max": 1,
+      "min": 0,
+      "param_id": "0",
+      "supports_automation": true,
+      "value": 0.374000012874603,
+      "value_text": "375 ms"
+    },
+    {
+      "label": "Delay BPM",
+      "max": 1,
+      "min": 0,
+      "param_id": "1",
+      "supports_automation": true,
+      "value": 0.578999996185303,
+      "value_text": "1/8D "
+    },
+    {
+      "label": "Feedback",
+      "max": 1,
+      "min": 0,
+      "param_id": "2",
+      "supports_automation": true,
+      "value": 0.300000011920929,
+      "value_text": "60 "
+    },
+    {
+      "label": "PingPong",
+      "max": 1,
+      "min": 0,
+      "param_id": "3",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Stereo "
+    },
+    {
+      "label": "Sync",
+      "max": 1,
+      "min": 0,
+      "param_id": "4",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "Host "
+    },
+    {
+      "label": "Mix",
+      "max": 1,
+      "min": 0,
+      "param_id": "5",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "100 "
+    },
+    {
+      "label": "Output",
+      "max": 1,
+      "min": 0,
+      "param_id": "6",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "0.0 dB"
+    },
+    {
+      "label": "Analog",
+      "max": 1,
+      "min": 0,
+      "param_id": "7",
+      "supports_automation": true,
+      "value": 0.5,
+      "value_text": "Mod2 "
+    },
+    {
+      "label": "LoFi",
+      "max": 1,
+      "min": 0,
+      "param_id": "8",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "HiFi "
+    },
+    {
+      "label": "Rate",
+      "max": 1,
+      "min": 0,
+      "param_id": "9",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "0.10 Hz"
+    },
+    {
+      "label": "Depth",
+      "max": 1,
+      "min": 0,
+      "param_id": "10",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "0 %"
+    },
+    {
+      "label": "HiPass",
+      "max": 1,
+      "min": 0,
+      "param_id": "11",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Off "
+    },
+    {
+      "label": "LoPass",
+      "max": 1,
+      "min": 0,
+      "param_id": "12",
+      "supports_automation": true,
+      "value": 1,
+      "value_text": "Off "
+    },
+    {
+      "label": "Phase L",
+      "max": 1,
+      "min": 0,
+      "param_id": "13",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "+ "
+    },
+    {
+      "label": "Phase R",
+      "max": 1,
+      "min": 0,
+      "param_id": "14",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "+ "
+    },
+    {
+      "label": "BPM",
+      "max": 1,
+      "min": 0,
+      "param_id": "15",
+      "supports_automation": true,
+      "value": 0.333333343267441,
+      "value_text": "120 BPM"
+    },
+    {
+      "label": "Ping Pong Start Direction",
+      "max": 1,
+      "min": 0,
+      "param_id": "16",
+      "supports_automation": true,
+      "value": 0,
+      "value_text": "Left "
+    },
+    {
+      "label": "Delay Sec R",
+      "max": 1,
+      "min": 0,
+      "param_id": "17",
+      "supports_automation": true,
+      "value": 0.374000012874603,
+      "value_text": "375 ms"
+    },
+    {
+      "label": "Delay BPM R",
+      "max": 1,
+      "min": 0,
+      "param_id": "18",
+      "supports_automation": true,
+      "value": 0.578947365283966,
+      "value_text": "1/8D "
+    }
+  ],
+  "capability_manifest": [
+    "open_ui",
+    "get_param",
+    "template_shell",
+    "quick_controls"
+  ],
+  "command_ack": {
+    "ack": {
+      "message": "Legacy command completed",
+      "stage": "completed"
+    },
+    "command": "plugin.parameters.get",
+    "legacy_command": "get_plugin_parameters",
+    "resync_hint": false,
+    "revision": 0,
+    "source": "vsp.command.response",
+    "stage": "completed",
+    "transaction_id": "tx_1794147406853389600_288"
+  },
+  "display_probe_summary": {
+    "display_domain_candidate_count": 22,
+    "high_confidence_candidate_count": 17,
+    "parameter_count": 22,
+    "parameters_with_display_probe": 22,
+    "probe_issue_count": 22,
+    "units": {
+      "%": 1,
+      "Hz": 3,
+      "dB": 3,
+      "enum": 7,
+      "ms": 2,
+      "toggle": 1
+    }
+  },
+  "parameter_count": 22,
+  "parameter_page": {
+    "limit": 512,
+    "offset": 0,
+    "total": 22
+  },
+  "parameters": [
+    {
+      "display_domain_candidate": {
+        "text": "-12~0 dB",
+        "unit": "dB",
+        "min": -12,
+        "max": 0,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "-INF dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Dry Level",
+      "normalized_value": 0,
+      "param_id": "dry level",
+      "raw_param_name": "Dry Level",
+      "value": 0,
+      "value_text": "-INF dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-12~0 dB",
+        "unit": "dB",
+        "min": -12,
+        "max": 0,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "+0.0 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-INF dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-12.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-6.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-2.5 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "+0.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Wet Level",
+      "normalized_value": 1,
+      "param_id": "wet level",
+      "raw_param_name": "Wet Level",
+      "value": 1,
+      "value_text": "+0.0 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~1 toggle",
+        "unit": "toggle",
+        "min": 0,
+        "max": 1,
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.92
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Off",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "On"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Off"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "On"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Bypass",
+      "normalized_value": 0,
+      "param_id": "10000001",
+      "raw_param_name": "Bypass",
+      "value": 0,
+      "value_text": "Off"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "1~3500 ms",
+        "unit": "ms",
+        "min": 1,
+        "max": 3500,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "375 ms",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "1 ms"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "251 ms"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "501 ms"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1540 ms"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "3500 ms"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Delay Sec",
+      "normalized_value": 0.374000012874603,
+      "param_id": "0",
+      "raw_param_name": "Delay Sec",
+      "value": 0.374000012874603,
+      "value_text": "375 ms"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "1~2",
+        "min": 1,
+        "max": 2,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1/8D",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "1/64T"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "1/32D"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1/8"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1/4D"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "2B"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Delay BPM",
+      "normalized_value": 0.578999996185303,
+      "param_id": "1",
+      "raw_param_name": "Delay BPM",
+      "value": 0.578999996185303,
+      "value_text": "1/8D"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~200",
+        "min": 0,
+        "max": 200,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "60",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "50"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "100"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "150"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "200"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Feedback",
+      "normalized_value": 0.300000011920929,
+      "param_id": "2",
+      "raw_param_name": "Feedback",
+      "value": 0.300000011920929,
+      "value_text": "60"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Stereo / PingPong",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Stereo",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Stereo"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Stereo"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "PingPong"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "PingPong"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "PingPong"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Stereo"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "PingPong"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "PingPong",
+      "normalized_value": 0,
+      "param_id": "3",
+      "raw_param_name": "PingPong",
+      "value": 0,
+      "value_text": "Stereo"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: BPM / Host / ms",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Host",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "BPM"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Host"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Host"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "ms"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "ms"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "BPM"
+          },
+          {
+            "index": 1,
+            "value": 0.5,
+            "label": "Host"
+          },
+          {
+            "index": 2,
+            "value": 1,
+            "label": "ms"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Sync",
+      "normalized_value": 0.5,
+      "param_id": "4",
+      "raw_param_name": "Sync",
+      "value": 0.5,
+      "value_text": "Host"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~100",
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "100",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "75"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "100"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Mix",
+      "normalized_value": 1,
+      "param_id": "5",
+      "raw_param_name": "Mix",
+      "value": 1,
+      "value_text": "100"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "-18~18 dB",
+        "unit": "dB",
+        "min": -18,
+        "max": 18,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.0 dB",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "-18.0 dB"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "-9.0 dB"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "0.0 dB"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "9.0 dB"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "18.0 dB"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Output",
+      "normalized_value": 0.5,
+      "param_id": "6",
+      "raw_param_name": "Output",
+      "value": 0.5,
+      "value_text": "0.0 dB"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Off / Mod1 / Mod2 / Mod3 / Mod4",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Mod2",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Mod1"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Mod2"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Mod3"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Mod4"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Off"
+          },
+          {
+            "index": 1,
+            "value": 0.25,
+            "label": "Mod1"
+          },
+          {
+            "index": 2,
+            "value": 0.5,
+            "label": "Mod2"
+          },
+          {
+            "index": 3,
+            "value": 0.75,
+            "label": "Mod3"
+          },
+          {
+            "index": 4,
+            "value": 1,
+            "label": "Mod4"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Analog",
+      "normalized_value": 0.5,
+      "param_id": "7",
+      "raw_param_name": "Analog",
+      "value": 0.5,
+      "value_text": "Mod2"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: HiFi / LoFi",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "HiFi",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "HiFi"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "HiFi"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "LoFi"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "LoFi"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "LoFi"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "HiFi"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "LoFi"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "LoFi",
+      "normalized_value": 0,
+      "param_id": "8",
+      "raw_param_name": "LoFi",
+      "value": 0,
+      "value_text": "HiFi"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0.1~6000 Hz",
+        "unit": "Hz",
+        "min": 0.1,
+        "max": 6000,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0.10 Hz",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0.10 Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "1.57 Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "24.5 Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "383 Hz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "6.00k Hz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Rate",
+      "normalized_value": 0,
+      "param_id": "9",
+      "raw_param_name": "Rate",
+      "value": 0,
+      "value_text": "0.10 Hz"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "0~100 %",
+        "unit": "%",
+        "min": 0,
+        "max": 100,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "0 %",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "0 %"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "25 %"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "50 %"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "75 %"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "100 %"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Depth",
+      "normalized_value": 0,
+      "param_id": "10",
+      "raw_param_name": "Depth",
+      "value": 0,
+      "value_text": "0 %"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "108~20100 Hz",
+        "unit": "Hz",
+        "min": 108,
+        "max": 20100,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Off",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Off"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "108Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "619Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "3.53kHz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "20.1kHz"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "HiPass",
+      "normalized_value": 0,
+      "param_id": "11",
+      "raw_param_name": "HiPass",
+      "value": 0,
+      "value_text": "Off"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "19~3530 Hz",
+        "unit": "Hz",
+        "min": 19,
+        "max": 3530,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Off",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "19Hz"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "108Hz"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "619Hz"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "3.53kHz"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Off"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "LoPass",
+      "normalized_value": 1,
+      "param_id": "12",
+      "raw_param_name": "LoPass",
+      "value": 1,
+      "value_text": "Off"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: + / -",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "+",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "+"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "+"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "-"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "+"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "-"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Phase L",
+      "normalized_value": 0,
+      "param_id": "13",
+      "raw_param_name": "Phase L",
+      "value": 0,
+      "value_text": "+"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: + / -",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "+",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "+"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "+"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "-"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "-"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "-"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "+"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "-"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Phase R",
+      "normalized_value": 0,
+      "param_id": "14",
+      "raw_param_name": "Phase R",
+      "value": 0,
+      "value_text": "+"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "30~300",
+        "min": 30,
+        "max": 300,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "120 BPM",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "30 BPM"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "98 BPM"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "165 BPM"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "233 BPM"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "300 BPM"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "BPM",
+      "normalized_value": 0.333333343267441,
+      "param_id": "15",
+      "raw_param_name": "BPM",
+      "value": 0.333333343267441,
+      "value_text": "120 BPM"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "enum: Left / Right",
+        "unit": "enum",
+        "scale": "enum",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.88
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "Left",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "Left"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "Left"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "Right"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "Right"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "Right"
+          }
+        ],
+        "discrete_labels": [
+          {
+            "index": 0,
+            "value": 0,
+            "label": "Left"
+          },
+          {
+            "index": 1,
+            "value": 1,
+            "label": "Right"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples",
+          "discrete_labels"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Ping Pong Start Direction",
+      "normalized_value": 0,
+      "param_id": "16",
+      "raw_param_name": "Ping Pong Start Direction",
+      "value": 0,
+      "value_text": "Left"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "1~3500 ms",
+        "unit": "ms",
+        "min": 1,
+        "max": 3500,
+        "scale": "log",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.9
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "375 ms",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "1 ms"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "251 ms"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "501 ms"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1540 ms"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "3500 ms"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Delay Sec R",
+      "normalized_value": 0.374000012874603,
+      "param_id": "17",
+      "raw_param_name": "Delay Sec R",
+      "value": 0.374000012874603,
+      "value_text": "375 ms"
+    },
+    {
+      "display_domain_candidate": {
+        "text": "1~2",
+        "min": 1,
+        "max": 2,
+        "scale": "linear",
+        "status": "inferred",
+        "source": "display_probe_inferred",
+        "confidence": 0.76
+      },
+      "display_probe": {
+        "mode": "read_only_value_to_string",
+        "current_text": "1/8D",
+        "samples": [
+          {
+            "normalized_value": 0,
+            "value": 0,
+            "text": "1/64T"
+          },
+          {
+            "normalized_value": 0.25,
+            "value": 0.25,
+            "text": "1/32D"
+          },
+          {
+            "normalized_value": 0.5,
+            "value": 0.5,
+            "text": "1/8"
+          },
+          {
+            "normalized_value": 0.75,
+            "value": 0.75,
+            "text": "1/4D"
+          },
+          {
+            "normalized_value": 1,
+            "value": 1,
+            "text": "2B"
+          }
+        ],
+        "capabilities": [
+          "current_value_text",
+          "value_to_string_samples"
+        ],
+        "issues": [
+          "empty_label"
+        ]
+      },
+      "name": "Delay BPM R",
+      "normalized_value": 0.578947365283966,
+      "param_id": "18",
+      "raw_param_name": "Delay BPM R",
+      "value": 0.578947365283966,
+      "value_text": "1/8D"
+    }
+  ],
+  "plugin_id": "1064",
+  "plugin_item_id": "1064",
+  "quick_control_count": 8,
+  "quick_controls": [
+    {
+      "label": "Dry Level",
+      "param_id": "dry level",
+      "widget": "slider"
+    },
+    {
+      "label": "Output",
+      "param_id": "6",
+      "widget": "slider"
+    },
+    {
+      "label": "Bypass",
+      "param_id": "10000001",
+      "widget": "toggle"
+    },
+    {
+      "label": "Rate",
+      "param_id": "9",
+      "widget": "slider"
+    },
+    {
+      "label": "Depth",
+      "param_id": "10",
+      "widget": "slider"
+    },
+    {
+      "label": "Wet Level",
+      "param_id": "wet level",
+      "widget": "slider"
+    },
+    {
+      "label": "Feedback",
+      "param_id": "2",
+      "widget": "slider"
+    },
+    {
+      "label": "Mix",
+      "param_id": "5",
+      "widget": "slider"
+    }
+  ],
+  "recommended_group_count": 4,
+  "recommended_groups": [
+    {
+      "name": "Mix",
+      "parameter_count": 4,
+      "sample_ids": [
+        "dry level",
+        "wet level",
+        "5",
+        "6"
+      ]
+    },
+    {
+      "name": "Modulation",
+      "parameter_count": 3,
+      "sample_ids": [
+        "2",
+        "9",
+        "10"
+      ]
+    },
+    {
+      "name": "Utility",
+      "parameter_count": 1,
+      "sample_ids": [
+        "10000001"
+      ]
+    },
+    {
+      "name": "Other",
+      "parameter_count": 14,
+      "sample_ids": [
+        "0",
+        "1",
+        "3",
+        "4",
+        "7",
+        "8",
+        "11",
+        "12"
+      ]
+    }
+  ],
+  "status": "ok",
+  "supports_param_grabber": true,
+  "track_id": "1058",
+  "vsp": {
+    "command_ack": {
+      "ack": {
+        "message": "Legacy command completed",
+        "stage": "completed"
+      },
+      "command": "plugin.parameters.get",
+      "legacy_command": "get_plugin_parameters",
+      "resync_hint": false,
+      "revision": 0,
+      "source": "vsp.command.response",
+      "stage": "completed",
+      "transaction_id": "tx_1794147406853389600_288"
+    },
+    "transport": "vsp",
+    "version": "1.0"
+  }
+}
