@@ -49,6 +49,13 @@ Pro-Q 3 不在 registry/无法装载→取证上交（换 EQ 插件须用户裁�
   - **修复#3（已提交分支候用）**：runner 5 处读面改 wait_agent_parameters 轮询（布位门同款，消除 open 后异步竞态）+编排 3 个 python 调用点 EAP=Continue 守卫（traceback 入 Tee 日志不再杀批）；selftest 25/25+PARSE_OK；
   - **栈协议（终章批）**：占用 4dce706f（净空 00:29:24+≤60s 复核 00:30:00+psutil env 亲证两键=1）→run4/run5→owner 亲拆 **TEARDOWN_ALL_ZERO 00:41:33**→释放 2c7ef6db；三布位工程已清除（projects 域亲核）；
   - **第四批距离（候主管授权）**：唯一剩余=两 runner 侧竞态修复（已在分支）后的重跑——321 修复+装置六门+T7 话术/判据/预算全就绪；一次栈窗口即可完成 device→T7×3→对账表→用户 GUI 终审交付物。
+- 回执四（第四批=收官批，2026-11-09 00:51 收口，夜停线触发）：修复#4 已提交分支+释放登记 1d28710f；状态=**夜停（doing→blocked 第四停）——晨批一次栈窗口即收官**
+  - **run6 proq3_free_20261109_004437**：device 六门再全 TRUE（registry+布位 r1-r3+启动页+初始态等价+known-op+持久化[321 修复稳定复验]）→**T7 三轮全部 harness_invalid 同签名**：`open_project failed … Project file does not exist`；
+  - **真因（EAP 守卫让 traceback 首次完整落卷）**：PS5.1 无 BOM 读 UTF-8 ps1→CJK 字面量「实验·ProQ3 裸控」按 ANSI/GBK 误解码→round 路径乱码（装置腿不受影响=其路径由 python cases.py 构造）；**兼修正 run5 诊断**——r1 崩因同此（非「异步竞态」；run5 代理日志尾行实属装置门持久化段；修复#3 的 polling 无害但非对症、EAP 守卫立功）；
+  - **零 LLM 亲证**：telemetry 文件不存在（三轮均崩于首次 chat 前）——DeepSeek 零调用零计费，≈¥1 预算四批未动；
+  - **修复#4（分支候用）**：ps1 存 UTF-8 BOM+round 改 --projects-dir（路径由 python 构造）+PS 侧 CJK 卫生检查移交 python 布位门；selftest 25/25+PARSE_OK；
+  - **栈协议（第四批）**：占用 fbc7d32a（净空 00:44:01+≤60s 复核 00:44:33+psutil env 门 PASS）→run6→owner 亲拆 **TEARDOWN_ALL_ZERO 00:50:10**→释放 1d28710f；三布位已清除；
+  - **晨批（候授权）**：修复#4 后一次栈窗口：device→T7×3→对账表→用户 GUI 终审交付物（三工程保留+三轮自报告全文）——全部前提已活栈验证（321 修复×2 批亲证+六门×2 批全绿+T7 话术冻结）。
 - 验收：（主管回填+用户 GUI 终审）
 
 ### 续批授权（主管，2026-11-08 深夜）
