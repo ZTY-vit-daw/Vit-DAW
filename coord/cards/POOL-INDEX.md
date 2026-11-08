@@ -42,6 +42,8 @@
 | 310 | PLUGIN-CONTROL-EVAL-APURE-1 | done 终验 pass 收口（**A-pure 3/6 vs A 5/6 vs P 5/6：写入类=typed 承重，裸面 T1/T3/T4 全败/T2 裸写唯一过/读观察等价**；B 段 go 候手测后；开放录音棚=适配层须 typed 等价面） |
 | 311 | M2-HANDTEST-PREP-1 | done 终验 pass 合入（exit 0 手测放行：工程布位亲证+VIT_EDU_LEVELS_DIR/YuE2 前置入清单 §〇；282 离线兑现；GUI 最后一米=用户本体） |
 | 312 | PLUGIN-CONTROL-EVAL-S1B-1 | done 终验 pass 合入（B 零检索执行——主动性>可见性） |
+| 317 | PLUGIN-CONTROL-EVAL-BR1-1 | done 终验 pass 合入（态三：提示在场仍零发起；**深夜修订：9/9 失败轮=守卫阻断非编码错误**，[结论档](../rulings/2026-11-08-plugin-control-eval-line-conclusion.md) ⓪ 节） |
+| 318 | PLUGIN-CONTROL-EVAL-BAREFREE-1 | doing（**用户裁定开跑**：守卫许可缝+真裸写能力测量+guard_blocked_write 分类） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | todo 在派（L1-a 目录三级解析——零栈先行，真栈腿候队列）
 | 315 | LEGAME-AUTOINTRO-1 | todo 在派（L1-b 自动开场+恢复播报——依赖 314，同 owner 顺序）
