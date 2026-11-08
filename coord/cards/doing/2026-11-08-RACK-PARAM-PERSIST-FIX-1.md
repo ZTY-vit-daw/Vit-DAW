@@ -24,4 +24,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-08 深夜（承 320 回执二取证窗口） / origin/main=c15d3723d29af3964b79dcc87dc2dcf0a2998efb（fetch 亲证，=发卡要求基线≥c15d3723）/ owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 321 rack-param-persist fix，派发已确认）/ 分支=port/rack-param-persist-fix-1 / worktree=D:/Vit_DAW_wt_321persist / 领取提交=coord/321-claim→main。领取基线：fresh worktree 自 origin/main c15d3723，`git status --short`=0 行、`git diff --stat`=空（全净）；tracktion_engine 子模块按 main 指针 b4397498 初始化（本卡零 engine 改动）。在飞卡域核对：doing 八卡——282（catalog/policy/capability_pack agent Go 域）、273（harness agent Go 域）、271（chat agent Go 域）、309（tracktion_engine ExternalPlugin+VitApp 渲染服务面——同 C++ 但与保存/写入 flush 面无文件重叠）、316 LEGAME-DIR（chat 域）、LEGAME-AUTOINTRO（chat/scripts 域）、LEGAME-FRESH（scripts 域）、S1B（工件/编排域）——与本卡（VitApp/Source/Service/PluginRackControlService.cpp+VitHeadlessService.cpp±VitApp 测试）均不相交；320 已 blocked（工件域只读复用）。真栈腿排队：登记前重读 coord/resources/PC-RUNTIME-STACK.md 顶部（任务书示当前空闲，仍按协议净空亲核）。
+- 回执：（执行侧回填）
+- 验收：（主管回填）
