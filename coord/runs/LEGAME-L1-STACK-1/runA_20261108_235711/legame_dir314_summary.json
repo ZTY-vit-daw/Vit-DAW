@@ -1,0 +1,16 @@
+{
+  "card": "LEGAME-L1-STACK-1",
+  "mode": "dir314",
+  "stamp": "20261108_235717",
+  "project_path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runA_20261108_235711\\legame_fixture_copy.vit",
+  "phases": {
+    "activation": {
+      "activated": false,
+      "project_path": ""
+    }
+  },
+  "exit_code": 2,
+  "exit_class": "environment",
+  "fail_phase": "activation",
+  "fail_reason": "workspace never activated onto D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runA_20261108_235711\\legame_fixture_copy.vit within 30.0s (white-talk NOT sent; zero-LLM budget intact)"
+}

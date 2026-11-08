@@ -1,0 +1,11 @@
+{
+  "card": "LEGAME-L1-STACK-1",
+  "mode": "dir314",
+  "stamp": "20261108_235541",
+  "project_path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runA_20261108_235531\\legame_fixture_copy.vit",
+  "phases": {},
+  "exit_code": 2,
+  "exit_class": "environment",
+  "fail_phase": "stack",
+  "fail_reason": "stack/transport exception: kernel did not answer ping on tcp://127.0.0.1:5555: Resource temporarily unavailable"
+}

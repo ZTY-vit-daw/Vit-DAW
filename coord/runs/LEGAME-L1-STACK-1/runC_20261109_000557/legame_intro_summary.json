@@ -1,0 +1,38 @@
+{
+  "card": "LEGAME-L1-STACK-1",
+  "mode": "intro",
+  "stamp": "20261109_000603",
+  "project_path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runB_20261109_000508\\legame_fixture_copy.vit",
+  "phases": {
+    "project_entry": {
+      "path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runB_20261109_000508\\legame_fixture_copy.vit",
+      "uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778"
+    },
+    "activation": {
+      "activated": true,
+      "project_path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runB_20261109_000508\\legame_fixture_copy.vit"
+    },
+    "auto_intro": {
+      "conversation_id": "legame_intro_a_20261109_000603",
+      "stop_reason": "edu_jam_entered"
+    },
+    "binding_writeback": {
+      "opened_at": "2026-11-08T16:06:03Z",
+      "opened_conversation_id": "legame_intro_a_20261109_000603"
+    },
+    "recovery_broadcast": {
+      "conversation_id": "legame_intro_b_20261109_000603",
+      "reply_head": "接着上局：拍谱开局（1/7）——继续或问我都行。"
+    },
+    "target_untouched": {
+      "target": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit",
+      "sha256": "e0e9533824207bb15d949a53d2e99df9507c687e1746f029205e5492d02441e3"
+    },
+    "zero_llm": {
+      "conv_a_rows": null,
+      "conv_b_rows": null
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "pass"
+}

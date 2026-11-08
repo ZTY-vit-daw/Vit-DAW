@@ -1,0 +1,34 @@
+{
+  "tool": "legame_placement",
+  "command": "relay",
+  "stamp": "20261109_000541",
+  "relay": {
+    "project": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runB_20261109_000508\\legame_fixture_copy.vit",
+    "template": "D:\\Vit_DAW_wt_314l1\\coord\\fixtures\\legame\\手测·小星星乐局.vit",
+    "template_sha256": "e0e9533824207bb15d949a53d2e99df9507c687e1746f029205e5492d02441e3",
+    "placed_sha256": "e0e9533824207bb15d949a53d2e99df9507c687e1746f029205e5492d02441e3",
+    "removed": {
+      "agent_dir": true,
+      "history_dir": true,
+      "media_dir": false
+    },
+    "binding": {
+      "schema_version": "vit.legame_binding.v1",
+      "level_id": "first-run-twinkle",
+      "bound_at": "2026-11-09T00:05:14+08:00",
+      "bound_source": "placement_script",
+      "opened_at": null,
+      "opened_conversation_id": null
+    },
+    "agent_dir_entries": [
+      "legame_binding.json"
+    ],
+    "history_dir_absent": true,
+    "media_dir_absent": true,
+    "residue_clean": true,
+    "binding_fresh": true,
+    "verified": true
+  },
+  "exit_code": 0,
+  "exit_class": "pass"
+}
