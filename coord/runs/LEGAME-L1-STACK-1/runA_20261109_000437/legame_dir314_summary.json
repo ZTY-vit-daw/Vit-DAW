@@ -1,0 +1,23 @@
+{
+  "card": "LEGAME-L1-STACK-1",
+  "mode": "dir314",
+  "stamp": "20261109_000443",
+  "project_path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runA_20261109_000437\\legame_fixture_copy.vit",
+  "phases": {
+    "project_entry": {
+      "path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runA_20261109_000437\\legame_fixture_copy.vit",
+      "uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778"
+    },
+    "activation": {
+      "activated": true,
+      "project_path": "D:\\Vit_DAW_wt_314l1\\coord\\runs\\LEGAME-L1-STACK-1\\runA_20261109_000437\\legame_fixture_copy.vit"
+    },
+    "enter_attempts": 1,
+    "jam": {
+      "conversation_id": "legame_dir314_20261109_000443",
+      "llm_rows": null
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "pass"
+}
