@@ -21,4 +21,6 @@
 勘察发现 neutral 形态需动 schema_version 或破坏既有收据往返→取证上交转裁定（不硬改）。
 
 ## 领取/回执/验收
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-09 02:10 +0800 / origin/main=d0215c897e192b8e54d3fd488594387f56a7035c（fetch 亲证=发卡收口提交）/ owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 323 eq-receipt-vendor-expand，派发已确认）/ 协调分支=coord/323-claim（独立 worktree D:/Vit_DAW_wt_323coord，fresh 自 origin/main）/ 执行分支=port/eq-receipt-vendor-expand-1（独立 worktree D:/Vit_DAW_wt_323receipt，自领取后 origin/main 新建）/ 领取提交=本卡 todo→doing 推 main。doing 五卡（EDU-ASK-ANCHOR/ARRLOOP-AUTHBRIDGE/CLOSURE-ROUTE-ADAPT/WAVESHELL-OFFRENDER-FIX/S1B）文件域 grep 亲证零重叠；322 铁证账本亲读（FIX-PCA-AUTOSWEEP-1/20260924_005622/run_ledger.jsonl：Pro-Q 3 cert_done vendor_kind_missing×2 在卷）；Pro-Q 3 identifier（VST3-Pro-Q 3-a1aba170-ba5f7ab2）真实语义索引唯一匹配亲证（991 条中 1 条）。零栈卡不登记 PC-RUNTIME-STACK。
+- 回执：（执行侧回填）
+- 验收：（主管回填）
