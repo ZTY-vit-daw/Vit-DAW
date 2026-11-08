@@ -22,6 +22,17 @@
 
 启动页工程列表机制勘察发现无用户可达路径（需前端改动）→取证上交转裁定（手测降级为 smoke 工程路径直开）；旅程断言失败取证不重跑。
 
-## 领取/回执/验收
+## 领取
 
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 2026-11-08 晚窗 / origin/main `ad108490`（注：任务指令基线号 ad109490 为笔误一位，fetch 实际 HEAD=ad108490=310/栈登记同步笔，以实际为准）/ owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 311prep）/ 分支 `port/m2-handtest-prep-1` / worktree `D:/Vit_DAW_wt_311prep`
+- 领取基线：HEAD=`ad108490`；`git status --short` 空；`git diff --stat` 空（净树建枝）
+- 领取时状态：**310 A-pure 占栈中（19:11 登记）——本卡候栈**（轮询重读栈记录）；282 未合入 main 亲证（origin/main `agent/internal/tools/catalog.go` 无 transport_set_loop）——按主管预裁 282 轻腿改**离线证据**（282 分支单测复跑）+步骤清单标注「set_loop 体验随 282 合入后生效」
+- 在飞域核对：310（arm_apure_orchestrator.ps1+PLUGIN-CONTROL-EVAL-APURE-1 工件）/282（agent Go 域已实现候栈）/309（C++ 域）与本卡（scripts 冒测扩展+M2-HANDTEST-PREP-1 工件+transfer 步骤清单回填）不相交
+
+## 回执
+
+- （执行侧回填）
+
+## 验收
+
+- （主管回填）
