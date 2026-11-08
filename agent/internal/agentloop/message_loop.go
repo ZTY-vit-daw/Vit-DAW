@@ -4348,6 +4348,41 @@ func pluginControlEvalSeamBR1PromptOpen() bool {
 	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamBR1PromptEnv)) == "1"
 }
 
+// pluginControlEvalSeamBareWriteEnv is the PLUGIN-CONTROL-EVAL-BAREFREE-1
+// (card 318) test-only guard-permission seam: exactly "1" exempts plugin
+// parameter read/write tool calls (plugin.get_parameters /
+// plugin.set_parameter families) from the mix-observe-first write gate in
+// messageLoopToolGuardIssue, so a bare-surface arm can actually reach the
+// raw parameter path. The sibling seam in internal/chat exempts the same
+// writes from the typed generic-write guards. Unset keeps every gate
+// byte-for-byte; production startup paths never set it. Same pattern as
+// the seams above.
+const pluginControlEvalSeamBareWriteEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE"
+
+func pluginControlEvalSeamBareWriteOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamBareWriteEnv)) == "1"
+}
+
+// messageLoopIsPluginParameterReadWriteTool matches the plugin parameter
+// read/write tool names that the B-R1 payload dissection proved the
+// mix-observe-first gate blocks (T1: plugin.get_parameters blocked before
+// any write; T3/T4: plugin.set_parameter). Name variants mirror
+// messageLoopMixObserveFirstBlockedTool so the seam cannot drift from the
+// gate it exempts.
+func messageLoopIsPluginParameterReadWriteTool(call planner.ToolCall) bool {
+	name := strings.ToLower(strings.TrimSpace(normalizedActionName(call, executorpkg.Result{})))
+	if name == "" {
+		name = strings.ToLower(strings.TrimSpace(call.Tool))
+	}
+	switch name {
+	case "plugin.get_parameters", "plugin_get_parameters", "get_plugin_parameters", "get_plugin_param",
+		"plugin.set_parameter", "plugin_set_parameter", "set_plugin_param", "set_plugin_parameter":
+		return true
+	default:
+		return false
+	}
+}
+
 // messageLoopOrdinaryFamilySystemSkeleton 渲染普通族字节稳定骨架（固定
 // 规则帧+输出格式示例；不含逐轮 modeRules/目录/allowed——它们随每轮
 // state 重算，归动态区）。verified-entry 裁剪按 state 触发，但它是真实
@@ -5545,6 +5580,14 @@ func messageLoopToolGuardIssue(state *runState, call planner.ToolCall, hadMixObs
 		return ""
 	}
 	if !messageLoopMixObserveFirstBlockedTool(call) {
+		return ""
+	}
+	// PLUGIN-CONTROL-EVAL-BAREFREE-1 (card 318) guard-permission seam: with
+	// the seam open, plugin parameter read/write calls (the exact T1 gate
+	// victims) pass this gate so the barewrite arm measures real raw-write
+	// capability. Every other blocked tool (plugin loading, track volume/
+	// pan, daw.invoke, grabber tools) keeps the observe-first requirement.
+	if pluginControlEvalSeamBareWriteOpen() && messageLoopIsPluginParameterReadWriteTool(call) {
 		return ""
 	}
 	if messageLoopPrimitiveTrackVolumeCall(call) || messageLoopPrimitiveTrackPanCall(call) {
