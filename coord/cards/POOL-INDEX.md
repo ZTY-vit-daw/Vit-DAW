@@ -41,7 +41,7 @@
 | 308 | PLUGIN-CONTROL-EVAL-SEAM2-1 | done 已验收 pass 合入（S5 三出口裁族+S2b 渲染剥离+三态字节不变；control_shell=键名残留接受；310 解锁） |
 | 310 | PLUGIN-CONTROL-EVAL-APURE-1 | done 终验 pass 收口（**A-pure 3/6 vs A 5/6 vs P 5/6：写入类=typed 承重，裸面 T1/T3/T4 全败/T2 裸写唯一过/读观察等价**；B 段 go 候手测后；开放录音棚=适配层须 typed 等价面） |
 | 311 | M2-HANDTEST-PREP-1 | done 终验 pass 合入（exit 0 手测放行：工程布位亲证+VIT_EDU_LEVELS_DIR/YuE2 前置入清单 §〇；282 离线兑现；GUI 最后一米=用户本体） |
-| 312 | PLUGIN-CONTROL-EVAL-S1B-1 | doing（**用户裁定立即续跑 2026-11-08 晚**：裸面+检索 18 轮=「检索能否补知识缺口」；四方对照 B/A-pure/A/P；栈空闲即占） |
+| 312 | PLUGIN-CONTROL-EVAL-S1B-1 | done 终验 pass 合入（**B=A-pure 逐案同形 3/6+零检索执行**——首要缺口=主动性其次路由可见性；下棒=B-R1 显式薄提示，C 候 R1） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | todo 在派（L1-a 目录三级解析——零栈先行，真栈腿候队列）
 | 315 | LEGAME-AUTOINTRO-1 | todo 在派（L1-b 自动开场+恢复播报——依赖 314，同 owner 顺序）
