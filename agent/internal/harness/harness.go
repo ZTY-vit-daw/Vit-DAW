@@ -2587,12 +2587,49 @@ func normalizePluginPathForCompare(path string) string {
 	return strings.ReplaceAll(filepath.Clean(path), "\\", "/")
 }
 
+// pluginControlEvalSeamBareWriteEnv is the third-layer (harness) half of the
+// barewrite eval seam, cards 318 + PLUGIN-CONTROL-EVAL-BAREFREE-T1-1 (319).
+// The 318 barefree run proved the T1 rounds still hit THIS guard with both
+// earlier seam halves open: a natural acoustic-mix request plus a raw plugin
+// parameter write is rejected pre-journal with no observation-completion
+// pathway. With the env set exactly to "1" (TrimSpace tolerated, same
+// tolerance as the agentloop/chat halves and the 312/317 seams), this guard
+// lets those raw plugin parameter writes pass so the T1 barewrite capability
+// can be measured. Unset keeps every path byte-for-byte; production startup
+// paths never set it. Same key as internal/agentloop message_loop.go and
+// internal/chat goalrunner_chat.go.
+const pluginControlEvalSeamBareWriteEnv = "VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE"
+
+func pluginControlEvalSeamBareWriteOpen() bool {
+	return strings.TrimSpace(os.Getenv(pluginControlEvalSeamBareWriteEnv)) == "1"
+}
+
+// broadMixPluginParameterWriteCommand mirrors the plugin parameter write
+// entries of broadMixWriteCommand (and only those) so the seam cannot drift
+// from the gate it exempts: the 318 T1 dissection recorded the blocked writes
+// as the set_plugin_param family. Every other broad-mix write (plugin load,
+// volume, pan, sends, macros) stays behind the observe-first gate.
+func broadMixPluginParameterWriteCommand(spec tools.CommandSpec, cmd map[string]any) bool {
+	name := strings.ToLower(strings.TrimSpace(firstNonEmpty(spec.CommandName, tools.CommandName(cmd), fmt.Sprint(cmd["tool"]))))
+	switch name {
+	case "set_plugin_param", "plugin.set_parameter", "plugin_set_parameter":
+		return true
+	default:
+		return false
+	}
+}
+
 func broadMixObserveFirstWriteGuard(requestContext map[string]any, spec tools.CommandSpec, cmd map[string]any) error {
 	name := firstNonEmpty(spec.CommandName, tools.CommandName(cmd), fmt.Sprint(cmd["tool"]))
 	if toolpolicy.IsRetiredPluginControlTool(name) {
 		return fmt.Errorf("retired plugin mappings and control surfaces are unavailable; inspect live parameters or use a deterministic typed tool")
 	}
 	if !broadMixWriteCommand(spec, cmd) {
+		return nil
+	}
+	if pluginControlEvalSeamBareWriteOpen() && broadMixPluginParameterWriteCommand(spec, cmd) {
+		// card 319 third-layer seam: raw plugin parameter writes pass the
+		// observe-first gate only while the barewrite eval seam is open.
 		return nil
 	}
 	if qualifiedSemanticPluginSelectionLoad(requestContext, spec, cmd) {
