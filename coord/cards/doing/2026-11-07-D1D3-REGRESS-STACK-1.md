@@ -55,3 +55,4 @@
   ③ **D1 门 A 脚本位旁证认可**：274 目标键（loudness_peak_status=present+rankings）经 D2 carrier 真栈亲证，本轮认可；R3 若走 1-mutation 分支 settle 门自然执行，不强制；
   ④ **capability_blocked 取证卡不开**（两现条件未满足：run2 9 调用 0 error，transient 未复现；run1 归因记录维持）。
 - 卡回 doing 候 R3；R3 后无论三态何态收口整卡（D3 结果三态处置照卡面原文）。
+- 领取（R3 收尾腿）：2026-11-08 18:38 +0800 / origin/main=00722e1c（308 已合入，310 A-pure 解锁在派）/ owner=GLM 主会话 L2-worker 子代理（ZCode/PC，会话 296r3）/ **复用 R2 worktree** D:\Vit_DAW_wt_296r2 @ port/d1d3-regress-stack-r2（领取基线 HEAD=f281d887=run2 工件笔，已推 origin；status --short 净=零残留）+coord/296-claim-r3（worktree=D:\Vit_DAW_wt_296r2coord，自 origin/main 00722e1c 新建）/ 领取 diff vs origin/main=30 文件 +18444/-548（=272f27e9 断言块 119 行+run1 RUNBOOK+run2 工件全量，零领取前外来源 diff；274 f413fbca/292 5c8712a6/295 f6d1982e 三修祖先亲证在基线）/ R3 文件域=仅 scripts/run_free_state_d1_smoke.ps1 D2 断言块（裁定①分支感知修正）+coord/runs/D1D3-REGRESS-STACK-1/run3/ 工件+卡面；agent 源码零改动红线沿用；栈授权=裁定②（栈空闲窗口先行、310 就绪即让栈；单 run，同型确定性断点再败即止损禁第三轮）。
