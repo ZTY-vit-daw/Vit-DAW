@@ -1,0 +1,4 @@
+=== phase derive (run 20260924_005622) ===
+[derive] probe cycle B for 32 promoted subjects
+[derive] EQ whitelist: 0 new entries (5 excluded with reasons)
+[derive] whitelist counts: {'static_eq': 48, 'broadband_compression': 24, 'de_esser': 6, 'limiter': 9, 'gate_expander': 3, 'transient_shaper': 2, 'multiband': 8}

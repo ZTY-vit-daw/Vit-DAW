@@ -1,0 +1,3 @@
+=== phase derive (run 20260924_005622) ===
+[derive] EQ whitelist: +2 entries derived but NOT applied (rerun derive with --apply-live); preview D:\Vit_DAW_wt_322exec\coord\runs\FIX-PCA-AUTOSWEEP-1\20260924_005622\derive\live_with_eq.json
+[derive] whitelist counts: {'static_eq': 48, 'broadband_compression': 24, 'de_esser': 6, 'limiter': 9, 'gate_expander': 3, 'transient_shaper': 2, 'multiband': 8}

@@ -45344,9 +45344,116 @@
       "runner_family": "static_eq"
     },
     "Pro-Q_3|static_eq": {
-      "status": "vendor_kind_missing",
-      "error": "manufacturer 'FabFilter' has no v1 receipt kind (import gate accepts waves/plugin_alliance kinds only; kind extension is agent code, out of this sweep's file domain)",
-      "seconds": 0.0,
+      "status": "completed",
+      "receipt": "C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Pro-Q_3\\summary.json",
+      "import": {
+        "receipts": [
+          {
+            "path": "C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Pro-Q_3\\summary.json",
+            "schema": "fabfilter.static_eq.eq_channel_live_smoke.v1"
+          }
+        ],
+        "promoted": [
+          {
+            "schema_version": "processor_control_attestation.v1",
+            "attestation_id": "pca1_161318144dbeae6e340b6579",
+            "payload_digest": "sha256:161318144dbeae6e340b65795483346a35f347d457efe2fe30fb5dadca09d622",
+            "issuer": "vit_deterministic_local_v1",
+            "subject": {
+              "subject_key": "pcs1_d8a784720fa4b99ca92e87a0",
+              "name": "Pro-Q 3",
+              "manufacturer": "FabFilter",
+              "format": "VST3",
+              "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+              "installed_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3"
+            },
+            "binary_fingerprint": "sha256:7a7e2ca9a0680e141055922681316194e14c29720062336676a88e49df698e9c",
+            "processor_family": "static_eq",
+            "coverage": [
+              {
+                "action": "disable",
+                "shape": "bell"
+              },
+              {
+                "action": "modify",
+                "shape": "bell"
+              },
+              {
+                "action": "undo",
+                "shape": "bell"
+              },
+              {
+                "action": "upsert",
+                "shape": "bell"
+              }
+            ],
+            "evidence": [
+              {
+                "receipt_id": "pcr1_fa9e791aef16c0a7e71a6e83",
+                "kind": "fabfilter.static_eq.eq_channel_live_smoke.v1",
+                "sha256": "sha256:fa9e791aef16c0a7e71a6e832cb33f695c6b7475c50d274dbb0d935277e8c283",
+                "observed_at": "2026-11-08T18:28:41Z",
+                "corpus_record": "C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Pro-Q_3\\summary.json"
+              }
+            ],
+            "status": "promoted",
+            "status_reason": "deterministic_strong_receipt_passed",
+            "issued_at": "2026-11-08T18:28:42.7197026Z",
+            "promoted_at": "2026-11-08T18:28:42.7197026Z"
+          }
+        ]
+      },
+      "promoted": [
+        {
+          "schema_version": "processor_control_attestation.v1",
+          "attestation_id": "pca1_161318144dbeae6e340b6579",
+          "payload_digest": "sha256:161318144dbeae6e340b65795483346a35f347d457efe2fe30fb5dadca09d622",
+          "issuer": "vit_deterministic_local_v1",
+          "subject": {
+            "subject_key": "pcs1_d8a784720fa4b99ca92e87a0",
+            "name": "Pro-Q 3",
+            "manufacturer": "FabFilter",
+            "format": "VST3",
+            "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+            "installed_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3"
+          },
+          "binary_fingerprint": "sha256:7a7e2ca9a0680e141055922681316194e14c29720062336676a88e49df698e9c",
+          "processor_family": "static_eq",
+          "coverage": [
+            {
+              "action": "disable",
+              "shape": "bell"
+            },
+            {
+              "action": "modify",
+              "shape": "bell"
+            },
+            {
+              "action": "undo",
+              "shape": "bell"
+            },
+            {
+              "action": "upsert",
+              "shape": "bell"
+            }
+          ],
+          "evidence": [
+            {
+              "receipt_id": "pcr1_fa9e791aef16c0a7e71a6e83",
+              "kind": "fabfilter.static_eq.eq_channel_live_smoke.v1",
+              "sha256": "sha256:fa9e791aef16c0a7e71a6e832cb33f695c6b7475c50d274dbb0d935277e8c283",
+              "observed_at": "2026-11-08T18:28:41Z",
+              "corpus_record": "C:\\Users\\timoz\\.vit\\pca_certifications\\eq_channel_20260924_005622\\Pro-Q_3\\summary.json"
+            }
+          ],
+          "status": "promoted",
+          "status_reason": "deterministic_strong_receipt_passed",
+          "issued_at": "2026-11-08T18:28:42.7197026Z",
+          "promoted_at": "2026-11-08T18:28:42.7197026Z"
+        }
+      ],
+      "zero_llm": true,
+      "seconds": 8.6,
       "runner_family": "static_eq"
     },
     "Pro-R|static_eq": {
@@ -48124,8 +48231,8 @@
   },
   "derived": true,
   "verified": true,
-  "updated_at": "2026-09-24T15:08:55+00:00",
-  "derived_whitelist": "D:\\Vit_DAW\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\derive\\whitelist_v6_full.json",
+  "updated_at": "2026-11-08T18:40:59+00:00",
+  "derived_whitelist": "D:\\Vit_DAW_wt_322exec\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\derive\\whitelist_v6_full.json",
   "derived_counts": {
     "static_eq": 48,
     "broadband_compression": 24,

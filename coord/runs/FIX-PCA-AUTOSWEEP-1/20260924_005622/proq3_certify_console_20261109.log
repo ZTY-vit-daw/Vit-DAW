@@ -1,0 +1,6 @@
+=== phase certify (run 20260924_005622) ===
+[certify] targets=1
+[certify] authority mode = full_project_access (EQ channel load gate path)
+[certify] 1/1 Pro-Q 3 [static_eq] -> completed (8.6s)
+[certify] ledger: {'already_promoted': 45, 'completed': 111, 'failed': 127, 'vendor_kind_missing': 2, 'load_gate_blocked': 1}
+CERTIFY_EXIT=0
