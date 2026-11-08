@@ -19,4 +19,6 @@
 裁剪面与在案工具治理裁定冲突→取证上交。
 
 ## 领取/回执/验收
-- （执行侧回填）/（执行侧回填）/（主管回填）
+- 领取：2026-11-08 +0800 / origin/main=8c68c186f86f32c9e97c0af135a19c1bc31393 / owner=ZCode GLM-5.3 L2-worker PC 执行子代理（会话 308 seam2 runner）/ 分支=port/plugin-control-eval-seam2-1 / worktree=D:/Vit_DAW_wt_308seam / 领取基线：HEAD=8c68c186（fresh worktree 自 origin/main），git status --short=空、git diff --stat=空（全净）。在飞卡域核对：296-R2=scripts 冒测断言+真栈、309=C++ 引擎域只读取证、273/271 分支未合入不进本树——与本卡（agent Go tools/contextruntime±测试）不相交。
+- 回执：（执行侧回填）
+- 验收：（主管回填）
