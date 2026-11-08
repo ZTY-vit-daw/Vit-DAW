@@ -25,7 +25,22 @@ card's evidence domain); this tool follows the same script family pattern
      bound_source tag) does. Refuses to reset a binding whose opened_at is
      already set unless --force (project-level intro marker discipline).
 
-  relay / place-copy (LEGAME-FRESH-1, card 316 - added by that card)
+  relay / place-copy (LEGAME-FRESH-1, card 316)
+     relay: fresh-project guarantee for the handtest target - delete the
+     target .vit plus its agent workspace siblings (.vit_agent/,
+     .vit_history/, <name>_Media), re-place the pristine fixture from the
+     repo template (coord/fixtures/legame/, provenance+sha256 in
+     FIXTURE.md), re-declare the binding (prior bound_at/bound_source
+     preserved so consecutive relays converge byte-identical; opened
+     markers reset to null = "new project" semantics), then read back:
+     project sha256 == template sha256, binding fresh in place, workspace
+     residue zero (.vit_agent holds ONLY the binding, .vit_history absent).
+     Idempotent: consecutive runs converge to the identical end state.
+     place-copy: rehearsal-copy rule (design 2.3-2) - place the SAME
+     fixture to an ISOLATED destination path (run artifacts dir / %TEMP%)
+     with its own binding; never touches the user target project. All
+     rehearsal/smoke jam faces run on copies; the target project is a
+     read-only reference until relay time.
 
 Exit codes (fixed before any run; single run, no rerun unless declared):
   0 pass            install verified (every file hash matches source)
@@ -196,6 +211,176 @@ def cmd_install_levels(args: argparse.Namespace, summary: Dict[str, Any]) -> int
     return EXIT_PASS
 
 
+DEFAULT_FIXTURE = "coord/fixtures/legame/手测·小星星乐局.vit"
+
+
+def resolve_fixture_template(template_arg: str) -> Path:
+    if template_arg:
+        return Path(template_arg).resolve()
+    return Path(__file__).resolve().parent.parent / DEFAULT_FIXTURE
+
+
+def workspace_siblings(project: Path) -> Dict[str, Path]:
+    """Agent-workspace sibling paths of a .vit project file (projectstore
+    AgentDirName/HistoryDirName domains + the kernel media folder)."""
+    base = project.stem + "_Media"
+    return {
+        "agent_dir": project.parent / LEGAME_AGENT_DIRNAME,
+        "history_dir": project.parent / ".vit_history",
+        "media_dir": project.parent / base,
+    }
+
+
+def delete_workspace_residue(siblings: Dict[str, Path]) -> Dict[str, bool]:
+    removed: Dict[str, bool] = {}
+    for name, path in siblings.items():
+        if path.is_dir():
+            shutil.rmtree(path)
+            removed[name] = True
+        else:
+            removed[name] = False
+    return removed
+
+
+def write_fresh_binding(project: Path, level_id: str, bound_source: str,
+                        prior: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Fresh binding next to the project. Prior bound_at/bound_source are
+    preserved when a binding existed before the relay (provenance survives
+    state resets; consecutive relays converge byte-identical)."""
+    binding: Dict[str, Any] = {
+        "schema_version": LEGAME_BINDING_SCHEMA,
+        "level_id": level_id,
+        "bound_at": (prior or {}).get("bound_at") or datetime.now(timezone.utc).astimezone().isoformat(timespec="seconds"),
+        "bound_source": (prior or {}).get("bound_source") or bound_source,
+        "opened_at": None,
+        "opened_conversation_id": None,
+    }
+    path = binding_path_for(str(project))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(binding, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    return binding
+
+
+def cmd_relay(args: argparse.Namespace, summary: Dict[str, Any]) -> int:
+    """LEGAME-FRESH-1 relay: reset the handtest target to the pristine
+    fixture state (project file + binding fresh + zero workspace residue)."""
+    project = Path(args.project).resolve()
+    template = resolve_fixture_template(args.template)
+    if not template.is_file():
+        print(f"[legame] FAIL environment: relay template missing: {template}", flush=True)
+        summary["relay"] = {"error": f"template missing: {template}"}
+        return EXIT_ENV
+    if normpath_equal(str(project), str(template)):
+        print("[legame] FAIL environment: relay target must not be the fixture template itself", flush=True)
+        summary["relay"] = {"error": "target == template"}
+        return EXIT_ENV
+
+    siblings = workspace_siblings(project)
+    prior_binding: Optional[Dict[str, Any]] = None
+    prior_path = binding_path_for(str(project))
+    if prior_path.is_file():
+        try:
+            prior_binding = json.loads(prior_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            prior_binding = None
+
+    # 1. delete target project + workspace siblings (state reset).
+    if project.exists():
+        project.unlink()
+    removed = delete_workspace_residue(siblings)
+
+    # 2. re-place pristine fixture (byte copy + hash verify).
+    project.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(template, project)
+    placed_sha = sha256_file(project)
+    template_sha = sha256_file(template)
+    if placed_sha != template_sha:
+        print(f"[legame] FAIL environment: relay copy hash mismatch {placed_sha} != {template_sha}", flush=True)
+        summary["relay"] = {"error": "copy hash mismatch"}
+        return EXIT_ENV
+
+    # 3. fresh binding (prior provenance preserved, opened markers null).
+    binding = write_fresh_binding(project, args.level_id, args.bound_source, prior_binding)
+
+    # 4. readback: residue zero + binding fresh.
+    agent_entries = sorted(p.name for p in siblings["agent_dir"].iterdir()) if siblings["agent_dir"].is_dir() else []
+    residue_clean = (
+        agent_entries == [LEGAME_BINDING_FILENAME]
+        and not siblings["history_dir"].exists()
+        and not siblings["media_dir"].exists()
+    )
+    back = json.loads(binding_path_for(str(project)).read_text(encoding="utf-8"))
+    binding_fresh = (
+        back.get("schema_version") == LEGAME_BINDING_SCHEMA
+        and back.get("level_id") == args.level_id
+        and back.get("opened_at") is None
+        and back.get("opened_conversation_id") is None
+    )
+    summary["relay"] = {
+        "project": str(project),
+        "template": str(template),
+        "template_sha256": template_sha,
+        "placed_sha256": placed_sha,
+        "removed": removed,
+        "binding": binding,
+        "agent_dir_entries": agent_entries,
+        "history_dir_absent": not siblings["history_dir"].exists(),
+        "media_dir_absent": not siblings["media_dir"].exists(),
+        "residue_clean": residue_clean,
+        "binding_fresh": binding_fresh,
+        "verified": placed_sha == template_sha and residue_clean and binding_fresh,
+    }
+    if not summary["relay"]["verified"]:
+        print(f"[legame] FAIL environment: relay verification failed: {json.dumps(summary['relay'], ensure_ascii=False)[:400]}", flush=True)
+        return EXIT_ENV
+    print(f"[legame] relay verified: {project} (sha256={placed_sha[:12]}..., binding fresh, residue zero)", flush=True)
+    return EXIT_PASS
+
+
+def cmd_place_copy(args: argparse.Namespace, summary: Dict[str, Any]) -> int:
+    """LEGAME-FRESH-1 rehearsal-copy rule: place the fixture to an ISOLATED
+    destination with its own binding. The user target project is never
+    referenced by this command (read-only reference until relay time)."""
+    dest = Path(args.dest).resolve()
+    template = resolve_fixture_template(args.template)
+    if not template.is_file():
+        print(f"[legame] FAIL environment: place-copy template missing: {template}", flush=True)
+        summary["place_copy"] = {"error": f"template missing: {template}"}
+        return EXIT_ENV
+    if normpath_equal(str(dest), str(template)):
+        print("[legame] FAIL environment: place-copy destination must not be the fixture template itself", flush=True)
+        summary["place_copy"] = {"error": "dest == template"}
+        return EXIT_ENV
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(template, dest)
+    placed_sha = sha256_file(dest)
+    template_sha = sha256_file(template)
+    if placed_sha != template_sha:
+        print(f"[legame] FAIL environment: place-copy hash mismatch {placed_sha} != {template_sha}", flush=True)
+        summary["place_copy"] = {"error": "copy hash mismatch"}
+        return EXIT_ENV
+    binding = write_fresh_binding(dest, args.level_id, args.bound_source, None)
+    back = json.loads(binding_path_for(str(dest)).read_text(encoding="utf-8"))
+    ok = back.get("opened_at") is None and back.get("level_id") == args.level_id
+    summary["place_copy"] = {
+        "dest": str(dest),
+        "template": str(template),
+        "template_sha256": template_sha,
+        "placed_sha256": placed_sha,
+        "binding": binding,
+        "verified": ok,
+    }
+    if not ok:
+        print("[legame] FAIL environment: place-copy binding verification failed", flush=True)
+        return EXIT_ENV
+    print(f"[legame] place-copy verified: {dest} (isolated rehearsal copy, target project untouched)", flush=True)
+    return EXIT_PASS
+
+
+def normpath_equal(a: str, b: str) -> bool:
+    return os.path.normcase(os.path.normpath(a)) == os.path.normcase(os.path.normpath(b))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Legame L1 placement tooling (install-levels / write-binding / relay)")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -212,6 +397,20 @@ def build_parser() -> argparse.ArgumentParser:
     p_binding.add_argument("--bound-source", default="placement_script", help="binding author tag (placement_script | project_wizard)")
     p_binding.add_argument("--force", action="store_true", help="allow overwriting a binding whose opened_at is already set")
     p_binding.add_argument("--output", default="", help="summary json path (stdout summary when empty)")
+
+    p_relay = sub.add_parser("relay", help="LEGAME-FRESH-1: reset the handtest target to the pristine fixture (project+binding fresh, residue zero)")
+    p_relay.add_argument("--project", required=True, help="handtest target .vit path (its workspace siblings get reset)")
+    p_relay.add_argument("--template", default="", help="pristine fixture .vit (default: repo coord/fixtures/legame/)")
+    p_relay.add_argument("--level-id", default="first-run-twinkle")
+    p_relay.add_argument("--bound-source", default="placement_script")
+    p_relay.add_argument("--output", default="", help="summary json path (stdout summary when empty)")
+
+    p_copy = sub.add_parser("place-copy", help="LEGAME-FRESH-1: rehearsal copy to an ISOLATED path (target project untouched)")
+    p_copy.add_argument("--dest", required=True, help="isolated destination .vit path (run artifacts dir / %TEMP%)")
+    p_copy.add_argument("--template", default="", help="pristine fixture .vit (default: repo coord/fixtures/legame/)")
+    p_copy.add_argument("--level-id", default="first-run-twinkle")
+    p_copy.add_argument("--bound-source", default="placement_script")
+    p_copy.add_argument("--output", default="", help="summary json path (stdout summary when empty)")
 
     return parser
 
@@ -233,6 +432,10 @@ def main() -> int:
         code = cmd_install_levels(args, summary)
     elif args.command == "write-binding":
         code = cmd_write_binding(args, summary)
+    elif args.command == "relay":
+        code = cmd_relay(args, summary)
+    elif args.command == "place-copy":
+        code = cmd_place_copy(args, summary)
     else:
         print(f"[legame] FAIL environment: unknown command {args.command}", flush=True)
         return EXIT_ENV

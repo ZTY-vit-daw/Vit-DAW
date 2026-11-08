@@ -4,12 +4,21 @@
 - 前置状态：乐局线全贯通（276→279→281，first-run-twinkle 确定性烟测 exit 0）；生成线全通（278 chat 唱歌 exit 0）；人格=voice spec v1.1 预终审（注线未接，见「诚实边界」）
 - **手测前置腿（M2-PREP-1）完成前本清单不生效**——工程布位与旅程可达核验由该腿落位后在此处补记
 
-## 〇、前置腿完成补记（M2-HANDTEST-PREP-1 / 2026-11-08 19:47，本清单自本段起生效）
+## 〇、前置腿完成补记（M2-HANDTEST-PREP-1 / 2026-11-08 19:47，本清单自本段起生效；L1 件组修订 2026-11-08 深夜）
 
 - **生效声明**：前置腿真栈单 run `prep1_20261108_194514` PS1 exit 0（run 详情=coord/runs/M2-HANDTEST-PREP-1/prep1_20261108_194514/evidence.md）——布位✓+旅程可达✓（enter 一次过→n0 过→exit 终态）+生成路由✓（turn1 三证据齐：编排受理+gen.generate 工具痕迹+prompt 披露；治理确认门在位）。**手测放行。**
 - **工程名与入口确认**：工程 **「手测·小星星乐局」** 已布位在 `%APPDATA%\Vit-DAW\projects\手测·小星星乐局.vit`，启动页最近列表**第一位**可见（API 级亲证：内核 get_recent_projects 首项=该路径；Godot 启动页列表与该 API 同源）。内容=3 轨（theme 42 音轨 / corrupted 平行轨[beat 37 有一个错音，已预置静音防剧透] / 空白伴奏轨）。
 - **环境前置=零（LEGAME-DIR-1 后修订）**：~~拉起前手设 `$env:VIT_EDU_LEVELS_DIR`~~ 已删除——乐局目录三级解析（env 覆写 → `~/.vit/levels` 产品主落点 → repo 回退，313 设计稿 §2.1）落地后，布位腿用 `scripts/legame_placement.py install-levels` 把乐局卡装入 `~/.vit/levels/`，前端拉起的 agent 无任何 env 也能装载乐局卡；无需在 shell 里设任何变量。
-- **旅程 B 前置（生成一首）**：需要 ①YuE2 引擎先启动（`E:\AI\YuE2`，参照 scripts/run_yue_dialect_smoke.ps1 内嵌形态：yue-server.exe --model …\YuE2-3B-Q8_0.gguf --vae …\YuE2-Vae-F32.gguf --host 127.0.0.1 --port 8087）②providers 配置就位（`~/.vit/genapi_providers.json` 不存在时从 agent/internal/genapi/config.go ExampleConfig 复制 yue-local 条目，或同 shell 设 `$env:VIT_GENAPI_CONFIG` 指向既有配置文件）。前置腿只验到「路由进生成域+确认门」（needs_confirmation 形态），wav 全链未在本腿跑（278 exit 0 在案）。
+- **进入即自动开场（LEGAME-AUTOINTRO-1 后修订）**：工程已带乐局绑定（`.vit_agent/legame_binding.json`）；进入工程后聊天面板**发任意一句话**即自动开场（无需说「开始乐局」）；重进工程/换会话首句得「接着上局：…」恢复播报。「开始乐局」命令词保留（开发者/重开新局入口）。
+- **fresh 保证=重铺腿（LEGAME-FRESH-1）**：**每次手测交付前必须执行重铺**——
+  `python D:\Vit_DAW\scripts\legame_placement.py relay --project "$env:APPDATA\Vit-DAW\projects\手测·小星星乐局.vit"`
+  （纯净模板=仓内 `coord/fixtures/legame/手测·小星星乐局.vit`，SHA256 `e0e95338…2441e3`；重铺=删工程+工作区残留→重铺 fixture→binding 重置→回读核对，幂等可连跑）。
+- **手测交付检查单三问（交付时逐问留档）**：
+  1. 重铺是否执行？——重铺 summary `exit_code=0` 在卷（重铺记录位：`relay_stamp=＿＿＿ / exit=＿＿＿`）
+  2. 目标工程哈希与重铺终态一致？——`手测·小星星乐局.vit` SHA256 == `e0e95338…2441e3`（重铺后未被预演/烟测写动）
+  3. 会话残留为零？——`.vit_agent/` 仅 `legame_binding.json`（opened_at=null）、无 `.vit_history/`、无会话历史
+- **预演副本制（违例三制度性收口）**：一切预演/彩排/烟测**禁止在用户目标工程上实跑乐局面**——用 `legame_placement.py place-copy --dest <隔离目录>` 布位到 run 工件目录/%TEMP% 副本上跑；目标工程仅作只读参照，交验前重铺。
+- **旅程 B 前置（生成一首）**：需要 ①YuE2 引擎先启动（`E:\AI\YuE2`，参照 scripts/run_yue_dialect_smoke.ps1 内嵌形态：yue-server.exe --model …\YuE2-3B-Q8_0.gguf --vae …\YuE2-Vae-F32.gguf --host 127.0.0.1 --port 8087）②providers 配置就位（`~/.vit/genapi_providers.json` 不存在时从 agent/internal/genapi/config.go ExampleConfig 复制 yue-local 条目，或同 shell 设 `$env:VIT_GENAPI_CONFIG` 指向既有配置文件）。前置腿只验到「路由进生成域+确认门」（needs_confirmation 形态），wav 全链未在本腿跑（278 exit 0 在案）。**注：旅程 B 是否裁出手测 v2 归 L1-d 用户裁定（卡 4 GENSCOPE），裁出前本段保留。**
 - **282 标注**：transport.set_loop/clear_loop（A/B 听辨循环段）体验**随 282 合入 main 后生效**（282 已实现+离线证据四组全绿，未合入时 chat 侧 set_loop 不可驱动；前置腿按主管预裁以离线证据兑现）。
 
 ## 一、启动（唯一入口=Godot 前端）
@@ -24,7 +33,7 @@
 
 | 步 | 你说/做 | 预期 |
 |---|---|---|
-| A1 | 「开始乐局」 | 进入语：乐局标题+莫扎特 K.265 叙事+第 1 关目标；提示「写好了就说写好了」 |
+| A1 | 进入工程后在聊天面板**发任意一句话**（如「在吗」；自动开场，无需命令词。重进/换会话首句会得到「接着上局：…」恢复播报） | 进入语：乐局标题+莫扎特 K.265 叙事+第 1 关目标；提示「写好了就说写好了」 |
 | A2 | 「写好了」（谱已在工程里=拍谱开局过） | 第 n0 关通过 ✓，进入读谱纠错关 |
 | A3 | 跟随关卡推进（读谱→定速度→**找错音**：听 corrupted 轨对 theme 轨，指出/改回错音→「写好了」） | 每关通过 ✓/未过+原因；卡住可说「乐局状态」看进度 |
 | A4 | 选变奏方向→共同完成伴奏 | 模型协作填写；你随时可以否决方向 |
