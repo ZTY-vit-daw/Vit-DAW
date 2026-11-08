@@ -34,4 +34,16 @@
 - 在飞域核对：doing 五卡（EDU-ASK-ANCHOR/ARRLOOP-AUTHBRIDGE/CLOSURE-ROUTE-ADAPT/WAVESHELL-OFFRENDER-FIX/PLUGIN-CONTROL-EVAL-S1B）文件域均不在 coord/reports/ 与本卡面——不相交；312 占栈中，本卡零栈零冲突
 - 文件域：`coord/reports/2026-11-08-legame-ux-design-v1.md`（新建）+ 本卡面；零代码零栈
 
-- （回执执行侧回填）/（验收主管回填）
+### 回执（2026-11-08 深夜段执行完毕——设计稿交付，卡自验完成 mv done/ 待主管终验+用户裁定）
+
+- **设计稿**：`coord/reports/2026-11-08-legame-ux-design-v1.md`（随本回执同批 `port/legame-ux-design-1` 分支推送）；**零实现零栈兑现**（无任何 agent/前端源码改动；未触 312 在飞域）。
+- **覆盖自查（卡面目标 1-4 逐项）**：
+  - 目标 1（L1 即修件四项）→ 设计稿 §2：a 目录三级解析（env 保留覆写→`~/.vit/levels/` 产品主落点→repo 回退；对齐 config/genapi 用户目录先例；不进 config 键）；b 自动开场（binding sidecar `.vit_agent/legame_binding.json`+handleChat activation/restore 完成后检查点注入+「开场=工程级一次性，恢复=会话级播报」幂等语义+281-B2 竞态回归测试）；c 重铺腿+预演副本制+交付检查单三问；d 两案并列（案 A genapi 引擎托管 1.5-2 天 / **案 B 手测裁出生成旅程 0.2 天，设计建议 B**——依据 rulings §七-22 YuE2=局外成品）。每项含改动面文件域+零栈单测+真栈腿验收+估时。
+  - 目标 2（onboarding 最小形）→ §3 按 decisions §六定稿骨架细化：中介硬 3 题（必答仅双向称呼+底版选答「只是起点」）→交接软 3-4 题（全可跳过/气泡变味）→自述收尾（1 次 LLM+模板兜底）；气泡=agent 侧纯函数句集+前端纯展示（单一真相），样例句集每维度≥2 味对照表在案；profile schema 双档案（partner_profile.v1.json 字段表+缺省语义 / user_profile.v1.json 对接 CONTEXT_LAYERING §2.2 ProfileEntry，onboarding=首个确权源）；persona 注线优先级=显式选定>全局搭档>卡内 persona_slot；再调音双路径（settings 增量访谈+settle 复盘节拍回写）；轨道铁律 5 条不变式（含红测：伪造人格确认→节点不变）。
+  - 目标 3（对照表）→ §5 分档表（L1 三件+案 B=12 月必须；onboarding 3-3.5 天建议 12 月待裁定；HUD 1 天可选；人格包/成长树/独立壳/即兴局=产品线）+12 月量级汇总 5.2-5.7 天（不含 HUD）。
+  - 目标 4（产出+裁定请求）→ 设计稿 §5/§6；**裁定点三个交用户**：①L1-d 案别（建议 B）；②onboarding 进不进 12 月；③HUD 进不进（搭车件）。
+- **拆卡清单**：设计稿 §6 七卡（DIR/AUTOINTRO/FRESH/GENSCOPE/ONBOARD-BE/ONBOARD-FE/HUD），每卡目标/文件域/验收（零栈单测+真栈腿口径）/估时/依赖；含布位脚本同文件协调（卡 2→3）、settle 钩子触 281 已合入域预声明、Godot 面仓库外归属注明（PROTOCOL §0.1 PC 侧）。
+- **冲突面清单（§7，共 6 项，无一自作主张）**：①user_profile 读写器与 L1-4-IMPL-B 收编协调（CONTEXT_LAYERING 未实现，onboarding 自带最小读写器同 schema）；②persona 注线 v1 追加段→L1-4 Section 迁移路径声明；③ONBOARD-BE settle 钩子 281 域预声明；④persona_slot 语义收窄为底版缺省（优先级规则，非冲突）；⑤自动开场 vs 挂起语义一致性核验通过；⑥用户档案落点读法（`~/.vit` 用户级目录）备裁定。**实质冲突=0**。
+- **端测边界声明（AGENTS §5）**：本卡纯设计零实现，不适用烟测门槛；拆卡清单各真栈腿口径已写入卡面（含 §8 预算口径：onboarding 自述 1 调用≈¥0.05+失败分类+模板兜底）。
+
+（验收主管回填）
