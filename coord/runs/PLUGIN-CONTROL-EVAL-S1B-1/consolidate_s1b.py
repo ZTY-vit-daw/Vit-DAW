@@ -58,6 +58,17 @@ BARE_WRITE_RE = re.compile(r"^(plugin\.set_parameter|set_plugin_param)$")
 BARE_READ_RE = re.compile(r"^(plugin\.get_parameters|get_plugin_parameters)$")
 RETRIEVAL_TOOL_RE = re.compile(
     r"^(web\.search|web\.fetch|browser\.search|browser\.fetch)$")
+# per-conversation tool-catalog route face (amendment 2026-11-08): the
+# ordinary loop discloses the FULL catalog (web pair included; 310 form 209
+# lines) only on zero-capability-match turns; capability matches route to
+# filtered packs (42/51 lines, no web pair; 310: T1/T4/T5/T6 pack,
+# T2/T3 full). Recorded per round -- the retrieval treatment is delivered
+# exactly where the product routing delivers it.
+CATALOG_LINE_ANY_RE = re.compile(r"[A-Za-z_0-9]+ tool=[A-Za-z0-9_.\-]+ risk=\w+")
+CATALOG_WEB_PAIR_RE = re.compile(
+    r"web_search tool=web\.search risk=\w+[\s\S]{0,4000}?web_fetch tool=web\.fetch risk=\w+|"
+    r"web_fetch tool=web\.fetch risk=\w+[\s\S]{0,4000}?web_search tool=web\.search risk=\w+")
+FULL_CATALOG_MIN_LINES = 150
 # repo-contamination watch needles: retrieval that reaches THIS project's own
 # documentation would be the model googling the experiment (card constraint:
 # record the URL list and hand to the supervisor)
@@ -95,10 +106,19 @@ def retrieval_ledger_from_capture(capture_path: Path, conversation_id: str) -> d
     tool_calls entries for the retrieval tool family give the query / url
     arguments and the request timestamp; tool-role reply messages give the
     tool result content that entered the model context (hashed + length).
+    Also records the conversation's tool-catalog route face (full catalog
+    with web pair vs filtered pack) -- the product's bounded disclosure
+    decides whether the retrieval treatment is even visible in the round.
     """
     ledger: dict = {"conversation_id": conversation_id, "attempts": [],
                     "search_count": 0, "fetch_count": 0,
-                    "browser_search_count": 0, "browser_fetch_count": 0}
+                    "browser_search_count": 0, "browser_fetch_count": 0,
+                    "catalog_route_face": {"max_catalog_lines": 0,
+                                           "web_pair_present": False,
+                                           "form": "no_catalog_lines"}}
+    if not capture_path.exists() or not conversation_id:
+        ledger["error"] = "capture missing"
+        return ledger
     if not capture_path.exists() or not conversation_id:
         ledger["error"] = "capture missing"
         return ledger
@@ -115,6 +135,18 @@ def retrieval_ledger_from_capture(capture_path: Path, conversation_id: str) -> d
             continue
         req = row.get("request") or {}
         messages = req.get("messages") or []
+        try:
+            blob = json.dumps(req, ensure_ascii=False)
+        except Exception:
+            blob = str(req)
+        n_lines = len(CATALOG_LINE_ANY_RE.findall(blob))
+        face = ledger["catalog_route_face"]
+        face["max_catalog_lines"] = max(face["max_catalog_lines"], n_lines)
+        if CATALOG_WEB_PAIR_RE.search(blob):
+            face["web_pair_present"] = True
+        face["form"] = ("full" if face["max_catalog_lines"] >= FULL_CATALOG_MIN_LINES
+                        else ("pack" if face["max_catalog_lines"] > 0
+                              else "no_catalog_lines"))
         for msg in messages:
             if not isinstance(msg, dict):
                 continue
@@ -178,13 +210,17 @@ def retrieval_ledger_from_capture(capture_path: Path, conversation_id: str) -> d
 
 
 def retrieval_round_classification(faces: dict, ledger: dict, rec: dict) -> str:
-    """Plan section 5 retrieval failure split for one round."""
+    """Plan section 5 retrieval failure split for one round (route aware)."""
     executed = faces["retrieval_calls"]
     attempted = ledger["attempts"]
     results = ledger.get("results") or []
     tags = set(rec.get("verdict", {}).get("failure_tags") or [])
+    face = ledger.get("catalog_route_face") or {}
+    web_visible = bool(face.get("web_pair_present"))
     if not executed and not attempted:
-        return "no_query_initiated"
+        if not web_visible:
+            return "retrieval_not_disclosed_pack_routed"
+        return "no_query_initiated_despite_disclosure"
     if results and all(r.get("looks_failed") for r in results):
         return "tool_or_network_refused"
     if executed and not any(
@@ -328,6 +364,13 @@ def main() -> int:
             "bare_write_used_rounds": sum(1 for r in c_rows
                                           if r["tool_faces"]["bare_write_calls"]),
             "retrieval_rounds": sum(1 for r in c_rows if r["tool_faces"]["retrieval_calls"]),
+            "retrieval_visible_rounds": sum(
+                1 for r in c_rows
+                if (r["retrieval_ledger"].get("catalog_route_face") or {})
+                .get("web_pair_present")),
+            "catalog_route_forms": [
+                (r["retrieval_ledger"].get("catalog_route_face") or {}).get("form")
+                for r in c_rows],
             "retrieval_classifications": [r["retrieval_classification"] for r in c_rows],
             "retrieval_queries": sorted({
                 str(a.get("query")) for r in c_rows

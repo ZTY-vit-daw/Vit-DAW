@@ -52,6 +52,15 @@
 - 遥测/载荷捕获 per-run（env 重定向）；密钥不入工件（model env 记录键名掩码）。
 - 全部工件随 port/plugin-control-eval-s1b-1 分支入库，不合入 main（归主管）。
 
+## 修正节（2026-11-08 20:4x，付费任务轮启动前冻结——首跑取证后装置修正）
+
+- **首跑取证（arm_b_20261108_202627，保留不删）**：活体检索 probe PASS（web.search ok 3 结果 bing_html/web.fetch HTTP 200/零确认停车=312 缝在运行 agent 亲证生效）+s0/dryround PASS+probe T1_r0 付费 4 调用/59,535 in/2,259 out（记录不评分）+六面全 PASS+S5 裸读写对在场 2/2→**R1 FAIL（0 web 目录行）→exit 4 停段**，编排 finally 亲拆 TEARDOWN_ALL_ZERO。
+- **根因（装置脚本缺陷，非 agent 缝缺陷）**：R1 原前提「web 对恒在模型目录」为假——ordinary loop 目录披露是**路由的**（agentLoopToolContext）：能力零命中→全目录（310 形态 209 行含 web 对；310 语料 T2/T3 六会话）；能力命中→过滤包（42/51 行无 web 对；310 语料 T1/T4/T5/T6 十三会话含 probe）。310 语料逐会话核对在案（33 web 行 payload 全部 message_loop/T2/T3 会话）。首跑 probe 载体=T1（包路由）故 R1 必然失败——门正确拦住了错误前提。
+- **修正（仅装置脚本，agent 源码与二进制零改动——首跑 agent_sha256=1EBCF09F…与重跑同）**：①R1 轮感知化：probe 载体改 **T2 repeat 0**（全目录载体，R1 可验）；②语料门 R1c：每个 full 形会话必须带 web 对（缺失=装置从全目录剥离了检索面=失效）；包路由会话如实记录（产品有界披露，不判失效）；③selftest 增至 12 腿（full 缺 web→fail/full 带 web→pass 双向检出力）；④consolidate 检索账本加每轮 catalog_route_face（full/pack+web_pair_present），分类加 `retrieval_not_disclosed_pack_routed`（不可见）vs `no_query_initiated_despite_disclosure`（可见而不查）。
+- **修正后离线验证**：seam_verify_s1b 对 310 全语料（119 payload/19 会话）=PASS（6 full+13 pack 分类全对/full 缺 web=0）；selftest 12/12；consolidate 310 数据=12 包路由+6 可见未查（与 310 证据一致）。
+- **重跑授权**：装置脚本缺陷类=环境重建类，预冻结上限 1 次/批之内（新 run 目录不覆盖）；首跑付费 4 调用如实入账不评分。
+- **解读边界（预声明，B 答案的一部分）**：检索处置（treatment）只在全目录轮（T2/T3 型消息）对模型可见——产品有界披露真相，非装置偏差；四方对照中 B 的检索增量解读必须按「可见轮/不可见轮」分层（consolidate 已按轮记录）。
+
 ## 诚实边界（预声明）
 
 - 活体检索 probe/s0/dryround=确定性腿（零 LLM）：证明检索可用性/夹具/接口/缝开态管线，不产生模型能力结论。

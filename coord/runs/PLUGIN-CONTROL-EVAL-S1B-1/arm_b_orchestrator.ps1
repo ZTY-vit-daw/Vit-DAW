@@ -65,7 +65,7 @@ New-Item -ItemType Directory -Force -Path $RunRoot | Out-Null
 $LogsDir = Join-Path $RunRoot "logs"
 New-Item -ItemType Directory -Force -Path $LogsDir | Out-Null
 
-$sec8Decl = "B arm (A-pure seam set VIT_PLUGIN_CONTROL_EVAL_SEAM=1 = 305 S1-S4 + 308 S5 catalog trim + S2b render strip, PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1 = web.search/web.fetch direct execution): live retrieval probe (zero LLM) + s0 refreeze (0 LLM) + dryround (0 LLM) + 1 device-verification probe round (T1 repeat 0, paid, not scored) + 18 paid task rounds (T1..T6 x repeat 1..3, new conversation + fresh fixture each); per-round caps (12 calls / 40k in / 8k out per call / 30 tool calls / 6 retrieval searches / 10 retrieval fetches / 20 min) frozen; segment caps 216 calls / 8.64M in / 1.728M out checked between rounds (caps verbatim from plan B_star); live probe must prove the seam (no needs_confirmation) AND real network retrieval; probe gate must prove S2/S2b/S3/S4/S5/CS/R1 faces + zero executed typed calls before task rounds; failure taxonomy per plan + seam_leakage + retrieval_unavailable (live probe) + repo-contamination watchlist; full declaration in RUNBOOK.md (frozen pre-run)"
+$sec8Decl = "B arm (A-pure seam set VIT_PLUGIN_CONTROL_EVAL_SEAM=1 = 305 S1-S4 + 308 S5 catalog trim + S2b render strip, PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1 = web.search/web.fetch direct execution): live retrieval probe (zero LLM) + s0 refreeze (0 LLM) + dryround (0 LLM) + 1 device-verification probe round (T2 repeat 0, paid, not scored -- T2 routes to the FULL catalog so the R1 retrieval face is verifiable; amendment 2026-11-08, see RUNBOOK) + 18 paid task rounds (T1..T6 x repeat 1..3, new conversation + fresh fixture each); per-round caps (12 calls / 40k in / 8k out per call / 30 tool calls / 6 retrieval searches / 10 retrieval fetches / 20 min) frozen; segment caps 216 calls / 8.64M in / 1.728M out checked between rounds (caps verbatim from plan B_star); live probe must prove the seam (no needs_confirmation) AND real network retrieval; probe gate must prove S2/S2b/S3/S4/S5/CS/R1 faces + zero executed typed calls before task rounds; failure taxonomy per plan + seam_leakage + retrieval_unavailable (live probe) + repo-contamination watchlist; full declaration in RUNBOOK.md (frozen pre-run)"
 $report = [ordered]@{
     card            = "PLUGIN-CONTROL-EVAL-S1B-1"
     leg             = "arm_b"
@@ -294,11 +294,11 @@ try {
     }
     Write-Ok "dryround pass with seams open; zero-LLM telemetry proof holds"
 
-    # ---------------- phase 6: device-verification probe (paid, T1 repeat 0)
-    Write-Step "Phase 6: seam device-verification probe (T1 repeat 0, paid, not scored)"
+    # ---------------- phase 6: device-verification probe (paid, T2 repeat 0)
+    Write-Step "Phase 6: seam device-verification probe (T2 repeat 0, paid, not scored -- full-catalog carrier)"
     $ProbeDir = Join-Path $RunRoot "probe"
     $probeLog = Join-Path $RunRoot "driver_probe_console.log"
-    & python $Driver "round" "--case" "T1" "--repeat" "0" "--agent-http" $AgentHttp `
+    & python $Driver "round" "--case" "T2" "--repeat" "0" "--agent-http" $AgentHttp `
         "--rounds-dir" $ProbeDir "--telemetry-path" $TelemetryPath "--agent-log" $AgentLog `
         "--allowance" $Allowance 2>&1 | Tee-Object -FilePath $probeLog | Out-Null
     $probeExit = $LASTEXITCODE
@@ -307,7 +307,7 @@ try {
     Write-Step "Phase 6b: seam_verify_s1b gate (S2/S2b/S3/S4/S5/CS/S1 + R1 retrieval face)"
     $verifyLog = Join-Path $RunRoot "seam_verify_console.log"
     & python $Verify "--a-capture" (Join-Path $LogsDir "agent_llm_payload_capture.jsonl") `
-        "--probe-dir" (Join-Path $ProbeDir "T1_r0") `
+        "--probe-dir" (Join-Path $ProbeDir "T2_r0") `
         "--p-capture" (Join-Path $ArtifactRoot "p_baseline\agent_llm_payload_capture.jsonl") `
         "--t3r1-capture" (Join-Path $ArtifactRoot "a307_reference\t3_r1_contaminated_capture.jsonl") `
         "--out" (Join-Path $RunRoot "seam_verify_probe.json") 2>&1 | Tee-Object -FilePath $verifyLog | Out-Null
@@ -410,7 +410,7 @@ try {
     Write-Step "Phase 8b: post-run seam corpus check (device face, all rounds)"
     $verifyLog2 = Join-Path $RunRoot "seam_verify_corpus_console.log"
     & python $Verify "--a-capture" (Join-Path $LogsDir "agent_llm_payload_capture.jsonl") `
-        "--probe-dir" (Join-Path $ProbeDir "T1_r0") `
+        "--probe-dir" (Join-Path $ProbeDir "T2_r0") `
         "--p-capture" (Join-Path $ArtifactRoot "p_baseline\agent_llm_payload_capture.jsonl") `
         "--t3r1-capture" (Join-Path $ArtifactRoot "a307_reference\t3_r1_contaminated_capture.jsonl") `
         "--out" (Join-Path $RunRoot "seam_verify_corpus.json") 2>&1 | Tee-Object -FilePath $verifyLog2 | Out-Null

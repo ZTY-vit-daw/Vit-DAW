@@ -7,18 +7,25 @@ the full A-pure face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1 = 305 S1-S4 + 308 S5
 catalog trim + S2b render strip; all six 310 faces reused verbatim as faces
 1-6) PLUS the B-specific retrieval face:
 
-  R1 (7th face, gating) retrieval disclosure: the model tool catalog in the
-      B request payloads MUST carry the web.search / web.fetch catalog-line
-      forms (web_search tool=web.search risk=... / web_fetch tool=web.fetch
-      risk=...). The B arm is "A-pure + web.search/web.fetch enabled"
-      (plan.json B_star: same_as_A_star + retrieval); a missing retrieval
-      face means the B arm is not the B arm -> device invalid;
+  R1 (7th face, gating, ROUTE AWARE) retrieval disclosure: the ordinary
+      loop's tool disclosure is routed (agentLoopToolContext): zero
+      capability matches -> FULL catalog (310 form: 209 lines, web pair
+      included); capability matches -> filtered packs (42/51 lines, no web
+      pair; 310 corpus: T1/T4/T5/T6 pack-routed, T2/T3 full-routed). The
+      probe carrier must be a FULL-catalog conversation carrying the
+      web.search / web.fetch catalog-line forms (orchestrator probe =
+      T2 repeat 0); corpus gate: EVERY full-form conversation carries the
+      web pair (a full-form payload without it = device invalid);
+      pack-form conversations are recorded as the product's bounded
+      disclosure with no web expectation (amendment 2026-11-08 after the
+      first probe run arm_b_20261108_202627 caught the false premise with
+      all six A-pure faces PASS -- evidence in the run dir);
   R2 (7th face, informational + consistency) executed retrieval calls
       (harness.invoke tool=web.search / web.fetch / browser.search /
       browser.fetch in the probe/round log deltas) are counted and recorded;
       retrieval is model-initiated so ZERO executions is a legitimate
-      arm outcome (recorded, not a failure); an executed web.* call with a
-      zero R1 disclosure would be inconsistent (gating already covers it).
+      arm outcome (recorded, not a failure); pack-routed rounds cannot
+      see the web pair at all (product truth, per-conversation recorded).
 
 Faces 1-6 are the 310 seam_verify_apure faces unchanged (S2 five-field
 absence + P control, S2b 307 T3_r1 negative anchor, S3 bare description,
@@ -68,6 +75,13 @@ CONTROL_SHELL_CONTENT_RE = re.compile(r'"control_shell"\s*:\s*\{')
 # R1: B-arm retrieval catalog-line forms (ModelSummary disclosure shape)
 CATALOG_WEB_SEARCH_LINE_RE = re.compile(r"web_search tool=web\.search risk=\w+")
 CATALOG_WEB_FETCH_LINE_RE = re.compile(r"web_fetch tool=web\.fetch risk=\w+")
+# R1 carrier classification: the ordinary loop's tool disclosure is ROUTED
+# (agentLoopToolContext): zero capability matches -> FULL ModelCatalogSummary
+# (310 form: 209 catalog lines, web pair included); capability matches ->
+# filtered packs (310 forms: 42/51 lines, web pair absent). Threshold 150
+# separates the two forms robustly (310 corpus: 42/51/209 observed).
+CATALOG_LINE_ANY_RE = re.compile(r"[A-Za-z_0-9]+ tool=[A-Za-z0-9_.\-]+ risk=\w+")
+FULL_CATALOG_MIN_LINES = 150
 # R2: executed retrieval calls in agent-log deltas (both tool families are
 # network retrieval; browser.* is the RiskDirect sibling already disclosed
 # in the 310 A-pure corpus and never executed there)
@@ -301,7 +315,21 @@ def verify(a_capture: Path, probe_dir: Path, p_capture: Path,
         failures.append("S1 probe round_record.json missing")
     result["checks"]["S1_no_typed_takeover"] = s1
 
-    # ---- R1/R2: B-arm retrieval face (7th face)
+    # ---- R1/R2: B-arm retrieval face (7th face, round/route aware)
+    # Amendment 2026-11-08 (pre-task-rounds, evidence in arm_b_20261108_202627):
+    # the tool disclosure on the ordinary loop is ROUTED (agentLoopToolContext)
+    # -- zero capability matches -> FULL catalog (web pair included, 310 form
+    # 209 lines); capability matches -> filtered packs (42/51 lines, web pair
+    # absent; 310 corpus: T1/T4/T5/T6 pack, T2/T3 full). The original R1
+    # premise ("web pair always disclosed") was wrong; the first probe run
+    # (T1 carrier, pack-routed) failed R1 with all six A-pure faces PASS.
+    # Round-aware contract now: (a) the probe carrier MUST be a full-catalog
+    # conversation carrying the web pair (orchestrator uses T2 repeat 0);
+    # (b) corpus gate: EVERY full-form conversation carries the web pair
+    # (a full-form payload without it = the seam environment removed the
+    # retrieval face = device invalid); pack-form conversations are recorded
+    # as the product's bounded disclosure with no web expectation;
+    # (c) the capture as a whole carries the web pair at least once.
     r7: dict = {}
     ws_rows, ws_hits, ws_ctx = regex_rows(a_reqs, CATALOG_WEB_SEARCH_LINE_RE)
     wf_rows, wf_hits, wf_ctx = regex_rows(a_reqs, CATALOG_WEB_FETCH_LINE_RE)
@@ -311,10 +339,49 @@ def verify(a_capture: Path, probe_dir: Path, p_capture: Path,
     r7["catalog_web_fetch_line_rows"] = wf_rows
     r7["catalog_web_fetch_line_hits"] = wf_hits
     r7["catalog_web_fetch_line_contexts"] = wf_ctx[:5]
+    # per-conversation route classification
+    conv_face: dict = {}
+    for row in a_rows:
+        req = row.get("request")
+        if req is None:
+            continue
+        conv = str(row.get("conversation_id") or "")
+        try:
+            blob = json.dumps(req, ensure_ascii=False)
+        except Exception:
+            blob = str(req)
+        n_lines = len(CATALOG_LINE_ANY_RE.findall(blob))
+        has_web = bool(CATALOG_WEB_SEARCH_LINE_RE.search(blob) and
+                       CATALOG_WEB_FETCH_LINE_RE.search(blob))
+        entry = conv_face.setdefault(conv, {"max_catalog_lines": 0,
+                                            "web_pair_present": False})
+        entry["max_catalog_lines"] = max(entry["max_catalog_lines"], n_lines)
+        entry["web_pair_present"] = entry["web_pair_present"] or has_web
+    full_no_web = []
+    pack_convs = []
+    full_convs = []
+    for conv, entry in conv_face.items():
+        if entry["max_catalog_lines"] >= FULL_CATALOG_MIN_LINES:
+            full_convs.append(conv)
+            if not entry["web_pair_present"]:
+                full_no_web.append(conv)
+        elif entry["max_catalog_lines"] > 0:
+            pack_convs.append(conv)
+    r7["conversation_route_face"] = {
+        "full_catalog_conversations": sorted(full_convs),
+        "pack_catalog_conversations": sorted(pack_convs),
+        "full_without_web_pair": sorted(full_no_web),
+        "threshold": FULL_CATALOG_MIN_LINES,
+    }
     if ws_hits == 0 or wf_hits == 0:
         failures.append(f"R1 retrieval catalog lines missing from B payloads: "
                         f"web.search_rows={ws_rows} web.fetch_rows={wf_rows} "
-                        f"(B arm requires the retrieval face disclosed)")
+                        f"(probe carrier must be a full-catalog round; "
+                        f"orchestrator probe = T2 repeat 0)")
+    if full_no_web:
+        failures.append(f"R1c full-catalog conversation(s) WITHOUT the web "
+                        f"pair: {sorted(full_no_web)} (device removed the "
+                        f"retrieval face from the full disclosure)")
     if record_path.exists():
         delta = str((json.loads(record_path.read_text(encoding="utf-8"))
                      .get("agent_log_delta")) or "")
@@ -324,7 +391,9 @@ def verify(a_capture: Path, probe_dir: Path, p_capture: Path,
             counts[c] = counts.get(c, 0) + 1
         r7["probe_executed_retrieval_calls"] = counts
         r7["note"] = ("retrieval execution is model-initiated: zero calls is a "
-                      "legitimate recorded outcome, not a device failure")
+                      "legitimate recorded outcome, not a device failure; "
+                      "pack-routed rounds cannot see the web pair at all "
+                      "(product bounded disclosure, recorded per conversation)")
     result["checks"]["R_retrieval_face"] = r7
 
     # ---- model face (record only)
@@ -517,6 +586,38 @@ def selftest() -> int:
              [("ordinary_agent_semantic_entry", "conv_executed_retrieval_clean", healthy_messages()),
               ("message_loop", "conv_executed_retrieval_clean", healthy_messages())],
              retrieval_delta, anchor_syn, "pass")
+
+    # 11. B-specific amendment leg: a FULL-catalog conversation (>=150
+    #     catalog lines) WITHOUT the web pair must fail R1c (route-aware
+    #     device regression: the seam environment must never strip the
+    #     retrieval face from the full disclosure)
+    def full_catalog_messages(with_web: bool) -> dict:
+        lines = [f"tool_{i} tool=dummy.tool_{i} risk=direct" for i in range(160)]
+        lines.append("plugin_get_parameters tool=plugin.get_parameters risk=direct")
+        lines.append("plugin_set_parameter tool=plugin.set_parameter risk=undoable")
+        if with_web:
+            lines.append("web_search tool=web.search risk=confirm")
+            lines.append("web_fetch tool=web.fetch risk=confirm")
+        catalog = "\n".join(lines)
+        return {"messages": [{"role": "user", "content": "case task"},
+                             {"role": "system", "content": catalog}],
+                "prefer_json": True}
+    run_case("full_catalog_without_web_r1c",
+             [("ordinary_agent_semantic_entry", "conv_full_catalog_without_web_r1c",
+               full_catalog_messages(with_web=False)),
+              ("message_loop", "conv_full_catalog_without_web_r1c",
+               full_catalog_messages(with_web=False)),
+              # a second conversation carries the web pair so the R1 CARRIER
+              # check passes and the failure isolates to R1c (probe
+              # conversation is full-form without the web pair)
+              ("message_loop", "conv_other_carrier_r1c", healthy_messages())],
+             clean_delta, anchor_syn, "fail")
+    run_case("full_catalog_with_web_r1c",
+             [("ordinary_agent_semantic_entry", "conv_full_catalog_with_web_r1c",
+               full_catalog_messages(with_web=True)),
+              ("message_loop", "conv_full_catalog_with_web_r1c",
+               full_catalog_messages(with_web=True))],
+             clean_delta, anchor_syn, "pass")
 
     bad = [e for e in expectations if e[1] != e[2]]
     print(f"[selftest] {len(expectations) - len(bad)}/{len(expectations)} expectations met")

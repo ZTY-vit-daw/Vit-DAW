@@ -1,0 +1,52 @@
+﻿{
+    "card":  "PLUGIN-CONTROL-EVAL-S1B-1",
+    "leg":  "arm_b",
+    "run_id":  "20261108_202627",
+    "repo_head":  "83da28c0d7708342901f227aa162cdc5df16196b",
+    "branch":  "port/plugin-control-eval-s1b-1",
+    "started_at":  "2026-11-08T20:26:27.5363152+08:00",
+    "sec8_decl":  "B arm (A-pure seam set VIT_PLUGIN_CONTROL_EVAL_SEAM=1 = 305 S1-S4 + 308 S5 catalog trim + S2b render strip, PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1 = web.search/web.fetch direct execution): live retrieval probe (zero LLM) + s0 refreeze (0 LLM) + dryround (0 LLM) + 1 device-verification probe round (T1 repeat 0, paid, not scored) + 18 paid task rounds (T1..T6 x repeat 1..3, new conversation + fresh fixture each); per-round caps (12 calls / 40k in / 8k out per call / 30 tool calls / 6 retrieval searches / 10 retrieval fetches / 20 min) frozen; segment caps 216 calls / 8.64M in / 1.728M out checked between rounds (caps verbatim from plan B_star); live probe must prove the seam (no needs_confirmation) AND real network retrieval; probe gate must prove S2/S2b/S3/S4/S5/CS/R1 faces + zero executed typed calls before task rounds; failure taxonomy per plan + seam_leakage + retrieval_unavailable (live probe) + repo-contamination watchlist; full declaration in RUNBOOK.md (frozen pre-run)",
+    "agent_http":  "http://127.0.0.1:7878",
+    "seam_env":  "VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1 (both set in process env before any process start)",
+    "kernel_exe":  "D:\\Vit_DAW_wt_228\\VitApp\\build_release\\VitApp_artefacts\\Release\\VitApp.exe",
+    "kernel_sha256":  "F9E3DA0A66263F0B6E3FED5CDA0FB214C460FCE8053234240C470D515ED0D67A",
+    "model_env":  {
+                      "VIT_AGENT_LLM_BASE_URL":  "\u003cunset\u003e",
+                      "OPENAI_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_API_KEY":  "\u003cunset\u003e",
+                      "VIT_AGENT_LLM_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_MODEL":  "\u003cunset\u003e",
+                      "OPENAI_BASE_URL":  "\u003cunset\u003e"
+                  },
+    "stack_pids":  {
+                       "VitAgent":  [
+                                        16148
+                                    ],
+                       "VitApp":  [
+                                      30232
+                                  ]
+                   },
+    "agent_sha256":  "1EBCF09F1723DE9F93BD0EBB55B59AF34D9549ACC9F1B36E5048EBFFCD72B948",
+    "agent_tool_count":  "256",
+    "retrieval_live_probe":  {
+                                 "search_status":  "ok",
+                                 "fetch_status":  "ok",
+                                 "search_ok":  true,
+                                 "fetch_ok":  true
+                             },
+    "s0_exit":  0,
+    "s0_all_verified":  true,
+    "t4_allowance":  "0",
+    "dryround_exit":  0,
+    "probe_exit":  0,
+    "seam_verify_exit":  4,
+    "verdict":  "device_invalid_seam_leakage",
+    "finished_at":  "2026-11-08T20:27:11.0370925+08:00",
+    "error":  "seam_verify exit=4 -- see seam_verify_probe.json",
+    "teardown":  {
+                     "remaining":  [
+
+                                   ],
+                     "torn_down":  true
+                 }
+}
