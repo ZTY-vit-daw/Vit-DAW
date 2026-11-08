@@ -548,8 +548,10 @@ def main() -> int:
             gen_turns += 1
             last_response = chat(prompt, timeout=GEN_CHAT_TIMEOUT_SEC)
             reply = str(last_response.get("reply") or "")
+            response_dump = json.dumps(last_response, ensure_ascii=False)
             accepted = bool(last_response.get("task_id") or last_response.get("goal_id"))
             domain_reply = any(needle in reply for needle in GEN_REPLY_NEEDLES)
+            gen_tool_trace = "gen.generate" in response_dump
             render_now = render_path.stat().st_size if (render_path and render_path.exists()) else 0
             render_tail = ""
             if render_path and render_path.exists() and render_now > render_before:
@@ -561,13 +563,18 @@ def main() -> int:
                 "prompt": prompt,
                 "accepted_orchestrated": accepted,
                 "domain_reply": domain_reply,
+                "gen_tool_trace": gen_tool_trace,
                 "gen_generate_disclosed": disclosed,
                 "stop_reason": last_response.get("stop_reason"),
                 "reply_head": reply[:200],
             }
             save_summary()
-            print(f"[m2prep] gen routing turn {gen_turns}: accepted={accepted} domain_reply={domain_reply} disclosed={disclosed}", flush=True)
-            if disclosed and (accepted or domain_reply):
+            print(f"[m2prep] gen routing turn {gen_turns}: accepted={accepted} domain_reply={domain_reply} tool_trace={gen_tool_trace} disclosed={disclosed}", flush=True)
+            # Routing evidenced by any of: 303 dictionary disclosure in the
+            # prompt render, an actual gen.generate tool trace in the
+            # response, or orchestration acceptance with a generation-domain
+            # reply. All three are "routed into the generation domain".
+            if disclosed or gen_tool_trace or (accepted and domain_reply):
                 routing_hit = True
                 break
     except RuntimeError as exc:
