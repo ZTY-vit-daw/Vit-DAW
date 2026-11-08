@@ -229,11 +229,25 @@ print(json.dumps({'ok': ok, 'agents': rows}, ensure_ascii=False))
     # plugin_grabber.* execution).
     Write-Step "Phase 2c: S5 typed-catalog trim proof (seam unit tests, zero LLM)"
     $s5Log = Join-Path $RunRoot "s5_seam_unit_tests.log"
+    # run9 fix (env hygiene): the closed-seam test reads the AMBIENT env and
+    # this orchestrator process carries SEAM=1 from phase 1, so the child
+    # go-test process must run with both seam vars cleared (saved+restored);
+    # the open-seam test arms its own env via t.Setenv. First run
+    # proq3_free_20261109_024318 tripped this -- the gate worked as designed
+    # (protective stop, zero paid rounds).
+    $prevSeam = $env:VIT_PLUGIN_CONTROL_EVAL_SEAM
+    $prevBare = $env:VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE
     Push-Location (Join-Path $RepoRoot "agent")
     try {
+        Remove-Item Env:\VIT_PLUGIN_CONTROL_EVAL_SEAM -ErrorAction SilentlyContinue
+        Remove-Item Env:\VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE -ErrorAction SilentlyContinue
         & go test ./internal/tools -run 'TestSeamS5' -count=1 2>&1 | Tee-Object -FilePath $s5Log | Out-Null
         $s5Exit = $LASTEXITCODE
-    } finally { Pop-Location }
+    } finally {
+        if ($null -ne $prevSeam) { $env:VIT_PLUGIN_CONTROL_EVAL_SEAM = $prevSeam }
+        if ($null -ne $prevBare) { $env:VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE = $prevBare }
+        Pop-Location
+    }
     $report.s5_seam_unit_test_exit = $s5Exit
     if ($s5Exit -ne 0) {
         $report.verdict = "device_invalid_s5_seam_unit_tests"
