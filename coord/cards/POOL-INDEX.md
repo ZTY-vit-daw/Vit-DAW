@@ -45,7 +45,8 @@
 | 317 | PLUGIN-CONTROL-EVAL-BR1-1 | done 终验 pass 合入（态三：提示在场仍零发起；**深夜修订：9/9 失败轮=守卫阻断非编码错误**，[结论档](../rulings/2026-11-08-plugin-control-eval-line-conclusion.md) ⓪ 节） |
 | 318 | PLUGIN-CONTROL-EVAL-BAREFREE-1 | done 终验 pass 合入（**T3 3/3=真裸写能力证实**；T4=真实编码边界；T1 第三层守卫→319 补完） |
 | 319 | PLUGIN-CONTROL-EVAL-BAREFREE-T1-1 | done 终验 pass 合入（**T1 3/3——barefree 线四案全清**：守卫许可下 T1/T2/T3 全 3/3，唯 T4=真实编码边界） |
-| 320 | PLUGIN-CONTROL-EVAL-PROQ3-FREE-1 | todo 在派（**用户裁定新增**：T7 自由调控 Pro-Q 3=早期首碰壁目标终审——自选+自报+GUI 实物对账，用户亲验；排 319 后） |
+| 320 | PLUGIN-CONTROL-EVAL-PROQ3-FREE-1 | todo 在派（**用户裁定新增**：T7 自由调控 Pro-Q 3=早期首碰壁目标终审——自选+自报+GUI 实物对账，用户亲验；排 319 后） （**blocked 候 321**：持久化门揭 rack 参数不随 save/open 存活产品缺陷；装置全就绪候解锁） |
+| 321 | RACK-PARAM-PERSIST-FIX-1 | todo 在派（VitApp C++ 持久化修复：写时 flush+保存路径 rack 遍历；验收=320 forensic probe 复跑存活；解锁 320） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | todo 在派（L1-a 目录三级解析——零栈先行，真栈腿候队列）
 | 315 | LEGAME-AUTOINTRO-1 | todo 在派（L1-b 自动开场+恢复播报——依赖 314，同 owner 顺序）
