@@ -1,0 +1,1856 @@
+{
+  "schema_version": "plugin_control_eval_segment_br1_summary.v1",
+  "card": "PLUGIN-CONTROL-EVAL-BR1-1",
+  "run_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559",
+  "arm": "B-R1 (312 B seam set VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1 + thin-prompt seam VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1; relabel per RUNBOOK: raw driver records keep arm=\"P\")",
+  "model": "deepseek-flash (product default config)",
+  "score_table": [
+    {
+      "case": "T1",
+      "arm": "B-R1",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r1_1794143849",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "mix.observe",
+        "sequence": [
+          "mix.observe",
+          "plugin.semantic_get"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "mix.observe",
+          "plugin.semantic_get"
+        ],
+        "harness_tool_sequence": [
+          "mix.observe",
+          "plugin.semantic_get"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T1_r1_1794143849",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 51,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 4,
+          "message_loop_rows_with_segment": 4,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 7,
+      "input_tokens": 119314,
+      "output_tokens": 3099,
+      "cache_read_tokens": 61184,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T1_r1"
+    },
+    {
+      "case": "T1",
+      "arm": "B-R1",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r2_1794143880",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T1_r2_1794143880",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 51,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 90722,
+      "output_tokens": 1996,
+      "cache_read_tokens": 44544,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T1_r2"
+    },
+    {
+      "case": "T1",
+      "arm": "B-R1",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T1_r3_1794143901",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T1_r3_1794143901",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 51,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 2,
+          "message_loop_rows_with_segment": 2,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 61209,
+      "output_tokens": 1482,
+      "cache_read_tokens": 25600,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T1_r3"
+    },
+    {
+      "case": "T2",
+      "arm": "B-R1",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r1_1794143917",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "track.delete",
+        "sequence": [
+          "track.delete"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [
+          "track.delete"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T2_r1_1794143917",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 209,
+          "web_pair_present": true,
+          "form": "full"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 71548,
+      "output_tokens": 2548,
+      "cache_read_tokens": 34304,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T2_r1"
+    },
+    {
+      "case": "T2",
+      "arm": "B-R1",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r2_1794143940",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.set_parameter",
+        "sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "set_plugin_param",
+          "get_plugin_parameters"
+        ],
+        "harness_tool_sequence": [
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "set_plugin_param",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "get_plugin_parameters",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T2_r2_1794143940",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 209,
+          "web_pair_present": true,
+          "form": "full"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [
+        "self_probed",
+        "direct_guess"
+      ],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 72056,
+      "output_tokens": 2520,
+      "cache_read_tokens": 34304,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T2_r2"
+    },
+    {
+      "case": "T2",
+      "arm": "B-R1",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T2_r3_1794143962",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.set_parameter",
+        "sequence": [
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "harness_tool_sequence": [
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.get_parameters"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter",
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [
+          "plugin.get_parameters",
+          "plugin.get_parameters"
+        ],
+        "retrieval_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T2_r3_1794143962",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 209,
+          "web_pair_present": true,
+          "form": "full"
+        },
+        "segment_reach": {
+          "message_loop_rows": 9,
+          "message_loop_rows_with_segment": 9,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [
+        "self_probed",
+        "self_corrected",
+        "direct_guess"
+      ],
+      "mutation_count": 1,
+      "mutation_audit": null,
+      "llm_calls": 13,
+      "input_tokens": 230362,
+      "output_tokens": 17123,
+      "cache_read_tokens": 114176,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "model_budget_exhausted:llm_calls_over_cap",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T2_r3"
+    },
+    {
+      "case": "T3",
+      "arm": "B-R1",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r1_1794144090",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T3_r1_1794144090",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 209,
+          "web_pair_present": true,
+          "form": "full"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 65932,
+      "output_tokens": 2046,
+      "cache_read_tokens": 34304,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T3_r1"
+    },
+    {
+      "case": "T3",
+      "arm": "B-R1",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r2_1794144110",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T3_r2_1794144110",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 209,
+          "web_pair_present": true,
+          "form": "full"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 71565,
+      "output_tokens": 1766,
+      "cache_read_tokens": 34304,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T3_r2"
+    },
+    {
+      "case": "T3",
+      "arm": "B-R1",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T3_r3_1794144128",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.set_parameter"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T3_r3_1794144128",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 209,
+          "web_pair_present": true,
+          "form": "full"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 6,
+      "input_tokens": 67102,
+      "output_tokens": 2135,
+      "cache_read_tokens": 34432,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T3_r3"
+    },
+    {
+      "case": "T4",
+      "arm": "B-R1",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r1_1794144148",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T4_r1_1794144148",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 42,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 6,
+      "input_tokens": 49842,
+      "output_tokens": 2276,
+      "cache_read_tokens": 14976,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T4_r1"
+    },
+    {
+      "case": "T4",
+      "arm": "B-R1",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r2_1794144169",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.set_parameter"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "plugin.set_parameter"
+        ],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T4_r2_1794144169",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 42,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 50851,
+      "output_tokens": 4097,
+      "cache_read_tokens": 16384,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_failed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T4_r2"
+    },
+    {
+      "case": "T4",
+      "arm": "B-R1",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T4_r3_1794144204",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "set_plugin_param",
+          "set_plugin_param"
+        ],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [
+          "set_plugin_param",
+          "set_plugin_param"
+        ],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "bare"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T4_r3_1794144204",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 42,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 2,
+          "message_loop_rows_with_segment": 2,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 31906,
+      "output_tokens": 1427,
+      "cache_read_tokens": 9856,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_failed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T4_r3"
+    },
+    {
+      "case": "T5",
+      "arm": "B-R1",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r1_1794144217",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T5_r1_1794144217",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 51,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 2,
+          "message_loop_rows_with_segment": 2,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 31749,
+      "output_tokens": 1399,
+      "cache_read_tokens": 9088,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T5_r1"
+    },
+    {
+      "case": "T5",
+      "arm": "B-R1",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r2_1794144231",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T5_r2_1794144231",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 51,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 2,
+          "message_loop_rows_with_segment": 2,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 31733,
+      "output_tokens": 1900,
+      "cache_read_tokens": 12544,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T5_r2"
+    },
+    {
+      "case": "T5",
+      "arm": "B-R1",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T5_r3_1794144248",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T5_r3_1794144248",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 51,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 2,
+          "message_loop_rows_with_segment": 2,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 33937,
+      "output_tokens": 1702,
+      "cache_read_tokens": 12160,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T5_r3"
+    },
+    {
+      "case": "T6",
+      "arm": "B-R1",
+      "repeat": 1,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r1_1794144264",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T6_r1_1794144264",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 42,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 2,
+          "message_loop_rows_with_segment": 2,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 31927,
+      "output_tokens": 1777,
+      "cache_read_tokens": 9856,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T6_r1"
+    },
+    {
+      "case": "T6",
+      "arm": "B-R1",
+      "repeat": 2,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r2_1794144281",
+      "first_action": null,
+      "tool_faces": {
+        "loop_tool_sequence": [],
+        "harness_tool_sequence": [],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T6_r2_1794144281",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 42,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 2,
+          "message_loop_rows_with_segment": 2,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 4,
+      "input_tokens": 31856,
+      "output_tokens": 1407,
+      "cache_read_tokens": 9856,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T6_r2"
+    },
+    {
+      "case": "T6",
+      "arm": "B-R1",
+      "repeat": 3,
+      "raw_arm_field": "P",
+      "conversation_id": "pce_p_T6_r3_1794144295",
+      "first_action": {
+        "kind": "tool_call",
+        "tool": "plugin.open",
+        "sequence": [
+          "plugin.open"
+        ]
+      },
+      "tool_faces": {
+        "loop_tool_sequence": [
+          "plugin.open"
+        ],
+        "harness_tool_sequence": [
+          "plugin.open"
+        ],
+        "typed_adapter_calls": [],
+        "bare_write_calls": [],
+        "bare_read_calls": [],
+        "retrieval_calls": [],
+        "write_path": "none_observed"
+      },
+      "device_flags": [],
+      "retrieval_ledger": {
+        "conversation_id": "pce_p_T6_r3_1794144295",
+        "attempts": [],
+        "search_count": 0,
+        "fetch_count": 0,
+        "browser_search_count": 0,
+        "browser_fetch_count": 0,
+        "catalog_route_face": {
+          "max_catalog_lines": 42,
+          "web_pair_present": false,
+          "form": "pack"
+        },
+        "segment_reach": {
+          "message_loop_rows": 3,
+          "message_loop_rows_with_segment": 3,
+          "semantic_entry_rows_with_segment": 0
+        }
+      },
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "retrieval_cap_flags": [],
+      "final_verdict": "pass",
+      "failure_tags": [],
+      "failure_detail": null,
+      "behavior_tags": [],
+      "mutation_count": 0,
+      "mutation_audit": null,
+      "llm_calls": 5,
+      "input_tokens": 50094,
+      "output_tokens": 2150,
+      "cache_read_tokens": 16000,
+      "cost": "missing (price snapshot pending, plan budgets.monetary)",
+      "stop_reason": "goal_completed",
+      "round_dir": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\rounds\\T6_r3"
+    }
+  ],
+  "totals": {
+    "llm_calls": 95,
+    "input_tokens": 1193705,
+    "output_tokens": 52850,
+    "cache_read_tokens": 527872
+  },
+  "caps": {
+    "rounds": 18,
+    "max_llm_calls": 216,
+    "max_input_tokens": 8640000,
+    "max_output_tokens": 1728000
+  },
+  "within_caps": true,
+  "per_case": {
+    "T1": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "retrieval_rounds": 0,
+      "retrieval_attempt_rounds": 0,
+      "retrieval_visible_rounds": 0,
+      "catalog_route_forms": [
+        "pack",
+        "pack",
+        "pack"
+      ],
+      "retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "retrieval_queries": [],
+      "retrieval_urls": [],
+      "llm_calls": 16
+    },
+    "T2": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "behavior_tags": [
+        "direct_guess",
+        "self_corrected",
+        "self_probed"
+      ],
+      "write_paths": [
+        "none_observed",
+        "bare",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 2,
+      "retrieval_rounds": 0,
+      "retrieval_attempt_rounds": 0,
+      "retrieval_visible_rounds": 3,
+      "catalog_route_forms": [
+        "full",
+        "full",
+        "full"
+      ],
+      "retrieval_classifications": [
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt"
+      ],
+      "retrieval_queries": [],
+      "retrieval_urls": [],
+      "llm_calls": 23
+    },
+    "T3": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 1,
+      "retrieval_rounds": 0,
+      "retrieval_attempt_rounds": 0,
+      "retrieval_visible_rounds": 3,
+      "catalog_route_forms": [
+        "full",
+        "full",
+        "full"
+      ],
+      "retrieval_classifications": [
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt"
+      ],
+      "retrieval_queries": [],
+      "retrieval_urls": [],
+      "llm_calls": 16
+    },
+    "T4": {
+      "repeats": 3,
+      "pass_count": 0,
+      "verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "bare",
+        "bare"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 2,
+      "retrieval_rounds": 0,
+      "retrieval_attempt_rounds": 0,
+      "retrieval_visible_rounds": 0,
+      "catalog_route_forms": [
+        "pack",
+        "pack",
+        "pack"
+      ],
+      "retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "retrieval_queries": [],
+      "retrieval_urls": [],
+      "llm_calls": 15,
+      "t4_linked_pair_note": "307 acceptance ruling in force (carried by 310/312, unchanged): unexpected_mutation failures of the deliberate dual-channel-write form are a suspected frozen-rule defect (stereo linked pair), verdicts preserved as evaluated; rule fix deferred to before C batch -- analysis layer flag only, criteria unchanged"
+    },
+    "T5": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "retrieval_rounds": 0,
+      "retrieval_attempt_rounds": 0,
+      "retrieval_visible_rounds": 0,
+      "catalog_route_forms": [
+        "pack",
+        "pack",
+        "pack"
+      ],
+      "retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "retrieval_queries": [],
+      "retrieval_urls": [],
+      "llm_calls": 12
+    },
+    "T6": {
+      "repeats": 3,
+      "pass_count": 3,
+      "verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "failure_tags": [],
+      "behavior_tags": [],
+      "write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "typed_adapter_used_rounds": 0,
+      "bare_write_used_rounds": 0,
+      "retrieval_rounds": 0,
+      "retrieval_attempt_rounds": 0,
+      "retrieval_visible_rounds": 0,
+      "catalog_route_forms": [
+        "pack",
+        "pack",
+        "pack"
+      ],
+      "retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "retrieval_queries": [],
+      "retrieval_urls": [],
+      "llm_calls": 13
+    }
+  },
+  "five_way_comparison": [
+    {
+      "case": "T1",
+      "BR1_pass": "0/3",
+      "BR1_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BR1_failure_tags": [
+        "value_encoding_error"
+      ],
+      "BR1_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "BR1_retrieval_rounds": "0/3",
+      "BR1_retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "B312_pass": "0/3",
+      "B312_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "B312_failure_tags": [
+        "value_encoding_error"
+      ],
+      "B312_retrieval_rounds": "0/3",
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "value_encoding_error"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "BR1_llm_calls_total": 16,
+      "delta_note": "B-R1 = 312 B face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 (frozen thin-prompt segment appended to the ordinary-family system skeleton; 317 seam); B(312) = identical minus the prompt segment; A-pure(310) = 305 S1-S4 + 308 S5/S2b (no retrieval seam); A(307) = S1-S4 only (typed adapters selectable); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T2",
+      "BR1_pass": "3/3",
+      "BR1_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BR1_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "BR1_write_paths": [
+        "none_observed",
+        "bare",
+        "bare"
+      ],
+      "BR1_retrieval_rounds": "0/3",
+      "BR1_retrieval_classifications": [
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt"
+      ],
+      "B312_pass": "3/3",
+      "B312_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "B312_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "B312_retrieval_rounds": "0/3",
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "BR1_llm_calls_total": 23,
+      "delta_note": "B-R1 = 312 B face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 (frozen thin-prompt segment appended to the ordinary-family system skeleton; 317 seam); B(312) = identical minus the prompt segment; A-pure(310) = 305 S1-S4 + 308 S5/S2b (no retrieval seam); A(307) = S1-S4 only (typed adapters selectable); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T3",
+      "BR1_pass": "0/3",
+      "BR1_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BR1_failure_tags": [
+        "model_task_failure"
+      ],
+      "BR1_write_paths": [
+        "none_observed",
+        "none_observed",
+        "bare"
+      ],
+      "BR1_retrieval_rounds": "0/3",
+      "BR1_retrieval_classifications": [
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt",
+        "no_query_initiated_despite_disclosure_and_prompt"
+      ],
+      "B312_pass": "0/3",
+      "B312_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "B312_failure_tags": [
+        "model_task_failure"
+      ],
+      "B312_retrieval_rounds": "0/3",
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "model_task_failure"
+      ],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [
+        "model_budget_exhausted"
+      ],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 7,
+      "BR1_llm_calls_total": 16,
+      "delta_note": "B-R1 = 312 B face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 (frozen thin-prompt segment appended to the ordinary-family system skeleton; 317 seam); B(312) = identical minus the prompt segment; A-pure(310) = 305 S1-S4 + 308 S5/S2b (no retrieval seam); A(307) = S1-S4 only (typed adapters selectable); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T4",
+      "BR1_pass": "0/3",
+      "BR1_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "BR1_failure_tags": [
+        "value_encoding_error"
+      ],
+      "BR1_write_paths": [
+        "none_observed",
+        "bare",
+        "bare"
+      ],
+      "BR1_retrieval_rounds": "0/3",
+      "BR1_retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "B312_pass": "0/3",
+      "B312_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "B312_failure_tags": [
+        "value_encoding_error"
+      ],
+      "B312_retrieval_rounds": "0/3",
+      "Apure_pass": "0/3",
+      "Apure_verdicts": [
+        "fail",
+        "fail",
+        "fail"
+      ],
+      "Apure_failure_tags": [
+        "value_encoding_error"
+      ],
+      "A307_pass": "1/3",
+      "A307_verdicts": [
+        "pass",
+        "fail",
+        "fail"
+      ],
+      "A307_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "P_verdict": "fail",
+      "P_failure_tags": [
+        "unexpected_mutation"
+      ],
+      "P_llm_calls": 9,
+      "BR1_llm_calls_total": 15,
+      "delta_note": "B-R1 = 312 B face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 (frozen thin-prompt segment appended to the ordinary-family system skeleton; 317 seam); B(312) = identical minus the prompt segment; A-pure(310) = 305 S1-S4 + 308 S5/S2b (no retrieval seam); A(307) = S1-S4 only (typed adapters selectable); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T5",
+      "BR1_pass": "3/3",
+      "BR1_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BR1_failure_tags": [],
+      "BR1_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "BR1_retrieval_rounds": "0/3",
+      "BR1_retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "B312_pass": "3/3",
+      "B312_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "B312_failure_tags": [],
+      "B312_retrieval_rounds": "0/3",
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 5,
+      "BR1_llm_calls_total": 12,
+      "delta_note": "B-R1 = 312 B face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 (frozen thin-prompt segment appended to the ordinary-family system skeleton; 317 seam); B(312) = identical minus the prompt segment; A-pure(310) = 305 S1-S4 + 308 S5/S2b (no retrieval seam); A(307) = S1-S4 only (typed adapters selectable); P = production seams all closed; single P repeat per plan run_counts.P"
+    },
+    {
+      "case": "T6",
+      "BR1_pass": "3/3",
+      "BR1_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "BR1_failure_tags": [],
+      "BR1_write_paths": [
+        "none_observed",
+        "none_observed",
+        "none_observed"
+      ],
+      "BR1_retrieval_rounds": "0/3",
+      "BR1_retrieval_classifications": [
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed",
+        "retrieval_not_disclosed_pack_routed"
+      ],
+      "B312_pass": "3/3",
+      "B312_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "B312_failure_tags": [],
+      "B312_retrieval_rounds": "0/3",
+      "Apure_pass": "3/3",
+      "Apure_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "Apure_failure_tags": [],
+      "A307_pass": "3/3",
+      "A307_verdicts": [
+        "pass",
+        "pass",
+        "pass"
+      ],
+      "A307_failure_tags": [],
+      "P_verdict": "pass",
+      "P_failure_tags": [],
+      "P_llm_calls": 7,
+      "BR1_llm_calls_total": 13,
+      "delta_note": "B-R1 = 312 B face (VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_B_RETRIEVAL=1) PLUS VIT_PLUGIN_CONTROL_EVAL_SEAM_BR1_PROMPT=1 (frozen thin-prompt segment appended to the ordinary-family system skeleton; 317 seam); B(312) = identical minus the prompt segment; A-pure(310) = 305 S1-S4 + 308 S5/S2b (no retrieval seam); A(307) = S1-S4 only (typed adapters selectable); P = production seams all closed; single P repeat per plan run_counts.P"
+    }
+  ],
+  "retrieval_analysis": {
+    "rounds_with_retrieval_executed": 0,
+    "rounds_with_retrieval_attempted": 0,
+    "rounds_total": 18,
+    "visibility_strata": {
+      "full_catalog_visible_rounds": 6,
+      "full_visible_with_retrieval": 0,
+      "pack_routed_rounds": 12,
+      "pack_routed_with_retrieval_attempt": 0,
+      "note": "312 finding inherited: the treatment (web pair + thin prompt) is visible only where the product routing delivers the full catalog; pack-routed rounds see the segment text but not the web pair in the catalog -- initiation is read per stratum"
+    },
+    "classification_counts": {
+      "retrieval_not_disclosed_pack_routed": 12,
+      "no_query_initiated_despite_disclosure_and_prompt": 6
+    },
+    "per_case": {
+      "T1": {
+        "retrieval_rounds": 0,
+        "retrieval_attempt_rounds": 0,
+        "classifications": [
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed"
+        ],
+        "queries": [],
+        "urls": []
+      },
+      "T2": {
+        "retrieval_rounds": 0,
+        "retrieval_attempt_rounds": 0,
+        "classifications": [
+          "no_query_initiated_despite_disclosure_and_prompt",
+          "no_query_initiated_despite_disclosure_and_prompt",
+          "no_query_initiated_despite_disclosure_and_prompt"
+        ],
+        "queries": [],
+        "urls": []
+      },
+      "T3": {
+        "retrieval_rounds": 0,
+        "retrieval_attempt_rounds": 0,
+        "classifications": [
+          "no_query_initiated_despite_disclosure_and_prompt",
+          "no_query_initiated_despite_disclosure_and_prompt",
+          "no_query_initiated_despite_disclosure_and_prompt"
+        ],
+        "queries": [],
+        "urls": []
+      },
+      "T4": {
+        "retrieval_rounds": 0,
+        "retrieval_attempt_rounds": 0,
+        "classifications": [
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed"
+        ],
+        "queries": [],
+        "urls": []
+      },
+      "T5": {
+        "retrieval_rounds": 0,
+        "retrieval_attempt_rounds": 0,
+        "classifications": [
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed"
+        ],
+        "queries": [],
+        "urls": []
+      },
+      "T6": {
+        "retrieval_rounds": 0,
+        "retrieval_attempt_rounds": 0,
+        "classifications": [
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed",
+          "retrieval_not_disclosed_pack_routed"
+        ],
+        "queries": [],
+        "urls": []
+      }
+    },
+    "cap_breaches": [],
+    "repo_contamination_watchlist": [],
+    "conversion_question": "did the thin prompt convert value_encoding_error-type failures (310 A-pure + 312 B: T1/T3/T4 all rounds) into successful bare writes? -- see five_way_comparison BR1 rows vs B312 rows and write_failure_dissection below"
+  },
+  "write_failure_dissection": [
+    {
+      "round": "T1_r1",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "write_path": "none_observed",
+      "bare_write_calls": [],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "catalog_route_form": "pack",
+      "failure_detail": null
+    },
+    {
+      "round": "T1_r2",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "write_path": "none_observed",
+      "bare_write_calls": [],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "catalog_route_form": "pack",
+      "failure_detail": null
+    },
+    {
+      "round": "T1_r3",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "write_path": "none_observed",
+      "bare_write_calls": [],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "catalog_route_form": "pack",
+      "failure_detail": null
+    },
+    {
+      "round": "T3_r1",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "write_path": "none_observed",
+      "bare_write_calls": [],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "catalog_route_form": "full",
+      "failure_detail": null
+    },
+    {
+      "round": "T3_r2",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "write_path": "none_observed",
+      "bare_write_calls": [],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "catalog_route_form": "full",
+      "failure_detail": null
+    },
+    {
+      "round": "T3_r3",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "model_task_failure"
+      ],
+      "write_path": "bare",
+      "bare_write_calls": [
+        "plugin.set_parameter"
+      ],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "no_query_initiated_despite_disclosure_and_prompt",
+      "catalog_route_form": "full",
+      "failure_detail": null
+    },
+    {
+      "round": "T4_r1",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "write_path": "none_observed",
+      "bare_write_calls": [],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "catalog_route_form": "pack",
+      "failure_detail": null
+    },
+    {
+      "round": "T4_r2",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "write_path": "bare",
+      "bare_write_calls": [
+        "plugin.set_parameter"
+      ],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "catalog_route_form": "pack",
+      "failure_detail": null
+    },
+    {
+      "round": "T4_r3",
+      "final_verdict": "fail",
+      "failure_tags": [
+        "value_encoding_error"
+      ],
+      "write_path": "bare",
+      "bare_write_calls": [
+        "set_plugin_param",
+        "set_plugin_param"
+      ],
+      "mutation_count": 0,
+      "retrieval_attempts_in_round": [],
+      "retrieval_executed": [],
+      "retrieval_classification": "retrieval_not_disclosed_pack_routed",
+      "catalog_route_form": "pack",
+      "failure_detail": null
+    }
+  ],
+  "three_state_observables": {
+    "rounds_with_retrieval_initiated": 0,
+    "write_failure_tag_erased_vs_B": false,
+    "state_1_knowledge_gap_real_and_retrievable": false,
+    "state_2_knowledge_not_only_gap": false,
+    "state_3_still_zero_initiation": true,
+    "note": "observables only; the card's three-state call is the supervisor's adjudication from these numbers + the dissection tables"
+  },
+  "p_baseline_source": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\p_baseline\\segment_p_summary.json",
+  "a307_source": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\a307_reference\\arm_a_summary_307.json",
+  "apure_source": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\apure_reference\\arm_apure_summary.json",
+  "b312_source": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\b_reference\\arm_b_summary_312.json",
+  "device_gate": {
+    "typed_adapter_invalid_rounds": [],
+    "note": "after S5 any executed typed adapter call = device invalid (card stop condition); empty list required for a clean B-R1 dataset"
+  },
+  "seam_corpus_check": {
+    "source": "D:\\Vit_DAW_wt_317br1\\coord\\runs\\PLUGIN-CONTROL-EVAL-BR1-1\\arm_br1_20261108_211559\\logs\\agent_llm_payload_capture.jsonl",
+    "verdict": "pass",
+    "leaking_conversations": [],
+    "note": "affected rounds carry device_flags; verdicts preserved as evaluated (supervisor adjudicates arm validity)"
+  },
+  "missing_rounds": [],
+  "notes": [
+    "probe round (T2 repeat 0, device verification carrier) excluded from scores",
+    "cost fields remain missing pending plan budgets.monetary price snapshot",
+    "single round = single sample; 3 repeats do not constitute a stability claim (plan section 6)",
+    "tool-face: S5 trims the plugin_grabber family from the model catalog (all three catalog exits); expected write_path domain = bare | none_observed",
+    "retrieval ledger: attempts from payload-capture tool_calls, executed calls from agent-log deltas; browser.search/browser.fetch (RiskDirect siblings) are counted separately as retrieval-family evidence",
+    "segment reach per round recorded in retrieval_ledger.segment_reach (message_loop rows with the frozen segment / semantic_entry contamination count; device-grade check lives in seam_verify R1P)"
+  ]
+}

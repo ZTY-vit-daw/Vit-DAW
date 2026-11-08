@@ -1,0 +1,511 @@
+{
+  "case_id": "T5",
+  "arm": "P",
+  "repeat": 1,
+  "conversation_id": "pce_p_T5_r1_1794144217",
+  "message": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+  "fixture": {
+    "track_id": "1180",
+    "plugin_id": "1186",
+    "plugin_identifier": "VST3-H-Delay Stereo-695648d-6e3b68a7",
+    "fixture_digest": "e4d16dd4c7ea74a1"
+  },
+  "cases_digest": "1e4c5829b530ad85442b6b1433496841e823827cf8e954ffe278859039bb0aa5",
+  "started_at": "2026-11-08T21:23:37+0800",
+  "exchanges": [
+    {
+      "turn": 1,
+      "sent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+      "response": {
+        "conversation_id": "pce_p_T5_r1_1794144217",
+        "task_id": "task_9a6e786de77eed7f",
+        "goal_id": "goal_ece88f756f646607",
+        "run_id": "run_d50488c357a42658",
+        "slice_id": "slice_6aba335c779e31dd",
+        "original_intent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+        "reply": "**结论**：这次没能读到 H-Delay 的 Feedback 当前值，所以无法确认它是不是 60；按你「已满足就不动」的要求，我也没有做任何改动，项目状态保持原样。\n\n**证据**：项目里 Track 7 的机架中确实挂着 H-Delay Stereo（启用状态），但当前会话只开放了混音分析类的只读观察通道，读取插件实时参数值的请求被运行时拦下了，因此我拿不到 Feedback 的实际数值。\n\n**限制**：这不是参数找不到，而是当前这轮只允许观察、不允许触碰插件参数面，读取和写入插件参数都不可用，所以我既不能核对也不能顺手改。\n\n**建议**：在 H-Delay 界面上看一眼 Feedback 显示是不是 60 即可；如果是 60 就保持不动。若你希望我直接把 Feedback 设成 60 或读回确认，请在下一条指令里明确允许我读写该插件参数，我会先回读、只在不符合时才写入，并在写入后回读确认。",
+        "agent_mode": "default",
+        "needs_confirmation": false,
+        "workflow_data": {
+          "minimal_audio_closure": {
+            "action_attempts": 0,
+            "actionability": "unknown",
+            "closure_id": "audio_closure_12fe4c64be48b998",
+            "contract_id": "contract_task_9a6e786de77eed7f",
+            "conversation_id": "pce_p_T5_r1_1794144217",
+            "created_at": "2026-11-08T13:23:41.1790768Z",
+            "events": [
+              {
+                "closure_id": "audio_closure_12fe4c64be48b998",
+                "data": {
+                  "ContractID": "contract_task_9a6e786de77eed7f",
+                  "ConversationID": "pce_p_T5_r1_1794144217",
+                  "GoalID": "goal_ece88f756f646607",
+                  "Mode": "diagnostic",
+                  "OriginalIntent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+                  "Policy": {
+                    "max_action_attempts": 1,
+                    "max_closure_rounds": 6,
+                    "max_duty_observations": 8,
+                    "max_model_protocol_repairs": 1,
+                    "max_no_progress_rounds": 2,
+                    "max_rollback_attempts": 1,
+                    "max_unique_observation_sets": 4
+                  },
+                  "ProjectRevision": "80",
+                  "ProjectUUID": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+                  "RunID": "run_d50488c357a42658",
+                  "Scope": {
+                    "id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+                    "kind": "project"
+                  },
+                  "TaskID": "task_9a6e786de77eed7f",
+                  "TaskState": "observation_in_progress",
+                  "TaskStateRevision": 1
+                },
+                "event_id": "audio_closure_12fe4c64be48b998:1",
+                "occurred_at": "2026-11-08T13:23:41.1790768Z",
+                "sequence": 1,
+                "type": "closure_started"
+              },
+              {
+                "closure_id": "audio_closure_12fe4c64be48b998",
+                "data": {
+                  "round": 1
+                },
+                "event_id": "audio_closure_12fe4c64be48b998:2",
+                "occurred_at": "2026-11-08T13:23:41.1920991Z",
+                "sequence": 2,
+                "type": "round_started"
+              },
+              {
+                "closure_id": "audio_closure_12fe4c64be48b998",
+                "data": {
+                  "from": "reasoning",
+                  "guard": {
+                    "admission_valid": false,
+                    "capacity_assessed": false,
+                    "continue_once_remaining": false,
+                    "dimension_closed": false,
+                    "frontier_established": false,
+                    "gate_passed": false,
+                    "project_bound": false,
+                    "queue_non_empty": false,
+                    "scan_usable": false,
+                    "target_evidence": false
+                  },
+                  "guard_passed": true,
+                  "reason": "fs entry",
+                  "to": "fs0_semantic_entry"
+                },
+                "event_id": "audio_closure_12fe4c64be48b998:3",
+                "occurred_at": "2026-11-08T13:23:41.204155Z",
+                "sequence": 3,
+                "type": "phase_transition"
+              },
+              {
+                "closure_id": "audio_closure_12fe4c64be48b998",
+                "data": {
+                  "from": "fs0_semantic_entry",
+                  "guard": {
+                    "admission_valid": false,
+                    "capacity_assessed": false,
+                    "continue_once_remaining": true,
+                    "dimension_closed": false,
+                    "frontier_established": false,
+                    "gate_passed": false,
+                    "project_bound": true,
+                    "queue_non_empty": true,
+                    "scan_usable": false,
+                    "target_evidence": false
+                  },
+                  "guard_passed": true,
+                  "reason": "derived from closure evidence",
+                  "to": "fs1_project_bound"
+                },
+                "event_id": "audio_closure_12fe4c64be48b998:4",
+                "occurred_at": "2026-11-08T13:23:41.204155Z",
+                "sequence": 4,
+                "type": "phase_transition"
+              },
+              {
+                "closure_id": "audio_closure_12fe4c64be48b998",
+                "data": {
+                  "count": 1
+                },
+                "event_id": "audio_closure_12fe4c64be48b998:5",
+                "occurred_at": "2026-11-08T13:23:51.0588299Z",
+                "sequence": 5,
+                "type": "model_protocol_repair_recorded"
+              },
+              {
+                "closure_id": "audio_closure_12fe4c64be48b998",
+                "data": {
+                  "from": "fs1_project_bound",
+                  "guard": {
+                    "admission_valid": false,
+                    "capacity_assessed": true,
+                    "continue_once_remaining": true,
+                    "dimension_closed": false,
+                    "frontier_established": false,
+                    "gate_passed": false,
+                    "project_bound": true,
+                    "queue_non_empty": true,
+                    "scan_usable": false,
+                    "target_evidence": false
+                  },
+                  "guard_passed": true,
+                  "reason": "derived from closure evidence",
+                  "to": "fs2_capacity_assessed"
+                },
+                "event_id": "audio_closure_12fe4c64be48b998:6",
+                "occurred_at": "2026-11-08T13:23:51.0588299Z",
+                "sequence": 6,
+                "type": "phase_transition"
+              },
+              {
+                "closure_id": "audio_closure_12fe4c64be48b998",
+                "data": {
+                  "progress": false
+                },
+                "event_id": "audio_closure_12fe4c64be48b998:7",
+                "occurred_at": "2026-11-08T13:23:51.0588299Z",
+                "sequence": 7,
+                "type": "round_completed"
+              }
+            ],
+            "goal_id": "goal_ece88f756f646607",
+            "hypothesis_frontier": {},
+            "mode": "diagnostic",
+            "model_protocol_repairs": 1,
+            "no_progress_streak": 1,
+            "original_intent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+            "phase": "fs2_capacity_assessed",
+            "policy": {
+              "max_action_attempts": 1,
+              "max_closure_rounds": 6,
+              "max_duty_observations": 8,
+              "max_model_protocol_repairs": 1,
+              "max_no_progress_rounds": 2,
+              "max_rollback_attempts": 1,
+              "max_unique_observation_sets": 4
+            },
+            "project_revision": "80",
+            "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+            "revision": 7,
+            "rollback_attempts": 0,
+            "round_had_progress": false,
+            "round_in_progress": false,
+            "rounds_started": 1,
+            "run_id": "run_d50488c357a42658",
+            "schema_version": "minimal_audio_closure.v1",
+            "scope": {
+              "id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "kind": "project"
+            },
+            "task_id": "task_9a6e786de77eed7f",
+            "task_state": "observation_in_progress",
+            "task_state_revision": 1,
+            "updated_at": "2026-11-08T13:23:51.0588299Z"
+          },
+          "request_context": {
+            "free_state_phase": "fs2_capacity_assessed",
+            "minimal_audio_closure": {
+              "action_attempts": 0,
+              "actionability": "unknown",
+              "closure_id": "audio_closure_12fe4c64be48b998",
+              "contract_id": "contract_task_9a6e786de77eed7f",
+              "conversation_id": "pce_p_T5_r1_1794144217",
+              "created_at": "2026-11-08T13:23:41.1790768Z",
+              "events": [
+                {
+                  "closure_id": "audio_closure_12fe4c64be48b998",
+                  "data": {
+                    "ContractID": "contract_task_9a6e786de77eed7f",
+                    "ConversationID": "pce_p_T5_r1_1794144217",
+                    "GoalID": "goal_ece88f756f646607",
+                    "Mode": "diagnostic",
+                    "OriginalIntent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+                    "Policy": {
+                      "max_action_attempts": 1,
+                      "max_closure_rounds": 6,
+                      "max_duty_observations": 8,
+                      "max_model_protocol_repairs": 1,
+                      "max_no_progress_rounds": 2,
+                      "max_rollback_attempts": 1,
+                      "max_unique_observation_sets": 4
+                    },
+                    "ProjectRevision": "80",
+                    "ProjectUUID": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+                    "RunID": "run_d50488c357a42658",
+                    "Scope": {
+                      "id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+                      "kind": "project"
+                    },
+                    "TaskID": "task_9a6e786de77eed7f",
+                    "TaskState": "observation_in_progress",
+                    "TaskStateRevision": 1
+                  },
+                  "event_id": "audio_closure_12fe4c64be48b998:1",
+                  "occurred_at": "2026-11-08T13:23:41.1790768Z",
+                  "sequence": 1,
+                  "type": "closure_started"
+                },
+                {
+                  "closure_id": "audio_closure_12fe4c64be48b998",
+                  "data": {
+                    "round": 1
+                  },
+                  "event_id": "audio_closure_12fe4c64be48b998:2",
+                  "occurred_at": "2026-11-08T13:23:41.1920991Z",
+                  "sequence": 2,
+                  "type": "round_started"
+                },
+                {
+                  "closure_id": "audio_closure_12fe4c64be48b998",
+                  "data": {
+                    "from": "reasoning",
+                    "guard": {
+                      "admission_valid": false,
+                      "capacity_assessed": false,
+                      "continue_once_remaining": false,
+                      "dimension_closed": false,
+                      "frontier_established": false,
+                      "gate_passed": false,
+                      "project_bound": false,
+                      "queue_non_empty": false,
+                      "scan_usable": false,
+                      "target_evidence": false
+                    },
+                    "guard_passed": true,
+                    "reason": "fs entry",
+                    "to": "fs0_semantic_entry"
+                  },
+                  "event_id": "audio_closure_12fe4c64be48b998:3",
+                  "occurred_at": "2026-11-08T13:23:41.204155Z",
+                  "sequence": 3,
+                  "type": "phase_transition"
+                },
+                {
+                  "closure_id": "audio_closure_12fe4c64be48b998",
+                  "data": {
+                    "from": "fs0_semantic_entry",
+                    "guard": {
+                      "admission_valid": false,
+                      "capacity_assessed": false,
+                      "continue_once_remaining": true,
+                      "dimension_closed": false,
+                      "frontier_established": false,
+                      "gate_passed": false,
+                      "project_bound": true,
+                      "queue_non_empty": true,
+                      "scan_usable": false,
+                      "target_evidence": false
+                    },
+                    "guard_passed": true,
+                    "reason": "derived from closure evidence",
+                    "to": "fs1_project_bound"
+                  },
+                  "event_id": "audio_closure_12fe4c64be48b998:4",
+                  "occurred_at": "2026-11-08T13:23:41.204155Z",
+                  "sequence": 4,
+                  "type": "phase_transition"
+                },
+                {
+                  "closure_id": "audio_closure_12fe4c64be48b998",
+                  "data": {
+                    "count": 1
+                  },
+                  "event_id": "audio_closure_12fe4c64be48b998:5",
+                  "occurred_at": "2026-11-08T13:23:51.0588299Z",
+                  "sequence": 5,
+                  "type": "model_protocol_repair_recorded"
+                },
+                {
+                  "closure_id": "audio_closure_12fe4c64be48b998",
+                  "data": {
+                    "from": "fs1_project_bound",
+                    "guard": {
+                      "admission_valid": false,
+                      "capacity_assessed": true,
+                      "continue_once_remaining": true,
+                      "dimension_closed": false,
+                      "frontier_established": false,
+                      "gate_passed": false,
+                      "project_bound": true,
+                      "queue_non_empty": true,
+                      "scan_usable": false,
+                      "target_evidence": false
+                    },
+                    "guard_passed": true,
+                    "reason": "derived from closure evidence",
+                    "to": "fs2_capacity_assessed"
+                  },
+                  "event_id": "audio_closure_12fe4c64be48b998:6",
+                  "occurred_at": "2026-11-08T13:23:51.0588299Z",
+                  "sequence": 6,
+                  "type": "phase_transition"
+                },
+                {
+                  "closure_id": "audio_closure_12fe4c64be48b998",
+                  "data": {
+                    "progress": false
+                  },
+                  "event_id": "audio_closure_12fe4c64be48b998:7",
+                  "occurred_at": "2026-11-08T13:23:51.0588299Z",
+                  "sequence": 7,
+                  "type": "round_completed"
+                }
+              ],
+              "goal_id": "goal_ece88f756f646607",
+              "hypothesis_frontier": {},
+              "mode": "diagnostic",
+              "model_protocol_repairs": 1,
+              "no_progress_streak": 1,
+              "original_intent": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+              "phase": "fs2_capacity_assessed",
+              "policy": {
+                "max_action_attempts": 1,
+                "max_closure_rounds": 6,
+                "max_duty_observations": 8,
+                "max_model_protocol_repairs": 1,
+                "max_no_progress_rounds": 2,
+                "max_rollback_attempts": 1,
+                "max_unique_observation_sets": 4
+              },
+              "project_revision": "80",
+              "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+              "revision": 7,
+              "rollback_attempts": 0,
+              "round_had_progress": false,
+              "round_in_progress": false,
+              "rounds_started": 1,
+              "run_id": "run_d50488c357a42658",
+              "schema_version": "minimal_audio_closure.v1",
+              "scope": {
+                "id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+                "kind": "project"
+              },
+              "task_id": "task_9a6e786de77eed7f",
+              "task_state": "observation_in_progress",
+              "task_state_revision": 1,
+              "updated_at": "2026-11-08T13:23:51.0588299Z"
+            },
+            "orchestration_controller_decision": {
+              "authorization": "observe_only",
+              "controller": "minimal_audio_closure",
+              "reason": "restored minimal audio closure",
+              "schema_version": "orchestration_controller_decision.v1",
+              "source_route": "observation",
+              "target_scope": "project_context"
+            }
+          }
+        },
+        "goal_status": "completed",
+        "goal_summary": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+        "stop_reason": "done",
+        "project_history": {
+          "active_branch": "main",
+          "active_node_id": "n_20261108T132351_ed5d2ddf",
+          "active_worktree": "",
+          "available": true,
+          "branches": {
+            "main": "c_20261108T132337_ae50cead"
+          },
+          "commit_count": 21,
+          "conversation_messages": [
+            {
+              "content": "检查一下 H-Delay 的 Feedback 是不是 60；如果已经满足就保持不动。",
+              "logical_message_id": "n_20261108T132338_f155031a",
+              "message_kind": "user",
+              "node_id": "n_20261108T132338_f155031a",
+              "role": "user"
+            },
+            {
+              "content": "**结论**：这次没能读到 H-Delay 的 Feedback 当前值，所以无法确认它是不是 60；按你「已满足就不动」的要求，我也没有做任何改动，项目状态保持原样。\n\n**证据**：项目里 Track 7 的机架中确实挂着 H-Delay Stereo（启用状态），但当前会话只开放了混音分析类的只读观察通道，读取插件实时参数值的请求被运行时拦下了，因此我拿不到 Feedback 的实际数值。\n\n**限制**：这不是参数找不到，而是当前这轮只允许观察、不允许触碰插件参数面，读取和写入插件参数都不可用，所以我既不能核对也不能顺手改。\n\n**建议**：在 H-Delay 界面上看一眼 Feedback 显示是不是 60 即可；如果是 60 就保持不动。若你希望我直接把 Feedback 设成 60 或读回确认，请在下一条指令里明确允许我读写该插件参数，我会先回读、只在不符合时才写入，并在写入后回读确认。",
+              "logical_message_id": "n_20261108T132351_ed5d2ddf",
+              "message_kind": "assistant",
+              "node_id": "n_20261108T132351_ed5d2ddf",
+              "role": "assistant"
+            }
+          ],
+          "detached": false,
+          "draft": false,
+          "head": "c_20261108T132337_ae50cead",
+          "initialized": true,
+          "project_label": "Unsaved",
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_211600\\agent_drafts\\draft_20261108T131605_229d99e7\\Unsaved.vit",
+          "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+          "refs": {
+            "refs/heads/main": "c_20261108T132337_ae50cead"
+          },
+          "root_project_path": "",
+          "unsaved": false,
+          "warnings": [],
+          "worktrees": [
+            {
+              "commit_id": "c_20261108T132337_ae50cead",
+              "created_at": "2026-11-08T13:23:51.1338028Z",
+              "is_root": true,
+              "label": "主工作树",
+              "name": "main",
+              "origin_commit_id": "c_20261108T132337_ae50cead",
+              "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_211600\\agent_drafts\\draft_20261108T131605_229d99e7",
+              "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_211600\\agent_drafts\\draft_20261108T131605_229d99e7\\Unsaved.vit",
+              "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_211600\\agent_drafts\\draft_20261108T131605_229d99e7\\Unsaved.vit",
+              "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261108_211600\\agent_drafts\\draft_20261108T131605_229d99e7\\Unsaved.vit"
+            }
+          ]
+        },
+        "lifecycle": "durable",
+        "persistence": "project_history",
+        "message_kind": "assistant",
+        "turn_id": "turn_435c6201550abe3c",
+        "logical_message_id": "n_20261108T132351_ed5d2ddf"
+      }
+    }
+  ],
+  "confirmations": [],
+  "stop_reason": "goal_completed",
+  "first_action": null,
+  "agent_log_delta": "",
+  "tool_calls": 0,
+  "usage": {
+    "available": true,
+    "llm_calls": 4,
+    "input_tokens": 31749,
+    "output_tokens": 1399,
+    "cache_read_tokens": 9088,
+    "cache_creation_tokens": 0,
+    "max_input_in_one_call": 15826,
+    "max_output_in_one_call": 488,
+    "errors": 0
+  },
+  "mutation_audit": [],
+  "boundary_check": {
+    "case_track_present": true,
+    "track_count": null
+  },
+  "behavior_tags": [],
+  "verdict": {
+    "case_id": "T5",
+    "arm": "P",
+    "final_verdict": "pass",
+    "failure_tags": [],
+    "checks": {
+      "zero_mutation": {
+        "ok": true,
+        "detail": []
+      },
+      "recognition_stated": {
+        "ok": true,
+        "detail": {
+          "needle": "60"
+        }
+      }
+    },
+    "mutation_count": 0,
+    "changes": []
+  },
+  "finished_at": "2026-11-08T21:23:51+0800"
+}

@@ -1,0 +1,28 @@
+﻿{
+    "probed_at":  "2026-11-08T21:16:08.8599030+08:00",
+    "search":  {
+                   "no_confirmation_park":  true,
+                   "error":  "",
+                   "sent":  {
+                                "args":  {
+                                             "max_results":  3,
+                                             "query":  "reverb plugin user manual"
+                                         },
+                                "source":  "plugin_control_eval_runner",
+                                "tool":  "web.search",
+                                "confirmed":  false
+                            },
+                   "result_count":  3,
+                   "status":  "ok",
+                   "ok":  true
+               },
+    "fetch":  {
+                  "error":  "",
+                  "no_confirmation_park":  true,
+                  "http_status_code":  200,
+                  "ok":  true,
+                  "url":  "https://www.example.com",
+                  "status":  "ok"
+              },
+    "zero_llm_note":  "direct /agent/invoke legs; no model calls; network egress only"
+}
