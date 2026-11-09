@@ -1,0 +1,8 @@
+=== RUN   TestProQ3LiveWhitelistLoad
+--- PASS: TestProQ3LiveWhitelistLoad (0.00s)
+=== RUN   TestProQ3SufficiencyProofWhitelistLoad
+--- PASS: TestProQ3SufficiencyProofWhitelistLoad (0.00s)
+=== RUN   TestTBTECHLiveWhitelistLoad
+--- PASS: TestTBTECHLiveWhitelistLoad (0.00s)
+PASS
+ok  	vit-daw-agent/internal/experimentplugins	0.411s

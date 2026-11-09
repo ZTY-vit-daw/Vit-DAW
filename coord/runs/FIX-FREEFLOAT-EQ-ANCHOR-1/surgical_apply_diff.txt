@@ -1,0 +1,18 @@
+1624c1624,1638
+<   }
+---
+>   },
+>  {
+>   "plugin_name": "TBTECH Kirchhoff-EQ",
+>   "manufacturer": "Plugin Alliance",
+>   "format": "VST3",
+>   "plugin_identifier": "VST3-TBTECH Kirchhoff-EQ-be41c239-bdb35085",
+>   "plugin_path": "C:\\Program Files\\Common Files\\VST3\\Plugin Alliance\\TBTECH Kirchhoff-EQ.vst3",
+>   "bands": [
+>    {
+>     "center_hz": 3400.0,
+>     "gain_param_id_ch1": "55578",
+>     "gain_param_id_ch2": "55578"
+>    }
+>   ]
+>  }

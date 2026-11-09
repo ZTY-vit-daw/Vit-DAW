@@ -1,20 +1,6 @@
 {
   "derived": [
     {
-      "plugin_name": "Pro-Q 3",
-      "manufacturer": "FabFilter",
-      "format": "VST3",
-      "plugin_identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
-      "plugin_path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3",
-      "bands": [
-        {
-          "center_hz": 3400.0,
-          "gain_param_id_ch1": "3",
-          "gain_param_id_ch2": "3"
-        }
-      ]
-    },
-    {
       "plugin_name": "TBTECH Kirchhoff-EQ",
       "manufacturer": "Plugin Alliance",
       "format": "VST3",
