@@ -50,7 +50,7 @@
 | 322 | PROQ3-CERTIFY-AND-T7-1 | done 终验 pass 合入（**r1/r3 裸写逐项吻合+S5 零 typed 铁证+persisted×3**——Pro-Q 3 认证落库+derive 带锚修复；早期首碰壁目标闭环；GUI 终审物交付） |
 | 323 | EQ-RECEIPT-VENDOR-EXPAND-1 | done 终验 pass 合入（vendor-scoped 最保守+双门干跑亲证——322 解锁） |
 | 324 | BRIDGE-POC-1 | **todo 候用户确认**（控制面改革方向去风险：display probe 反演双锚验证 T4/r3；零栈优先零 LLM；改革主线排展演后——2026-11-09 用户定向） |
-| 325 | FIX-CAPROUTE-RETRIEVAL-1 | todo 可领（PENDING 分流①：能力路由轮语义知识工具可达性勘察+披露建议） |
+| 325 | FIX-CAPROUTE-RETRIEVAL-1 | done 已验收 pass 合入 a36df77d（**负结论**：sem 族三披露形态全可达零缺口+317 line18 实调亲证；防回归锚测试随卡；PENDING①条目关闭） |
 | 326 | FIX-RESTARTAGENT-ENV-1 | todo 可领（PENDING 分流②：脚本重启 agent env 透传；真栈轻腿可搭 282 同窗） |
 | 327 | FIX-GOV-INTERACTION-TTL-1 | todo 可领（PENDING 分流③：治理确认过期窗口/迟到 approve 显式回执；322 r2 形态） |
 | 328 | FIX-FREEFLOAT-EQ-ANCHOR-1 | done 已验收 pass 合入 a670c67a（TBTECH 落盘 static_eq 50+类缺口登记+322 计数随卡修复；主管亲测三 PASS） |
