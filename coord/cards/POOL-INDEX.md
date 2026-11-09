@@ -105,7 +105,8 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 3. 挂起卡触发条件达成时由管辖线主管移入各自活跃段。
 | 309 | WAVESHELL-OFFRENDER-FIX-1 | done 已验收 pass 合入 317fce56（**M1=RT-SILENT 判别**：GR 四 harness 全静音→归属装载/license/壳层转 329；S1 运行时确证非 GR 成因转 331；修法 B warn_only+形态 3 落地；C 不转正） |
 | 329 | WAVESHELL-LOADING-FORENSICS-1 | doing（**取证腿验收 pass 2026-11-09**：三代归并+闭源壳 license 状态机+本机授权链物证——H1=授权环境主嫌疑上报用户；判别腿 D1-D4 候栈候用户定向） |
-| 330 | FIX-PLAN-STALE-STATUS-1 | todo 可领（327 已合入解锁——plan 面 stale 伪造 completed 同型修） |
+| 330 | FIX-PLAN-STALE-STATUS-1 | done 已验收 pass 合入 14a105a3（plan 面两态回执+chat 投影第二伪造面一并修；红转绿在卷；334 清扫卡转出） |
 | 331 | VST3-SIGNAL-HYGIENE-1 | todo P3（309 S1 卫生：setup/per-call 信令一致化——**不占展演前窗口**） |
 | 332 | AI-LAUNCHER-DESIGN-1 | done 自验候验收（九节设计报告已产出——三态一窗/对话流两案 A 主 B 退/反向导航零内核改动/拆卡 6 卡 8.75 人日中值；候主管验收+用户终审后拆实施卡） |
 | 333 | LEGAME-GENSCOPE-1 | done 已验收 pass 合入 82f42846（手测 v2 旅程面收口：只走旅程 A，零生成前置；边界声明含 AI-first 衔接） |
+| 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | todo 可领 P3（goal_status 伪造面全树普查+同型修——327/330 缺陷族收尾；随手清型） |
