@@ -33,3 +33,5 @@
   ④ **插桩落点许可**：VIT309 mode 遥测落 vendored JUCE Impl（engine 子模块独立提交，301 处置规则同款）；VIT309_RTLEVEL 落 VitApp（零 engine 改动优先）；
   ⑤ **M1=RT-SILENT 应急预案采纳**：B 降级纯警告+装载取证另立卡。
 - 后续腿=M1+插桩+判别（栈队列第 3 位），实现按本卡原目标面（M1 对照/根因运行时确证/修法/自检断言/验证）。
+
+- **栈腿领取（M1+插桩+判别+修法 B+形态 3+验证矩阵，2026-11-09）**：续用 worktree D:/Vit_DAW_wt_309recon / 分支 port/waveshell-offrender-fix-1（取证腿 0644ae89 之上）；origin/main=31d0b9d1。领取基线：HEAD=0644ae895bd5212af286c73cf4a8baaa7f33dacb，status 全净，diff --stat 空（worktree 子模块未初始化=b4397498 gitlink；栈腿 engine 改动在本 worktree 子模块内做独立提交，主仓 D:/Vit_DAW/tracktion_engine @ 60ab1a49 仍只读）。形态=五项裁定锁定的合并栈窗口；§8 跑前口径在 RUNBOOK 成文后方可起栈。本腿领取先推 port 分支（实现门），卡面状态同步推 main（coord/cards 允许路径）。
