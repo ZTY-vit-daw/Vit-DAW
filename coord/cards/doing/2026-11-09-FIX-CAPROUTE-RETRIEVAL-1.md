@@ -29,4 +29,5 @@
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- 领取：2026-11-09 / origin/main=3c0bdd3b / owner=GLM-5.3 L2 执行子代理（ZCode 会话，PC）/ 分支=port/caproute-retrieval-1 / worktree=D:/Vit_DAW_wt_325impl / 领取基线亲证：HEAD=3c0bdd3b=origin/main，status 全净，diff 空；领取提交=（本提交，hash 见 git log）
+- 回执：（待回填）
