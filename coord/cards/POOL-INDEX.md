@@ -107,5 +107,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 329 | WAVESHELL-LOADING-FORENSICS-1 | todo 可领（309 转卡：装载/license/壳层静音取证——三假设判别；取证零栈先行） |
 | 330 | FIX-PLAN-STALE-STATUS-1 | todo 可领（327 已合入解锁——plan 面 stale 伪造 completed 同型修） |
 | 331 | VST3-SIGNAL-HYGIENE-1 | todo P3（309 S1 卫生：setup/per-call 信令一致化——**不占展演前窗口**） |
-| 332 | AI-LAUNCHER-DESIGN-1 | **doing 已派发**（AI-first 启动面对话窗口设计 v1——展演裁剪+答辩后全量分档；用户定向 2026-11-09；产出九节设计报告+实施拆卡） |
+| 332 | AI-LAUNCHER-DESIGN-1 | done 自验候验收（九节设计报告已产出——三态一窗/对话流两案 A 主 B 退/反向导航零内核改动/拆卡 6 卡 8.75 人日中值；候主管验收+用户终审后拆实施卡） |
 | 333 | LEGAME-GENSCOPE-1 | done 已验收 pass 合入 82f42846（手测 v2 旅程面收口：只走旅程 A，零生成前置；边界声明含 AI-first 衔接） |
