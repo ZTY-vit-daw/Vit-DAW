@@ -8253,6 +8253,12 @@ if ($AuthoritySmoke) {
     Write-Ok ("authority restored to " + [string]$authorityRestore.authority_mode)
 }
 
+# LAUNCHER-SMOKE-1 (339) degraded leg: the always-on agent-HTTP default legs
+# below (tool catalog / range context / project.state) cannot run -- the whole
+# point of that leg is an agent-less stack. $toolNames stays defined (empty)
+# because gated legs further down reference it under StrictMode.
+$toolNames = @()
+if (-not $LauncherDegraded) {
 Write-Step "Strip Silence tool catalog"
 $toolsResp = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/tools") -TimeoutSec 10
 if ($null -eq $toolsResp -or [string]$toolsResp.status -ne "ok") {
@@ -8328,10 +8334,11 @@ try {
 }
 finally {
     $restoreUIContextResp = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/ui/context") -Body $priorUIContext -TimeoutSec 10
-    if ($null -eq $restoreUIContextResp -or [string]$restoreUIContextResp.status -ne "ok") {
+    if ($null -eq $restoreUIContextResp -or $restoreUIContextResp.status -ne "ok") {
         throw "failed to restore UI context after range context smoke"
     }
 }
+} # end (-not $LauncherDegraded) agent-HTTP default legs
 
 Write-Step "Kernel ports"
 $req = Get-TcpListener -Port ([int]$ZmqReqPort)
@@ -8349,7 +8356,7 @@ else {
     Write-Ok ("ZMQ SUB listening: " + $ZmqSubPort + " pid=" + $sub.OwningProcess)
 }
 
-if ($null -ne $req) {
+if ($null -ne $req -and -not $LauncherDegraded) {
     Write-Step "Project state invoke"
     $projectState = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/invoke") -Body @{
         tool = "project.state"
