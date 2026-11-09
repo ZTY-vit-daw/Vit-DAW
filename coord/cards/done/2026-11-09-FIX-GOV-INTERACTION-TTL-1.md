@@ -73,8 +73,6 @@ agent 治理交互域（pendingmanager/chat 交互面，以勘察锚点为准）
 - **决策请求**：r2 park 腿复跑需 ①seam 双环境变量+②321persist 内核 950CF07B（或等效新内核）+③另冻 §8（建议上界≥10 调用单 run）；候主管裁定是否开窗口。
 - **工件**：`coord/runs/FIX-GOV-INTERACTION-TTL-1/stackleg_20261109/`（随 port/gov-interaction-ttl-1@ce2df146 推远端：五次尝试记录+修前/修后 A/B 探针+固定二进制日志+telemetry+总结）；驱动最终版含 env 自愈+T7 重发追问。
 
-=======
->>>>>>> origin/port/gov-interaction-ttl-1
 #### 真栈腿候搭声明
 
 - 本卡**零栈交付**（未起栈、未占用 PC-RUNTIME-STACK）。r2 场景复现腿已设计成文（r2_replay_plan.md：三腿断言+§8 口径 1 run/≤12 LLM/失败四分类/止损线）+驱动脚本 gov_ttl_replay_driver.py（复用 320 frozen faces，语法已校验未运行）——**候后续栈窗口执行**（可搭 309 栈腿释放后的轻窗口），执行前按协议登记占用。
