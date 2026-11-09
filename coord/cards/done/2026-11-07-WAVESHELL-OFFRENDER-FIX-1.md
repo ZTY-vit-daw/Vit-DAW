@@ -46,3 +46,9 @@
   7. 装置缺陷两枚如实分账（非产品面）：levelCache 死代码（E1v1）/--expect-env 空集传参（E3 首跑 exit1，eb6cb3d2 修复）；§8 对账=单 run 无重跑未破（无效轮+装置修复后新 run 依规记录），止损线未触发，环境中断零。
   8. engine 子模块 `vit309-stackleg`（60ab1a49+cd957f4+9b8cc8a，本地分支未推 engine 远端=301 同款处置，landing/推送交主管）；主仓子模块 gitlink 保持 b4397498 不动；主仓 D:/Vit_DAW/tracktion_engine 全程只读。
   9. **端测边界（AGENTS §5）**：agent ZMQ 面真栈驱动（直挂/rack/实时 transport）+内核日志留痕（VIT301_GUARD/VIT309_*）+wav 物理计量+render_done 披露捕获；不覆盖 webui 渲染面（无该域改动，单测全绿）/Godot 旅程（无该域改动）/chat 全链复跑（与驱动同一 start_render 入口，未另跑付费轮，如需可另派）。
+
+### 终验（主管，2026-11-09）
+
+- **pass 整卡合入 main 317fce56**——栈腿六面全兑现：①M1 判别性结果（E1ctrl Surge 同装置 -10.97dB 对照证健康→GR 四 harness 全静音，「non-realtime 特异」推翻）；②S1 运行时确证（E2a 遥测逐字签名）+诚实归因边界（S1 真实但非 GR 成因，C 转正失据维持实验态——**主管维持：C 不转正**，S1 信令卫生缺陷登记候选小卡）；③修法 B warn_only 默认+opt-in fallback（e1873478）+形态 3 四触发全链+degraded 双披露；④E4 Surge 不回退 PASS；⑤§8 纪律（8 run 零 LLM ¥0、两无效轮诚实分账+修复提交、栈两登记、TEARDOWN_ALL_ZERO 19:28:47）；⑥六腿 exit 0+go/webui/AB 全绿。
+- **主管亲证**：merge 后主检出增量构建 exit 0（对当前 engine 子模块状态兼容）；dev_agent_smoke.ps1 冲突三方合并（M2/Legame+Waveshell 参数块并集）+PowerShell Parser PARSE_OK。
+- **裁定三项**：①engine 遥测留本地分支 vit309-stackleg 不推远端（301 同款处置，主仓 gitlink 不动）；②装载/license/壳层取证（S2/S3 族）转卡 329；③S1 信令卫生（host 侧 setup/per-call 不一致）登记产品候选（与 327 plan-stale 同候 PENDING 清单）。
