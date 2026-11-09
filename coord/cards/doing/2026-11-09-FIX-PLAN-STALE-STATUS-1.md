@@ -25,4 +25,12 @@ plan 面结构与 interaction 面不同构到需重构 → 取证上交候裁定
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+### 领取（330）
+
+- 时间：2026-11-09 晚窗
+- origin/main 基线：`b9b8c76ae85293b3aaa00d01d1e8a0a70e935932`（worktree 亲证：status 干净、diff --stat 空；含 327 合入 c8bb576e 亲证 ancestor ✓）
+- owner：GLM-5.3 执行子代理 / PC / Vit-DAW 330 卡 L2 实现会话
+- 分支：`port/plan-stale-status-1`（实现）；领取提交=coord/330-claim（仅含本卡状态变更）
+- worktree：`D:/Vit_DAW_wt_330impl`
+- 前置核对：卡仍在 todo ✓ 派发已确认 ✓ 依赖 327 已合入 ✓；doing 三卡（ARRLOOP-AUTHBRIDGE-1[harness 装载确认面]、CLOSURE-ROUTE-ADAPT-1[audio_closure_controller.go 预算面+测试，已声明不触 server.go 交互域]、WAVESHELL-LOADING-FORENSICS-1[只读取证+scripts]）文件域与本卡（chat/server.go plan 决策面+interaction_retirement.go+测试）不相交 ✓
+- 零栈单测卡：不起真实栈、不占 PC-RUNTIME-STACK。
