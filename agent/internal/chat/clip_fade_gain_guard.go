@@ -97,6 +97,10 @@ func (s *Server) expirePendingInteractionsForPlan(planID string) int {
 			continue
 		}
 		delete(s.interactions, id)
+		// FIX-GOV-INTERACTION-TTL-1: explicit-expiry paths record a retirement
+		// so a later approve answers with "retired (reason)" instead of the
+		// ambiguous expired catch-all.
+		s.recordInteractionRetirementLocked(interaction, "expired_for_plan "+strings.TrimSpace(planID))
 		removed++
 	}
 	return removed
@@ -117,6 +121,7 @@ func (s *Server) expirePendingInteractionsForConversation(conversationID, workfl
 			continue
 		}
 		delete(s.interactions, id)
+		s.recordInteractionRetirementLocked(interaction, "expired_for_conversation "+strings.TrimSpace(workflow))
 		removed++
 	}
 	return removed
