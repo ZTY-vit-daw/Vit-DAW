@@ -112,7 +112,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 333 | LEGAME-GENSCOPE-1 | done 已验收 pass 合入 82f42846（手测 v2 旅程面收口：只走旅程 A，零生成前置；边界声明含 AI-first 衔接） |
 | 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | todo 可领 P3（goal_status 伪造面全树普查+同型修——327/330 缺陷族收尾；随手清型） |
 | 335 | LAUNCHER-CHAT-FE-1 | done 已验收 pass（零栈段——探针 38/38 亲测+红线零触碰；渲染观感候 339+用户 GUI） |
-| 336 | LAUNCHER-NAV-FE-1 | todo（启动面 C2 Godot：directive 消费+open 链+治理确认+浮动窗带出——依赖 335） |
+| 336 | LAUNCHER-NAV-FE-1 | done 已验收 pass（探针 71/71 亲测+红线零触碰+前端 main 已合并——用户手测入口即刻可见） |
 | 337 | LAUNCHER-CHAT-BE-1 | done 已验收 pass 合入（软动词分级+三分支+authority 三红线；契约增量对齐进 336/339） |
 | 338 | LAUNCHER-BRIDGE-BE-1 | done 已验收 pass 合入（context_flow 三态+volume_switch+桥接两分支 315 承接零重写；跨工程路由登记候选） |
 | 339 | LAUNCHER-SMOKE-1 | todo（启动面 C6 收口：三腿真栈烟测——依赖 335-338 全合入） |
