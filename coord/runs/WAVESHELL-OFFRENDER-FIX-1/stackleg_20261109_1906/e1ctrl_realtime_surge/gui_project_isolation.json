@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD 8bc39aa61d80340c144449252a41c627ab9a4ec9:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-11-09T19:13:52.9705754+08:00",
+    "marker_path":  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1ctrl_realtime_surge\\gui_project_isolation.json",
+    "isolated_copy":  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1ctrl_realtime_surge\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}

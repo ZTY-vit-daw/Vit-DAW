@@ -1,0 +1,209 @@
+{
+  "card": "WAVESHELL-OFFRENDER-FIX-1",
+  "leg": "realtime/direct: Grand Rhapsody (WaveShell shared container) (zero-LLM)",
+  "stamp": "20261109_191241",
+  "expect_env": [
+    "VIT309_RTLEVEL"
+  ],
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "selector": "grand_rhapsody",
+      "matched": [
+        {
+          "name": "Grand Rhapsody Piano Stereo",
+          "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d"
+        }
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1_realtime_v2\\waveshell_stackleg_fixture_realtime_direct_grand_rhapsody.vit"
+    },
+    "instantiate": {
+      "cmd": "instantiate_plugin",
+      "status": "ok",
+      "plugin_name": "Grand Rhapsody Piano Stereo",
+      "plugin_id": "1010",
+      "plugin_identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+      "visibility": {
+        "track_id": "1007",
+        "want_plugin_id": "1010",
+        "rack_mode": false,
+        "top_level_plugin_names": [
+          "Grand Rhapsody Piano Stereo",
+          "Volume & Pan Plugin",
+          "Level Meter"
+        ],
+        "rack_node_names": [],
+        "matched_by": "id",
+        "ok": true
+      }
+    },
+    "clip": {
+      "clip_id": "1011",
+      "note_count": 16,
+      "readback_count": 16
+    },
+    "realtime": {
+      "track_id": "1007",
+      "plugin_name": "Grand Rhapsody Piano Stereo",
+      "sample_seconds": 5.0,
+      "rtlevel_line_count": 21,
+      "level_sample_count": 38,
+      "max_db": -100.0,
+      "verdict": "silent",
+      "stop_status": "ok",
+      "rtz_after_status": "ok",
+      "rtlevel_lines": [
+        "VIT309_RTLEVEL tap=started interval_ms=250 clients=1",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00",
+        "VIT309_RTLEVEL tap=stopped reason=transport_not_playing"
+      ]
+    },
+    "vit_trace": {
+      "log_dir": "D:\\Vit_DAW_wt_309recon\\VitApp\\Workspace\\Logs",
+      "logs_scanned": [
+        {
+          "file": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "mtime": "2026-11-09T19:12:50.654722"
+        }
+      ],
+      "trace_lines": [
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=480"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL tap=started interval_ms=250 clients=1"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL tap=stopped reason=transport_not_playing"
+        }
+      ],
+      "error": null,
+      "artifact": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1_realtime_v2\\waveshell_stackleg_summary_realtime_direct_grand_rhapsody_vit_trace.txt"
+    },
+    "billing": {
+      "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1_realtime_v2\\logs\\agent_llm_telemetry.jsonl",
+      "rows_total": null,
+      "note": "telemetry file absent (no agent start or no rows yet)"
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "chain_complete",
+  "realtime_verdict": "silent"
+}

@@ -1,0 +1,314 @@
+{
+  "card": "WAVESHELL-OFFRENDER-FIX-1",
+  "leg": "realtime/direct: Surge XT (plugin-specificity control) (zero-LLM)",
+  "stamp": "20261109_191355",
+  "expect_env": [
+    "VIT309_RTLEVEL"
+  ],
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "selector": "surge_xt",
+      "matched": [
+        {
+          "name": "Surge XT",
+          "identifier": "VST3-Surge XT-1e1bcfb-190e4fbd"
+        }
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1ctrl_realtime_surge\\waveshell_stackleg_fixture_realtime_direct_surge_xt.vit"
+    },
+    "instantiate": {
+      "cmd": "instantiate_plugin",
+      "status": "ok",
+      "plugin_name": "Surge XT",
+      "plugin_id": "1010",
+      "plugin_identifier": "VST3-Surge XT-1e1bcfb-190e4fbd",
+      "visibility": {
+        "track_id": "1007",
+        "want_plugin_id": "1010",
+        "rack_mode": false,
+        "top_level_plugin_names": [
+          "Surge XT",
+          "Volume & Pan Plugin",
+          "Level Meter"
+        ],
+        "rack_node_names": [],
+        "matched_by": "id",
+        "ok": true
+      }
+    },
+    "clip": {
+      "clip_id": "1011",
+      "note_count": 16,
+      "readback_count": 16
+    },
+    "realtime": {
+      "track_id": "1007",
+      "plugin_name": "Surge XT",
+      "sample_seconds": 5.0,
+      "rtlevel_line_count": 22,
+      "level_sample_count": 40,
+      "max_db": -10.97,
+      "verdict": "sound",
+      "stop_status": "ok",
+      "rtz_after_status": "ok",
+      "rtlevel_lines": [
+        "VIT309_RTLEVEL tap=started interval_ms=250 clients=1",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.12 db_r=-14.12",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.14 db_r=-14.14",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-11.67 db_r=-11.67",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.24 db_r=-14.24",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-11.33 db_r=-11.33",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-11.06 db_r=-11.06",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.93 db_r=-12.93",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-13.19 db_r=-13.19",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.13 db_r=-12.13",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.79 db_r=-12.79",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-13.64 db_r=-13.64",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.39 db_r=-12.39",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.13 db_r=-14.13",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.23 db_r=-12.23",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.08 db_r=-14.08",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-10.97 db_r=-10.97",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.09 db_r=-14.09",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.18 db_r=-12.18",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.65 db_r=-14.65",
+        "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-13.11 db_r=-13.11",
+        "VIT309_RTLEVEL tap=stopped reason=transport_not_playing"
+      ]
+    },
+    "vit_trace": {
+      "log_dir": "D:\\Vit_DAW_wt_309recon\\VitApp\\Workspace\\Logs",
+      "logs_scanned": [
+        {
+          "file": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "mtime": "2026-11-09T19:14:04.669566"
+        }
+      ],
+      "trace_lines": [
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=480"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL tap=started interval_ms=250 clients=1"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-100.00 db_r=-100.00"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL tap=stopped reason=transport_not_playing"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Surge XT (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Surge XT\" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Surge XT\" processMode=kRealtime sr=44100.00 bs=480"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Surge XT\" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL tap=started interval_ms=250 clients=1"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.12 db_r=-14.12"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.14 db_r=-14.14"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-11.67 db_r=-11.67"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.24 db_r=-14.24"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-11.33 db_r=-11.33"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-11.06 db_r=-11.06"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.93 db_r=-12.93"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-13.19 db_r=-13.19"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.13 db_r=-12.13"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.79 db_r=-12.79"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-13.64 db_r=-13.64"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.39 db_r=-12.39"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.13 db_r=-14.13"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.23 db_r=-12.23"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.08 db_r=-14.08"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-10.97 db_r=-10.97"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.09 db_r=-14.09"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-12.18 db_r=-12.18"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-14.65 db_r=-14.65"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL track=1007 name=\"Track 1\" db_l=-13.11 db_r=-13.11"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-12-36.log",
+          "line": "VIT309_RTLEVEL tap=stopped reason=transport_not_playing"
+        }
+      ],
+      "error": null,
+      "artifact": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1ctrl_realtime_surge\\waveshell_stackleg_summary_realtime_direct_surge_xt_vit_trace.txt"
+    },
+    "billing": {
+      "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1ctrl_realtime_surge\\logs\\agent_llm_telemetry.jsonl",
+      "rows_total": null,
+      "note": "telemetry file absent (no agent start or no rows yet)"
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "chain_complete",
+  "realtime_verdict": "sound"
+}

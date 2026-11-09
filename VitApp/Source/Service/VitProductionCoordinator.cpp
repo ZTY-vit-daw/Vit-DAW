@@ -6,6 +6,7 @@
 #include <array>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 #include <thread>
 #include <vector>
@@ -89,6 +90,147 @@ bool editHasRenderableAudioContent (te::Edit& edit)
     }
 
     return false;
+}
+
+//==============================================================================
+// VIT-309 (WAVESHELL-OFFRENDER-FIX-1): WaveShell-class offline-render
+// compatibility. Fix B (card ruling 2): a render whose edit contains a
+// WaveShell-class shared-container VST3 runs with realTimeRender=true, because
+// those wrappers go silent under the offline per-call kOffline signalling
+// (301 M0a2/M2 evidence: digital silence while Surge XT sounds). Form 3
+// self-check (card ruling 3): after a completed render, digital silence with an
+// enabled instrument present triggers exactly one automatic realTimeRender
+// re-render, disclosed via degraded_to_realtime_render on the render_done
+// publication. Both are VitApp-only (zero engine behaviour change).
+
+bool vit309EnvFlagSet (const char* name)
+{
+    return std::getenv (name) != nullptr;
+}
+
+// Enumerates external plugins on audio tracks and inside rack instances (the
+// two mount shapes seen in 301: seg3a_r2 rack mount, M2 direct mount). The
+// visitor returns false to stop the walk.
+template <typename Visitor>
+void vit309VisitExternalPlugins (te::Edit& edit, Visitor&& visitor)
+{
+    for (auto* track : te::getAllTracks (edit))
+    {
+        auto* audioTrack = dynamic_cast<te::AudioTrack*> (track);
+        if (audioTrack == nullptr)
+            continue;
+
+        for (auto* plugin : audioTrack->pluginList.getPlugins())
+        {
+            if (auto* external = dynamic_cast<te::ExternalPlugin*> (plugin))
+                if (! visitor (*external))
+                    return;
+
+            if (auto* rack = dynamic_cast<te::RackInstance*> (plugin))
+                if (rack->type != nullptr)
+                    for (auto* inner : rack->type->getPlugins())
+                        if (auto* external = dynamic_cast<te::ExternalPlugin*> (inner))
+                            if (! visitor (*external))
+                                return;
+        }
+    }
+}
+
+// Fix-B predicate: shared-container "shell" wrappers (fileOrIdentifier contains
+// "waveshell", case-insensitive). Deliberately a name-class match: 301/297
+// evidence pins the defect to the WaveShell wrapper family, not to one plugin.
+bool vit309EditContainsShellClassPlugin (te::Edit& edit, juce::String& matchedName)
+{
+    bool found = false;
+    vit309VisitExternalPlugins (edit, [&] (te::ExternalPlugin& external)
+    {
+        if (external.desc.fileOrIdentifier.containsIgnoreCase ("waveshell"))
+        {
+            found = true;
+            matchedName = external.getName();
+            return false;
+        }
+        return true;
+    });
+    return found;
+}
+
+// Form-3 predicate: an enabled instrument (produces audio with no audio input)
+// is present, so a fully silent render is almost certainly a defect rather
+// than legitimate content (recon section 6, form 3 rationale).
+bool vit309EditHasEnabledInstrumentPlugin (te::Edit& edit)
+{
+    bool found = false;
+    vit309VisitExternalPlugins (edit, [&] (te::ExternalPlugin& external)
+    {
+        if (external.isEnabled() && external.producesAudioWhenNoAudioInput())
+        {
+            found = true;
+            return false;
+        }
+        return true;
+    });
+    return found;
+}
+
+// Silence floors for the post-render self-check: the same contract as the 301
+// python driver (int16 peak<=500 OR rms<=20 out of full scale 32768),
+// expressed in float units.
+constexpr double kVit309SilencePeakFloor = 500.0 / 32768.0;
+constexpr double kVit309SilenceRmsFloor  = 20.0 / 32768.0;
+
+struct Vit309WavMetering
+{
+    bool ok = false;
+    double peak = 0.0;
+    double rms = 0.0;
+    juce::String error;
+};
+
+Vit309WavMetering vit309MeterWavFile (const juce::File& file)
+{
+    Vit309WavMetering result;
+    juce::AudioFormatManager formats;
+    formats.registerBasicFormats();
+    std::unique_ptr<juce::AudioFormatReader> reader (formats.createReaderFor (file));
+
+    if (reader == nullptr || reader->numChannels <= 0)
+    {
+        result.error = "cannot open rendered file for the silence self-check";
+        return result;
+    }
+
+    double peak = 0.0;
+    double sumSquares = 0.0;
+    int64_t numSamples = 0;
+    constexpr int blockSize = 16384;
+    juce::AudioBuffer<float> block (2, blockSize);
+
+    for (int64_t pos = 0; pos < reader->lengthInSamples; pos += blockSize)
+    {
+        const int count = (int) juce::jmin<int64> (blockSize, reader->lengthInSamples - pos);
+        block.clear();
+
+        if (! reader->read (&block, 0, count, pos, true, true))
+            break; // treat a short read as end-of-file
+
+        for (int channel = 0; channel < block.getNumChannels(); ++channel)
+        {
+            const auto* samples = block.getReadPointer (channel);
+            for (int i = 0; i < count; ++i)
+            {
+                const double magnitude = std::abs ((double) samples[i]);
+                peak = juce::jmax (peak, magnitude);
+                sumSquares += samples[i] * (double) samples[i];
+                ++numSamples;
+            }
+        }
+    }
+
+    result.ok = true;
+    result.peak = peak;
+    result.rms = numSamples > 0 ? std::sqrt (sumSquares / (double) numSamples) : 0.0;
+    return result;
 }
 
 double dbFromLinear (double value)
@@ -870,7 +1012,61 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
     else
         params.sampleRateForAudio = 48000.0;
 
+    // VIT-309 fix B (card ruling 2, reshaped by ruling 5 after M1=RT-SILENT):
+    // shell-class plugin blacklist. Original shape (realTimeRender=true flip)
+    // presumed the shells were silent ONLY offline; this stack leg's M1
+    // measured Grand Rhapsody silent in REALTIME playback as well (Surge XT
+    // control sounds on the identical fixture), so the flip cannot rescue the
+    // render — the production default is detection + warning + reply
+    // disclosure only. The flip remains available behind
+    // VIT309_BLACKLIST_REALTIME_FALLBACK; VIT309_DISABLE_BLACKLIST bypasses
+    // detection action entirely (discrimination experiments) while keeping
+    // the detection hint logged.
+    juce::String vit309ShellName;
+    const bool vit309ShellPresent = vit309EditContainsShellClassPlugin (edit, vit309ShellName);
+    const bool vit309BlacklistBypassed = vit309EnvFlagSet ("VIT309_DISABLE_BLACKLIST");
+    // Ruling 5 contingency (M1=RT-SILENT, 2026-11-09 confirmed by this stack
+    // leg: Grand Rhapsody is silent in realtime playback too — Surge XT control
+    // sounds at -10.97 dB on the identical fixture): fix B degrades to a pure
+    // warning. The realTimeRender flip is opt-in via VIT309_BLACKLIST_REALTIME_FALLBACK
+    // (experiments / a future environment where GR plays live).
+    const bool vit309ForceRealtimeFallback = vit309EnvFlagSet ("VIT309_BLACKLIST_REALTIME_FALLBACK");
+    bool vit309RealtimeFallback = false;
+
+    if (vit309ShellPresent)
+    {
+        if (vit309BlacklistBypassed)
+        {
+            juce::Logger::writeToLog (
+                "VIT309_BLACKLIST shell_class_plugin_detected=\"" + vit309ShellName
+                + "\" action=none (VIT309_DISABLE_BLACKLIST set; offline render proceeds as-is)");
+        }
+        else if (vit309ForceRealtimeFallback)
+        {
+            params.realTimeRender = true;
+            vit309RealtimeFallback = true;
+            juce::Logger::writeToLog (
+                "WARN [VIT309_BLACKLIST] shell_class_plugin_detected=\"" + vit309ShellName
+                + "\" action=realtime_fallback (VIT309_BLACKLIST_REALTIME_FALLBACK set; offline render "
+                  "degraded to realTimeRender=true)");
+        }
+        else
+        {
+            juce::Logger::writeToLog (
+                "WARN [VIT309_BLACKLIST] shell_class_plugin_detected=\"" + vit309ShellName
+                + "\" action=warn_only (M1=RT-SILENT ruling-5 contingency: shell-class plugins were "
+                  "observed silent in REALTIME playback too (309 E1v2 vs Surge XT control), so a "
+                  "realtime re-render cannot rescue them; render proceeds offline, the form-3 silence "
+                  "self-check below still applies)");
+        }
+    }
+
     publishL2ProbeBuilding (publishMessage, probeRequest, activeJobId);
+
+    // VIT-309: snapshot the first-pass parameters for the form-3 self-check.
+    // Copied BEFORE the render call: the init-capture below must not race the
+    // move into EditRenderer::render (argument evaluation order is unspecified).
+    const auto vit309FirstPassParams = params;
 
     renderHandle = te::EditRenderer::render (
         std::move (params),
@@ -878,10 +1074,12 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
          destPath = destFile.getFullPathName(),
          destFile,
          jid = activeJobId,
-         probeRequest] (tl::expected<juce::File, std::string> res)
+         probeRequest,
+         firstPassParams = vit309FirstPassParams,
+         editPtr = &edit] (tl::expected<juce::File, std::string> res)
         {
             juce::MessageManager::callAsync (
-                [this, destPath, destFile, jid, probeRequest, res]
+                [this, destPath, destFile, jid, probeRequest, res, firstPassParams, editPtr]
                 {
                     if (jid != jobId)
                     {
@@ -921,23 +1119,141 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
                     }
                     else
                     {
-                        auto obj = std::make_unique<juce::DynamicObject>();
-                        obj->setProperty ("topic", "render");
-                        obj->setProperty ("subtopic", res.has_value() ? "render_done" : "render_failed");
-                        obj->setProperty ("job_id", jid);
-                        if (res.has_value())
+                        // Publishes the successful terminal state for this job.
+                        // VIT-309 form 3: degraded=true marks that the file is
+                        // the product of the automatic realTimeRender re-render;
+                        // render_silence_observed=true discloses that even the
+                        // terminal pass was digital silence.
+                        const auto publishDone =
+                            [this, destPath, jid] (bool degraded, const Vit309WavMetering& metering)
                         {
+                            auto obj = std::make_unique<juce::DynamicObject>();
+                            obj->setProperty ("topic", "render");
+                            obj->setProperty ("subtopic", "render_done");
+                            obj->setProperty ("job_id", jid);
                             obj->setProperty ("file_path", destPath);
                             obj->setProperty ("status", "ok");
+
+                            if (degraded)
+                                obj->setProperty ("degraded_to_realtime_render", true);
+
+                            if (metering.ok
+                                 && (metering.peak <= kVit309SilencePeakFloor
+                                     || metering.rms <= kVit309SilenceRmsFloor))
+                                obj->setProperty ("render_silence_observed", true);
+
+                            if (publishMessage)
+                                publishMessage (juce::JSON::toString (juce::var (obj.release())));
+                        };
+
+                        const auto publishFailed =
+                            [this, jid] (const juce::String& message, bool degradedAttempted)
+                        {
+                            auto obj = std::make_unique<juce::DynamicObject>();
+                            obj->setProperty ("topic", "render");
+                            obj->setProperty ("subtopic", "render_failed");
+                            obj->setProperty ("job_id", jid);
+                            obj->setProperty ("status", "error");
+                            obj->setProperty ("message", message);
+
+                            if (degradedAttempted)
+                                obj->setProperty ("degraded_to_realtime_render", true);
+
+                            if (publishMessage)
+                                publishMessage (juce::JSON::toString (juce::var (obj.release())));
+                        };
+
+                        if (res.has_value())
+                        {
+                            const auto metering = vit309MeterWavFile (destFile);
+                            const bool silent = metering.ok
+                                                  && (metering.peak <= kVit309SilencePeakFloor
+                                                      || metering.rms <= kVit309SilenceRmsFloor);
+
+                            // VIT-309 form 3 self-check (card ruling 3): an
+                            // OFFLINE pass that produced digital silence while
+                            // an enabled instrument is present triggers exactly
+                            // one automatic realTimeRender re-render under the
+                            // same job id. The degraded pass is terminal either
+                            // way (its own silence is disclosed, never retried).
+                            if (silent
+                                 && ! firstPassParams.realTimeRender
+                                 && editPtr != nullptr
+                                 && vit309EditHasEnabledInstrumentPlugin (*editPtr))
+                            {
+                                if (destFile.existsAsFile() && ! destFile.deleteFile())
+                                {
+                                    juce::Logger::writeToLog (
+                                        "WARN [VIT309_DEGRADED] render " + jid
+                                        + " was silent with an enabled instrument present, but the "
+                                          "silent product could not be cleared for the realtime "
+                                          "re-render; publishing as-is");
+                                    publishDone (false, metering);
+                                    return;
+                                }
+
+                                juce::Logger::writeToLog (
+                                    "WARN [VIT309_DEGRADED] render " + jid
+                                    + " produced digital silence with an enabled instrument present; "
+                                      "automatically re-rendering with realTimeRender=true");
+
+                                auto degradedParams = firstPassParams;
+                                degradedParams.realTimeRender = true;
+                                rendering.store (true);
+                                lastPublishedProgress = -1.0f;
+                                armRenderWatchdog (kRenderWatchdogBaseSeconds
+                                                   + (degradedParams.time.getEnd().inSeconds()
+                                                      - degradedParams.time.getStart().inSeconds()));
+
+                                renderHandle = te::EditRenderer::render (
+                                    std::move (degradedParams),
+                                    [this, destPath, destFile, jid, publishDone, publishFailed]
+                                            (tl::expected<juce::File, std::string> degradedRes)
+                                    {
+                                        juce::MessageManager::callAsync (
+                                            [this, destPath, destFile, jid, publishDone, publishFailed, degradedRes]
+                                            {
+                                                if (jid != jobId)
+                                                {
+                                                    releaseWedgedRenderHandle (jid);
+                                                    return;
+                                                }
+
+                                                rendering.store (false);
+                                                retireRenderHandleOffThread (std::move (renderHandle));
+                                                lastPublishedProgress = -1.0f;
+
+                                                if (degradedRes.has_value())
+                                                {
+                                                    const auto degradedMetering = vit309MeterWavFile (destFile);
+
+                                                    if (degradedMetering.ok
+                                                         && (degradedMetering.peak <= kVit309SilencePeakFloor
+                                                             || degradedMetering.rms <= kVit309SilenceRmsFloor))
+                                                        juce::Logger::writeToLog (
+                                                            "WARN [VIT309_RT_STILL_SILENT] render " + jid
+                                                            + ": realtime re-render is STILL digital silence "
+                                                              "(render_silence_observed=true on render_done)");
+
+                                                    publishDone (true, degradedMetering);
+                                                }
+                                                else
+                                                {
+                                                    publishFailed ("realtime re-render failed: "
+                                                                   + juce::String (degradedRes.error()),
+                                                                   true);
+                                                }
+                                            });
+                                    });
+                                return;
+                            }
+
+                            publishDone (false, metering);
                         }
                         else
                         {
-                            obj->setProperty ("status", "error");
-                            obj->setProperty ("message", juce::String (res.error()));
+                            publishFailed (juce::String (res.error()), false);
                         }
-
-                        if (publishMessage)
-                            publishMessage (juce::JSON::toString (juce::var (obj.release())));
                     }
                 });
         });
@@ -967,6 +1283,19 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
         }
         reply->setProperty ("probe_status", "building");
     }
+
+    // VIT-309: shell-class hint disclosure on the start_render reply (ruling 3
+    // hint log; blacklist_action reflects the ruling-5 contingency shape:
+    // warn_only by default, realtime_fallback only when opted in via env).
+    if (vit309ShellPresent)
+    {
+        reply->setProperty ("shell_class_plugin_hint", vit309ShellName);
+        reply->setProperty ("realtime_fallback", vit309RealtimeFallback);
+        reply->setProperty ("blacklist_action",
+                            vit309BlacklistBypassed ? "none"
+                                                     : (vit309RealtimeFallback ? "realtime_fallback" : "warn_only"));
+    }
+
     return juce::JSON::toString (juce::var (reply.release()));
 }
 

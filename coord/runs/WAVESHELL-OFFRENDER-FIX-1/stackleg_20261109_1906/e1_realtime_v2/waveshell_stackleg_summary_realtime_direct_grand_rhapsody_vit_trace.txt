@@ -1,0 +1,26 @@
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_MODE stage=external_initialise plugin="Grand Rhapsody Piano Stereo (VST3)" sr=44100.00 bs=480 isNonRealtime=0
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_MODE stage=prepareToPlay plugin="Grand Rhapsody Piano Stereo" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_MODE stage=setupProcessing plugin="Grand Rhapsody Piano Stereo" processMode=kRealtime sr=44100.00 bs=480
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_MODE stage=firstProcessAudio plugin="Grand Rhapsody Piano Stereo" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=0
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_MODE stage=external_initialise plugin="Grand Rhapsody Piano Stereo (VST3)" sr=44100.00 bs=480 isNonRealtime=0
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL tap=started interval_ms=250 clients=1
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL track=1007 name="Track 1" db_l=-100.00 db_r=-100.00
+[VitHeadlessServer2026-11-09_19-12-36.log] VIT309_RTLEVEL tap=stopped reason=transport_not_playing

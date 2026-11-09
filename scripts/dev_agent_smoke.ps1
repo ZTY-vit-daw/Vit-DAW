@@ -444,7 +444,21 @@ param(
     # VIT_EDU_LEVELS_DIR（产品级解析证明面）。
     [switch]$LegameSmoke,
     [string]$LegameMode = "dir314",
-    [string]$LegameProject = ""
+    [string]$LegameProject = "",
+    # WAVESHELL-OFFRENDER-FIX-1 (309) 栈腿：M1 实时对照 + 渲染判别/修法 B
+    # 验证（零 LLM，断言体在 scripts/waveshell_stackleg_smoke.py）。内核
+    # ZMQ 直挂或 rack 挂载（-WaveshellMountMode direct|rack），插件由
+    # -WaveshellLegPlugin 选择（grand_rhapsody|surge_xt），-WaveshellLegMode
+    # render|realtime。三个 -Vit309* 开关映射为内核进程 env（判别实验门控：
+    # RTLEVEL=实时电平 tap / C_CONSISTENCY=fix-C 原型 / DISABLE_BLACKLIST=
+    # fix-B 旁路），须与 -StartKernel 同一次调用生效。
+    [switch]$WaveshellStacklegSmoke,
+    [string]$WaveshellLegMode = "render",
+    [string]$WaveshellLegPlugin = "grand_rhapsody",
+    [string]$WaveshellMountMode = "direct",
+    [switch]$Vit309RtLevel,
+    [switch]$Vit309CConsistency,
+    [switch]$Vit309DisableBlacklist
 )
 
 Set-StrictMode -Version Latest
@@ -1387,7 +1401,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $M2HandtestPrep -or $LegameSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1592,6 +1606,34 @@ if ($LegameSmoke -and -not $ScenarioMode) {
         throw ("legame dir314 requires ~/.vit/levels pre-installed (run scripts/legame_placement.py install-levels first); missing: " + $LegameHomeLevels)
     }
     Write-Ok ("legame env: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH + " levels_dir=<unset-by-design> home_levels_present=" + (Test-Path -LiteralPath $LegameHomeLevels))
+}
+# WAVESHELL-OFFRENDER-FIX-1 (309) 栈腿：同 env-before-process-start 窗口。
+# VIT309_* 三开关映射为内核进程 env（判别实验门控），必须与 -StartKernel
+# 同一次调用传入（内核由本会话进程继承 env）；telemetry jsonl 为零 LLM
+# 证据面。腿间切换内核 env 时由 owner 亲停旧内核进程再带新 env 重启（同
+# 一占用窗口内，栈归属不变）。
+if ($WaveshellStacklegSmoke -and -not $ScenarioMode) {
+    $WaveshellTelemetryRoot = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($WaveshellTelemetryRoot)) {
+        $WaveshellTelemetryRoot = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\waveshell_stackleg_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $WaveshellTelemetryRoot -Force | Out-Null
+    $WaveshellLogsDir = Join-Path $WaveshellTelemetryRoot "logs"
+    New-Item -ItemType Directory -Path $WaveshellLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $WaveshellLogsDir "agent_llm_telemetry.jsonl")
+    if ($Vit309RtLevel) {
+        Set-Item -LiteralPath "env:VIT309_RTLEVEL" -Value "1"
+        Write-Ok ("VIT309 kernel env: VIT309_RTLEVEL=1 (realtime level tap)")
+    }
+    if ($Vit309CConsistency) {
+        Set-Item -LiteralPath "env:VIT309_C_CONSISTENCY" -Value "1"
+        Write-Ok ("VIT309 kernel env: VIT309_C_CONSISTENCY=1 (fix-C prototype)")
+    }
+    if ($Vit309DisableBlacklist) {
+        Set-Item -LiteralPath "env:VIT309_DISABLE_BLACKLIST" -Value "1"
+        Write-Ok ("VIT309 kernel env: VIT309_DISABLE_BLACKLIST=1 (fix-B bypass)")
+    }
+    Write-Ok ("waveshell stackleg telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH)
 }
 
 Write-Step "VitAgent dev smoke"
@@ -9054,6 +9096,62 @@ if ($EduTransformSmoke) {
     }
     else {
         throw ("edu transform smoke failed with exit code $eduTransformExit (console: " + $eduTransformConsolePath + ")")
+    }
+}
+
+if ($WaveshellStacklegSmoke) {
+    Write-Step ("waveshell stackleg leg (WAVESHELL-OFFRENDER-FIX-1 309, zero-LLM, mode=" + $WaveshellLegMode + "/" + $WaveshellMountMode + ", plugin=" + $WaveshellLegPlugin + ")")
+    $waveshellLegScript = Join-Path $RepoRoot "scripts\waveshell_stackleg_smoke.py"
+    if (-not (Test-Path -LiteralPath $waveshellLegScript)) {
+        throw ("waveshell stackleg script missing: " + $waveshellLegScript)
+    }
+    if ($WaveshellLegMode -ne "render" -and $WaveshellLegMode -ne "realtime") {
+        throw ("-WaveshellLegMode must be render or realtime, got: " + $WaveshellLegMode)
+    }
+    if ($WaveshellMountMode -ne "direct" -and $WaveshellMountMode -ne "rack") {
+        throw ("-WaveshellMountMode must be direct or rack, got: " + $WaveshellMountMode)
+    }
+    $waveshellLegArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($waveshellLegArtifactsDir)) {
+        $waveshellLegArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\waveshell_stackleg_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $waveshellLegArtifactsDir)) {
+        New-Item -ItemType Directory -Path $waveshellLegArtifactsDir -Force | Out-Null
+    }
+    # Project isolation: same shared GUI-leg isolation block contract
+    # ($WaveshellStacklegSmoke is in its condition list).
+    $waveshellLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if ([string]::IsNullOrWhiteSpace($waveshellLegPriorProjectXml)) {
+        throw "waveshell stackleg requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    $waveshellLegTag = $WaveshellLegMode + "_" + $WaveshellMountMode + "_" + $WaveshellLegPlugin
+    $waveshellSummaryPath = Join-Path $waveshellLegArtifactsDir ("waveshell_stackleg_summary_" + $waveshellLegTag + ".json")
+    $waveshellConsolePath = Join-Path $waveshellLegArtifactsDir ("waveshell_stackleg_console_" + $waveshellLegTag + ".txt")
+    $waveshellProjectPath = Join-Path $waveshellLegArtifactsDir ("waveshell_stackleg_fixture_" + $waveshellLegTag + ".vit")
+    $waveshellRenderPath = Join-Path $waveshellLegArtifactsDir ("waveshell_stackleg_render_" + $waveshellLegTag + ".wav")
+    $waveshellKernelLogDir = Join-Path $RepoRoot "VitApp\Workspace\Logs"
+    $waveshellExpectEnv = @()
+    if ($env:VIT309_RTLEVEL) { $waveshellExpectEnv += "VIT309_RTLEVEL" }
+    if ($env:VIT309_C_CONSISTENCY) { $waveshellExpectEnv += "VIT309_C_CONSISTENCY" }
+    if ($env:VIT309_DISABLE_BLACKLIST) { $waveshellExpectEnv += "VIT309_DISABLE_BLACKLIST" }
+    $waveshellPythonArgs = @($waveshellLegScript, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--leg-mode", $WaveshellLegMode, "--mount-mode", $WaveshellMountMode, "--plugin-select", $WaveshellLegPlugin, "--project-path", $waveshellProjectPath, "--render-path", $waveshellRenderPath, "--output", $waveshellSummaryPath, "--kernel-log-dir", $waveshellKernelLogDir, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH)
+    if ($waveshellExpectEnv.Count -gt 0) {
+        $waveshellPythonArgs += @("--expect-env", ($waveshellExpectEnv -join ","))
+    }
+    & python @waveshellPythonArgs > $waveshellConsolePath 2>&1
+    $waveshellExit = $LASTEXITCODE
+    Get-Content -LiteralPath $waveshellConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $waveshellSummaryPath)) {
+        throw ("waveshell stackleg produced no summary artifact (exit code " + $waveshellExit + "; console: " + $waveshellConsolePath + ")")
+    }
+    if ($waveshellExit -eq 0) {
+        Write-Ok ("waveshell stackleg chain complete (verdict/observation recorded in summary: " + $waveshellSummaryPath + ")")
+    }
+    elseif ($waveshellExit -eq 2) {
+        throw ("waveshell stackleg environment failure - see " + $waveshellSummaryPath)
+    }
+    else {
+        throw ("waveshell stackleg failed with exit code $waveshellExit (console: " + $waveshellConsolePath + ")")
     }
 }
 

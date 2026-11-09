@@ -12,6 +12,10 @@ namespace te = tracktion;
 
 class VitProductionCoordinator;
 
+// VIT-309 (WAVESHELL-OFFRENDER-FIX-1): realtime level tap for the M1 leg,
+// defined in the .cpp. Env-gated (VIT309_RTLEVEL), log-only.
+class Vit309RtLevelTap;
+
 class TransportAudioService final
 {
 public:
@@ -21,6 +25,7 @@ public:
     TransportAudioService (EditGetter editGetter,
                            SaveProjectAction saveProjectAction,
                            VitProductionCoordinator* productionCoordinator);
+    ~TransportAudioService();
 
     juce::String handlePlay (const juce::DynamicObject&, const juce::String&) const;
     juce::String handleStop (const juce::DynamicObject&, const juce::String&) const;
@@ -61,6 +66,9 @@ private:
     SaveProjectAction saveProject;
     VitProductionCoordinator* production = nullptr;
     mutable bool stopReturnsToZero = false;
+    // VIT-309: realtime level tap (created lazily by handlePlay when the
+    // VIT309_RTLEVEL env gate is set; self-stops when transport stops).
+    mutable std::unique_ptr<Vit309RtLevelTap> vit309RtTap;
 };
 
 } // namespace vit
