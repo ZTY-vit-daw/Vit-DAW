@@ -1,0 +1,11 @@
+record: replay_record.json
+INCOMPLETE
+Traceback (most recent call last):
+  File "D:\Vit_DAW_wt_327impl\coord\runs\FIX-GOV-INTERACTION-TTL-1\stackleg_20261109\gov_ttl_replay_driver.py", line 356, in <module>
+    raise SystemExit(main())
+                     ~~~~^^
+  File "D:\Vit_DAW_wt_327impl\coord\runs\FIX-GOV-INTERACTION-TTL-1\stackleg_20261109\gov_ttl_replay_driver.py", line 258, in main
+    authority = ensure_full_project_access(args.agent_http, args.timeout)
+  File "D:\Vit_DAW_wt_327impl\scripts\compressor_compat_matrix_smoke.py", line 78, in ensure_full_project_access
+    raise RuntimeError(f"full-project-access authority refused: {switch}")
+RuntimeError: full-project-access authority refused: {'error': 'authority mode cannot change while an Agent Turn is running', 'error_code': 'authority_mode_change_blocked', 'goal_id': 'goal_415631a3c74e7575', 'goal_status': 'waiting_clarification', 'status': 'error'}

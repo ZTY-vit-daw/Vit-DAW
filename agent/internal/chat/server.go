@@ -93,6 +93,11 @@ type Server struct {
 	conversations                      map[string][]llm.Message
 	pending                            map[string]PendingPlan
 	interactions                       map[string]PendingInteraction
+	// interactionTombstones is the bounded in-process retirement log behind the
+	// FIX-GOV-INTERACTION-TTL-1 explicit-receipt face: a repeated approve must
+	// be answerable with "already retired (when, why)" instead of the ambiguous
+	// expired catch-all. Guarded by mu.
+	interactionTombstones              map[string]retiredInteraction
 	mixSessions                        map[string]MixSession
 	goalContinuations                  map[string]agentloop.Continuation
 	durableContinuations               map[string]DurableContinuation
@@ -582,6 +587,7 @@ func New(kernelClient *kernel.Client, shadowProject *shadow.Project, logger *log
 		conversations:                    map[string][]llm.Message{},
 		pending:                          map[string]PendingPlan{},
 		interactions:                     map[string]PendingInteraction{},
+		interactionTombstones:            map[string]retiredInteraction{},
 		mixSessions:                      map[string]MixSession{},
 		goalContinuations:                map[string]agentloop.Continuation{},
 		durableContinuations:             map[string]DurableContinuation{},
@@ -4170,6 +4176,10 @@ func (s *Server) takePendingInteraction(interactionID string) (PendingInteractio
 	interaction, ok := s.interactions[interactionID]
 	if ok {
 		delete(s.interactions, interactionID)
+		// FIX-GOV-INTERACTION-TTL-1: keep a bounded retirement record so a
+		// repeated respond gets an explicit idempotent receipt ("already
+		// consumed at T") instead of the ambiguous expired catch-all.
+		s.recordInteractionRetirementLocked(interaction, "consumed")
 	}
 	return interaction, ok
 }
@@ -4528,10 +4538,47 @@ func (s *Server) handleInteractionRespond(w http.ResponseWriter, r *http.Request
 		}
 	}
 	if !ok {
+		// FIX-GOV-INTERACTION-TTL-1 fail-closed receipt: an approve that finds
+		// no answerable card must never be silently swallowed, and must never
+		// be told the goal completed (the run9 r2 shape fabricated
+		// goal_status=completed here and the driver recorded goal_completed).
+		// Distinguish "already handled" (retirement log) from "not found /
+		// lost" and state explicitly that nothing was executed.
+		if record, retired := s.retiredInteractionRecord(interactionID); retired {
+			if s.logger != nil {
+				s.logger.Warn("[interaction.respond] repeated decision for retired interaction=%s decision=%s retired_at=%s reason=%s", interactionID, decision, record.RetiredAt.Format(time.RFC3339), record.Reason)
+			}
+			writeJSON(w, http.StatusOK, ChatResponse{
+				ConversationID: interactionID,
+				Reply:          "这个交互已在此前被处理或撤销（" + firstNonEmpty(record.Reason, "consumed") + "）；本次重复的决定未执行，未产生新的修改。",
+				GoalStatus:     "",
+				StopReason:     "interaction_already_retired",
+				WorkflowData: map[string]any{
+					"interaction_id":     interactionID,
+					"status":             "already_retired",
+					"decision_executed":  false,
+					"mutation_performed": false,
+					"retired_at":         record.RetiredAt.Format(time.RFC3339),
+					"retire_reason":      record.Reason,
+				},
+			})
+			return
+		}
+		if s.logger != nil {
+			s.logger.Warn("[interaction.respond] no answerable interaction=%s decision=%s (unknown id, or lost to a workspace switch/restart)", interactionID, decision)
+		}
 		writeJSON(w, http.StatusOK, ChatResponse{
 			ConversationID: interactionID,
-			Reply:          "这个交互已处理或已过期。",
-			GoalStatus:     string(agentruntime.StatusCompleted),
+			Reply:          "未找到待处理交互 " + interactionID + "：它可能从未存在，或已随工作区切换/重启丢失；本次决定未执行，未产生任何修改，目标未因此完成。",
+			GoalStatus:     "",
+			StopReason:     "interaction_not_found",
+			WorkflowData: map[string]any{
+				"interaction_id":     interactionID,
+				"status":             "not_found",
+				"decision_executed":  false,
+				"mutation_performed": false,
+				"reason_candidates":  []string{"unknown_id", "lost_to_workspace_switch", "lost_to_restart"},
+			},
 		})
 		return
 	}
@@ -7788,7 +7835,16 @@ func (s *Server) restoreProjectAgentRuntimeStateLocked(state projectAgentRuntime
 	}
 	s.conversations = nonNilMap(state.Conversations)
 	s.pending = retireLegacyCapabilityPendingPlans(nonNilMap(state.Pending))
-	s.interactions = retireLegacyCapabilityInteractions(nonNilMap(state.Interactions))
+	// FIX-GOV-INTERACTION-TTL-1: the wholesale snapshot replace used to drop
+	// in-flight confirmation cards created after the snapshot's last persist
+	// (run9 r2: the improvement_proposal card was parked during a chat whose
+	// tail then crossed a workspace identity boundary; the approve 77ms later
+	// hit the catch-all and was silently swallowed with a fabricated
+	// goal_status=completed). Cards newer than the snapshot and absent from it
+	// survive; a newer snapshot that still lacks a card is another owner's
+	// decision and the card stays retired (the respond face answers with the
+	// explicit receipt).
+	s.interactions = retireLegacyCapabilityInteractions(preserveInFlightInteractions(s.interactions, state.Interactions, state.SavedAt))
 	s.mixSessions = nonNilMap(state.MixSessions)
 	legacyGoalContinuations := nonNilMap(state.GoalContinuations)
 	s.goalContinuations = map[string]agentloop.Continuation{}

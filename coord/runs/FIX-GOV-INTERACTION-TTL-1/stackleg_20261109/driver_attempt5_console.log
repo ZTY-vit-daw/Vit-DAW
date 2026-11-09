@@ -1,0 +1,3 @@
+FAIL no_card_parked: no_card_parked: chat parked no improvement_proposal card: {"turns": 2, "final_stop": "done", "goal_status": "completed", "first_reply": "我还在继续处理这个任务，完成后再向你汇报。", "followup_replies": ["我还在继续处理这个任务，完成后再向你汇报。", "**结论**\n这条轨的均衡重点不在\"调色\"，而在有选择地收干净低频和低中频，再把高频的呼吸感补一点回来。但我必须先说明一个关键事实：**本次没有真正写入参数**——这台 Pro-Q 3 实例只暴露了通用参数外壳（Band N Used/Enabled/Frequency/Gain/Q/Shape/Slope 这类裸参数），系统读不到可执行的频段形状拓扑（没有频段摘要、没有可写形状清单）。按工程安全规则，这种情况下我不能凭猜测去焊频段，否则可能把 Shape/Slope 写到错误的枚举上。\
+record: replay_record.json
+FAIL

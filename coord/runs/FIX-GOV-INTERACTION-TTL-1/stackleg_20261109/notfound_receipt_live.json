@@ -1,0 +1,20 @@
+{
+  "schema_version": "govttl_notfound_live.v1",
+  "captured_at": "2026-11-09T20:06:53+0800",
+  "rows": [
+    {
+      "interaction_id": "interaction_govttl_liveprobe_notfound",
+      "reply": "这个交互已处理或已过期。",
+      "goal_status": "completed",
+      "stop_reason": null,
+      "workflow_data": null
+    },
+    {
+      "interaction_id": "interaction_govttl_liveprobe_repeat",
+      "reply": "这个交互已处理或已过期。",
+      "goal_status": "completed",
+      "stop_reason": null,
+      "workflow_data": null
+    }
+  ]
+}

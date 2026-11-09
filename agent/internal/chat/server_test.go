@@ -3694,7 +3694,13 @@ func TestInteractionRespondStaleReturnsChineseChatResponse(t *testing.T) {
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(resp.Reply, "已处理或已过期") || resp.GoalStatus != string(agentruntime.StatusCompleted) {
+	// FIX-GOV-INTERACTION-TTL-1 修订断言：旧断言（已处理或已过期 +
+	// goal_status=completed）钉的正是本卡要修的 fail-open 形态——run9 r2 的
+	// 迟到 approve 被静默吞掉并伪造 goal_completed。新语义=显式回执。
+	if !strings.Contains(resp.Reply, "未找到待处理交互") || !strings.Contains(resp.Reply, "未执行") {
+		t.Fatalf("response = %+v", resp)
+	}
+	if resp.GoalStatus != "" || resp.StopReason != "interaction_not_found" {
 		t.Fatalf("response = %+v", resp)
 	}
 }

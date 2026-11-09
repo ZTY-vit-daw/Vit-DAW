@@ -1,0 +1,55 @@
+{
+  "schema_version": "gov_ttl_replay.v1",
+  "source": "gov_ttl_replay",
+  "started_at": "2026-11-09T20:02:13+0800",
+  "legs": {},
+  "env_clear": {
+    "checked": true,
+    "goal_id": "goal_415631a3c74e7575",
+    "status": "waiting_clarification",
+    "stopped": true,
+    "stop_reply_status": "ok"
+  },
+  "authority": {
+    "status": ""
+  },
+  "plugin_registry": {
+    "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+    "path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3"
+  },
+  "placement_b": {
+    "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+    "track_id": "1007",
+    "steps": {
+      "new_project": "ok",
+      "save_as": "ok",
+      "add_track": "ok"
+    }
+  },
+  "placement_a": {
+    "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit",
+    "status": "placed"
+  },
+  "settle_on_a": {
+    "target": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit",
+    "settled": false,
+    "polls": 15
+  },
+  "workspace_at_chat_start": "",
+  "park": {
+    "conversation": "gov_ttl_replay_20261109_200213",
+    "turns": 2,
+    "final_stop": "done",
+    "goal_status": "completed",
+    "first_reply": "我还在继续处理这个任务，完成后再向你汇报。",
+    "followup_replies": [
+      "我还在继续处理这个任务，完成后再向你汇报。",
+      "**结论**\n这条轨的均衡重点不在\"调色\"，而在有选择地收干净低频和低中频，再把高频的呼吸感补一点回来。但我必须先说明一个关键事实：**本次没有真正写入参数**——这台 Pro-Q 3 实例只暴露了通用参数外壳（Band N Used/Enabled/Frequency/Gain/Q/Shape/Slope 这类裸参数），系统读不到可执行的频段形状拓扑（没有频段摘要、没有可写形状清单）。按工程安全规则，这种情况下我不能凭猜测去焊频段，否则可能把 Shape/Slope 写到错误的枚举上。\n\n**证据**\n- 取自该轨片段的分段频段能量（20 秒全长、覆盖率 100%）：低频 72.5 dB、低中频 71.5 dB、中频 74.4 dB、存在感 67.7 dB、空气感 59.1 dB，说明低频端\"突出\"、中频最挤、空气感明显偏薄。\n- 来自波形与峰值分析：峰值 0 dBFS（已经贴满刻度），"
+    ],
+    "interaction_id": ""
+  },
+  "verdict": "FAIL",
+  "failure_class": "no_card_parked",
+  "failure_detail": "no_card_parked: chat parked no improvement_proposal card: {\"turns\": 2, \"final_stop\": \"done\", \"goal_status\": \"completed\", \"first_reply\": \"我还在继续处理这个任务，完成后再向你汇报。\", \"followup_replies\": [\"我还在继续处理这个任务，完成后再向你汇报。\", \"**结论**\\n这条轨的均衡重点不在\\\"调色\\\"，而在有选择地收干净低频和低中频，再把高频的呼吸感补一点回来。但我必须先说明一个关键事实：**本次没有真正写入参数**——这台 Pro-Q 3 实例只暴露了通用参数外壳（Band N Used/Enabled/Frequency/Gain/Q/Shape/Slope 这类裸参数），系统读不到可执行的频段形状拓扑（没有频段摘要、没有可写形状清单）。按工程安全规则，这种情况下我不能凭猜测去焊频段，否则可能把 Shape/Slope 写到错误的枚举上。\\",
+  "finished_at": "2026-11-09T20:04:49+0800"
+}

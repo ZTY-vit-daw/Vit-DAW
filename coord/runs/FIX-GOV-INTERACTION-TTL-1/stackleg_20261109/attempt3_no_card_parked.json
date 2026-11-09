@@ -1,0 +1,43 @@
+{
+  "schema_version": "gov_ttl_replay.v1",
+  "source": "gov_ttl_replay",
+  "started_at": "2026-11-09T19:57:53+0800",
+  "legs": {},
+  "authority": {
+    "status": ""
+  },
+  "plugin_registry": {
+    "identifier": "VST3-Pro-Q 3-a1aba170-ba5f7ab2",
+    "path": "C:\\Program Files\\Common Files\\VST3\\FabFilter\\FabFilter Pro-Q 3.vst3"
+  },
+  "placement_b": {
+    "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_195753.vit",
+    "track_id": "1007",
+    "steps": {
+      "new_project": "ok",
+      "save_as": "ok",
+      "add_track": "ok"
+    }
+  },
+  "placement_a": {
+    "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit",
+    "status": "placed"
+  },
+  "settle_on_a": {
+    "target": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit",
+    "settled": false,
+    "polls": 15
+  },
+  "workspace_at_chat_start": "",
+  "park": {
+    "conversation": "gov_ttl_replay_20261109_195753",
+    "turns": 3,
+    "final_stop": "semantic_entry_unresolved",
+    "goal_status": "waiting_clarification",
+    "interaction_id": ""
+  },
+  "verdict": "FAIL",
+  "failure_class": "no_card_parked",
+  "failure_detail": "no_card_parked: chat parked no improvement_proposal card: {\"turns\": 3, \"final_stop\": \"semantic_entry_unresolved\", \"goal_status\": \"waiting_clarification\", \"interaction_id\": \"\"}",
+  "finished_at": "2026-11-09T20:00:06+0800"
+}

@@ -1,0 +1,3 @@
+FAIL no_card_parked: no_card_parked: chat parked no improvement_proposal card: {"turns": 3, "final_stop": "semantic_entry_unresolved", "goal_status": "waiting_clarification", "interaction_id": ""}
+record: replay_record.json
+FAIL

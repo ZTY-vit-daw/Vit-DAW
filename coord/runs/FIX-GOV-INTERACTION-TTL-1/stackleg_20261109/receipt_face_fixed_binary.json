@@ -1,0 +1,1260 @@
+{
+  "schema_version": "govttl_receipt_face_fixed.v1",
+  "captured_at": "2026-11-09T20:08:40+0800",
+  "agent_pid": 27876,
+  "rows": {
+    "consume": {
+      "acoustic_package_status": null,
+      "acoustic_package_status_path": "",
+      "agent_mode": "default",
+      "agent_plan": null,
+      "artifacts": null,
+      "completed_steps": 0,
+      "confirmed_plan_id": "plan_edf0c0bb35f18ef9",
+      "conversation_id": "dev_strip_silence_chat_20261109_200748",
+      "current_step": "apply confirmed Strip Silence preview",
+      "error": "",
+      "executed_kernel_reply": [
+        {
+          "agent_action_id": "act_e85d570753c5c9bc",
+          "command_name": "clip.strip_silence.suggest",
+          "result": {
+            "analysis": {
+              "analysis_count": 1,
+              "analysis_failed_clip_count": 0,
+              "analysis_preview": [
+                {
+                  "analysis_id": "strip_silence_1017_1.81633e+08",
+                  "clip_id": "1017",
+                  "keep_segment_count": 2,
+                  "strip_region_count": 3,
+                  "threshold_dbfs": -60,
+                  "track_id": "1007",
+                  "would_remove_entire_clip": false
+                }
+              ],
+              "analyzed_seconds": 2.2,
+              "keep_segment_count": 2,
+              "no_cleanup_needed_clip_count": 0,
+              "strip_ratio": 0.6455,
+              "strip_region_count": 3,
+              "strip_seconds": 1.42,
+              "threshold_dbfs": -60,
+              "would_remove_entire_clip": false
+            },
+            "analysis_failed_clip_count": 0,
+            "analyzed_clip_count": 1,
+            "candidate_results": [
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 90,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -60,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 89.7,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -54,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 89.4,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -48,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 89.1,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -42,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 88.8,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -36,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              }
+            ],
+            "confidence": "high",
+            "confidence_score": 1,
+            "message": "Strip Silence suggestion ready",
+            "no_cleanup_needed_clip_count": 0,
+            "pending_action_count": 2,
+            "pending_action_preview": [
+              {
+                "analysis_id": "strip_silence_1017_1.81633e+08",
+                "clip_id": "1017",
+                "strip_region_count": 3,
+                "tool_name": "clip.strip_silence.apply",
+                "track_id": "1007"
+              },
+              {
+                "analysis_id": "strip_silence_1017_1.81633e+08",
+                "clip_id": "1017",
+                "strip_region_count": 3,
+                "tool_name": "clip.strip_silence.apply",
+                "track_id": "1007"
+              }
+            ],
+            "pending_action_summary": {
+              "action_count": 1,
+              "no_cleanup_needed_clip_count": 0,
+              "requires_user_confirm": true,
+              "strip_region_count": 3,
+              "tool_name": "clip.strip_silence.apply"
+            },
+            "pending_confirmation": true,
+            "reasoning": [
+              "Chose -60.0 dBFS from a threshold sweep because it produced 3 strip region(s) while preserving 2 keep segment(s).",
+              "Estimated removal is 1.420s of 2.200s analyzed time (64.5%).",
+              "Apply action is built only from strip_regions returned by clip.strip_silence.analyze."
+            ],
+            "recommended_params": {
+              "analysis_frame_ms": 10,
+              "clip_end_pad_ms": 50,
+              "clip_start_pad_ms": 15,
+              "estimated_gate_dbfs": -60,
+              "min_silence_ms": 120,
+              "noise_floor_method": "inferred_from_threshold_sweep",
+              "selection_strategy": "multi_threshold_kernel_analyze",
+              "threshold_dbfs": -60
+            },
+            "risk_level": "confirm",
+            "risks": [
+              "Preview before applying; transient breaths, room tails, or soft note attacks may need a lower threshold or longer pads."
+            ],
+            "schema_version": "clip.strip_silence.suggest.v0",
+            "scope": "selected_clip",
+            "status": "ok",
+            "target_count": 1
+          },
+          "status": "ok",
+          "tool": "clip.strip_silence.suggest",
+          "tool_call_id": "suggest_strip_silence"
+        }
+      ],
+      "goal_id": "goal_f69fa27744540461",
+      "goal_status": "waiting_confirmation",
+      "goal_summary": "suggest strip silence cleanup parameters for the current selected audio clip and estimate threshold",
+      "interaction_id": "interaction_f212f88d209c5111",
+      "interaction_requests": [
+        {
+          "id": "interaction_4d9fc1682cc049d7",
+          "kind": "confirmation",
+          "source": "vit_agent",
+          "stage": "waiting_for_user",
+          "title": "需要确认",
+          "body": "这个操作需要你确认后才会执行。",
+          "status": "waiting_for_user",
+          "conversation_id": "dev_strip_silence_chat_20261109_200748",
+          "goal_id": "goal_f69fa27744540461",
+          "run_id": "run_d2399c8de1ceaa4c",
+          "payload": {
+            "commands": [
+              {
+                "command": {
+                  "allow_remove_entire_clip": false,
+                  "analysis_id": "strip_silence_1017_1.81633e+08",
+                  "clip_id": "1017",
+                  "cmd": "clip.strip_silence.apply",
+                  "tool": "clip.strip_silence.apply",
+                  "track_id": "1007"
+                },
+                "name": "clip.strip_silence.apply",
+                "risk": "confirm",
+                "reason": "该命令需要先预览并确认"
+              }
+            ],
+            "plan_id": "plan_19c4b12942e517b6",
+            "preview": "",
+            "typed_event": {
+              "event_type": "ApprovalRequest",
+              "schema_version": "vit_agent_protocol.v0",
+              "source": {
+                "call_id": "plan_19c4b12942e517b6",
+                "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                "goal_id": "goal_f69fa27744540461",
+                "legacy_kind": "confirmation_plan",
+                "run_id": "run_d2399c8de1ceaa4c"
+              },
+              "state": {
+                "available_decisions": [
+                  "approve_once",
+                  "deny"
+                ],
+                "id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                "kind": "ApprovalRequest",
+                "operation": "commit",
+                "reason": "这个操作需要你确认后才会执行。",
+                "resource_domain": "project.commit",
+                "scope": "single_call",
+                "source": {
+                  "call_id": "plan_19c4b12942e517b6",
+                  "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                  "goal_id": "goal_f69fa27744540461",
+                  "legacy_kind": "confirmation_plan",
+                  "run_id": "run_d2399c8de1ceaa4c"
+                },
+                "status": "waiting_user",
+                "target_ref": "track:1007"
+              },
+              "state_id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+              "state_kind": "ApprovalRequest",
+              "status": "waiting_user"
+            },
+            "typed_state": {
+              "available_decisions": [
+                "approve_once",
+                "deny"
+              ],
+              "id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+              "kind": "ApprovalRequest",
+              "operation": "commit",
+              "reason": "这个操作需要你确认后才会执行。",
+              "resource_domain": "project.commit",
+              "scope": "single_call",
+              "source": {
+                "call_id": "plan_19c4b12942e517b6",
+                "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                "goal_id": "goal_f69fa27744540461",
+                "legacy_kind": "confirmation_plan",
+                "run_id": "run_d2399c8de1ceaa4c"
+              },
+              "status": "waiting_user",
+              "target_ref": "track:1007"
+            }
+          },
+          "actions": [
+            {
+              "id": "approve",
+              "label": "确认执行",
+              "style": "primary",
+              "recommended": true
+            },
+            {
+              "id": "cancel",
+              "label": "取消",
+              "style": "secondary"
+            }
+          ],
+          "plan_id": "plan_19c4b12942e517b6",
+          "type": "confirmation",
+          "data": {
+            "commands": [
+              {
+                "command": {
+                  "allow_remove_entire_clip": false,
+                  "analysis_id": "strip_silence_1017_1.81633e+08",
+                  "clip_id": "1017",
+                  "cmd": "clip.strip_silence.apply",
+                  "tool": "clip.strip_silence.apply",
+                  "track_id": "1007"
+                },
+                "name": "clip.strip_silence.apply",
+                "risk": "confirm",
+                "reason": "该命令需要先预览并确认"
+              }
+            ],
+            "plan_id": "plan_19c4b12942e517b6",
+            "preview": "",
+            "typed_event": {
+              "event_type": "ApprovalRequest",
+              "schema_version": "vit_agent_protocol.v0",
+              "source": {
+                "call_id": "plan_19c4b12942e517b6",
+                "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                "goal_id": "goal_f69fa27744540461",
+                "legacy_kind": "confirmation_plan",
+                "run_id": "run_d2399c8de1ceaa4c"
+              },
+              "state": {
+                "available_decisions": [
+                  "approve_once",
+                  "deny"
+                ],
+                "id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                "kind": "ApprovalRequest",
+                "operation": "commit",
+                "reason": "这个操作需要你确认后才会执行。",
+                "resource_domain": "project.commit",
+                "scope": "single_call",
+                "source": {
+                  "call_id": "plan_19c4b12942e517b6",
+                  "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                  "goal_id": "goal_f69fa27744540461",
+                  "legacy_kind": "confirmation_plan",
+                  "run_id": "run_d2399c8de1ceaa4c"
+                },
+                "status": "waiting_user",
+                "target_ref": "track:1007"
+              },
+              "state_id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+              "state_kind": "ApprovalRequest",
+              "status": "waiting_user"
+            },
+            "typed_state": {
+              "available_decisions": [
+                "approve_once",
+                "deny"
+              ],
+              "id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+              "kind": "ApprovalRequest",
+              "operation": "commit",
+              "reason": "这个操作需要你确认后才会执行。",
+              "resource_domain": "project.commit",
+              "scope": "single_call",
+              "source": {
+                "call_id": "plan_19c4b12942e517b6",
+                "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                "goal_id": "goal_f69fa27744540461",
+                "legacy_kind": "confirmation_plan",
+                "run_id": "run_d2399c8de1ceaa4c"
+              },
+              "status": "waiting_user",
+              "target_ref": "track:1007"
+            }
+          }
+        }
+      ],
+      "lifecycle": "durable",
+      "limit_type": "",
+      "logical_message_id": "n_20261109T120840_7bdc3e50",
+      "message": "这个操作需要你确认后才会执行。",
+      "message_kind": "proposal",
+      "needs_confirmation": true,
+      "next_plan_id": "plan_19c4b12942e517b6",
+      "persistence": "project_history",
+      "plan_id": "plan_19c4b12942e517b6",
+      "preview": "",
+      "project_history": {
+        "active_branch": "main",
+        "active_node_id": "n_20261109T120840_7bdc3e50",
+        "active_worktree": "",
+        "available": true,
+        "branches": {
+          "main": "c_20261109T120800_add15ac1"
+        },
+        "commit_count": 3,
+        "conversation_graph": {
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+          "project_uuid": "vitproj_9630d7d35d974c3c9133607e46347b8b",
+          "active_node_id": "n_20261109T120840_7bdc3e50",
+          "active_branch": "main",
+          "nodes": [
+            {
+              "id": "n_20261109T120746_073895f8",
+              "kind": "ask",
+              "commit_id": "c_20261109T120746_12a979f1",
+              "branch": "main",
+              "text": "/smoke range_context",
+              "text_preview": "/smoke range_context",
+              "goal_id": "goal_b30f1e66e75770ee",
+              "run_id": "run_43fba04356f3d342",
+              "lifecycle": "durable",
+              "persistence": "project_history",
+              "message_kind": "user",
+              "turn_id": "run_43fba04356f3d342",
+              "logical_message_id": "n_20261109T120746_073895f8",
+              "created_at": "2026-11-09T12:07:46.3037074Z"
+            },
+            {
+              "id": "n_20261109T120746_8b4392d9",
+              "kind": "vit",
+              "commit_id": "c_20261109T120746_93c87b62",
+              "parent_node_id": "n_20261109T120746_073895f8",
+              "branch": "main",
+              "text": "range_context smoke ok: top_level, current_selection, ui_context, prompt_context",
+              "text_preview": "range_context smoke ok: top_level, current_selection, ui_context, prompt_context",
+              "goal_id": "goal_b30f1e66e75770ee",
+              "run_id": "run_43fba04356f3d342",
+              "lifecycle": "durable",
+              "persistence": "project_history",
+              "message_kind": "assistant",
+              "turn_id": "run_43fba04356f3d342",
+              "logical_message_id": "n_20261109T120746_8b4392d9",
+              "created_at": "2026-11-09T12:07:46.8523459Z"
+            },
+            {
+              "id": "n_20261109T120748_b4bd304a",
+              "kind": "ask",
+              "commit_id": "c_20261109T120746_93c87b62",
+              "parent_node_id": "n_20261109T120746_8b4392d9",
+              "branch": "main",
+              "text": "suggest strip silence cleanup parameters for the current selected audio clip and estimate threshold",
+              "text_preview": "suggest strip silence cleanup parameters for the current selected audio clip and estimate threshold",
+              "goal_id": "goal_f69fa27744540461",
+              "run_id": "run_d2399c8de1ceaa4c",
+              "lifecycle": "durable",
+              "persistence": "project_history",
+              "message_kind": "user",
+              "turn_id": "run_d2399c8de1ceaa4c",
+              "logical_message_id": "n_20261109T120748_b4bd304a",
+              "created_at": "2026-11-09T12:07:48.1948746Z"
+            },
+            {
+              "id": "n_20261109T120800_0975d161",
+              "kind": "vit",
+              "commit_id": "c_20261109T120800_add15ac1",
+              "parent_node_id": "n_20261109T120748_b4bd304a",
+              "branch": "main",
+              "text": "这个操作需要你确认后才会执行。",
+              "text_preview": "这个操作需要你确认后才会执行。",
+              "message_data": {
+                "interaction_requests": [
+                  {
+                    "actions": [
+                      {
+                        "id": "approve",
+                        "label": "确认执行",
+                        "recommended": true,
+                        "style": "primary"
+                      },
+                      {
+                        "id": "cancel",
+                        "label": "取消",
+                        "style": "secondary"
+                      }
+                    ],
+                    "body": "这个操作需要你确认后才会执行。",
+                    "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                    "data": {
+                      "commands": [
+                        {
+                          "command": {
+                            "allow_remove_entire_clip": false,
+                            "analysis_id": "strip_silence_1017_1.81593e+08",
+                            "clip_id": "1017",
+                            "cmd": "clip.strip_silence.apply",
+                            "tool": "clip.strip_silence.apply",
+                            "track_id": "1007"
+                          },
+                          "name": "clip.strip_silence.apply",
+                          "reason": "该命令需要先预览并确认",
+                          "risk": "confirm"
+                        }
+                      ],
+                      "plan_id": "plan_fd016b91caa069ba",
+                      "preview": "",
+                      "typed_event": {
+                        "event_type": "ApprovalRequest",
+                        "schema_version": "vit_agent_protocol.v0",
+                        "source": {
+                          "call_id": "plan_fd016b91caa069ba",
+                          "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                          "goal_id": "goal_f69fa27744540461",
+                          "legacy_kind": "confirmation_plan",
+                          "run_id": "run_d2399c8de1ceaa4c"
+                        },
+                        "state": {
+                          "available_decisions": [
+                            "approve_once",
+                            "deny"
+                          ],
+                          "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                          "kind": "ApprovalRequest",
+                          "operation": "commit",
+                          "reason": "这个操作需要你确认后才会执行。",
+                          "resource_domain": "project.commit",
+                          "scope": "single_call",
+                          "source": {
+                            "call_id": "plan_fd016b91caa069ba",
+                            "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                            "goal_id": "goal_f69fa27744540461",
+                            "legacy_kind": "confirmation_plan",
+                            "run_id": "run_d2399c8de1ceaa4c"
+                          },
+                          "status": "waiting_user",
+                          "target_ref": "track:1007"
+                        },
+                        "state_id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                        "state_kind": "ApprovalRequest",
+                        "status": "waiting_user"
+                      },
+                      "typed_state": {
+                        "available_decisions": [
+                          "approve_once",
+                          "deny"
+                        ],
+                        "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                        "kind": "ApprovalRequest",
+                        "operation": "commit",
+                        "reason": "这个操作需要你确认后才会执行。",
+                        "resource_domain": "project.commit",
+                        "scope": "single_call",
+                        "source": {
+                          "call_id": "plan_fd016b91caa069ba",
+                          "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                          "goal_id": "goal_f69fa27744540461",
+                          "legacy_kind": "confirmation_plan",
+                          "run_id": "run_d2399c8de1ceaa4c"
+                        },
+                        "status": "waiting_user",
+                        "target_ref": "track:1007"
+                      }
+                    },
+                    "goal_id": "goal_f69fa27744540461",
+                    "id": "interaction_e83dc189d20eaa3c",
+                    "kind": "confirmation",
+                    "payload": {
+                      "commands": [
+                        {
+                          "command": {
+                            "allow_remove_entire_clip": false,
+                            "analysis_id": "strip_silence_1017_1.81593e+08",
+                            "clip_id": "1017",
+                            "cmd": "clip.strip_silence.apply",
+                            "tool": "clip.strip_silence.apply",
+                            "track_id": "1007"
+                          },
+                          "name": "clip.strip_silence.apply",
+                          "reason": "该命令需要先预览并确认",
+                          "risk": "confirm"
+                        }
+                      ],
+                      "plan_id": "plan_fd016b91caa069ba",
+                      "preview": "",
+                      "typed_event": {
+                        "event_type": "ApprovalRequest",
+                        "schema_version": "vit_agent_protocol.v0",
+                        "source": {
+                          "call_id": "plan_fd016b91caa069ba",
+                          "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                          "goal_id": "goal_f69fa27744540461",
+                          "legacy_kind": "confirmation_plan",
+                          "run_id": "run_d2399c8de1ceaa4c"
+                        },
+                        "state": {
+                          "available_decisions": [
+                            "approve_once",
+                            "deny"
+                          ],
+                          "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                          "kind": "ApprovalRequest",
+                          "operation": "commit",
+                          "reason": "这个操作需要你确认后才会执行。",
+                          "resource_domain": "project.commit",
+                          "scope": "single_call",
+                          "source": {
+                            "call_id": "plan_fd016b91caa069ba",
+                            "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                            "goal_id": "goal_f69fa27744540461",
+                            "legacy_kind": "confirmation_plan",
+                            "run_id": "run_d2399c8de1ceaa4c"
+                          },
+                          "status": "waiting_user",
+                          "target_ref": "track:1007"
+                        },
+                        "state_id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                        "state_kind": "ApprovalRequest",
+                        "status": "waiting_user"
+                      },
+                      "typed_state": {
+                        "available_decisions": [
+                          "approve_once",
+                          "deny"
+                        ],
+                        "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                        "kind": "ApprovalRequest",
+                        "operation": "commit",
+                        "reason": "这个操作需要你确认后才会执行。",
+                        "resource_domain": "project.commit",
+                        "scope": "single_call",
+                        "source": {
+                          "call_id": "plan_fd016b91caa069ba",
+                          "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                          "goal_id": "goal_f69fa27744540461",
+                          "legacy_kind": "confirmation_plan",
+                          "run_id": "run_d2399c8de1ceaa4c"
+                        },
+                        "status": "waiting_user",
+                        "target_ref": "track:1007"
+                      }
+                    },
+                    "plan_id": "plan_fd016b91caa069ba",
+                    "run_id": "run_d2399c8de1ceaa4c",
+                    "source": "vit_agent",
+                    "stage": "waiting_for_user",
+                    "status": "waiting_for_user",
+                    "title": "需要确认",
+                    "type": "confirmation"
+                  }
+                ],
+                "needs_confirmation": true,
+                "plan_id": "plan_fd016b91caa069ba",
+                "preview": "",
+                "schema_version": "vit.message_data.v1",
+                "workflow": ""
+              },
+              "goal_id": "goal_f69fa27744540461",
+              "run_id": "run_d2399c8de1ceaa4c",
+              "lifecycle": "durable",
+              "persistence": "project_history",
+              "message_kind": "proposal",
+              "turn_id": "turn_d0817f2d5545e2dc",
+              "logical_message_id": "n_20261109T120800_0975d161",
+              "created_at": "2026-11-09T12:08:00.7635862Z"
+            },
+            {
+              "id": "n_20261109T120800_2e1b09ce",
+              "kind": "vit",
+              "commit_id": "c_20261109T120800_add15ac1",
+              "parent_node_id": "n_20261109T120800_0975d161",
+              "branch": "main",
+              "text": "这个操作需要你确认后才会执行。",
+              "text_preview": "这个操作需要你确认后才会执行。",
+              "message_data": {
+                "needs_confirmation": true,
+                "plan_id": "plan_edf0c0bb35f18ef9",
+                "preview": "",
+                "schema_version": "vit.message_data.v1",
+                "workflow": ""
+              },
+              "goal_id": "goal_f69fa27744540461",
+              "run_id": "run_d2399c8de1ceaa4c",
+              "lifecycle": "durable",
+              "persistence": "project_history",
+              "message_kind": "proposal",
+              "turn_id": "turn_bcbafcbeb3d26c8b",
+              "logical_message_id": "n_20261109T120800_2e1b09ce",
+              "created_at": "2026-11-09T12:08:00.9290295Z"
+            },
+            {
+              "id": "n_20261109T120840_7bdc3e50",
+              "kind": "vit",
+              "commit_id": "c_20261109T120800_add15ac1",
+              "parent_node_id": "n_20261109T120800_2e1b09ce",
+              "branch": "main",
+              "text": "这个操作需要你确认后才会执行。",
+              "text_preview": "这个操作需要你确认后才会执行。",
+              "message_data": {
+                "needs_confirmation": true,
+                "plan_id": "plan_19c4b12942e517b6",
+                "preview": "",
+                "schema_version": "vit.message_data.v1",
+                "workflow": ""
+              },
+              "goal_id": "goal_f69fa27744540461",
+              "run_id": "run_d2399c8de1ceaa4c",
+              "lifecycle": "durable",
+              "persistence": "project_history",
+              "message_kind": "proposal",
+              "turn_id": "turn_7df541052dfd8679",
+              "logical_message_id": "n_20261109T120840_7bdc3e50",
+              "created_at": "2026-11-09T12:08:40.7406034Z"
+            }
+          ]
+        },
+        "conversation_messages": [
+          {
+            "role": "user",
+            "content": "/smoke range_context",
+            "node_id": "n_20261109T120746_073895f8",
+            "commit_id": "c_20261109T120746_12a979f1",
+            "branch": "main",
+            "lifecycle": "durable",
+            "persistence": "project_history",
+            "message_kind": "user",
+            "turn_id": "run_43fba04356f3d342",
+            "logical_message_id": "n_20261109T120746_073895f8",
+            "created_at": "2026-11-09T12:07:46.3037074Z"
+          },
+          {
+            "role": "assistant",
+            "content": "range_context smoke ok: top_level, current_selection, ui_context, prompt_context",
+            "node_id": "n_20261109T120746_8b4392d9",
+            "commit_id": "c_20261109T120746_93c87b62",
+            "branch": "main",
+            "lifecycle": "durable",
+            "persistence": "project_history",
+            "message_kind": "assistant",
+            "turn_id": "run_43fba04356f3d342",
+            "logical_message_id": "n_20261109T120746_8b4392d9",
+            "created_at": "2026-11-09T12:07:46.8523459Z"
+          },
+          {
+            "role": "user",
+            "content": "suggest strip silence cleanup parameters for the current selected audio clip and estimate threshold",
+            "node_id": "n_20261109T120748_b4bd304a",
+            "commit_id": "c_20261109T120746_93c87b62",
+            "branch": "main",
+            "lifecycle": "durable",
+            "persistence": "project_history",
+            "message_kind": "user",
+            "turn_id": "run_d2399c8de1ceaa4c",
+            "logical_message_id": "n_20261109T120748_b4bd304a",
+            "created_at": "2026-11-09T12:07:48.1948746Z"
+          },
+          {
+            "role": "assistant",
+            "content": "这个操作需要你确认后才会执行。",
+            "node_id": "n_20261109T120800_0975d161",
+            "commit_id": "c_20261109T120800_add15ac1",
+            "branch": "main",
+            "message_data": {
+              "interaction_requests": [
+                {
+                  "actions": [
+                    {
+                      "id": "approve",
+                      "label": "确认执行",
+                      "recommended": true,
+                      "style": "primary"
+                    },
+                    {
+                      "id": "cancel",
+                      "label": "取消",
+                      "style": "secondary"
+                    }
+                  ],
+                  "body": "这个操作需要你确认后才会执行。",
+                  "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                  "data": {
+                    "commands": [
+                      {
+                        "command": {
+                          "allow_remove_entire_clip": false,
+                          "analysis_id": "strip_silence_1017_1.81593e+08",
+                          "clip_id": "1017",
+                          "cmd": "clip.strip_silence.apply",
+                          "tool": "clip.strip_silence.apply",
+                          "track_id": "1007"
+                        },
+                        "name": "clip.strip_silence.apply",
+                        "reason": "该命令需要先预览并确认",
+                        "risk": "confirm"
+                      }
+                    ],
+                    "plan_id": "plan_fd016b91caa069ba",
+                    "preview": "",
+                    "typed_event": {
+                      "event_type": "ApprovalRequest",
+                      "schema_version": "vit_agent_protocol.v0",
+                      "source": {
+                        "call_id": "plan_fd016b91caa069ba",
+                        "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                        "goal_id": "goal_f69fa27744540461",
+                        "legacy_kind": "confirmation_plan",
+                        "run_id": "run_d2399c8de1ceaa4c"
+                      },
+                      "state": {
+                        "available_decisions": [
+                          "approve_once",
+                          "deny"
+                        ],
+                        "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                        "kind": "ApprovalRequest",
+                        "operation": "commit",
+                        "reason": "这个操作需要你确认后才会执行。",
+                        "resource_domain": "project.commit",
+                        "scope": "single_call",
+                        "source": {
+                          "call_id": "plan_fd016b91caa069ba",
+                          "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                          "goal_id": "goal_f69fa27744540461",
+                          "legacy_kind": "confirmation_plan",
+                          "run_id": "run_d2399c8de1ceaa4c"
+                        },
+                        "status": "waiting_user",
+                        "target_ref": "track:1007"
+                      },
+                      "state_id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                      "state_kind": "ApprovalRequest",
+                      "status": "waiting_user"
+                    },
+                    "typed_state": {
+                      "available_decisions": [
+                        "approve_once",
+                        "deny"
+                      ],
+                      "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                      "kind": "ApprovalRequest",
+                      "operation": "commit",
+                      "reason": "这个操作需要你确认后才会执行。",
+                      "resource_domain": "project.commit",
+                      "scope": "single_call",
+                      "source": {
+                        "call_id": "plan_fd016b91caa069ba",
+                        "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                        "goal_id": "goal_f69fa27744540461",
+                        "legacy_kind": "confirmation_plan",
+                        "run_id": "run_d2399c8de1ceaa4c"
+                      },
+                      "status": "waiting_user",
+                      "target_ref": "track:1007"
+                    }
+                  },
+                  "goal_id": "goal_f69fa27744540461",
+                  "id": "interaction_e83dc189d20eaa3c",
+                  "kind": "confirmation",
+                  "payload": {
+                    "commands": [
+                      {
+                        "command": {
+                          "allow_remove_entire_clip": false,
+                          "analysis_id": "strip_silence_1017_1.81593e+08",
+                          "clip_id": "1017",
+                          "cmd": "clip.strip_silence.apply",
+                          "tool": "clip.strip_silence.apply",
+                          "track_id": "1007"
+                        },
+                        "name": "clip.strip_silence.apply",
+                        "reason": "该命令需要先预览并确认",
+                        "risk": "confirm"
+                      }
+                    ],
+                    "plan_id": "plan_fd016b91caa069ba",
+                    "preview": "",
+                    "typed_event": {
+                      "event_type": "ApprovalRequest",
+                      "schema_version": "vit_agent_protocol.v0",
+                      "source": {
+                        "call_id": "plan_fd016b91caa069ba",
+                        "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                        "goal_id": "goal_f69fa27744540461",
+                        "legacy_kind": "confirmation_plan",
+                        "run_id": "run_d2399c8de1ceaa4c"
+                      },
+                      "state": {
+                        "available_decisions": [
+                          "approve_once",
+                          "deny"
+                        ],
+                        "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                        "kind": "ApprovalRequest",
+                        "operation": "commit",
+                        "reason": "这个操作需要你确认后才会执行。",
+                        "resource_domain": "project.commit",
+                        "scope": "single_call",
+                        "source": {
+                          "call_id": "plan_fd016b91caa069ba",
+                          "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                          "goal_id": "goal_f69fa27744540461",
+                          "legacy_kind": "confirmation_plan",
+                          "run_id": "run_d2399c8de1ceaa4c"
+                        },
+                        "status": "waiting_user",
+                        "target_ref": "track:1007"
+                      },
+                      "state_id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                      "state_kind": "ApprovalRequest",
+                      "status": "waiting_user"
+                    },
+                    "typed_state": {
+                      "available_decisions": [
+                        "approve_once",
+                        "deny"
+                      ],
+                      "id": "approval_plan_fd016b91caa069ba_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+                      "kind": "ApprovalRequest",
+                      "operation": "commit",
+                      "reason": "这个操作需要你确认后才会执行。",
+                      "resource_domain": "project.commit",
+                      "scope": "single_call",
+                      "source": {
+                        "call_id": "plan_fd016b91caa069ba",
+                        "conversation_id": "dev_strip_silence_chat_20261109_200748",
+                        "goal_id": "goal_f69fa27744540461",
+                        "legacy_kind": "confirmation_plan",
+                        "run_id": "run_d2399c8de1ceaa4c"
+                      },
+                      "status": "waiting_user",
+                      "target_ref": "track:1007"
+                    }
+                  },
+                  "plan_id": "plan_fd016b91caa069ba",
+                  "run_id": "run_d2399c8de1ceaa4c",
+                  "source": "vit_agent",
+                  "stage": "waiting_for_user",
+                  "status": "waiting_for_user",
+                  "title": "需要确认",
+                  "type": "confirmation"
+                }
+              ],
+              "needs_confirmation": true,
+              "plan_id": "plan_fd016b91caa069ba",
+              "preview": "",
+              "schema_version": "vit.message_data.v1",
+              "workflow": ""
+            },
+            "lifecycle": "durable",
+            "persistence": "project_history",
+            "message_kind": "proposal",
+            "turn_id": "turn_d0817f2d5545e2dc",
+            "logical_message_id": "n_20261109T120800_0975d161",
+            "created_at": "2026-11-09T12:08:00.7635862Z"
+          },
+          {
+            "role": "assistant",
+            "content": "这个操作需要你确认后才会执行。",
+            "node_id": "n_20261109T120800_2e1b09ce",
+            "commit_id": "c_20261109T120800_add15ac1",
+            "branch": "main",
+            "message_data": {
+              "needs_confirmation": true,
+              "plan_id": "plan_edf0c0bb35f18ef9",
+              "preview": "",
+              "schema_version": "vit.message_data.v1",
+              "workflow": ""
+            },
+            "lifecycle": "durable",
+            "persistence": "project_history",
+            "message_kind": "proposal",
+            "turn_id": "turn_bcbafcbeb3d26c8b",
+            "logical_message_id": "n_20261109T120800_2e1b09ce",
+            "created_at": "2026-11-09T12:08:00.9290295Z"
+          },
+          {
+            "role": "assistant",
+            "content": "这个操作需要你确认后才会执行。",
+            "node_id": "n_20261109T120840_7bdc3e50",
+            "commit_id": "c_20261109T120800_add15ac1",
+            "branch": "main",
+            "message_data": {
+              "needs_confirmation": true,
+              "plan_id": "plan_19c4b12942e517b6",
+              "preview": "",
+              "schema_version": "vit.message_data.v1",
+              "workflow": ""
+            },
+            "lifecycle": "durable",
+            "persistence": "project_history",
+            "message_kind": "proposal",
+            "turn_id": "turn_7df541052dfd8679",
+            "logical_message_id": "n_20261109T120840_7bdc3e50",
+            "created_at": "2026-11-09T12:08:40.7406034Z"
+          }
+        ],
+        "detached": false,
+        "draft": false,
+        "head": "c_20261109T120800_add15ac1",
+        "history_dir": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\.vit_history\\.sessions\\vitproj_9630d7d35d974c3c9133607e46347b8b\\session_20261109T120745_804984bc\\workspace",
+        "initialized": true,
+        "node": {
+          "id": "n_20261109T120840_7bdc3e50",
+          "kind": "vit",
+          "commit_id": "c_20261109T120800_add15ac1",
+          "parent_node_id": "n_20261109T120800_2e1b09ce",
+          "branch": "main",
+          "text": "这个操作需要你确认后才会执行。",
+          "text_preview": "这个操作需要你确认后才会执行。",
+          "message_data": {
+            "needs_confirmation": true,
+            "plan_id": "plan_19c4b12942e517b6",
+            "preview": "",
+            "schema_version": "vit.message_data.v1",
+            "workflow": ""
+          },
+          "goal_id": "goal_f69fa27744540461",
+          "run_id": "run_d2399c8de1ceaa4c",
+          "lifecycle": "durable",
+          "persistence": "project_history",
+          "message_kind": "proposal",
+          "turn_id": "turn_7df541052dfd8679",
+          "logical_message_id": "n_20261109T120840_7bdc3e50",
+          "created_at": "2026-11-09T12:08:40.7406034Z"
+        },
+        "project_label": "govttl_round_20261109_200213",
+        "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+        "project_uuid": "vitproj_9630d7d35d974c3c9133607e46347b8b",
+        "refs": {
+          "refs/heads/main": "c_20261109T120800_add15ac1"
+        },
+        "root_project_path": "",
+        "state_dir": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\.vit_history\\.sessions\\vitproj_9630d7d35d974c3c9133607e46347b8b\\session_20261109T120745_804984bc\\workspace\\state",
+        "unsaved": false,
+        "warnings": [],
+        "worktrees": [
+          {
+            "commit_id": "c_20261109T120800_add15ac1",
+            "created_at": "2026-11-09T12:08:40.7521068Z",
+            "is_root": true,
+            "label": "主工作树",
+            "name": "main",
+            "origin_commit_id": "c_20261109T120800_add15ac1",
+            "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects",
+            "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+            "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+            "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit"
+          }
+        ]
+      },
+      "project_result_cards": null,
+      "replies": [
+        {
+          "agent_action_id": "act_e85d570753c5c9bc",
+          "command_name": "clip.strip_silence.suggest",
+          "result": {
+            "analysis": {
+              "analysis_count": 1,
+              "analysis_failed_clip_count": 0,
+              "analysis_preview": [
+                {
+                  "analysis_id": "strip_silence_1017_1.81633e+08",
+                  "clip_id": "1017",
+                  "keep_segment_count": 2,
+                  "strip_region_count": 3,
+                  "threshold_dbfs": -60,
+                  "track_id": "1007",
+                  "would_remove_entire_clip": false
+                }
+              ],
+              "analyzed_seconds": 2.2,
+              "keep_segment_count": 2,
+              "no_cleanup_needed_clip_count": 0,
+              "strip_ratio": 0.6455,
+              "strip_region_count": 3,
+              "strip_seconds": 1.42,
+              "threshold_dbfs": -60,
+              "would_remove_entire_clip": false
+            },
+            "analysis_failed_clip_count": 0,
+            "analyzed_clip_count": 1,
+            "candidate_results": [
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 90,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -60,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 89.7,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -54,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 89.4,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -48,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 89.1,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -42,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              },
+              {
+                "analyzed_clip_count": 1,
+                "analyzed_seconds": 2.2,
+                "error_count": 0,
+                "keep_segment_count": 2,
+                "score": 88.8,
+                "strip_ratio": 0.6455,
+                "strip_region_count": 3,
+                "strip_seconds": 1.42,
+                "target_count": 1,
+                "threshold_dbfs": -36,
+                "warning_count": 0,
+                "would_remove_entire_clip": false
+              }
+            ],
+            "confidence": "high",
+            "confidence_score": 1,
+            "message": "Strip Silence suggestion ready",
+            "no_cleanup_needed_clip_count": 0,
+            "pending_action_count": 2,
+            "pending_action_preview": [
+              {
+                "analysis_id": "strip_silence_1017_1.81633e+08",
+                "clip_id": "1017",
+                "strip_region_count": 3,
+                "tool_name": "clip.strip_silence.apply",
+                "track_id": "1007"
+              },
+              {
+                "analysis_id": "strip_silence_1017_1.81633e+08",
+                "clip_id": "1017",
+                "strip_region_count": 3,
+                "tool_name": "clip.strip_silence.apply",
+                "track_id": "1007"
+              }
+            ],
+            "pending_action_summary": {
+              "action_count": 1,
+              "no_cleanup_needed_clip_count": 0,
+              "requires_user_confirm": true,
+              "strip_region_count": 3,
+              "tool_name": "clip.strip_silence.apply"
+            },
+            "pending_confirmation": true,
+            "reasoning": [
+              "Chose -60.0 dBFS from a threshold sweep because it produced 3 strip region(s) while preserving 2 keep segment(s).",
+              "Estimated removal is 1.420s of 2.200s analyzed time (64.5%).",
+              "Apply action is built only from strip_regions returned by clip.strip_silence.analyze."
+            ],
+            "recommended_params": {
+              "analysis_frame_ms": 10,
+              "clip_end_pad_ms": 50,
+              "clip_start_pad_ms": 15,
+              "estimated_gate_dbfs": -60,
+              "min_silence_ms": 120,
+              "noise_floor_method": "inferred_from_threshold_sweep",
+              "selection_strategy": "multi_threshold_kernel_analyze",
+              "threshold_dbfs": -60
+            },
+            "risk_level": "confirm",
+            "risks": [
+              "Preview before applying; transient breaths, room tails, or soft note attacks may need a lower threshold or longer pads."
+            ],
+            "schema_version": "clip.strip_silence.suggest.v0",
+            "scope": "selected_clip",
+            "status": "ok",
+            "target_count": 1
+          },
+          "status": "ok",
+          "tool": "clip.strip_silence.suggest",
+          "tool_call_id": "suggest_strip_silence"
+        }
+      ],
+      "reply": "这个操作需要你确认后才会执行。",
+      "run_id": "run_d2399c8de1ceaa4c",
+      "status": "ok",
+      "stop_reason": "needs_confirmation",
+      "supersedes": null,
+      "turn_id": "turn_7df541052dfd8679",
+      "typed_events": [
+        {
+          "event_type": "ApprovalRequest",
+          "schema_version": "vit_agent_protocol.v0",
+          "source": {
+            "call_id": "plan_19c4b12942e517b6",
+            "conversation_id": "dev_strip_silence_chat_20261109_200748",
+            "goal_id": "goal_f69fa27744540461",
+            "legacy_kind": "confirmation_plan",
+            "run_id": "run_d2399c8de1ceaa4c"
+          },
+          "state": {
+            "available_decisions": [
+              "approve_once",
+              "deny"
+            ],
+            "id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+            "kind": "ApprovalRequest",
+            "operation": "commit",
+            "reason": "apply confirmed Strip Silence preview",
+            "resource_domain": "project.commit",
+            "scope": "single_call",
+            "source": {
+              "call_id": "plan_19c4b12942e517b6",
+              "conversation_id": "dev_strip_silence_chat_20261109_200748",
+              "goal_id": "goal_f69fa27744540461",
+              "legacy_kind": "confirmation_plan",
+              "run_id": "run_d2399c8de1ceaa4c"
+            },
+            "status": "waiting_user",
+            "target_ref": "track:1007"
+          },
+          "state_id": "approval_plan_19c4b12942e517b6_goal_f69fa27744540461_run_d2399c8de1ceaa4c_clip.strip_silence.apply",
+          "state_kind": "ApprovalRequest",
+          "status": "waiting_user"
+        }
+      ],
+      "_elapsed_ms": 144
+    },
+    "repeat": {
+      "conversation_id": "interaction_f212f88d209c5111",
+      "reply": "这个交互已在此前被处理或撤销（consumed）；本次重复的决定未执行，未产生新的修改。",
+      "needs_confirmation": false,
+      "workflow_data": {
+        "decision_executed": false,
+        "interaction_id": "interaction_f212f88d209c5111",
+        "mutation_performed": false,
+        "retire_reason": "consumed",
+        "retired_at": "2026-11-09T12:08:40Z",
+        "status": "already_retired"
+      },
+      "stop_reason": "interaction_already_retired"
+    },
+    "unknown": {
+      "conversation_id": "interaction_govttl_fixed_probe_notfound",
+      "reply": "未找到待处理交互 interaction_govttl_fixed_probe_notfound：它可能从未存在，或已随工作区切换/重启丢失；本次决定未执行，未产生任何修改，目标未因此完成。",
+      "needs_confirmation": false,
+      "workflow_data": {
+        "decision_executed": false,
+        "interaction_id": "interaction_govttl_fixed_probe_notfound",
+        "mutation_performed": false,
+        "reason_candidates": [
+          "unknown_id",
+          "lost_to_workspace_switch",
+          "lost_to_restart"
+        ],
+        "status": "not_found"
+      },
+      "stop_reason": "interaction_not_found"
+    }
+  }
+}
