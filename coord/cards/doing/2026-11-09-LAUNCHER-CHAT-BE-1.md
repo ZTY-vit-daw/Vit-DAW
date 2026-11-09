@@ -20,4 +20,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- 领取：2026-11-09 / origin/main=feb270cbdc0f76efde0ad0e4fe90bd22a67f77a6 / owner=GLM-5.3 L2 执行子代理（会话 337impl）/ PC / 分支 port/launcher-chat-be-1 / worktree D:/Vit_DAW_wt_337impl / 领取提交见回执
+  - 基线亲证：HEAD=feb270cb（与 origin/main 一致）；worktree status 干净（仅本卡 mv）；diff --stat=空（领取前无实现 diff）
+  - 前置核对：卡在 todo ✓ 派发已确认 ✓ 依赖=零 ✓；doing 三卡（ARRLOOP-AUTHBRIDGE-1=harness 装载确认面、CLOSURE-ROUTE-ADAPT-1=chat closure 预算面、WAVESHELL-LOADING-FORENSICS-1=只读取证）与本卡文件域（launcher_flow.go 新+server.go 两处插点+新测试）不相交 ✓；335（FE 域=前端仓）并行无冲突 ✓
