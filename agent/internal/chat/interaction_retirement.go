@@ -69,6 +69,29 @@ func (s *Server) retiredInteractionRecord(interactionID string) (retiredInteract
 	return record, ok
 }
 
+// recordPendingPlanRetirementLocked notes a consumed or explicitly expired
+// pending plan in the same bounded retirement log
+// (FIX-PLAN-STALE-STATUS-1: plan-face counterpart of the interaction
+// retirement log). Plan ids never collide with interaction ids in practice
+// ("plan_" vs "interaction_" prefixes), and sharing the log lets the plan
+// decision faces reuse the same already-retired/not-found split the
+// interaction respond face got in FIX-GOV-INTERACTION-TTL-1.
+func (s *Server) recordPendingPlanRetirementLocked(plan PendingPlan, reason string) {
+	if s == nil {
+		return
+	}
+	conversation := ""
+	if plan.WorkflowData != nil {
+		conversation = cleanContextText(plan.WorkflowData["conversation_id"])
+	}
+	s.recordInteractionRetirementLocked(PendingInteraction{
+		ID:             strings.TrimSpace(plan.ID),
+		Kind:           "pending_plan_confirmation",
+		Workflow:       plan.Workflow,
+		ConversationID: conversation,
+	}, reason)
+}
+
 // preserveInFlightInteractions merges live in-memory interactions into a
 // workspace snapshot being restored (FIX-GOV-INTERACTION-TTL-1). The restore
 // replaces the answerable map wholesale with the snapshot read from disk; a

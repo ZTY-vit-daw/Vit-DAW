@@ -1,0 +1,19 @@
+--- FAIL: TestPlanDecisionTimelyApproveExecutesAndRepeatIsExplicit (0.06s)
+    plan_stale_status_test.go:81: repeated approve: status=404 response=map[message:plan not found status:error]
+--- FAIL: TestPlanDecisionExpiredPlanAnswersWithRetirementReason (0.00s)
+    plan_stale_status_test.go:100: expired plan confirm: status=404 response=map[message:plan not found status:error]
+--- FAIL: TestPlanDecisionStaleAliasRemnantAnswersAlreadyRetired (0.00s)
+    plan_stale_status_test.go:126: stale alias confirm: status=200 response=map[goal_status:completed message:这个交互已处理或已过期。 plan_id:plan_stale_alias status:ok]
+--- FAIL: TestPlanDecisionLostToWorkspaceReplaceAnswersNotFoundExplicit (0.00s)
+    plan_stale_status_test.go:149: lost plan confirm: status=404 response=map[message:plan not found status:error]
+--- FAIL: TestPlanDecisionUnknownPlanAnswersNotFoundExplicit (0.00s)
+    plan_stale_status_test.go:166: unknown plan confirm: status=404 response=map[message:plan not found status:error]
+--- FAIL: TestNewPlanAfterRetirementIsAnswerable (0.00s)
+    plan_stale_status_test.go:185: first plan receipt = map[message:plan not found status:error]
+--- FAIL: TestHandleConfirmUnknownPlanReturnsExplicitReceipt (0.00s)
+    plan_stale_status_test.go:211: status = 404 body={"message":"plan not found","status":"error"}
+--- FAIL: TestChatResponseFromPlanDecisionReceiptDoesNotFabricateGoalStatus (0.00s)
+    plan_stale_status_test.go:237: not-found receipt must carry no goal status, got "failed" (fabricated by the conversion fallback)
+FAIL
+FAIL	vit-daw-agent/internal/chat	0.185s
+FAIL

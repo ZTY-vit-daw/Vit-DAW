@@ -3290,7 +3290,10 @@ func chatResponseFromPendingPlanDecision(conversationID string, response map[str
 		Error:                     cleanContextText(response["error"]),
 	}
 	resp.Commands = compactAgentLoopDecisionsForResponse(resp.Commands)
-	if resp.GoalStatus == "" {
+	// FIX-PLAN-STALE-STATUS-1: the unanswerable-plan receipts intentionally
+	// carry an empty goal_status (nothing was executed); the refill fallback
+	// below must not turn that into completed/failed on the chat projection.
+	if resp.GoalStatus == "" && !pendingPlanReceiptCarriesNoGoalStatus(resp.StopReason) {
 		if boolValue(response["blocked"]) || strings.EqualFold(cleanContextText(response["status"]), "error") {
 			resp.GoalStatus = string(agentruntime.StatusFailed)
 		} else if resp.NeedsConfirmation {
@@ -3814,12 +3817,38 @@ func pendingPlanMatchesResponse(plan PendingPlan, conversationID, goalID, runID,
 }
 
 func (s *Server) expirePendingPlan(planID string) {
-	if s == nil || strings.TrimSpace(planID) == "" {
+	if s == nil {
+		return
+	}
+	planID = strings.TrimSpace(planID)
+	if planID == "" {
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.deletePendingAliasesForPlanIDLocked(planID)
+	// FIX-PLAN-STALE-STATUS-1: explicit expiry records a retirement (with the
+	// reason) so a later confirm for the expired plan answers "retired
+	// (expired)" instead of the ambiguous catch-all. Only record when entries
+	// were actually removed — an expire for an unknown id must not fabricate
+	// evidence that the plan ever existed.
+	var retired PendingPlan
+	found := false
+	for key, plan := range s.pending {
+		if key != planID && strings.TrimSpace(plan.ID) != planID {
+			continue
+		}
+		if !found {
+			retired = plan
+			if strings.TrimSpace(retired.ID) == "" {
+				retired.ID = planID
+			}
+			found = true
+		}
+		delete(s.pending, key)
+	}
+	if found {
+		s.recordPendingPlanRetirementLocked(retired, "expired")
+	}
 }
 
 func pendingPlanCanBeRevisedByMixRequest(plan PendingPlan, message string) bool {
@@ -4398,20 +4427,42 @@ func (s *Server) takePendingPlan(planKey string) (PendingPlan, bool, bool) {
 	plan, ok := s.pending[planKey]
 	if !ok {
 		stale := s.deletePendingAliasesForPlanIDLocked(planKey) > 0
+		if stale {
+			// FIX-PLAN-STALE-STATUS-1: alias remnants without a canonical
+			// entry are evidence the plan was already handled elsewhere;
+			// record them (keyed by the lookup id) so the decision face
+			// answers "already retired" instead of the ambiguous catch-all.
+			s.recordPendingPlanRetirementLocked(PendingPlan{ID: planKey}, "stale_alias")
+		}
 		return PendingPlan{}, false, stale
 	}
 	planID := strings.TrimSpace(plan.ID)
 	if planID == "" {
 		delete(s.pending, planKey)
+		// Degenerate plan without a canonical id: the map key is the only
+		// handle a repeat confirm can present, so record it too.
+		retired := plan
+		retired.ID = planKey
+		s.recordPendingPlanRetirementLocked(retired, "consumed")
 		return plan, true, false
 	}
 	if planKey != planID {
 		if _, hasCanonical := s.pending[planID]; !hasCanonical {
 			s.deletePendingAliasesForPlanIDLocked(planID)
+			// The canonical entry is gone (handled elsewhere) while this
+			// alias survived; key the retirement record by the lookup id the
+			// decision face sees, keeping the plan's real workflow metadata.
+			retired := plan
+			retired.ID = planKey
+			s.recordPendingPlanRetirementLocked(retired, "stale_alias")
 			return PendingPlan{}, false, true
 		}
 	}
 	s.deletePendingAliasesForPlanIDLocked(planID)
+	// FIX-PLAN-STALE-STATUS-1: keep a bounded retirement record so a repeated
+	// or late confirm gets an explicit idempotent receipt (same shape as the
+	// interaction retirement log in FIX-GOV-INTERACTION-TTL-1).
+	s.recordPendingPlanRetirementLocked(plan, "consumed")
 	return plan, true, false
 }
 
@@ -5115,18 +5166,13 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	planID := strings.TrimSpace(req.PlanID)
-	plan, ok, stale := s.takePendingPlan(planID)
+	plan, ok, _ := s.takePendingPlan(planID)
 	if !ok {
-		if stale {
-			writeJSON(w, http.StatusOK, map[string]any{
-				"status":      "ok",
-				"message":     "这个确认已处理或已过期。",
-				"plan_id":     planID,
-				"goal_status": string(agentruntime.StatusCompleted),
-			})
-			return
-		}
-		writeJSON(w, http.StatusNotFound, map[string]any{"status": "error", "message": "plan not found"})
+		// FIX-PLAN-STALE-STATUS-1: same explicit two-state receipt as the
+		// interaction face and resolvePendingPlanDecision — the old catch-all
+		// fabricated goal_status=completed and the bare 404 swallowed the
+		// decision without telling the client it was not executed.
+		writeJSON(w, http.StatusOK, s.pendingPlanDecisionUnanswerableReceipt(planID))
 		return
 	}
 	goalID, runID := goalIDsFromContext(plan.Context)
@@ -5281,19 +5327,71 @@ func (s *Server) handleConfirm(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, response)
 }
 
+// pendingPlanReceiptCarriesNoGoalStatus marks the FIX-PLAN-STALE-STATUS-1
+// unanswerable-plan receipts: the decision was NOT executed, so no projection
+// path may refill the empty goal_status (least of all into completed).
+func pendingPlanReceiptCarriesNoGoalStatus(stopReason string) bool {
+	return stopReason == "plan_already_retired" || stopReason == "plan_not_found"
+}
+
+// pendingPlanDecisionUnanswerableReceipt returns the explicit receipt for a
+// confirm that finds no answerable pending plan (FIX-PLAN-STALE-STATUS-1,
+// plan-face counterpart of the FIX-GOV-INTERACTION-TTL-1 interaction
+// receipts). Two states, mirroring interaction_already_retired /
+// interaction_not_found: a retirement-log hit answers "already handled — the
+// repeated decision was NOT executed"; a miss answers "not found / lost — the
+// decision was NOT executed and the goal did not complete because of it".
+// Both carry an empty goal_status; the old catch-all fabricated
+// goal_status=completed here (the 327 勘察 registered this plan-face twin).
+func (s *Server) pendingPlanDecisionUnanswerableReceipt(planID string) map[string]any {
+	if record, retired := s.retiredInteractionRecord(planID); retired {
+		if s.logger != nil {
+			s.logger.Warn("[plan.decision] repeated decision for retired pending plan=%s retired_at=%s reason=%s", planID, record.RetiredAt.Format(time.RFC3339), record.Reason)
+		}
+		return map[string]any{
+			"status":       "ok",
+			"message":      "这个确认已在此前被处理或撤销（" + firstNonEmpty(record.Reason, "consumed") + "）；本次重复的决定未执行，未产生新的修改。",
+			"plan_id":      planID,
+			"goal_status":  "",
+			"stop_reason":  "plan_already_retired",
+			"workflow_data": map[string]any{
+				"plan_id":            planID,
+				"status":             "already_retired",
+				"decision_executed":  false,
+				"mutation_performed": false,
+				"retired_at":         record.RetiredAt.Format(time.RFC3339),
+				"retire_reason":      record.Reason,
+			},
+		}
+	}
+	if s.logger != nil {
+		s.logger.Warn("[plan.decision] no answerable pending plan=%s (unknown id, or lost to a workspace switch/restart)", planID)
+	}
+	return map[string]any{
+		"status":       "ok",
+		"message":      "未找到待确认计划 " + planID + "：它可能从未存在，或已随工作区切换/重启丢失；本次决定未执行，未产生任何修改，目标未因此完成。",
+		"plan_id":      planID,
+		"goal_status":  "",
+		"stop_reason":  "plan_not_found",
+		"workflow_data": map[string]any{
+			"plan_id":            planID,
+			"status":             "not_found",
+			"decision_executed":  false,
+			"mutation_performed": false,
+			"reason_candidates":  []string{"unknown_id", "lost_to_workspace_switch", "lost_to_restart"},
+		},
+	}
+}
+
 func (s *Server) resolvePendingPlanDecision(ctx context.Context, planID, decision string) (int, map[string]any) {
 	planID = strings.TrimSpace(planID)
-	plan, ok, stale := s.takePendingPlan(planID)
+	plan, ok, _ := s.takePendingPlan(planID)
 	if !ok {
-		if stale {
-			return http.StatusOK, map[string]any{
-				"status":      "ok",
-				"message":     "这个交互已处理或已过期。",
-				"plan_id":     planID,
-				"goal_status": string(agentruntime.StatusCompleted),
-			}
-		}
-		return http.StatusNotFound, map[string]any{"status": "error", "message": "plan not found"}
+		// FIX-PLAN-STALE-STATUS-1: stale and unknown plans answer with the
+		// explicit two-state receipt (already retired vs not found) — never
+		// the old catch-all that fabricated goal_status=completed, and never
+		// a bare error that silently swallows the decision.
+		return http.StatusOK, s.pendingPlanDecisionUnanswerableReceipt(planID)
 	}
 	goalID, runID := goalIDsFromContext(plan.Context)
 	if goal := s.harness.RuntimeStatus(goalID); goal.Status == agentruntime.StatusStopped || goal.StopRequested {
