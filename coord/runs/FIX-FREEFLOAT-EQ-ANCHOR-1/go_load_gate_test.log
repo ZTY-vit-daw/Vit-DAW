@@ -1,0 +1,4 @@
+=== RUN   TestTBTECHLiveWhitelistLoad
+--- PASS: TestTBTECHLiveWhitelistLoad (0.00s)
+PASS
+ok  	vit-daw-agent/internal/experimentplugins	0.421s

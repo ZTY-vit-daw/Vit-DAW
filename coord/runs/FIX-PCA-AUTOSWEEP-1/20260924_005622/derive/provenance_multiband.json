@@ -2,8 +2,8 @@
   {
     "section": "static_eq",
     "field": "_carryover",
-    "value": "48 entries verbatim",
-    "source": "S0 live v6 (sha256 7fe392dcf2d096ac…); provenance chain of prior cards applies unchanged",
+    "value": "49 entries verbatim",
+    "source": "S0 live v6 (sha256 8ffa81a468c19f26…); provenance chain of prior cards applies unchanged",
     "note": "候选面全量派生卡不动 EQ 已锚定条目"
   },
   {

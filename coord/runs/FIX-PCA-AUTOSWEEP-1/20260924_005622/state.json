@@ -48231,10 +48231,10 @@
   },
   "derived": true,
   "verified": true,
-  "updated_at": "2026-11-08T18:40:59+00:00",
-  "derived_whitelist": "D:\\Vit_DAW_wt_322exec\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\derive\\whitelist_v6_full.json",
+  "updated_at": "2026-11-09T10:40:36+00:00",
+  "derived_whitelist": "D:\\Vit_DAW_wt_328impl\\coord\\runs\\FIX-PCA-AUTOSWEEP-1\\20260924_005622\\derive\\whitelist_v6_full.json",
   "derived_counts": {
-    "static_eq": 48,
+    "static_eq": 49,
     "broadband_compression": 24,
     "de_esser": 6,
     "limiter": 9,
