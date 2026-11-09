@@ -1012,17 +1012,25 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
     else
         params.sampleRateForAudio = 48000.0;
 
-    // VIT-309 fix B (card ruling 2): shell-class plugin blacklist. When the
-    // edit contains a WaveShell-class shared-container VST3, render at
-    // real-time pacing (realTimeRender=true) so the signalling the plugin sees
-    // is bit-identical to live playback (setup kRealtime + per-call
-    // kRealtime); those wrappers go silent under the offline per-call kOffline
-    // flip (301 M0a2/M2: digital silence while Surge XT sounds on M3).
-    // VIT309_DISABLE_BLACKLIST bypasses the degradation (discrimination
-    // experiments) while keeping the detection hint logged.
+    // VIT-309 fix B (card ruling 2, reshaped by ruling 5 after M1=RT-SILENT):
+    // shell-class plugin blacklist. Original shape (realTimeRender=true flip)
+    // presumed the shells were silent ONLY offline; this stack leg's M1
+    // measured Grand Rhapsody silent in REALTIME playback as well (Surge XT
+    // control sounds on the identical fixture), so the flip cannot rescue the
+    // render — the production default is detection + warning + reply
+    // disclosure only. The flip remains available behind
+    // VIT309_BLACKLIST_REALTIME_FALLBACK; VIT309_DISABLE_BLACKLIST bypasses
+    // detection action entirely (discrimination experiments) while keeping
+    // the detection hint logged.
     juce::String vit309ShellName;
     const bool vit309ShellPresent = vit309EditContainsShellClassPlugin (edit, vit309ShellName);
     const bool vit309BlacklistBypassed = vit309EnvFlagSet ("VIT309_DISABLE_BLACKLIST");
+    // Ruling 5 contingency (M1=RT-SILENT, 2026-11-09 confirmed by this stack
+    // leg: Grand Rhapsody is silent in realtime playback too — Surge XT control
+    // sounds at -10.97 dB on the identical fixture): fix B degrades to a pure
+    // warning. The realTimeRender flip is opt-in via VIT309_BLACKLIST_REALTIME_FALLBACK
+    // (experiments / a future environment where GR plays live).
+    const bool vit309ForceRealtimeFallback = vit309EnvFlagSet ("VIT309_BLACKLIST_REALTIME_FALLBACK");
     bool vit309RealtimeFallback = false;
 
     if (vit309ShellPresent)
@@ -1033,14 +1041,23 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
                 "VIT309_BLACKLIST shell_class_plugin_detected=\"" + vit309ShellName
                 + "\" action=none (VIT309_DISABLE_BLACKLIST set; offline render proceeds as-is)");
         }
-        else
+        else if (vit309ForceRealtimeFallback)
         {
             params.realTimeRender = true;
             vit309RealtimeFallback = true;
             juce::Logger::writeToLog (
                 "WARN [VIT309_BLACKLIST] shell_class_plugin_detected=\"" + vit309ShellName
-                + "\" action=realtime_fallback (offline render degraded to realTimeRender=true; "
-                  "WaveShell wrappers silence under offline per-call kOffline signalling)");
+                + "\" action=realtime_fallback (VIT309_BLACKLIST_REALTIME_FALLBACK set; offline render "
+                  "degraded to realTimeRender=true)");
+        }
+        else
+        {
+            juce::Logger::writeToLog (
+                "WARN [VIT309_BLACKLIST] shell_class_plugin_detected=\"" + vit309ShellName
+                + "\" action=warn_only (M1=RT-SILENT ruling-5 contingency: shell-class plugins were "
+                  "observed silent in REALTIME playback too (309 E1v2 vs Surge XT control), so a "
+                  "realtime re-render cannot rescue them; render proceeds offline, the form-3 silence "
+                  "self-check below still applies)");
         }
     }
 
@@ -1268,11 +1285,15 @@ juce::String VitProductionCoordinator::startOfflineRender (te::Edit& edit,
     }
 
     // VIT-309: shell-class hint disclosure on the start_render reply (ruling 3
-    // hint log; realtime_fallback=true when fix B degraded this render).
+    // hint log; blacklist_action reflects the ruling-5 contingency shape:
+    // warn_only by default, realtime_fallback only when opted in via env).
     if (vit309ShellPresent)
     {
         reply->setProperty ("shell_class_plugin_hint", vit309ShellName);
         reply->setProperty ("realtime_fallback", vit309RealtimeFallback);
+        reply->setProperty ("blacklist_action",
+                            vit309BlacklistBypassed ? "none"
+                                                     : (vit309RealtimeFallback ? "realtime_fallback" : "warn_only"));
     }
 
     return juce::JSON::toString (juce::var (reply.release()));
