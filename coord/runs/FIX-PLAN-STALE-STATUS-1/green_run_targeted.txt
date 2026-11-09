@@ -1,0 +1,18 @@
+=== RUN   TestPlanDecisionTimelyApproveExecutesAndRepeatIsExplicit
+--- PASS: TestPlanDecisionTimelyApproveExecutesAndRepeatIsExplicit (0.05s)
+=== RUN   TestPlanDecisionExpiredPlanAnswersWithRetirementReason
+--- PASS: TestPlanDecisionExpiredPlanAnswersWithRetirementReason (0.00s)
+=== RUN   TestPlanDecisionStaleAliasRemnantAnswersAlreadyRetired
+--- PASS: TestPlanDecisionStaleAliasRemnantAnswersAlreadyRetired (0.00s)
+=== RUN   TestPlanDecisionLostToWorkspaceReplaceAnswersNotFoundExplicit
+--- PASS: TestPlanDecisionLostToWorkspaceReplaceAnswersNotFoundExplicit (0.00s)
+=== RUN   TestPlanDecisionUnknownPlanAnswersNotFoundExplicit
+--- PASS: TestPlanDecisionUnknownPlanAnswersNotFoundExplicit (0.00s)
+=== RUN   TestNewPlanAfterRetirementIsAnswerable
+--- PASS: TestNewPlanAfterRetirementIsAnswerable (0.03s)
+=== RUN   TestHandleConfirmUnknownPlanReturnsExplicitReceipt
+--- PASS: TestHandleConfirmUnknownPlanReturnsExplicitReceipt (0.00s)
+=== RUN   TestChatResponseFromPlanDecisionReceiptDoesNotFabricateGoalStatus
+--- PASS: TestChatResponseFromPlanDecisionReceiptDoesNotFabricateGoalStatus (0.00s)
+PASS
+ok  	vit-daw-agent/internal/chat	0.179s
