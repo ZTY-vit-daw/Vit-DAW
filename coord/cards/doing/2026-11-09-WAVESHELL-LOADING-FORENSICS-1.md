@@ -26,4 +26,6 @@
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- 领取：2026-11-09 21:0x +0800 / origin/main=e8ff96c184ca6a8fde7f04132e6661595bbd31c4 / owner=ZCode GLM-5.3 L2-worker PC 子代理（329 取证腿）/ 分支 port/waveshell-loading-forensics-1 / worktree D:/Vit_DAW_wt_329impl（领取基线：HEAD=e8ff96c1，status 全净，diff --stat 空）/ 领取提交=本笔 coord/329-claim（卡 329 todo→doing）。本腿=取证先行零栈（判别腿候栈不在本腿）。
+- 回执：（执行侧回填）
+- 验收：（主管回填）
