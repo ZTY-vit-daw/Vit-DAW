@@ -10388,10 +10388,34 @@ if ($LauncherFlow -and -not $ScenarioMode) {
     # face (AGENTS.md section 5; GUI last mile = user handtest v2.5).
     Write-Step ("Launcher flow leg (" + $LauncherFlowLeg + ")")
 
-    # Real-UI anchors: the Godot UI was started by -StartUI with a --log-file;
-    # capture a copy into the run dir. The log path matches the StartUI block's
-    # $godotLog (LogsDir under the repo workspace).
+    # The script's -StartUI block is a no-op when the kernel command port is
+    # already listening (D1 semantics: it assumes a UI-launched kernel). This
+    # leg owns kernel+agent+UI explicitly, so the UI is started here, with the
+    # same arguments and VIT_SKIP_DEV_AUTOSTART guard as the StartUI Godot
+    # branch (first attempt 2026-11-09 23:19 hit exactly that no-op).
     $launcherGodotLog = Join-Path $LogsDir "godot_dev_agent_smoke.log"
+    $launcherGodotProcsEarly = @(Get-Process | Where-Object { $_.ProcessName -like "Godot*" })
+    if ($launcherGodotProcsEarly.Count -eq 0) {
+        New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+        $launcherGodotArgs = @("--path", $ResolvedGodotProjectRoot, "--log-file", $launcherGodotLog)
+        $launcherPriorSkipDev = [Environment]::GetEnvironmentVariable("VIT_SKIP_DEV_AUTOSTART", "Process")
+        $env:VIT_SKIP_DEV_AUTOSTART = "1"
+        try {
+            Start-Process -FilePath $ResolvedGodotExe -ArgumentList $launcherGodotArgs -WorkingDirectory $ResolvedGodotProjectRoot | Out-Null
+        }
+        finally {
+            if ($null -eq $launcherPriorSkipDev) {
+                Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue
+            }
+            else {
+                $env:VIT_SKIP_DEV_AUTOSTART = $launcherPriorSkipDev
+            }
+        }
+        Write-Ok ("launcher leg started Godot UI: " + $ResolvedGodotExe + " --path " + $ResolvedGodotProjectRoot + " (VIT_SKIP_DEV_AUTOSTART=1 child guard)")
+    }
+    else {
+        Write-WarnLine ("launcher leg: reusing an already-running Godot process (" + ($launcherGodotProcsEarly | ForEach-Object { $_.Id }) -join "," + ") -- UI log anchors may be partial")
+    }
     $launcherUiUpDeadline = (Get-Date).AddSeconds(40)
     $launcherGodotBooted = $false
     while ((Get-Date) -lt $launcherUiUpDeadline) {

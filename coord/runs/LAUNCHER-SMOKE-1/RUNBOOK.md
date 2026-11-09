@@ -14,7 +14,9 @@
 | 2 退路 | `-LauncherFlow -LauncherFlowLeg fallback -StartKernel -RestartAgent -StartUI -NoChatSmoke …` | 零（telemetry 断言 0 行） | 起 | 起 |
 | 3 降级 | `-LauncherFlow -LauncherFlowLeg degraded -StartKernel -StartUI -NoChatSmoke …`（**不** -RestartAgent，agent 端口必须净空） | 零 | 不起 | 起 |
 
-三腿全部 `-NoChatSmoke`（默认 chat 腿是 LLM 轮，不属本卡断言面）。腿间由 owner 亲停上一腿残留进程（agent/内核/Godot），TEARDOWN 确认后再起下一腿；同腿内单 run 无重跑。
+三腿全部 `-NoChatSmoke -NoStripSilenceSmoke`（默认 chat 腿与默认 strip-silence 腿均消耗 LLM 轮——23:19 attempt1 实测 strip 腿 1 次 deepseek-flash 调用，不属本卡断言面，一并关闭保 telemetry 对账纯净）。腿间由 owner 亲停上一腿残留进程（agent/内核/Godot），TEARDOWN 确认后再起下一腿；同腿内单 run 无重跑。
+
+**修订记录 2026-11-09 23:2x（attempt1 后，跑中修订如实入卷）**：①`-StartUI` 在内核端口已监听时是 no-op（D1 语义=假定 UI 拉起内核）——339 腿自持三件套，改由腿块自启 Godot UI（同参同 VIT_SKIP_DEV_AUTOSTART 守卫）；attempt1 因此以 env_interrupt 收场（零 LLM 于 launcher 链、strip 默认腿耗 1 调用），按 §8 脚本缺陷路径修复后该腿重跑 1 次。②命令行补 `-NoStripSilenceSmoke`。
 
 ## 成功条件（逐腿，全部满足=exit 0）
 
