@@ -54,3 +54,8 @@ plan 面结构与 interaction 面不同构到需重构 → 取证上交候裁定
 - **端测边界声明（AGENTS §5）**：本卡自验=Go 单测面（chat 全包绿）；真实栈面/渲染面/用户旅程未测——两态回执与 327 已真栈活体证成的 interaction 面同构（确定性服务端逻辑），webui 呈现新两态文案未起栈验证，候主管裁定是否需搭后续栈窗口便车腿。
 - **域外同型登记（不扩修）**：interaction 面三个 workflow 专属恢复兜底（修后 server.go:4834「这个段落包络确认已处理或已过期。」/4885「这个混音单步确认…」/4956「这个混音确认…」）仍伪造 GoalStatus=completed——形态=恢复路径找到 interaction 但 workflow 续体未被处理时的回退（327 interaction 域内遗留、非本卡 plan 域），均未触碰，候主管决定是否另开小卡。
 - 跨重启持久化语义不变（retirement 台账为 in-process，重启后行为同今天）；六条 payload 恢复路径语义不变。
+
+### 终验（主管，2026-11-09）
+
+- **pass 整卡合入 main**——两态回执镜像 327 形态合格；retirement 台账复用（最小 diff 选型）正确；**chat 投影空回填伪造面（第二伪造面）红跑揭示后一并修=超出卡面的正确捕获**（属同型直接后果，随卡合规）；红转绿在卷（修前 8/8 FAIL 逐字复现罐头+伪造 completed，修后全绿）。主管亲测：合并后定向八测 ok+build exit 0；chat 全包 141.8s 绿采信。
+- **裁定**：①域外登记采纳——interaction 面三个 workflow 专属恢复兜底（server.go:4834/4885/4956）仍伪造 GoalStatus=completed，转**334 号清扫卡**（goal_status 伪造面全树普查+同型修）；②跨重启 in-process 台账语义维持（与 327 一致，答辩后如需跨重启另议）。
