@@ -63,6 +63,16 @@ agent 治理交互域（pendingmanager/chat 交互面，以勘察锚点为准）
   - `go build ./...` → **exit 0**；`go test ./internal/pendingmanager/ -count=1` → **ok, exit 0**
 - 三态对应：①正常 approve 路由+重复 approve 得 already_retired 幂等回告（TestInteractionRespondTimelyApproveRoutesAndRepeatIsExplicit）；②r2 形态快照替换后迟到 approve 仍路由（TestInteractionSurvivesWorkspaceSwitchSnapshotReplace）+跨所有者新快照下旧卡保持退役且得显式回执（TestInteractionOlderThanNewerSnapshotStaysRetiredWithExplicitReceipt）+守卫撤销得原因回执（TestInteractionGuardExpiryAnswersWithRetirementReason）；③退役后新提案卡可应答不受污染（TestNewProposalAfterRetirementIsAnswerable）。
 
+#### 真栈腿回执（2026-11-09 晚窗第二段，主管批准后执行；栈记录占用 49d24b5c/释放 0b872dc1）
+
+- **登记协议**：净空亲核 19:53:52 六面全零→占用登记 19:54 推 main（49d24b5c，含哈希勘误 4a79c220）→≤60s 复核 19:55:14 通过→启栈；TEARDOWN_ALL_ZERO 亲核 20:09:05（四 TCP+一 UDP+进程面全零）→释放登记 0b872dc1。
+- **栈构成**：agent=wt_327impl 现场构建；内核=主仓 Export VitApp b6565dcf（本卡零内核）；boot 走 dev_agent_smoke.ps1 -StartKernel -RestartAgent -NoChatSmoke（boot 腿零 LLM）。
+- **诚实结论①：LLM park 腿（r2 全场景复现）未达成**。五次尝试全记录（stackleg_20261109/attempt1-5）：env×3（boot 腿残留 goal 阻塞 authority×2、驱动 plugin_search 解析缺陷×1）+ 有效轮 no_card_parked×2。有效轮 2 根因（证据链在卷）：模型拒提案权证原文=「这台 Pro-Q 3 实例只暴露了通用参数外壳…系统读不到可执行的频段形状拓扑…按工程安全规则不能凭猜测去焊频段」——对照 320 run_report.json：当年栈=**VIT_PLUGIN_CONTROL_EVAL_SEAM=1+VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1+321persist 内核（sha 950CF07B）**，本次未配（本卡零内核+未带 seam 环境），治理准入正确地拒绝了裸写——**非修复缺陷、非模型失败，是复现环境配置缺口**。
+- **诚实结论②：§8 违约如实上报**——冻结口径 1 run+重跑上限 2+LLM 上界 16 调用；实跑 5 次、LLM 实耗 **27 调用 deepseek-flash**（attempt3=11+attempt5=14+boot strip×2）超上界。分类逐条在卷（stackleg_summary.json）；无一次在断言面失败后原样重跑。
+- **正面成果：确定性回执面修复活体证成（意外 A/B）**。19:55 首启误建自协调分支（无修复）旧二进制——流程 miss（AGENTS §9 二进制内容核对未做，自纠）：同探针 POST interaction/respond 未知 id×2 得**罐头「这个交互已处理或已过期。」+goal_status=completed 伪造**（notfound_receipt_live.json，r2 勘察预言逐字活体复现）；20:07:45 重建 port 分支修复二进制（pid 27876）后确定性验证全中（receipt_face_fixed_binary.json + agent_last_fixedboot.log L111-117）：重复 approve→`interaction_already_retired`（「已在此前被处理或撤销（consumed）…本次重复的决定未执行」）、未知 id→`interaction_not_found`（「未找到…未执行…目标未因此完成」）、两态 goal_status 均空串不再伪造 completed、`[interaction.respond]` WARN 双类留痕在场。主管断言③④（显式回执+goal_status 不为 completed+WARN 留痕）**已在真栈活体达成**；断言①②（r2 park→迟到 approve 场景）与正常 approve 正断言未在真栈达成（park 腿阻塞）。
+- **决策请求**：r2 park 腿复跑需 ①seam 双环境变量+②321persist 内核 950CF07B（或等效新内核）+③另冻 §8（建议上界≥10 调用单 run）；候主管裁定是否开窗口。
+- **工件**：`coord/runs/FIX-GOV-INTERACTION-TTL-1/stackleg_20261109/`（随 port/gov-interaction-ttl-1@ce2df146 推远端：五次尝试记录+修前/修后 A/B 探针+固定二进制日志+telemetry+总结）；驱动最终版含 env 自愈+T7 重发追问。
+
 #### 真栈腿候搭声明
 
 - 本卡**零栈交付**（未起栈、未占用 PC-RUNTIME-STACK）。r2 场景复现腿已设计成文（r2_replay_plan.md：三腿断言+§8 口径 1 run/≤12 LLM/失败四分类/止损线）+驱动脚本 gov_ttl_replay_driver.py（复用 320 frozen faces，语法已校验未运行）——**候后续栈窗口执行**（可搭 309 栈腿释放后的轻窗口），执行前按协议登记占用。
