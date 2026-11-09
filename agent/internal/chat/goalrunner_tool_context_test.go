@@ -551,3 +551,66 @@ func TestAgentLoopPlanModeWithholdsPluginParameterWrite(t *testing.T) {
 		t.Fatalf("plan mode must stay read-only: %#v", ctx.AllowedTools)
 	}
 }
+
+// FIX-CAPROUTE-RETRIEVAL-1 (325): corpus-verified disclosure anchor. In the
+// B/B-R1 plugin-control eval corpora every capability-routed message_loop
+// request still disclosed the plugin.semantic_* knowledge family (catalog
+// row + Allowed tools), while the web retrieval pair stayed out of routed
+// disclosure. The semantic family reaches the plugin-routed flat form via
+// the agentLoopPluginTools allowlist row and the plugin+mix pack form via
+// the Shared support tools difference block; a removed allowlist row would
+// silently filter it out of every narrowed turn (EDU-SYMBOL-CORE-1 lesson),
+// so this pins the reachability invariant. Routing texts are the exact
+// user texts of corpus rounds T1 (plugin+mix pack form) and T6 (plugin
+// flat form).
+func TestAgentLoopCapabilityRoutedTurnsKeepSemanticKnowledgeTools(t *testing.T) {
+	s := &Server{harness: harness.New(nil, nil, nil)}
+	semFamily := []string{"plugin.semantic_get", "plugin.semantic_search", "plugin.semantic_build_index"}
+
+	// T1 corpus text: names a plugin (混响) and a mix word (Mix), so the
+	// capability route resolves to plugin+mix and the mix capability pack is
+	// rendered; the semantic family must ride the Shared support tools block.
+	packCtx := s.agentLoopToolContext(agentModeDefault, "请把 Pro-R 混响的 Mix 设为 35%。", nil)
+	if !strings.Contains(packCtx.CatalogSummary, "Capability pack: mix") {
+		t.Fatalf("expected mix capability pack form for T1 text, got:\n%.600s", packCtx.CatalogSummary)
+	}
+	if !strings.Contains(packCtx.CatalogSummary, "Shared support tools:") {
+		t.Fatalf("expected shared support block in pack form:\n%.600s", packCtx.CatalogSummary)
+	}
+	for _, want := range semFamily {
+		if !containsToolName(packCtx.AllowedTools, want) {
+			t.Fatalf("pack-routed turn lost %s from allowed tools: %+v", want, packCtx.AllowedTools)
+		}
+		if !strings.Contains(packCtx.CatalogSummary, " tool="+want) {
+			t.Fatalf("pack-routed turn lost %s from disclosure:\n%s", want, packCtx.CatalogSummary)
+		}
+	}
+
+	// T6 corpus text: plugin word only (混响), so the route stays plugin-only
+	// and disclosure falls back to the narrowed flat catalog; the semantic
+	// family must be a catalog row there.
+	flatCtx := s.agentLoopToolContext(agentModeDefault, "请把 IR-L 混响的衰减时间设为 2 秒。", nil)
+	if strings.Contains(flatCtx.CatalogSummary, "Capability pack:") {
+		t.Fatalf("expected flat catalog form for T6 text, got:\n%.600s", flatCtx.CatalogSummary)
+	}
+	for _, want := range semFamily {
+		if !containsToolName(flatCtx.AllowedTools, want) {
+			t.Fatalf("plugin-routed turn lost %s from allowed tools: %+v", want, flatCtx.AllowedTools)
+		}
+		if !strings.Contains(flatCtx.CatalogSummary, " tool="+want) {
+			t.Fatalf("plugin-routed turn lost %s from disclosure:\n%s", want, flatCtx.CatalogSummary)
+		}
+	}
+
+	// Bounded disclosure stays bounded in both routed forms: the web retrieval
+	// pair is visible only on full-catalog turns (312 device finding), and
+	// capability-routed turns must not regress that line either.
+	for name, ctx := range map[string]agentLoopToolContext{"pack": packCtx, "flat": flatCtx} {
+		if containsToolName(ctx.AllowedTools, "web.search") || containsToolName(ctx.AllowedTools, "web.fetch") {
+			t.Fatalf("%s-routed turn leaked web retrieval into allowed tools", name)
+		}
+		if strings.Contains(ctx.CatalogSummary, "web_search tool=web.search") || strings.Contains(ctx.CatalogSummary, "web_fetch tool=web.fetch") {
+			t.Fatalf("%s-routed turn leaked web retrieval into catalog disclosure", name)
+		}
+	}
+}
