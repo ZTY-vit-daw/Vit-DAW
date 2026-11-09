@@ -10444,27 +10444,30 @@ if ($LauncherFlow -and -not $ScenarioMode) {
 
     if ($LauncherFlowLeg -eq "degraded") {
         # Degrade settle window: the start page probes the agent for up to 8s
-        # (_AGENT_READY_TIMEOUT_SEC), then logs the degrade anchors. VIT_SKIP_DEV
+        # (_AGENT_READY_TIMEOUT_SEC), then logs the degrade anchor. VIT_SKIP_DEV
         # _AUTOSTART=1 (set by -StartUI on the Godot child) keeps the UI from
         # spawning a competing kernel/vsp hub; with no dev agent candidates the
         # bridge spawn attempts also fail -> the guidance-card state is reached.
+        # NOTE (attempt2 lesson): the greeting endpoint is only fetched on the
+        # READY path (336 contract _notify_launcher_agent_state) -- in degrade
+        # the panel keeps its local opening WITHOUT attempting the endpoint, so
+        # there is no greeting warning to anchor on. The live degrade signal is
+        # the agent-not-ready warning; the greeting-unavailable line, if present,
+        # is recorded but not required.
         $launcherDegradeDeadline = (Get-Date).AddSeconds(45)
         $launcherAgentNotReady = $false
-        $launcherGreetingDown = $false
         while ((Get-Date) -lt $launcherDegradeDeadline) {
             $launcherAgentNotReady = (Test-Path -LiteralPath $launcherGodotLog) -and (Select-String -LiteralPath $launcherGodotLog -Pattern "VitAgent spawned but /agent/tools did not become ready" -Quiet)
-            $launcherGreetingDown = (Test-Path -LiteralPath $launcherGodotLog) -and (Select-String -LiteralPath $launcherGodotLog -Pattern "launcher greeting endpoint unavailable" -Quiet)
-            if ($launcherAgentNotReady -and $launcherGreetingDown) { break }
+            if ($launcherAgentNotReady) { break }
             Start-Sleep -Milliseconds 1000
         }
         Copy-Item -LiteralPath $launcherGodotLog -Destination (Join-Path $LauncherArtifactsDir "godot_degraded.log") -Force
         if (-not $launcherAgentNotReady) {
             throw ("launcher degraded leg: guidance-card anchor missing (no 'VitAgent spawned but /agent/tools did not become ready' in godot log; leg 3 face)")
         }
-        if (-not $launcherGreetingDown) {
-            throw "launcher degraded leg: greeting-unavailable anchor missing in godot log"
-        }
-        Write-Ok "launcher degraded leg: guidance-card + greeting-unavailable anchors present (real UI, no agent)"
+        Write-Ok "launcher degraded leg: guidance-card anchor present (real UI degraded state, no agent)"
+        $launcherGreetingDownObserved = (Test-Path -LiteralPath $launcherGodotLog) -and (Select-String -LiteralPath $launcherGodotLog -Pattern "launcher greeting endpoint unavailable" -Quiet)
+        Write-Host ("launcher degraded leg: greeting-unavailable line observed=" + [string]$launcherGreetingDownObserved + " (record-only: 336 fetches greeting only on READY)")
         # The agent must never have come up during the settle window.
         $launcherDegradeListener = Get-TcpListener -Port $httpPort
         if ($null -ne $launcherDegradeListener) {
