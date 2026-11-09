@@ -46,3 +46,8 @@ agent/internal/chat/launcher_flow.go+server.go（project_opened 接收点）+测
   - 渲染边界（AGENTS §5）：断言面=agent HTTP 回执+内核 ZMQ+真实 UI 进程/日志/锚点；GUI 渲染观感/浮动窗视觉呈现=手测 v2（本卡 pass=手测 v2 启动面就绪）
   - 工件：coord/runs/LAUNCHER-GATE-FIX-1/（RUNBOOK+两 run 目录全保真+report.json 对账）
 - 验收：（主管回填）
+
+### 终验（主管，2026-11-10 晨）
+
+- **pass 整卡合入 main**——主管亲测门测试 4/4+build exit 0；真栈两腿双 exit 0 采信（boot 形态与 339 取证同款=修复针对性强；§8 对账 1 调用 ≈¥0.001；栈两登记+recents 哈希还原亲证）。装置断言两处随门语义同步**追认**（门修复链必要组成，卡面理由成立）。338 桥接/续聊段随腿 1 真栈证成——启动面 C 链（C1/C2/C4/C5/C6+修复）全链收口。
+- **里程碑：手测 v2（AI-first 启动面）就绪**——步骤清单另发（coord/transfer/2026-11-10-launcher-handtest-steps.md）。
