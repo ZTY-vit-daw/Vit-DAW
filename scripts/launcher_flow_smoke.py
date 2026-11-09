@@ -122,16 +122,18 @@ def agent_state(agent_http: str) -> dict[str, Any]:
 
 
 def assert_gate_open(state: dict[str, Any], facts: dict[str, Any]) -> None:
+    """340 gate semantics: UI flag + user_entered_project session fact.
+
+    uuid/path are no longer consulted by launcherFlowApplicable, so the boot
+    project identity is recorded for forensics only (the 339 real-stack boot
+    shapes -- default-project uuid and/or the VSP placeholder uuid with the
+    draft-fallback path -- are the expected forms here). The behavioral proof
+    that the gate is OPEN is the launcher_directive receipt asserted on turn 1
+    (launcher_route_miss) and the zero-LLM fallback route.
+    """
     current = state.get("current_project") or {}
     facts["boot_current_project"] = current
-    if str(current.get("uuid", "")).strip() != "":
-        raise LegFailure(
-            4,
-            "launcher_gate_closed_at_boot",
-            "CurrentProjectIdentity.uuid non-empty at boot (337 launcherFlowApplicable "
-            "requires empty) -- boot identity: "
-            + json.dumps(current, ensure_ascii=False),
-        )
+    facts["boot_gate_semantics"] = "340: ui_flag + user_entered_project (uuid/path not consulted)"
 
 
 def probe_greeting(agent_http: str, facts: dict[str, Any], expect_recent: str | None) -> None:
@@ -169,15 +171,23 @@ def consume_directive_ui_chain(
     if not Path(file_path).exists():
         raise LegFailure(2, "fixture_missing", f"directive target not on disk: {file_path}")
 
-    # Zero-friction premise (first open, no active project).
+    # Pre-open identity record (340): 339 proved on the real stack that
+    # current_project.path at boot is the draft fallback (non-empty) even while
+    # the user has entered no project, so the 336 UI zero-friction premise
+    # (path=="") is unreachable at boot -- the UI shows its governance confirm
+    # card instead (by design; the two faces keep different semantics: UI asks
+    # "confirm or not", the backend gate asks "launcher route or not"). The
+    # driver executes the confirmed-open chain directly; the hard assertion is
+    # the bind observation below. Only an already-bound identical fixture
+    # (re-open of the same project) would blur the bridge semantics.
     state = agent_state(agent_http)
     current = state.get("current_project") or {}
     facts[f"{conversation_note}_pre_open_current_project"] = current
-    if str(current.get("path", "")).strip() != "":
+    if norm_path(str(current.get("path", ""))) == norm_path(file_path):
         raise LegFailure(
             4,
             "governance_premise_broken",
-            "current_project.path non-empty before first open (expected zero-friction state): "
+            "current_project.path already bound to the fixture before open (re-open would blur bridge semantics): "
             + json.dumps(current, ensure_ascii=False),
         )
 

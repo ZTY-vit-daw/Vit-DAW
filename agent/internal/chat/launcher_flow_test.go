@@ -241,27 +241,86 @@ func TestLauncherFlowKernelUnavailable(t *testing.T) {
 	}
 }
 
-// 无工程态回归（F11）：无 launcher 标记的普通 chat 不被本分支拦截——语义
-// 不变，照旧走既有 LLM 轮；launcher 分支只在显式 launcher:true 且无活跃工程
-// 时生效。
-func TestLauncherFlowRequiresFlagAndNoProject(t *testing.T) {
-	s := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, nil)
+// 门=UI 声明+会话事实双门（LAUNCHER-GATE-FIX-1/340）：主门=context.launcher
+// 声明（无声明/显式 false 照旧不拦截，F11 语义不变）；副门=进程内
+// user_entered_project 位。339 真栈双层证据形态（default 工程自带 uuid /
+// VSP 紧凑快照占位 project_current）都不再阻塞门——旧 uuid=="" 判据废弃；
+// 唯一关门的会话事实=version.project_opened 播报到达（进程内不重置）。
+func TestLauncherFlowGateUIFlagAndSessionFact(t *testing.T) {
 	ctx := context.Background()
 
-	if _, handled := s.handleLauncherFlowChat(ctx, nil, "c", "打开小星星", "default"); handled {
-		t.Fatal("no-context chat must not be intercepted (F11 无工程 chat 语义不变)")
-	}
-	if _, handled := s.handleLauncherFlowChat(ctx, map[string]any{"launcher": false}, "c", "打开小星星", "default"); handled {
-		t.Fatal("launcher=false must not be intercepted")
-	}
+	t.Run("无 launcher 声明不拦截", func(t *testing.T) {
+		s := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, nil)
+		if _, handled := s.handleLauncherFlowChat(ctx, nil, "c", "打开小星星", "default"); handled {
+			t.Fatal("no-context chat must not be intercepted (F11 无工程 chat 语义不变)")
+		}
+		if _, handled := s.handleLauncherFlowChat(ctx, map[string]any{"launcher": false}, "c", "打开小星星", "default"); handled {
+			t.Fatal("launcher=false must not be intercepted")
+		}
+	})
 
-	// 有活跃工程（态 C）：跨工程意图归 C5 治理链，本分支必须让路。
-	project := shadow.New(nil)
-	project.Initialize(map[string]any{"status": "ok", "project_path": "D:/a/在开工程.vit", "project_uuid": "vitproj_bound"})
-	bound := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, project)
-	if _, handled := bound.handleLauncherFlowChat(ctx, launcherChatCtx(), "c", "打开小星星", "default"); handled {
-		t.Fatal("project-bound chat must not route through the launcher branch (归 C5)")
-	}
+	// 339 Phase A 真栈形态（main_A_20261109_232310 driver_summary）：boot 恒载
+	// repo default XML——uuid=default 工程自带、path=草稿回退。旧门（uuid=="")
+	// 在此形态恒关=launcher 确定性路由结构性不可达；新门不读 uuid/path。
+	t.Run("339PhaseA形态-default工程uuid不阻塞门", func(t *testing.T) {
+		project := shadow.New(nil)
+		project.Initialize(map[string]any{
+			"status":       "ok",
+			"project_path": "D:/Vit_DAW_wt_fixture/草稿/Unsaved.vit",
+			"project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+		})
+		s := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, project)
+		resp, handled := s.handleLauncherFlowChat(ctx, launcherChatCtx(), "conv-gate-a", "打开小星星", "default")
+		if !handled || resp.LauncherDirective == nil {
+			t.Fatalf("真栈 boot 形态（default uuid+草稿 path、用户未进工程）必须走 launcher 分支: handled=%v directive=%v", handled, resp.LauncherDirective)
+		}
+		if s.userEnteredProjectSnapshot() {
+			t.Fatal("launcher 轮不得置 user_entered_project 位")
+		}
+	})
+
+	// 339 Phase B 真栈形态（main_B_20261109_232613）：剥 boot uuid 后 VSP
+	// makeCompactProjectSnapshot 无条件占位 uuid=project_current（无 path）——
+	// 旧门第二层不可达证据；新门同样不阻塞。
+	t.Run("339PhaseB形态-VSP占位uuid不阻塞门", func(t *testing.T) {
+		project := shadow.New(nil)
+		project.Initialize(map[string]any{"status": "ok", "project_uuid": "project_current"})
+		s := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, project)
+		resp, handled := s.handleLauncherFlowChat(ctx, launcherChatCtx(), "conv-gate-b", "打开小星星", "default")
+		if !handled || resp.LauncherDirective == nil {
+			t.Fatalf("VSP 占位 uuid=project_current 形态必须走 launcher 分支: handled=%v directive=%v", handled, resp.LauncherDirective)
+		}
+	})
+
+	// 副门关=会话事实：version.project_opened lifecycle 播报经 /agent/invoke
+	// 到达即置位（空 command 在 applyExternalProjectOpened 早退 error——恢复
+	// 链失败不改变「宿主已进入工程」的会话事实），此后 launcher 分支让路
+	// （跨工程意图归 C5 治理链）；authority 面零变化。
+	t.Run("project_opened播报到达门关", func(t *testing.T) {
+		s := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, nil)
+		authorityBefore := s.authorityModeSnapshot()
+		body, err := json.Marshal(map[string]any{
+			"tool":    "version.project_opened",
+			"command": map[string]any{"cmd": "version_project_opened"},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		rec := httptest.NewRecorder()
+		s.handleInvoke(rec, httptest.NewRequest(http.MethodPost, "/agent/invoke", bytes.NewReader(body)))
+		if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), "omitted project path or UUID") {
+			t.Fatalf("空 command 的 project_opened 应早退 omitted error, status=%d body=%s", rec.Code, rec.Body.String())
+		}
+		if !s.userEnteredProjectSnapshot() {
+			t.Fatal("version.project_opened 播报到达必须置 user_entered_project 位（即使恢复链失败）")
+		}
+		if _, handled := s.handleLauncherFlowChat(ctx, launcherChatCtx(), "conv-gate-c", "打开小星星", "default"); handled {
+			t.Fatal("project_opened 后的 launcher chat 必须让路（跨工程意图归 C5）")
+		}
+		if after := s.authorityModeSnapshot(); after != authorityBefore {
+			t.Fatalf("置位不得改 authority mode: %q -> %q", authorityBefore, after)
+		}
+	})
 }
 
 // 红线断言：launcher:true 不改 authority_mode——服务端 authority 状态是唯一

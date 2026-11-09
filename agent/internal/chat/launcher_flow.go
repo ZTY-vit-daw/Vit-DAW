@@ -16,9 +16,13 @@ import (
 // launcher 流（启动卷）确定性意图路由 + 门厅简版开场白。
 //
 // 边界（设计稿 ai-first-launcher-design-v1 §2.2/§3.1/§4.3）：
-//   - 触发条件 = chat 请求 context.launcher=true 且无活跃工程（F11：projectUUID
-//     为空时 activation 早退，会话走进程态）。有活跃工程时的跨工程意图归
-//     LAUNCHER-BRIDGE-BE-1（C5）治理链，本分支不路由。
+//   - 触发条件 = chat 请求 context.launcher=true（主门=UI 声明，§3.1 启动台态
+//     自报，非权限声明）且本 agent 进程内尚未收到 version.project_opened 工程
+//     进入播报（副门=会话事实 user_entered_project）。LAUNCHER-GATE-FIX-1
+//     （340）：旧「无活跃工程」uuid=="" 判据废弃——真栈结构性不可达（339 双层
+//     证据：boot 恒载 default XML 自带 uuid；VSP 紧凑快照无条件占位
+//     project_current 使 CurrentProjectIdentity 恒非空）；uuid/path 均不再参与
+//     门判定。有活跃工程时的跨工程意图归 LAUNCHER-BRIDGE-BE-1（C5）治理链。
 //   - launcher 档是结构性准入（无工程则工程内工具无对象），不新增 authority
 //     枚举：本文件零 authority/pendingmanager 读写；directive 只是回执字段，
 //     打开/新建动作由 UI 执行——kernel open_project 与 change_scene 的写者保持
@@ -58,18 +62,42 @@ func launcherContextActive(chatCtx map[string]any) bool {
 	return chatCtx != nil && boolValue(chatCtx[launcherContextKey])
 }
 
-// launcherFlowApplicable 报告本轮 chat 是否走 launcher 分支：context 标记
-// launcher=true 且当前无活跃工程（CurrentProjectIdentity 与 note_sessions
-// 同源；有工程即退出，跨工程意图归 C5）。
-func (s *Server) launcherFlowApplicable(ctx context.Context, chatCtx map[string]any) bool {
+// launcherFlowApplicable 报告本轮 chat 是否走 launcher 分支：UI 声明
+// context.launcher=true（主门——启动台态自报，§3.1 非权限声明）且本 agent
+// 进程内尚未收到 version.project_opened 工程进入播报（副门=会话事实
+// user_entered_project，server.go handleInvoke 接收点置位，进程内不重置）。
+// 340 修复：uuid=="" 判据废弃（339 真栈双层证据=boot default uuid/VSP 占位
+// project_current 恒非空）；uuid/path 不参与门判定。
+func (s *Server) launcherFlowApplicable(_ context.Context, chatCtx map[string]any) bool {
 	if !launcherContextActive(chatCtx) {
 		return false
 	}
 	if s == nil || s.harness == nil {
 		return false
 	}
-	_, projectUUID := s.harness.CurrentProjectIdentity(ctx)
-	return strings.TrimSpace(projectUUID) == ""
+	return !s.userEnteredProjectSnapshot()
+}
+
+// markUserEnteredProject 记录宿主已播报工程进入（version.project_opened
+// lifecycle 通知到达即置）。进程内一次置位不重置：agent 重启回 false——「重进
+// 工程再播报一次桥接」正是设计形态（同 launcherBridgeServed 生命周期口径）。
+func (s *Server) markUserEnteredProject() {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	s.userEnteredProject = true
+	s.mu.Unlock()
+}
+
+// userEnteredProjectSnapshot 只读快照（s.mu 保护；nil server 视为未进入）。
+func (s *Server) userEnteredProjectSnapshot() bool {
+	if s == nil {
+		return false
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.userEnteredProject
 }
 
 // ── 意图识别（纯函数，零 LLM）───────────────────────────────────────────────

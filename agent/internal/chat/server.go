@@ -162,7 +162,11 @@ type Server struct {
 	activeWorkspacePath                string
 	activeWorkspaceUUID                string
 	activeWorkspaceSessionID           string
-	authorityMode                      string
+	// userEnteredProject 是 launcher 门副门（LAUNCHER-GATE-FIX-1/340）：宿主
+	// version.project_opened 工程进入播报到达即置 true，进程内不重置（重启回
+	// false）。s.mu 保护。
+	userEnteredProject bool
+	authorityMode      string
 	// authorityModeExplicit marks an in-process authority selection (authority
 	// control switch or a chat turn's binding). Both restore surfaces — the
 	// workspace activation path and the scheduler's disk reload — replay the
@@ -1739,6 +1743,13 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		// The Kernel has already switched identity. Preserve the old in-memory
 		// workspace until the lifecycle notification establishes the new one.
 		s.persistCurrentProjectWorkspace()
+		if tool == "version.project_opened" {
+			// LAUNCHER-GATE-FIX-1（340）：工程进入播报到达即置会话位——launcher
+			// 门副门（user_entered_project）从此关闭，进程内不重置。放在执行
+			// 之前：播报本身声明宿主已切换工程身份，后续恢复细节失败不改变
+			// 「用户已进入工程」的会话事实。
+			s.markUserEnteredProject()
+		}
 	} else {
 		s.activateCurrentProjectWorkspace(r.Context())
 		s.persistCurrentProjectWorkspace()
