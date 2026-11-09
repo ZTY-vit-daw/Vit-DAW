@@ -253,8 +253,8 @@ def write_summary(artifacts_dir: Path, summary: dict[str, Any]) -> None:
     )
 
 
-def leg_main(args: argparse.Namespace) -> dict[str, Any]:
-    facts: dict[str, Any] = {"leg": "main", "started_at": _now(), "conversation": args.conversation}
+def leg_main(args: argparse.Namespace, facts: dict[str, Any]) -> dict[str, Any]:
+    facts.update({"leg": "main", "started_at": _now(), "conversation": args.conversation})
     state = agent_state(args.agent_http)
     facts["tool_count"] = state.get("tool_count")
     probe_greeting(args.agent_http, facts, args.fixture_main)
@@ -310,8 +310,8 @@ def leg_main(args: argparse.Namespace) -> dict[str, Any]:
     return facts
 
 
-def leg_fallback(args: argparse.Namespace) -> dict[str, Any]:
-    facts: dict[str, Any] = {"leg": "fallback", "started_at": _now(), "conversation": args.conversation}
+def leg_fallback(args: argparse.Namespace, facts: dict[str, Any]) -> dict[str, Any]:
+    facts.update({"leg": "fallback", "started_at": _now(), "conversation": args.conversation})
     state = agent_state(args.agent_http)
     facts["tool_count"] = state.get("tool_count")
     probe_greeting(args.agent_http, facts, args.fixture_a)
@@ -355,8 +355,8 @@ def leg_fallback(args: argparse.Namespace) -> dict[str, Any]:
     return facts
 
 
-def leg_degraded_kernel(args: argparse.Namespace) -> dict[str, Any]:
-    facts: dict[str, Any] = {"leg": "degraded_kernel", "started_at": _now()}
+def leg_degraded_kernel(args: argparse.Namespace, facts: dict[str, Any]) -> dict[str, Any]:
+    facts.update({"leg": "degraded_kernel", "started_at": _now()})
     recents = kernel_command(args.kernel_zmq, {"cmd": "get_recent_projects"}, args.timeout)
     facts["recent_projects"] = recents.get("recent_projects")
     if str(recents.get("status", "")).lower() not in ("ok", "success"):
@@ -398,13 +398,14 @@ def main() -> int:
 
     artifacts_dir = Path(args.artifacts_dir)
     summary: dict[str, Any] = {"leg": args.leg, "exit": None}
+    facts: dict[str, Any] = {}
     try:
         if args.leg == "main":
-            facts = leg_main(args)
+            leg_main(args, facts)
         elif args.leg == "fallback":
-            facts = leg_fallback(args)
+            leg_fallback(args, facts)
         else:
-            facts = leg_degraded_kernel(args)
+            leg_degraded_kernel(args, facts)
         facts["finished_at"] = _now()
         summary.update(facts)
         summary["exit"] = 0
@@ -413,6 +414,8 @@ def main() -> int:
         print(f"LAUNCHER LEG {args.leg} PASS")
         return 0
     except LegFailure as exc:
+        # partial facts survive into the summary (evidence for the finding)
+        summary.update(facts)
         summary["failure_class"] = exc.failure_class
         summary["detail"] = str(exc)[:2000]
         summary["exit"] = exc.code
