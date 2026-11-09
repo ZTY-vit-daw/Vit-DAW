@@ -1,0 +1,71 @@
+{
+  "card": "LAUNCHER-SMOKE-1 (339)",
+  "generated_at": "2026-11-09T23:55:00+08:00",
+  "owner": "ZCode GLM-5.3 L2 执行子代理（339smoke 会话）/ PC / worktree D:/Vit_DAW_wt_339smoke / 分支 port/launcher-smoke-1",
+  "baseline": { "origin_main_at_claim": "e91e1396", "frontend_head": "ff301b3 (local main, 335/336 merged)", "kernel": "deployed Export/staging/runtime/VitApp.exe sha256 b6565dcf85d1da86 (unchanged)" },
+  "stack_registration": {
+    "occupy": "2026-11-09 23:19 +0800 (main 509551c4) 净空亲核 23:18:18 七面全零",
+    "release": "2026-11-09 23:51 +0800 (main 065761b6) TEARDOWN_ALL_ZERO 亲核 23:50:54 全零 + recents 配置原样还原（哈希一致亲证）"
+  },
+  "section8_plan": "coord/runs/LAUNCHER-SMOKE-1/RUNBOOK.md（commit 4a195967，先于一切真栈运行冻结；attempt1 后修订如实入卷 68c9600a）",
+  "legs": [
+    {
+      "leg": "1-main PhaseA（产品真实 boot）",
+      "run_dir": "coord/runs/LAUNCHER-SMOKE-1/main_A_20261109_232310",
+      "command": "dev_agent_smoke.ps1 -LauncherFlow -LauncherFlowLeg main -StartKernel -RestartAgent -StartUI -NoChatSmoke -NoStripSilenceSmoke -KernelExe <deployed> -RunArtifactsDir <run>",
+      "exit_code": 4,
+      "failure_class": "launcher_gate_closed_at_boot",
+      "llm_calls_launcher_chain": 0,
+      "facts": "CurrentProjectIdentity.uuid = vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb（repo default_project.xml 自带 uuid）→ 337 launcherFlowApplicable 门（uuid==\"\")关闭",
+      "note": "attempt1（main_A_20261109_231933）= 脚本缺陷 env_interrupt（-StartUI 在内核端口已监听时 no-op，Godot 未起）；零 launcher LLM；默认 strip 腿耗 1 次 deepseek-flash（≈¥0.001，非本卡链路）"
+    },
+    {
+      "leg": "1-main PhaseB（剥 uuid 合成门开态，RUNBOOK 预声明假设缩小诊断跑）",
+      "run_dir": "coord/runs/LAUNCHER-SMOKE-1/main_B_20261109_232613",
+      "command": "同上 + -LauncherStripBootUuid",
+      "exit_code": 4,
+      "failure_class": "launcher_gate_closed_at_boot (deeper layer)",
+      "llm_calls_launcher_chain": 0,
+      "facts": "boot XML vit_project_uuid 已剥除，仍 uuid=\"project_current\"（VSP makeCompactProjectSnapshot 无条件 project_id 占位 → shadow Summary 恒非空）→ 门在有任何内核挂载时结构性不可达",
+      "greeting_contract_on_real_stack": "PASS——status ok/launcher=true/reply=「我在。最近的工程是《小星星乐局》——想从哪开始？」/recent_project=fixture/recent_count=16/tool_count=298",
+      "stop_rule": "同确定性断点两连败 → 按 RUNBOOK §8 停手取证"
+    },
+    {
+      "leg": "2-fallback（确定性退路）",
+      "status": "BLOCKED_BY_SAME_GATE",
+      "note": "结果卡路径走同一 launcherFlowApplicable 门；A/B 双层证据已证门关，不再消耗运行（卡面如实记录，不虚报 exit 0）"
+    },
+    {
+      "leg": "3-degraded（降级，零 LLM 无 agent）",
+      "run_dir": "coord/runs/LAUNCHER-SMOKE-1/degraded_20261109_234622",
+      "command": "dev_agent_smoke.ps1 -LauncherFlow -LauncherFlowLeg degraded -StartKernel -StartUI -NoChatSmoke -NoStripSilenceSmoke -KernelExe <deployed> -RunArtifactsDir <run>",
+      "exit_code": 0,
+      "assertions": {
+        "guidance_card_anchor_live": "PASS（真实 UI 无 agent：VitAgent spawned but /agent/tools did not become ready 在 godot 日志在场）",
+        "agent_port_free_window": "PASS（7878 全窗净空）",
+        "kernel_face_recents": "PASS（get_recent_projects ok 11 项完好数组）",
+        "kernel_face_open": "PASS（open_project ok / Project opened / fixture uuid 回执）",
+        "headless_probe": "PASS 71/71（当前前端树，含引导卡形态+磁带卡+directive 消费链）",
+        "zero_llm": "PASS（telemetry 0 行，构造性无 agent）"
+      },
+      "attempts_note": "attempt1=脚本缺陷（常开 agent-HTTP 默认腿未跳过）→修复；attempt2=锚点误设（greeting 仅 READY 路径取，336 契约）→修正为单锚+record-only；attempt3=PASS 但 recents 种子被单 fixture 标量解包缺陷弱化→修复@() 强制数组+自原始快照重 seed→本 run 净证（seeded 11 项完好）"
+    }
+  ],
+  "primary_finding": {
+    "title": "337 launcher 门（uuid==\"\"）在有内核挂载的真栈上结构性不可达——launcher 确定性路由（directive/结果卡）无法在产品路径触发",
+    "evidence": [
+      "main_A_20261109_232310/driver_summary.json（真实 boot：uuid=vitproj_ce9e…，path=草稿回退 Unsaved.vit）",
+      "main_B_20261109_232613/driver_summary.json（剥 uuid 后：uuid=project_current，VSP 占位）",
+      "代码锚点：agent/internal/chat/launcher_flow.go:64-73（launcherFlowApplicable）；VitApp/Source/Service/VspKernelReference.cpp:721（project_id=project_current 无条件占位）；agent/internal/shadow/shadow.go:196（Summary 回退链取 project_uuid/project_id）；VitApp boot 恒载 default XML（Main.cpp→reloadProjectFromDefaultXml）",
+      "对照面：336 UI 治理自查用 current_project.path==\"（path 语义）而 337 门用 uuid==\"（uuid 语义）——两卡对「无工程」判据不同构"
+    ],
+    "domain": "agent 域（337 已合入 main）；339 文件域=scripts/ 不扩修，取证上交",
+    "suggested_disposition": "主管裁定：修复卡改门判据（如对齐 path 语义或识别 project_current 占位）→ 复用 339 装置重跑腿 1/2（装置已就绪，命令在 RUNBOOK）"
+  },
+  "llm_budget_reconciliation": {
+    "budget_declared": "腿1 ≤10 调用；腿2/3 = 0",
+    "actual": "launcher 链 0 调用（门关双取证实测零消耗；腿 1 未达 LLM 段）；唯一消耗=attempt1 默认 strip 腿 1 次 deepseek-flash（706 in/353 out，≈¥0.001，非本卡断言面，此后 -NoStripSilenceSmoke 关闭）",
+    "verdict": "远低于上界，零超支"
+  },
+  "rendering_boundary_declaration": "AGENTS §5：本卡断言面=agent HTTP 回执字段+内核 ZMQ（UI 同链消费）+真实 UI 进程/日志/内核命令锚点+前端 headless 探针（71 检）。GUI 渲染观感/真实点击/浮动窗视觉呈现不在断言面——headless 覆盖节点树+数据绑定+状态机；GUI 最后一米=用户手测（手测 v2.5 入口）。腿 3 全降级下 UI 自身 open/recents 传输链（UDP 4445→agent bridge）不可用属架构事实，内核命令面可用性+UI 消费链 headless 覆盖为该腿断言口径（如实声明）。"
+}

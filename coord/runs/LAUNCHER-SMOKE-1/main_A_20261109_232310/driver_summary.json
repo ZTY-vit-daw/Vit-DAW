@@ -1,0 +1,8 @@
+{
+  "leg": "main",
+  "exit": 4,
+  "failure_class": "launcher_gate_closed_at_boot",
+  "detail": "launcher_gate_closed_at_boot: CurrentProjectIdentity.uuid non-empty at boot (337 launcherFlowApplicable requires empty) -- boot identity: {\"path\": \"C:\\\\Users\\\\timoz\\\\AppData\\\\Local\\\\Temp\\\\VitStackDrafts\\\\dev_agent_smoke_20261109_232314\\\\agent_drafts\\\\draft_20261109T152318_87c4d6d3\\\\Unsaved.vit\", \"uuid\": \"vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb\"}",
+  "result": "FAIL",
+  "finished_at": "2026-11-09T23:23:32"
+}

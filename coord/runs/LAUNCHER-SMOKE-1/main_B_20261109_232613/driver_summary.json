@@ -1,0 +1,25 @@
+{
+  "leg": "main",
+  "exit": 4,
+  "started_at": "2026-11-09T23:26:31",
+  "conversation": "launcher_main_20261109_232631",
+  "tool_count": 298,
+  "greeting": {
+    "launcher": true,
+    "recent_count": 16,
+    "recent_project": {
+      "file_path": "D:\\Vit_DAW_wt_339smoke\\coord\\runs\\LAUNCHER-SMOKE-1\\main_B_20261109_232613\\fixtures\\小星星乐局.vit",
+      "name": "小星星乐局"
+    },
+    "reply": "我在。最近的工程是《小星星乐局》——想从哪开始？",
+    "status": "ok"
+  },
+  "boot_current_project": {
+    "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261109_232614\\agent_drafts\\draft_20261109T152618_8a597c18\\Unsaved.vit",
+    "uuid": "project_current"
+  },
+  "failure_class": "launcher_gate_closed_at_boot",
+  "detail": "launcher_gate_closed_at_boot: CurrentProjectIdentity.uuid non-empty at boot (337 launcherFlowApplicable requires empty) -- boot identity: {\"path\": \"C:\\\\Users\\\\timoz\\\\AppData\\\\Local\\\\Temp\\\\VitStackDrafts\\\\dev_agent_smoke_20261109_232614\\\\agent_drafts\\\\draft_20261109T152618_8a597c18\\\\Unsaved.vit\", \"uuid\": \"project_current\"}",
+  "result": "FAIL",
+  "finished_at": "2026-11-09T23:26:31"
+}

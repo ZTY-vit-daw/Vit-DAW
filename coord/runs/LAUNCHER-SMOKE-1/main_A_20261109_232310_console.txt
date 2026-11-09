@@ -1,0 +1,58 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261109_232314\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\main_A_20261109_232310\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: launcher fixtures (copy-only isolation): D:\Vit_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\main_A_20261109_232310\fixtures\小星星乐局.vit | D:\Vit_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\main_A_20261109_232310\fixtures\小星星乐局·副本.vit
+ok: launcher recents seeded (snapshot=D:\Vit_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\main_A_20261109_232310\global_project_config.before.json; prepended 2 fixtures)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_339smoke
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_339smoke\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_339smoke\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_339smoke\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=9700 workdir=D:\Vit_DAW\Export\staging\runtime
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=9700
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_339smoke\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=298
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=9700
+ok: ZMQ SUB listening: 5556 pid=9700
+
+== Project state invoke
+project.state status=ok error=
+
+== Launcher flow leg (main)
+ok: launcher leg started Godot UI: D:\Godot\Godot_v4.6.1-stable_win64_console.exe --path D:\Godot\project\vit-daw-frontend (VIT_SKIP_DEV_AUTOSTART=1 child guard)
+ok: launcher real-UI boot anchor: Godot Engine line present (D:\Vit_DAW_wt_339smoke\VitApp\Workspace\Logs\godot_dev_agent_smoke.log)
+ok: launcher real-UI process anchor: Godot_v4.6.1-stable_win64:28496 Godot_v4.6.1-stable_win64_console:532
+LAUNCHER LEG main FAIL code=4 class=launcher_gate_closed_at_boot
+launcher_gate_closed_at_boot: CurrentProjectIdentity.uuid non-empty at boot (337 launcherFlowApplicable requires empty) -- boot identity: {"path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261109_232314\\agent_drafts\\draft_20261109T152318_87c4d6d3\\Unsaved.vit", "uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"}
+launcher leg main failed with exit code 4 (class per driver_summary.json; console: D:\Vit_DAW_wt_339smoke\coord\runs\LA
+UNCHER-SMOKE-1\main_A_20261109_232310\driver_main_console.txt)
+所在位置 D:\Vit_DAW_wt_339smoke\scripts\dev_agent_smoke.ps1:10578 字符: 13
++             throw ("launcher leg " + $LauncherFlowLeg + " failed with ...
++             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (launcher leg ma...in_console.txt):String) [], RuntimeException
+    + FullyQualifiedErrorId : launcher leg main failed with exit code 4 (class per driver_summary.json; console: D:\Vi 
+   t_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\main_A_20261109_232310\driver_main_console.txt)
+ 
