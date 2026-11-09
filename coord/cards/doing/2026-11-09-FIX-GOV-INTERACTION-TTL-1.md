@@ -26,4 +26,12 @@ agent 治理交互域（pendingmanager/chat 交互面，以勘察锚点为准）
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+### 领取（327）
+
+- 时间：2026-11-09 晚窗
+- origin/main 基线：`5915bb9c646528d98c7e25b52237872ab3c28374`（worktree 亲证：status 干净、diff --stat 空）
+- owner：GLM-5.3 执行子代理 / PC / Vit-DAW 327 卡 L2 实现会话
+- 分支：`port/gov-interaction-ttl-1`（实现）；领取提交=本提交（coord/327-claim，仅含本卡状态变更）
+- worktree：`D:/Vit_DAW_wt_327impl`
+- 前置核对：卡仍在 todo ✓ 派发已确认 ✓ 依赖=零 ✓；doing 四卡（EDU-ASK-ANCHOR-1[goalrunner_chat.go/ruleset 域]、ARRLOOP-AUTHBRIDGE-1[harness 装载确认面]、CLOSURE-ROUTE-ADAPT-1[audio_closure_controller.go，impl 分支已收口不触 server.go 交互域]、WAVESHELL-OFFRENDER-FIX-1[VitApp 内核域]）文件域与本卡（chat 交互生命周期面+测试）不相交 ✓
+- 勘察结论先行（零栈，语料对账见回执节）：**服务端不存在时间型 TTL**；r2 交互丢失点=chat 收尾 `syncCurrentProjectWorkspace` 身份切换时全量重激活，用目标工作区的陈旧磁盘快照整体替换内存 `s.interactions`——交互在 chat 期间创建、却被持久化进前一工作区（r1）的状态文件，approve 抵达时 map 中已无此卡。过期语义牵涉的是 agent 侧 chat 工作区生命周期，**不涉内核交互存储**，未触发停止条件。
