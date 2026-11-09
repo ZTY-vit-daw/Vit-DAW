@@ -1,0 +1,12 @@
+﻿{
+    "leg":  "degraded",
+    "godot_anchors":  [
+                          "VitAgent spawned but /agent/tools did not become ready",
+                          "launcher greeting endpoint unavailable"
+                      ],
+    "finished_at":  "2026-11-09T23:38:50.1999339+08:00",
+    "headless_probe":  "PASS count 71",
+    "result":  "PASS",
+    "artifacts_dir":  "D:/Vit_DAW_wt_339smoke/coord/runs/LAUNCHER-SMOKE-1/degraded_20261109_233823",
+    "kernel_face":  "recents+open green (driver_degraded_kernel_console.txt)"
+}

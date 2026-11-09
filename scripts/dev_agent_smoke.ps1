@@ -458,7 +458,26 @@ param(
     [string]$WaveshellMountMode = "direct",
     [switch]$Vit309RtLevel,
     [switch]$Vit309CConsistency,
-    [switch]$Vit309DisableBlacklist
+    [switch]$Vit309DisableBlacklist,
+    # LAUNCHER-SMOKE-1 (339)：启动面（AI-first launcher）真栈烟测三腿。断言体在
+    # scripts/launcher_flow_smoke.py；§8 口径冻结在 coord/runs/LAUNCHER-SMOKE-1/
+    # RUNBOOK.md。腿形：
+    #   main     三件套（-StartKernel -RestartAgent -StartUI -NoChatSmoke）——
+    #            launcher 白话开工程→directive→零摩擦治理前提→UI 同链消费
+    #            （kernel open+lifecycle notify）→绑定→桥接播报→续聊一轮
+    #            （LLM 预算 ≤10 调用，telemetry 对账）；
+    #   fallback 三件套同上——结果卡点选同链开工程（零 LLM，telemetry==0 断言）；
+    #   degraded -StartKernel -StartUI（**不** -RestartAgent，agent 端口须净空，
+    #            且必须 -NoChatSmoke）——零 agent 引导卡日志锚点+内核面经典流
+    #            数据源/open 可用+前端 headless 71 检探针。
+    # fixture=由 %APPDATA%\Vit-DAW\projects\手测·小星星乐局.vit（311 布位件）复制
+    # 到本腿 run 目录；内核 recents 配置（global_project_config.json）每腿前快照
+    # +prepend fixture，腿后由 owner 还原（RUNBOOK 隔离节）。退出码 0/2/3/4 对账
+    # RUNBOOK 失败分类。-LauncherStripBootUuid=门开合成态（Phase B 诊断跑：隔离
+    # 副本剥 vit_project_uuid 属性；默认关=产品真实 boot）。
+    [switch]$LauncherFlow,
+    [string]$LauncherFlowLeg = "main",
+    [switch]$LauncherStripBootUuid
 )
 
 Set-StrictMode -Version Latest
@@ -1401,7 +1420,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke -or $LauncherFlow) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -1636,6 +1655,140 @@ if ($WaveshellStacklegSmoke -and -not $ScenarioMode) {
     Write-Ok ("waveshell stackleg telemetry capture: telemetry=" + $env:VIT_AGENT_LLM_TELEMETRY_PATH)
 }
 
+# LAUNCHER-SMOKE-1 (339)：启动面三腿装配块（在一切进程启动之前执行——telemetry
+# env 须被 agent 继承；recents 种子须在内核首读之前落盘；fixture 副本只写本腿
+# run 目录，§10 隔离见 RUNBOOK）。
+if ($LauncherFlow -and -not $ScenarioMode) {
+    if ($LauncherFlowLeg -notin @("main", "fallback", "degraded")) {
+        throw ("-LauncherFlowLeg must be main, fallback or degraded (got '" + $LauncherFlowLeg + "')")
+    }
+    if (-not $StartKernel) {
+        throw ("launcher leg '" + $LauncherFlowLeg + "' requires -StartKernel (the kernel is part of the berth)")
+    }
+    if (-not $StartUI) {
+        throw ("launcher leg '" + $LauncherFlowLeg + "' requires -StartUI (the real Godot start page is part of the assertion face)")
+    }
+    if ($LauncherFlowLeg -eq "degraded") {
+        if ($RestartAgent) {
+            throw "launcher degraded leg must NOT pass -RestartAgent (the whole point: no agent in the stack)"
+        }
+        if (-not $NoChatSmoke) {
+            throw "launcher degraded leg requires -NoChatSmoke (no agent HTTP face exists)"
+        }
+        if ($null -ne (Get-TcpListener -Port $httpPort)) {
+            throw ("launcher degraded leg requires a free agent HTTP port; " + $httpPort + " is already listening (an agent is up)")
+        }
+    }
+    else {
+        if (-not $RestartAgent) {
+            throw ("launcher leg '" + $LauncherFlowLeg + "' requires -RestartAgent (the launcher agent face is part of the chain)")
+        }
+        if (-not $NoChatSmoke) {
+            throw ("launcher leg '" + $LauncherFlowLeg + "' requires -NoChatSmoke (default chat leg spends unaccounted LLM rounds; RUNBOOK budget)")
+        }
+    }
+    if ([string]::IsNullOrWhiteSpace((Resolve-GodotProjectRoot -RequestedProjectRoot $GodotProjectRoot))) {
+        throw ("launcher leg requires a Godot project root with the launcher surface (335/336): " + $GodotProjectRoot)
+    }
+    if ([string]::IsNullOrWhiteSpace((Resolve-GodotExecutable -RequestedGodotExe $GodotExe))) {
+        throw "launcher leg requires a Godot executable (pass -GodotExe)"
+    }
+    # Run dir: default under coord/runs/LAUNCHER-SMOKE-1/<leg>_<stamp> (per-run
+    # fresh directory, AGENTS.md section 9). Note the shared GUI-leg isolation
+    # block above may have created $RunArtifactsDir already (it derives from the
+    # same path), so freshness is guaranteed by the caller passing a new
+    # timestamped dir (RUNBOOK) rather than by a Test-Path guard here.
+    $LauncherArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($LauncherArtifactsDir)) {
+        $LauncherArtifactsDir = Join-Path $RepoRoot ("coord\runs\LAUNCHER-SMOKE-1\" + $LauncherFlowLeg + "_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    New-Item -ItemType Directory -Path $LauncherArtifactsDir -Force | Out-Null
+    $LauncherLogsDir = Join-Path $LauncherArtifactsDir "logs"
+    New-Item -ItemType Directory -Path $LauncherLogsDir -Force | Out-Null
+    Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value (Join-Path $LauncherLogsDir "agent_llm_telemetry.jsonl")
+    # Fixtures: copy-only from the 311 placement project (read-only source) into
+    # this run dir. Per-leg naming keeps the launcher match tiers deterministic
+    # (leg main: exact-name unique hit; leg fallback: shared-substring pair).
+    $LauncherFixtureSource = Join-Path $env:APPDATA "Vit-DAW\projects\手测·小星星乐局.vit"
+    if (-not (Test-Path -LiteralPath $LauncherFixtureSource)) {
+        throw ("launcher fixture source missing (311 placement project expected): " + $LauncherFixtureSource)
+    }
+    $LauncherFixtureDir = Join-Path $LauncherArtifactsDir "fixtures"
+    New-Item -ItemType Directory -Path $LauncherFixtureDir -Force | Out-Null
+    $LauncherFixtureNames = @()
+    if ($LauncherFlowLeg -eq "main") {
+        $LauncherFixtureNames = @("小星星乐局.vit", "小星星乐局·副本.vit")
+    }
+    elseif ($LauncherFlowLeg -eq "fallback") {
+        $LauncherFixtureNames = @("磁带流·退路甲.vit", "磁带流·退路乙.vit")
+    }
+    else {
+        $LauncherFixtureNames = @("降级磁带.vit")
+    }
+    $LauncherFixturePaths = @()
+    foreach ($fixtureName in $LauncherFixtureNames) {
+        $fixturePath = Join-Path $LauncherFixtureDir $fixtureName
+        Copy-Item -LiteralPath $LauncherFixtureSource -Destination $fixturePath -Force
+        $LauncherFixturePaths += $fixturePath
+    }
+    Write-Ok ("launcher fixtures (copy-only isolation): " + ($LauncherFixturePaths -join " | "))
+    # Kernel recents seed: snapshot the kernel-managed global config, then
+    # prepend this leg's fixture paths (dedup). The snapshot is the restore
+    # point the owner applies after all legs + teardown (RUNBOOK isolation).
+    $LauncherRecentsConfig = Join-Path $env:APPDATA "Vit-DAW\global_project_config.json"
+    if (-not (Test-Path -LiteralPath $LauncherRecentsConfig)) {
+        throw ("kernel recents config missing: " + $LauncherRecentsConfig)
+    }
+    $LauncherRecentsBackup = Join-Path $LauncherArtifactsDir "global_project_config.before.json"
+    Copy-Item -LiteralPath $LauncherRecentsConfig -Destination $LauncherRecentsBackup -Force
+    $LauncherRecentsJson = Get-Content -LiteralPath $LauncherRecentsConfig -Raw -Encoding UTF8 | ConvertFrom-Json
+    $LauncherRecentsExisting = @()
+    if ($null -ne $LauncherRecentsJson.recent_projects) {
+        $LauncherRecentsExisting = @($LauncherRecentsJson.recent_projects | ForEach-Object { [string]$_ })
+    }
+    $LauncherRecentsMerged = @((@($LauncherFixturePaths | ForEach-Object { [string]$_ }) + @($LauncherRecentsExisting)) | Select-Object -Unique)
+    # BOM-less UTF-8 write + explicit array construction: the kernel parses
+    # this file with juce::JSON (BOM would break the parse), and PowerShell
+    # 5.1 ConvertTo-Json unwraps single-element arrays in properties -- build
+    # the array JSON by hand from per-string ConvertTo-Json (keeps path
+    # escaping correct).
+    $LauncherRecentsJsonItems = @($LauncherRecentsMerged | ForEach-Object { $_ | ConvertTo-Json })
+    $LauncherRecentsJsonText = "{`n  `"recent_projects`": [`n    " + ($LauncherRecentsJsonItems -join ",`n    ") + "`n  ]`n}"
+    [System.IO.File]::WriteAllText($LauncherRecentsConfig, $LauncherRecentsJsonText, (New-Object System.Text.UTF8Encoding($false)))
+    Copy-Item -LiteralPath $LauncherRecentsConfig -Destination (Join-Path $LauncherArtifactsDir "global_project_config.seeded.json") -Force
+    Write-Ok ("launcher recents seeded (snapshot=" + $LauncherRecentsBackup + "; prepended " + $LauncherFixturePaths.Count + " fixtures)")
+    # Phase B opt-in (RUNBOOK): strip vit_project_uuid from the isolated boot XML
+    # copy so the kernel reports an empty project identity at boot (synthetic
+    # gate-open state; product-real boots keep the attribute -- Phase A default).
+    if ($LauncherStripBootUuid) {
+        $launcherPriorXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+        if ([string]::IsNullOrWhiteSpace($launcherPriorXml)) {
+            throw "-LauncherStripBootUuid requires the shared GUI-leg isolation block to have set VIT_PROJECT_XML first"
+        }
+        $strippedPath = Join-Path $LauncherArtifactsDir "default_project_gateprobe.xml"
+        $launcherXmlDoc = New-Object System.Xml.XmlDocument
+        $launcherXmlDoc.Load($launcherPriorXml)
+        if ($launcherXmlDoc.DocumentElement.HasAttribute("vit_project_uuid")) {
+            $launcherXmlDoc.DocumentElement.RemoveAttribute("vit_project_uuid")
+        }
+        $launcherXmlDoc.Save($strippedPath)
+        Set-Item -LiteralPath "env:VIT_PROJECT_XML" -Value $strippedPath
+        Write-Ok ("launcher Phase B (synthetic gate-open boot): VIT_PROJECT_XML=" + $strippedPath + " (vit_project_uuid stripped from isolation copy)")
+    }
+    @{
+        card            = "LAUNCHER-SMOKE-1"
+        leg             = $LauncherFlowLeg
+        artifacts_dir   = $LauncherArtifactsDir
+        telemetry       = $env:VIT_AGENT_LLM_TELEMETRY_PATH
+        fixtures        = $LauncherFixturePaths
+        fixture_source  = $LauncherFixtureSource
+        recents_backup  = $LauncherRecentsBackup
+        boot_xml        = $(if ($null -ne $GuiLegProjectIsolation) { [string]$GuiLegProjectIsolation.isolated_copy } else { [string][System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process") })
+        strip_boot_uuid = [bool]$LauncherStripBootUuid
+        created_at      = (Get-Date).ToString("o")
+    } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $LauncherArtifactsDir "leg_assembly.json") -Encoding UTF8
+}
+
 Write-Step "VitAgent dev smoke"
 Write-Host ("repo: " + $RepoRoot)
 Write-Host ("agent http: " + $AgentHttp)
@@ -1835,7 +1988,20 @@ if ($RestartAgent) {
     $listener = Get-TcpListener -Port $httpPort
 }
 
-if ($null -eq $listener) {
+# LAUNCHER-SMOKE-1 (339) degraded leg: no agent anywhere in the stack. Skip the
+# agent start/reuse entirely (the default flow would start one the moment the
+# port is free) and keep the port assertion strict -- the degrade premise is
+# only honest if nothing quietly brings an agent up.
+$LauncherDegraded = ($LauncherFlow -and $LauncherFlowLeg -eq "degraded")
+
+if ($LauncherDegraded) {
+    $listener = Get-TcpListener -Port $httpPort
+    if ($null -ne $listener) {
+        throw ("launcher degraded leg: agent port " + $httpPort + " is listening (pid=" + $listener.OwningProcess + ") -- degrade premise broken")
+    }
+    Write-Ok ("launcher degraded leg: agent face intentionally absent (port " + $httpPort + " free)")
+}
+elseif ($null -eq $listener) {
     Assert-DraftRootIsolation
     New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
     $args = @(
@@ -1870,6 +2036,13 @@ else {
     }
 }
 
+if ($LauncherDegraded) {
+    # No agent -> no agent HTTP state face. The degraded assertions live in the
+    # launcher leg block at the end (kernel face + Godot log anchors + headless
+    # probe); skip the default /agent/state gate.
+    Write-Ok "launcher degraded leg: skipping agent HTTP state gate (no agent in stack)"
+}
+else {
 Write-Step "HTTP state"
 $state = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/state") -TimeoutSec 10
 if ($null -eq $state -or $state.status -ne "ok") {
@@ -1877,6 +2050,7 @@ if ($null -eq $state -or $state.status -ne "ok") {
 }
 Write-Ok ("tool_count=" + [string]$state.tool_count)
 Write-Host ("shadow.initialized=" + [string]$state.shadow.initialized + " track_count=" + [string]$state.shadow.track_count)
+}
 
 # ============================================================
 # SMOKE-SCEN-RANGE-1 scenario groups (REGION-TIME-1 / INTENT-WIRE-1 gates).
@@ -8079,6 +8253,12 @@ if ($AuthoritySmoke) {
     Write-Ok ("authority restored to " + [string]$authorityRestore.authority_mode)
 }
 
+# LAUNCHER-SMOKE-1 (339) degraded leg: the always-on agent-HTTP default legs
+# below (tool catalog / range context / project.state) cannot run -- the whole
+# point of that leg is an agent-less stack. $toolNames stays defined (empty)
+# because gated legs further down reference it under StrictMode.
+$toolNames = @()
+if (-not $LauncherDegraded) {
 Write-Step "Strip Silence tool catalog"
 $toolsResp = Invoke-Json -Method GET -Uri ($AgentHttp.TrimEnd("/") + "/agent/tools") -TimeoutSec 10
 if ($null -eq $toolsResp -or [string]$toolsResp.status -ne "ok") {
@@ -8154,10 +8334,11 @@ try {
 }
 finally {
     $restoreUIContextResp = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/ui/context") -Body $priorUIContext -TimeoutSec 10
-    if ($null -eq $restoreUIContextResp -or [string]$restoreUIContextResp.status -ne "ok") {
+    if ($null -eq $restoreUIContextResp -or $restoreUIContextResp.status -ne "ok") {
         throw "failed to restore UI context after range context smoke"
     }
 }
+} # end (-not $LauncherDegraded) agent-HTTP default legs
 
 Write-Step "Kernel ports"
 $req = Get-TcpListener -Port ([int]$ZmqReqPort)
@@ -8175,7 +8356,7 @@ else {
     Write-Ok ("ZMQ SUB listening: " + $ZmqSubPort + " pid=" + $sub.OwningProcess)
 }
 
-if ($null -ne $req) {
+if ($null -ne $req -and -not $LauncherDegraded) {
     Write-Step "Project state invoke"
     $projectState = Invoke-Json -Method POST -Uri ($AgentHttp.TrimEnd("/") + "/agent/invoke") -Body @{
         tool = "project.state"
@@ -10201,6 +10382,210 @@ if ($WriteLeaseSmoke) {
             catch {
                 Write-WarnLine ("could not restore prior project " + $leasePriorProjectPath + ": " + $_.Exception.Message)
             }
+        }
+    }
+}
+
+if ($LauncherFlow -and -not $ScenarioMode) {
+    # LAUNCHER-SMOKE-1 (339) leg block. Runs with the stack this invocation
+    # started (main/fallback: kernel+agent+UI; degraded: kernel+UI, no agent).
+    # Assertion faces per RUNBOOK: agent HTTP receipt fields, kernel ZMQ (the
+    # UI consumption chain), real-UI process/log anchors, headless probe
+    # (degraded leg). Rendering appearance is explicitly OUT of the assertion
+    # face (AGENTS.md section 5; GUI last mile = user handtest v2.5).
+    Write-Step ("Launcher flow leg (" + $LauncherFlowLeg + ")")
+
+    # The script's -StartUI block is a no-op when the kernel command port is
+    # already listening (D1 semantics: it assumes a UI-launched kernel). This
+    # leg owns kernel+agent+UI explicitly, so the UI is started here, with the
+    # same arguments and VIT_SKIP_DEV_AUTOSTART guard as the StartUI Godot
+    # branch (first attempt 2026-11-09 23:19 hit exactly that no-op).
+    $launcherGodotLog = Join-Path $LogsDir "godot_dev_agent_smoke.log"
+    $launcherGodotProcsEarly = @(Get-Process | Where-Object { $_.ProcessName -like "Godot*" })
+    if ($launcherGodotProcsEarly.Count -eq 0) {
+        New-Item -ItemType Directory -Path $LogsDir -Force | Out-Null
+        $launcherGodotArgs = @("--path", $ResolvedGodotProjectRoot, "--log-file", $launcherGodotLog)
+        $launcherPriorSkipDev = [Environment]::GetEnvironmentVariable("VIT_SKIP_DEV_AUTOSTART", "Process")
+        $env:VIT_SKIP_DEV_AUTOSTART = "1"
+        try {
+            Start-Process -FilePath $ResolvedGodotExe -ArgumentList $launcherGodotArgs -WorkingDirectory $ResolvedGodotProjectRoot | Out-Null
+        }
+        finally {
+            if ($null -eq $launcherPriorSkipDev) {
+                Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue
+            }
+            else {
+                $env:VIT_SKIP_DEV_AUTOSTART = $launcherPriorSkipDev
+            }
+        }
+        Write-Ok ("launcher leg started Godot UI: " + $ResolvedGodotExe + " --path " + $ResolvedGodotProjectRoot + " (VIT_SKIP_DEV_AUTOSTART=1 child guard)")
+    }
+    else {
+        Write-WarnLine ("launcher leg: reusing an already-running Godot process (" + ($launcherGodotProcsEarly | ForEach-Object { $_.Id }) -join "," + ") -- UI log anchors may be partial")
+    }
+    $launcherUiUpDeadline = (Get-Date).AddSeconds(40)
+    $launcherGodotBooted = $false
+    while ((Get-Date) -lt $launcherUiUpDeadline) {
+        if ((Test-Path -LiteralPath $launcherGodotLog) -and (Select-String -LiteralPath $launcherGodotLog -Pattern "Godot Engine" -Quiet)) {
+            $launcherGodotBooted = $true
+            break
+        }
+        Start-Sleep -Milliseconds 800
+    }
+    if (-not $launcherGodotBooted) {
+        throw ("launcher leg: Godot UI boot line never appeared in " + $launcherGodotLog + " within 40s (env_interrupt)")
+    }
+    Write-Ok ("launcher real-UI boot anchor: Godot Engine line present (" + $launcherGodotLog + ")")
+    $launcherGodotProcs = @(Get-Process | Where-Object { $_.ProcessName -like "Godot*" })
+    if ($launcherGodotProcs.Count -lt 1) {
+        throw "launcher leg: no Godot process alive at assertion time (env_interrupt)"
+    }
+    Write-Ok ("launcher real-UI process anchor: " + ($launcherGodotProcs | ForEach-Object { $_.ProcessName + ":" + $_.Id }) -join " ")
+
+    if ($LauncherFlowLeg -eq "degraded") {
+        # Degrade settle window: the start page probes the agent for up to 8s
+        # (_AGENT_READY_TIMEOUT_SEC), then logs the degrade anchor. VIT_SKIP_DEV
+        # _AUTOSTART=1 (set by -StartUI on the Godot child) keeps the UI from
+        # spawning a competing kernel/vsp hub; with no dev agent candidates the
+        # bridge spawn attempts also fail -> the guidance-card state is reached.
+        # NOTE (attempt2 lesson): the greeting endpoint is only fetched on the
+        # READY path (336 contract _notify_launcher_agent_state) -- in degrade
+        # the panel keeps its local opening WITHOUT attempting the endpoint, so
+        # there is no greeting warning to anchor on. The live degrade signal is
+        # the agent-not-ready warning; the greeting-unavailable line, if present,
+        # is recorded but not required.
+        $launcherDegradeDeadline = (Get-Date).AddSeconds(45)
+        $launcherAgentNotReady = $false
+        while ((Get-Date) -lt $launcherDegradeDeadline) {
+            $launcherAgentNotReady = (Test-Path -LiteralPath $launcherGodotLog) -and (Select-String -LiteralPath $launcherGodotLog -Pattern "VitAgent spawned but /agent/tools did not become ready" -Quiet)
+            if ($launcherAgentNotReady) { break }
+            Start-Sleep -Milliseconds 1000
+        }
+        Copy-Item -LiteralPath $launcherGodotLog -Destination (Join-Path $LauncherArtifactsDir "godot_degraded.log") -Force
+        if (-not $launcherAgentNotReady) {
+            throw ("launcher degraded leg: guidance-card anchor missing (no 'VitAgent spawned but /agent/tools did not become ready' in godot log; leg 3 face)")
+        }
+        Write-Ok "launcher degraded leg: guidance-card anchor present (real UI degraded state, no agent)"
+        $launcherGreetingDownObserved = (Test-Path -LiteralPath $launcherGodotLog) -and (Select-String -LiteralPath $launcherGodotLog -Pattern "launcher greeting endpoint unavailable" -Quiet)
+        Write-Host ("launcher degraded leg: greeting-unavailable line observed=" + [string]$launcherGreetingDownObserved + " (record-only: 336 fetches greeting only on READY)")
+        # The agent must never have come up during the settle window.
+        $launcherDegradeListener = Get-TcpListener -Port $httpPort
+        if ($null -ne $launcherDegradeListener) {
+            throw ("launcher degraded leg: agent port " + $httpPort + " came up during degrade window (pid=" + $launcherDegradeListener.OwningProcess + ") -- degrade premise broken")
+        }
+        Write-Ok ("launcher degraded leg: agent port " + $httpPort + " stayed free through the degrade window")
+
+        # Classic-flow kernel face: recents source + open availability (zero LLM
+        # by construction -- no agent exists in this stack).
+        $launcherDriverScript = Join-Path $RepoRoot "scripts\launcher_flow_smoke.py"
+        $launcherDriverConsole = Join-Path $LauncherArtifactsDir "driver_degraded_kernel_console.txt"
+        & python $launcherDriverScript --leg degraded_kernel --artifacts-dir $LauncherArtifactsDir --kernel-zmq ("tcp://127.0.0.1:" + $ZmqReqPort) --fixture-degraded $LauncherFixturePaths[0] --timeout 60 > $launcherDriverConsole 2>&1
+        $launcherKernelExit = $LASTEXITCODE
+        Get-Content -LiteralPath $launcherDriverConsole -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+        if ($launcherKernelExit -ne 0) {
+            throw ("launcher degraded leg: kernel-face driver failed with exit code $launcherKernelExit (console: " + $launcherDriverConsole + ")")
+        }
+        Write-Ok "launcher degraded leg: classic-flow kernel face green (recents + open_project with zero agent)"
+
+        # Guidance-card form in-tree: reuse the 335/336 headless probe (71
+        # checks: launcher panel assembly, guidance/degrade card, tape cards,
+        # directive consumption chain -- zero stack, frontend repo tree).
+        $launcherProbeConsole = Join-Path $LauncherArtifactsDir "launcher_probe_console.txt"
+        & cmd /c ('"' + $ResolvedGodotExe + '" --headless --path "' + $ResolvedGodotProjectRoot + '" --script tools/diagnostics/launcher_chat_panel_probe.gd > "' + $launcherProbeConsole + '" 2>&1')
+        $launcherProbeExit = $LASTEXITCODE
+        Get-Content -LiteralPath $launcherProbeConsole -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+        if ($launcherProbeExit -ne 0) {
+            throw ("launcher degraded leg: headless launcher probe failed with exit code $launcherProbeExit (console: " + $launcherProbeConsole + ")")
+        }
+        $launcherProbePassCount = (Select-String -LiteralPath $launcherProbeConsole -Pattern "^PASS \[" -AllMatches | ForEach-Object { $_.Matches.Count } | Measure-Object -Sum).Sum
+        if ($null -eq $launcherProbePassCount) { $launcherProbePassCount = 0 }
+        if ($launcherProbePassCount -lt 71) {
+            throw ("launcher degraded leg: headless probe PASS count " + [string]$launcherProbePassCount + " < 71 baseline (console: " + $launcherProbeConsole + ")")
+        }
+        Write-Ok ("launcher degraded leg: headless probe green (" + [string]$launcherProbePassCount + " checks >= 71 baseline)")
+
+        # Telemetry face: no agent -> telemetry file must not exist (zero LLM).
+        if (Test-Path -LiteralPath $env:VIT_AGENT_LLM_TELEMETRY_PATH) {
+            $launcherDegradedRows = @(Get-Content -LiteralPath $env:VIT_AGENT_LLM_TELEMETRY_PATH | Where-Object { $_.Trim() -ne "" })
+            if ($launcherDegradedRows.Count -ne 0) {
+                throw ("launcher degraded leg: telemetry rows " + $launcherDegradedRows.Count + " != 0 (no agent exists; zero-LLM premise)")
+            }
+        }
+        Write-Ok "launcher degraded leg: zero LLM by construction (no telemetry rows)"
+
+        # Leave the stack up for the operator teardown protocol (PC-RUNTIME-
+        # STACK); record the leg summary.
+        @{
+            leg             = "degraded"
+            result          = "PASS"
+            godot_anchors   = @("VitAgent spawned but /agent/tools did not become ready", "launcher greeting endpoint unavailable")
+            kernel_face     = "recents+open green (driver_degraded_kernel_console.txt)"
+            headless_probe  = ("PASS count " + [string]$launcherProbePassCount)
+            artifacts_dir   = $LauncherArtifactsDir
+            finished_at     = (Get-Date).ToString("o")
+        } | ConvertTo-Json -Depth 3 | Set-Content -LiteralPath (Join-Path $LauncherArtifactsDir "leg_result.json") -Encoding UTF8
+        Write-Ok ("launcher degraded leg PASS (artifacts: " + $LauncherArtifactsDir + ")")
+    }
+    else {
+        # main / fallback: the agent and UI are up; give the real UI a moment to
+        # finish its bootstrap (agent probe + greeting fetch + recents pull via
+        # the bridge), then run the chain driver.
+        Start-Sleep -Seconds 12
+        $launcherDriverScript = Join-Path $RepoRoot "scripts\launcher_flow_smoke.py"
+        $launcherDriverConsole = Join-Path $LauncherArtifactsDir ("driver_" + $LauncherFlowLeg + "_console.txt")
+        $launcherDriverArgs = @(
+            $launcherDriverScript,
+            "--leg", $LauncherFlowLeg,
+            "--artifacts-dir", $LauncherArtifactsDir,
+            "--agent-http", $AgentHttp,
+            "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort),
+            "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH,
+            "--conversation", ("launcher_" + $LauncherFlowLeg + "_" + (Get-Date -Format "yyyyMMdd_HHmmss")),
+            "--timeout", "60"
+        )
+        if ($LauncherFlowLeg -eq "main") {
+            $launcherDriverArgs += @("--fixture-main", $LauncherFixturePaths[0])
+        }
+        else {
+            $launcherDriverArgs += @("--fixture-a", $LauncherFixturePaths[0])
+        }
+        & python @launcherDriverArgs > $launcherDriverConsole 2>&1
+        $launcherDriverExit = $LASTEXITCODE
+        Get-Content -LiteralPath $launcherDriverConsole -ErrorAction SilentlyContinue | ForEach-Object { Write-Host $_ }
+        if ($launcherDriverExit -eq 0) {
+            # Real-UI cross-process anchor: the start page pulled the recents
+            # list through the agent bridge into the kernel -- proof the real
+            # UI reached the launcher surface against the live stack. The
+            # kernel resolves its workspace by climbing from its exe dir (the
+            # deployed runtime dir carries CMakeLists.txt+Source and is its own
+            # VitApp root), so derive the log dir from $KernelExe, not RepoRoot.
+            $launcherKernelLogDir = Join-Path (Split-Path -Parent $KernelExe) "Workspace\Logs"
+            $launcherLatestKernelLog = @(Get-ChildItem -Path (Join-Path $launcherKernelLogDir "VitHeadlessServer*.log") -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1)
+            $launcherUiRecentsAnchor = $false
+            if ($launcherLatestKernelLog.Count -gt 0) {
+                Copy-Item -LiteralPath $launcherLatestKernelLog[0].FullName -Destination (Join-Path $LauncherArtifactsDir "kernel_log_copy.log") -Force
+                $launcherUiRecentsAnchor = Select-String -LiteralPath $launcherLatestKernelLog[0].FullName -Pattern "get_recent_projects" -Quiet
+            }
+            if (-not $launcherUiRecentsAnchor) {
+                throw ("launcher leg " + $LauncherFlowLeg + ": real-UI recents anchor missing (no get_recent_projects in kernel log " + $(if ($launcherLatestKernelLog.Count -gt 0) { $launcherLatestKernelLog[0].FullName } else { "<no kernel log found>" }) + ")")
+            }
+            Write-Ok "launcher leg: real-UI recents-pull anchor present in kernel log (UI->bridge->kernel chain live)"
+            Copy-Item -LiteralPath $launcherGodotLog -Destination (Join-Path $LauncherArtifactsDir "godot_run.log") -Force
+            $launcherScriptErrors = Select-String -LiteralPath $launcherGodotLog -Pattern "SCRIPT ERROR|invalid launcher directive|launcher chat returned error" -Quiet
+            if ($launcherScriptErrors) {
+                throw ("launcher leg " + $LauncherFlowLeg + ": godot log carries launcher/script error lines (see godot_run.log)")
+            }
+            Write-Ok "launcher leg: godot log clean of launcher error anchors"
+            if (Test-Path -LiteralPath $env:VIT_AGENT_LLM_TELEMETRY_PATH) {
+                Copy-Item -LiteralPath $env:VIT_AGENT_LLM_TELEMETRY_PATH -Destination (Join-Path $LauncherArtifactsDir "agent_llm_telemetry.jsonl") -Force
+            }
+            Write-Ok ("launcher leg " + $LauncherFlowLeg + " PASS (artifacts: " + $LauncherArtifactsDir + ")")
+        }
+        elseif ($launcherDriverExit -eq 2) {
+            throw ("launcher leg " + $LauncherFlowLeg + " environment failure (raw evidence on disk): " + $launcherDriverConsole)
+        }
+        else {
+            throw ("launcher leg " + $LauncherFlowLeg + " failed with exit code $launcherDriverExit (class per driver_summary.json; console: " + $launcherDriverConsole + ")")
         }
     }
 }

@@ -1,0 +1,163 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261109_234624\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\degraded_20261109_234622\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: launcher fixtures (copy-only isolation): D:\Vit_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\degraded_20261109_234622\fixtures\½µ¼¶´Å´ø.vit
+ok: launcher recents seeded (snapshot=D:\Vit_DAW_wt_339smoke\coord\runs\LAUNCHER-SMOKE-1\degraded_20261109_234622\global_project_config.before.json; prepended 1 fixtures)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_339smoke
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_339smoke\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_339smoke\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_339smoke\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW\Export\staging\runtime\VitApp.exe pid=26084 workdir=D:\Vit_DAW\Export\staging\runtime
+
+== Start UI
+ok: kernel command port already listening before UI start: 5555 pid=26084
+ok: UI-launched kernel command port is listening: 5555
+
+== Start or reuse agent
+ok: launcher degraded leg: agent face intentionally absent (port 7878 free)
+ok: launcher degraded leg: skipping agent HTTP state gate (no agent in stack)
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=26084
+ok: ZMQ SUB listening: 5556 pid=26084
+
+== Launcher flow leg (degraded)
+ok: launcher leg started Godot UI: D:\Godot\Godot_v4.6.1-stable_win64_console.exe --path D:\Godot\project\vit-daw-frontend (VIT_SKIP_DEV_AUTOSTART=1 child guard)
+ok: launcher real-UI boot anchor: Godot Engine line present (D:\Vit_DAW_wt_339smoke\VitApp\Workspace\Logs\godot_dev_agent_smoke.log)
+ok: launcher real-UI process anchor: Godot_v4.6.1-stable_win64_console:12040
+ok: launcher degraded leg: guidance-card anchor present (real UI degraded state, no agent)
+launcher degraded leg: greeting-unavailable line observed=False (record-only: 336 fetches greeting only on READY)
+ok: launcher degraded leg: agent port 7878 stayed free through the degrade window
+LAUNCHER LEG degraded_kernel PASS
+ok: launcher degraded leg: classic-flow kernel face green (recents + open_project with zero agent)
+Initialize godot-rust (API v4.5.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+[VulkanHook/Windows] Installing vkCreateDevice hook...
+[VulkanHook/Windows] Hook installed successfully
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+
+PASS [01] LauncherChatPanel instance present in production start_page scene
+PASS [02] flow badge label shows å¯åŠ¨å?
+PASS [03] composer LineEdit present
+PASS [04] send button present
+PASS [05] status line present
+PASS [06] tape drawer bar present in production scene
+PASS [07] feed layer present and collapsed by default (drawer background)
+PASS [08] drawer handle reuses TapeIconArt instance (tint property)
+PASS [09] drawer bar draws above chat panel (z-order for expanded overlay)
+PASS [10] initial agent_state is WAITING
+PASS [11] composer disabled while waiting
+PASS [12] status line shows waking message while waiting
+PASS [13] panel open_project_requested wired to start_page open chain
+PASS [14] agent_state transitions to READY after notify(true)
+PASS [15] composer enabled after ready
+PASS [16] status line hidden after ready
+PASS [17] opening message rendered once after ready
+PASS [18] recent rail shows 3 mock projects
+PASS [19] tape card names bound to three mock projects
+PASS [20] tape cards reuse TapeIconArt production class
+PASS [21] tape reel fill ratios bound to spool_fills_for_name (deterministic)
+PASS [22] three tape reel fills pairwise distinct ([0.37, 0.28, 0.38])
+PASS [23] real recent entries replace mock fallback and bind names
+PASS [24] tape reel radius = min(window_h*0.3, 22) = 19.2 for 144x94
+PASS [25] reply shape 1/3: plain text message rendered
+PASS [26] reply shape 2/3: launcher_directive card rendered with project title
+PASS [27] reply shape 3/3: project_result_cards event renders 2 tape cards
+PASS [28] user send appends message, emits send_requested, clears composer
+PASS [29] agent_state transitions to DEGRADED after notify(false)
+PASS [30] degraded guide card rendered with title
+PASS [31] degraded card exposes retry button
+PASS [32] composer disabled in degraded state
+PASS [33] retry_requested wired to start_page re-probe handler
+PASS [34] drawer handle initial label
+PASS [35] drawer toggle expands feed layer
+PASS [36] drawer handle label flips when open
+PASS [37] drawer toggle collapses feed layer again
+PASS [38] system divider rendered with volume text
+PASS [39] panel directive_received wired to start_page handler
+PASS [40] panel send_requested wired to start_page chat POST handler
+WARNING: start_page: launcher greeting endpoint unavailable (http_error) â€?keeping local opening fallback
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_launcher_greeting_result (res://app/startup/start_page.gd:266)
+       [1] _fetch_launcher_greeting (res://app/startup/start_page.gd:258)
+       [2] _http_get_json (res://app/startup/start_page.gd:891)
+WARNING: start_page: launcher chat failed (http_error) â€?fallback note rendered
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_launcher_chat_result (res://app/startup/start_page.gd:303)
+       [1] _on_launcher_send_requested (res://app/startup/start_page.gd:295)
+       [2] _http_post_json (res://app/startup/start_page.gd:481)
+PASS [41] governance dialog pops for directive when project state unknown (conservative)
+PASS [42] governance dialog text mentions unsaved changes
+PASS [43] switch-directly runs open chain with directive file_path (shared public function)
+PASS [44] open failure surfaces error dialog (behavior unchanged)
+PASS [45] launcher entry flag cleared on ipc failure path
+PASS [46] hub busy released after failed open
+PASS [47] directive in-flight cleared after chain settles
+PASS [48] directive schema validation table-driven (5 cases: open ok/open no path/new ok/new no name/unknown action)
+PASS [49] greeting endpoint refusal keeps local mock opening (degradation fallback)
+WARNING: start_page: launcher greeting endpoint unavailable (http_error) â€?keeping local opening fallback
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_launcher_greeting_result (res://app/startup/start_page.gd:266)
+       [1] _run (res://tools/diagnostics/launcher_chat_panel_probe.gd:312)
+PASS [50] greeting ok payload applied as appended message once conversation started
+PASS [51] greeting replaces pristine opening message in place (no duplicate)
+PASS [52] no confirm dialog when state clean â€?directive runs open chain directly (zero friction)
+PASS [53] governance dialog stays hidden on clean-state path
+PASS [54] governance dialog pops again for new_project directive (unknown state)
+PASS [55] cancel choice executes nothing
+PASS [56] governance dialog names current open project
+PASS [57] require_path converts to save-as file dialog (F14 semantics)
+ERROR: Attempting to make child window exclusive, but the parent window already has another exclusive child. This window: /root/StartPage/ErrorDialog, parent window: /root, current exclusive child window: /root/StartPage/LauncherSaveFileDialog
+   at: _set_transient_exclusive_child (scene/main/window.cpp:1069)
+   GDScript backtrace (most recent call first):
+       [0] _show_error_dialog (res://app/startup/start_page.gd:1291)
+       [1] _finish_ipc_failure (res://app/startup/start_page.gd:1427)
+       [2] _try_enter_main (res://app/startup/start_page.gd:1435)
+       [3] _send_open_project_ipc (res://app/startup/start_page.gd:1389)
+       [4] open_project_by_path (res://app/startup/start_page.gd:1266)
+       [5] _on_launcher_directive_received (res://app/startup/start_page.gd:347)
+       [6] _launcher_governance_decision (res://app/startup/start_page.gd:365)
+       [7] _launcher_save_current_project (res://app/startup/start_page.gd:400)
+       [8] _launcher_save_as_flow (res://app/startup/start_page.gd:419)
+PASS [58] save attempted via save_project first
+PASS [59] save-as called with user-picked path after require_path
+PASS [60] switch proceeds to open chain after successful save
+WARNING: start_page: launcher governance save failed: disk full
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _launcher_save_current_project (res://app/startup/start_page.gd:397)
+       [1] _launcher_governance_decision (res://app/startup/start_page.gd:365)
+       [2] ask_choice (res://app/startup/launcher_governance_dialog.gd:44)
+PASS [61] failed save aborts switch before any open call
+PASS [62] save failure surfaces dedicated error dialog
+PASS [63] directive in-flight cleared after save failure abort
+PASS [64] 337 reply text rendered as agent message alongside result cards
+PASS [65] 337 launcher_project card rendered with file_path key bound to path label
+PASS [66] result card OPEN executes embedded directive through same chain (deterministic fallback)
+WARNING: start_page: launcher chat failed (http_error) â€?fallback note rendered
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _apply_launcher_chat_result (res://app/startup/start_page.gd:303)
+       [1] _on_launcher_send_requested (res://app/startup/start_page.gd:295)
+       [2] _http_post_json (res://app/startup/start_page.gd:481)
+PASS [67] chat endpoint failure renders fallback note (no bare silence)
+PASS [68] chat request in-flight cleared after failure
+PASS [69] bridge brings out chat window exactly once (double call, hidden start)
+PASS [70] bridge does not toggle when chat already visible (once semantics)
+PASS [71] legacy fallback shows existing LLM_Chat_Window directly (show call, red-line allowed)
+
+launcher_chat_panel_probe: 71/71 checks passed
+ok: launcher degraded leg: headless probe green (71 checks >= 71 baseline)
+ok: launcher degraded leg: zero LLM by construction (no telemetry rows)
+ok: launcher degraded leg PASS (artifacts: D:/Vit_DAW_wt_339smoke/coord/runs/LAUNCHER-SMOKE-1/degraded_20261109_234622)
+
+== Summary
+ok: dev agent smoke completed
