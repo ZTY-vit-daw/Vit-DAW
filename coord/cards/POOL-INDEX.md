@@ -53,7 +53,7 @@
 | 325 | FIX-CAPROUTE-RETRIEVAL-1 | todo 可领（PENDING 分流①：能力路由轮语义知识工具可达性勘察+披露建议） |
 | 326 | FIX-RESTARTAGENT-ENV-1 | todo 可领（PENDING 分流②：脚本重启 agent env 透传；真栈轻腿可搭 282 同窗） |
 | 327 | FIX-GOV-INTERACTION-TTL-1 | todo 可领（PENDING 分流③：治理确认过期窗口/迟到 approve 显式回执；322 r2 形态） |
-| 328 | FIX-FREEFLOAT-EQ-ANCHOR-1 | todo 可领（PENDING 分流④：TBTECH 派生行落盘[预授权]+类缺口登记；零栈 derive） |
+| 328 | FIX-FREEFLOAT-EQ-ANCHOR-1 | done 已验收 pass 合入 a670c67a（TBTECH 落盘 static_eq 50+类缺口登记+322 计数随卡修复；主管亲测三 PASS） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | done 终验 pass 合入（runA 零 env 产品级装载实证）
 | 315 | LEGAME-AUTOINTRO-1 | done 终验 pass 合入（runB 白话开场+「接着上局 1/7」恢复播报亲证）

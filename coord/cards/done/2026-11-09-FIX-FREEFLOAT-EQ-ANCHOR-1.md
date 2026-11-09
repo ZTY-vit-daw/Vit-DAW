@@ -37,3 +37,8 @@ derive exit 0 + 外科 apply diff 仅增 TBTECH 行 + 加载门 PASS + 双备份
   - **端测边界声明**：零栈零 LLM 纯确定性（derive 离线 pluginprobe 未起、加载门为 Go 单测面）；无任务轮数据、零渲染面/用户旅程主张；无计费。
   - **验收裁定后补（2026-11-09 主管验收 pass，遗留补齐）**：proq3_sufficiency_proof_test.go 计数 49→50 随卡后果修复已落在 port/freefloat-eq-anchor-1 @ **df51aa66**（最小 hunk 1 处/2 物理行：行 36 条件 `!=49`→`!=50`+行 37 消息串同步，行 67 的 322 temp-candidate 断言不动——该 fixture 仍 49 且 PASS）；三测试 `go test ./internal/experimentplugins -run 'TestTBTECHLiveWhitelistLoad|TestProQ3LiveWhitelistLoad|TestProQ3SufficiencyProofWhitelistLoad' -count=1` 全 PASS exit 0（three_tests_post_countfix.log 在卷）；分支已推远端不合入 main，候主管合入。
 - 验收：（主管回填）
+
+### 终验（主管，2026-11-09）
+
+- **pass 整卡合入 main a670c67a**——三目标逐项亲证：①derive 重跑 TBTECH 行与 322 withheld 行 sort_keys 逐字一致（规则零漂移）+excluded 名单与 322 完全吻合；②外科 apply 双备份（前值 sha ac5f03f9… 在卷）+diff 仅 1 行 `}`→`},`+13 行新增+apply 后 sha c9fb563c… 在卷；首次文本模式 CRLF 假阳→备份还原二进制重做的诚实披露合规（终态唯一有效写入）；③类缺口登记锚到收据/explain 原件零硬造。主管亲测：`go test ./internal/experimentplugins -run 'TestTBTECHLiveWhitelistLoad|TestProQ3LiveWhitelistLoad|TestProQ3SufficiencyProofWhitelistLoad' -count=1` exit 0 三 PASS。
+- **裁定**：计数 49→50 随卡后果修复（df51aa66）口径正确——行 36 条件+行 37 消息同步改、行 67 temp-candidate fixture 不动（322 取证语义保留）；throwaway 测试随卡合入=322 先例同口径。工作树 _328impl/_328coord 合入后清理。
