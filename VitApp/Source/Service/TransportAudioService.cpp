@@ -489,10 +489,16 @@ void appendSampleRatesFromDevice (juce::AudioIODevice* dev, juce::Array<juce::va
 } // namespace
 
 // VIT-309 (WAVESHELL-OFFRENDER-FIX-1): realtime level tap for the M1
-// realtime-vs-offline bisection leg. Env-gated (VIT309_RTLEVEL), log-only:
-// a juce::Timer sampling each AudioTrack's LevelMeterPlugin level cache
-// (~4 Hz) while the transport plays; the M1 driver greps the kernel log for
-// VIT309_RTLEVEL lines. Self-stops when the transport stops.
+// realtime-vs-offline bisection leg. Env-gated (VIT309_RTLEVEL), log-only.
+// Measures as a LevelMeasurer::Client attached to each track's LevelMeter
+// plugin: the levelCache read-out is dead code in this engine snapshot
+// (setLevelCache has no callers — E1v1 produced a pinned -100.0 false
+// "silent"), while the Client path is the live measurement feed
+// (processBuffer early-returns when clients are empty, then drives
+// updateAudioLevel per block). A juce::Timer polls each client's
+// getAndClearAudioLevel (~4 Hz) while the transport plays; the M1 driver
+// greps the kernel log for VIT309_RTLEVEL lines. Self-stops when the
+// transport stops.
 class Vit309RtLevelTap : public juce::Timer
 {
 public:
@@ -501,10 +507,37 @@ public:
     {
     }
 
+    ~Vit309RtLevelTap() override
+    {
+        detachClients();
+    }
+
     void start()
     {
+        detachClients();
+
+        if (auto* edit = getEdit != nullptr ? getEdit() : nullptr)
+            for (auto* track : te::getAllTracks (*edit))
+            {
+                auto* audioTrack = dynamic_cast<te::AudioTrack*> (track);
+                if (audioTrack == nullptr)
+                    continue;
+
+                auto* meter = audioTrack->getLevelMeterPlugin();
+                if (meter == nullptr)
+                    continue;
+
+                auto client = std::make_unique<te::LevelMeasurer::Client>();
+                meter->measurer.addClient (*client);
+                attached.emplace_back (audioTrack->itemID.toString(),
+                                       audioTrack->getName(),
+                                       meter,
+                                       std::move (client));
+            }
+
         startTimer (250);
-        juce::Logger::writeToLog ("VIT309_RTLEVEL tap=started interval_ms=250");
+        juce::Logger::writeToLog ("VIT309_RTLEVEL tap=started interval_ms=250"
+                                    + juce::String (" clients=") + juce::String (attached.size()));
     }
 
     void timerCallback() override
@@ -515,6 +548,7 @@ public:
         {
             stopTimer();
             juce::Logger::writeToLog ("VIT309_RTLEVEL tap=stopped reason=no_edit");
+            detachClients();
             return;
         }
 
@@ -522,29 +556,41 @@ public:
         {
             stopTimer();
             juce::Logger::writeToLog ("VIT309_RTLEVEL tap=stopped reason=transport_not_playing");
+            detachClients();
             return;
         }
 
-        for (auto* track : te::getAllTracks (*edit))
+        for (const auto& entry : attached)
         {
-            auto* audioTrack = dynamic_cast<te::AudioTrack*> (track);
-            if (audioTrack == nullptr)
-                continue;
-
-            auto* meter = audioTrack->getLevelMeterPlugin();
-            if (meter == nullptr)
-                continue;
-
-            const auto level = meter->measurer.getLevelCache();
-            juce::Logger::writeToLog ("VIT309_RTLEVEL track=" + audioTrack->itemID.toString()
-                                        + " name=\"" + audioTrack->getName() + "\""
-                                        + " db_l=" + juce::String (level.first, 2)
-                                        + " db_r=" + juce::String (level.second, 2));
+            const auto left = entry.client->getAndClearAudioLevel (0);
+            const auto right = entry.client->getAndClearAudioLevel (1);
+            juce::Logger::writeToLog ("VIT309_RTLEVEL track=" + entry.trackId
+                                        + " name=\"" + entry.trackName + "\""
+                                        + " db_l=" + juce::String (left.dB, 2)
+                                        + " db_r=" + juce::String (right.dB, 2));
         }
     }
 
 private:
+    struct AttachedMeter
+    {
+        juce::String trackId;
+        juce::String trackName;
+        te::LevelMeterPlugin* meter = nullptr; // owned by the edit's plugin list
+        std::unique_ptr<te::LevelMeasurer::Client> client;
+    };
+
+    void detachClients()
+    {
+        for (auto& entry : attached)
+            if (entry.meter != nullptr && entry.client != nullptr)
+                entry.meter->measurer.removeClient (*entry.client);
+
+        attached.clear();
+    }
+
     TransportAudioService::EditGetter getEdit;
+    std::vector<AttachedMeter> attached;
 };
 
 juce::String TransportAudioService::stateRevisionForValueTree (const juce::ValueTree& tree)
