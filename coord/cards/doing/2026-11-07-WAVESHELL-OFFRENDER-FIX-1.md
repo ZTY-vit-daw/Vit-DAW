@@ -20,14 +20,18 @@
 根因进入 WaveShell 闭源二进制不可修面→取证上交转「黑名单+替代路径」纯策略方案裁定。
 
 ## 领取/回执/验收
-- 领取（取证腿·零栈先行）：2026-11-08 / origin/main=8c68c186f86f32c9e9c97c0af135a19c1bc31393 / owner=ZCode GLM-5.3 L2-worker PC 子代理（309 取证腿） / 分支 port/waveshell-offrender-fix-1 / worktree D:/Vit_DAW_wt_309recon（领取基线：HEAD=8c68c186，status 全净，diff --stat 空；worktree 内 tracktion_engine 子模块未初始化=b4397498 gitlink，取证输入用主仓 D:/Vit_DAW/tracktion_engine @ 60ab1a49 只读——301 插桩已由主管处置①落为 engine repo 独立提交，主仓子模块指针 M 属预期态，不触碰）；领取提交=本笔 coord/runs/WAVESHELL-OFFRENDER-FIX-1/（PROGRESS.md）+卡面回填，推 port 分支（派发指令明示不合入 main，协调面处置交主管）
-- 回执（**取证腿·零栈先行完成 2026-11-08**）：工件=coord/runs/WAVESHELL-OFFRENDER-FIX-1/（recon-design.md+PROGRESS.md）@ port/waveshell-offrender-fix-1 已推；**零栈零 LLM 零源码改动零计费，无 run ID**（VitApp/tracktion_engine 全程只读）。摘要：
-  1. **取证方法清单**（recon §0）：引擎渲染循环 non-realtime 全链源码亲读（Renderer/NodeRenderContext/PluginNode/Plugin/ExternalPlugin/vendored JUCE AudioProcessor+VST3Impl+VST3_SDK 规范）+VitApp 渲染参数面亲读+301 工件观测对账（M2 日志实况设备 44100/**bs=480**、WaveShell 共享容器证据）+实时电平观测面勘察（LevelMeasurer API/ZMQ 命令面）。
-  2. **根因定位（主嫌疑 S1 全链钉死）**：离线渲染对 VST3 的 processMode 信令不一致——JUCE 基类 setNonRealtime 仅置标志（juce_AudioProcessor.cpp:410-413），setupProcessing(kOffline) 因时序永不发送（re-prepare 发生在 node build=置标志之前→再发一遍 kRealtime；同 sr/bs 场景被 Impl:2489-2493 早退守卫吞掉），而每个 process 调用 ProcessData.processMode=kOffline（Impl:2647-2648）——**插件 setup 级 kRealtime vs per-call kOffline 不一致贯穿全程**，违反 VST3 SDK 切换规范（ivstaudioprocessor.h:138-143：切 kOffline 必须 setupProcessing）。与 301 三 run 全观测逐项吻合（GR 两挂载静音/Surge XT 容错出声/守卫零命中/无错误日志）。次要嫌疑：S2 WaveShell kOffline 真缺陷（黑箱）/S3 reset-setActive 循环状态清洗/S4 flush 预热早断（弱）。**停止条件未触发**（S1 干预面全在 host 侧可修；S2 闭源但修法 B 绕开）。
-  3. **M1 实时对照腿设计**（只设计）：零插桩不可行（无既有实时电平读出面）→VitApp-only VIT309_RTLEVEL 插桩（LevelMeasurer::getLevelCache 定时 tap）+301 M2 直挂装置复用+--realtime-probe 驱动模式；判定矩阵=RT-SOUND（→non-realtime 特异，B 案可用）vs RT-SILENT（→装载面升格，B 降级纯警告）；单 run 零 LLM。
-  4. **插桩加密观测腿**：VIT309 mode 遥测三点（initialise prepareToPlay/setupProcessing 发送/首个 processAudio）+可选判别实验（Impl:2648 一致化=修法 C 原型）；与 M1 同栈同内核一次占用。
-  5. **修法三案评估**（最小干预排序）：**B 黑名单+realTimeRender=true 回退（VitApp-only ~5-15 行，对 S1/S2 皆免疫，排序 1）> C 包装器信令一致性化（vendored JUCE ~3-5 行，待判别实验证 S1，排序 2）> A 预热（证据弱不推荐单用，排序 3）**。
-  6. **自检断言形态**：推荐形态 3「渲染后静音断言+自动降级重渲」（resultMagnitude 信号已在 NodeRenderContext.cpp:156/Renderer.h:92）+shell 类提示日志；探针式纯警告/门禁两形态待命不默认。
-  7. **候栈排队**：M1/插桩/验证腿=真栈，排 **296-R2/310 之后**（§2.2 登记协议照旧）；裁定请求 5 项见 recon-design.md §7。
-  8. 端测边界：本腿零栈零改动无端测义务；后续腿端测=ZMQ 面真栈+内核日志+wav 物理计量，不覆盖 webui/Godot 旅程（无该域改动）。
-- 验收：（主管回填）
+
+- **取证腿（零栈先行）**：领取/回执两节已回填于 port 分支 `port/waveshell-offrender-fix-1`（领取 8113a09a / 回执 0644ae89，均已推远端）；主交付件=`D:/Vit_DAW_wt_309recon/coord/runs/WAVESHELL-OFFRENDER-FIX-1/recon-design.md`+PROGRESS.md；零栈零 LLM 零源码改动（telemetry 未创建亲证）；主仓 tracktion_engine 子模块指针 M=301 插桩在位预期态，全程只读。
+
+### 验收（取证腿，主管）
+
+- **pass（2026-11-08 晚窗）**——六承重锚点主管亲读逐字吻合：①早退守卫 `juce_VST3PluginFormatImpl.h:2489-2493`（isActive+同 sr/bs 即 return）②per-call mode `:2647-2648`（`isNonRealtime()?kOffline:kRealtime`）③基类 `juce_AudioProcessor.cpp:409-413` setNonRealtime 仅置标志零 VST3 调用④SDK 规范 `ivstaudioprocessor.h:138-143`（切 kOffline 须 setupProcessing，RT↔Prefetch 才可 per-call）⑤渲染初始化序 `tracktion_NodeRenderContext.cpp:135-139`（setAllPluginsRealtime→prepareToPlay→flush；析构恢复 true）⑥`Renderer.h:61/:80` 默认 bs=512/realTimeRender=false 且 `VitProductionCoordinator.cpp:857-871` 两参数均不设置（301 实测 480→512 走 S1b 路径）。**S1 机理链成立=301 定性精化**：现象学上 WaveShell 特异维持（Surge XT 容错），可行动缺陷面=**host 侧信令不一致**（setup 级 kRealtime vs per-call kOffline），待插桩腿运行时确证；嫌疑分列/301 三 run 吻合度/停止条件评估合格。
+- **五项裁定（§7 裁定请求全数处置）**：
+  ① **M1+插桩+判别实验合并一次栈占用授权**（同一插桩内核=301 CC9FDACC+VIT309 遥测；候栈排 296-R2/310 之后）；
+  ② **修法 B 先行**（VitApp-only 黑名单+realTimeRender=true，M1=RT-SOUND 即落地）+**C 授权为判别实验原型**（§4.2 临时一致化，一次实验同时判别 S1/S2+验证 C；S1 证实且渲染限速不可接受时转正修法）+A 不单用；
+  ③ **自检断言=形态 3**（渲染后静音断言+自动降级 realTimeRender 重渲+`degraded_to_realtime_render` 披露+shell 类 hint 日志）；形态 1/2 待命不默认；
+  ④ **插桩落点许可**：VIT309 mode 遥测落 vendored JUCE Impl（engine 子模块独立提交，301 处置规则同款）；VIT309_RTLEVEL 落 VitApp（零 engine 改动优先）；
+  ⑤ **M1=RT-SILENT 应急预案采纳**：B 降级纯警告+装载取证另立卡。
+- 后续腿=M1+插桩+判别（栈队列第 3 位），实现按本卡原目标面（M1 对照/根因运行时确证/修法/自检断言/验证）。
+
+- **栈腿领取（M1+插桩+判别+修法 B+形态 3+验证矩阵，2026-11-09）**：续用 worktree D:/Vit_DAW_wt_309recon / 分支 port/waveshell-offrender-fix-1（取证腿 0644ae89 之上）；origin/main=31d0b9d1。领取基线：HEAD=0644ae895bd5212af286c73cf4a8baaa7f33dacb，status 全净，diff --stat 空（worktree 子模块未初始化=b4397498 gitlink；栈腿 engine 改动在本 worktree 子模块内做独立提交，主仓 D:/Vit_DAW/tracktion_engine @ 60ab1a49 仍只读）。形态=五项裁定锁定的合并栈窗口；§8 跑前口径在 RUNBOOK 成文后方可起栈。本腿领取先推 port 分支（实现门），卡面状态同步推 main（coord/cards 允许路径）。
