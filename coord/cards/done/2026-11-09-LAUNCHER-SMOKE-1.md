@@ -47,3 +47,8 @@
 - **实现 commits（port/launcher-smoke-1）**：4a195967 RUNBOOK / 14705743 装置 / 68c9600a+d3426dde+6b2f9250+33b5afc2+a65164fa 四处脚本缺陷修复（每处附 attempt 教训）/ 工件 run 目录 7 个全保真+report.json。测试命令=三腿 ps1 调用（上文）；探针零栈自检 71/71 exit 0（probe_selfcheck_prestack.txt，首跑 .godot 缓存陈旧挂起按环境中断处理→--import 刷新后正式自检）。
 - **渲染边界声明（AGENTS §5）**：断言面=agent HTTP 回执字段+内核 ZMQ（UI 同链消费复刻：open_project[encryption=app_bound_aes]+version.project_opened notify——因门关未达）+真实 UI 进程/日志/内核命令锚点+headless 探针 71 检。GUI 渲染观感/真实点击/浮动窗视觉呈现**不在断言面**——GUI 最后一米=用户手测（手测 v2.5 入口）。腿 3 全降级下 UI 自身 open/recents 传输链（UDP 4445→agent bridge）无 agent 时不可用属架构事实：该腿口径=内核命令面可用性+UI 消费链 headless 覆盖，如实声明。
 - **停止条件对照**：前端链路未断（335/336 消费面 headless 71/71 全绿）；断点两连败触发=§8 停手如实执行；域外缺陷（337 门）只给锚点+最小复现（RUNBOOK Phase A/B 配方即复现装置），未扩修。
+
+### 终验（主管，2026-11-10 凌晨）
+
+- **pass（可达范围全证）**——腿 3 降级 exit 0（真实 UI 引导卡+探针 71/71+零 LLM）+greeting 真栈全契约 PASS+装置全量合入；§8 纪律合格（launcher 链实耗 0 LLM、同断点两连败停手、栈两登记、recents 还原哈希亲证）。**主发现裁定=337 门缺陷成立**：uuid 空判据真栈结构性不可达（default project/VSP 占位双层证据，取证质量高）——**340 修复卡转出**（门改 UI 声明+会话 user_entered_project 位，主管设计已裁定），腿 1/2 随 340 复跑（装置现成）。
+- **裁定三项**：①腿 2 不独立复跑（随 340 合并验收）；②338 桥接段真栈证成随 340 腿 1 一并；③attempt1 脚本缺陷自纠+no-op 修复合规。
