@@ -1746,7 +1746,7 @@ if ($LauncherFlow -and -not $ScenarioMode) {
     if ($null -ne $LauncherRecentsJson.recent_projects) {
         $LauncherRecentsExisting = @($LauncherRecentsJson.recent_projects | ForEach-Object { [string]$_ })
     }
-    $LauncherRecentsMerged = @(($LauncherFixturePaths | ForEach-Object { [string]$_ }) + $LauncherRecentsExisting | Select-Object -Unique)
+    $LauncherRecentsMerged = @((@($LauncherFixturePaths | ForEach-Object { [string]$_ }) + @($LauncherRecentsExisting)) | Select-Object -Unique)
     # BOM-less UTF-8 write + explicit array construction: the kernel parses
     # this file with juce::JSON (BOM would break the parse), and PowerShell
     # 5.1 ConvertTo-Json unwraps single-element arrays in properties -- build
