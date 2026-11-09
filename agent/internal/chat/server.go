@@ -323,6 +323,10 @@ type ChatResponse struct {
 	Artifacts                 []artifacts.Summary                 `json:"artifacts,omitempty"`
 	SidePanelRequest          *SidePanelRequest                   `json:"side_panel_request,omitempty"`
 	LauncherDirective         *LauncherDirective                  `json:"launcher_directive,omitempty"`
+	// ContextFlow 回执流标记（LAUNCHER-BRIDGE-BE-1，设计稿 §2.1 两流）：launcher |
+	// project | 空（未标记零回归）。赋值逻辑在 launcher_flow.go
+	//（applyChatContextFlowMark/launcher 分支自标），此处只声明字段。
+	ContextFlow               string                              `json:"context_flow,omitempty"`
 	Error                     string                              `json:"error,omitempty"`
 	Lifecycle                 string                              `json:"lifecycle,omitempty"`
 	Persistence               string                              `json:"persistence,omitempty"`
@@ -2686,6 +2690,7 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 			resp.ProjectResultCards = projectResultCardsFromExecuted(resp.ExecutedKernelReply)
 		}
 		goalID := firstNonEmpty(resp.GoalID, goal.GoalID)
+		s.applyChatContextFlowMark(&resp) // LAUNCHER-BRIDGE-BE-1（338）：流标记默认值（launcher 分支自标保持，工程绑定态默认 project）
 		ensureChatResponseMessageProtocol(&resp)
 		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, artifactSummariesFromExecuted(resp.ExecutedKernelReply))
 		resp.Artifacts = mergeArtifactSummaries(resp.Artifacts, s.artifactsFromDialogueMediaReferences(req.Message, resp.Reply, conversationID, goalID, firstNonEmpty(resp.RunID, goal.RunID), attachmentScope))
@@ -2781,6 +2786,17 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	if introResp, introServed := s.eduJamAutoIntroCheckpoint(r.Context(), conversationID, agentMode, req.Message); introServed {
 		s.remember(conversationID, req.Message, introResp.Reply)
 		writeChat(http.StatusOK, introResp)
+		return
+	}
+
+	// LAUNCHER-BRIDGE-BE-1（332 拆卡 C5 / 338）：launcher 卷→工程卷桥接播报检查
+	// 点。有乐局 binding 的工程由上方 315 检查点承接（binding 在案时本检查点静默
+	// 让位，零干预零重写）；无 binding 工程给一句确定性摘要（工程名+最近修改时间，
+	// 零 LLM）+卷切换 typed_event。触发条件、幂等与 fail-soft 边界见
+	// launcherBridgeBroadcastCheckpoint。
+	if bridgeResp, bridged := s.launcherBridgeBroadcastCheckpoint(r.Context(), conversationID, agentMode, req.Message); bridged {
+		s.remember(conversationID, req.Message, bridgeResp.Reply)
+		writeChat(http.StatusOK, bridgeResp)
 		return
 	}
 
