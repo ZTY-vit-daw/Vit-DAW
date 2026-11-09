@@ -77,3 +77,10 @@
 - **LLM 计费（§8）**：telemetry 14 行 deepseek-flash 零 err（阶段 A 6+阶段 B 8；每 chat 轮含入口/loop/收口多次调用，行数超 RUNBOOK「≤8 调用」申报粒度如实注记）；in 120,644/out 7,485，计费 ≈¥0.02-0.05 ≪ ≈¥0.1 上界。
 - **端测边界声明（AGENTS §5）**：本腿断言面=真实栈 agent HTTP（/agent/chat、/agent/events）+内核 ZMQ 命令面——传输态断言全部落在服务器/内核权威面；**渲染面（webui/Godot GUI）与用户旅程不在断言面**（282 改动无渲染面，E2E-WEBUI-1/JOURNEY-1 两层门槛不适用）；覆盖边界②按申报应对（话术含「循环播放」激活 transport 能力面，工具披露亲证——set 轮首步即 set_loop 调用）。
 - 零源码改动（本腿仅新增 run 工件目录内驱动脚本+RUNBOOK，agent/VitApp/scripts 零触碰）；done=自验候主管终验，不合入 main 归主管（转交提示词：通过后主管验收→合入 main，commit message 含卡 ID 282）。
+
+### 终验（主管，2026-11-09）
+
+- **pass 整卡合入 main**——真栈轻腿兑现卡面两标准：①chat 驱动 transport.set_loop/clear_loop 真栈 exit 0（VSP 回执与**内核 ZMQ 独立读面逐字段对账**：loop=[10,15] enabled=true→clear→false；playhead 移 start 语义亲证；RiskDirect 免确认=注册语义，零治理 hop）；②既有 pack 零回退（阶段 A 冒测 exit 0）。实现腿 873c0e9c+工件 19ced01d 合入；goalrunner_chat 注册面域外申报（实现腿验收已裁定）。
+- **主管亲证**：合并后 go build exit 0 + tools/policy/rules 包全绿 + chat RulesetParity/Transport/Goalrunner 子集绿；栈两登记（513c7aab/52902d51，TEARDOWN_ALL_ZERO 19:43:26）。
+- **裁定**：计费 ≈¥0.02-05 ≪ 上界如实；RUNBOOK 调用粒度申报偏差（14 行 vs ≤8）注记接受——每 chat 轮多段调用是既有形态非本卡引入；阶段 A 两处模型行为面 warn 与本卡无交集，不扩查（如复现另开卡）。
+- **注册链④收口**：276→277→278→282→283 链上 282 完成，283 解锁。
