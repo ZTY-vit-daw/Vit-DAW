@@ -1,0 +1,249 @@
+{
+  "card": "WAVESHELL-OFFRENDER-FIX-1",
+  "leg": "render/rack: Grand Rhapsody (WaveShell shared container) (zero-LLM)",
+  "stamp": "20261109_192130",
+  "expect_env": [],
+  "phases": {
+    "precheck": {
+      "plugin_count": 994,
+      "instrument_count": 17,
+      "selector": "grand_rhapsody",
+      "matched": [
+        {
+          "name": "Grand Rhapsody Piano Stereo",
+          "identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d"
+        }
+      ]
+    },
+    "fixture": {
+      "track_id": "1007",
+      "project_path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_fixture_render_rack_grand_rhapsody.vit"
+    },
+    "instantiate": {
+      "cmd": "rack_add_node",
+      "status": "ok",
+      "plugin_name": "Grand Rhapsody Piano Stereo",
+      "plugin_id": "1013",
+      "plugin_identifier": "VST3-Grand Rhapsody Piano Stereo-695648d-a6dc4e7d",
+      "visibility": {
+        "track_id": "1007",
+        "want_plugin_id": "1013",
+        "rack_mode": true,
+        "top_level_plugin_names": [
+          "New Rack",
+          "Volume & Pan Plugin",
+          "Level Meter"
+        ],
+        "rack_node_names": [
+          "Grand Rhapsody Piano Stereo"
+        ],
+        "matched_by": "rack_node",
+        "ok": true
+      }
+    },
+    "clip": {
+      "clip_id": "1014",
+      "note_count": 16,
+      "readback_count": 16
+    },
+    "render": {
+      "job_id": "4100abe745564b43843683517cdd86fd",
+      "start_reply": {
+        "job_id": "4100abe745564b43843683517cdd86fd",
+        "shell_class_plugin_hint": "Grand Rhapsody Piano Stereo",
+        "realtime_fallback": false
+      },
+      "wav": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_render_render_rack_grand_rhapsody.wav",
+      "bytes": 1411984,
+      "completion": {
+        "sub_signal": "render_done",
+        "fallback_file": false
+      },
+      "done_disclosure": {
+        "degraded_to_realtime_render": true,
+        "render_silence_observed": true,
+        "status": "ok"
+      },
+      "render_silent": true,
+      "channels": 2,
+      "frames": 352800,
+      "peak_abs": 0,
+      "peak_dbfs": -120.0,
+      "rms_abs": 0.0,
+      "rms_dbfs": -120.0
+    },
+    "vit_trace": {
+      "log_dir": "D:\\Vit_DAW_wt_309recon\\VitApp\\Workspace\\Logs",
+      "logs_scanned": [
+        {
+          "file": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "mtime": "2026-11-09T19:21:39.434001"
+        },
+        {
+          "file": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "mtime": "2026-11-09T19:20:03.755461"
+        }
+      ],
+      "trace_lines": [
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=480"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "WARN [VIT309_BLACKLIST] shell_class_plugin_detected=\"Grand Rhapsody Piano Stereo\" action=warn_only (M1=RT-SILENT ruling-5 contingency: shell-class plugins were observed silent in REALTIME playback too (309 E1v2 vs Surge XT control), so a realtime re-render cannot rescue them; render proceeds offline, the form-3 silence self-check below still applies)"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=512 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=512 isNonRealtime=0 isActive=1 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=512"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=512 perCallMode=kOffline reportedMode=kOffline setupMode=kRealtime isNonRealtime=1 cPrototype=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "WARN [VIT309_DEGRADED] render ca457dc1542342a78022b64bb36eed88 produced digital silence with an enabled instrument present; automatically re-rendering with realTimeRender=true"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=512 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "WARN [VIT309_RT_STILL_SILENT] render ca457dc1542342a78022b64bb36eed88: realtime re-render is STILL digital silence (render_silence_observed=true on render_done)"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=480"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "WARN [VIT309_BLACKLIST] shell_class_plugin_detected=\"Grand Rhapsody Piano Stereo\" action=warn_only (M1=RT-SILENT ruling-5 contingency: shell-class plugins were observed silent in REALTIME playback too (309 E1v2 vs Surge XT control), so a realtime re-render cannot rescue them; render proceeds offline, the form-3 silence self-check below still applies)"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=512 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=512 isNonRealtime=0 isActive=1 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=512"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=512 perCallMode=kOffline reportedMode=kOffline setupMode=kRealtime isNonRealtime=1 cPrototype=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "WARN [VIT309_DEGRADED] render 4100abe745564b43843683517cdd86fd produced digital silence with an enabled instrument present; automatically re-rendering with realTimeRender=true"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=512 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-20-17.log",
+          "line": "WARN [VIT309_RT_STILL_SILENT] render 4100abe745564b43843683517cdd86fd: realtime re-render is STILL digital silence (render_silence_observed=true on render_done)"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=480"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=1"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=480 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_BLACKLIST shell_class_plugin_detected=\"Grand Rhapsody Piano Stereo\" action=none (VIT309_DISABLE_BLACKLIST set; offline render proceeds as-is)"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=512 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=prepareToPlay plugin=\"Grand Rhapsody Piano Stereo\" sr=44100.00 bs=512 isNonRealtime=0 isActive=1 guard_early_exit=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=setupProcessing plugin=\"Grand Rhapsody Piano Stereo\" processMode=kRealtime sr=44100.00 bs=512"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=firstProcessAudio plugin=\"Grand Rhapsody Piano Stereo\" numSamples=512 perCallMode=kOffline reportedMode=kRealtime setupMode=kRealtime isNonRealtime=1 cPrototype=1"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "WARN [VIT309_DEGRADED] render 484423212c7c4ffbb020f797e85cca09 produced digital silence with an enabled instrument present; automatically re-rendering with realTimeRender=true"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "VIT309_MODE stage=external_initialise plugin=\"Grand Rhapsody Piano Stereo (VST3)\" sr=44100.00 bs=512 isNonRealtime=0"
+        },
+        {
+          "log": "VitHeadlessServer2026-11-09_19-19-49.log",
+          "line": "WARN [VIT309_RT_STILL_SILENT] render 484423212c7c4ffbb020f797e85cca09: realtime re-render is STILL digital silence (render_silence_observed=true on render_done)"
+        }
+      ],
+      "error": null,
+      "artifact": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_summary_render_rack_grand_rhapsody_vit_trace.txt"
+    },
+    "billing": {
+      "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\logs\\agent_llm_telemetry.jsonl",
+      "rows_total": null,
+      "note": "telemetry file absent (no agent start or no rows yet)"
+    }
+  },
+  "exit_code": 0,
+  "exit_class": "chain_complete",
+  "observation": "SILENT"
+}

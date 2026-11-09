@@ -1,0 +1,13 @@
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=external_initialise plugin="Grand Rhapsody Piano Stereo (VST3)" sr=44100.00 bs=480 isNonRealtime=0
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=prepareToPlay plugin="Grand Rhapsody Piano Stereo" sr=44100.00 bs=480 isNonRealtime=0 isActive=0 guard_early_exit=0
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=setupProcessing plugin="Grand Rhapsody Piano Stereo" processMode=kRealtime sr=44100.00 bs=480
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=firstProcessAudio plugin="Grand Rhapsody Piano Stereo" numSamples=480 perCallMode=kRealtime reportedMode=kRealtime setupMode=kRealtime isNonRealtime=0 cPrototype=0
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=external_initialise plugin="Grand Rhapsody Piano Stereo (VST3)" sr=44100.00 bs=480 isNonRealtime=0
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_BLACKLIST shell_class_plugin_detected="Grand Rhapsody Piano Stereo" action=none (VIT309_DISABLE_BLACKLIST set; offline render proceeds as-is)
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=external_initialise plugin="Grand Rhapsody Piano Stereo (VST3)" sr=44100.00 bs=512 isNonRealtime=0
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=prepareToPlay plugin="Grand Rhapsody Piano Stereo" sr=44100.00 bs=512 isNonRealtime=0 isActive=1 guard_early_exit=0
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=setupProcessing plugin="Grand Rhapsody Piano Stereo" processMode=kRealtime sr=44100.00 bs=512
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=firstProcessAudio plugin="Grand Rhapsody Piano Stereo" numSamples=512 perCallMode=kOffline reportedMode=kOffline setupMode=kRealtime isNonRealtime=1 cPrototype=0
+[VitHeadlessServer2026-11-09_19-19-06.log] WARN [VIT309_DEGRADED] render 6cce2388417b4d44804fb427bacc3237 produced digital silence with an enabled instrument present; automatically re-rendering with realTimeRender=true
+[VitHeadlessServer2026-11-09_19-19-06.log] VIT309_MODE stage=external_initialise plugin="Grand Rhapsody Piano Stereo (VST3)" sr=44100.00 bs=512 isNonRealtime=0
+[VitHeadlessServer2026-11-09_19-19-06.log] WARN [VIT309_RT_STILL_SILENT] render 6cce2388417b4d44804fb427bacc3237: realtime re-render is STILL digital silence (render_silence_observed=true on render_done)

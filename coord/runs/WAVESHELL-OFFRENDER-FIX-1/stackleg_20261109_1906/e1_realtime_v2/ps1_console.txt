@@ -1,0 +1,45 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261109_191236\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_309recon\coord\runs\WAVESHELL-OFFRENDER-FIX-1\stackleg_20261109_1906\e1_realtime_v2\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+ok: VIT309 kernel env: VIT309_RTLEVEL=1 (realtime level tap)
+ok: waveshell stackleg telemetry capture: telemetry=D:\Vit_DAW_wt_309recon\coord\runs\WAVESHELL-OFFRENDER-FIX-1\stackleg_20261109_1906\e1_realtime_v2\logs\agent_llm_telemetry.jsonl
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_309recon
+agent http: http://127.0.0.1:7878
+
+== Restart existing VitAgent
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_309recon\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=19624 workdir=D:\Vit_DAW_wt_309recon\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_309recon\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=296
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=19624
+ok: ZMQ SUB listening: 5556 pid=19624
+
+== Project state invoke
+project.state status=ok error=
+
+== waveshell stackleg leg (WAVESHELL-OFFRENDER-FIX-1 309, zero-LLM, mode=realtime/direct, plugin=grand_rhapsody)
+[waveshell-stackleg] precheck ok: instruments=17, selected='Grand Rhapsody Piano Stereo'; fixture track=1007
+[waveshell-stackleg] mount ok (direct): 'Grand Rhapsody Piano Stereo' plugin_id=1010 matched_by=id
+[waveshell-stackleg] clip ok: 1011 with 16 notes
+[waveshell-stackleg] REALTIME VERDICT: silent (max_db=-100.0, lines=21, samples=38)
+ok: waveshell stackleg chain complete (verdict/observation recorded in summary: D:\Vit_DAW_wt_309recon\coord\runs\WAVESHELL-OFFRENDER-FIX-1\stackleg_20261109_1906\e1_realtime_v2\waveshell_stackleg_summary_realtime_direct_grand_rhapsody.json)
+
+== Summary
+ok: dev agent smoke completed
