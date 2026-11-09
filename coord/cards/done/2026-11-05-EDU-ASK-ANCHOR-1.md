@@ -62,3 +62,18 @@
 - **域外申报裁定：goalrunner_chat.go +4 行批准**（agentLoopTransportTools 白名单补 set_loop/clear_loop=276 第四注册面同型，缺行则工具对模型遮蔽、卡面"注册"目标不可达——扩域追认，先例一致）。
 - **两处覆盖边界记录接受**：普通族 ReAct 骨架面不含引导段（工具仍可达）；纯 midi 关键词轮次不披露 transport 工具（既有能力分面行为）。
 - 真栈轻腿（chat 驱动 loop 设置/清除断言）候栈——排 310/296-R3/309 腿后、今晚手测前由主管排栈；候栈期间卡留 doing。
+
+### 真栈轻腿回执（2026-11-09 晚窗，ZCode L2 执行子代理）
+
+- **结论：卡面验收标准①「chat 驱动 loop 设置/清除可用」真栈兑现 exit 0（单 run 无重跑）**；标准②既有行为零变化以阶段 A 冒测不回退兑现（parity 证据在实现腿回执）。
+- **领取（栈腿）**：worktree `D:/Vit_DAW_wt_282impl` 续用（实现分支 `port/edu-ask-anchor-1` @ `873c0e9c`，栈腿工件追加 commit `19ced01d`）；coord 协调分支 `coord/282-stackleg`（占用登记 `513c7aab` 推 main 成功+远端 owner 重读确认）。
+- **栈协议两条登记**：占用 19:41（净空亲核 19:39:04 六 TCP+两 UDP+五类进程全零；≤60s 复核 19:40:10 全零）/释放 19:43（TEARDOWN_ALL_ZERO 亲核 19:43:26，killed VitAgent=8868/VitApp=31840）——见 `coord/resources/PC-RUNTIME-STACK.md` 顶部两行。
+- **完整命令+退出码**：
+  - 阶段 A：`powershell -NoProfile -ExecutionPolicy Bypass -File D:\Vit_DAW_wt_282impl\scripts\dev_agent_smoke.ps1 -RepoRoot D:/Vit_DAW_wt_282impl -StartKernel -RestartAgent -KernelExe D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe` → **exit 0**（agent 现场构建 873c0e9c；kernel=wt_228 F9E3DA0A66263F0B… 只读复用，零内核改动）。
+  - 阶段 B：`python transport_loop_leg.py --agent-http http://127.0.0.1:7878 --kernel-zmq tcp://127.0.0.1:5555 --run-root .`（脚本在 run 工件目录）→ **exit 0**。
+- **run 工件目录**：`coord/runs/EDU-ASK-ANCHOR-1/stackleg_20261109/`（RUNBOOK §8 冻结+驱动脚本+两阶段 console+set/clear chat 响应与事件流+summary；随 `port/edu-ask-anchor-1@19ced01d` 推送，分支在卷可核）。
+- **断言细节（三层）**：①chat 轨迹层——set 轮 daw_action item.completed `tool=transport.set_loop / command_name=transport_set_loop`、clear 轮 `transport_clear_loop`（真实工具步非 turn body 回显，278 run6 同型判定面）；②工具回执层——VSP 回执（set: tx_1794224529334928900_100 loop_enabled=true loop=[10,15] position=10；clear: tx_1794224535909537700_104 loop_enabled=false）；③内核独立读面——chat 后经内核 ZMQ `stop`（幂等）读 buildTransportReply：set 后 loop_enabled=true loop=[10.0,15.0] 与回执逐字段一致、clear 后 loop_enabled=false。两轮 goal=completed/stop=done、requires_confirmation=false（RiskDirect 免确认=注册语义）、零治理确认 hop（r2 兜底未触发）。参数精确 10/15（软记录）。
+- **既有行为不回退**：阶段 A 默认腿 exit 0（ChatSmoke 路由不劫持 ok+no-pending confirm ok+strip 工具面 ok）；strip chat 确认链未完成与 suggest pending 数两处 Fail-Or-Warn（非 Strict 警告不挡 exit 0）如实记录——域属模型行为面，与本卡改动（transport 注册+ruleset 新段）无交集。
+- **LLM 计费（§8）**：telemetry 14 行 deepseek-flash 零 err（阶段 A 6+阶段 B 8；每 chat 轮含入口/loop/收口多次调用，行数超 RUNBOOK「≤8 调用」申报粒度如实注记）；in 120,644/out 7,485，计费 ≈¥0.02-0.05 ≪ ≈¥0.1 上界。
+- **端测边界声明（AGENTS §5）**：本腿断言面=真实栈 agent HTTP（/agent/chat、/agent/events）+内核 ZMQ 命令面——传输态断言全部落在服务器/内核权威面；**渲染面（webui/Godot GUI）与用户旅程不在断言面**（282 改动无渲染面，E2E-WEBUI-1/JOURNEY-1 两层门槛不适用）；覆盖边界②按申报应对（话术含「循环播放」激活 transport 能力面，工具披露亲证——set 轮首步即 set_loop 调用）。
+- 零源码改动（本腿仅新增 run 工件目录内驱动脚本+RUNBOOK，agent/VitApp/scripts 零触碰）；done=自验候主管终验，不合入 main 归主管（转交提示词：通过后主管验收→合入 main，commit message 含卡 ID 282）。
