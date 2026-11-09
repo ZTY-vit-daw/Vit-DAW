@@ -39,3 +39,8 @@
   - **commit**：实现+工件=port/caproute-retrieval-1 @ c10da4eb（已推 origin，工件目录 coord/runs/FIX-CAPROUTE-RETRIEVAL-1/{SURVEY.md, prompt_render_disclosure_rows_317BR1.json, prompt_render_disclosure_rows_312B.json}）；领取=fa264c4e（已推 main）。零栈零 LLM 零内核，无 run ID 无计费。
   - **端测边界声明**：零栈勘察卡；无生产代码改动（仅测试文件），AGENTS §5 真栈烟测门槛不适用；行为证据由 312/317 真栈语料 134 请求+机制代码锚点承载。
   - done=自验完成，候主管验收；未合入 main（实现仅在 port 分支）。
+
+### 终验（主管，2026-11-09）
+
+- **pass 负结论整卡合入 a36df77d**——主管抽查终极证据吻合：317 capture line18 逐字核对=`plugin.semantic_get {"query":"Pro-R"}` 在 mix 包路由轮实调成功（与勘察矩阵 T1_r1 行一致）；63/63+71/71 机器核实方法合格；机制锚点（goalrunner_chat.go:5147/capability_pack.go:39-43）与披露走系统提示文本的边界亲证一致。主管亲跑防回归锚测试 exit 0。
+- **裁定**：①负结论成立——sem 族三披露形态全可达，无落点可补，维持现状+登记；web 对不可见按改革定向（次要面）维持；②纯 mix 观察轮 sem 不披露=设计内收窄，登记不判缺口（未来要扩=行级小卡另裁）；③原 PENDING「能力路由轮检索不可见」条目据此关闭（真缺口不存在，语义面已覆盖寻知路径）。
