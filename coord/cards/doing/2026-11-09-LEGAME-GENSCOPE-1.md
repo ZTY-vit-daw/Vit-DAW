@@ -23,6 +23,17 @@ coord/transfer/2026-11-08-M2-handtest-steps.md+本卡面；零代码。
 
 清单结构发现与 L1 三件实际布位冲突 → 上交候裁定（不擅改布位段）。
 
-## 领取/回执/验收
+## 领取
 
-- （执行侧/主管回填）
+- 2026-11-09 晚 / origin/main=f12635afa3e0b09639d984d85159d673f8dbcbeb / owner=GLM-5.3 执行子代理（333 卡 L2，PC，本会话）/ 分支=port/legame-genscope-1 / worktree=D:/Vit_DAW_wt_333impl
+- 领取基线亲证：worktree HEAD=f12635af（=origin/main；领卡窗口内 327 流两次 coord 推进已含，卡仍 todo/doing 域核对无冲突）；`git status --short`=空；`git diff --stat`=空——干净基线，本卡 diff 全为本卡新增
+- §8 跑前口径：零栈零 LLM 纯清单修改，无概率性运行；验收=确定性 grep+git 亲证，无运行次数/止损线需求
+- 领取提交：（见下方推送记录）
+
+## 回执
+
+- （完成时回填）
+
+## 验收
+
+- （主管回填）
