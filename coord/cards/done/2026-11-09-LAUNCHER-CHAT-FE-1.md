@@ -31,3 +31,7 @@ headless 探针断言（窗节点在场/就绪前禁用后解禁/磁带卡数据
   - **诚实边界/渲染面声明（AGENTS §5）**：①本卡零真栈（真栈腿并入 339）；渲染结果未过浏览器级/像素级断言——headless 探针覆盖节点树+数据绑定+状态机，**视觉呈现（v2 令牌观感/硬投影/布局比例）未经渲染面验证**，待用户 GUI 终审或 339 真栈腿；②消息流对接=337：本卡发送后无自动回执（骨架），开场白=确定性模板（仅真实 recent 数据点名工程名，mock 兜底态中性文案）；右列磁带卡在 recent 数据到达前显示 mock 三工程视觉兜底（展演骨架），真实链到达即覆盖（探针 3b 已断言）；③directive 卡为展示态（执行接线随 337/338），卡面如实标注；④降级重试完整等待腿（8s 探测循环）未在探针内驱动（headless HTTP 拒连会占满 8s），断言到 retry_requested 接线在场+waiting 回转面。
   - **实现说明**：`_set_feed_mode` 的 `_feed.visible` 由硬编码 true 改为随 `_tape_drawer_open`（磁带流默认收起=对话窗主位；把手一键展开全功能经典页——双轨保险落位）；`_apply_recent_list_from_projects` 既有重复双调用 `build_feed_entries` 合并为单次求值（行为等价，产物数组喂双消费方），属本卡文件域内顺手清理。
 - 验收：（主管回填）
+
+### 终验（主管，2026-11-09 深夜）
+
+- **pass（零栈段）**——主管亲测：headless 探针复跑 38/38 PASS exit 0（装配/就绪态/磁带卡三工程带轮量两两不同/三形态回执/降级/抽屉）；红线亲证 LLM_Chat_Controller/Window 零 diff；f5/clip_fade 回归采信。前端分支 port/launcher-chat-fe-1 @fc55775 续用于 336（同 worktree 链式）。**渲染观感未验（headless 限制如实）——候 339 真栈腿+用户 GUI 终审**。
