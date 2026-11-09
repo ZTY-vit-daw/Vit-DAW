@@ -110,3 +110,8 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 332 | AI-LAUNCHER-DESIGN-1 | done 自验候验收（九节设计报告已产出——三态一窗/对话流两案 A 主 B 退/反向导航零内核改动/拆卡 6 卡 8.75 人日中值；候主管验收+用户终审后拆实施卡） |
 | 333 | LEGAME-GENSCOPE-1 | done 已验收 pass 合入 82f42846（手测 v2 旅程面收口：只走旅程 A，零生成前置；边界声明含 AI-first 衔接） |
 | 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | todo 可领 P3（goal_status 伪造面全树普查+同型修——327/330 缺陷族收尾；随手清型） |
+| 335 | LAUNCHER-CHAT-FE-1 | **todo 已派发**（启动面 C1 Godot：最简对话窗+磁带卡+降级态——v2 视觉规格权威） |
+| 336 | LAUNCHER-NAV-FE-1 | todo（启动面 C2 Godot：directive 消费+open 链+治理确认+浮动窗带出——依赖 335） |
+| 337 | LAUNCHER-CHAT-BE-1 | **todo 已派发**（启动面 C4 agent：launcher 流路由+directive 回执+开场白+state 身份——与 335 并行） |
+| 338 | LAUNCHER-BRIDGE-BE-1 | todo（启动面 C5 agent：流标记+桥接播报——案 B 承接核心；依赖 337） |
+| 339 | LAUNCHER-SMOKE-1 | todo（启动面 C6 收口：三腿真栈烟测——依赖 335-338 全合入） |
