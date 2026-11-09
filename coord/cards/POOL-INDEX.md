@@ -49,6 +49,11 @@
 | 321 | RACK-PARAM-PERSIST-FIX-1 | done 终验 pass 合入（probe 3/3 存活亲证 0.7→reopen 0.7；320 解锁） |
 | 322 | PROQ3-CERTIFY-AND-T7-1 | done 终验 pass 合入（**r1/r3 裸写逐项吻合+S5 零 typed 铁证+persisted×3**——Pro-Q 3 认证落库+derive 带锚修复；早期首碰壁目标闭环；GUI 终审物交付） |
 | 323 | EQ-RECEIPT-VENDOR-EXPAND-1 | done 终验 pass 合入（vendor-scoped 最保守+双门干跑亲证——322 解锁） |
+| 324 | BRIDGE-POC-1 | **todo 候用户确认**（控制面改革方向去风险：display probe 反演双锚验证 T4/r3；零栈优先零 LLM；改革主线排展演后——2026-11-09 用户定向） |
+| 325 | FIX-CAPROUTE-RETRIEVAL-1 | todo 可领（PENDING 分流①：能力路由轮语义知识工具可达性勘察+披露建议） |
+| 326 | FIX-RESTARTAGENT-ENV-1 | todo 可领（PENDING 分流②：脚本重启 agent env 透传；真栈轻腿可搭 282 同窗） |
+| 327 | FIX-GOV-INTERACTION-TTL-1 | todo 可领（PENDING 分流③：治理确认过期窗口/迟到 approve 显式回执；322 r2 形态） |
+| 328 | FIX-FREEFLOAT-EQ-ANCHOR-1 | todo 可领（PENDING 分流④：TBTECH 派生行落盘[预授权]+类缺口登记；零栈 derive） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | done 终验 pass 合入（runA 零 env 产品级装载实证）
 | 315 | LEGAME-AUTOINTRO-1 | done 终验 pass 合入（runB 白话开场+「接着上局 1/7」恢复播报亲证）
