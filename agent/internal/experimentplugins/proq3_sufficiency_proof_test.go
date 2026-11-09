@@ -33,8 +33,8 @@ func TestProQ3LiveWhitelistLoad(t *testing.T) {
 	if !found {
 		t.Fatal("Pro-Q 3 missing from live static_eq section")
 	}
-	if len(wl.StaticEQ) != 49 {
-		t.Fatalf("static_eq count = %d, want 49", len(wl.StaticEQ))
+	if len(wl.StaticEQ) != 50 {
+		t.Fatalf("static_eq count = %d, want 50", len(wl.StaticEQ))
 	}
 	if len(wl.Reverb) != 1 || len(wl.Delay) != 1 {
 		t.Fatalf("reverb/delay sections changed: %+v %+v", wl.Reverb, wl.Delay)
