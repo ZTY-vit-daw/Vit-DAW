@@ -1,0 +1,15 @@
+﻿{
+    "artifacts_dir":  "D:/Vit_DAW_wt_340gate/coord/runs/LAUNCHER-GATE-FIX-1/fallback_20261110_001320",
+    "telemetry":  "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\logs\\agent_llm_telemetry.jsonl",
+    "fixture_source":  "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit",
+    "strip_boot_uuid":  false,
+    "recents_backup":  "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\global_project_config.before.json",
+    "created_at":  "2026-11-10T00:13:21.7722185+08:00",
+    "fixtures":  [
+                     "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+                     "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路乙.vit"
+                 ],
+    "card":  "LAUNCHER-SMOKE-1",
+    "boot_xml":  "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\default_project.xml",
+    "leg":  "fallback"
+}
