@@ -22,4 +22,6 @@ headless 探针断言（窗节点在场/就绪前禁用后解禁/磁带卡数据
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- **领取**（2026-11-09）：origin/main=987455063a48f54193621f7060b4e1d8927833b8；owner=GLM-5.3 L2 执行子代理（335exec，PC）；实现分支=前端仓 `port/launcher-chat-fe-1` @基线 f805bde0d69365b27a5747292ead36e34d04d000（领取基线亲证：前端仓 main 干净，仅未跟踪运行时目录 `.vit_agent/` 等既有项，与本卡文件域无涉）；worktree=`D:/Godot/project/vit-daw-frontend-lchat1`；领取提交=本提交（仅 coord/ 变更）。doing 三卡（273/275 族 agent 域+WAVESHELL 取证）文件域零冲突已核对。
+- 回执：（执行侧回填）
+- 验收：（主管回填）
