@@ -71,6 +71,7 @@ WaveShell1-VST3 17.1_x64.vst3（10,523,480 B，SHA256 `ee6b1a81…da7bb90`，Com
 | 2026-05-28 02:41-04:54 | `Plug-Ins V17\GrandRhapsody.bundle\...GrandRhapsody.dll`（02:41）与 `WaveShells V17\WaveShell1-VST3 17.1_x64.vst3`（04:54）等 V17 主体文件 |
 | 2026-07-26 20:57-21:22 | 授权/安装动作窗：`last.lgn`+`LastAcceptableMACAddress.txt`（20:57）、Central/License Notifications/Demo Mode 目录（21:09-21:15）、公共目录 VST3 副本（21:16）、`Licenses/` 目录定形（21:22） |
 | **2026-11-09 19:07** | **`Licenses/LastRefreshLicenseFile.txt` mtime=309 栈腿 E2a 装载 GR 窗口内（19:06 占用→19:29 释放）**——装载时 license refresh 路径真实执行的直接物证（文件 0 字节，仅 touch） |
+| 2026-11-09 17:58:04（收腿时顺带观测） | 收腿进程亲核发现 `WavesPluginServer.exe` 常驻（PID 30144，启动 17:58:04，**V14.2 bundle**，非 V17.1，内存 ~108MB）——启动早于 309 栈窗口 19:06，309 工件未记录该进程（当时未观测）；主体（哪个会话拉起）不可考。含义：①309 八 run 期间系统存在 V14.2 server 常驻而 GR=V17 插件——server 版本错配面首次入卷；②D2 判别腿必须记录 server 进程版本/启动时间/端口（见 §5 修订）。本腿未启动任何 Waves 进程（全部命令只读在卷），该进程非本腿产物 |
 
 ### 3.3 license 链物证（核心新发现）
 
@@ -115,8 +116,8 @@ WavesLicenseEngine.dll（x64，1,658,568 B）strings 证据链：`ReadLicensesFr
 
 ### D2 license 状态文件观测（H1 旁证，零侵入）
 
-- **腿**：装载 GR 前后快照 `C:\ProgramData\Waves Audio\` 下 `Licenses/`（含 LastRefreshLicenseFile.txt mtime/内容）、`License Notifications/`、`Demo Mode/` 差分；同步快照进程表（WavesPluginServer.exe/WavesPluginClient.exe 是否被 spawn）+ localhost 新增监听端口。
-- **判定**：装载触发 refresh touch（预期，§3.2 已有一次物证）+ 无新授权文件+ server 进程未拉起 → 与 H1「校验失败后静默」自洽（非充分判定，作 D1 的环境佐证）。server 进程拉起 → H2 的 IPC 面激活，需记录端口与存活期。
+- **腿**：装载 GR 前后快照 `C:\ProgramData\Waves Audio\` 下 `Licenses/`（含 LastRefreshLicenseFile.txt mtime/内容）、`License Notifications/`、`Demo Mode/` 差分；同步快照进程表（WavesPluginServer.exe/WavesPluginClient.exe：**版本（V14.2 vs V17.1 bundle 路径）/PID/启动时间**）+ localhost 新增监听端口——**基线快照必须在启栈前做**（§3.2 已证系统可有 17:58 启动的 V14.2 常驻，版本错配面须与装载效应分离）。
+- **判定**：装载触发 refresh touch（预期，§3.2 已有一次物证）+ 无新授权文件+ 无 V17.1 server 拉起（或拉起即退出）→ 与 H1「校验失败后静默」自洽（非充分判定，作 D1 的环境佐证）。V17.1 server 拉起并存活 → H2 的 IPC 面激活，记录端口与存活期，转 D3 交叉。
 
 ### D3 延时对照（H2 判别器）
 
