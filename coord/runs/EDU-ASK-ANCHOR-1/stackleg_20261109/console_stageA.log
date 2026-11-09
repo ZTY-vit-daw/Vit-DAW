@@ -1,0 +1,61 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261109_194030\agent_drafts
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_282impl
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_282impl\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_282impl\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_282impl\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release\VitApp.exe pid=31840 workdir=D:\Vit_DAW_wt_228\VitApp\build_release\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_282impl\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=298
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=31840
+ok: ZMQ SUB listening: 5556 pid=31840
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1040 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== Chat route smoke
+chat.stop_reason=improvement_proposal_confirmation_required
+chat.reply=贝斯轨的能量明显集中在低频（最强频段约 56 dB，次强约 49 dB，中频只有约 32 dB，跨度约 24.5 dB），同时工程层面的低频重叠候选里也包含贝斯、鼓和吉他。我建议在低频区做一次小幅、可回退的削减实验，改完用耳朵对比低频是否更干净、贝斯和中频轮廓是否更清楚。
+
+如果你认可这个小步建议，需要我继续执行吗？
+ok: natural mix chat did not route through legacy mix_planner_chat
+
+== No-pending mix confirmation smoke
+confirm.stop_reason=no_pending_mix_tick_candidate
+confirm.reply=现在没有可执行的待确认混音动作。你可以让我重新观察，或者明确说要调整哪条轨道多少 dB。
+ok: bare mix confirmation did not execute without a pending candidate
+
+== Summary
+ok: dev agent smoke completed
