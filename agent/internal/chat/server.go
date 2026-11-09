@@ -322,6 +322,7 @@ type ChatResponse struct {
 	ProjectHistory            map[string]any                      `json:"project_history,omitempty"`
 	Artifacts                 []artifacts.Summary                 `json:"artifacts,omitempty"`
 	SidePanelRequest          *SidePanelRequest                   `json:"side_panel_request,omitempty"`
+	LauncherDirective         *LauncherDirective                  `json:"launcher_directive,omitempty"`
 	Error                     string                              `json:"error,omitempty"`
 	Lifecycle                 string                              `json:"lifecycle,omitempty"`
 	Persistence               string                              `json:"persistence,omitempty"`
@@ -722,6 +723,7 @@ func (s *Server) Routes() http.Handler {
 	mux.HandleFunc("/agent/ui/state", s.handleUIState)
 	mux.HandleFunc("/agent/ui/context", s.handleUIContext)
 	mux.HandleFunc("/agent/chat", s.handleChat)
+	mux.HandleFunc("/agent/launcher/greeting", s.handleLauncherGreeting)
 	mux.HandleFunc("/agent/note/archive", s.handleNoteArchive)
 	mux.HandleFunc("/agent/confirm", s.handleConfirm)
 	mux.HandleFunc("/agent/interaction/respond", s.handleInteractionRespond)
@@ -871,6 +873,8 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 	// VITNOTE-NOTESTREAM-2：note 会话投影（webui 侧边栏会话流合并源——默认名+归档态+可查
 	// 历史；工程身份=当前活动工程，fail-open：无活动工程=空表）。
 	noteProjectPath, noteProjectUUID := s.harness.CurrentProjectIdentity(r.Context())
+	// LAUNCHER-CHAT-BE-1：直接披露当前绑定工程身份（同源=note_sessions 的
+	// CurrentProjectIdentity）——启动窗徽章对账与降级自愈用（设计稿 §4.2）。
 	response := map[string]any{
 		"status":            "ok",
 		"service":           "VitAgent",
@@ -881,6 +885,7 @@ func (s *Server) handleRuntimeStatus(w http.ResponseWriter, r *http.Request) {
 		"goal":              goal,
 		"continuations":     s.continuationRuntimeProjection(),
 		"note_sessions":     s.noteSessionRows(noteProjectPath, noteProjectUUID),
+		"current_project":   map[string]any{"path": noteProjectPath, "uuid": noteProjectUUID},
 		"capability_routes": s.capabilityRouteProjection(),
 		"authority_mode":    s.authorityModeSnapshot(),
 		"checkout_blocked":  checkoutBlocked,
@@ -1047,6 +1052,9 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 		stateHistory = projectHistory
 	}
 	agentPlan := s.activeGoalPlan(goal, stateHistory)
+	// LAUNCHER-CHAT-BE-1：current_project 与 /agent/runtime/status 同源
+	//（CurrentProjectIdentity），窗徽章对账两面一致。
+	currentProjectPath, currentProjectUUID := s.harness.CurrentProjectIdentity(r.Context())
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status": "ok",
 		"shadow": shadowState,
@@ -1056,9 +1064,10 @@ func (s *Server) handleState(w http.ResponseWriter, r *http.Request) {
 			"agent_plan":      agentPlan,
 			"project_history": stateHistory,
 		},
-		"project_history": stateHistory,
-		"direct_commands": s.harness.DirectCommandNames(),
-		"tool_count":      len(s.harness.Tools()),
+		"project_history":  stateHistory,
+		"current_project":  map[string]any{"path": currentProjectPath, "uuid": currentProjectUUID},
+		"direct_commands":  s.harness.DirectCommandNames(),
+		"tool_count":       len(s.harness.Tools()),
 	})
 }
 
@@ -2855,6 +2864,19 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if resp, handled := s.handleDevChatCommand(r.Context(), conversationID, req); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
+
+	// LAUNCHER-CHAT-BE-1（332 拆卡 C4）：launcher 流确定性意图路由（零 LLM）。
+	// 条件=context.launcher=true 且无活跃工程（F11 无工程态；有工程时跨工程
+	// 意图归 C5 治理链，此处不路由）。位于 pending 确认/开发命令之后、语义
+	// 入口之前——确定性词汇路由先于 LLM 轮（M3-C4-AUTO-INTENT-1 先例）。
+	// 意图命中→directive/结果卡/说明三分支；意图不明→不拦截照旧走 LLM。
+	// 红线：不触 authority/pendingmanager——directive 只是回执字段，打开动作
+	// 由 UI 执行（设计稿 §4.3 写者不变式），本轮不产生确认面。
+	if resp, handled := s.handleLauncherFlowChat(r.Context(), req.Context, conversationID, req.Message, agentMode); handled {
 		s.remember(conversationID, req.Message, resp.Reply)
 		writeChat(http.StatusOK, resp)
 		return
