@@ -34,6 +34,15 @@ agent/internal/chat/launcher_flow.go+server.go（project_opened 接收点）+测
 
 ## 领取/回执/验收
 
-- 领取：2026-11-10 00:03 +0800 / origin/main 7744c5b1 / owner ZCode GLM-5.3 L2 执行子代理（340gate 会话）/ PC / 分支 port/launcher-gate-fix-1 / worktree D:/Vit_DAW_wt_340gate / 领取提交=coord/340-claim（hash 推送后回填）
-- 回执：（执行侧回填）
+- 领取：2026-11-10 00:03 +0800 / origin/main 7744c5b1 / owner ZCode GLM-5.3 L2 执行子代理（340gate 会话）/ PC / 分支 port/launcher-gate-fix-1 / worktree D:/Vit_DAW_wt_340gate / 领取提交 9e9117ae（已推 main 亲证）
+- 回执（2026-11-10 00:20 +0800，执行侧自验完成候主管验收）：
+  - **实现 commit af55101b + 工件 commit 013eddb4**（均 @ port/launcher-gate-fix-1，已推远端）
+  - diff 文件清单（5 文件 +203/-39）：agent/internal/chat/launcher_flow.go（门=UI 声明+user_entered_project 双门，uuid 判据废弃+位方法）、agent/internal/chat/server.go（Server 字段+handleInvoke project_opened 到达即置位）、agent/internal/chat/launcher_flow_test.go（门测试重写为 4 子用例：339 PhaseA/PhaseB 真栈形态 fixture 不阻塞门+project_opened 到达门关+authority 不变）、scripts/launcher_flow_smoke.py（两处装置断言随门语义同步：assert_gate_open 改记录面[门开行为证明=directive 回执]+零摩擦前提改弱断言[真栈 boot path=草稿回退恒非空，339 证据；两面语义差异已在驱动注释注明：UI 管"要不要确认"=真栈恒走确认卡，BE 管"走不走 launcher 路由"]）、coord/runs/LAUNCHER-GATE-FIX-1/RUNBOOK.md（§8 跑前冻结）。驱动断言同步=门修复链必要组成（旧断言是 337 门镜像，不改则腿 1 必 exit 4、验收标准自相矛盾）；336 前端零改动（卡面维持不动达成）
+  - 单测：TestLauncherFlowGateUIFlagAndSessionFact 4/4 PASS；chat 全包 `go test ./internal/chat/ -count=1` → **ok 158.741s 零回退**；`go build ./...` exit 0
+  - **腿 1 主链 exit 0**（run=coord/runs/LAUNCHER-GATE-FIX-1/main_20261110_001205）：boot 形态与 339 取证同款（uuid=default 自带+path=草稿回退）→ 门开行为证明=directive 回执全字段 → project_opened 位置位点 → 绑定观察 → 桥接播报（launcher_bridge_broadcast/volume_switch/已进入《小星星乐局》）→ 工程流 context_flow=project → UI 锚点三件；**338 桥接/续聊段随本腿真栈证成**
+  - **腿 2 退路 exit 0**（run=coord/runs/LAUNCHER-GATE-FIX-1/fallback_20261110_001320）：2 张 launcher_project 结果卡+点卡[0] 同链开工程+桥接+telemetry 恰 0 行
+  - §8 对账：腿 1 LLM 实耗 **1 调用**（deepseek-flash 684 in/165 out，≈¥0.001）≪ 上界 10；腿 2 = 0；单 run 无重跑（两腿各一次过，无 attempt）
+  - 栈登记两条：占用 baa8c4e2（净空亲核 00:10:48+≤60s 复核）/释放见本批提交（TEARDOWN_ALL_ZERO 亲核 00:15:20+recents 哈希一致还原）
+  - 渲染边界（AGENTS §5）：断言面=agent HTTP 回执+内核 ZMQ+真实 UI 进程/日志/锚点；GUI 渲染观感/浮动窗视觉呈现=手测 v2（本卡 pass=手测 v2 启动面就绪）
+  - 工件：coord/runs/LAUNCHER-GATE-FIX-1/（RUNBOOK+两 run 目录全保真+report.json 对账）
 - 验收：（主管回填）
