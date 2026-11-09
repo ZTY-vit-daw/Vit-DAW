@@ -1,0 +1,3417 @@
+
+**********************************************************
+VitHeadlessServer session log
+Log started: 10 Nov 2026 12:13:22am
+
+VitHeadlessServer: application startup.
+Settings file: D:\Vit_DAW\Export\staging\runtime\Workspace\Settings\Settings.xml
+Audio block size: 480  Rate: 48000
+Creating Default Controllers...
+VitEngineDevice: initialising Tracktion Engine device manager.
+Audio block size: 480  Rate: 48000
+Rebuilding Wave Device List...
+Wave In: Input 1 (enabled): 0 (L)
+Wave In: Input 2 (enabled): 1 (L)
+Wave Out: Output 1 + 2 (enabled): 0 (L), 1 (R)
+Default Wave Out: Output 1 + 2
+Default MIDI Out: 
+Default Wave In: Input 1
+Default MIDI In: 
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+VitEngineDevice: audio setup outputDevice="扬声器 (USB AUDIO  CODEC)" inputDevice="麦克风 (Sonic Studio Virtual Mixer)" sampleRate=48000.00 bufferSize=480 inputChannels=11 outputChannels=11
+VitEngineDevice: current audio device name="扬声器 (USB AUDIO  CODEC)" type="Windows Audio" activeOutputChannels=Output channel 1, Output channel 2" activeInputChannels=Input channel 1, Input channel 2"
+VitHeadlessService: edit loaded from D:\Vit_DAW_wt_340gate\coord\runs\LAUNCHER-GATE-FIX-1\fallback_20261110_001320\default_project.xml
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+VitKernelUtils: wave clip 1011 forced direct file rebind: D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\bass.wav
+VitKernelUtils: wave clip 1016 forced direct file rebind: D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\drums.wav
+VitKernelUtils: wave clip 1021 forced direct file rebind: D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\guitar.wav
+VitKernelUtils: wave clip 1026 forced direct file rebind: D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\other.wav
+VitKernelUtils: wave clip 1031 forced direct file rebind: D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\piano.wav
+VitKernelUtils: wave clip 1036 forced direct file rebind: D:\Vit_DAW\temp\semantic-processor-agent-project-smoke-v1\fixtures\semantic_processor_project_smoke_v1_80085263a651cf20\cases\spv1_p01\stems\vocals.wav
+VitHeadlessService: project reload complete.
+ZmqGateway: bound command endpoint to tcp://127.0.0.1:5555
+ZmqGateway: bound publish endpoint to tcp://127.0.0.1:5556
+ZmqGateway: bound log endpoint to tcp://127.0.0.1:5557
+ZmqGateway: started network thread.
+VitHeadlessService: service started successfully.
+VitHeadlessServer: startup complete, entering background message loop.
+ZmqGateway: received command payload: {"cmd":"get_project_state"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_project_state"}
+Command received: {"cmd":"get_project_state"}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "project_id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "parent_project_uuid": "",
+  "agent_history_generation": "",
+  "scope": "track",
+  "audio_settings": {
+    "schema_version": "vit_project_audio_settings.v1",
+    "sample_rate_hz": 44100,
+    "record_file_type": "WAV/BWF",
+    "record_bit_depth": 16,
+    "pcm_format": "int16",
+    "internal_processing_format": "unknown",
+    "import_sample_rate_policy": "ask",
+    "import_bit_depth_policy": "keep_source",
+    "media_copy_policy": "reference_original",
+    "channel_import_policy": "preserve_interleaved",
+    "render_default_sample_rate_hz": 44100,
+    "render_default_bit_depth": 16,
+    "render_default_file_type": "WAV",
+    "dither_policy": "unknown",
+    "recommended_presets": [
+      {
+        "preset_id": "default_production",
+        "name": "Default Production",
+        "role": "project_working",
+        "sample_rate_hz": 48000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": true
+      },
+      {
+        "preset_id": "music_production",
+        "name": "Music Production",
+        "role": "project_working",
+        "sample_rate_hz": 44100,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "video_game_production",
+        "name": "Video/Game Production",
+        "role": "project_working",
+        "sample_rate_hz": 48000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "cd_export",
+        "name": "CD Export",
+        "role": "delivery_export",
+        "sample_rate_hz": 44100,
+        "bit_depth": 16,
+        "file_type": "WAV",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "high_resolution",
+        "name": "High Resolution",
+        "role": "project_working",
+        "sample_rate_hz": 96000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      }
+    ],
+    "metadata_state": "stored",
+    "defaulted_this_call": false,
+    "migration_state": "stored",
+    "defaulted_origin": "new_project",
+    "field_status": {
+      "sample_rate_hz": "metadata_active",
+      "record_file_type": "declared_metadata_only",
+      "record_bit_depth": "declared_metadata_only",
+      "pcm_format": "declared_metadata_only",
+      "internal_processing_format": "read_only_unknown",
+      "import_sample_rate_policy": "metadata_active_for_preflight",
+      "import_bit_depth_policy": "metadata_active_for_preflight",
+      "media_copy_policy": "metadata_active_for_preflight",
+      "channel_import_policy": "metadata_active_for_preflight",
+      "render_defaults": "declared_metadata_only",
+      "dither_policy": "declared_metadata_only"
+    },
+    "capabilities": {
+      "project_sample_rate_is_audio_device_sample_rate": false,
+      "changes_audio_device_sample_rate": false,
+      "engine_project_sample_rate_binding": "not_bound",
+      "record_format_binding": "metadata_only",
+      "preflight_uses_settings": true
+    },
+    "block_size": 480
+  },
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_state_revision": "45a0f44f4646e9b9",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_state_revision": "cb7c7edff668a016",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_state_revision": "e299b13dfb526083",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_state_revision": "aaa10e71f436fefb",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_state_revision": "b0f056d56425ffb9",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1007",
+      "track_state_revision": "5129f197954144b3",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "bass",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1011",
+          "clip_state_revision": "4b2f419da1224476",
+          "name": "bass",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1012",
+      "track_state_revision": "fc715f642b84b09e",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "drums",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1013",
+          "item_id": "1013",
+          "plugin_item_id": "1013",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1014",
+          "item_id": "1014",
+          "plugin_item_id": "1014",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1016",
+          "clip_state_revision": "740227f78d2ee285",
+          "name": "drums",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1017",
+      "track_state_revision": "ff4653fd01bf98d1",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "guitar",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1018",
+          "item_id": "1018",
+          "plugin_item_id": "1018",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1019",
+          "item_id": "1019",
+          "plugin_item_id": "1019",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1021",
+          "clip_state_revision": "86670f6f84c13b77",
+          "name": "guitar",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1022",
+      "track_state_revision": "b00f99bb2710cdaa",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "other",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1023",
+          "item_id": "1023",
+          "plugin_item_id": "1023",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1024",
+          "item_id": "1024",
+          "plugin_item_id": "1024",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1026",
+          "clip_state_revision": "d44e047d0bc761b0",
+          "name": "other",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1027",
+      "track_state_revision": "83d6cfc1e9caa845",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "piano",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1028",
+          "item_id": "1028",
+          "plugin_item_id": "1028",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1029",
+          "item_id": "1029",
+          "plugin_item_id": "1029",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1031",
+          "clip_state_revision": "bd3a2f85d825bf26",
+          "name": "piano",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1032",
+      "track_state_revision": "984b8a0af2cbc612",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "vocals",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1033",
+          "item_id": "1033",
+          "plugin_item_id": "1033",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1034",
+          "item_id": "1034",
+          "plugin_item_id": "1034",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1036",
+          "clip_state_revision": "abce643d40cad7c1",
+          "name": "vocals",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    }
+  ],
+  "markers": [],
+  "track_groups": [],
+  "groups": [],
+  "track_group_count": 0,
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 11,
+      "clip_count": 8,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "plugin_list_hygiene": {
+    "cleanup_ran": true,
+    "types_before": 991,
+    "types_removed": 0,
+    "blacklist_before": 1,
+    "blacklist_removed": 0,
+    "removed_total": 0,
+    "completed_at": "2026-11-10T00:13:24.369+08:00",
+    "removed_summary": ""
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "",
+  "graph_last_diff_summary": "",
+  "graph_publish_mode": "idle",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "project_path": "",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "project_id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "parent_project_uuid": "",
+  "agent_history_gene
+ZmqGateway: received command payload: {"cmd":"project.snapshot_export"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"project.snapshot_export"}
+Command received: {"cmd":"project.snapshot_export"}
+Command executed: project.snapshot_export, result: {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/a696bc\" creationTime=\"0\" modifiedBy=\"VitHeadlessServer\"\r\n      vit_project_uuid=\"vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb\" lastSignificantChange=\"1a09610ad44\">\r\n  <TRANSPORT endToEnd=\"1\" position=\"0.0\"/>\r\n  <TEMPOSEQUENCE>\r\n    <TEMPO startBeat=\"0.0\" bpm=\"120.0\" curve=\"1.0\"/>\r\n    <TIMESIG numerator=\"4\" denominator=\"4\" startBeat=\"0.0\"/>\r\n  </TEMPOSEQUENCE>\r\n  <VIDEO/>\r\n  <CLICKTRACK level=\"0.6000000238418579\"/>\r\n  <MASTERVOLUME>\r\n    <PLUGIN type=\"volume\" id=\"1001\" enabled=\"1\" volume=\"0.6376281516\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n  </MASTERVOLUME>\r\n  <RACKS/>\r\n  <MASTERPLUGINS/>\r\n  <INPUTDEVICES>\r\n    <INPUTDEVICE deviceID=\"all_midi_in\" name=\"All MIDI Ins\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293b\" name=\"Input 1\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293c\" name=\"Input 2\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_4b684aa\" name=\"SG Device I/O\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_1683015f\" name=\"StudioRack\"/>\r\n  </INPUTDEVICES>\r\n  <TRACKCOMPS/>\r\n  <SCENES/>\r\n  <PITCHSEQUENCE>\r\n    <PITCH startBeat=\"0.0\" pitch=\"60\"/>\r\n  </PITCHSEQUENCE>\r\n  <VIT_AUDIO_SETTINGS migration_state=\"stored\" defaulted_origin=\"new_project\" schema_version=\"vit_project_audio_settings.v1\"\r\n                      sample_rate_hz=\"44100\" record_file_type=\"WAV/BWF\" record_bit_depth=\"16\"\r\n                      pcm_format=\"int16\" internal_processing_format=\"unknown\" import_sample_rate_policy=\"ask\"\r\n                      import_bit_depth_policy=\"keep_source\" media_copy_policy=\"reference_original\"\r\n                      channel_import_policy=\"preserve_interleaved\" render_default_sample_rate_hz=\"44100\"\r\n                      render_default_bit_depth=\"16\" render_default_file_type=\"WAV\"\r\n                      dither_policy=\"unknown\"/>\r\n  <ARRANGERTRACK name=\"Arranger\" id=\"1002\"/>\r\n  <CHORDTRACK name=\"Chord\" id=\"1003\"/>\r\n  <MARKERTRACK id=\"1004\" name=\"Marker\"/>\r\n  <TEMPOTRACK name=\"Global\" id=\"1005\">\r\n    <MODIFIERS/>\r\n  </TEMPOTRACK>\r\n  <MASTERTRACK name=\"Master\" id=\"1006\">\r\n    <MODIFIERS/>\r\n  </MASTERTRACK>\r\n  <TRACK id=\"1007\" name=\"bass\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"bass\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1011\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff55ff00\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1008\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1009\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1012\" name=\"drums\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"drums\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1016\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ff00\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1013\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1014\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1017\" name=\"guitar\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"guitar\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1021\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ff55\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1018\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1019\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1022\" name=\"other\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"other\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1026\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ffaa\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1023\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1024\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1027\" name=\"piano\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"piano\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1031\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ffff\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1028\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1029\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1032\" name=\"vocals\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"vocals\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1036\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00aaff\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1033\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1034\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n</EDIT>\r\n",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "project_id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "parent_project_uuid": "",
+  "agent_history_generation": "",
+  "project_path": "",
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "",
+  "graph_last_diff_summary": "",
+  "graph_publish_mode": "idle",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/a696bc\" creationTime=\"0\" modifiedBy=\"VitH
+ZmqGateway: received command payload: {"cmd":"project.snapshot_export"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"project.snapshot_export"}
+Command received: {"cmd":"project.snapshot_export"}
+Command executed: project.snapshot_export, result: {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/a696bc\" creationTime=\"0\" modifiedBy=\"VitHeadlessServer\"\r\n      vit_project_uuid=\"vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb\" lastSignificantChange=\"1a09610ad44\">\r\n  <TRANSPORT endToEnd=\"1\" position=\"0.0\"/>\r\n  <TEMPOSEQUENCE>\r\n    <TEMPO startBeat=\"0.0\" bpm=\"120.0\" curve=\"1.0\"/>\r\n    <TIMESIG numerator=\"4\" denominator=\"4\" startBeat=\"0.0\"/>\r\n  </TEMPOSEQUENCE>\r\n  <VIDEO/>\r\n  <CLICKTRACK level=\"0.6000000238418579\"/>\r\n  <MASTERVOLUME>\r\n    <PLUGIN type=\"volume\" id=\"1001\" enabled=\"1\" volume=\"0.6376281516\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n  </MASTERVOLUME>\r\n  <RACKS/>\r\n  <MASTERPLUGINS/>\r\n  <INPUTDEVICES>\r\n    <INPUTDEVICE deviceID=\"all_midi_in\" name=\"All MIDI Ins\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293b\" name=\"Input 1\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293c\" name=\"Input 2\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_4b684aa\" name=\"SG Device I/O\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_1683015f\" name=\"StudioRack\"/>\r\n  </INPUTDEVICES>\r\n  <TRACKCOMPS/>\r\n  <SCENES/>\r\n  <PITCHSEQUENCE>\r\n    <PITCH startBeat=\"0.0\" pitch=\"60\"/>\r\n  </PITCHSEQUENCE>\r\n  <VIT_AUDIO_SETTINGS migration_state=\"stored\" defaulted_origin=\"new_project\" schema_version=\"vit_project_audio_settings.v1\"\r\n                      sample_rate_hz=\"44100\" record_file_type=\"WAV/BWF\" record_bit_depth=\"16\"\r\n                      pcm_format=\"int16\" internal_processing_format=\"unknown\" import_sample_rate_policy=\"ask\"\r\n                      import_bit_depth_policy=\"keep_source\" media_copy_policy=\"reference_original\"\r\n                      channel_import_policy=\"preserve_interleaved\" render_default_sample_rate_hz=\"44100\"\r\n                      render_default_bit_depth=\"16\" render_default_file_type=\"WAV\"\r\n                      dither_policy=\"unknown\"/>\r\n  <ARRANGERTRACK name=\"Arranger\" id=\"1002\"/>\r\n  <CHORDTRACK name=\"Chord\" id=\"1003\"/>\r\n  <MARKERTRACK id=\"1004\" name=\"Marker\"/>\r\n  <TEMPOTRACK name=\"Global\" id=\"1005\">\r\n    <MODIFIERS/>\r\n  </TEMPOTRACK>\r\n  <MASTERTRACK name=\"Master\" id=\"1006\">\r\n    <MODIFIERS/>\r\n  </MASTERTRACK>\r\n  <TRACK id=\"1007\" name=\"bass\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"bass\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1011\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff55ff00\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1008\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1009\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1012\" name=\"drums\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"drums\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1016\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ff00\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1013\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1014\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1017\" name=\"guitar\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"guitar\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1021\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ff55\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1018\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1019\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1022\" name=\"other\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"other\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1026\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ffaa\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1023\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1024\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1027\" name=\"piano\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"piano\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1031\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ffff\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1028\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1029\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1032\" name=\"vocals\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"vocals\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1036\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00aaff\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1033\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1034\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n</EDIT>\r\n",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "project_id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "parent_project_uuid": "",
+  "agent_history_generation": "",
+  "project_path": "",
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "",
+  "graph_last_diff_summary": "",
+  "graph_publish_mode": "idle",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/a696bc\" creationTime=\"0\" modifiedBy=\"VitH
+ZmqGateway: received command payload: {"channel":"session","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:27Z","message_id":"msg_1794240807829735600_1","payload":{"client_name":"Vit Agent","client_version":"phase5-agent-vsp","protocol_max":"1.0","protocol_min":"1.0","transport_bindings":["legacy.zmq_reqrep"],"wants":["command.request","state.snapshot","state.delta","state.resync","event.progress"]},"role":"agent","schema":"vsp.session.hello.v1","session_id":"session_pending","trace_id":"trace_1794240807829735600_2","type":"session.hello","vsp_version":"1.0"}
+ZmqGateway: command timeout budget ms=120000
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"channel":"session","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:27Z","message_id":"msg_1794240807829735600_1","payload":{"client_name":"Vit Agent","client_version":"phase5-agent-vsp","protocol_max":"1.0","protocol_min":"1.0","transport_bindings":["legacy.zmq_reqrep"],"wants":["command.request","state.snapshot","state.delta","state.resync","event.progress"]},"role":"agent","schema":"vsp.session.hello.v1","session_id":"session_pending","trace_id":"trace_1794240807829735600_2","type":"session.hello","vsp_version":"1.0"}
+Command received: {"channel":"session","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:27Z","message_id":"msg_1794240807829735600_1","payload":{"client_name":"Vit Agent","client_version":"phase5-agent-vsp","protocol_max":"1.0","protocol_min":"1.0","transport_bindings":["legacy.zmq_reqrep"],"wants":["command.request","state.snapshot","state.delta","state.resync","event.progress"]},"role":"agent","schema":"vsp.session.hello.v1","session_id":"session_pending","trace_id":"trace_1794240807829735600_2","type":"session.hello","vsp_version":"1.0"}
+VitHeadlessService: command reply (truncated): {
+  "vsp_version": "1.0",
+  "schema": "vsp.session.hello_ack.v1",
+  "message_id": "msg_kernel_1794240807831_214917156",
+  "session_id": "sess_kernel_1794240807831_59899551",
+  "client_id": "kernel.main",
+  "role": 
+ZmqGateway: received command payload: {"channel":"state","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:27Z","message_id":"msg_1794240807831236400_4","payload":{"scope":"project.timeline"},"request_id":"req_1794240807831236400_3","role":"agent","schema":"vsp.state.snapshot_request.v1","session_id":"sess_kernel_1794240807831_59899551","trace_id":"trace_1794240807831236400_5","type":"state.snapshot_request","vsp_version":"1.0"}
+ZmqGateway: command timeout budget ms=120000
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"channel":"state","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:27Z","message_id":"msg_1794240807831236400_4","payload":{"scope":"project.timeline"},"request_id":"req_1794240807831236400_3","role":"agent","schema":"vsp.state.snapshot_request.v1","session_id":"sess_kernel_1794240807831_59899551","trace_id":"trace_1794240807831236400_5","type":"state.snapshot_request","vsp_version":"1.0"}
+Command received: {"channel":"state","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:27Z","message_id":"msg_1794240807831236400_4","payload":{"scope":"project.timeline"},"request_id":"req_1794240807831236400_3","role":"agent","schema":"vsp.state.snapshot_request.v1","session_id":"sess_kernel_1794240807831_59899551","trace_id":"trace_1794240807831236400_5","type":"state.snapshot_request","vsp_version":"1.0"}
+Command received: {
+  "cmd": "get_project_state",
+  "request_id": "req_1794240807831236400_3",
+  "scope": "project.timeline",
+  "vsp_adapter": "phase3_state_channel"
+}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "project_id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "parent_project_uuid": "",
+  "agent_history_generation": "",
+  "scope": "track",
+  "audio_settings": {
+    "schema_version": "vit_project_audio_settings.v1",
+    "sample_rate_hz": 44100,
+    "record_file_type": "WAV/BWF",
+    "record_bit_depth": 16,
+    "pcm_format": "int16",
+    "internal_processing_format": "unknown",
+    "import_sample_rate_policy": "ask",
+    "import_bit_depth_policy": "keep_source",
+    "media_copy_policy": "reference_original",
+    "channel_import_policy": "preserve_interleaved",
+    "render_default_sample_rate_hz": 44100,
+    "render_default_bit_depth": 16,
+    "render_default_file_type": "WAV",
+    "dither_policy": "unknown",
+    "recommended_presets": [
+      {
+        "preset_id": "default_production",
+        "name": "Default Production",
+        "role": "project_working",
+        "sample_rate_hz": 48000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": true
+      },
+      {
+        "preset_id": "music_production",
+        "name": "Music Production",
+        "role": "project_working",
+        "sample_rate_hz": 44100,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "video_game_production",
+        "name": "Video/Game Production",
+        "role": "project_working",
+        "sample_rate_hz": 48000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "cd_export",
+        "name": "CD Export",
+        "role": "delivery_export",
+        "sample_rate_hz": 44100,
+        "bit_depth": 16,
+        "file_type": "WAV",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "high_resolution",
+        "name": "High Resolution",
+        "role": "project_working",
+        "sample_rate_hz": 96000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      }
+    ],
+    "metadata_state": "stored",
+    "defaulted_this_call": false,
+    "migration_state": "stored",
+    "defaulted_origin": "new_project",
+    "field_status": {
+      "sample_rate_hz": "metadata_active",
+      "record_file_type": "declared_metadata_only",
+      "record_bit_depth": "declared_metadata_only",
+      "pcm_format": "declared_metadata_only",
+      "internal_processing_format": "read_only_unknown",
+      "import_sample_rate_policy": "metadata_active_for_preflight",
+      "import_bit_depth_policy": "metadata_active_for_preflight",
+      "media_copy_policy": "metadata_active_for_preflight",
+      "channel_import_policy": "metadata_active_for_preflight",
+      "render_defaults": "declared_metadata_only",
+      "dither_policy": "declared_metadata_only"
+    },
+    "capabilities": {
+      "project_sample_rate_is_audio_device_sample_rate": false,
+      "changes_audio_device_sample_rate": false,
+      "engine_project_sample_rate_binding": "not_bound",
+      "record_format_binding": "metadata_only",
+      "preflight_uses_settings": true
+    },
+    "block_size": 480
+  },
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_state_revision": "45a0f44f4646e9b9",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_state_revision": "cb7c7edff668a016",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_state_revision": "e299b13dfb526083",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_state_revision": "aaa10e71f436fefb",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_state_revision": "b0f056d56425ffb9",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1007",
+      "track_state_revision": "5129f197954144b3",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "bass",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1011",
+          "clip_state_revision": "4b2f419da1224476",
+          "name": "bass",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1012",
+      "track_state_revision": "fc715f642b84b09e",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "drums",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1013",
+          "item_id": "1013",
+          "plugin_item_id": "1013",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1014",
+          "item_id": "1014",
+          "plugin_item_id": "1014",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1016",
+          "clip_state_revision": "740227f78d2ee285",
+          "name": "drums",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1017",
+      "track_state_revision": "ff4653fd01bf98d1",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "guitar",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1018",
+          "item_id": "1018",
+          "plugin_item_id": "1018",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1019",
+          "item_id": "1019",
+          "plugin_item_id": "1019",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1021",
+          "clip_state_revision": "86670f6f84c13b77",
+          "name": "guitar",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1022",
+      "track_state_revision": "b00f99bb2710cdaa",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "other",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1023",
+          "item_id": "1023",
+          "plugin_item_id": "1023",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1024",
+          "item_id": "1024",
+          "plugin_item_id": "1024",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1026",
+          "clip_state_revision": "d44e047d0bc761b0",
+          "name": "other",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1027",
+      "track_state_revision": "83d6cfc1e9caa845",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "piano",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1028",
+          "item_id": "1028",
+          "plugin_item_id": "1028",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1029",
+          "item_id": "1029",
+          "plugin_item_id": "1029",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1031",
+          "clip_state_revision": "bd3a2f85d825bf26",
+          "name": "piano",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1032",
+      "track_state_revision": "984b8a0af2cbc612",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "vocals",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1033",
+          "item_id": "1033",
+          "plugin_item_id": "1033",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1034",
+          "item_id": "1034",
+          "plugin_item_id": "1034",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1036",
+          "clip_state_revision": "abce643d40cad7c1",
+          "name": "vocals",
+          "clip_type": "wave",
+          "start_seconds": 0.0,
+          "end_seconds": 20.0,
+          "length_seconds": 20.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": "",
+          "clip_gain_db": 0.0,
+          "clip_pan": 0.0,
+          "clip_mute": false,
+          "gain_db": 0.0,
+          "pan": 0.0,
+          "mute": false,
+          "fade_in_seconds": 0.0,
+          "fade_out_seconds": 0.0,
+          "fade_in_curve": "linear",
+          "fade_out_curve": "linear",
+          "fade_in_curve_type": 1,
+          "fade_out_curve_type": 1,
+          "fade_in_behaviour": "gain",
+          "fade_out_behaviour": "gain",
+          "fade_in_behaviour_type": 0,
+          "fade_out_behaviour_type": 0,
+          "auto_crossfade": false,
+          "file_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+          "current_source_path": "D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav",
+          "playback_source_valid": true
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    }
+  ],
+  "markers": [],
+  "track_groups": [],
+  "groups": [],
+  "track_group_count": 0,
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 11,
+      "clip_count": 8,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "plugin_list_hygiene": {
+    "cleanup_ran": true,
+    "types_before": 991,
+    "types_removed": 0,
+    "blacklist_before": 1,
+    "blacklist_removed": 0,
+    "removed_total": 0,
+    "completed_at": "2026-11-10T00:13:24.369+08:00",
+    "removed_summary": ""
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "",
+  "graph_last_diff_summary": "",
+  "graph_publish_mode": "idle",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "vsp_version": "1.0",
+  "schema": "vsp.state.snapshot.v1",
+  "message_id": "msg_kernel_1794240807836_742813225",
+  "session_id": "sess_kernel_1794240807831_59899551",
+  "client_id": "kernel.main",
+  "role": "ke
+MIDI Input devices scanned in: 0
+Updating MIDI I/O devices
+Found MIDI in: midiin_4b684aa ("SG Device I/O") (enabled)
+Found MIDI in: midiin_1683015f ("StudioRack") (enabled)
+Found MIDI in: all_midi_in ("All MIDI Ins") (enabled)
+Found MIDI out: out_81b0d7ef ("Microsoft GS Wavetable Synth") (enabled)
+Found MIDI out: out_54d4e9aa ("SG Device I/O") (enabled)
+Found MIDI out: out_c683fc5f ("StudioRack") (enabled)
+opening MIDI out device: out_81b0d7ef (Microsoft GS Wavetable Synth)
+opening MIDI out device: out_54d4e9aa (SG Device I/O)
+opening MIDI out device: out_c683fc5f (StudioRack)
+opening MIDI in device: midiin_4b684aa (SG Device I/O)
+opening MIDI in device: midiin_1683015f (StudioRack)
+ZmqGateway: received command payload: {"cmd":"ping","request_id":"startup_probe_1265"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping","request_id":"startup_probe_1265"}
+Command received: {"cmd":"ping","request_id":"startup_probe_1265"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"ping","request_id":"startup_probe_1384"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"ping","request_id":"startup_probe_1384"}
+Command received: {"cmd":"ping","request_id":"startup_probe_1384"}
+CommandDispatcher: handled ping command.
+Command executed: ping, result: {
+  "status": "ok",
+  "message": "pong"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "pong"
+}
+ZmqGateway: received command payload: {"cmd":"get_recent_projects"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_recent_projects"}
+Command received: {"cmd":"get_recent_projects"}
+Command executed: get_recent_projects, result: {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路乙.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局·副本.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_195753.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e4_surge_xt\\waveshell_stackleg_fixture_render_direct_surge_xt.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_fixture_render_rack_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e3_fixb_warnonly_gr_v2\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2b_c_consistency_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit"
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-
+ZmqGateway: received command payload: {"cmd":"get_recent_projects","request_id":"ipc_1"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_recent_projects","request_id":"ipc_1"}
+Command received: {"cmd":"get_recent_projects","request_id":"ipc_1"}
+Command executed: get_recent_projects, result: {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路乙.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局·副本.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_195753.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e4_surge_xt\\waveshell_stackleg_fixture_render_direct_surge_xt.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_fixture_render_rack_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e3_fixb_warnonly_gr_v2\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2b_c_consistency_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit"
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-
+ZmqGateway: received command payload: {"cmd":"get_recent_projects"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_recent_projects"}
+Command received: {"cmd":"get_recent_projects"}
+Command executed: get_recent_projects, result: {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路乙.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局·副本.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_195753.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e4_surge_xt\\waveshell_stackleg_fixture_render_direct_surge_xt.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_fixture_render_rack_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e3_fixb_warnonly_gr_v2\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2b_c_consistency_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit"
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-
+ZmqGateway: received command payload: {"cmd":"get_recent_projects"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"get_recent_projects"}
+Command received: {"cmd":"get_recent_projects"}
+Command executed: get_recent_projects, result: {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路乙.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局·副本.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_195753.vit",
+    "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e4_surge_xt\\waveshell_stackleg_fixture_render_direct_surge_xt.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_fixture_render_rack_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e3_fixb_warnonly_gr_v2\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit",
+    "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2b_c_consistency_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit"
+  ]
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "recent_projects": [
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+    "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-
+ZmqGateway: received command payload: {"cmd":"project.snapshot_export"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"project.snapshot_export"}
+Command received: {"cmd":"project.snapshot_export"}
+Command executed: project.snapshot_export, result: {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/a696bc\" creationTime=\"0\" modifiedBy=\"VitHeadlessServer\"\r\n      vit_project_uuid=\"vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb\" lastSignificantChange=\"1a09610ad44\">\r\n  <TRANSPORT endToEnd=\"1\" position=\"0.0\"/>\r\n  <TEMPOSEQUENCE>\r\n    <TEMPO startBeat=\"0.0\" bpm=\"120.0\" curve=\"1.0\"/>\r\n    <TIMESIG numerator=\"4\" denominator=\"4\" startBeat=\"0.0\"/>\r\n  </TEMPOSEQUENCE>\r\n  <VIDEO/>\r\n  <CLICKTRACK level=\"0.6000000238418579\"/>\r\n  <MASTERVOLUME>\r\n    <PLUGIN type=\"volume\" id=\"1001\" enabled=\"1\" volume=\"0.6376281516\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n  </MASTERVOLUME>\r\n  <RACKS/>\r\n  <MASTERPLUGINS/>\r\n  <INPUTDEVICES>\r\n    <INPUTDEVICE deviceID=\"all_midi_in\" name=\"All MIDI Ins\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293b\" name=\"Input 1\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293c\" name=\"Input 2\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_4b684aa\" name=\"SG Device I/O\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_1683015f\" name=\"StudioRack\"/>\r\n  </INPUTDEVICES>\r\n  <TRACKCOMPS/>\r\n  <SCENES/>\r\n  <PITCHSEQUENCE>\r\n    <PITCH startBeat=\"0.0\" pitch=\"60\"/>\r\n  </PITCHSEQUENCE>\r\n  <VIT_AUDIO_SETTINGS migration_state=\"stored\" defaulted_origin=\"new_project\" schema_version=\"vit_project_audio_settings.v1\"\r\n                      sample_rate_hz=\"44100\" record_file_type=\"WAV/BWF\" record_bit_depth=\"16\"\r\n                      pcm_format=\"int16\" internal_processing_format=\"unknown\" import_sample_rate_policy=\"ask\"\r\n                      import_bit_depth_policy=\"keep_source\" media_copy_policy=\"reference_original\"\r\n                      channel_import_policy=\"preserve_interleaved\" render_default_sample_rate_hz=\"44100\"\r\n                      render_default_bit_depth=\"16\" render_default_file_type=\"WAV\"\r\n                      dither_policy=\"unknown\"/>\r\n  <ARRANGERTRACK name=\"Arranger\" id=\"1002\"/>\r\n  <CHORDTRACK name=\"Chord\" id=\"1003\"/>\r\n  <MARKERTRACK id=\"1004\" name=\"Marker\"/>\r\n  <TEMPOTRACK name=\"Global\" id=\"1005\">\r\n    <MODIFIERS/>\r\n  </TEMPOTRACK>\r\n  <MASTERTRACK name=\"Master\" id=\"1006\">\r\n    <MODIFIERS/>\r\n  </MASTERTRACK>\r\n  <TRACK id=\"1007\" name=\"bass\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"bass\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1011\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff55ff00\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\bass.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1008\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1009\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1012\" name=\"drums\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"drums\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1016\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ff00\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\drums.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1013\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1014\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1017\" name=\"guitar\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"guitar\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1021\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ff55\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\guitar.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1018\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1019\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1022\" name=\"other\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"other\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1026\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ffaa\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\other.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1023\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1024\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1027\" name=\"piano\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"piano\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1031\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00ffff\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\piano.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1028\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1029\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1032\" name=\"vocals\" vit_import_role=\"stem\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n         vit_import_media_copy_policy=\"reference_original\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <AUDIOCLIP name=\"vocals\" start=\"0.0\" length=\"20.0\" offset=\"0.0\" id=\"1036\"\r\n               source=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               sync=\"0\" elastiqueMode=\"0\" pan=\"0.0\" colour=\"ff00aaff\" proxyAllowed=\"1\"\r\n               resamplingQuality=\"lagrange\" vit_import_source_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               vit_import_insert_file=\"D:\\Vit_DAW\\temp\\semantic-processor-agent-project-smoke-v1\\fixtures\\semantic_processor_project_smoke_v1_80085263a651cf20\\cases\\spv1_p01\\stems\\vocals.wav\"\r\n               vit_import_media_copy_policy=\"reference_original\">\r\n      <LOOPINFO rootNote=\"-1\" numBeats=\"40.0\" oneShot=\"0\" denominator=\"4\" numerator=\"4\"\r\n                bpm=\"0.0\" inMarker=\"0\" outMarker=\"-1\"/>\r\n      <AUTOMATIONCURVES/>\r\n    </AUDIOCLIP>\r\n    <PLUGIN type=\"volume\" id=\"1033\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1034\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n</EDIT>\r\n",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "project_id": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "parent_project_uuid": "",
+  "agent_history_generation": "",
+  "project_path": "",
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "",
+  "graph_last_diff_summary": "",
+  "graph_publish_mode": "idle",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/a696bc\" creationTime=\"0\" modifiedBy=\"VitH
+ZmqGateway: received command payload: {"cmd": "open_project", "file_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\\u78c1\u5e26\u6d41\u00b7\u9000\u8def\u7532.vit", "command_timeout_ms": 60000, "encryption": {"mode": "app_bound_aes"}}
+ZmqGateway: command timeout budget ms=60000
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd": "open_project", "file_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\\u78c1\u5e26\u6d41\u00b7\u9000\u8def\u7532.vit", "command_timeout_ms": 60000, "encryption": {"mode": "app_bound_aes"}}
+Command received: {"cmd": "open_project", "file_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\\u78c1\u5e26\u6d41\u00b7\u9000\u8def\u7532.vit", "command_timeout_ms": 60000, "encryption": {"mode": "app_bound_aes"}}
+[baker.lifecycle] release_track_mappings track_id=1002 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1002 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=1
+[waveform_envelope.lifecycle] begin_gen key=1002 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1003 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1003 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=2
+[waveform_envelope.lifecycle] begin_gen key=1003 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1004 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1004 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=3
+[waveform_envelope.lifecycle] begin_gen key=1004 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1005 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1005 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=4
+[waveform_envelope.lifecycle] begin_gen key=1005 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1006 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1006 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=5
+[waveform_envelope.lifecycle] begin_gen key=1006 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1007 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1007 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=6
+[waveform_envelope.lifecycle] begin_gen key=1007 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1012 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1012 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=7
+[waveform_envelope.lifecycle] begin_gen key=1012 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1017 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1017 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=8
+[waveform_envelope.lifecycle] begin_gen key=1017 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1022 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1022 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=9
+[waveform_envelope.lifecycle] begin_gen key=1022 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1027 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1027 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=10
+[waveform_envelope.lifecycle] begin_gen key=1027 gen=1 retired_handles=0
+[baker.lifecycle] release_track_mappings track_id=1032 note=track_key_only_clip_scoped_bakes_use_clip_id_key
+[baker.lifecycle] begin_gen key=1032 gen=1 retired_handles=0 retired_total=0 grace_ms=5000 active_keys=11
+[waveform_envelope.lifecycle] begin_gen key=1032 gen=1 retired_handles=0
+VitEngineDevice: audio IO ready for playback graph: "扬声器 (USB AUDIO  CODEC)" 48000.00 Hz, block 480 samples
+VitHeadlessService: loaded project from D:\Vit_DAW_wt_340gate\coord\runs\LAUNCHER-GATE-FIX-1\fallback_20261110_001320\fixtures\磁带流·退路甲.vit
+Command executed: open_project, result: {
+  "status": "ok",
+  "message": "Project opened",
+  "project_lifecycle": "open",
+  "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "current_project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "project_id": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "parent_project_uuid": "vitproj_f67b8db6b7f548b79601b8c710d71af6"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "message": "Project opened",
+  "project_lifecycle": "open",
+  "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "cur
+ZmqGateway: received command payload: {"channel":"state","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:41Z","message_id":"msg_1794240821170333600_7","payload":{"scope":"project.timeline"},"request_id":"req_1794240821170333600_6","role":"agent","schema":"vsp.state.snapshot_request.v1","session_id":"sess_kernel_1794240807831_59899551","trace_id":"trace_1794240821170333600_8","type":"state.snapshot_request","vsp_version":"1.0"}
+ZmqGateway: command timeout budget ms=120000
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"channel":"state","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:41Z","message_id":"msg_1794240821170333600_7","payload":{"scope":"project.timeline"},"request_id":"req_1794240821170333600_6","role":"agent","schema":"vsp.state.snapshot_request.v1","session_id":"sess_kernel_1794240807831_59899551","trace_id":"trace_1794240821170333600_8","type":"state.snapshot_request","vsp_version":"1.0"}
+Command received: {"channel":"state","client_id":"agent.main","command_timeout_ms":120000,"created_at":"2026-11-09T16:13:41Z","message_id":"msg_1794240821170333600_7","payload":{"scope":"project.timeline"},"request_id":"req_1794240821170333600_6","role":"agent","schema":"vsp.state.snapshot_request.v1","session_id":"sess_kernel_1794240807831_59899551","trace_id":"trace_1794240821170333600_8","type":"state.snapshot_request","vsp_version":"1.0"}
+Command received: {
+  "cmd": "get_project_state",
+  "request_id": "req_1794240821170333600_6",
+  "scope": "project.timeline",
+  "vsp_adapter": "phase3_state_channel"
+}
+Command executed: get_project_state, result: {
+  "status": "ok",
+  "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "project_id": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "parent_project_uuid": "vitproj_f67b8db6b7f548b79601b8c710d71af6",
+  "agent_history_generation": "",
+  "scope": "track",
+  "audio_settings": {
+    "schema_version": "vit_project_audio_settings.v1",
+    "sample_rate_hz": 48000,
+    "record_file_type": "WAV/BWF",
+    "record_bit_depth": 24,
+    "pcm_format": "int24",
+    "internal_processing_format": "unknown",
+    "import_sample_rate_policy": "ask",
+    "import_bit_depth_policy": "keep_source",
+    "media_copy_policy": "reference_original",
+    "channel_import_policy": "preserve_interleaved",
+    "render_default_sample_rate_hz": 48000,
+    "render_default_bit_depth": 24,
+    "render_default_file_type": "WAV",
+    "dither_policy": "unknown",
+    "recommended_presets": [
+      {
+        "preset_id": "default_production",
+        "name": "Default Production",
+        "role": "project_working",
+        "sample_rate_hz": 48000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": true
+      },
+      {
+        "preset_id": "music_production",
+        "name": "Music Production",
+        "role": "project_working",
+        "sample_rate_hz": 44100,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "video_game_production",
+        "name": "Video/Game Production",
+        "role": "project_working",
+        "sample_rate_hz": 48000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "cd_export",
+        "name": "CD Export",
+        "role": "delivery_export",
+        "sample_rate_hz": 44100,
+        "bit_depth": 16,
+        "file_type": "WAV",
+        "default_project_working_spec": false
+      },
+      {
+        "preset_id": "high_resolution",
+        "name": "High Resolution",
+        "role": "project_working",
+        "sample_rate_hz": 96000,
+        "bit_depth": 24,
+        "file_type": "WAV/BWF",
+        "default_project_working_spec": false
+      }
+    ],
+    "metadata_state": "stored",
+    "defaulted_this_call": false,
+    "migration_state": "defaulted_new_project",
+    "defaulted_origin": "new_project",
+    "field_status": {
+      "sample_rate_hz": "metadata_active",
+      "record_file_type": "declared_metadata_only",
+      "record_bit_depth": "declared_metadata_only",
+      "pcm_format": "declared_metadata_only",
+      "internal_processing_format": "read_only_unknown",
+      "import_sample_rate_policy": "metadata_active_for_preflight",
+      "import_bit_depth_policy": "metadata_active_for_preflight",
+      "media_copy_policy": "metadata_active_for_preflight",
+      "channel_import_policy": "metadata_active_for_preflight",
+      "render_defaults": "declared_metadata_only",
+      "dither_policy": "declared_metadata_only"
+    },
+    "capabilities": {
+      "project_sample_rate_is_audio_device_sample_rate": false,
+      "changes_audio_device_sample_rate": false,
+      "engine_project_sample_rate_binding": "not_bound",
+      "record_format_binding": "metadata_only",
+      "preflight_uses_settings": true
+    },
+    "block_size": 480
+  },
+  "tracks": [
+    {
+      "track_id": "1002",
+      "track_state_revision": "45a0f44f4646e9b9",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Arranger",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1003",
+      "track_state_revision": "cb7c7edff668a016",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Chord",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1004",
+      "track_state_revision": "e299b13dfb526083",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Marker",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1005",
+      "track_state_revision": "aaa10e71f436fefb",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Tempo",
+      "track_type": "track",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1006",
+      "track_state_revision": "b0f056d56425ffb9",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Master",
+      "track_type": "master",
+      "is_audio_track": false,
+      "is_audio": false,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [],
+      "clips": [],
+      "rack": null
+    },
+    {
+      "track_id": "1007",
+      "track_state_revision": "fb08dfc92a5be931",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Track 1",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1008",
+          "item_id": "1008",
+          "plugin_item_id": "1008",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1009",
+          "item_id": "1009",
+          "plugin_item_id": "1009",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1016",
+          "clip_state_revision": "1a66512410e82ce3",
+          "name": "New MIDI Clip",
+          "clip_type": "midi",
+          "start_seconds": 0.0,
+          "end_seconds": 26.0,
+          "length_seconds": 26.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": ""
+        }
+      ],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1010",
+      "track_state_revision": "db5df51d26af6321",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Track 2",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1011",
+          "item_id": "1011",
+          "plugin_item_id": "1011",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1012",
+          "item_id": "1012",
+          "plugin_item_id": "1012",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [
+        {
+          "id": "1017",
+          "clip_state_revision": "97ac87ad98a5f1c",
+          "name": "New MIDI Clip",
+          "clip_type": "midi",
+          "start_seconds": 0.0,
+          "end_seconds": 26.0,
+          "length_seconds": 26.0,
+          "offset_in_source_seconds": 0.0,
+          "asset_ref": "",
+          "asset_state": "",
+          "asset_job_id": "",
+          "warp_state": "",
+          "take_stack_id": "",
+          "active_take_id": "",
+          "ghost_state": ""
+        }
+      ],
+      "rack": null,
+      "mute": true,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    },
+    {
+      "track_id": "1013",
+      "track_state_revision": "89869aa94f6c5086",
+      "plugin_param_digest": "krev1_no_external_plugins",
+      "track_name": "Track 3",
+      "track_type": "hybrid",
+      "is_audio_track": true,
+      "is_audio": true,
+      "parent_track_id": null,
+      "parent_folder_track_id": null,
+      "depth": 0,
+      "track_depth": 0,
+      "child_track_ids": [],
+      "direct_child_track_ids": [],
+      "descendant_track_ids": [],
+      "child_track_count": 0,
+      "descendant_track_count": 0,
+      "has_child_tracks": false,
+      "is_folder_track": false,
+      "is_folder_container": false,
+      "can_contain_child_tracks": false,
+      "is_submix_folder": false,
+      "routing_bus_enabled": false,
+      "folder_behavior": null,
+      "plugins": [
+        {
+          "id": "1014",
+          "item_id": "1014",
+          "plugin_item_id": "1014",
+          "name": "Volume & Pan Plugin",
+          "type": "volume",
+          "enabled": true
+        },
+        {
+          "id": "1015",
+          "item_id": "1015",
+          "plugin_item_id": "1015",
+          "name": "Level Meter",
+          "type": "level",
+          "enabled": true
+        }
+      ],
+      "clips": [],
+      "rack": null,
+      "mute": false,
+      "solo": false,
+      "db": 0.0,
+      "volume_db": 0.0,
+      "gain_db": 0.0,
+      "fader_db": 0.0,
+      "pan": 0.0,
+      "pan_value": 0.0,
+      "is_armed": false,
+      "armed": false,
+      "output_to_device_resolved": true,
+      "output_device_enabled": true,
+      "output_device_id": "out_b7a4b4c1",
+      "output_routing_name": "(default audio output)"
+    }
+  ],
+  "markers": [],
+  "track_groups": [],
+  "groups": [],
+  "track_group_count": 0,
+  "control_graph": {
+    "graph_id": "control_graph",
+    "domain": "control",
+    "supported_control_kinds": [
+      "slider",
+      "knob",
+      "xypad",
+      "toggle",
+      "button",
+      "numberbox",
+      "range",
+      "envelope",
+      "lfo",
+      "stepsequencer",
+      "macropanel"
+    ],
+    "nodes": [],
+    "bindings": [],
+    "surfaces": []
+  },
+  "node_registry": {
+    "built_in_manifests": [
+      {
+        "node_type": "plugin_external",
+        "execution_domain": "realtime_audio",
+        "supported_zones": [
+          "Z1",
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi"
+        ],
+        "capability_tags": [
+          "track_rack",
+          "param_grabber",
+          "plugin_host"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": true
+      },
+      {
+        "node_type": "bridge_node",
+        "execution_domain": "async_ai",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems"
+        ],
+        "capability_tags": [
+          "async_job",
+          "download_ingest",
+          "browser_connector"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "audio_injector",
+        "execution_domain": "bridge_injector",
+        "supported_zones": [
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "stems"
+        ],
+        "capability_tags": [
+          "asset_backed",
+          "warp_target"
+        ],
+        "is_async": true,
+        "supports_browser_login": false,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "control_node",
+        "execution_domain": "control_domain",
+        "supported_zones": [
+          "Top"
+        ],
+        "accepted_asset_kinds": [],
+        "capability_tags": [
+          "control_graph",
+          "macro_source"
+        ],
+        "is_async": false,
+        "supports_browser_login": false,
+        "supports_download_ingest": false,
+        "supports_control_graph": true,
+        "supports_param_grabber": false
+      },
+      {
+        "node_type": "connector_profile",
+        "execution_domain": "web_api",
+        "supported_zones": [
+          "Z2",
+          "Z3"
+        ],
+        "accepted_asset_kinds": [
+          "audio",
+          "midi",
+          "stems",
+          "lyrics"
+        ],
+        "capability_tags": [
+          "browser_connector",
+          "profile_backed"
+        ],
+        "is_async": true,
+        "supports_browser_login": true,
+        "supports_download_ingest": true,
+        "supports_control_graph": false,
+        "supports_param_grabber": false
+      }
+    ],
+    "connector_specs": [
+      {
+        "spec_id": "browser_download_audio",
+        "display_name": "Browser Audio Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "audio",
+        "supported_output_kinds": [
+          "audio",
+          "lyrics"
+        ]
+      },
+      {
+        "spec_id": "browser_download_stems",
+        "display_name": "Browser Stems Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "stems",
+        "supported_output_kinds": [
+          "stems",
+          "audio"
+        ]
+      },
+      {
+        "spec_id": "browser_download_midi",
+        "display_name": "Browser MIDI Connector",
+        "connector_kind": "browser_download",
+        "login_mode": "browser_self_login",
+        "ingest_mode": "download_watch",
+        "default_output_kind": "midi",
+        "supported_output_kinds": [
+          "midi",
+          "audio"
+        ]
+      }
+    ],
+    "connector_profiles": []
+  },
+  "connector_profiles": [],
+  "connector_specs": [
+    {
+      "spec_id": "browser_download_audio",
+      "display_name": "Browser Audio Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "audio",
+      "supported_output_kinds": [
+        "audio",
+        "lyrics"
+      ]
+    },
+    {
+      "spec_id": "browser_download_stems",
+      "display_name": "Browser Stems Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "stems",
+      "supported_output_kinds": [
+        "stems",
+        "audio"
+      ]
+    },
+    {
+      "spec_id": "browser_download_midi",
+      "display_name": "Browser MIDI Connector",
+      "connector_kind": "browser_download",
+      "login_mode": "browser_self_login",
+      "ingest_mode": "download_watch",
+      "default_output_kind": "midi",
+      "supported_output_kinds": [
+        "midi",
+        "audio"
+      ]
+    }
+  ],
+  "generated_assets": [],
+  "jobs": [],
+  "take_histories": [],
+  "observability": {
+    "probe_channels": [
+      {
+        "channel_id": "job_state",
+        "label": "Job State"
+      },
+      {
+        "channel_id": "ghost_state",
+        "label": "Ghost State"
+      },
+      {
+        "channel_id": "graph_revision",
+        "label": "Graph Revision"
+      },
+      {
+        "channel_id": "active_take",
+        "label": "Active Take"
+      },
+      {
+        "channel_id": "cache_hit",
+        "label": "Cache Hit"
+      },
+      {
+        "channel_id": "output_source",
+        "label": "Output Source"
+      }
+    ],
+    "graph_revision": 0,
+    "graph_lifecycle_state": "idle",
+    "pending_job_count": 0,
+    "active_take_count": 0,
+    "cache_asset_count": 0,
+    "output_source_hint": "project_media",
+    "profile": {
+      "track_count": 8,
+      "clip_count": 4,
+      "job_count": 0,
+      "generated_asset_count": 0,
+      "take_stack_count": 0
+    }
+  },
+  "project_health": {
+    "issue_count": 0,
+    "issues": []
+  },
+  "export_policy": {
+    "recommended_mode": "wait",
+    "supported_modes": [
+      "wait",
+      "use_cache",
+      "bypass",
+      "fail_export"
+    ],
+    "has_pending_jobs": false,
+    "has_missing_assets": false,
+    "has_cache_assets": false
+  },
+  "plugin_list_hygiene": {
+    "cleanup_ran": true,
+    "types_before": 991,
+    "types_removed": 0,
+    "blacklist_before": 1,
+    "blacklist_removed": 0,
+    "removed_total": 0,
+    "completed_at": "2026-11-10T00:13:24.369+08:00",
+    "removed_summary": ""
+  },
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "vsp_version": "1.0",
+  "schema": "vsp.state.snapshot.v1",
+  "message_id": "msg_kernel_1794240821174_923306591",
+  "session_id": "sess_kernel_1794240807831_59899551",
+  "client_id": "kernel.main",
+  "role": "ke
+ZmqGateway: received command payload: {"cmd":"project.audio_analysis_start","interval_ms":50,"migration_source":"project_package_open","rebuild_from_project":true,"retry_missing":true}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"project.audio_analysis_start","interval_ms":50,"migration_source":"project_package_open","rebuild_from_project":true,"retry_missing":true}
+Command received: {"cmd":"project.audio_analysis_start","interval_ms":50,"migration_source":"project_package_open","rebuild_from_project":true,"retry_missing":true}
+Command executed: project.audio_analysis_start, result: {
+  "status": "error",
+  "message": "project.audio_analysis_start could not find analyzable source clips in the current project"
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "error",
+  "message": "project.audio_analysis_start could not find analyzable source clips in the current project"
+}
+ZmqGateway: received command payload: {"cmd":"project.snapshot_export"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"project.snapshot_export"}
+Command received: {"cmd":"project.snapshot_export"}
+Command executed: project.snapshot_export, result: {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/38bba41\" creationTime=\"0\" modifiedBy=\"timoz\"\r\n      vit_project_uuid=\"vitproj_08c5c00962544622bac8cd1e7aaf0778\" vit_project_parent_uuid=\"vitproj_f67b8db6b7f548b79601b8c710d71af6\"\r\n      lastSignificantChange=\"1a1bafa57ce\">\r\n  <TRANSPORT endToEnd=\"1\" position=\"0.0\"/>\r\n  <TEMPOSEQUENCE>\r\n    <TEMPO startBeat=\"0.0\" bpm=\"120.0\" curve=\"1.0\"/>\r\n    <TIMESIG numerator=\"4\" denominator=\"4\" startBeat=\"0.0\"/>\r\n  </TEMPOSEQUENCE>\r\n  <VIDEO/>\r\n  <CLICKTRACK level=\"0.6000000238418579\"/>\r\n  <MASTERVOLUME>\r\n    <PLUGIN type=\"volume\" id=\"1001\" enabled=\"1\" volume=\"0.6376281516\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n  </MASTERVOLUME>\r\n  <RACKS/>\r\n  <MASTERPLUGINS/>\r\n  <INPUTDEVICES>\r\n    <INPUTDEVICE deviceID=\"all_midi_in\" name=\"All MIDI Ins\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_4b684aa\" name=\"SG Device I/O\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_1683015f\" name=\"StudioRack\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293b\" name=\"Input 1\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293c\" name=\"Input 2\"/>\r\n  </INPUTDEVICES>\r\n  <TRACKCOMPS/>\r\n  <SCENES/>\r\n  <PITCHSEQUENCE>\r\n    <PITCH startBeat=\"0.0\" pitch=\"60\"/>\r\n  </PITCHSEQUENCE>\r\n  <VIT_AUDIO_SETTINGS migration_state=\"defaulted_new_project\" defaulted_origin=\"new_project\"\r\n                      schema_version=\"vit_project_audio_settings.v1\" sample_rate_hz=\"48000\"\r\n                      record_file_type=\"WAV/BWF\" record_bit_depth=\"24\" pcm_format=\"int24\"\r\n                      internal_processing_format=\"unknown\" import_sample_rate_policy=\"ask\"\r\n                      import_bit_depth_policy=\"keep_source\" media_copy_policy=\"reference_original\"\r\n                      channel_import_policy=\"preserve_interleaved\" render_default_sample_rate_hz=\"48000\"\r\n                      render_default_bit_depth=\"24\" render_default_file_type=\"WAV\"\r\n                      dither_policy=\"unknown\"/>\r\n  <ARRANGERTRACK name=\"Arranger\" id=\"1002\"/>\r\n  <CHORDTRACK name=\"Chord\" id=\"1003\"/>\r\n  <MARKERTRACK id=\"1004\" name=\"Marker\"/>\r\n  <TEMPOTRACK name=\"Global\" id=\"1005\">\r\n    <MODIFIERS/>\r\n  </TEMPOTRACK>\r\n  <MASTERTRACK name=\"Master\" id=\"1006\">\r\n    <MODIFIERS/>\r\n  </MASTERTRACK>\r\n  <TRACK id=\"1007\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <MIDICLIP name=\"New MIDI Clip\" start=\"0.0\" length=\"26.0\" offset=\"0.0\" id=\"1016\"\r\n              sync=\"0\" currentTake=\"0\" speed=\"1.0\" colour=\"ff55ff00\">\r\n      <AUTOMATIONCURVES/>\r\n      <QUANTISATION/>\r\n      <GROOVE/>\r\n      <SEQUENCE ver=\"1\" channelNumber=\"1\">\r\n        <NOTE p=\"60\" b=\"0.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e5d55e96724244938de29acba0010901\"/>\r\n        <NOTE p=\"60\" b=\"1.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7885de40552e41d0a3c42ff61a2636c2\"/>\r\n        <NOTE p=\"67\" b=\"2.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0b9cc1f3c5764a498c06a1194e00e357\"/>\r\n        <NOTE p=\"67\" b=\"3.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2c35dc538d0e4dda835876c6c27cab26\"/>\r\n        <NOTE p=\"69\" b=\"4.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5c190b9e2bbe4f9f8f832d8280ce3a36\"/>\r\n        <NOTE p=\"69\" b=\"5.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e05aea6abbe44df5a4fcb54bc64c234e\"/>\r\n        <NOTE p=\"67\" b=\"6.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_96870a346c1242edb7c07764175b3281\"/>\r\n        <NOTE p=\"65\" b=\"8.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_af39ddfc81554e19b5ea217ba6855105\"/>\r\n        <NOTE p=\"65\" b=\"9.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2cc3fe68123642429e0eea4c25e9b061\"/>\r\n        <NOTE p=\"64\" b=\"10.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_3797adf7b9be4d8f9375d39f6a72aa27\"/>\r\n        <NOTE p=\"64\" b=\"11.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_580254d72c7a40008ab759a3b2b880ad\"/>\r\n        <NOTE p=\"62\" b=\"12.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_cb30b4e2c2a4475d9c16af4a580af19e\"/>\r\n        <NOTE p=\"62\" b=\"13.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_044f984ade0c49ee885085831cd371d8\"/>\r\n        <NOTE p=\"60\" b=\"14.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_97d02cae3f654f2ebe2083f1dcd89fd8\"/>\r\n        <NOTE p=\"67\" b=\"16.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_681a1457261046018d792ba0ed2fbb1e\"/>\r\n        <NOTE p=\"67\" b=\"17.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_3c5a3bb68e9740fcb4d36ff9cecaa0a4\"/>\r\n        <NOTE p=\"65\" b=\"18.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_33077f0b36524c42bc91a8de0f45d013\"/>\r\n        <NOTE p=\"65\" b=\"19.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ff539419cc45467281a4fbc410f7f5b6\"/>\r\n        <NOTE p=\"64\" b=\"20.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_6b91b8e70e72435882dda0026bcd05f8\"/>\r\n        <NOTE p=\"64\" b=\"21.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_6229b3edbc054db0937569abe0def925\"/>\r\n        <NOTE p=\"62\" b=\"22.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bc2b137871764c3fb37379c8b12e4065\"/>\r\n        <NOTE p=\"67\" b=\"24.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_d0b61facc2c947b4929490934eafb7e2\"/>\r\n        <NOTE p=\"67\" b=\"25.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0804abf92f9f4408aa9106f524177c94\"/>\r\n        <NOTE p=\"65\" b=\"26.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_c3a1fd2712854923b5af120f22179a62\"/>\r\n        <NOTE p=\"65\" b=\"27.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e436cd5d51fe431b8329da1d01720fe3\"/>\r\n        <NOTE p=\"64\" b=\"28.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_1000e4c49d864a83b0f9f6397d492bce\"/>\r\n        <NOTE p=\"64\" b=\"29.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7f60dddb954945d8993cb3e9caeaa36b\"/>\r\n        <NOTE p=\"62\" b=\"30.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5c45ba926e9c41328ce4a5409caa79cb\"/>\r\n        <NOTE p=\"60\" b=\"32.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_a69625b83c0947138d32c1862e40b4db\"/>\r\n        <NOTE p=\"60\" b=\"33.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7dbaa42e65e34370bf011c95a7b0916a\"/>\r\n        <NOTE p=\"67\" b=\"34.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_f2e15ed609a24c3c9a9da58be96887fb\"/>\r\n        <NOTE p=\"67\" b=\"35.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bae0c2441a1e42f6ab4cdf6d37fb99c4\"/>\r\n        <NOTE p=\"69\" b=\"36.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_fa33c08f3c7d4428b9429e9ad048f0bf\"/>\r\n        <NOTE p=\"69\" b=\"37.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_4c6fcd5670154513bd01513e3b562b2a\"/>\r\n        <NOTE p=\"67\" b=\"38.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_babbab2836784787ab12fe3d20eeffce\"/>\r\n        <NOTE p=\"65\" b=\"40.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b1b7c9b0685a46dea1bf5ce4ec301602\"/>\r\n        <NOTE p=\"65\" b=\"41.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2860fc55e5544f7fae7c06103c668441\"/>\r\n        <NOTE p=\"64\" b=\"42.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_614f3920667d4ec3bb486c0c93ba3374\"/>\r\n        <NOTE p=\"64\" b=\"43.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7e0f3638687f49f9a53bcb6236a2a32b\"/>\r\n        <NOTE p=\"62\" b=\"44.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_f29222794d5b4d678bd260bd68af1583\"/>\r\n        <NOTE p=\"62\" b=\"45.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b5d3a3a68bf34e00bfad3e030acafd2c\"/>\r\n        <NOTE p=\"60\" b=\"46.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_8873af8c853445c9b98b544342491aaf\"/>\r\n      </SEQUENCE>\r\n    </MIDICLIP>\r\n    <PLUGIN type=\"volume\" id=\"1008\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1009\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1010\" mute=\"1\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <MIDICLIP name=\"New MIDI Clip\" start=\"0.0\" length=\"26.0\" offset=\"0.0\" id=\"1017\"\r\n              sync=\"0\" currentTake=\"0\" speed=\"1.0\" colour=\"ff00ff00\">\r\n      <AUTOMATIONCURVES/>\r\n      <QUANTISATION/>\r\n      <GROOVE/>\r\n      <SEQUENCE ver=\"1\" channelNumber=\"1\">\r\n        <NOTE p=\"60\" b=\"0.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e519273b5c6d425c938ded8f254abd46\"/>\r\n        <NOTE p=\"60\" b=\"1.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_21b7762bb051407386276511b1fe97c6\"/>\r\n        <NOTE p=\"67\" b=\"2.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_36fa6df3c37b4dbea8d4da65b0a6ba04\"/>\r\n        <NOTE p=\"67\" b=\"3.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_28bd6ec2868b4f9b8e9cda6b3729c910\"/>\r\n        <NOTE p=\"69\" b=\"4.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_f03d4b4e178f49fdba96894909963c5c\"/>\r\n        <NOTE p=\"69\" b=\"5.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7310a2a8ee6c4a1fa325b1b30fe3cef5\"/>\r\n        <NOTE p=\"67\" b=\"6.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_daf134fa17bd4d8d86dc0e751e192e50\"/>\r\n        <NOTE p=\"65\" b=\"8.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_829f657f27114368ba1ca73c27adf42f\"/>\r\n        <NOTE p=\"65\" b=\"9.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b9a1a214795340aeb4c2f29459e2f514\"/>\r\n        <NOTE p=\"64\" b=\"10.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_16534f2257974f889089c9082d5a0d21\"/>\r\n        <NOTE p=\"64\" b=\"11.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_a871835ac44a405e9b0f5b487ec47301\"/>\r\n        <NOTE p=\"62\" b=\"12.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_a72fdfd8dbf547ad9094143e8d374dc6\"/>\r\n        <NOTE p=\"62\" b=\"13.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_df17a6c8bab149e4956e44c5c6b64c05\"/>\r\n        <NOTE p=\"60\" b=\"14.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0966566f370e43f3bffb9ad0028fada5\"/>\r\n        <NOTE p=\"67\" b=\"16.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_65a4a36f01a946cc9340f7af891b3696\"/>\r\n        <NOTE p=\"67\" b=\"17.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bfc8df60c4c1446b8f6cee937d2980eb\"/>\r\n        <NOTE p=\"65\" b=\"18.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5ee1780a33f04704b3cd575be5b8c2e6\"/>\r\n        <NOTE p=\"65\" b=\"19.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_745604d9f219406ba38c5c9156e8ca3c\"/>\r\n        <NOTE p=\"64\" b=\"20.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_958f8706addd42829e93368ee7bf888e\"/>\r\n        <NOTE p=\"64\" b=\"21.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0406b7cda09e44acb4d29facd1c4b66b\"/>\r\n        <NOTE p=\"62\" b=\"22.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5b86390c76954e35930e96cfc85c7e2b\"/>\r\n        <NOTE p=\"67\" b=\"24.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2e4e8ffbd5c14e518cfa4c25ef195601\"/>\r\n        <NOTE p=\"67\" b=\"25.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e9441712f9c4442f991d9885126150c1\"/>\r\n        <NOTE p=\"65\" b=\"26.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_22eebe4726a649a696e07f05f3e08501\"/>\r\n        <NOTE p=\"65\" b=\"27.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e5d252e95a804f529f8d99a6f1e47fea\"/>\r\n        <NOTE p=\"64\" b=\"28.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ea805271b6d948489fa43d2d5b785022\"/>\r\n        <NOTE p=\"64\" b=\"29.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_8202dd44170f455893c3b79cd549d41e\"/>\r\n        <NOTE p=\"62\" b=\"30.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e40f867c80a24648b49a1a74117e91ce\"/>\r\n        <NOTE p=\"60\" b=\"32.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_825bb5423b6d4705a145fd3a622b0eab\"/>\r\n        <NOTE p=\"60\" b=\"33.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b69b00bdb37a4dcdb252237dfef72b9c\"/>\r\n        <NOTE p=\"67\" b=\"34.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_c1519cbc53b34572a6f82789fefd95d3\"/>\r\n        <NOTE p=\"67\" b=\"35.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bfee58eb23d94a35a4c2a377286b7dc6\"/>\r\n        <NOTE p=\"69\" b=\"36.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_fde4008742ff486293716e116b5042e2\"/>\r\n        <NOTE p=\"68\" b=\"37.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e9c98d80d9d045d1960c32a0276f73cd\"/>\r\n        <NOTE p=\"67\" b=\"38.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_3d87a1e0ac484f13a584e1682eb22ef6\"/>\r\n        <NOTE p=\"65\" b=\"40.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_04e26fff0aef4bbead2136a0f078ed44\"/>\r\n        <NOTE p=\"65\" b=\"41.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_c71a9268f9e248cabd238cb614642def\"/>\r\n        <NOTE p=\"64\" b=\"42.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_76c73bda5405440e88b1bc96e57bb760\"/>\r\n        <NOTE p=\"64\" b=\"43.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_df4f760fd8754b3eb7556bbb075ce9db\"/>\r\n        <NOTE p=\"62\" b=\"44.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e788f13d63714d7b8317bc178ef8db3c\"/>\r\n        <NOTE p=\"62\" b=\"45.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ba9844efbfb547298b8468c744194d67\"/>\r\n        <NOTE p=\"60\" b=\"46.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ed94e24e1ef446ab8cee2c61fa13af98\"/>\r\n      </SEQUENCE>\r\n    </MIDICLIP>\r\n    <PLUGIN type=\"volume\" id=\"1011\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1012\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1013\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <PLUGIN type=\"volume\" id=\"1014\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1015\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n</EDIT>\r\n",
+  "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "project_id": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "parent_project_uuid": "vitproj_f67b8db6b7f548b79601b8c710d71af6",
+  "agent_history_generation": "",
+  "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/38bba41\" creationTime=\"0\" modifiedBy=\"tim
+ZmqGateway: received command payload: {"cmd":"project.snapshot_export"}
+ZmqGateway: dispatching payload to JUCE message thread.
+VitHeadlessService: processing queued command on JUCE message thread: {"cmd":"project.snapshot_export"}
+Command received: {"cmd":"project.snapshot_export"}
+Command executed: project.snapshot_export, result: {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/38bba41\" creationTime=\"0\" modifiedBy=\"timoz\"\r\n      vit_project_uuid=\"vitproj_08c5c00962544622bac8cd1e7aaf0778\" vit_project_parent_uuid=\"vitproj_f67b8db6b7f548b79601b8c710d71af6\"\r\n      lastSignificantChange=\"1a1bafa57ce\">\r\n  <TRANSPORT endToEnd=\"1\" position=\"0.0\"/>\r\n  <TEMPOSEQUENCE>\r\n    <TEMPO startBeat=\"0.0\" bpm=\"120.0\" curve=\"1.0\"/>\r\n    <TIMESIG numerator=\"4\" denominator=\"4\" startBeat=\"0.0\"/>\r\n  </TEMPOSEQUENCE>\r\n  <VIDEO/>\r\n  <CLICKTRACK level=\"0.6000000238418579\"/>\r\n  <MASTERVOLUME>\r\n    <PLUGIN type=\"volume\" id=\"1001\" enabled=\"1\" volume=\"0.6376281516\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n  </MASTERVOLUME>\r\n  <RACKS/>\r\n  <MASTERPLUGINS/>\r\n  <INPUTDEVICES>\r\n    <INPUTDEVICE deviceID=\"all_midi_in\" name=\"All MIDI Ins\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_4b684aa\" name=\"SG Device I/O\"/>\r\n    <INPUTDEVICE deviceID=\"midiin_1683015f\" name=\"StudioRack\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293b\" name=\"Input 1\"/>\r\n    <INPUTDEVICE deviceID=\"wavein_d7bd293c\" name=\"Input 2\"/>\r\n  </INPUTDEVICES>\r\n  <TRACKCOMPS/>\r\n  <SCENES/>\r\n  <PITCHSEQUENCE>\r\n    <PITCH startBeat=\"0.0\" pitch=\"60\"/>\r\n  </PITCHSEQUENCE>\r\n  <VIT_AUDIO_SETTINGS migration_state=\"defaulted_new_project\" defaulted_origin=\"new_project\"\r\n                      schema_version=\"vit_project_audio_settings.v1\" sample_rate_hz=\"48000\"\r\n                      record_file_type=\"WAV/BWF\" record_bit_depth=\"24\" pcm_format=\"int24\"\r\n                      internal_processing_format=\"unknown\" import_sample_rate_policy=\"ask\"\r\n                      import_bit_depth_policy=\"keep_source\" media_copy_policy=\"reference_original\"\r\n                      channel_import_policy=\"preserve_interleaved\" render_default_sample_rate_hz=\"48000\"\r\n                      render_default_bit_depth=\"24\" render_default_file_type=\"WAV\"\r\n                      dither_policy=\"unknown\"/>\r\n  <ARRANGERTRACK name=\"Arranger\" id=\"1002\"/>\r\n  <CHORDTRACK name=\"Chord\" id=\"1003\"/>\r\n  <MARKERTRACK id=\"1004\" name=\"Marker\"/>\r\n  <TEMPOTRACK name=\"Global\" id=\"1005\">\r\n    <MODIFIERS/>\r\n  </TEMPOTRACK>\r\n  <MASTERTRACK name=\"Master\" id=\"1006\">\r\n    <MODIFIERS/>\r\n  </MASTERTRACK>\r\n  <TRACK id=\"1007\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <MIDICLIP name=\"New MIDI Clip\" start=\"0.0\" length=\"26.0\" offset=\"0.0\" id=\"1016\"\r\n              sync=\"0\" currentTake=\"0\" speed=\"1.0\" colour=\"ff55ff00\">\r\n      <AUTOMATIONCURVES/>\r\n      <QUANTISATION/>\r\n      <GROOVE/>\r\n      <SEQUENCE ver=\"1\" channelNumber=\"1\">\r\n        <NOTE p=\"60\" b=\"0.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e5d55e96724244938de29acba0010901\"/>\r\n        <NOTE p=\"60\" b=\"1.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7885de40552e41d0a3c42ff61a2636c2\"/>\r\n        <NOTE p=\"67\" b=\"2.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0b9cc1f3c5764a498c06a1194e00e357\"/>\r\n        <NOTE p=\"67\" b=\"3.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2c35dc538d0e4dda835876c6c27cab26\"/>\r\n        <NOTE p=\"69\" b=\"4.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5c190b9e2bbe4f9f8f832d8280ce3a36\"/>\r\n        <NOTE p=\"69\" b=\"5.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e05aea6abbe44df5a4fcb54bc64c234e\"/>\r\n        <NOTE p=\"67\" b=\"6.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_96870a346c1242edb7c07764175b3281\"/>\r\n        <NOTE p=\"65\" b=\"8.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_af39ddfc81554e19b5ea217ba6855105\"/>\r\n        <NOTE p=\"65\" b=\"9.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2cc3fe68123642429e0eea4c25e9b061\"/>\r\n        <NOTE p=\"64\" b=\"10.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_3797adf7b9be4d8f9375d39f6a72aa27\"/>\r\n        <NOTE p=\"64\" b=\"11.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_580254d72c7a40008ab759a3b2b880ad\"/>\r\n        <NOTE p=\"62\" b=\"12.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_cb30b4e2c2a4475d9c16af4a580af19e\"/>\r\n        <NOTE p=\"62\" b=\"13.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_044f984ade0c49ee885085831cd371d8\"/>\r\n        <NOTE p=\"60\" b=\"14.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_97d02cae3f654f2ebe2083f1dcd89fd8\"/>\r\n        <NOTE p=\"67\" b=\"16.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_681a1457261046018d792ba0ed2fbb1e\"/>\r\n        <NOTE p=\"67\" b=\"17.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_3c5a3bb68e9740fcb4d36ff9cecaa0a4\"/>\r\n        <NOTE p=\"65\" b=\"18.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_33077f0b36524c42bc91a8de0f45d013\"/>\r\n        <NOTE p=\"65\" b=\"19.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ff539419cc45467281a4fbc410f7f5b6\"/>\r\n        <NOTE p=\"64\" b=\"20.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_6b91b8e70e72435882dda0026bcd05f8\"/>\r\n        <NOTE p=\"64\" b=\"21.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_6229b3edbc054db0937569abe0def925\"/>\r\n        <NOTE p=\"62\" b=\"22.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bc2b137871764c3fb37379c8b12e4065\"/>\r\n        <NOTE p=\"67\" b=\"24.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_d0b61facc2c947b4929490934eafb7e2\"/>\r\n        <NOTE p=\"67\" b=\"25.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0804abf92f9f4408aa9106f524177c94\"/>\r\n        <NOTE p=\"65\" b=\"26.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_c3a1fd2712854923b5af120f22179a62\"/>\r\n        <NOTE p=\"65\" b=\"27.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e436cd5d51fe431b8329da1d01720fe3\"/>\r\n        <NOTE p=\"64\" b=\"28.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_1000e4c49d864a83b0f9f6397d492bce\"/>\r\n        <NOTE p=\"64\" b=\"29.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7f60dddb954945d8993cb3e9caeaa36b\"/>\r\n        <NOTE p=\"62\" b=\"30.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5c45ba926e9c41328ce4a5409caa79cb\"/>\r\n        <NOTE p=\"60\" b=\"32.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_a69625b83c0947138d32c1862e40b4db\"/>\r\n        <NOTE p=\"60\" b=\"33.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7dbaa42e65e34370bf011c95a7b0916a\"/>\r\n        <NOTE p=\"67\" b=\"34.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_f2e15ed609a24c3c9a9da58be96887fb\"/>\r\n        <NOTE p=\"67\" b=\"35.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bae0c2441a1e42f6ab4cdf6d37fb99c4\"/>\r\n        <NOTE p=\"69\" b=\"36.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_fa33c08f3c7d4428b9429e9ad048f0bf\"/>\r\n        <NOTE p=\"69\" b=\"37.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_4c6fcd5670154513bd01513e3b562b2a\"/>\r\n        <NOTE p=\"67\" b=\"38.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_babbab2836784787ab12fe3d20eeffce\"/>\r\n        <NOTE p=\"65\" b=\"40.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b1b7c9b0685a46dea1bf5ce4ec301602\"/>\r\n        <NOTE p=\"65\" b=\"41.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2860fc55e5544f7fae7c06103c668441\"/>\r\n        <NOTE p=\"64\" b=\"42.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_614f3920667d4ec3bb486c0c93ba3374\"/>\r\n        <NOTE p=\"64\" b=\"43.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7e0f3638687f49f9a53bcb6236a2a32b\"/>\r\n        <NOTE p=\"62\" b=\"44.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_f29222794d5b4d678bd260bd68af1583\"/>\r\n        <NOTE p=\"62\" b=\"45.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b5d3a3a68bf34e00bfad3e030acafd2c\"/>\r\n        <NOTE p=\"60\" b=\"46.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_8873af8c853445c9b98b544342491aaf\"/>\r\n      </SEQUENCE>\r\n    </MIDICLIP>\r\n    <PLUGIN type=\"volume\" id=\"1008\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1009\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1010\" mute=\"1\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <MIDICLIP name=\"New MIDI Clip\" start=\"0.0\" length=\"26.0\" offset=\"0.0\" id=\"1017\"\r\n              sync=\"0\" currentTake=\"0\" speed=\"1.0\" colour=\"ff00ff00\">\r\n      <AUTOMATIONCURVES/>\r\n      <QUANTISATION/>\r\n      <GROOVE/>\r\n      <SEQUENCE ver=\"1\" channelNumber=\"1\">\r\n        <NOTE p=\"60\" b=\"0.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e519273b5c6d425c938ded8f254abd46\"/>\r\n        <NOTE p=\"60\" b=\"1.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_21b7762bb051407386276511b1fe97c6\"/>\r\n        <NOTE p=\"67\" b=\"2.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_36fa6df3c37b4dbea8d4da65b0a6ba04\"/>\r\n        <NOTE p=\"67\" b=\"3.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_28bd6ec2868b4f9b8e9cda6b3729c910\"/>\r\n        <NOTE p=\"69\" b=\"4.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_f03d4b4e178f49fdba96894909963c5c\"/>\r\n        <NOTE p=\"69\" b=\"5.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_7310a2a8ee6c4a1fa325b1b30fe3cef5\"/>\r\n        <NOTE p=\"67\" b=\"6.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_daf134fa17bd4d8d86dc0e751e192e50\"/>\r\n        <NOTE p=\"65\" b=\"8.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_829f657f27114368ba1ca73c27adf42f\"/>\r\n        <NOTE p=\"65\" b=\"9.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b9a1a214795340aeb4c2f29459e2f514\"/>\r\n        <NOTE p=\"64\" b=\"10.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_16534f2257974f889089c9082d5a0d21\"/>\r\n        <NOTE p=\"64\" b=\"11.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_a871835ac44a405e9b0f5b487ec47301\"/>\r\n        <NOTE p=\"62\" b=\"12.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_a72fdfd8dbf547ad9094143e8d374dc6\"/>\r\n        <NOTE p=\"62\" b=\"13.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_df17a6c8bab149e4956e44c5c6b64c05\"/>\r\n        <NOTE p=\"60\" b=\"14.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0966566f370e43f3bffb9ad0028fada5\"/>\r\n        <NOTE p=\"67\" b=\"16.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_65a4a36f01a946cc9340f7af891b3696\"/>\r\n        <NOTE p=\"67\" b=\"17.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bfc8df60c4c1446b8f6cee937d2980eb\"/>\r\n        <NOTE p=\"65\" b=\"18.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5ee1780a33f04704b3cd575be5b8c2e6\"/>\r\n        <NOTE p=\"65\" b=\"19.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_745604d9f219406ba38c5c9156e8ca3c\"/>\r\n        <NOTE p=\"64\" b=\"20.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_958f8706addd42829e93368ee7bf888e\"/>\r\n        <NOTE p=\"64\" b=\"21.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_0406b7cda09e44acb4d29facd1c4b66b\"/>\r\n        <NOTE p=\"62\" b=\"22.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_5b86390c76954e35930e96cfc85c7e2b\"/>\r\n        <NOTE p=\"67\" b=\"24.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_2e4e8ffbd5c14e518cfa4c25ef195601\"/>\r\n        <NOTE p=\"67\" b=\"25.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e9441712f9c4442f991d9885126150c1\"/>\r\n        <NOTE p=\"65\" b=\"26.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_22eebe4726a649a696e07f05f3e08501\"/>\r\n        <NOTE p=\"65\" b=\"27.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e5d252e95a804f529f8d99a6f1e47fea\"/>\r\n        <NOTE p=\"64\" b=\"28.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ea805271b6d948489fa43d2d5b785022\"/>\r\n        <NOTE p=\"64\" b=\"29.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_8202dd44170f455893c3b79cd549d41e\"/>\r\n        <NOTE p=\"62\" b=\"30.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e40f867c80a24648b49a1a74117e91ce\"/>\r\n        <NOTE p=\"60\" b=\"32.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_825bb5423b6d4705a145fd3a622b0eab\"/>\r\n        <NOTE p=\"60\" b=\"33.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_b69b00bdb37a4dcdb252237dfef72b9c\"/>\r\n        <NOTE p=\"67\" b=\"34.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_c1519cbc53b34572a6f82789fefd95d3\"/>\r\n        <NOTE p=\"67\" b=\"35.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_bfee58eb23d94a35a4c2a377286b7dc6\"/>\r\n        <NOTE p=\"69\" b=\"36.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_fde4008742ff486293716e116b5042e2\"/>\r\n        <NOTE p=\"68\" b=\"37.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e9c98d80d9d045d1960c32a0276f73cd\"/>\r\n        <NOTE p=\"67\" b=\"38.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_3d87a1e0ac484f13a584e1682eb22ef6\"/>\r\n        <NOTE p=\"65\" b=\"40.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_04e26fff0aef4bbead2136a0f078ed44\"/>\r\n        <NOTE p=\"65\" b=\"41.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_c71a9268f9e248cabd238cb614642def\"/>\r\n        <NOTE p=\"64\" b=\"42.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_76c73bda5405440e88b1bc96e57bb760\"/>\r\n        <NOTE p=\"64\" b=\"43.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_df4f760fd8754b3eb7556bbb075ce9db\"/>\r\n        <NOTE p=\"62\" b=\"44.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_e788f13d63714d7b8317bc178ef8db3c\"/>\r\n        <NOTE p=\"62\" b=\"45.0\" l=\"1.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ba9844efbfb547298b8468c744194d67\"/>\r\n        <NOTE p=\"60\" b=\"46.0\" l=\"2.0\" v=\"80\" c=\"0\" vit_note_id=\"note_ed94e24e1ef446ab8cee2c61fa13af98\"/>\r\n      </SEQUENCE>\r\n    </MIDICLIP>\r\n    <PLUGIN type=\"volume\" id=\"1011\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1012\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n  <TRACK id=\"1013\">\r\n    <MODIFIERS/>\r\n    <CLIPSLOTS/>\r\n    <PLUGIN type=\"volume\" id=\"1014\" enabled=\"1\" remapOnTempoChange=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <PLUGIN type=\"level\" id=\"1015\" enabled=\"1\">\r\n      <MODIFIERASSIGNMENTS/>\r\n    </PLUGIN>\r\n    <OUTPUTDEVICES>\r\n      <DEVICE name=\"(default audio output)\"/>\r\n    </OUTPUTDEVICES>\r\n  </TRACK>\r\n</EDIT>\r\n",
+  "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "project_id": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+  "parent_project_uuid": "vitproj_f67b8db6b7f548b79601b8c710d71af6",
+  "agent_history_generation": "",
+  "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "graph_revision": 0,
+  "graph_active_revision": 0,
+  "graph_pending_revision": 0,
+  "graph_last_retired_revision": 0,
+  "graph_retired_snapshot_count": 0,
+  "graph_last_diff_kind": "edit_loaded",
+  "graph_last_diff_summary": "Edit loaded from D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\fallback_20261110_001320\\fixtures\\磁带流·退路甲.vit",
+  "graph_publish_mode": "initialised",
+  "graph_lifecycle_state": "idle",
+  "graph_recent_changes": []
+}
+VitHeadlessService: command reply (truncated): {
+  "status": "ok",
+  "command": "project.snapshot_export",
+  "snapshot_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n\r\n<EDIT appVersion=\"Unknown\" projectID=\"0/38bba41\" creationTime=\"0\" modifiedBy=\"tim

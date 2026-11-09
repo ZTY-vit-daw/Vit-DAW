@@ -1,0 +1,54 @@
+{
+  "card": "LAUNCHER-GATE-FIX-1 (340)",
+  "generated_at": "2026-11-10T00:20:00+08:00",
+  "owner": "ZCode GLM-5.3 L2 执行子代理（340gate 会话）/ PC / worktree D:/Vit_DAW_wt_340gate / 分支 port/launcher-gate-fix-1",
+  "baseline": {
+    "origin_main_at_claim": "9e9117ae（领取提交；339 后无其他合入）",
+    "implementation_commit": "af55101b",
+    "frontend_head": "ff301b3 (local main, 335/336 merged, 不动)",
+    "kernel": "deployed Export/staging/runtime/VitApp.exe sha256 b6565dcf85d1da86 (unchanged, 与 339 同版)"
+  },
+  "stack_registration": {
+    "occupy": "2026-11-10 00:12 +0800 (main baa8c4e2) 净空亲核 00:10:48 七面全零 + ≤60s 复核 00:11:43 owner/端口双亲证",
+    "release": "2026-11-10 00:16 +0800 TEARDOWN_ALL_ZERO 亲核 00:15:20（五 TCP+两 UDP+四类进程全零）+ recents 配置自腿1原始快照原样还原（哈希一致亲证，10 项）"
+  },
+  "section8_plan": "coord/runs/LAUNCHER-GATE-FIX-1/RUNBOOK.md（af55101b，先于一切真栈运行冻结；口径照 339）",
+  "gate_fix": {
+    "semantics": "门=UI 声明（context.launcher=true 主门）+ 会话事实（user_entered_project 位副门：boot false / version.project_opened 到达即置 / 进程内不重置）；uuid/path 判据移除",
+    "files": "agent/internal/chat/launcher_flow.go（门+位方法）+ server.go（handleInvoke lifecycle 分支置位 ~10 行）+ launcher_flow_test.go（门测试重写）+ scripts/launcher_flow_smoke.py（两处装置断言随门语义同步：assert_gate_open 改记录面/零摩擦前提改弱断言——真栈 boot path=草稿回退恒非空为 339 证据）",
+    "real_stack_proof": "两腿 boot 形态均与 339 取证同款（uuid=default 自带+path=草稿回退 Unsaved.vit），launcher 确定性路由首次在真栈产品路径走通"
+  },
+  "legs": [
+    {
+      "leg": "1-main（主链复跑）",
+      "run_dir": "coord/runs/LAUNCHER-GATE-FIX-1/main_20261110_001205",
+      "command": "dev_agent_smoke.ps1 -LauncherFlow -LauncherFlowLeg main -StartKernel -RestartAgent -StartUI -NoChatSmoke -NoStripSilenceSmoke -KernelExe <deployed> -RunArtifactsDir <run>",
+      "exit_code": 0,
+      "facts": "greeting ok（launcher=true+我在+recent=fixture）→ 门开行为证明=「打开小星星乐局」回执 launcher_directive（open_project/file_path=fixture/requires_governance=true/context_flow=launcher/确认句含《小星星乐局》）→ UI 同链消费（kernel open_project app_bound_aes + version.project_opened lifecycle notify=位置位点）→ 绑定观察 current_project.path==fixture → 桥接播报（stop_reason=launcher_bridge_broadcast/context_flow=project/typed_events[0]=volume_switch/已进入《小星星乐局》）→ 工程流对话（context_flow=project/reply 1027 字符）→ 真实 UI 锚点（Godot 进程在场+内核日志 UI→bridge get_recent_projects 链+godot log 无 launcher 错误锚）",
+      "llm_calls": 1,
+      "llm_budget": 10,
+      "llm_detail": "1 行 deepseek-flash（ordinary_agent_semantic_entry=工程流续聊轮；684 in/165 out/512 cache，≈¥0.001）——launcher 路由/桥接/greeting 全确定性零 LLM 兑现"
+    },
+    {
+      "leg": "2-fallback（确定性退路复跑）",
+      "run_dir": "coord/runs/LAUNCHER-GATE-FIX-1/fallback_20261110_001320",
+      "command": "同上 -LauncherFlowLeg fallback",
+      "exit_code": 0,
+      "facts": "「打开退路」回执 project_result_cards=2（kind=launcher_project/内嵌 open_project directive/无顶层 directive/context_flow=launcher）→ 点卡[0] 同链开工程（open+绑定+桥接播报 volume_switch）→ telemetry 恰 0 行（零 LLM 证成）",
+      "llm_calls": 0,
+      "llm_budget": 0
+    }
+  ],
+  "card38_bridge_proof": "338 桥接播报/续聊段随腿 1 真栈证成：桥接首轮回执 stop_reason=launcher_bridge_broadcast + typed_events[0].type=volume_switch + reply 含「已进入《小星星乐局》」（浮动窗链路消费面=headless 探针 71/71[339 已在卷]+回执字段全中；GUI 视觉呈现=手测 v2）",
+  "unit_tests": {
+    "gate_test": "TestLauncherFlowGateUIFlagAndSessionFact 4 子用例（无声明不拦截/339PhaseA 形态不阻塞/339PhaseB 形态不阻塞/project_opened 到达门关+authority 不变）PASS",
+    "chat_full_package": "go test ./internal/chat/ -count=1 → ok 158.741s（零回退）",
+    "full_build": "go build ./... exit 0"
+  },
+  "llm_budget_reconciliation": {
+    "budget_declared": "腿1 ≤10 调用；腿2 = 0",
+    "actual": "腿1=1 调用（deepseek-flash 续聊轮）；腿2=0；合计 1 ≪ 上界 10",
+    "verdict": "远低于上界，零超支"
+  },
+  "rendering_boundary_declaration": "AGENTS §5 照 339：本卡断言面=agent HTTP 回执字段+内核 ZMQ+真实 UI 进程/日志/内核命令锚点。GUI 渲染观感/真实点击/浮动窗视觉呈现不在断言面——GUI 最后一米=用户手测（手测 v2 入口=本卡 pass 后放行）。"
+}

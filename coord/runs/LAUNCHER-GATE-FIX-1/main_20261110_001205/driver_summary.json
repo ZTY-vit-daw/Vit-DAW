@@ -1,0 +1,215 @@
+{
+  "leg": "main",
+  "exit": 0,
+  "started_at": "2026-11-10T00:12:28",
+  "conversation": "launcher_main_20261110_001228",
+  "tool_count": 298,
+  "greeting": {
+    "launcher": true,
+    "recent_count": 12,
+    "recent_project": {
+      "file_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+      "name": "小星星乐局"
+    },
+    "reply": "我在。最近的工程是《小星星乐局》——想从哪开始？",
+    "status": "ok"
+  },
+  "boot_current_project": {
+    "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261110_001206\\agent_drafts\\draft_20261109T161213_51991982\\Unsaved.vit",
+    "uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+  },
+  "boot_gate_semantics": "340: ui_flag + user_entered_project (uuid/path not consulted)",
+  "directive_turn": {
+    "conversation_id": "launcher_main_20261110_001228",
+    "task_id": "task_9187051f50dfb606",
+    "goal_id": "goal_34a957f0486857cf",
+    "run_id": "run_8658f7c69c93d746",
+    "original_intent": "打开小星星乐局",
+    "reply": "好的，打开《小星星乐局》。",
+    "agent_mode": "default",
+    "needs_confirmation": false,
+    "goal_status": "completed",
+    "goal_summary": "打开小星星乐局",
+    "project_history": {
+      "active_branch": "main",
+      "active_node_id": "n_20261109T161229_37353279",
+      "active_worktree": "",
+      "available": true,
+      "branches": {
+        "main": "c_20261109T161214_0d6403bf"
+      },
+      "commit_count": 2,
+      "conversation_messages": [
+        {
+          "content": "打开小星星乐局",
+          "logical_message_id": "n_20261109T161228_271b5722",
+          "message_kind": "user",
+          "node_id": "n_20261109T161228_271b5722",
+          "role": "user"
+        },
+        {
+          "content": "好的，打开《小星星乐局》。",
+          "logical_message_id": "n_20261109T161229_37353279",
+          "message_kind": "assistant",
+          "node_id": "n_20261109T161229_37353279",
+          "role": "assistant"
+        }
+      ],
+      "detached": false,
+      "draft": false,
+      "head": "c_20261109T161214_0d6403bf",
+      "initialized": true,
+      "project_label": "Unsaved",
+      "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261110_001206\\agent_drafts\\draft_20261109T161213_51991982\\Unsaved.vit",
+      "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+      "refs": {
+        "refs/heads/main": "c_20261109T161214_0d6403bf"
+      },
+      "root_project_path": "",
+      "unsaved": false,
+      "warnings": [],
+      "worktrees": [
+        {
+          "commit_id": "c_20261109T161214_0d6403bf",
+          "created_at": "2026-11-09T16:12:29.2385507Z",
+          "is_root": true,
+          "label": "主工作树",
+          "name": "main",
+          "origin_commit_id": "c_20261109T161214_0d6403bf",
+          "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261110_001206\\agent_drafts\\draft_20261109T161213_51991982",
+          "project_file_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261110_001206\\agent_drafts\\draft_20261109T161213_51991982\\Unsaved.vit",
+          "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261110_001206\\agent_drafts\\draft_20261109T161213_51991982\\Unsaved.vit",
+          "root_project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261110_001206\\agent_drafts\\draft_20261109T161213_51991982\\Unsaved.vit"
+        }
+      ]
+    },
+    "launcher_directive": {
+      "action": "open_project",
+      "file_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+      "reason": "打开工程《小星星乐局》",
+      "requires_governance": true
+    },
+    "context_flow": "launcher",
+    "lifecycle": "durable",
+    "persistence": "project_history",
+    "message_kind": "assistant",
+    "turn_id": "run_8658f7c69c93d746",
+    "logical_message_id": "n_20261109T161229_37353279"
+  },
+  "main_pre_open_current_project": {
+    "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261110_001206\\agent_drafts\\draft_20261109T161213_51991982\\Unsaved.vit",
+    "uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+  },
+  "main_kernel_open_reply": {
+    "status": "ok",
+    "message": "Project opened",
+    "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+    "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+    "project_lifecycle": "open"
+  },
+  "main_lifecycle_notify": {
+    "status": "ok",
+    "error": null
+  },
+  "main_bound_current_project": {
+    "path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+    "uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778"
+  },
+  "bridge_turn": {
+    "conversation_id": "launcher_main_20261110_001228",
+    "task_id": "task_04c076a771495f3d",
+    "goal_id": "goal_1ed3c51b0afe7ccf",
+    "run_id": "run_a41201419caf9986",
+    "original_intent": "现在这个工程的轨道情况怎么样？",
+    "reply": "已进入《小星星乐局》。最近修改于 2026-11-08 19:45——想从哪儿继续？",
+    "agent_mode": "default",
+    "needs_confirmation": false,
+    "workflow_data": {
+      "context_flow": "project",
+      "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+      "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778"
+    },
+    "typed_events": [
+      {
+        "context_flow": "project",
+        "project_name": "小星星乐局",
+        "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+        "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+        "type": "volume_switch"
+      }
+    ],
+    "goal_status": "completed",
+    "goal_summary": "现在这个工程的轨道情况怎么样？",
+    "stop_reason": "launcher_bridge_broadcast",
+    "project_history": {
+      "active_branch": "main",
+      "active_node_id": "n_20261109T161229_bcb4fdaa",
+      "active_worktree": "",
+      "available": true,
+      "branches": {
+        "main": "c_20261109T161229_736acb63"
+      },
+      "commit_count": 1,
+      "conversation_messages": [
+        {
+          "content": "现在这个工程的轨道情况怎么样？",
+          "logical_message_id": "n_20261109T161229_708019be",
+          "message_kind": "user",
+          "node_id": "n_20261109T161229_708019be",
+          "role": "user"
+        },
+        {
+          "content": "已进入《小星星乐局》。最近修改于 2026-11-08 19:45——想从哪儿继续？",
+          "logical_message_id": "n_20261109T161229_bcb4fdaa",
+          "message_kind": "assistant",
+          "node_id": "n_20261109T161229_bcb4fdaa",
+          "role": "assistant"
+        }
+      ],
+      "detached": false,
+      "draft": false,
+      "head": "c_20261109T161229_736acb63",
+      "initialized": true,
+      "project_label": "小星星乐局",
+      "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+      "project_uuid": "vitproj_08c5c00962544622bac8cd1e7aaf0778",
+      "refs": {
+        "refs/heads/main": "c_20261109T161229_736acb63"
+      },
+      "root_project_path": "",
+      "unsaved": false,
+      "warnings": [],
+      "worktrees": [
+        {
+          "commit_id": "c_20261109T161229_736acb63",
+          "created_at": "2026-11-09T16:12:29.5361954Z",
+          "is_root": true,
+          "label": "主工作树",
+          "name": "main",
+          "origin_commit_id": "c_20261109T161229_736acb63",
+          "path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures",
+          "project_file_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+          "project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit",
+          "root_project_path": "D:\\Vit_DAW_wt_340gate\\coord\\runs\\LAUNCHER-GATE-FIX-1\\main_20261110_001205\\fixtures\\小星星乐局.vit"
+        }
+      ]
+    },
+    "context_flow": "project",
+    "lifecycle": "durable",
+    "persistence": "project_history",
+    "message_kind": "assistant",
+    "turn_id": "run_a41201419caf9986",
+    "logical_message_id": "n_20261109T161229_bcb4fdaa"
+  },
+  "project_flow_turn": {
+    "reply": "工程黑板状态汇报\n\n结论\n- 当前工程快照可读；可以继续选择 A-F 任一后续任务，但未记录的阶段不会被当成阻塞。\n\n工程概况\n- 轨道/片段：3 / 2\n- 工程时长估计：26.00s\n\nA-F 状态矩阵\n- A 工程准备：当前工程快照可读；TIM/TOM/A4/A5 的历史结果若未保存在本轮上下文中则标记为尚未记录\n- B 粗混 / Static Mix：能力族已建模；B1-B4 独立状态见下方；尚未记录为已执行\n- B1 Gain Staging（static_mix.gain_staging.v0）：not_started / 尚未记录为已执行；建立安全电平和 headroom\n- B2 静态主次与音量平衡（static_mix.static_balance.v0）：not_started / 尚未记录为已执行；不依赖插件，用静态推子建立 foreground、anchors、support 与 effects 的主次关系\n- B3 声像布局（static_mix.pan_layout.v0）：not_started / 尚未记录为已执行；中心元素、左右展开、宽度、mono 风险\n- B4 低频关系（static_mix.low_end_relation.v0）：not_started / 尚未记录为已执行；kick、bass、low synth、低频堆积和遮蔽\n- C 细混处理：尚未记录为已执行\n- D 母带前检查：尚未记录为已执行\n- E 母带：尚未记录为已执行\n- F 混音审查：尚未记录为已执行\n\n已完成/已观察\n- 已读取当前 project.state 快照\n- 当前可见工程包含 3 条轨道\n- 当前可见工程包含 2 个 clip\n\n风险与遗留\n- TIM/TOM、片段清理、Marker 写入、B-F 混音处理的已执行结论需要来自对应 observation/action result；当前快照没有保存的项目显示为尚未记录\n\n已知用户目标\n- 尚未记录明确的混音参考方向、核心元素优先级或处理范围\n\n可选下一步\n- 继续工程准备复查：TIM/TOM、片段清理、Marker/段落地图\n- 进入 B1 Gain Staging 或 B2 静态平衡\n- 按用户目标跳到人声、鼓组、低频、空间或导出前检查；A-F 不作为线性门禁\n\n数据来源\n- project.state\n- recent observation",
+    "context_flow": "project",
+    "stop_reason": "done",
+    "error": null,
+    "needs_confirmation": false
+  },
+  "llm_telemetry_rows": 1,
+  "llm_budget": 10,
+  "finished_at": "2026-11-10T00:12:32",
+  "result": "PASS"
+}
