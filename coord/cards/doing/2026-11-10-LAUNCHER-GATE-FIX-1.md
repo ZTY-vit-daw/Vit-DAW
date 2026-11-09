@@ -34,4 +34,6 @@ agent/internal/chat/launcher_flow.go+server.go（project_opened 接收点）+测
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- 领取：2026-11-10 00:03 +0800 / origin/main 7744c5b1 / owner ZCode GLM-5.3 L2 执行子代理（340gate 会话）/ PC / 分支 port/launcher-gate-fix-1 / worktree D:/Vit_DAW_wt_340gate / 领取提交=coord/340-claim（hash 推送后回填）
+- 回执：（执行侧回填）
+- 验收：（主管回填）
