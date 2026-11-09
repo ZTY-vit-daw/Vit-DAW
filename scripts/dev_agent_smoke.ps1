@@ -9049,7 +9049,10 @@ if ($WaveshellStacklegSmoke) {
     if ($env:VIT309_RTLEVEL) { $waveshellExpectEnv += "VIT309_RTLEVEL" }
     if ($env:VIT309_C_CONSISTENCY) { $waveshellExpectEnv += "VIT309_C_CONSISTENCY" }
     if ($env:VIT309_DISABLE_BLACKLIST) { $waveshellExpectEnv += "VIT309_DISABLE_BLACKLIST" }
-    $waveshellPythonArgs = @($waveshellLegScript, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--leg-mode", $WaveshellLegMode, "--mount-mode", $WaveshellMountMode, "--plugin-select", $WaveshellLegPlugin, "--project-path", $waveshellProjectPath, "--render-path", $waveshellRenderPath, "--output", $waveshellSummaryPath, "--kernel-log-dir", $waveshellKernelLogDir, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH, "--expect-env", ($waveshellExpectEnv -join ","))
+    $waveshellPythonArgs = @($waveshellLegScript, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--leg-mode", $WaveshellLegMode, "--mount-mode", $WaveshellMountMode, "--plugin-select", $WaveshellLegPlugin, "--project-path", $waveshellProjectPath, "--render-path", $waveshellRenderPath, "--output", $waveshellSummaryPath, "--kernel-log-dir", $waveshellKernelLogDir, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH)
+    if ($waveshellExpectEnv.Count -gt 0) {
+        $waveshellPythonArgs += @("--expect-env", ($waveshellExpectEnv -join ","))
+    }
     & python @waveshellPythonArgs > $waveshellConsolePath 2>&1
     $waveshellExit = $LASTEXITCODE
     Get-Content -LiteralPath $waveshellConsolePath | ForEach-Object { Write-Host $_ }

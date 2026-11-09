@@ -314,7 +314,7 @@ def main() -> int:
     parser.add_argument("--kernel-log-dir", required=True,
                         help="kernel Workspace/Logs dir (VitHeadlessServer_*.log trace source)")
     parser.add_argument("--telemetry-path", default="", help="agent LLM telemetry jsonl (zero-LLM evidence)")
-    parser.add_argument("--expect-env", default="",
+    parser.add_argument("--expect-env", nargs="?", const="", default="",
                         help="comma-separated VIT309_* env flags expected on the kernel (receipt record)")
     args = parser.parse_args()
 
