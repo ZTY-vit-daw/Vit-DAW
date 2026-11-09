@@ -1,6 +1,6 @@
 {
   "schema_version": "ruleset.v1",
-  "ruleset_version": "ruleset.v2",
+  "ruleset_version": "ruleset.v3",
   "sections": [
     {
       "section_id": "chat.output_format",
@@ -28,6 +28,13 @@
       "version": 1,
       "purpose": "discipline",
       "file": "sections/shared.discipline.evidence_refs.txt",
+      "applies_to": ["chat", "neutral_family"]
+    },
+    {
+      "section_id": "shared.discipline.ask_anchors",
+      "version": 1,
+      "purpose": "discipline",
+      "file": "sections/shared.discipline.ask_anchors.txt",
       "applies_to": ["chat", "neutral_family"]
     },
     {

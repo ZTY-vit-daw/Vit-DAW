@@ -50,6 +50,9 @@ func TestEmbeddedManifestLoadsClean(t *testing.T) {
 		// L1-4-IMPL-C 新增段（§4.4-3 纪律条款，跨族）——资源新增非改写，
 		// 既有七段字节不动。
 		SectionEvidenceRefDiscipline: PurposeDiscipline,
+		// EDU-ASK-ANCHOR-1（282）新增段（裁定 15 方案 a：问询锚定纪律，
+		// 跨族）——资源新增非改写，既有段字节不动。
+		SectionAskAnchorDiscipline: PurposeDiscipline,
 	}
 	if len(result.Manifest.Sections) != len(want) {
 		t.Fatalf("embedded manifest section count = %d, want %d", len(result.Manifest.Sections), len(want))
@@ -193,5 +196,58 @@ func TestEmbeddedChatRenderMatchesLegacyMarkers(t *testing.T) {
 		if !strings.Contains(neutralRules, marker) {
 			t.Fatalf("neutral rules render missing marker %q", marker)
 		}
+	}
+}
+
+// TestAskAnchorsSectionRendersInBothFamilies：EDU-ASK-ANCHOR-1（282，裁定 15
+// 方案 a）问询锚定纪律段——跨族渲染（chat 与 neutral_family 各一次）且三件
+// 文本在场：可锚定参照物清单 / 问询守则（含用户侧坐标追问与刹车句）/ A/B
+// 兜底编排次序。既有段零改写由 chat/agentloop 的 fallback parity 测试持续
+// 锁定（embed 渲染减 PostMigrationSectionIDs == legacy 模板）。
+func TestAskAnchorsSectionRendersInBothFamilies(t *testing.T) {
+	manifest := Load().Manifest
+	section := manifest.sectionContent(SectionAskAnchorDiscipline)
+	if strings.TrimSpace(section) == "" {
+		t.Fatalf("section %s content empty", SectionAskAnchorDiscipline)
+	}
+	markers := []string{
+		// 件一：可锚定参照物清单（marker/循环区/轨道与 clip/transport 秒/
+		// music_context 守门/bar 坐标只引用命令返回）。
+		"Anchorable references and inquiry discipline:",
+		"transport.set_loop",
+		"transport.clear_loop",
+		"music_context",
+		"tempo_setting_count",
+		"bar_start/bar_end",
+		// 件二：问询守则——指称落在可锚定参照物上+用户侧坐标追问+刹车句。
+		"every referent in a question you ask the user must land on an anchorable reference",
+		"mouse position, screen position",
+		"ask the user to convert them to an anchorable reference",
+		"ask where the judgment authority belongs to the user",
+		// 件三：A/B 兜底编排次序（先听 A 段再听 B 段）。
+		"A/B listening fallback",
+		"listen to A first, then B",
+	}
+	for _, marker := range markers {
+		if !strings.Contains(section, marker) {
+			t.Fatalf("ask_anchors section missing marker %q", marker)
+		}
+	}
+	for family := range map[string]struct{}{FamilyChat: {}, FamilyNeutralFamily: {}} {
+		sections := manifest.FamilySections(family)
+		found := false
+		for _, s := range sections {
+			if s.SectionID == SectionAskAnchorDiscipline {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("family %s does not include %s", family, SectionAskAnchorDiscipline)
+		}
+	}
+	// 段内容不得携带 fmt 槽位（wrapper 之外的段不做 Sprintf 填充，%s 泄漏
+	// 会以字面量进入系统提示）。
+	if strings.Contains(section, "%s") || strings.Contains(section, "%d") {
+		t.Fatalf("ask_anchors section must not contain fmt verbs")
 	}
 }

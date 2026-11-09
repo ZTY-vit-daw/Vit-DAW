@@ -5229,6 +5229,10 @@ func agentLoopTransportTools() []string {
 		"transport.play", "transport.stop", "transport.return_to_zero", "transport.seek",
 		"transport.toggle_click", "transport.set_click", "transport.set_tempo",
 		"transport.record.start", "transport.record.stop",
+		// EDU-ASK-ANCHOR-1（282）：循环区参照物进 chat 能力门控白名单（第四
+		// 注册面，276 EDU-SYMBOL-CORE-1 同型——缺行时 transport 能力轮对模
+		// 型遮蔽该工具，chat 驱动路径不可达）。
+		"transport.set_loop", "transport.clear_loop",
 	}
 }
 
