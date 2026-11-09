@@ -1,0 +1,67 @@
+{
+  "schema_version": "govttl_stackleg_summary.v1",
+  "teardown_all_zero_at": "2026-11-09T20:09:05+0800",
+  "attempts": [
+    {
+      "run": 1,
+      "class": "env_interrupt",
+      "cause": "boot-leg strip goal waiting_confirmation blocked authority switch",
+      "evidence": "attempt1_env_interrupt.json"
+    },
+    {
+      "run": 2,
+      "class": "env_interrupt(driver artifact)",
+      "cause": "plugin_search reply key=plugins not matches; parse defect in driver",
+      "evidence": "attempt2_driver_parse.json"
+    },
+    {
+      "run": 3,
+      "class": "no_card_parked (effective round 1)",
+      "cause": "model parked clarification; frozen follow-up rejected by semantic entry (semantic_entry_unresolved)",
+      "evidence": "attempt3_no_card_parked.json + agent log L265-345"
+    },
+    {
+      "run": 4,
+      "class": "env_interrupt",
+      "cause": "attempt-3 leftover waiting goal blocked authority; driver env-clear step added",
+      "evidence": "attempt4_env_interrupt.json"
+    },
+    {
+      "run": 5,
+      "class": "no_card_parked (effective round 2, reclassified env with evidence)",
+      "cause": "model refused to propose: Pro-Q 3 exposed bare param shell only, no band-shape topology — missing VIT_PLUGIN_CONTROL_EVAL_SEAM=1 + VIT_PLUGIN_CONTROL_EVAL_SEAM_BARE_WRITE=1 and 321persist kernel per 320 run_report (kernel_exe=wt_321persist sha 950CF07B, seam_env both set)",
+      "evidence": "attempt5_no_card_parked.json + ../PLUGIN-CONTROL-EVAL-PROQ3-FREE-1/proq3_free_20261109_024813/run_report.json + notfound_receipt_live.json(premature-binary A/B)"
+    }
+  ],
+  "llm_actual": "27 live calls deepseek-flash (boot strip 1 + attempt3 11 + attempt5 14 + second-boot strip 1) vs frozen ceiling 16 — BREACH reported",
+  "binary_incident": "boot 19:55:49 built from coord/327-stack checkout (no fix) — process miss vs AGENTS §9 binary-content check; caught by live probe (notfound_receipt_live.json shows canned reply + fabricated goal_status=completed on pre-fix binary); corrected 20:07:45 rebuild from port/gov-interaction-ttl-1 (agent pid 27876)",
+  "verified_live_on_fixed_binary": {
+    "repeat_approve": {
+      "stop_reason": "interaction_already_retired",
+      "goal_status": "",
+      "reply_contains": [
+        "consumed",
+        "未执行"
+      ]
+    },
+    "unknown_id": {
+      "stop_reason": "interaction_not_found",
+      "goal_status": "",
+      "reply_contains": [
+        "未找到待处理交互",
+        "未执行",
+        "目标未因此完成"
+      ]
+    },
+    "warn_anchors": [
+      "[interaction.respond] repeated decision for retired interaction=interaction_f212f88d209c5111 ... reason=consumed",
+      "[interaction.respond] no answerable interaction=interaction_govttl_fixed_probe_notfound ..."
+    ],
+    "evidence": [
+      "receipt_face_fixed_binary.json",
+      "agent_last_fixedboot.log L111-117"
+    ]
+  },
+  "unverified_live": "r2 park→workspace-switch→late-approve leg (improvement_proposal card on governed chain) — LLM budget exhausted; candidate rerun needs corrected env (seams+321persist kernel) and a fresh frozen §8",
+  "captured_at": "2026-11-09T20:09:21+0800"
+}

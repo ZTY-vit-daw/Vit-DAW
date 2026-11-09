@@ -1,0 +1,13 @@
+{
+  "schema_version": "gov_ttl_replay.v1",
+  "source": "gov_ttl_replay",
+  "started_at": "2026-11-09T19:57:38+0800",
+  "legs": {},
+  "authority": {
+    "status": ""
+  },
+  "verdict": "FAIL",
+  "failure_class": "env_interrupt",
+  "failure_detail": "env_interrupt: plugin_search did not resolve VST3-Pro-Q 3-a1aba170-ba5f7ab2: {'status': 'ok', 'source': 'knownPluginList', 'query': 'Pro-Q 3', 'plugin_count': 1, 'plugins': [{'name': 'Pro-Q 3', 'descriptive_name': 'Pro-Q 3', 'manufacturer': 'FabFilter', 'format': 'VST3', 'category': 'Fx|EQ', 'identifier': 'VST3-Pro-Q 3-a1aba170-ba5f7ab2', 'file_or_identifier': 'C:\\\\Program Files\\\\Common Files\\\\VST3\\\\FabFilter\\\\FabFilter Pro-Q 3.vst3', 'plugin_path': 'C:\\\\Program Files\\\\Com",
+  "finished_at": "2026-11-09T19:57:38+0800"
+}
