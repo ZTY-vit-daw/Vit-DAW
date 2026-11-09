@@ -103,4 +103,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 1. 各线发卡后在本索引登记行；卡状态流转（领取/完成/验收）由执行侧回执+主管验收更新；
 2. 新卡编号遵守编号空间裁定（主线 258–275 封块已满/三线 276–291 已分配；**292 起两线共用递增**，发卡登记本索引认领池序）；
 3. 挂起卡触发条件达成时由管辖线主管移入各自活跃段。
-| 309 | WAVESHELL-OFFRENDER-FIX-1 | doing（**取证腿验收 pass 2026-11-08**：S1 host 信令不一致机理六锚点钉死=301 定性精化；五裁定落地——B 先行+C 判别原型+自检形态 3；M1+插桩+判别腿候栈第 3 位） |
+| 309 | WAVESHELL-OFFRENDER-FIX-1 | done 已验收 pass 合入 317fce56（**M1=RT-SILENT 判别**：GR 四 harness 全静音→归属装载/license/壳层转 329；S1 运行时确证非 GR 成因转 331；修法 B warn_only+形态 3 落地；C 不转正） |
+| 329 | WAVESHELL-LOADING-FORENSICS-1 | todo 可领（309 转卡：装载/license/壳层静音取证——三假设判别；取证零栈先行） |
+| 330 | FIX-PLAN-STALE-STATUS-1 | todo 可领（327 域外同型：plan 面 stale 伪造 completed——依赖 327 合入后领） |
+| 331 | VST3-SIGNAL-HYGIENE-1 | todo P3（309 S1 卫生：setup/per-call 信令一致化——**不占展演前窗口**） |
