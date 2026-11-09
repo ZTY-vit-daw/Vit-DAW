@@ -20,4 +20,4 @@
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- **领取**（2026-11-09）：origin/main=3a19ac721bd01071a00aa4c52ac3c13d09fd20db；owner=GLM-5.3 L2 执行子代理（336nav，PC）；实现分支=前端仓 `port/launcher-chat-fe-1`（链式续用 335，基线 fc55775d5b81cf8b2b76dbf4ec0ed79812c9fb6b 亲证：worktree 干净、HEAD=fc55775）；worktree=`D:/Godot/project/vit-daw-frontend-lchat1`；领取提交=本提交（仅 coord/ 变更）。doing 三卡（273 族/CHAT 域/WAVESHELL 取证，均 agent 域）与本卡文件域（前端仓 app/startup/+start_page.gd+探针）零冲突已核对；协调提交于独立 worktree `D:/Vit_DAW_wt_336nav`。
