@@ -52,7 +52,7 @@
 | 324 | BRIDGE-POC-1 | **todo 候用户确认**（控制面改革方向去风险：display probe 反演双锚验证 T4/r3；零栈优先零 LLM；改革主线排展演后——2026-11-09 用户定向） |
 | 325 | FIX-CAPROUTE-RETRIEVAL-1 | done 已验收 pass 合入 a36df77d（**负结论**：sem 族三披露形态全可达零缺口+317 line18 实调亲证；防回归锚测试随卡；PENDING①条目关闭） |
 | 326 | FIX-RESTARTAGENT-ENV-1 | todo 可领（PENDING 分流②：脚本重启 agent env 透传；真栈轻腿可搭 282 同窗） |
-| 327 | FIX-GOV-INTERACTION-TTL-1 | todo 可领（PENDING 分流③：治理确认过期窗口/迟到 approve 显式回执；322 r2 形态） |
+| 327 | FIX-GOV-INTERACTION-TTL-1 | done 已验收 pass 合入 c8bb576e（勘察翻案：无 TTL，丢失=落错工作区+restore 替换+罐头伪造 completed；保活+两态回执活体 A/B 证成；park 腿降便车腿；330 解锁） |
 | 328 | FIX-FREEFLOAT-EQ-ANCHOR-1 | done 已验收 pass 合入 a670c67a（TBTECH 落盘 static_eq 50+类缺口登记+322 计数随卡修复；主管亲测三 PASS） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |
 | 314 | LEGAME-DIR-1 | done 终验 pass 合入（runA 零 env 产品级装载实证）
@@ -105,7 +105,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 3. 挂起卡触发条件达成时由管辖线主管移入各自活跃段。
 | 309 | WAVESHELL-OFFRENDER-FIX-1 | done 已验收 pass 合入 317fce56（**M1=RT-SILENT 判别**：GR 四 harness 全静音→归属装载/license/壳层转 329；S1 运行时确证非 GR 成因转 331；修法 B warn_only+形态 3 落地；C 不转正） |
 | 329 | WAVESHELL-LOADING-FORENSICS-1 | todo 可领（309 转卡：装载/license/壳层静音取证——三假设判别；取证零栈先行） |
-| 330 | FIX-PLAN-STALE-STATUS-1 | todo 可领（327 域外同型：plan 面 stale 伪造 completed——依赖 327 合入后领） |
+| 330 | FIX-PLAN-STALE-STATUS-1 | todo 可领（327 已合入解锁——plan 面 stale 伪造 completed 同型修） |
 | 331 | VST3-SIGNAL-HYGIENE-1 | todo P3（309 S1 卫生：setup/per-call 信令一致化——**不占展演前窗口**） |
 | 332 | AI-LAUNCHER-DESIGN-1 | **doing 已派发**（AI-first 启动面对话窗口设计 v1——展演裁剪+答辩后全量分档；用户定向 2026-11-09；产出九节设计报告+实施拆卡） |
 | 333 | LEGAME-GENSCOPE-1 | doing 已派发（手测 v2 案 B 清单裁剪——生成线裁定收尾件 0.2 天） |
