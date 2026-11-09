@@ -35,4 +35,5 @@ derive exit 0 + 外科 apply diff 仅增 TBTECH 行 + 加载门 PASS + 双备份
   - **候主管知悉（域外影响，未扩修）**：main 上 322 合入的 TestProQ3LiveWhitelistLoad 硬编码 static_eq=49（proq3_sufficiency_proof_test.go:37），本卡预授权 apply 后计数 50 → 该测试现仅因计数断言 FAIL（Pro-Q 3 锚断言仍过，proq3_322_test_post328.log 在卷）；修复一行属 agent 源码域外，候主管合入时裁定（改 50 或去硬编码）。本卡 throwaway 测试为新增文件（322 先例），卡面「零 agent 源码」按 322 同口径不含 throwaway 取证测试。
   - **工件**：port/freefloat-eq-anchor-1 @ **2dc469d5**（已推远端）——coord/runs/FIX-FREEFLOAT-EQ-ANCHOR-1/ 全套（console/diff/测试日志/双 sha/登记/备份副本）+ FIX-PCA-AUTOSWEEP-1/20260924_005622 derive 产物重生成（git diff 对 origin/main 在卷=规则稳定复核面）；卡面提交=本 doing→done 移动。
   - **端测边界声明**：零栈零 LLM 纯确定性（derive 离线 pluginprobe 未起、加载门为 Go 单测面）；无任务轮数据、零渲染面/用户旅程主张；无计费。
+  - **验收裁定后补（2026-11-09 主管验收 pass，遗留补齐）**：proq3_sufficiency_proof_test.go 计数 49→50 随卡后果修复已落在 port/freefloat-eq-anchor-1 @ **df51aa66**（最小 hunk 1 处/2 物理行：行 36 条件 `!=49`→`!=50`+行 37 消息串同步，行 67 的 322 temp-candidate 断言不动——该 fixture 仍 49 且 PASS）；三测试 `go test ./internal/experimentplugins -run 'TestTBTECHLiveWhitelistLoad|TestProQ3LiveWhitelistLoad|TestProQ3SufficiencyProofWhitelistLoad' -count=1` 全 PASS exit 0（three_tests_post_countfix.log 在卷）；分支已推远端不合入 main，候主管合入。
 - 验收：（主管回填）
