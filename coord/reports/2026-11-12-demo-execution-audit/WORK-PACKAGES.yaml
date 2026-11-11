@@ -1,0 +1,225 @@
+# 审计后的工作包，不是已确认/可领取的任务卡；不占用共享池序。
+# 工时为首次估算的专注工程投入，非模型采样时长或用户劳动时间。
+# final_hours包含first_hours；合计时不能相加。真实栈只能一个owner串行。
+# 2026-11-12 W00合入修订（REVISIONS §4 + REVIEW-GLM §3）：新增W18/W19；调整W02/W05-W10/W12/W15/W16依赖与工时；
+# 工程拍号统一2/4、节奏稿=旋律轨clip、鼓轨辅助律动、音频走内核、演示拍号不写工程。
+schema_version: vit.demo_workplan.draft.v0
+audit_date: '2026-11-12'
+target_first_version: '2026-11-19'
+target_exhibition_ready: '2026-11-30'
+status: for_scheduling_discussion
+execution_mode: daily_decision_flow_with_parallel_execution_subagents
+recommended_main_lanes: [ui_score, runtime_authoring, audio_generation]
+materials: rotate_into_available_executor_slots
+existing_cards_to_reuse: [LAUNCHER-FE-LAYOUT-FIX-1, RECENTS-HYGIENE-1]
+no_automatic_claim_or_dispatch_in_this_audit: true
+
+work_packages:
+  - id: W00
+    title: 共享输入与实现基线冻结
+    lane: decision_and_integration
+    depends_on: []
+    first_hours: [2, 4]
+    final_hours: [2, 4]
+    domain: [coord/reports/2026-11-11-legame-*, coord/lesson-designs/music-creation-unit2, coord/decisions/2026-11-11-legame-demo-experience-first.md]
+    units: [核对并保留已有工作树改动, 将确认设计材料形成独立共享提交, 核对现有owner及复用卡, 冻结第一批接口与版本]
+    acceptance: 其他执行worktree能读到同版设计/课程/材料，领取基线与域记录齐全；不混入运行态或旧实现
+    first_slice: 全部
+  - id: W01
+    title: 最小设计源格式与包准备/工程绑定
+    lane: runtime_authoring
+    depends_on: [W00]
+    first_hours: [8, 12]
+    final_hours: [12, 20]
+    domain: [agent/internal/edu, agent/internal/projectpackage, agent/internal/chat/edu_jam_chat.go, scripts/legame_placement.py]
+    units: [源schema与支持语义校验, 材料引用与相对路径准备, 新源到旧节点/扩展检查契约映射, 每工程修订绑定与缓存失效, 导出移动/重开兼容]
+    acceptance: 新设计可准备成能运行的一局；未知字段/缺材料精确诊断；A/B两个工程不串binding，重开不切到别版
+    first_slice: 首课源格式/材料引用/新建独立工程目录与选定版本绑定，保留旧卡加载；完整迁移路径月底收口
+  - id: W02
+    title: 每轮课程上下文、作业检查与自然推进
+    lane: runtime_authoring
+    depends_on: [W01, W08, W18]
+    first_hours: [8, 14]
+    final_hours: [16, 26]
+    domain: [agent/internal/edu, agent/internal/chat/edu_jam_chat.go, agent/internal/chat/goalrunner_chat.go, agent/internal/promptruntime]
+    units: [实际模型输入中的文档/节点/材料/组件能力注入, 稳定clip及区域绑定, 基本结构检查器, 开放创作评议和帮助状态, 检查记录/恢复/返回修改]
+    acceptance: 真正LLM对当前作品提问/反馈；读到学生选定片段而非轨道首个clip；无结果不自宣通过；普通通过无强制确认卡
+    first_slice: 一条真实节奏到旋律任务、真实工程检查/反馈及恢复；完整三题与多版本月底补齐
+  - id: W03
+    title: 基础组件组合与音乐组件挂载/事件
+    lane: ui_score
+    depends_on: [W00]
+    first_hours: [8, 14]
+    final_hours: [8, 14]
+    domain: [agent/webui/src/widgets, agent/webui/src/interactionCardKit.tsx, agent/webui/src/App.tsx, agent/internal/chat]
+    units: [A2UI或现有声明式扩展的限时选型, 布局/卡片/注册组件schema, 校验与数据引用, 实例状态/过期动作, 用户结果回流并按需触发模型]
+    acceptance: 模型组合文字/选择/输入/音乐控件，实际结果回流；刷新恢复正确；不生成任意网页脚本或强制每点调用LLM
+    first_slice: 全部限定本课组件/布局子集
+  - id: W04
+    title: 谱库与数据往返去风险探针
+    lane: ui_score
+    depends_on: [W00]
+    first_hours: [4, 8]
+    final_hours: [4, 8]
+    domain: [agent/webui/src/musicScore, coord/runs/new-score-spike]
+    units: [Smoosic嵌入可行性, 与轻量abcjs/VexFlow路线比较, 附点/休止/延音/拍号的真实样例, 改一音到内核再回读/出声, WebView2宿主内Tap/谱面按键验证一次, 固定版本与选择结论]
+    acceptance: 有真实编辑往返和声音/图形证据，不能只有渲染截图；11月13日形成选型结论或明确阻塞
+    first_slice: 全部
+  - id: W05
+    title: 谱面工作台及MIDI同步
+    lane: ui_score
+    depends_on: [W03, W04, W08, W09, W18]
+    first_hours: [14, 22]
+    final_hours: [22, 36]
+    domain: [agent/webui/src/musicScore, agent/webui/src/lib/api.ts, agent/webui/src/App.tsx]
+    units: [音乐事件与记谱模型(消费W18转换), 节奏模式和旋律模式, 音符/时值/休止/附点/延音编辑, 每次保存整段覆盖clip音符并回读比对(一致才显示已保存), 保存回读与Godot回刷, 真实游标/选段循环/慢放适配, 草稿和重开]
+    acceptance: 谱面写入与内核/原卷帘一致，编辑后声音变化且保存重开；节奏稿与旋律稿同源，未赋音高有明确状态
+    first_slice: 单声部/两到八小节及本课基础符号；完整多稿/差分/辅助轮廓和错误恢复月底完善
+  - id: W06
+    title: 通用播放器与双播放器A/B
+    lane: ui_support
+    depends_on: [W03]
+    first_hours: [8, 14]
+    final_hours: [8, 14]
+    domain: [agent/webui/src/audioPlayer, agent/webui/src/trajectory/TrajectoryAuditionPanel.tsx, agent/webui/src/audition.ts]
+    units: [提取轻量audio播放器, 播放器UI＋内核后端适配(开工前静态盘点solo/mute/loop/play-from-to命令面), 后端播放状态适配, AB互斥和位置规则, 比较结果与采用分离, 旧混音调用适配/回归]
+    acceptance: 文件与两版成曲可播，切换不双响；课堂选择不回滚工程；旧混音的合法判断行为仍可用
+    first_slice: 全部；旧UI在新链验证后退役
+  - id: W07
+    title: Tap与节拍控件
+    lane: ui_support
+    depends_on: [W03, W08]
+    first_hours: [3, 5]
+    final_hours: [3, 5]
+    domain: [agent/webui/src/beatPad]
+    units: [本地计时和异常间隔, BPM/拍单位/重拍与演示拍号选择(演示拍号为agent教学演示/节拍器局部状态，不写工程), 节拍试听, 应用速度与回读, 结果事件]
+    acceptance: 点击/键盘可用，计时不依赖LLM；拍号不由均匀敲击瞎猜；演示拍号不改变工程拍号与检查计量；工程速度与所选单位一致
+    first_slice: 全部
+  - id: W08
+    title: 课内拍号和音乐坐标写入/恢复
+    lane: audio_generation
+    depends_on: [W01, W04]
+    first_hours: [3, 5]
+    final_hours: [3, 5]
+    domain: [VitApp/Source/Service/CommandDispatcher.cpp, VitApp/Source/Service/MidiService.cpp, agent/internal/tools, agent/internal/edu]
+    units: [实际时间/拍单位契约, 补设拍号handler(内核现有set_tempo无拍号命令), 创建工程时设2/4并持久化, 保存重开内核/谱面/检查读回一致, 3/4谱例由材料自带坐标显示]
+    acceptance: UI/内核/回读/检查同计量，重开不漂移；MIDI元数据未导入的限制明确处理
+    first_slice: 全部本课所需计量；不开发通用复杂tempo编辑产品
+  - id: W09
+    title: 固定健康音源与课程模板
+    lane: audio_generation
+    depends_on: [W00]
+    first_hours: [8, 16]
+    final_hours: [8, 16]
+    domain: [课程模板工件, 已有音源配置/发布, scripts/既有烟测模式]
+    units: [核实可用旋律音源, 选择辅助律动鼓音源及真实键位/通道, 固定预设/采样路径, Godot打开模板出声, 旋律轨占位音高与赋音高后出声/保存重开验证]
+    acceptance: 旋律轨占位/赋音高与辅助律动鼓轨实际非静音，编辑能听出变化，保存重开仍可用；正常工程路径不绕PCA
+    first_slice: 全部；不以Waves修复或通用模型选插件为前置
+  - id: W10
+    title: 学生谱稿到YuE2专用方言
+    lane: audio_generation
+    depends_on: [W01, W08, W18]
+    first_hours: [8, 14]
+    final_hours: [12, 20]
+    domain: [agent/internal/edu或明确新谱转换包, agent/internal/genapi, agent/internal/harness]
+    units: [按region绑定读取学生谱稿(辅助鼓轨不混入), 学生旋律声部确定性序列化并与工程MIDI比对一致, 受约束的和弦/第二声部/段落结构提出与程序校验(记为辅助创作), 中文提示词→英文tag并显示实发摘要, 防ExtraParams覆盖源谱, 辅助律动是否进入条件谱给明确结论]
+    acceptance: 源片段符号往返一致，实发条件可看，纯器乐实际输入正确；鼓轨未支持处明确说明而非虚构保留
+    first_slice: 学生八小节主题与已验证纯器乐路径贯通；更多节奏/结构边界月底收口
+  - id: W11
+    title: 最小YuE2就绪与后台任务
+    lane: audio_generation
+    depends_on: [W00]
+    first_hours: [8, 14]
+    final_hours: [12, 22]
+    domain: [agent/internal/genapi, 独立进程生命周期/任务状态模块, agent/internal/chat或harness]
+    units: [现有引擎发现/健康/按需启动, 进程owner与就绪失败, 非阻塞job接口, 状态/完成/失败事件, 重试和恢复, 只停止本任务拥有进程]
+    acceptance: 用户无终端/env/手动服务前置；生成中仍可操作窗口；状态真实，失败不伪造结果
+    first_slice: 本机现有引擎的最小就绪/单job后台状态；完整中断恢复月底完善
+  - id: W12
+    title: 成曲版本、落轨与生成卡
+    lane: audio_generation
+    depends_on: [W03, W06, W10, W11]
+    first_hours: [4, 8]
+    final_hours: [4, 8]
+    domain: [agent/internal/harness/gen_generate.go适配, 生成版本记录, agent/webui/src/widgets]
+    units: [固定源谱/实际请求/job/音频/replay关联, 风格改变为第二job, 复用ingest到结果轨, 生成卡和结果引用, 版本采用独立动作]
+    acceptance: 两版源谱一致、实际style不同，音频可播放且原MIDI不覆盖；count不伪装成单次双版本
+    first_slice: 全部限定两job/本课纯器乐
+  - id: W13
+    title: 启动页修复、设计对话与导入创建入口
+    lane: runtime_authoring
+    depends_on: [W00, W01]
+    first_hours: [10, 16]
+    final_hours: [14, 22]
+    domain: [Godot app/startup, agent/internal/chat/launcher_flow.go, 设计草稿服务]
+    reuse_cards: [LAUNCHER-FE-LAYOUT-FIX-1, RECENTS-HYGIENE-1]
+    units: [旧341布局及342相关卫生, 讨论设计而非提前开空工程, 查看/修改/保存/导入源文档, 材料检查与创建, 导航桥及设计上下文带入]
+    acceptance: 从正常启动页能继续讨论或导入，缺项可诊断；创建后进入正确工程，无终端布位；实机布局和原导航回归
+    first_slice: 已确认草稿的讨论/查看/修改/导入及创建主链；完整新课设计对话与错误分支月底完善
+  - id: W14
+    title: 本地作业报表和关键上下文摘要
+    lane: runtime_authoring
+    depends_on: [W02, W05, W12]
+    first_hours: [2, 4]
+    final_hours: [6, 10]
+    domain: [agent/internal/edu或report投影模块, agent/webui/src/widgets, source logs/evidence引用]
+    units: [固定提交/源版本, 按题目目标组织客观结果, 关键对话/模型示范/学生修改摘录, 原始引用, 未核项/帮助程度与失败状态]
+    acceptance: 两份报告来自实际过程并可回指，不靠模型记忆自证；未知来源据实呈现
+    first_slice: 单旅程关键结果与原始索引；整课目标/多版本报表月底补齐
+  - id: W15
+    title: 教材22项材料与课程内容核实
+    lane: materials
+    depends_on: [W00]
+    first_hours: [4, 8]
+    final_hours: [16, 28]
+    domain: [coord/lesson-designs/music-creation-unit2/assets, 课程内容及MANIFEST, 独立材料校订工具]
+    units: [22项截取范围明确, 余20条转写与已有2条核对, 记谱/MIDI/知识标记关联(预渲染音频可选，默认内核实时播放), 双代理独立转写＋机器比对＋两批人工听核(约11/21与11/25), 材料优先级按节点顺序(n1/n3/n5最小集先行), 课程八任务材料绑定]
+    acceptance: 每条实际能加载并引用正确原谱/范围，演示设定单独标注；不凭原图或目录假装已转写
+    first_slice: 主旅程最小材料集（n1五条pitch例、n3四条contour＋两条综合、n5三十里铺原旋律版）先行，其余清楚列缺项；全部22项月底完成
+  - id: W16
+    title: 真实课堂旅程、渲染和回归验收
+    lane: integration
+    depends_on: [W02, W05, W06, W07, W08, W09, W12, W13, W14, W15]
+    first_hours: [4, 8]
+    final_hours: [8, 14]
+    domain: [scripts/dev_agent_smoke.ps1及同模式场景, 隔离fixture, coord/runs, 组件/服务有意义的回归测试]
+    units: [确定性写读/模板声音/材料/状态腿, 真实LLM引导与生成预算, 实际浏览器和WebView宿主操作, 保存/重开/错误恢复, 旧混音AB及普通工程回归]
+    acceptance: 首版/全课分别有真实栈exit0与渲染证据；命令/版本/二进制/hash/日志齐；不把一次成功当稳定率
+    first_slice: 首版完整主旅程与三必需控件（含浏览器级DOM断言基建建设），边界清楚；月底多任务/恢复/材料完整性与稳定性样本收口
+  - id: W17
+    title: 冻结、用户里程碑复核与5分钟材料采集
+    lane: decision_and_capture
+    depends_on: [W16]
+    first_hours: [0, 0]
+    final_hours: [6, 10]
+    domain: [版本与发布清单, 用户从Godot启动的干净工程, 展示用录屏/截图/音频/报表]
+    units: [里程碑交付清单, 用户体验后的缺陷归档/修复闭环, 固定模型/插件/材料版本, 干净工程重铺与演练副本, 五分钟呈现素材和诚实标注]
+    acceptance: 月底得到可复现的完整体验及展示材料，用户手测通过；录制来自真实操作，不用伪造素材补链
+    first_slice: 首版用户手测安排在W16门通过后；月底包包含采集/交付
+  - id: W18
+    title: 记谱↔MIDI确定性转换模块
+    lane: ui_score
+    depends_on: [W00]
+    first_hours: [10, 16]
+    final_hours: [10, 20]
+    domain: [agent/webui/src/musicScore内转换子模块或独立纯函数包, 独立fixture测试]
+    units: [谱面→音符: 累加时值/附点/连线合并/休止推进/按谱位与调号算音高, 音符→谱面: 网格量化/跨小节拆分加连线/补休止/按拍号连梁/按key_signature拼写, 离网格音/重叠音/三连音给提示不猜, 供谱面编辑/小节检查/W10旋律序列化三处共用]
+    acceptance: 纯函数＋fixture测试通过；与内核MIDI往返在受支持语法内一致；不依赖谱库选型，G0期间可与W04并行开工
+    first_slice: 全部
+  - id: W19
+    title: 材料按ID加载运行时
+    lane: runtime_authoring
+    depends_on: [W01, W18]
+    first_hours: [4, 6]
+    final_hours: [6, 10]
+    domain: [agent/internal/edu, agent/internal/projectpackage, agent/webui/src/widgets]
+    units: [材料MIDI放到参考轨指定位置并经内核播放, 原页图片裁切显示与高亮(catalog music_region需补坐标), 材料版本与显示一致, clip身份沿用W02共用契约]
+    acceptance: 按ID加载实际出声并显示对应原页范围；未转写材料明确提示不可播放，不冒充完成
+    first_slice: 主旅程最小材料集(n1/n3/n5)先行
+
+estimation:
+  first_version_total_hours: [120, 208]
+  final_scope_total_hours: [180, 312]
+  integration_rework_reserve_fraction: 0.20
+  final_with_reserve_hours_rounded: [216, 374]
+  caution: 工作包不是实际卡数；需按单卡目标/文件域拆成小卡，实际探针后重估，不由子代理数量直接推算交付日期；2026-11-12修订后数字含W18/W19

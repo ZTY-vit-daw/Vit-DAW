@@ -1,0 +1,242 @@
+{
+  "purpose": "confirmed_design_and_source_input_inventory_for_clean_shared_commit",
+  "files": [
+    {
+      "path": "coord/decisions/2026-11-11-legame-demo-experience-first.md",
+      "bytes": 15951,
+      "sha256": "097d6f1afa64784b6457ad58651516d6800013a0fe16687a6f1b73f45ab8c0f0"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/assets/catalog.yaml",
+      "bytes": 7847,
+      "sha256": "b1f37ab34e722cc0a72cdeafe63b44ad0baec88f118174632c6fb39f3c70ce84"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/assets/midi/exercise2-prototype_demo-C_80bpm.mid",
+      "bytes": 156,
+      "sha256": "d20bfa68da68b8d6eae0812612109fadf2040485eb10c1f9300bf391409c2972"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid",
+      "bytes": 291,
+      "sha256": "c654898499232c8e234e776474042bbe7fcb45c13debe719d6c8e8bd0c4dfe40"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/assets/seed-midi-manifest.json",
+      "bytes": 4926,
+      "sha256": "1eed7e0361b1438526fa77cc6e82b9322390bc1d0c4cefb6b65a1d022de182d5"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/assets/seed-midi-verification.json",
+      "bytes": 718,
+      "sha256": "6245232120b319a3f2742e0877df8938890c865b6d2ed0e19342cacacd83d5ad"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/design.v1.yaml",
+      "bytes": 29444,
+      "sha256": "dbf3781a67c86f7f7341b0771ab9207bdff7a618ac666b9aad9cd7e5b1356fb7"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/LESSON-V1.md",
+      "bytes": 13876,
+      "sha256": "4278e0417bc9d63bc34db03486d43d122fd1fff4e7dfe1a9c758690181afc48b"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/README.md",
+      "bytes": 3739,
+      "sha256": "dfc8fa7f133efaa94cb74a3107f18b0c77d63f9e37406e176d0c4aa459752a37"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/manifest.json",
+      "bytes": 4989,
+      "sha256": "c4fd750f78d5895859e448a8ea833b36b82ed5d5cef623dc051f267d57074c7e"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-002_contents.png",
+      "bytes": 133731,
+      "sha256": "5c01f7f0664f96d542cd3b96bd23b67c4f3d44efc7574dc77b20e23bbc154242"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-020_unit-cover.png",
+      "bytes": 298605,
+      "sha256": "71675919eb8e149d5816254ad7ff5696b3289b96aa674a2f735930d87fbf56ca"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-021_book-016.png",
+      "bytes": 155155,
+      "sha256": "c8e9db280e7520e4cb818c5e8277584b91169c12ffeaa0436408f42fcf8e7675"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-022_book-017.png",
+      "bytes": 120191,
+      "sha256": "868e48eae630d2946e4eae9ffabe9684594678f24a3c5043944561c40091d2be"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-023_book-018.png",
+      "bytes": 208459,
+      "sha256": "b81ed64445206bc7ce1c547fd22e0c904a0656cba61d4bc8b992a9befb0516ef"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-024_book-019.png",
+      "bytes": 173178,
+      "sha256": "12875dca6d0df1cdd8a9d2821cdb55361f9f4047ec9b6bcaeb6c3567a500aeb7"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-025_book-020.png",
+      "bytes": 176282,
+      "sha256": "f8ca5fa87f95b2f524c40264a1e524d5b1ae25cc97ea248fc315c677c9613b76"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-026_book-021.png",
+      "bytes": 206218,
+      "sha256": "8a8ac25aa3d2e13efbba43003617c008caa90acb3672a1ba8bdf3682390da964"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-027_book-022.png",
+      "bytes": 232446,
+      "sha256": "dcc9e81be19053919d1fdfa74c2fe85f417c5d5797e6acbec4b052f32c19a7ae"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-028_book-023.png",
+      "bytes": 141248,
+      "sha256": "4f363c6a25c5ceb312cf37f041d0496f45ddbbbe827f468652e347e15be0d590"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-029_book-024.png",
+      "bytes": 89742,
+      "sha256": "6e381e6318035fa3336d91094ae99d311dee78cae98fadc5d2faef795d85694d"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-030_book-025.png",
+      "bytes": 152182,
+      "sha256": "764b79ef5464f9b1c73d839a49338c9903c59ac5244111ca9573fd7127d4d3bf"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-031_book-026.png",
+      "bytes": 137332,
+      "sha256": "c2e5fa7748c4e11e952c65a90c1a2e2bf1ff19365e14e2f9e6b9270ce1f10fd6"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-032_book-027.png",
+      "bytes": 228776,
+      "sha256": "a49ddb8500fcc903554906ade10b5772b025c42c0b769c1b3ff8e8ce0b4454cc"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-033_book-028.png",
+      "bytes": 182939,
+      "sha256": "fa1e3bc56874c6e79fb8a5f41632ce19b30f4b188506506198cf782bea24d522"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-034_book-029.png",
+      "bytes": 105373,
+      "sha256": "c55f27bfeb6dea35563a7934e98c639794534ef9c9d53be1628f488eca16b1c5"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages/pdf-035_book-030.png",
+      "bytes": 92824,
+      "sha256": "3f1a0c7216ee1e0367108a38ffe7091d911da3dfcdfeae50351899b9624d6e77"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/pages.json",
+      "bytes": 28470,
+      "sha256": "4fc352d6291ba965639ebd6031b3c9a90c32907c3b67f11a66d13a39743912ca"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/selected-symbolic-materials.json",
+      "bytes": 2681,
+      "sha256": "efcee1a87a58e750fca3585ebb6100cd4c2fa7ed555f9e84d5bb5beeef4fd46d"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/unit2-contact-sheet.png",
+      "bytes": 561146,
+      "sha256": "7a0aef1a8c2917bb0e1f0b85edcdb48c7bbc16cc7d0197308ea3ae111cf2c455"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/source/unit2-extracted-text.md",
+      "bytes": 11954,
+      "sha256": "fa4dd7987995b5f545a532110e1fbf5196b09410ebd771a07ff8ea77d6c0dfdd"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/TEXTBOOK-ALIGNMENT-AND-MATERIALS.md",
+      "bytes": 7267,
+      "sha256": "d3f186d03ec1806eb3341c1c892d0dcd35e8d3571b9e79d371090aaed77526ec"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/TEXTBOOK-NOTES.md",
+      "bytes": 10240,
+      "sha256": "07bd54d61125a73c177aace85bfcf860113f8d913dca223106322edd3bf0efc8"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/tools/build_seed_midi.py",
+      "bytes": 4114,
+      "sha256": "8a9ce9d69b0b314b32aae7dc8a9b04d12fadbba7191ad6ae97992818c992815c"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/tools/extract_unit2.py",
+      "bytes": 5900,
+      "sha256": "beb8a17f905c0f4bc0ad79d8401b4d615d888c87fedd120c27d646fa484a8382"
+    },
+    {
+      "path": "coord/lesson-designs/music-creation-unit2/verification.json",
+      "bytes": 1937,
+      "sha256": "7658a704bd065e7ee08758635679c3f6c9df7f675d75d416a479098d9547aa5e"
+    },
+    {
+      "path": "coord/lesson-designs/README.md",
+      "bytes": 656,
+      "sha256": "74099101505a2206bac16b4dd8ff7dfb71958b6b1f685fc0b80df811e73c7672"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-answer-isolation-feasibility.md",
+      "bytes": 9327,
+      "sha256": "2aa0bfa408bbf7d880d769e736c7467840787a453d3e403cd1f7ffce3745786a"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-authoring-entry-and-format-draft.md",
+      "bytes": 17259,
+      "sha256": "8a8477efe62c7c0d3498b41775ba03f245972001a1f93d3b1bdae59a7aa6862e"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-demo-creation-finale-draft.yaml",
+      "bytes": 10261,
+      "sha256": "8d1e9debc72ff6c98b648cfadd2704d627fdab1bed3c43d342069a0694bb9b86"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-demo-scope.md",
+      "bytes": 7026,
+      "sha256": "d8cdc57b22104e99b23387e618c183d4ebf5a8fc4fd81d64bce16cc75ee32609"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-design-template.yaml",
+      "bytes": 9918,
+      "sha256": "5837c9bab8a18ae83dc0e88744667948f776358db68b46d3f4b7029e0adee26b"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-music-widgets-options.md",
+      "bytes": 13507,
+      "sha256": "3317e74adcba3f397c52bccb2b7520b99cfbe973b6ed873240b915f2fbaef218"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-student-score-to-yue2-finale.md",
+      "bytes": 10565,
+      "sha256": "74c6bd064d2b391565dc78c079af21a243ef6718ff07a094ac1a0950caf14b7e"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-teaching-guardrails-and-evidence-draft.md",
+      "bytes": 29331,
+      "sha256": "472100509ffb25a9ed50ace9bb95f2243ceba7dc8662d9143fd1b2ba1c830cbb"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-widget-catalog-draft.md",
+      "bytes": 15139,
+      "sha256": "492a0507bb10ed3a383daaf4e010e71d9f04906cbf50a1d75bd85e83e13ccc1e"
+    },
+    {
+      "path": "coord/reports/2026-11-11-legame-widget-consolidation-and-reuse.md",
+      "bytes": 10344,
+      "sha256": "ade7af2b42cbb0bac0ff93f0292e4a284e56712f219789bac1d6f6c29a41cd93"
+    }
+  ],
+  "files_already_committed": false,
+  "note": "Inventory is not a git commit; inspect attribution before staging. Original full PDF is not included."
+}

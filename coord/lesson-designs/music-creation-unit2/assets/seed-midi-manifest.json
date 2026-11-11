@@ -1,0 +1,200 @@
+{
+  "schema_version": "vit.lesson_seed_midi.v0",
+  "source_sha256": "4fe0feddfe8abb15113925dd8480d8d2a2bebc363c8d4343beb8d9958acd4b65",
+  "products": [
+    {
+      "file": "assets/midi/exercise2-prototype_demo-C_80bpm.mid",
+      "sha256": "d20bfa68da68b8d6eae0812612109fadf2040485eb10c1f9300bf391409c2972",
+      "bytes": 156,
+      "source_id": "exercise2-prototype",
+      "pdf_page": 34,
+      "printed_page": 29,
+      "time_signature": "4/4",
+      "ppq": 480,
+      "demo_bpm": 80,
+      "expected_notes": [
+        {
+          "id": "proto-1",
+          "bar": 1,
+          "start_quarter": 0,
+          "duration_quarter": 1,
+          "relative_degree": 1,
+          "pitch": 60
+        },
+        {
+          "id": "proto-2",
+          "bar": 1,
+          "start_quarter": 1,
+          "duration_quarter": 1,
+          "relative_degree": 3,
+          "pitch": 64
+        },
+        {
+          "id": "proto-3",
+          "bar": 1,
+          "start_quarter": 2,
+          "duration_quarter": 1,
+          "relative_degree": 2,
+          "pitch": 62
+        },
+        {
+          "id": "proto-4",
+          "bar": 1,
+          "start_quarter": 3,
+          "duration_quarter": 1,
+          "relative_degree": 5,
+          "pitch": 67
+        },
+        {
+          "id": "proto-5",
+          "bar": 2,
+          "start_quarter": 4,
+          "duration_quarter": 1,
+          "relative_degree": 3,
+          "pitch": 64
+        },
+        {
+          "id": "proto-6",
+          "bar": 2,
+          "start_quarter": 5,
+          "duration_quarter": 1,
+          "relative_degree": 6,
+          "pitch": 69
+        },
+        {
+          "id": "proto-7",
+          "bar": 2,
+          "start_quarter": 6,
+          "duration_quarter": 2,
+          "relative_degree": 5,
+          "pitch": 67
+        }
+      ],
+      "sound_check": "not_performed"
+    },
+    {
+      "file": "assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid",
+      "sha256": "c654898499232c8e234e776474042bbe7fcb45c13debe719d6c8e8bd0c4dfe40",
+      "bytes": 291,
+      "source_id": "sanshilipu-first-two-phrases-rhythm",
+      "pdf_page": 35,
+      "printed_page": 30,
+      "time_signature": "2/4",
+      "ppq": 480,
+      "demo_bpm": 80,
+      "expected_notes": [
+        {
+          "start_quarter": 0,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 0.5,
+          "duration_quarter": 1,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 1.5,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 2.0,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 2.5,
+          "duration_quarter": 1,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 3.5,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 4.0,
+          "duration_quarter": 0.75,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 4.75,
+          "duration_quarter": 0.25,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 5.0,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 5.5,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 6.0,
+          "duration_quarter": 2,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 8.0,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 8.5,
+          "duration_quarter": 1,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 9.5,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 10.0,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 10.5,
+          "duration_quarter": 1,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 11.5,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 12.0,
+          "duration_quarter": 0.75,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 12.75,
+          "duration_quarter": 0.25,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 13.0,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 13.5,
+          "duration_quarter": 0.5,
+          "pitch": 37
+        },
+        {
+          "start_quarter": 14.0,
+          "duration_quarter": 2,
+          "pitch": 37
+        }
+      ],
+      "sound_check": "not_performed"
+    }
+  ]
+}

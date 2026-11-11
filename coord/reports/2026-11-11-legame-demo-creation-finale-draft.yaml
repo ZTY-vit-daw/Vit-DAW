@@ -1,0 +1,237 @@
+# 展演乐局创作收尾片段；不是整课、不是已实现运行卡。
+# 按讨论中的 design.yaml 字段组织；实现前需映射到实际源格式/运行卡。
+# 前半段教学依用户要求留空；本片段以学生已有节奏/旋律稿为输入。
+# 当前是展示两版的演示路径；通用产品的变体生成可选，不据此要求所有学生两版才学会。
+schema_version: vit.legame_design.v0
+id: edu-melody-composition-demo
+revision: 1
+title: 我的节奏与旋律，成为一首曲子
+
+brief:
+  audience: 高中音乐编创学习者
+  music_task: 将自己的节奏和旋律在工程中试听，并按选定谱稿生成纯器乐完整编曲
+  final_deliverable: 学生 MIDI 原稿、现场音源试听、YuE2 成曲版本及版本比较记录
+  prerequisites: [已有学生节奏稿, 已有学生旋律稿]
+  estimated_minutes: null
+
+objectives:
+  - id: task-score-to-tracks
+    kind: music_task
+    description: 使学生写下的节奏和旋律真实落到对应轨道并能试听
+    evidence_checks: [check-rhythm-track, check-melody-track]
+  - id: task-score-to-song
+    kind: music_task
+    description: 以选定学生谱稿生成纯器乐成曲，修改风格生成另一版并作比较
+    evidence_checks: [check-song-v1, check-song-v2, check-comparison]
+
+materials:
+  - id: student-rhythm
+    kind: midi
+    file: null
+    purpose: 学生节奏稿，本局运行时从实际保存片段绑定
+    source: 学生在谱面工作台创作
+  - id: student-melody
+    kind: midi
+    file: null
+    purpose: 学生旋律稿，本局运行时从实际保存片段绑定
+    source: 学生在同一谱面由节奏继续创作的旋律
+
+workspace:
+  timing:
+    time_signature: null
+    tempo_bpm: null
+    pickup_beats: null
+  tracks:
+    - id: rhythm-answer-track
+      name: 我的节奏
+      role: user_work
+      initial_material: student-rhythm
+      editable_by_user: true
+    - id: melody-answer-track
+      name: 我的旋律
+      role: user_work
+      initial_material: student-melody
+      editable_by_user: true
+    - id: song-result-track
+      name: 我的成曲版本
+      role: generated_result
+      initial_material: null
+      editable_by_user: true
+  regions:
+    - id: rhythm-answer
+      track: rhythm-answer-track
+      locator: null
+      purpose: 当前题学生节奏片段
+    - id: melody-answer
+      track: melody-answer-track
+      locator: null
+      purpose: 当前题学生旋律片段
+    - id: song-results
+      track: song-result-track
+      locator: null
+      purpose: 固定谱稿关联的生成音频候选，不覆盖源 MIDI
+
+capability_requests:
+  - id: materialize-rhythm
+    request: 写入实际节奏 MIDI，装载已核实的鼓/打击乐音源与键位映射，回读并试听
+    required: true
+    fallback: null
+  - id: materialize-melody
+    request: 写入实际旋律 MIDI，装载已核实的旋律音源，回读并试听
+    required: true
+    fallback: null
+  - id: yue2-score-generation
+    request: 固定学生谱稿，保持原稿转换为已验证 YuE2 方言，提交纯器乐生成并保存实际请求与 replay
+    required: true
+    fallback: 失败保留原稿与现场音源试听；不将替代渲染冒充 YuE2 成果
+  - id: compare-song-versions
+    request: 双播放器比较两个已生成版本，记录偏好和解释，采用版本为独立动作
+    required: true
+    fallback: null
+
+checks:
+  - id: check-rhythm-track
+    purpose: task_progress
+    method: deterministic
+    target: rhythm-answer
+    criterion: 已保存 MIDI 的时值/休止/起点与学生节奏提交一致，目标音源可用且可播放
+    evidence: 内核回读、实际音源装载和播放回执；不以网页局部状态代替
+    on_unavailable: pause_and_report
+  - id: check-melody-track
+    purpose: task_progress
+    method: deterministic
+    target: melody-answer
+    criterion: 已保存 MIDI 的音高/节奏与学生旋律提交一致，目标音源可用且可播放
+    evidence: 内核回读、实际音源装载和播放回执
+    on_unavailable: pause_and_report
+  - id: check-song-v1
+    purpose: task_progress
+    method: deterministic
+    target: song-results
+    criterion: 第一版生成任务真实成功、音频可播放，关联选定谱稿与实际请求
+    evidence: job 结果、音频资产、谱稿/请求/replay 引用
+    on_unavailable: pause_and_report
+  - id: check-song-v2
+    purpose: task_progress
+    method: deterministic
+    target: song-results
+    criterion: 第二版来自同一选定谱稿和新的有效风格条件，第一版仍可回看
+    evidence: 两个 job/实际请求/输出资产及谱稿版本对应
+    on_unavailable: pause_and_report
+  - id: check-comparison
+    purpose: task_progress
+    method: user_judgment
+    target: song-results
+    criterion: 学生听两版，表达偏好或不确定并说明下一步想法
+    evidence: A/B 版本身份、学生选择/解释与采用记录
+    on_unavailable: request_review
+
+flow:
+  progression: ordered
+  nodes:
+    - id: finale-rhythm-preview
+      title: 听见我写的节奏
+      objective_refs: [task-score-to-tracks]
+      task: 将已写节奏落到鼓轨，用实际音源试听，必要时返回谱面修改
+      lead: human
+      uses_materials: [student-rhythm]
+      uses_regions: [rhythm-answer]
+      uses_capabilities: [materialize-rhythm]
+      human_decides: [节奏型, 是否需要修改, 可选的打击乐音色]
+      model_may_do: [装配既定音源与写入接线, 播放定位, 说明谱面与声音的关系]
+      complete_when: [check-rhythm-track]
+      collect_evidence: []
+      leaves_behind: 实际 MIDI 节奏稿与音源试听状态
+      transition: 在同一谱面继续为节奏赋予旋律音高
+    - id: finale-melody-preview
+      title: 听见我写的旋律
+      objective_refs: [task-score-to-tracks]
+      task: 将学生旋律落到另一轨，用清晰旋律音源试听，保留原节奏稿
+      lead: human
+      uses_materials: [student-rhythm, student-melody]
+      uses_regions: [rhythm-answer, melody-answer]
+      uses_capabilities: [materialize-melody]
+      human_decides: [旋律音高与修改, 使用哪个已保存谱稿继续]
+      model_may_do: [播放选段, 解释具体变化, 接线到实际内核]
+      complete_when: [check-melody-track]
+      collect_evidence: []
+      leaves_behind: 已保存旋律版本及与节奏稿的关联
+      transition: 选定该版本作为成曲主题
+    - id: finale-generate-first
+      title: 把我的旋律编成一首曲子
+      objective_refs: [task-score-to-song]
+      task: 选定谱稿与编曲风格，生成突出学生旋律的纯器乐成品
+      lead: human
+      uses_materials: [student-rhythm, student-melody]
+      uses_regions: [rhythm-answer, melody-answer, song-results]
+      uses_capabilities: [yue2-score-generation]
+      human_decides: [源谱版本, 风格提示词, 是否接受辅助结构/和声方案]
+      model_may_do: [整理实际有效风格条件, 补充约定的编曲条件, 提交并报告任务状态]
+      complete_when: [check-song-v1]
+      collect_evidence: []
+      leaves_behind: 第一版全曲与源谱/实际请求/replay
+      transition: 保持源谱，修改提示词尝试第二种编曲
+    - id: finale-generate-variant
+      title: 同一旋律，另一种风格
+      objective_refs: [task-score-to-song]
+      task: 保持源谱版本，使用学生修改后的实际有效风格条件生成第二版
+      lead: human
+      uses_materials: [student-rhythm, student-melody]
+      uses_regions: [melody-answer, song-results]
+      uses_capabilities: [yue2-score-generation]
+      human_decides: [提示词如何改变]
+      model_may_do: [解释风格变化, 构造请求, 保存新版本]
+      complete_when: [check-song-v2]
+      collect_evidence: []
+      leaves_behind: 与同一源谱绑定的第二版全曲
+      transition: 将两版放入组合式 A/B 播放器
+    - id: finale-compare-and-keep
+      title: 选择我的作品版本
+      objective_refs: [task-score-to-song]
+      task: 听两版并描述自己的选择；可以保留两版或继续修改
+      lead: human
+      uses_materials: []
+      uses_regions: [song-results]
+      uses_capabilities: [compare-song-versions]
+      human_decides: [偏好和理由, 命名, 采用或保留哪些版本]
+      model_may_do: [组织比较, 回顾学生原稿与辅助编曲的贡献]
+      complete_when: [check-comparison]
+      collect_evidence: []
+      leaves_behind: 音频版本、命名与比较记录
+      transition: 学生确认收局，生成作业报表和关键上下文摘要
+
+guidance:
+  approach: 保留学生谱面为作品主题，在试听、生成与风格比较中支持创作判断
+  help_policy: 按节点讨论和展示；模型补充的和声/结构不记为学生独立作答
+  exploration_policy: 允许返回谱面修改或尝试新风格，旧谱稿与生成版本保留
+  learner_decision_policy: 源谱、表达意图、风格与最终版本由学生决定
+
+submission:
+  freeze_project_and_evidence_snapshot: true
+  teacher_review_required: null
+  review_by_objective: true
+  retain_previous_submissions: true
+  on_return: preserve_history_and_continue
+  reports: [assignment_report, key_context_summary]
+  include_raw_evidence_index: true
+  summary_claims_require_evidence_refs: true
+
+completion:
+  required_deliverables: [学生节奏 MIDI, 学生旋律 MIDI, 第一版成曲, 第二版成曲, 比较记录]
+  required_checks: [check-rhythm-track, check-melody-track, check-song-v1, check-song-v2, check-comparison]
+  learning_evidence_to_record: []
+  user_confirm_closure: true
+  export: optional
+
+budget:
+  max_turns: null
+  max_llm_calls: null
+  on_limit: preserve_and_pause
+
+pending_questions:
+  - 前半段教学与三道实践题的衔接按用户要求暂不设计
+  - 目标成曲长度，以及短旋律在完整结构中如何重复和展开
+  - 学生节奏轨进入 YuE2 条件谱的具体路径，核实打击乐表达与已有方言能力
+  - 首版实际可用的鼓/旋律音源、预设与 MIDI 映射
+  - 课堂实际速度、拍号、弱起与各源片段范围
+  - 各 check 的实现绑定与生成轮次数/失败分类/止损在运行前确定

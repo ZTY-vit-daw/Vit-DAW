@@ -1,0 +1,56 @@
+{
+  "schema_version": "vit.lesson_symbolic_reference.v0",
+  "status": "manually_transcribed_source_reference_not_runtime_midi",
+  "beat_unit": "quarter_note",
+  "verification": {
+    "method": "Visual check against the cached original PDF pages",
+    "source_sha256": "4fe0feddfe8abb15113925dd8480d8d2a2bebc363c8d4343beb8d9958acd4b65",
+    "not_claimed": ["Full-song pitch transcription", "Playback-verified MusicXML or MIDI", "Teacher-approved lesson assets"]
+  },
+  "materials": [
+    {
+      "id": "exercise2-prototype",
+      "title": "编创实践2的原型动机",
+      "pdf_page": 34,
+      "printed_page": 29,
+      "source_image": "source/pages/pdf-034_book-029.png",
+      "time_signature": "4/4",
+      "key_in_source": null,
+      "notes": [
+        {"id": "proto-1", "bar": 1, "start_quarter": 0, "duration_quarter": 1, "relative_degree": 1},
+        {"id": "proto-2", "bar": 1, "start_quarter": 1, "duration_quarter": 1, "relative_degree": 3},
+        {"id": "proto-3", "bar": 1, "start_quarter": 2, "duration_quarter": 1, "relative_degree": 2},
+        {"id": "proto-4", "bar": 1, "start_quarter": 3, "duration_quarter": 1, "relative_degree": 5},
+        {"id": "proto-5", "bar": 2, "start_quarter": 4, "duration_quarter": 1, "relative_degree": 3},
+        {"id": "proto-6", "bar": 2, "start_quarter": 5, "duration_quarter": 1, "relative_degree": 6},
+        {"id": "proto-7", "bar": 2, "start_quarter": 6, "duration_quarter": 2, "relative_degree": 5}
+      ],
+      "total_quarter_beats": 8,
+      "note": "原页未给调号。若以C调播放，属于课堂演示设定，不是源谱元数据。"
+    },
+    {
+      "id": "sanshilipu-first-two-phrases-rhythm",
+      "title": "《三十里铺》前两句8小节节奏",
+      "pdf_page": 35,
+      "printed_page": 30,
+      "source_image": "source/pages/pdf-035_book-030.png",
+      "time_signature": "2/4",
+      "key_in_source": "1=C",
+      "tempo_text_in_source": "慢",
+      "tempo_bpm_in_source": null,
+      "bars": [
+        {"bar": 1, "durations_quarter": [0.5, 1, 0.5]},
+        {"bar": 2, "durations_quarter": [0.5, 1, 0.5]},
+        {"bar": 3, "durations_quarter": [0.75, 0.25, 0.5, 0.5]},
+        {"bar": 4, "durations_quarter": [2]},
+        {"bar": 5, "durations_quarter": [0.5, 1, 0.5]},
+        {"bar": 6, "durations_quarter": [0.5, 1, 0.5]},
+        {"bar": 7, "durations_quarter": [0.75, 0.25, 0.5, 0.5]},
+        {"bar": 8, "durations_quarter": [2]}
+      ],
+      "total_quarter_beats": 16,
+      "pitches_transcribed": false,
+      "note": "这里只转写节奏；不把教材原曲音高变成学生第三题的规定答案。弧线/歌词不包含在本节奏数据内。"
+    }
+  ]
+}

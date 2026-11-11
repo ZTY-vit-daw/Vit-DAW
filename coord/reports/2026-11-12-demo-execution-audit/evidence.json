@@ -1,0 +1,402 @@
+{
+  "audit_date": "2026-11-12",
+  "timezone": "Asia/Shanghai",
+  "repo_head": "b443e275639f68b7fee077d0983acd8a5e178206",
+  "origin_main_after_fetch": "b443e275639f68b7fee077d0983acd8a5e178206",
+  "main_ahead_behind": "0\t0",
+  "frontend_head": "ff301b30b2720713a2efb41e8657159915b2f202",
+  "repo_status": "M CURRENT-STATE.md\n M VitApp/Workspace/Settings/Settings.xml\n M VitApp/Workspace/default_project.xml\n M coord/levels/README.md\n M tracktion_engine\n?? .zcode/\n?? .zcodeignore\n?? agent/coord/\n?? agent/webui/design/direction-approved-launcher.md\n?? agent/webui/design/launcher-route-mondrian-v1.html\n?? agent/webui/design/launcher-route-mondrian-v1.png\n?? agent/webui/design/launcher-route-mondrian-v2.html\n?? agent/webui/design/launcher-route-mondrian-v2.png\n?? agent/webui/design/launcher-route-panel-v1.html\n?? agent/webui/design/launcher-route-panel-v1.png\n?? agent/webui/design/launcher-route-soundviz-v1.html\n?? agent/webui/design/launcher-route-soundviz-v1.png\n?? agent/webui/design/mondrian-route-bauhaus-tokens-v1.html\n?? agent/webui/design/mondrian-route-bauhaus-tokens-v1.png\n?? agent/webui/design/mondrian-route-boogie-timeline-v1.html\n?? agent/webui/design/mondrian-route-boogie-timeline-v1.png\n?? agent/webui/design/mondrian-route-destijl-dock-v1.html\n?? agent/webui/design/mondrian-route-destijl-dock-v1.png\n?? agent/webui/design/mondrian-route-swiss-infolayer-v1.html\n?? agent/webui/design/mondrian-route-swiss-infolayer-v1.png\n?? coord/decisions/2026-11-11-legame-demo-experience-first.md\n?? coord/lesson-designs/\n?? coord/reports/2026-11-11-legame-answer-isolation-feasibility.md\n?? coord/reports/2026-11-11-legame-authoring-entry-and-format-draft.md\n?? coord/reports/2026-11-11-legame-demo-creation-finale-draft.yaml\n?? coord/reports/2026-11-11-legame-demo-scope.md\n?? coord/reports/2026-11-11-legame-design-template.yaml\n?? coord/reports/2026-11-11-legame-music-widgets-options.md\n?? coord/reports/2026-11-11-legame-student-score-to-yue2-finale.md\n?? coord/reports/2026-11-11-legame-teaching-guardrails-and-evidence-draft.md\n?? coord/reports/2026-11-11-legame-widget-catalog-draft.md\n?? coord/reports/2026-11-11-legame-widget-consolidation-and-reuse.md\n?? coord/reports/2026-11-12-demo-execution-audit/\n?? docs/ACOUSTIC_OBSERVATION_L1_L3_RELIABILITY_AUDIT_2026-10-29.md\n?? docs/ADR-EFFECT-CONTROL-REDESIGN-V2.md\n?? docs/ADR_AI_LISTENING_EAR_V1.md\n?? docs/ADR_AI_LISTENING_EAR_V2.md\n?? docs/AI_FIRST_INTERACTION_DISCUSSION_2026-10-28.md\n?? docs/EDU_SEQUENCE_DEMO_PREDEFENSE_PLAN_2026-11-05.md\n?? docs/FIRST_RUN_GAME_AND_LEVEL_RUNTIME_DESIGN_2026-11-05.md\n?? docs/INTERVIEW_PILOT_2026-11-02.md\n?? docs/PERSONAL_AGENT_DESIGN_DISCUSSION_2026-11-02.md\n?? docs/SHOW_BIBLE_DRAFT_2026-11-02.md\n?? docs/TEST-BARE-CONTROL-VALIDATION.md\n?? nul",
+  "frontend_status": "?? .vit_agent/\n?? .vit_derived/\n?? 7.31A5.vit_project/\n?? 7.31test.vit_project/\n?? 8.1test/\n?? 8.1test1/\n?? \"A5\\345\\256\\214\\346\\210\\220\\345\\220\\216/\"\n?? \"B1\\345\\256\\214\\346\\210\\220\\345\\220\\216/\"\n?? \"B2\\345\\244\\204\\347\\220\\206\\345\\220\\216/\"\n?? \"B3\\345\\256\\214\\346\\210\\220\\345\\220\\216/\"\n?? \"B4\\345\\256\\214\\346\\210\\220\\345\\220\\216/\"\n?? \"C2\\345\\256\\214\\346\\210\\220\\345\\220\\216/\"",
+  "source_anchors": [
+    {
+      "path": "agent/internal/edu/lesson_card.go",
+      "sha256": "18d25baaf02fe64f8be50fc9c7dd18093019f511c9509ad95ceefe8b5c82c7d5",
+      "anchors": [
+        {
+          "line": 19,
+          "text": "//\t11  schema_version 未知（restore fail-closed 同型）"
+        },
+        {
+          "line": 30,
+          "text": "// 解析 fail-closed：顶层未知字段拒绝（yaml KnownFields）；叶子未知参数字段"
+        },
+        {
+          "line": 48,
+          "text": "// LevelCardSchemaVersion 是本校验门认知的乐局卡 schema 版本（拒绝路径 11）。"
+        },
+        {
+          "line": 49,
+          "text": "const LevelCardSchemaVersion = \"vit.level_card.v0\""
+        },
+        {
+          "line": 84,
+          "text": "type LevelCard struct {"
+        },
+        {
+          "line": 85,
+          "text": "SchemaVersion string                     `yaml:\"schema_version\" json:\"schema_version\"`"
+        },
+        {
+          "line": 509,
+          "text": "// ParseLevelCard 解析并校验乐局卡字节流（零 IO）。解析失败或校验拒绝均返回"
+        },
+        {
+          "line": 511,
+          "text": "func ParseLevelCard(data []byte) (*LevelCard, error) {"
+        },
+        {
+          "line": 514,
+          "text": "dec.KnownFields(true) // 顶层/嵌套未知字段拒绝（专家笔误 fail-closed）"
+        },
+        {
+          "line": 531,
+          "text": "card, err := ParseLevelCard(data)"
+        },
+        {
+          "line": 602,
+          "text": "if c.SchemaVersion != LevelCardSchemaVersion { // 拒绝路径 11"
+        },
+        {
+          "line": 603,
+          "text": "v.failf(\"[11] schema_version %q != %q（restore fail-closed 同型：拒绝未知版本）\", c.SchemaVersion, LevelCardSchemaVersion)"
+        }
+      ]
+    },
+    {
+      "path": "agent/internal/chat/edu_jam_chat.go",
+      "sha256": "82daa281ad260493751ae6348528693a532b44ead92b45ee866726ae54868cfa",
+      "anchors": [
+        {
+          "line": 55,
+          "text": "// eduJamPullbackContextKey 拉回注入的上下文键（非命令轮次不拦截，仅注入）。"
+        },
+        {
+          "line": 56,
+          "text": "eduJamPullbackContextKey = \"edu_jam_pullback\""
+        },
+        {
+          "line": 166,
+          "text": "chatContext[eduJamPullbackContextKey] = map[string]any{"
+        },
+        {
+          "line": 820,
+          "text": "func (s *Server) observeEduJam(ctx context.Context, card *edu.LevelCard) (edu.Observation, map[string]any, error) {"
+        },
+        {
+          "line": 865,
+          "text": "clipID = firstStringFromMap(clip, \"id\", \"clip_id\", \"item_id\")"
+        },
+        {
+          "line": 1115,
+          "text": "func legameBindingPath(projectPath string) string {"
+        },
+        {
+          "line": 1402,
+          "text": "func loadEduJamLevelCard(levelID string) (*edu.LevelCard, error) {"
+        }
+      ]
+    },
+    {
+      "path": "agent/internal/edu/judge_registry.go",
+      "sha256": "eefb2803905ea43369cfa34aa6df9f13a8591216f9d3ae5d1a991e68d0c142a9",
+      "anchors": [
+        {
+          "line": 26,
+          "text": "JudgeNoteSequenceMatch = \"note_sequence_match\" // 音程序列逐位比对（276 JudgeAgainstPrototype 语义）"
+        },
+        {
+          "line": 27,
+          "text": "JudgePitchSetMatch     = \"pitch_set_match\"     // 音高多重集相等（集合口径见 set_mode）"
+        },
+        {
+          "line": 28,
+          "text": "JudgeRhythmMatch       = \"rhythm_match\"        // 节奏逐位相等（IOI + 逐音长度，276 rhythmEqual 语义）"
+        },
+        {
+          "line": 74,
+          "text": "JudgeNoteSequenceMatch: judgeNoteSequenceMatch,"
+        },
+        {
+          "line": 75,
+          "text": "JudgePitchSetMatch:     judgePitchSetMatch,"
+        },
+        {
+          "line": 76,
+          "text": "JudgeRhythmMatch:       judgeRhythmMatch,"
+        }
+      ]
+    },
+    {
+      "path": "agent/webui/package.json",
+      "sha256": "aeef912b1ca0b20799b5495f97dc886f37a978b39bdeb255a2a456d6ce00db4e",
+      "anchors": [
+        {
+          "line": 7,
+          "text": "\"dev\": \"vite --host 127.0.0.1\","
+        },
+        {
+          "line": 8,
+          "text": "\"build\": \"tsc --noEmit && vite build\","
+        },
+        {
+          "line": 9,
+          "text": "\"preview\": \"vite preview --host 127.0.0.1\","
+        },
+        {
+          "line": 10,
+          "text": "\"test\": \"vitest run\""
+        },
+        {
+          "line": 12,
+          "text": "\"dependencies\": {"
+        },
+        {
+          "line": 13,
+          "text": "\"lucide-react\": \"^0.468.0\","
+        },
+        {
+          "line": 14,
+          "text": "\"react\": \"^19.0.0\","
+        },
+        {
+          "line": 15,
+          "text": "\"react-dom\": \"^19.0.0\""
+        },
+        {
+          "line": 18,
+          "text": "\"@types/react\": \"^19.2.17\","
+        },
+        {
+          "line": 19,
+          "text": "\"@types/react-dom\": \"^19.2.3\","
+        },
+        {
+          "line": 20,
+          "text": "\"@vitejs/plugin-react\": \"^4.3.4\","
+        },
+        {
+          "line": 22,
+          "text": "\"vite\": \"^6.0.0\","
+        },
+        {
+          "line": 23,
+          "text": "\"vitest\": \"^3.2.4\""
+        }
+      ]
+    },
+    {
+      "path": "agent/webui/src/interactionCardKit.tsx",
+      "sha256": "d1378bf6bed934faf184be5681aa3d8f2c3f96afc9ce63093ec8e9d8955823f4",
+      "anchors": [
+        {
+          "line": 33,
+          "text": "export type InteractionCardData = {"
+        },
+        {
+          "line": 67,
+          "text": "const FIELD_TYPES = new Set([\"text\", \"number\", \"range\", \"select\"]);"
+        },
+        {
+          "line": 105,
+          "text": "type: (FIELD_TYPES.has(type) ? type : \"text\") as InteractionCardField[\"type\"],"
+        },
+        {
+          "line": 271,
+          "text": "export function DeclarativeInteractionCard({"
+        }
+      ]
+    },
+    {
+      "path": "agent/webui/src/App.tsx",
+      "sha256": "f3bdaa09d4ebc835e6d284d2bc6aeebbc8225103cf701219eeb59652b9d18a83",
+      "anchors": [
+        {
+          "line": 11427,
+          "text": "function renderArtifactPreview(artifact: ArtifactSummary | Artifact, options: { imageZoom?: number } = {}) {"
+        },
+        {
+          "line": 11432,
+          "text": "return <audio className=\"media-player\" controls src={fileURL} />;"
+        }
+      ]
+    },
+    {
+      "path": "agent/internal/genapi/dialects.go",
+      "sha256": "fc11154e1791e3f761e07490407a5dcd0c07aa8347babbb4fcc3913dca0c838e",
+      "anchors": [
+        {
+          "line": 136,
+          "text": "\"style_tags\":       \"style\","
+        },
+        {
+          "line": 146,
+          "text": "body := map[string]any{\"prompt\": strings.TrimSpace(req.Prompt)}"
+        },
+        {
+          "line": 152,
+          "text": "if req.Instrumental {"
+        },
+        {
+          "line": 188,
+          "text": "body[\"gpt_description_prompt\"] = strings.TrimSpace(req.Prompt)"
+        },
+        {
+          "line": 190,
+          "text": "if req.Instrumental {"
+        },
+        {
+          "line": 208,
+          "text": "func yueRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) map[string]any {"
+        },
+        {
+          "line": 215,
+          "text": "body[\"style\"] = s"
+        },
+        {
+          "line": 221,
+          "text": "body[\"abc\"] = a"
+        },
+        {
+          "line": 343,
+          "text": "if strings.TrimSpace(req.Prompt) != \"\" {"
+        },
+        {
+          "line": 355,
+          "text": "if req.Instrumental {"
+        },
+        {
+          "line": 413,
+          "text": "func (c *clientConfig) poll(ctx context.Context, taskID string, res *Result) ([]Artifact, error) {"
+        }
+      ]
+    },
+    {
+      "path": "agent/internal/harness/gen_generate_context.go",
+      "sha256": "d433b882da155588a3d4357df53fa244d46b0c94db96ab815f49168fbc49e78b",
+      "anchors": [
+        {
+          "line": 36,
+          "text": "return \"\", scene, nil, fmt.Errorf(\"gen.generate needs a non-empty prompt (the user free-text block)\")"
+        },
+        {
+          "line": 59,
+          "text": "return \"\", scene, nil, fmt.Errorf(\"scene in_project requires open project truth: get_project_state failed (err=%v reply_status=%v) — open a project or use scene=free_creation for exempt generation\", kerr, firstString(stateReply, \"status\"))"
+        },
+        {
+          "line": 68,
+          "text": "return \"\", scene, nil, fmt.Errorf(\"scene in_project requires open project truth: %w\", aerr)"
+        }
+      ]
+    },
+    {
+      "path": "agent/internal/chat/launcher_flow.go",
+      "sha256": "60103352dbb590d0ac98d83f37e63e0413d8125e4b9fedcc2a4c4de0fddff911",
+      "anchors": [
+        {
+          "line": 47,
+          "text": "launcherActionOpen = \"open_project\""
+        },
+        {
+          "line": 48,
+          "text": "launcherActionNew  = \"new_project\""
+        },
+        {
+          "line": 400,
+          "text": "Action:             launcherActionOpen,"
+        },
+        {
+          "line": 454,
+          "text": "func (s *Server) handleLauncherFlowChat(ctx context.Context, chatCtx map[string]any, conversationID, message, agentMode string) (ChatResponse, bool) {"
+        },
+        {
+          "line": 477,
+          "text": "Action:             launcherActionNew,"
+        }
+      ]
+    },
+    {
+      "path": "agent/internal/projectstore/store.go",
+      "sha256": "5aa29e2e1fb5c418a79d11c57a52aec593634cd927fba367e85807cfd95dbe97",
+      "anchors": [
+        {
+          "line": 106,
+          "text": "func Resolve(projectPath, projectUUID string) (Roots, error) {"
+        },
+        {
+          "line": 123,
+          "text": "Agent:       filepath.Join(dir, AgentDirName, projectUUID),"
+        }
+      ]
+    },
+    {
+      "path": "VitApp/Source/Service/CommandDispatcher.cpp",
+      "sha256": "6f0765e46e4ecb4cac523288dece660127d207cdc348e715006a4378237316af",
+      "anchors": [
+        {
+          "line": 2246,
+          "text": "musicContext->setProperty (\"time_signature_numerator\", timeSig->numerator.get());"
+        },
+        {
+          "line": 2249,
+          "text": "musicContext->setProperty (\"time_sig_setting_count\", edit.tempoSequence.getNumTimeSigs());"
+        },
+        {
+          "line": 2688,
+          "text": "handlers.emplace (\"set_tempo\", [this] (const juce::DynamicObject& object, const juce::String& raw)"
+        }
+      ]
+    },
+    {
+      "path": "scripts/dev_agent_smoke.ps1",
+      "sha256": "90f2757f8947960d006ad4e2fbb0c4c335c067e1e0eb6aadf016a7e8cc735627",
+      "anchors": [
+        {
+          "line": 111,
+          "text": "[switch]$AutomationCardButtonSmoke,"
+        },
+        {
+          "line": 426,
+          "text": "[switch]$EduJamSmoke,"
+        },
+        {
+          "line": 478,
+          "text": "[switch]$LauncherFlow,"
+        }
+      ]
+    }
+  ],
+  "validation": [
+    {
+      "command": "go test ./internal/edu -count=1",
+      "working_directory": "agent",
+      "exit_code": 0,
+      "output": "validation/go-edu.log"
+    },
+    {
+      "command": "npm run test -- src/interactionCardKit.test.tsx src/trajectoryAuditionPlayback.test.tsx",
+      "working_directory": "agent/webui",
+      "exit_code": 0,
+      "passed_tests": 17,
+      "output": "validation/webui-reuse.log"
+    }
+  ],
+  "not_run": [
+    "real VitApp/Godot/agent stack",
+    "YuE2 engine or generation job",
+    "paid LLM calls",
+    "browser/Godot visual verification",
+    "full repository tests"
+  ],
+  "static_identity_risk": {
+    "A_path": "D:/examples/A.vit",
+    "B_path": "D:/examples/B.vit",
+    "current_binding_path_for_both": "D:/examples/.vit_agent/legame_binding.json",
+    "basis": "legameBindingPath source; not a live reproduction"
+  },
+  "card_state_counts": {
+    "todo": 29,
+    "doing": 3,
+    "blocked": 0
+  },
+  "card_index_warning": "POOL-INDEX latest entries are 340/341; gate summary doing=0 differs from cards/doing=3; use actual card ownership, do not auto reclaim."
+}

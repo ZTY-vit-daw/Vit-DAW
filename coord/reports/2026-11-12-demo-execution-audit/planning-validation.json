@@ -1,0 +1,19 @@
+{
+  "workplan_yaml": "PASS",
+  "dependency_dag": "PASS",
+  "work_packages": 20,
+  "first_hours": [
+    120,
+    208
+  ],
+  "final_hours": [
+    180,
+    312
+  ],
+  "revision_note": "2026-11-12 W00 re-validated: W18/W19 added, deps/estimates per REVISIONS-4 + REVIEW-GLM-3; dependency sums match declared estimation",
+  "links_checked": 25,
+  "design_input_files": 47,
+  "design_input_bytes": 3683660,
+  "runtime_tests": "not_run",
+  "test_reuse_baseline": "go edu exit0; frontend17 tests exit0"
+}

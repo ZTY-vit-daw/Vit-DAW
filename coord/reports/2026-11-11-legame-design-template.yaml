@@ -1,0 +1,223 @@
+# 乐局设计源文件模板（2026-11-11 讨论稿）
+# 配套说明：2026-11-11-legame-authoring-entry-and-format-draft.md
+# 新提案，未实现；不是现有 vit.level_card.v0，不能直接运行。
+# 字段名固定、内容可中文；带 <...> 的值须替换，null 缺项须处理。
+# 外部 agent 维护本文件；不生成虚假的素材哈希、工具名或验证结果。
+# 修订 5：内嵌规则 + 作答区隔离 + 委派给人 + 检查门不强制弹卡。
+# 所有权限项仅为设计请求；最终由可信宿主及教师发布策略核定。
+# 最新展演裁剪：见 2026-11-11-legame-demo-scope.md。此为完整产品目标模板；
+# governance 权限、answer_workspace_policy、可信 progression_receipts、严格输出、
+# 完整来源审计不是本次展演必做/必填范围。展演需另明确最小源格式与加载实现，
+# 不能把这些未实现字段当作已经生效或直接交给现有 level_card 加载器。
+
+schema_version: vit.legame_design.v0
+id: example-legame
+revision: 5
+title: "<乐局名称>"
+
+governance:
+  purpose: null                      # creation | teaching；准备前需选定
+  requested_profile: null            # co_create | guided_practice | independent_check
+  trusted_policy_ref: null           # 教师发布引用；不能自填角色就变成教师
+  student_may_change_published_rules: false
+  rule_edit_permission: publisher_only # 须由真实存储/服务权限执行，非隐藏编辑按钮
+  progression_control: verified_evidence # 宿主凭有效证据推进，日志用于复核
+  teaching_deployment: separate_teacher_student_accounts_and_hosts # 仅教学局
+  rule_delivery: embedded_in_encrypted_project # 拟议，当前 YAML 尚未入包
+  preserve_publisher_version: true
+
+answer_workspace_policy:
+  applies_when: teaching
+  protected_regions: [work-region]  # 准备时绑定内核对象；初版可保护整条作答轨
+  student_edit_channel: existing_editor_with_protected_write_rules
+  dedicated_answer_edit_api_required: false
+  model_may_request_human_task: true # 展示任务/定位编辑器，不附带作答写入
+  model_write: denied
+  legacy_write_bypass: denied
+
+progression_receipts:
+  issuer: trusted_check_service     # 模型输出不能自签回执
+  required_to_advance: true
+  bind_current_project_revision: true
+  bind_assignment_student_node_and_policy: true
+  recheck_after_relevant_edits: true
+
+progression_interaction:
+  check_trigger: learner_ready_or_submit # 说写好了或提交；不新增 GUI 监视假设
+  on_valid_receipt: inline_feedback_and_continue
+  mandatory_transition_card: false
+  ask_for_choices_not_mechanical_advance: true
+
+brief:
+  audience: "<参与者及经验>"
+  music_task: "<这一局希望参与者完成的音乐任务>"
+  final_deliverable: "<留下什么作品或音乐结果>"
+  prerequisites: []
+  estimated_minutes: null
+
+objectives:
+  - id: task-1
+    kind: music_task                 # music_task | learning
+    description: "<可观察的任务目标>"
+    evidence_checks: [check-work]
+  - id: learn-1                      # 非教学乐局可删除本项
+    kind: learning
+    description: "<希望用户学会、能够迁移运用的能力>"
+    evidence_checks: [check-explain]
+
+materials:
+  # 示例含来源与可播放片段；无外部材料的乐局可清空并删除其他处相应引用。
+  - id: source-1
+    kind: "<pdf / image / text 等来源材料类型>"
+    file: null                      # 相对 assets/ 路径；缺失不视为已有
+    purpose: "<讲解、播放、对照或节奏参照等用途>"
+    source: "<教材/作者/自制材料来源>"
+    locator:
+      pdf_pages: null               # PDF 的 1-based 页码范围，如 [34, 35]
+      printed_pages: null           # 印刷页码范围，如 [29, 30]
+      music_region: null            # MIDI/音频的明确片段坐标，准备时核实
+  - id: music-1
+    kind: "<midi / audio 等实际可导入播放的材料类型>"
+    file: null
+    purpose: "<实际播放、观察或编辑的音乐片段>"
+    source: "<原始来源或核实后的转写说明>"
+    derived_from: source-1           # 若本身即原始材料，可删去
+    locator:
+      pdf_pages: null
+      printed_pages: null
+      music_region: null
+
+workspace:
+  timing:
+    time_signature: null
+    tempo_bpm: null
+    pickup_beats: null              # 无弱起须显式填 0；不默认为已核实
+  tracks:
+    - id: reference-track
+      name: "<参考轨名称>"
+      role: reference
+      initial_material: music-1
+      editable_by_user: false
+    - id: work-track
+      name: "<用户创作轨名称>"
+      role: user_work
+      initial_material: null
+      editable_by_user: true
+  regions:
+    - id: work-region
+      track: work-track
+      locator: null                 # 待设计明确的音乐范围；不是屏幕坐标
+      purpose: "<本局主要创作区>"
+
+capability_requests:
+  # 这些 id 是本设计内部需求 ID，不是当前已注册的可执行工具名。
+  - id: need-play
+    request: "<播放哪份材料/哪个工程片段>"
+    required: true
+    fallback: null                  # 替代方案有影响时需用户选定
+  - id: need-edit
+    request: "<用户操作或由 Vit 代执行的具体音乐编辑需求>"
+    required: true
+    fallback: null
+
+checks:
+  - id: check-work
+    purpose: task_progress           # task_progress | learning_evidence
+    method: deterministic            # deterministic | rubric | user_judgment
+    target: work-region
+    criterion: "<可核查的技术/结构约束>"
+    evidence: "<所需工程数据或参照物>"
+    on_unavailable: pause_and_report # 未绑定可用检查实现时不得假通过
+  - id: check-explain
+    purpose: learning_evidence
+    method: rubric
+    target: work-region
+    criterion: "<依据什么具体表现评议学会与否>"
+    evidence: "<片段、用户解释与帮助程度；不能仅用完成确认>"
+    on_unavailable: request_review   # 证据不足保留待复核
+
+flow:
+  progression: ordered              # 首版提案：按序必经，节点内可自由交流/重试
+  nodes:
+    - id: node-1
+      title: "<环节名称>"
+      objective_refs: [task-1, learn-1]
+      task: "<这一环节要完成的音乐任务>"
+      lead: human                   # human | model；可逐环节指定
+      uses_materials: [source-1, music-1]
+      uses_regions: [work-region]
+      uses_capabilities: [need-play, need-edit]
+      human_decides: ["<必须由用户亲自作出的决定>"]
+      model_may_do: ["<AI 可示范、解释或代执行哪些部分>"]
+      assistance:
+        requested_profile: inherit  # inherit 或治理块中的三档之一
+        reply_mode: inherit         # inherit | open_reviewed | approved_actions_only
+        allowed_help: ["<本环节允许的解释、提示、示范、代执行或生成>"]
+        model_write_regions: []      # 教学作答区禁写；共创可填 work-region，示范另设区域
+        reserved_human_decisions: ["<本环节模型不得代作的音乐决定>"]
+      freedom:
+        fixed: ["<不可变的任务条件>"]
+        open: ["<用户可自由选择的内容>"]
+      guidance:
+        introduction: "<怎样引入任务，不必固定逐字台词>"
+        teaching_points: ["<在此处需要理解的知识；非教学任务可为空>"]
+        hint_ladder: ["<先追问>", "<再比较>", "<必要时局部示范>"]
+        on_stuck: "<卡住、偏题或证据不充分时怎样处理>"
+      complete_when: [check-work]
+      collect_evidence: [check-explain]
+      leaves_behind: "<保留的片段/选择/版本>"
+      transition: "<下一环节如何承接，最后环节则进入收局讨论>"
+
+guidance:
+  approach: "<总体引导方式，如共同创作、探索或任务挑战>"
+  help_policy: "<什么时候示范、什么时候减少帮助>"
+  exploration_policy: "<允许怎样的支线探索，如何回到音乐目标>"
+  learner_decision_policy: "<教学时如何保留学生的音乐决定与学习证据>"
+
+answer_disclosure:
+  requested_mode: null               # open_reviewed | approved_actions_only
+  check_before_display: true
+  stream_unchecked_text: false
+  approved_hint_catalog_ref: null    # 严格方式须绑定教师批准提示/追问
+  approved_demo_materials: []        # 引用 materials 中的 ID；无任意生成兜底
+  accumulate_help_per_attempt: true
+  solution_shown: retain_demonstrated_status
+  independent_evidence_after_demo: require_new_task
+
+evidence_recording:
+  requested_granularity: [operation, region, note_lineage] # 音频用素材/变换链
+  record_initiator_and_executor: true
+  record_help_disclosed: true
+  record_displayed_vs_blocked: true
+  record_model_solution_proposals: true
+  retain_help_state_across_conversations: true
+  record_verified_progression: true
+  pin_submission_log_range: true
+  preserve_lineage_on_copy_and_undo: true
+  unknown_source: mark_unverified
+  checkpoints: [node_entry, submission]
+
+submission:
+  freeze_project_and_evidence_snapshot: true
+  teacher_review_required: null      # 教学任务按发布规则确定；创作可 false
+  review_by_objective: true
+  retain_previous_submissions: true
+  on_return: preserve_history_and_continue
+  reports: [assignment_report, key_context_summary]
+  include_raw_evidence_index: true
+  summary_claims_require_evidence_refs: true
+
+completion:
+  required_deliverables: ["<必需作品或结果>"]
+  required_checks: [check-work]
+  learning_evidence_to_record: [check-explain] # 单独记录，不自动等同作品完成
+  user_confirm_closure: true
+  export: optional                   # optional | required；导出不替代完成证据
+
+budget:
+  max_turns: null
+  max_llm_calls: null
+  on_limit: preserve_and_pause       # 保存作品/进度，如实保留未完成项
+
+pending_questions:
+  - "<当前待讨论或缺失的内容；解决后删去，不虚填>"

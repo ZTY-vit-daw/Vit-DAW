@@ -1,0 +1,500 @@
+# 完整课例第一稿：设计源文档，不能直接交给 vit.level_card.v0 加载器。
+# 依据 TEXTBOOK-NOTES.md / LESSON-V1.md；安全权限全套不作为展演前置。
+# 按用户明确要求以任务量组织，不设教学分钟预算；展演5分钟使用真实录像/截图/产物。
+# 已有两份基础MIDI；其余转写、听核、检查器绑定、音源及生成桥接仍待准备/实现。
+# 修订2：教材核心概念与原谱材料组逐项绑定；只有清单标生成的MIDI存在，未听核。
+# 修订3（2026-11-12 W00合入）：工程拍号统一2/4并新增key_signature；节奏稿=旋律轨clip（占位音高）；
+#   鼓轨改为辅助律动（assist_generated）；r-theme-rhythm并入r-theme；音频经内核播放；
+#   更正依据：coord/reports/2026-11-12-demo-execution-audit/REVISIONS-2026-11-12.md 与 REVIEW-GLM-2026-11-12.md。
+schema_version: vit.legame_design.v0
+id: music-creation-unit2-demo
+revision: 3
+title: 把旋律的起伏写成自己的作品
+
+brief:
+  audience: 有基本音符时值和简短旋律阅读经验的高中生
+  music_task: 试写四种旋律线，发展一个喜欢的片段，再参照给定节奏创作八小节主题并听见成曲
+  final_deliverable: 四条两小节片段、一个发展稿、八小节主题、现场试听与生成版本、作业报表和过程摘要
+  prerequisites: [基本时值与休止, 拍号基础, 简短旋律阅读或可用的入门引导]
+  estimated_minutes: null # 不以固定课时限制学生/模型的实际进度
+
+objectives:
+  - id: g1-understand
+    kind: learning
+    description: 能定位音高进行与节奏差别，并用音乐证据说明自己的听感
+    evidence_checks: [c-listening-explanation]
+  - id: g2-contours
+    kind: learning
+    description: 四种旋律线各写两小节，能解释自己有意安排的走向
+    evidence_checks: [c-q1-structure, c-q1-explanation]
+  - id: g3-develop
+    kind: learning
+    description: 用至少一种原题示例手法发展喜欢的片段，唱或哼出来并说明保留和变化
+    evidence_checks: [c-q2-structure, c-q2-explanation, c-humming]
+  - id: g4-theme
+    kind: learning
+    description: 参照《三十里铺》前两句节奏，运用旋律线写出八小节自己的主题
+    evidence_checks: [c-q3-structure, c-q3-reference-and-expression]
+  - id: task-song
+    kind: music_task
+    description: 以选定学生主题生成纯器乐编曲，改变风格尝试新版本并比较
+    evidence_checks: [c-generation-record, c-generated-pair, c-version-choice]
+
+materials:
+  - id: source-summary
+    kind: text
+    file: TEXTBOOK-NOTES.md
+    purpose: 供模型按当前节点取用的教材知识、题面与解释边界
+    source: 用户提供教材定向整理
+    locator: {pdf_pages: [21, 35], printed_pages: [16, 30], music_region: null}
+  - id: source-rhythm
+    kind: image
+    file: source/pages/pdf-026_book-021.png
+    purpose: 四类节奏与旋律线概念的原页
+    source: 教材书内21页
+    locator: {pdf_pages: [26, 26], printed_pages: [21, 21], music_region: null}
+  - id: source-practice12
+    kind: image
+    file: source/pages/pdf-034_book-029.png
+    purpose: 四种旋律线空谱与旋律发展工具箱
+    source: 教材书内29页
+    locator: {pdf_pages: [34, 34], printed_pages: [29, 29], music_region: null}
+  - id: source-practice3
+    kind: image
+    file: source/pages/pdf-035_book-030.png
+    purpose: 八小节创作题面与《三十里铺》参考谱
+    source: 教材书内30页
+    locator: {pdf_pages: [35, 35], printed_pages: [30, 30], music_region: 第一二句}
+  - id: prototype-symbols
+    kind: symbolic_reference
+    file: source/selected-symbolic-materials.json
+    purpose: 原题动机示范；演示调号另行选定
+    source: 原页视觉转写，相对音级和时值
+    locator: {pdf_pages: [34, 34], printed_pages: [29, 29], music_region: exercise2-prototype}
+  - id: theme-rhythm-symbols
+    kind: symbolic_reference
+    file: source/selected-symbolic-materials.json
+    purpose: 八小节默认节奏支架；允许有意变化并说明参照关系
+    source: 《三十里铺》前两句节奏视觉转写
+    locator: {pdf_pages: [35, 35], printed_pages: [30, 30], music_region: sanshilipu-first-two-phrases-rhythm}
+  - id: listening-xiaocao
+    kind: midi_or_audio
+    file: null
+    purpose: 选定并校订的《小草》短句试听，不能把源图当成已有音频
+    source: 书内28页；可播放片段待准备
+    locator: {pdf_pages: [33, 33], printed_pages: [28, 28], music_region: null}
+  - id: listening-huainian
+    kind: midi_or_audio
+    file: null
+    purpose: 选定并校订的《怀念战友》短句试听
+    source: 书内27页；可播放片段待准备
+    locator: {pdf_pages: [32, 32], printed_pages: [27, 27], music_region: null}
+  - id: pitch-examples
+    kind: material_group
+    file: assets/catalog.yaml
+    purpose: 按材料ID取同音反复、上下行级进、小跳/大跳的教材原例；待转写项不得假装可播放
+    source: 教材书内17-20页
+    locator: {pdf_pages: [22, 25], printed_pages: [17, 20], music_region: [pitch-repeat, pitch-step-up, pitch-step-down, pitch-small-leap, pitch-large-leap]}
+  - id: rhythm-examples
+    kind: material_group
+    file: assets/catalog.yaml
+    purpose: 四类节奏原例的加载索引，原图不等于MIDI
+    source: 教材书内21页
+    locator: {pdf_pages: [26, 26], printed_pages: [21, 21], music_region: [rhythm-even, rhythm-long-short, rhythm-short-long, rhythm-syncopation]}
+  - id: contour-examples
+    kind: material_group
+    file: assets/catalog.yaml
+    purpose: 四种旋律线以对应教材原曲片段为主参照
+    source: 教材书内22-26页
+    locator: {pdf_pages: [27, 31], printed_pages: [22, 26], music_region: [contour-free, contour-flat, contour-smooth, contour-wave]}
+  - id: development-examples
+    kind: material_group
+    file: assets/catalog.yaml
+    purpose: 原题动机与四种发展示例工具箱，清单中未完成项仍待转写
+    source: 教材书内29页
+    locator: {pdf_pages: [34, 34], printed_pages: [29, 29], music_region: [develop-prototype, develop-ornament, develop-rhythm, develop-augment-meter, develop-shift-rhythm]}
+  - id: prototype-midi
+    kind: midi
+    file: assets/midi/exercise2-prototype_demo-C_80bpm.mid
+    purpose: 原型两小节演示MIDI，尚未实际音源听核；C调/80BPM是演示设定
+    source: 教材书内29页相对音级和时值的核对转写
+    locator: {pdf_pages: [34, 34], printed_pages: [29, 29], music_region: develop-prototype}
+  - id: theme-reference-rhythm
+    kind: midi
+    file: assets/midi/sanshilipu-first8_rhythm-only_GM37_80bpm.mid
+    purpose: 前两句8小节节奏版；GM37/80BPM仅演示，实际音源待听核
+    source: 教材书内30页节奏转写，不含原曲音高
+    locator: {pdf_pages: [35, 35], printed_pages: [30, 30], music_region: reference-sanshilipu-rhythm}
+  - id: theme-reference-melody
+    kind: midi_or_audio
+    file: null
+    purpose: 前两句原旋律与节奏的语境试听，待按原谱校订
+    source: 教材书内30页，材料目录 reference-sanshilipu-melody
+    locator: {pdf_pages: [35, 35], printed_pages: [30, 30], music_region: 前两句8小节}
+
+workspace:
+  timing:
+    time_signature: 2/4
+    key_signature: C # 记谱拼写与YuE2 ABC K:的默认上下文；材料可自带覆盖（2026-11-12裁定）
+    tempo_bpm: null
+    pickup_beats: 0
+  tracks:
+    - {id: reference-track, name: 参考与示范, role: reference, initial_material: null, editable_by_user: false}
+    - {id: melody-track, name: 我的旋律, role: user_work, initial_material: null, editable_by_user: true}
+    - {id: rhythm-track, name: 辅助律动（鼓）, role: assist_generated, initial_material: null, editable_by_user: false}
+    - {id: theme-track, name: 我的八小节主题, role: user_work, initial_material: null, editable_by_user: true}
+    - {id: result-track, name: 我的成曲版本, role: generated_result, initial_material: null, editable_by_user: true}
+  regions:
+    - id: r-reference
+      track: reference-track
+      locator: {scope: selected_reference_excerpt}
+      purpose: 选定谱例和辅助示范的真实播放范围
+    - id: r-rhythm-lab
+      track: melody-track
+      locator: {clip_alias: rhythm-lab, time_signature: 2/4, bars: 4}
+      purpose: 共8拍自写节奏（2/4四小节暂定，写法待导师确认）；旋律轨占位音高试听
+    - id: r-q1
+      track: melody-track
+      locator: {scope: four_clips, clip_aliases: [q1-free, q1-flat, q1-smooth, q1-wave], time_signature: 2/4, bars_per_clip: 4}
+      purpose: 四条各8拍（2/4四小节暂定，写法待导师确认）的旋律线练习，不自动拼成题3主题
+    - id: r-q2
+      track: melody-track
+      locator: {scope: prototype_and_variant, clip_aliases: [q2-prototype, q2-variant]}
+      purpose: 选定原型与发展稿，节拍变化需显式处理
+    - id: r-theme
+      track: theme-track
+      locator: {clip_alias: eight-bar-theme, time_signature: 2/4, bars: 8}
+      purpose: 题3节奏阶段与旋律阶段为同一clip（先节奏后音高）；学生八小节主题及修改版本
+    - id: r-results
+      track: result-track
+      locator: {scope: generated_audio_versions}
+      purpose: 固定源谱对应的成曲候选
+
+capability_requests:
+  - {id: compose-ui, request: 组合基础交互卡与audio_player/music_score/beat_pad，按当前节点装载真实材料, required: true, fallback: null}
+  - {id: play-reference, request: 按材料ID加载原例到参考/示范区，关联原页/实际MIDI/预览/坐标和版本；未转写或未核验项不能冒充完成, required: true, fallback: null}
+  - {id: edit-and-audition, request: 谱面节奏/旋律模式编辑，真实写入内核，回读后用旋律音源＋辅助律动试听, required: true, fallback: null}
+  - {id: tempo-and-meter, request: Tap选择速度；创建工程时设2/4并回读一致，前端显示/内核/检查坐标一致（Tap内拍号选择仅为agent演示用局部状态，不写工程）, required: true, fallback: 缺拍号写入或坐标能力则先核查补齐，不擅自改教材题面}
+  - {id: compare-versions, request: 双播放器A/B比较固定版本，试听/偏好/采用分开，不触发混音回滚, required: true, fallback: null}
+  - {id: record-check, request: 完成表达触发真实工程检查，留下结果/修订/帮助状态，再自然推进, required: true, fallback: 无证据时保留待复核而不伪造通过}
+  - {id: yue2-finale, request: 固定学生主题并转已验证方言，纯器乐成曲；变风格另建版本，保留实际请求/replay和原MIDI, required: true, fallback: 保留原作与失败记录，明确重试；不得用普通渲染冒充YuE2输出}
+  - {id: build-reports, request: 从实际对话/检查/版本组织作业报表及关键上下文摘要，可回指原记录, required: true, fallback: 缺记录项标待复核}
+
+checks:
+  - id: c-intent
+    purpose: task_progress
+    method: user_judgment
+    target: r-theme
+    criterion: 学生给出当前创作意图或选择先探索再确定
+    evidence: 用户真实表达；不由模型代写
+    on_unavailable: request_review
+  - id: c-listening-participation
+    purpose: task_progress
+    method: user_judgment
+    target: r-reference
+    criterion: 学生对真实试听片段作出回应或提出具体疑问，当前需要的短解释已提供
+    evidence: 实际片段引用与用户回应；只证明参与该环节，不等于理解正确
+    on_unavailable: request_review
+  - id: c-listening-explanation
+    purpose: learning_evidence
+    method: rubric
+    target: r-reference
+    criterion: 能指向片段并说出音高或节奏差别及听感理由
+    evidence: 片段引用、学生解释与帮助记录；情绪不设唯一答案
+    on_unavailable: request_review
+  - id: c-rhythm-preview
+    purpose: task_progress
+    method: deterministic
+    target: r-rhythm-lab
+    criterion: 2/4共8拍节奏（四小节暂定）在旋律轨clip有效保存，占位音高可经实际音源试听，Tap所选单位/BPM可回读
+    evidence: 真实工程数据、音源/播放回执、Tap结果；不自动推断拍号
+    on_unavailable: pause_and_report
+  - id: c-q1-structure
+    purpose: task_progress
+    method: deterministic
+    target: r-q1
+    criterion: 四条各两小节4/4谱稿真实存在，时值/休止与声明范围合法
+    evidence: 四份工程音符/记谱数据和保存修订
+    on_unavailable: pause_and_report
+  - id: c-q1-explanation
+    purpose: learning_evidence
+    method: rubric
+    target: r-q1
+    criterion: 能结合实际走向、音域、音程解释四种尝试，指出有意安排；允许特征重叠
+    evidence: 学生选段/解释和实际谱稿，不用情绪标签自动判艺术质量
+    on_unavailable: request_review
+  - id: c-q2-structure
+    purpose: task_progress
+    method: deterministic
+    target: r-q2
+    criterion: 原型和发展稿已分别保存，存在可检查的实际变化
+    evidence: 两版音乐数据、片段范围和差分；不限定变体必须逐音匹配
+    on_unavailable: pause_and_report
+  - id: c-q2-explanation
+    purpose: learning_evidence
+    method: rubric
+    target: r-q2
+    criterion: 选择至少一种教材示例方法发展片段，并解释保留与改变
+    evidence: 实际差分、所选手法与学生说明
+    on_unavailable: request_review
+  - id: c-humming
+    purpose: learning_evidence
+    method: user_judgment
+    target: r-q2
+    criterion: 即兴唱或哼自己的发展稿，录音可选；未观察到则明确待课堂复核
+    evidence: 已有录音引用或明确课堂观察/学生自述，区分证据等级，不伪造音准检测
+    on_unavailable: request_review
+  - id: c-q3-structure
+    purpose: task_progress
+    method: deterministic
+    target: r-theme
+    criterion: 2/4八小节主题真实保存，声明音乐长度与音符/休止合法且可播放
+    evidence: 实际工程/记谱数据与版本；不能只看最后音符结束点忽略休止
+    on_unavailable: pause_and_report
+  - id: c-q3-reference-and-expression
+    purpose: learning_evidence
+    method: rubric
+    target: r-theme
+    criterion: 与《三十里铺》前两句节奏有可说明的参照关系，能解释至少一处旋律线选择和试听后的决定
+    evidence: 参考节奏、学生谱/变化、选段说明；完全节奏匹配仅作事实而非唯一答案
+    on_unavailable: request_review
+  - id: c-generation-record
+    purpose: task_progress
+    method: deterministic
+    target: r-results
+    criterion: 实际生成阶段及用户结束选择有记录；成功和失败分别呈现，失败不改写成成功
+    evidence: 固定源谱、实际请求/job终态、结果资产或错误记录
+    on_unavailable: pause_and_report
+  - id: c-generated-pair
+    purpose: task_progress
+    method: deterministic
+    target: r-results
+    criterion: 展演目标为同一源谱产生两个可播放风格版本，旧版仍保留
+    evidence: 两组真实job/实际条件/音频/replay与源谱版本对应；这是展演结果，不是学会的证明
+    on_unavailable: request_review
+  - id: c-version-choice
+    purpose: learning_evidence
+    method: user_judgment
+    target: r-results
+    criterion: 在实际已有版本间表达偏好或不确定并说明理由；无两版时不伪造比较
+    evidence: 实际试听身份、学生说明及独立的采用动作
+    on_unavailable: request_review
+  - id: c-reports
+    purpose: task_progress
+    method: deterministic
+    target: submission_snapshot
+    criterion: 作业报表和关键上下文摘要对应本次提交，原始引用可解析，未核项如实保留
+    evidence: 固定工程快照、报告与原始记录索引
+    on_unavailable: pause_and_report
+
+flow:
+  progression: ordered
+  nodes:
+    - id: n0-intent
+      title: 这段音乐想说什么
+      objective_refs: [g4-theme, task-song]
+      task: 给一个画面或感受，也可先探索；知道将自己写主题再听成曲
+      lead: human
+      uses_materials: []
+      uses_regions: [r-theme]
+      uses_capabilities: [compose-ui]
+      human_decides: [创作意图, 表达方式]
+      model_may_do: [简述任务地图和可选起点]
+      freedom: {fixed: [实际创作由学生参与], open: [场景, 感受, 可在过程中改变意图]}
+      guidance:
+        introduction: 你想让这一小段音乐表达什么？可以给一个画面，也可以先试。
+        teaching_points: []
+        hint_ladder: [开放问一句, 给少量起点, 允许先探索]
+        on_stuck: 不反复问画像，先做一个短音乐尝试
+      complete_when: [c-intent]
+      collect_evidence: []
+      leaves_behind: 当前创作意图
+      transition: 听教材片段怎样用音高和节奏组织表达
+    - id: n1-listen
+      title: 旋律怎样进行
+      objective_refs: [g1-understand]
+      task: 用教材同音、上下行级进、小跳/大跳原例观察音高运动，定位并解释听感
+      lead: human
+      uses_materials: [source-summary, pitch-examples]
+      uses_regions: [r-reference]
+      uses_capabilities: [compose-ui, play-reference, record-check]
+      human_decides: [听到的差别, 感受及理由]
+      model_may_do: [按ID加载/循环原例, 解释相邻音运动及歌唱性, 引用原页/标记, 已懂部分缩短但不凭空省略知识]
+      freedom: {fixed: [回答应关联实际片段], open: [不同听感, 指出不同音乐细节]}
+      guidance:
+        introduction: 我们用教材短句看看，相邻的音可以怎样走，再听它带来什么变化。
+        teaching_points: [音高和节奏, 声乐器乐与歌唱性, 同音/上下行级进/小跳大跳, 五声音阶例外]
+        hint_ladder: [先自由听, 循环一个小节, 显示音符/时值差异, 不同材料局部示范]
+        on_stuck: 缩短材料并解释需要的概念，不要求复述整章
+      complete_when: [c-listening-participation]
+      collect_evidence: [c-listening-explanation]
+      leaves_behind: 带片段定位的解释和帮助记录
+      transition: 自己写一个节奏，让音符先发声
+    - id: n2-rhythm
+      title: 我的节奏先发声
+      objective_refs: [g1-understand, g2-contours]
+      task: 2/4共8拍写节奏（四小节暂定），Tap选速度，旋律轨占位音高实际试听，修改或说明保留
+      lead: human
+      uses_materials: [source-rhythm, rhythm-examples]
+      uses_regions: [r-rhythm-lab]
+      uses_capabilities: [compose-ui, edit-and-audition, tempo-and-meter, record-check]
+      human_decides: [时值/休止, 速度, 改或保留]
+      model_may_do: [打开节奏模式/Tap, 接线旋律音源（可选补辅助律动鼓轨）, 播放与反馈]
+      freedom: {fixed: [共8拍（2/4四小节暂定）, 合法时值], open: [节奏型, 速度, 意图]}
+      guidance:
+        introduction: 暂时不选旋律音高，先让两小节节奏符合你的想法。
+        teaching_points: [均分, 前长后短, 前短后长, 切分, Tap单位与拍号分开]
+        hint_ladder: [让学生敲/写, 显示拍位置, 比较局部时值, 另例示范]
+        on_stuck: 用较少时值起步，不替学生填完整答案
+      complete_when: [c-rhythm-preview]
+      collect_evidence: []
+      leaves_behind: 自写节奏（旋律轨clip）、Tap结果和可选辅助律动鼓轨
+      transition: 保留节奏，在同一谱面试四种旋律走向
+    - id: n3-contours
+      title: 四种走向，四个两小节
+      objective_refs: [g2-contours]
+      task: 自由曲线/平直线/平缓进行/跌宕起伏各写两小节，逐条听并解释安排
+      lead: human
+      uses_materials: [source-summary, source-practice12, contour-examples, listening-xiaocao, listening-huainian]
+      uses_regions: [r-rhythm-lab, r-q1]
+      uses_capabilities: [compose-ui, edit-and-audition, compare-versions, record-check]
+      human_decides: [各片段音高, 是否沿用节奏, 轮廓与表达]
+      model_may_do: [加载四种教材原例并叠加轮廓, 结合小草/怀念战友分析方法组合, 显示四行空谱, 局部补充示范另标来源, 回读检查]
+      freedom: {fixed: [四条各两小节, 原题4/4计量], open: [音区, 音高, 节奏变化, 轮廓的具体写法]}
+      guidance:
+        introduction: 可以沿用刚才的节奏，现在试着改变音高的组织。
+        teaching_points: [同音/级进/跳进如何形成轮廓, 五声音阶例外, 形态可重叠]
+        hint_ladder: [先让写和听, 问想变哪一处, 定位一小段, 必要时另例示范]
+        on_stuck: 首条提供较多支架，后续逐渐少提示，保留帮助记录
+      complete_when: [c-q1-structure]
+      collect_evidence: [c-q1-explanation]
+      leaves_behind: 四条学生片段与自己的解释
+      transition: 选一条喜欢的片段，试着发展它
+    - id: n4-develop
+      title: 让喜欢的片段长出新样子
+      objective_refs: [g3-develop]
+      task: 用至少一种原题手法发展自己的片段，唱/哼并比较原型和变体
+      lead: human
+      uses_materials: [source-practice12, prototype-symbols, prototype-midi, development-examples]
+      uses_regions: [r-q1, r-q2]
+      uses_capabilities: [compose-ui, edit-and-audition, compare-versions, record-check]
+      human_decides: [原型选择, 发展方法, 具体改动, 唱/哼与解释]
+      model_may_do: [呈现四种方法工具箱, 小节定位, 解释实际差分, 提示唱/哼]
+      freedom: {fixed: [保留原型和新稿, 至少一种有意发展, 唱/哼情况据实记录], open: [自己的或已绑定的喜欢片段, 方法与变化幅度]}
+      guidance:
+        introduction: 选你最想继续的一小段，保留什么、改变什么由你决定。
+        teaching_points: [加花, 改节奏, 节奏放大并变拍, 旋律移位并变节奏]
+        hint_ladder: [先问保留/改变, 听原题示例, 缩到一个节奏或音, 局部帮助]
+        on_stuck: 不把四种方法全做设为门槛；变拍能力缺失时明确处理，不假装已改
+      complete_when: [c-q2-structure]
+      collect_evidence: [c-q2-explanation, c-humming]
+      leaves_behind: 原型、发展稿、唱/哼情况与解释
+      transition: 用给定节奏作参照，写属于自己的八小节主题
+    - id: n5-theme
+      title: 八小节，我自己的主题
+      objective_refs: [g4-theme]
+      task: 参照《三十里铺》前两句节奏，先节奏后音高完成2/4八小节主题，试听并解释选择
+      lead: human
+      uses_materials: [source-practice3, theme-rhythm-symbols, theme-reference-rhythm, theme-reference-melody]
+      uses_regions: [r-theme]
+      uses_capabilities: [compose-ui, edit-and-audition, tempo-and-meter, compare-versions, record-check]
+      human_decides: [轮廓/句间关系, 音高, 有意节奏变体, 修改或保留]
+      model_may_do: [展示原题和节奏支架, 核查2/4坐标, 追问与试听, 记录工程证据]
+      freedom: {fixed: [八小节2/4, 运用旋律线, 与参考节奏有联系], open: [音高/音区, 重复或对比, 有理由的节奏变化, 表达意图]}
+      guidance:
+        introduction: 这份节奏是起点；你想让前后两句怎样回应？
+        teaching_points: [节奏参照而非复制原曲音高, 轮廓组织, 试听后再决定]
+        hint_ladder: [先规划一句, 循环学生自己的句子, 问具体变化位置, 必要时不同材料示范]
+        on_stuck: 可分前后四小节完成；不把四条练习直接拼成答案，不让模型包办主旋律
+      complete_when: [c-q3-structure]
+      collect_evidence: [c-q3-reference-and-expression]
+      leaves_behind: 节奏底稿、八小节主题、参考关系和修改记录
+      transition: 固定这一版主题，听它成为完整编曲
+    - id: n6-song
+      title: 我的主题，两个编曲世界
+      objective_refs: [task-song]
+      task: 纯器乐成曲并尝试另一风格；演示预设两版，课堂生成失败不抹掉前面作业
+      lead: human
+      uses_materials: []
+      uses_regions: [r-theme, r-results]
+      uses_capabilities: [compose-ui, yue2-finale, compare-versions, record-check]
+      human_decides: [源谱版本, 风格提示词, 是否再生成, 偏好与采用]
+      model_may_do: [保持原稿转换条件, 补充约定编曲结构/和声, 提交任务, 报真实状态, 组织比较]
+      freedom: {fixed: [学生给定片段保留, AI补充部分留源, 新版本不覆盖旧稿], open: [风格/配器, 追加版本, 偏好或不确定]}
+      guidance:
+        introduction: 先保留你的主题，我们用它生成纯器乐编曲；之后可以只改风格听另一版。
+        teaching_points: [学生主题与辅助编曲区分, 同一旋律的不同表达]
+        hint_ladder: [让学生给风格词, 给少量配器示例, 展示实际请求摘要]
+        on_stuck: 任务失败保留错误和原稿，明确重试或结束本次生成；不替换成假结果
+      complete_when: [c-generation-record]
+      collect_evidence: [c-generated-pair, c-version-choice]
+      leaves_behind: 实际生成结果、源谱/请求/replay、比较或未完成状态
+      transition: 回到自己的音乐决定，命名并收局
+    - id: n7-reflect
+      title: 我写了什么，我学会了什么
+      objective_refs: [g1-understand, g2-contours, g3-develop, g4-theme, task-song]
+      task: 指出一个自己作出的决定、一处有意变化和下次想试的内容，保存作业与过程
+      lead: human
+      uses_materials: []
+      uses_regions: [r-q1, r-q2, r-theme, r-results]
+      uses_capabilities: [compose-ui, build-reports]
+      human_decides: [回顾说明, 命名, 收局确认]
+      model_may_do: [按目标汇总实际证据, 区分有帮助完成和待复核, 提供两份报告]
+      freedom: {fixed: [不伪造独立性/来源/生成成功], open: [命名, 自我评价, 后续探索方向]}
+      guidance:
+        introduction: 指一处最像你自己的决定，再说一处听过之后改变或保留的地方。
+        teaching_points: [方法如何服务表达, 学习证据与成曲品质分开]
+        hint_ladder: [先让学生说, 打开其前后版本, 用一个具体片段帮助回忆]
+        on_stuck: 如实保留待复核项，不用模型代写反思充当学生回答
+      complete_when: [c-reports]
+      collect_evidence: []
+      leaves_behind: 固定提交、作业报表、关键上下文摘要
+      transition: 用户确认后收局，工程可继续创作
+
+guidance:
+  approach: 以学生作品贯穿的共同创作；短讲解和即时实践交替，三题逐步完成
+  help_policy: 先问意图和具体位置，再局部对比/示范；逐渐减少帮助并记录实际帮助
+  exploration_policy: 节点内允许提问/重听/重试；返回修改产生新版本，不清除前面的证据
+  learner_decision_policy: 主旋律与节奏决定由学生作出；模型负责材料、定位、解释与已约定辅助编曲
+
+evidence_recording:
+  requested_granularity: [key_action, region, saved_revision]
+  record_initiator_and_executor: true
+  record_help_disclosed: true
+  record_verified_progression: true
+  pin_submission_log_range: true
+  unknown_source: mark_unverified
+  checkpoints: [node_entry, meaningful_revision, submission]
+
+submission:
+  freeze_project_and_evidence_snapshot: true
+  teacher_review_required: true
+  review_by_objective: true
+  retain_previous_submissions: true
+  on_return: preserve_history_and_continue
+  reports: [assignment_report, key_context_summary]
+  include_raw_evidence_index: true
+  summary_claims_require_evidence_refs: true
+
+completion:
+  required_deliverables: [四条两小节谱稿, 原型与发展稿, 八小节主题, 生成阶段的真实结果记录, 作业报表与过程摘要]
+  required_checks: [c-q1-structure, c-q2-structure, c-q3-structure, c-generation-record, c-reports]
+  learning_evidence_to_record: [c-listening-explanation, c-q1-explanation, c-q2-explanation, c-humming, c-q3-reference-and-expression, c-version-choice]
+  user_confirm_closure: true
+  export: optional
+
+budget:
+  max_turns: null
+  max_llm_calls: null
+  on_limit: preserve_and_pause
+
+pending_questions:
+  - 课程按任务量与证据推进，展演5分钟录播/截图/产物；不等待课时时长确认
+  - 当前源格式/音乐控件/可信工程检查接线未实现，不能直接加载本文件
+  - 材料库22项中已生成2份基础MIDI但未实际音源听核，余20项待定截段/转写；MusicXML/音频与鼓旋律音源仍待准备
+  - material_group及按ID加载是拟议设计语义，需要准备层实现，不能只给现有运行时一个catalog文件便声称能播放
+  - 实践1/2空谱的2/4写法（暂定8拍=四小节，待导师确认）；发展示例的变拍（如3/4）由agent演示/材料自带显示，不改工程拍号
+  - 各check需绑定真正的检查或复核实现；主观评议不转成唯一音符标准答案
+  - 八小节参考节奏允许变化的范围需导师核对
+  - 生成任务失败后保存并结束该阶段的状态分支需明确实现，不假报成功
+  - YuE2目标长度、辅助结构/和声，以及辅助律动鼓轨是否进入生成条件，需细化；实际运行前确定次数和止损
