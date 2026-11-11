@@ -1,0 +1,18 @@
+
+> ask-vit-webui@0.1.0 test
+> vitest run src/interactionCardKit.test.tsx src/trajectoryAuditionPlayback.test.tsx
+
+
+ RUN  v3.2.7 D:/Vit_DAW/agent/webui
+
+ ✓ src/trajectoryAuditionPlayback.test.tsx (5 tests) 14ms
+stdout | src/interactionCardKit.test.tsx
+[VitWebUI] loaded vit-confirmation-consumption-v1-20260801
+
+ ✓ src/interactionCardKit.test.tsx (12 tests) 15ms
+
+ Test Files  2 passed (2)
+      Tests  17 passed (17)
+   Start at  00:37:42
+   Duration  1.21s (transform 636ms, setup 0ms, collect 1.11s, tests 29ms, environment 0ms, prepare 648ms)
+
