@@ -28,7 +28,8 @@ React launcher 面加载即发 recents list 聊天（345 设计：完整列表�
 
 ## 领取
 
-- 时间 / origin/main hash / owner / 分支 / worktree / 领取提交：待回填
+- 时间 / origin/main hash / owner / 分支 / worktree / 领取提交：2026-11-14 晚窗 / 073b594f / freeflash（GLM-5.3 Flash）免费车道子代理 · PC · ZCode 主管会话派发 / port/launcher-zerofriction-1 / D:/Vit_DAW_wt_zerofric1 / 本 coord-only 提交（hash 见回执）
+- 腿范围：仅取证腿（只读+coord/runs/LAUNCHER-ZEROFRICTION-1/ 方案文档）；实施腿候方案裁定，不领
 
 ## 回执
 
