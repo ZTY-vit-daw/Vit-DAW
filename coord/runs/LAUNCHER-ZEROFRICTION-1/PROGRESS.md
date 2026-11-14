@@ -29,7 +29,7 @@
 - git worktree add D:/Vit_DAW_wt_zerofric1 -b port/launcher-zerofriction-1 origin/main → exit 0
 - git mv todo→doing + git add + commit → a682b2e6；git push origin HEAD:main → exit 0（073b594f..a682b2e6）
 - 取证为只读 grep/sed/read + coord 提交推送，无测试/构建/真栈命令
-- 回执提交（REPORT+PROGRESS+卡面回执，coord-only）：见卡面回执栏 hash
+- 回执提交（REPORT+PROGRESS+卡面回执，coord-only）：daff51a7（基于当时 origin/main=1ef32914 重放，§2.1③ 新协调分支 coord/352-receipt）
 
 ## 停止条件处置
 
