@@ -10,8 +10,8 @@
 - [x] S3 取证2: B 全空 mtime 18:57:14 非 junction（FORENSICS.md §1）
 - [x] S4 取证3: 时间线成文（FORENSICS.md §2，mtime+三卡 PROGRESS 交叉锚定）
 - [x] S5 取证4: 根因=拆除穿透 junction 删目标内容（高置信）；执行者归因 open（FORENSICS.md §3/§4）
-- [ ] S6 恢复1: 备份 D:/备份/vit-daw-frontend/godot-cpp 清单+哈希抽样+版本对照（api_version=4.6）
-- [ ] S7 恢复2: 恢复 D:/Vit_DAW/godot-cpp（robocopy /MIR 幂等，可续）
+- [x] S6 恢复1: 备份=4.2.2 官方（4bc6e67）工作树与 HEAD 零差异+fsck 过+哈希抽样在卷；api_version=4.6 系 no-op 已修正；版本相符放行（restore-version-check.md）
+- [ ] S7 恢复2: robocopy /MIR 备份→A（A 已证空，无覆盖面）
 - [ ] S8 验证: 临时 worktree junction → scons extension 编译 exit 0 → §3 纪律拆 junction
 - [ ] S9 回执: 卡面回填 → done → coord-only 推送
 
