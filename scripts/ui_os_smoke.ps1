@@ -497,7 +497,9 @@ public delegate bool EnumProc(IntPtr hWnd, IntPtr lp);
     $assert["recreated_new_hwnd"] = $newHwnd
     $assert["recreated_hwnd_differs"] = ($newHwnd -gt 0 -and $newHwnd -ne $childHwnd)
     $assert["recreated_boot_index_2"] = ($recBootIndex -eq 2)
-    $assert["recreated_navigate_count_2"] = ($recNavCount -eq 2)
+    # 重建窗 navigate_count==1：teardown 归零后重建导航恰一次（本卡 gd 设计注释与
+    # PROGRESS 设计切面同口径；页面重载证据=boot_index==2 + 新 HWND + page_loaded）。
+    $assert["recreated_navigate_count_1"] = ($recNavCount -eq 1)
     $assert["recreated_page_loaded"] = $recPageLoaded
     $assert["recreated_url_ok"] = ($recUrl -like "http://127.0.0.1:7878/app/*")
     $assert["recreate_no_focus_steal"] = ($recFgBefore -eq $recFgAfter)
@@ -511,6 +513,7 @@ public delegate bool EnumProc(IntPtr hWnd, IntPtr lp);
     [void][UiOsSmoke.Win32]::EnumWindows($enumCb3, [IntPtr]::Zero)
     $assert["chat_window_count_after_recreate"] = $enumAfterRecreate.Count
     if (-not $assert["recreated_hwnd_differs"]) { throw ("recreate reused the old HWND or failed: old=$childHwnd new=$newHwnd") }
+    if (-not $assert["recreated_navigate_count_1"]) { throw ("recreated window navigate_count=$recNavCount, expected exactly 1 (reset-on-close + single navigation)") }
     if ($enumAfterRecreate.Count -ne 1) { throw ("expected exactly 1 chat window after recreate, got $($enumAfterRecreate.Count)") }
     $newChatHwnd = $enumAfterRecreate[0]
     if (([long]$newChatHwnd) -ne $newHwnd) { throw ("recreated enum hwnd $newChatHwnd != log $newHwnd") }
