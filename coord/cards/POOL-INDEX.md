@@ -141,4 +141,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 - 发卡：主设计会话（lead）/ 2026-11-14；派发确认=已确认（用户「把新更新的 UI 设计任务放进任务池」）；主管可调整排序与编号。
 - R0 勘察卡已由主管确认收口（池序 350，done 归档；报告 `coord/runs/R0-CHAT-WINDOW-RECON-1/REPORT.md`）。
 | 354 | UI-ENTRY-1 | done 已验收 pass 合入（P0（**手测 v3 返工主卡**：单窗入口——启动态 React 启动台独占+Godot 主窗隐藏+进工程展开+回退；surface 同窗不重载切换；[裁定](../rulings/2026-11-14-UI-ENTRY-1-pass.md)——**手测 v4 放行**，方案 B 当日闭环） |
-| 355 | UI-ENTRY-2 | todo 可领 P0（手测 v4 反馈：关窗即退出+无 Godot 回退+工程态往返单窗+splash 压制；354 语义修正，start_page 代码保留仅退场门面） |
+| 355 | UI-ENTRY-2 | done 已验收 pass 合入（[裁定](../rulings/2026-11-15-UI-ENTRY-2-pass.md)：关窗三进程退出+失败链零 Godot 回退+splash 压制；降级采纳=关工程仅退出（内核 close 卡候选）；前端 83390f5——**手测 v5 放行**） |（手测 v4 反馈：关窗即退出+无 Godot 回退+工程态往返单窗+splash 压制；354 语义修正，start_page 代码保留仅退场门面） |

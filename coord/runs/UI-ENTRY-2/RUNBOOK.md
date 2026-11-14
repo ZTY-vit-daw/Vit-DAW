@@ -18,9 +18,11 @@
    - webview2.unavailable 行在场 + **零 boot 行**（建窗路径中止）；
    - EnumWindows：本进程 **#32770 原生错误对话框出现**（OS.alert，MB_ICONERROR）；
    - 脚本对该对话框投递 WM_CLOSE（窗口消息自动化，354 UI-OS-1 同先例，非主机控制）→
-   - **Godot 进程退出**（≤15s）+ 全程零 VitWebViewHostChildWindow + Godot 主窗零可见。
-   - 边界声明：对话框**文案/图标内容**不做进程内断言（原生 MessageBox 内容不可枚举），
-     断言面=对话框类名+归属 pid+退出链。
+   - **Godot 进程退出**（≤15s）+ 全程零 VitWebViewHostChildWindow。
+   - 边界声明：①对话框**文案/图标内容**不做进程内断言（原生 MessageBox 内容不可枚举），
+     断言面=对话框类名+归属 pid+退出链；②OS.alert 在 autoload _ready 内阻塞（先于
+     deferred 主窗隐藏）——引擎启动序列在此前已预显主窗（354 已证实的引擎限制面），
+     故本腿不断言主窗可见性（进程随后退出，闪现归手测 v5 splash 残余观测项）。
 3. **autoload 全链腿（关窗=全栈退出）**（autoload + autostart 开 + VIT_SMOKE_AUTO_OPEN_PROJECT）：
    - 前段同 354：boot→main_window.hidden→静置单窗轮询（可见 VitWebViewHostChildWindow 恰 1
      且 Godot 主窗不可见）→page_loaded(url=?surface=launcher)→smoke.auto_open.done→
