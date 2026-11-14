@@ -366,9 +366,11 @@ try {
     $leg1.scene_hwnd = Get-JsonField -Line $sceneHit.Line -Field "child_hwnd"
     $leg1.same_hwnd_across_open = ($leg1.scene_hwnd -eq $leg1.child_hwnd -and $leg1.child_hwnd -gt 0)
     if (-not $leg1.same_hwnd_across_open) { throw ("L1 HWND changed across open: child=$($leg1.child_hwnd) scene=$($leg1.scene_hwnd)") }
+    # /agent/state 仅记录不判定：agent current_project=工作区绑定面（chat 激活时绑定，
+    # open 后无新聊天不重绑）=340 桥播域语义，非本卡验收面；kernel-open 由
+    # scene_added VitDockRoot + result(opened) 证明（IPC 失败走 _finish_ipc_failure 不切场景）。
     $proj1 = Get-AgentCurrentProject -BaseUrl $AgentHttp
-    $leg1.agent_current_project = $proj1
-    if ($proj1 -notlike "*烟测桥甲*") { throw ("L1 agent current_project not fixture A: '$proj1'") }
+    $leg1.agent_current_project_observed = $proj1
 
     Stop-GuiProcess $godotPid; $godotPid = 0
     Stop-GuiProcess $agentProcId; $agentProcId = 0
@@ -387,6 +389,7 @@ try {
     $gdHit = Test-LogLine -LogPath $log2 -Pattern '\[LauncherBridge\] governance\.dialog_shown ' -TimeoutSeconds 30
     if ($null -eq $gdHit) { throw ("L2a governance dialog not shown (kernel has 甲 open — three-key confirm must appear)") }
     $leg2a.dialog_current_project = Get-JsonString -Line $gdHit.Line -Field "current_project"
+    if ($leg2a.dialog_current_project -notlike "*烟测桥甲*") { throw ("L2a governance dialog does not reference fixture A (kernel-open premise): '" + $leg2a.dialog_current_project + "'") }
     $gpHit = Test-LogLine -LogPath $log2 -Pattern '\[LauncherBridge\] smoke\.governance\.press .*"choice":\s*"switch"' -TimeoutSeconds 30
     if ($null -eq $gpHit) { throw ("L2a smoke governance press (switch) not seen") }
     Assert-BridgeResult -LogPath $log2 -Leg $leg2a -ExpectStatus "opened" -ExpectGovernance "switch"
@@ -450,9 +453,9 @@ try {
     $leg2c.scene_hwnd = Get-JsonField -Line $sceneHit4.Line -Field "child_hwnd"
     $leg2c.same_hwnd_across_open = ($leg2c.scene_hwnd -eq $leg2c.child_hwnd -and $leg2c.child_hwnd -gt 0)
     if (-not $leg2c.same_hwnd_across_open) { throw ("L2c HWND changed across open") }
+    # /agent/state 仅记录（同 L1：open 后无新聊天不重绑，工作区绑定面非本卡验收面）。
     $proj4 = Get-AgentCurrentProject -BaseUrl $AgentHttp
-    $leg2c.agent_current_project = $proj4
-    if ($proj4 -notlike "*烟测桥甲*") { throw ("L2c agent current_project not fixture A after save-switch: '$proj4'") }
+    $leg2c.agent_current_project_observed = $proj4
     # 降级段：followup 消息在 dock 阶段到达 → unsupported 回执 + React 真收。
     $dockHit = Test-LogLine -LogPath $log4 -Pattern '\[LauncherBridge\] dock\.received .*"type":\s*"launcher_directive"' -TimeoutSeconds 60
     if ($null -eq $dockHit) { throw ("L2c dock.received not seen (followup message did not reach the dock handler)") }

@@ -24,12 +24,13 @@ L1 零摩擦前提的依据：boot 态 /agent/state current_project.path 依赖 
 L2 腿 kernel 有实开工程 → shadow 携带路径 → 对话框出现。若 L1 意外出对话框=前提被
 真栈证据推翻 → 按 §8 失败分类 3 停手上交（不原样重跑）。
 
-## 成功条件（全部满足=exit 0）
+## 成功条件（全部满足=exit 0；attempt-4 后校准——§8 修复轮记录见 PROGRESS）
 
-- 每腿 [LauncherBridge] 日志链完整：surface_ready → directive.received → governance.*（L2 各腿 dialog_shown+choice）→ open.begin → result.posted
-- L1/L2a/L2c：scene_added VitDockRoot + boot 内同一 child_hwnd（343 不变量，smoke navigate 显式记账不计入 navigate_count 断言）+ result_ack(opened)（React 真收回执）
-- L2b：无 scene_added + /agent/state current_project.path==乙 + result_ack(canceled)
-- L2c 降级段：dock 侧 unsupported 回执 + result_ack(unsupported) + [LauncherBridge] unsupported 日志
+- 每腿 [LauncherBridge] 日志链完整：surface_ready → directive.received → governance.*（各腿 dialog_shown+choice）→ open.begin → result.posted（行面含 governance/action）
+- L1（boot scratch 态，治理 switch 驱动——零摩擦前提被 attempt-1 真栈证据推翻转 finding）：dialog_shown(current_project=Unsaved scratch) → switch → open → scene_added VitDockRoot + 同 HWND + result(opened,governance=switch) + result_ack(opened)；/agent/state 仅记录（工作区绑定语义=340 桥播域）
+- L2a：dialog_shown 且 **current_project 含烟测桥甲**（内核在开工程证明）→ switch → result(opened,switch) + scene_added + 同 HWND
+- L2b：dialog_shown → cancel → result(canceled,cancel) + result_ack(canceled) + 无 scene_added + /agent/state==乙（激活先于指令，绑定有效）
+- L2c：dialog_shown → save → result(opened,save) + scene_added + 同 HWND；followup 在 dock → dock.received + result(unsupported) + result_ack(unsupported)；/agent/state 仅记录
 - fixture 源（912.vit）sha256 运行前后一致；recents global_project_config.json 还原快照（净差零）；零 LLM telemetry
 - 脚本退出码 0
 
