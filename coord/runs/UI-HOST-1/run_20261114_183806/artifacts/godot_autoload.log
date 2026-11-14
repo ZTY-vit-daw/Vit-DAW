@@ -1,0 +1,45 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+SCRIPT ERROR: Parse Error: Identifier "VitWaveformReader" not declared in the current scope.
+   at: GDScript::reload (res://app/kernel/autoloads/telemetry_manager.gd:174)
+ERROR: Failed to load script "res://app/kernel/autoloads/telemetry_manager.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+ERROR: Failed to instantiate an autoload, script 'res://app/kernel/autoloads/telemetry_manager.gd' does not inherit from 'Node'.
+   at: start (main/main.cpp:4407)
+SCRIPT ERROR: Parse Error: Could not find type "LauncherChatPanel" in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:64)
+SCRIPT ERROR: Parse Error: Could not find type "LauncherGovernanceDialog" in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:88)
+SCRIPT ERROR: Parse Error: Could not find type "LauncherGovernanceDialog" in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:471)
+SCRIPT ERROR: Parse Error: Identifier "LauncherChatPanel" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:159)
+SCRIPT ERROR: Parse Error: Identifier "LauncherChatPanel" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:249)
+SCRIPT ERROR: Parse Error: Identifier "LauncherChatPanel" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:249)
+SCRIPT ERROR: Parse Error: Identifier "LauncherChatPanel" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:259)
+SCRIPT ERROR: Parse Error: Identifier "LauncherNavBridge" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:353)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "dialog" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://app/startup/start_page.gd:379)
+SCRIPT ERROR: Parse Error: Cannot infer the type of "choice" variable because the value doesn't have a set type.
+   at: GDScript::reload (res://app/startup/start_page.gd:383)
+SCRIPT ERROR: Parse Error: Identifier "LauncherGovernanceDialog" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:385)
+SCRIPT ERROR: Parse Error: Identifier "LauncherGovernanceDialog" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:387)
+SCRIPT ERROR: Parse Error: Identifier "LauncherGovernanceDialog" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:474)
+SCRIPT ERROR: Parse Error: Identifier "LauncherNavBridge" not declared in the current scope.
+   at: GDScript::reload (res://app/startup/start_page.gd:1494)
+ERROR: Failed to load script "res://app/startup/start_page.gd" with error "Parse error".
+   at: load (modules/gdscript/gdscript.cpp:2907)
+[AgentChatWindow] unavailable {"mode_active":true,"reason":"VitWebViewHost extension class is missing"}
+WARNING: AgentChatWindow: VitWebViewHost extension class is missing
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _mark_unavailable (res://app/shell/agent_chat_window.gd:306)
+       [1] _ready (res://app/shell/agent_chat_window.gd:60)

@@ -1,0 +1,65 @@
+2026-11-14T18:42:07 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-14T18:42:07 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-14T18:42:07 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-14T18:42:07 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-14T18:42:07 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-14T18:42:07 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-14T18:42:07 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-14T18:42:07 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T18:42:07 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-14T18:42:07 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T18:42:07 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T18:42:08 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-11-14T18:42:08 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:08 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:08 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:08 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:09 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:09 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:09 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:09 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:10 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:10 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:10 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:10 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:11 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:11 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:11 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:11 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:12 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:12 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:12 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:12 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:13 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:13 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:13 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:13 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T18:42:13 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T18:42:13 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:14 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:14 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:14 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:14 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:14 [INFO] [timing] harness.invoke total_ms=3 tool=version.project_opened command=version_project_opened status=error confirmed=true err=true
+2026-11-14T18:42:14 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:15 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:15 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:15 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:15 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:16 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:16 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:16 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:16 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:16 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_3634635 bytes=1288808 file=D:\Vit_DAW_wt_uihost1\coord\runs\UI-HOST-1\run_20261114_184205\logs\BridgeReplies\20261114_184216_994469100_plugin_list_available_library_plugin_list_3634635.json
+2026-11-14T18:42:17 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:17 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:17 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:17 [INFO] [workspace] activation pending uuid=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb reason=startup_recovery_disabled_new_session
+2026-11-14T18:42:17 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW_wt_uihost1\\coord\\runs\\UI-HOST-1\\run_20261114_184205\\fixture\\ui_host_912.vit" replayed_deltas=0
+2026-11-14T18:42:17 [INFO] control reply spilled to file cmd=get_project_state request_id=ipc_6 bytes=35297 file=D:\Vit_DAW_wt_uihost1\coord\runs\UI-HOST-1\run_20261114_184205\logs\BridgeReplies\20261114_184217_941812800_get_project_state_ipc_6.json
+2026-11-14T18:42:18 [INFO] [workspace] parent history recovery skipped parent=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb target=vitproj_9ecc5ab9a454400192086c628c07b966 reason=parent project path not found for UUID vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-14T18:42:18 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-14T18:42:18 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-14T18:42:18 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_uihost1\\coord\\runs\\UI-HOST-1\\run_20261114_184205\\fixture\\ui_host_912.vit" uuid=vitproj_9ecc5ab9a454400192086c628c07b966 recovered=false conversations=0 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-14T18:42:19 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T18:42:19 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
