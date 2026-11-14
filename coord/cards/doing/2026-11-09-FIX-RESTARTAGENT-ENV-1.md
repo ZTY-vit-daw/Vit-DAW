@@ -25,4 +25,4 @@
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+- 领取：2026-11-14 晚窗 / origin/main=5bb10b0a04c63f9e804fc1a4e88fb8bbb53a02b9（fetch 亲证；=派发基线 bfe0356e 的后代，bfe0356e..5bb10b0a scripts/ 域零变更）/ owner=GLM-5.3-flash（freeflash）·PC·ZCode 免费车道量产执行子代理（主管会话 2026-11-14 晚窗派发，池序 326）/ 分支=port/fix-restartagent-env-1 / worktree=D:/Vit_DAW_wt_env1 / 领取提交=coord/env1-claim→main。在飞卡域核对：353 ENV-GODOTCPP-RESTORE-1（godot-cpp 仓外目录+工件域）、347 UI-LOADING-1（webui loading）、329 WAVESHELL（取证已毕仅 chat 实施腿）、273/271（agent Go 域）——与本卡（scripts/dev_agent_smoke.ps1+restart_agent.ps1±新兄弟验证脚本）均不相交。工件/断点=coord/runs/FIX-RESTARTAGENT-ENV-1/PROGRESS.md（随 port 分支推远端）。
