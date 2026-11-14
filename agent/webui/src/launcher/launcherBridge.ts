@@ -37,10 +37,6 @@ export type LauncherBridgeRequestType =
 /** 宿主回执状态面（全 honest：opened 只能来自宿主回执）。 */
 export type LauncherBridgeResultStatus =
   | "opened"
-
-/** 宿主回执状态面（全 honest：opened 只能来自宿主回执）。 */
-export type LauncherBridgeResultStatus =
-  | "opened"
   | "failed"
   | "canceled"
   | "unsupported"
