@@ -12,10 +12,33 @@
 
 ## 里程碑
 
-- M1 loading 组件+状态机（src/project/loading/**）——进行中
-- M2 App.tsx 接入（ProjectLoadingGate）——未开始
-- M3 错误/中断路径（并入 M1 组件能力+测试）——未开始
-- M4 gallery+渲染烟测+三命令自验——未开始
+- M1 loading 组件+状态机（src/project/loading/**）——完成（bb721db9，tsc exit 0，loading 23 例单测全绿）
+- M2 App.tsx 接入（ProjectLoadingGate）——完成（f9256cf8，tsc exit 0）
+- M3 错误/中断路径——并入 M1（failed/interrupted 事件+组件态+单测 6 例）
+- M4 gallery+渲染烟测+三命令自验——完成（6f5baf59 样张页+断言段；880c7d5b 撞名修复）
+
+## 三命令自验结果（2026-11-14 21:47，最终轮）
+
+- npm run test —— exit 0（46 文件 560 例全过；537 基线不回退 + 23 新增）
+- npm run build —— exit 0（tsc --noEmit + vite build）
+- npm run test:render —— exit 0（四页全 PASS：FOUNDATION / LAUNCHER / PROJECT / LOADING；loading 报告 coord/runs/UI-LOADING-1/render-smoke-loading-report.json + screens/loading-{viewport,full}.png）
+
+## P2 覆盖清单（render-smoke loading 报告 DOM 实测）
+
+- 状态卡四态：loading×3 / completed×2 / failed×2 / interrupted×1
+- 三步轨迹：done×2 + current×1（已读取工程文件/已恢复轨道/正在连接音频设备）
+- 磁带带量三帧：待机 1.00/0.20 · 进行 0.49/0.71（p=0.64）· 完成 0.20/1.00；SVG 实件×8
+- 完成回执：「已打开《示例工程甲（fixture）》」×2 + details 轨迹可展开×2
+- 错误/中断：原因×3（设备占用/宿主关闭/agent 不可达）+ 恢复入口×3（重试/重新打开/重试）
+- 装载门输入禁用/恢复：error 态 children 隐藏（0 泄漏）+ ok 态 composer 在场；data-loading-input-disabled×3
+- 无假倒计时：预计/剩余/倒计时文案 = 0
+- 对比度 textMin=5.077（≥4.5）、graphicMin=5.614（≥3）、裁切 0、字号违规 0、外部请求 0
+
+## 失败分类与停止记录
+
+- F1（已解决）：render-smoke loading 段 `lscan` 与 launcher 段撞名 → SyntaxError exit 1；loading 段改名 ldscan（880c7d5b）。域内标识符冲突，非环境中断。
+- F2（已解决）：首轮 6 例单测失败（测试预期 2 + 实现 2），M1 内修复后全绿；无基线回退。
+- 无停止条件触发；无越域改动。
 
 ## 设计裁定记录（M1 开工前，2026-11-14 21:40）
 
@@ -24,7 +47,7 @@
 3. **磁带带量**：tapeSVG 从 main-window-v3/SPEC.md §3 逐字移植（结构冻结；rgba 助手 SPEC 未附，按常规 [r,g,b]→css 实现并注明）。进度 p 只来自显式事件：无 p 显示待机帧 L=1,R=0.2 静止（未知进度不伪造）；有 p 推进 L=1-0.8p,R=0.2+0.8p；完成帧 L=0.2,R=1。进度表达只用磁带带量（卡面定磁带，SPEC §8.2 二选一）——不复用 344 StatusCard 进度条。
 4. **错误/中断区分**：failed（失败，可重试）与 interrupted（中断，原因+恢复入口）两类事件，都写明原因与恢复入口。
 5. **完成回执**：收一行（i-done+结果行），轨迹可展开（原生 details，尊重 prefers-reduced-motion 的 CSS 由样式层处理）。
-6. **样式落点**：src/styles.css 末尾仅新增 v5-loading-* 规则（卡面指定）；gallery 样张页与 render-smoke 断言段按 345/346 先例最小扩展（回执声明）。
+6. **样式落点**（M1 改判，见 M1 注记）：loading 规则落 src/project/loading/loading.css（loading/** 域内，345 launcher.css 同款先例）；styles.css 零改动——其 html/body overflow:hidden 全局规则会被 gallery fixture 页连带加载，破坏现有三页渲染烟测。gallery 样张页与 render-smoke 断言段按 345/346 先例最小扩展（回执声明）。
 
 ## 长命令登记
 
