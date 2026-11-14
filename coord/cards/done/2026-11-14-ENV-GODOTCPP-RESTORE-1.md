@@ -55,6 +55,7 @@
 ## 验收
 
 - 待回填
+<<<<<<< HEAD
 
 ## 验收（主管 2026-11-14 深夜）
 
@@ -62,3 +63,5 @@
 - 根因结论采纳（高置信/open 归因）：worktree 收尾删除穿透 junction 递归删空目标——mtime 证明早于主管 force remove，非主管操作；预防=§3 新纪律（已落地）。
 - 前端主检出 B 不恢复（junction 借用已满足，裁定维持）；「22:3x 观察矛盾」按报告记录为 open（不阻塞）；USN 日志取证局限接受。
 - 工件自主干分支合入 main；worktree 已清理；port/env-godotcpp-restore-1 留远端存档。
+=======
+>>>>>>> 3ce55cacfe8e120f31af24151c382000b545904e
