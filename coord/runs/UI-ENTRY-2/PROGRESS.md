@@ -40,3 +40,5 @@
 - 装置风险预登记：PS1 中文注释须 BOM；EnumWindows delegate 内禁 `$pid`（用 $procId）；OS.alert 原生框为阻塞模态（烟测以 EnumWindows 找 #32770 对话框 + WM_CLOSE 关闭后断言进程退出，不留悬挂模态）。
 - S8 运行中（00:3x）：`powershell -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW_wt_uientry2/scripts/ui_entry2_smoke.ps1`（占用登记 98ed4ed7 已推 main+重读确认+≤60s 复核 PROCS=0/五端口 free；run 根=coord/runs/UI-ENTRY-2/run_<stamp>；断了重派先查 run 目录是否已有本轮产物再决定续跑或新 run）
 - S8 第 1 轮 run_20261115_002604（exit 1）：腿 1/腿 2 PASS；腿 3 败于 surface.ack 缺失。根因（真链取证）：presented 的 vit_surface 早于 React 挂载/订阅（page_loaded#2 晚于 presented=冷加载时序），消息进空网丢失；354 同构形态（双 page_loaded/双 auto_open）仅时序偶发不同=潜在竞速非本卡回归。修复=前端 83390f5（pending surface+React 就绪宣告/+5s 兜底有限重投，343 不变量不动）。第 2 轮命令同前（占用仍持有，启动前重复核）。
+- 第 2 轮 run_20261115_003340（**exit 0 PASS**）：四腿全绿——腿 3 关窗→Godot/agent/kernel 全退出+端口释放（close_* 全 true）；surface.ack(project) 经重投链收敛到达；腿 4 legacy 回归绿。RUN-SUMMARY.md 已写。
+- [x] S8 完成（finally 拆栈+亲证四 TCP=0+PROCS=0）；下一步 S9 回执：卡面回填→doing→done→coord 推送。
