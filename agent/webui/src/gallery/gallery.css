@@ -325,3 +325,43 @@ body {
   font: 400 var(--v5-t-caption) / 1.5 var(--v5-font-mono);
   color: var(--v5-ui-weak);
 }
+
+/* ---------- UI-LAUNCHER-1（345）：启动台 surface 样例 ---------- */
+
+/* 主 gallery 内的 launcher 样例框占满 section body 宽度；高度随内容自然撑开
+ * （height:auto + min-height）——完整 fixture 线程不收缩不溢出不叠压 */
+.v5-gal-section [data-launcher-frame] {
+  width: 100%;
+  height: auto;
+  min-height: 620px;
+}
+
+/* fixture 页 ready 全尺寸样例（紧凑三态样例仍用固定 400px，见下） */
+[data-gallery-page="launcher"] > .v5-design > [data-launcher-frame] {
+  height: auto;
+  min-height: 620px;
+}
+
+/* fixture 页：三态紧凑样例横排（内容自适应，避免 overflow 裁切） */
+.v5-gal-launcher-states {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.v5-gal-launcher-states [data-launcher-sample] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.v5-gal-launcher-states [data-launcher-sample] .v5-launcher-frame {
+  height: 400px;
+}
+
+.v5-gal-launcher-states [data-launcher-sample] .v5-launcher-drawer {
+  width: 200px;
+  flex-basis: 200px;
+}

@@ -1,0 +1,64 @@
+{
+  "run": "UI-LAUNCHER-1 launcher render smoke",
+  "date": "2026-11-14T11:12:47.484Z",
+  "url": "http://127.0.0.1:5391/app/gallery.html?surface=launcher",
+  "viewport": "1440x900@1",
+  "reducedMotion": "reduce",
+  "externalRequestCount": 0,
+  "dom": {
+    "rootState": "ready",
+    "fixtureNotices": {
+      "page": true,
+      "surface": true
+    },
+    "titlebarPresent": true,
+    "titlebarBrandText": "Vit",
+    "titlebarFullText": "Vit启动台",
+    "titlebarVitUse": 0,
+    "titlebarProjectBadge": 0,
+    "drawerState": "ready",
+    "recentsInDom": 3,
+    "declaredRecentsCount": "3",
+    "recentsLabeledFixture": [
+      true,
+      true,
+      true
+    ],
+    "greetingPresent": true,
+    "threadPresent": true,
+    "resultCards": 3,
+    "directiveState": "pending",
+    "directiveHeadline": "准备打开《示例工程甲》…",
+    "directiveNote": "占位展示——打开/新建动作待工程桥接（UI-BRIDGE-1）后执行，本页不执行。",
+    "suggestions": 3,
+    "inputPresent": true,
+    "loadingSample": true,
+    "loadingText": "正在读取最近工程…",
+    "errorSample": true,
+    "errorRetryButtons": 1,
+    "drawerErrorRetryButtons": 1,
+    "emptySample": true,
+    "emptyText": "还没有最近工程记录。可以说「新建一个工程」，或从磁带流里选文件打开。"
+  },
+  "textContrastMin": {
+    "text": "加载态（greeting / 最近工程读取中）",
+    "ratio": 5.077,
+    "fg": "rgb(102,102,102)",
+    "bg": "rgb(240,241,242)"
+  },
+  "graphicChecks": 10,
+  "graphicMinRatio": 18.423,
+  "clipIssues": [],
+  "docScrollWidth": 1440,
+  "fontTooSmall": [],
+  "failures": [],
+  "notes": [
+    "launcherUrl=http://127.0.0.1:5391/app/gallery.html?surface=launcher"
+  ],
+  "screenshots": [
+    "D:\\Vit_DAW_wt_uilaunch1\\coord\\runs\\UI-LAUNCHER-1\\screens\\launcher-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_uilaunch1\\coord\\runs\\UI-LAUNCHER-1\\screens\\launcher-full.png"
+  ],
+  "foundationReport": "D:\\Vit_DAW_wt_uilaunch1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+  "result": "PASS"
+}

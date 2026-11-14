@@ -12,6 +12,12 @@
  * 运行方式：node src/gallery/render-smoke.mjs（自起 vite dev server，随机端口）。
  * 工件：coord/runs/UI-FOUNDATION-1/{render-smoke-report.json, screens/*.png}
  * 退出码 0 = 全部通过；任何断言失败退出码 1。
+ *
+ * UI-LAUNCHER-1（345）扩展：追加 launcher fixture 页（gallery.html?surface=launcher）
+ * 渲染烟测——标题栏 Vit 文本/抽屉真实 recent 数/建议/输入/加载/错误/空态
+ * DOM 断言 + 对比度/字号/裁切扫描 + 1440×900 截图；工件落
+ * coord/runs/UI-LAUNCHER-1/{render-smoke-launcher-report.json, screens/*.png}。
+ * 全离线 fixture（零真实端点请求）；344 的 gallery 断言与工件路径不变。
  */
 
 import { chromium } from "playwright";
@@ -25,6 +31,9 @@ const webuiRoot = resolve(here, "../.."); // agent/webui
 const repoRoot = resolve(webuiRoot, "../.."); // 仓库根
 const outDir = resolve(repoRoot, "coord/runs/UI-FOUNDATION-1");
 const screensDir = resolve(outDir, "screens");
+// UI-LAUNCHER-1（345）：launcher 渲染烟测工件独立落卡目录（344 产物路径不变）。
+const launcherOutDir = resolve(repoRoot, "coord/runs/UI-LAUNCHER-1");
+const launcherScreensDir = resolve(launcherOutDir, "screens");
 
 /** 与 src/design/sprite.tsx 同源（23 symbol）。 */
 const SYMBOL_IDS = [
@@ -246,7 +255,10 @@ async function main() {
   domAssert("未选择时应用禁用", dom.disabledApplyButtons >= 1, "缺禁用应用按钮");
 
   // ---- 3. 对比度 / 字号 / 裁切扫描 ----
-  const scan = await page.evaluate(() => {
+  // UI-LAUNCHER-1（345）：同一扫描函数复用于 launcher fixture 页（见 §7）；
+  // gallery 页行为不变。
+  const scanFn = () =>
+    page.evaluate(() => {
     const results = { text: [], graphics: [], tooSmall: [], clipped: [] };
 
     const parseColor = (s) => {
@@ -408,7 +420,8 @@ async function main() {
     }
     results.docScrollWidth = document.documentElement.scrollWidth;
     return results;
-  });
+    });
+  const scan = await scanFn();
 
   const contrastAssert = (name, ok, detail) => {
     if (!ok) failures.push(`CONTRAST: ${name} — ${detail}`);
@@ -474,6 +487,170 @@ async function main() {
   const reportPath = resolve(outDir, "render-smoke-report.json");
   writeFileSync(reportPath, JSON.stringify(report, null, 2), "utf-8");
 
+  // ---- 7. UI-LAUNCHER-1（345）：launcher fixture 页渲染烟测 ----
+  // gallery.html?surface=launcher 全离线 fixture 渲染（零真实端点请求）；
+  // live surface 的真实端点消费由 ?surface=launcher 主面承担（端到端待 343/348）。
+  const launcherFailures = [];
+  const launcherNotes = [];
+  mkdirSync(launcherScreensDir, { recursive: true });
+  const launcherUrl = `${galleryUrl}?surface=launcher`;
+  const launcherRequests = [];
+  const onLauncherRequest = (r) => launcherRequests.push(r.url());
+  page.on("request", onLauncherRequest);
+  await page.goto(launcherUrl, { waitUntil: "networkidle" });
+  await page.waitForSelector("[data-launcher-root]");
+  await page.waitForTimeout(200);
+  const launcherOrigin = new URL(page.url()).origin;
+  const launcherExternalRequests = launcherRequests.filter((u) => {
+    if (u.startsWith("data:") || u.startsWith("blob:")) return false;
+    return !u.startsWith(launcherOrigin);
+  });
+  page.off("request", onLauncherRequest);
+  launcherNotes.push(`launcherUrl=${launcherUrl}`);
+
+  const ldom = await page.evaluate(() => {
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => [...document.querySelectorAll(sel)];
+    // 就绪全尺寸样例 = DOM 中首个 launcher root；样例计数只在该 root 内取，
+    // 不与加载/错误/空态紧凑样例混计。
+    const rootEl = $("[data-launcher-root]");
+    const within = (sel) => [...(rootEl?.querySelectorAll(sel) ?? [])];
+    const titlebar = $("[data-launcher-titlebar]");
+    const recents = within("[data-launcher-recent]");
+    const directive = within("[data-launcher-directive]")[0] ?? null;
+    const suggestions = within("[data-launcher-suggestion]");
+    const out = {};
+    out.rootState = rootEl?.getAttribute("data-launcher-state") ?? "(missing)";
+    out.fixtureNotices = {
+      page: !!$('[data-fixture="notice"]'),
+      surface: !!$('[data-fixture="launcher-surface"]'),
+    };
+    out.titlebarPresent = !!titlebar;
+    out.titlebarBrandText =
+      titlebar?.querySelector(".v5-launcher-titlebar-brand")?.textContent?.trim() ?? "";
+    out.titlebarFullText = titlebar?.textContent?.trim() ?? "";
+    out.titlebarVitUse = $$("[data-launcher-titlebar] use[href='#i-vit']").length;
+    out.titlebarProjectBadge = $$("[data-launcher-titlebar] [data-project-badge]").length;
+    out.drawerState = $("[data-launcher-drawer]")?.getAttribute("data-drawer-state") ?? "(missing)";
+    out.recentsInDom = recents.length;
+    out.declaredRecentsCount =
+      $("[data-launcher-recents-count]")?.getAttribute("data-launcher-recents-count") ?? "";
+    out.recentsLabeledFixture = recents.map((e) => (e.textContent ?? "").includes("fixture"));
+    out.greetingPresent = !!$("[data-launcher-greeting]");
+    out.threadPresent = !!$("[data-launcher-thread]");
+    out.resultCards = within("[data-launcher-card]").length;
+    out.directiveState = directive?.getAttribute("data-launcher-directive-state") ?? "(missing)";
+    out.directiveHeadline = directive?.querySelector(".v5-launcher-directive-headline")?.textContent ?? "";
+    out.directiveNote = directive?.querySelector(".v5-launcher-directive-note")?.textContent ?? "";
+    out.suggestions = suggestions.length;
+    out.inputPresent = !!$("[data-launcher-input] input");
+    out.loadingSample = !!$('[data-launcher-sample="loading"] [data-drawer-state="loading"]');
+    out.loadingText = $("[data-launcher-drawer-loading]")?.textContent ?? "";
+    out.errorSample = !!$('[data-launcher-sample="error"] [data-launcher-agent-error]');
+    out.errorRetryButtons = $$("[data-launcher-retry]").length;
+    out.drawerErrorRetryButtons = $$("[data-launcher-drawer-retry]").length;
+    out.emptySample = !!$('[data-launcher-sample="empty"] [data-drawer-state="empty"]');
+    out.emptyText = $("[data-launcher-drawer-empty]")?.textContent ?? "";
+    return out;
+  });
+
+  const launcherAssert = (name, ok, detail) => {
+    if (!ok) launcherFailures.push(`LAUNCHER: ${name} — ${detail}`);
+  };
+
+  launcherAssert("surface root ready", ldom.rootState === "ready", ldom.rootState);
+  launcherAssert(
+    "fixture 标注（页面 + surface）",
+    ldom.fixtureNotices.page && ldom.fixtureNotices.surface,
+    JSON.stringify(ldom.fixtureNotices)
+  );
+  launcherAssert(
+    "标题栏 = Vit 文本（V 品牌标/工程标不进标题栏）",
+    ldom.titlebarPresent &&
+      ldom.titlebarBrandText === "Vit" &&
+      ldom.titlebarVitUse === 0 &&
+      ldom.titlebarProjectBadge === 0,
+    `brand=${ldom.titlebarBrandText} vitUse=${ldom.titlebarVitUse} badge=${ldom.titlebarProjectBadge}`
+  );
+  launcherAssert(
+    "抽屉 ready + 真实 recent 数一致（声明数 = DOM 行数 = 3 fixture）",
+    ldom.drawerState === "ready" &&
+      ldom.recentsInDom === 3 &&
+      ldom.declaredRecentsCount === String(ldom.recentsInDom),
+    `state=${ldom.drawerState} dom=${ldom.recentsInDom} declared=${ldom.declaredRecentsCount}`
+  );
+  launcherAssert(
+    "recent 行全部带 fixture 标注（不冒充真实工程）",
+    ldom.recentsLabeledFixture.length === 3 && ldom.recentsLabeledFixture.every(Boolean),
+    JSON.stringify(ldom.recentsLabeledFixture)
+  );
+  launcherAssert("问候语在卷", ldom.greetingPresent, "缺 data-launcher-greeting");
+  launcherAssert("会话线程在卷", ldom.threadPresent, "缺 data-launcher-thread");
+  launcherAssert("结果卡数据展示（3 张 fixture 卡）", ldom.resultCards === 3, `cards=${ldom.resultCards}`);
+  launcherAssert(
+    "directive = 待执行占位（准备打开…，不虚报已打开）",
+    ldom.directiveState === "pending" &&
+      ldom.directiveHeadline.startsWith("准备打开") &&
+      ldom.directiveNote.includes("不执行"),
+    `state=${ldom.directiveState} headline=${ldom.directiveHeadline} note=${ldom.directiveNote}`
+  );
+  launcherAssert("上下文建议 3–4 个", ldom.suggestions >= 3 && ldom.suggestions <= 4, `count=${ldom.suggestions}`);
+  launcherAssert("输入框在卷", ldom.inputPresent, "缺 data-launcher-input input");
+  launcherAssert("加载态样例", ldom.loadingSample && ldom.loadingText.includes("正在读取"), ldom.loadingText);
+  launcherAssert(
+    "错误态样例（agent 不可用 banner + 双重试按钮）",
+    ldom.errorSample && ldom.errorRetryButtons >= 1 && ldom.drawerErrorRetryButtons >= 1,
+    `agent=${ldom.errorSample} retry=${ldom.errorRetryButtons} drawerRetry=${ldom.drawerErrorRetryButtons}`
+  );
+  launcherAssert("空态样例", ldom.emptySample && ldom.emptyText.includes("还没有"), ldom.emptyText);
+
+  const lscan = await scanFn();
+  const launcherContrastAssert = (name, ok, detail) => {
+    if (!ok) launcherFailures.push(`LAUNCHER-CONTRAST: ${name} — ${detail}`);
+  };
+  launcherContrastAssert("正文 ≥4.5:1", lscan.text.length === 0, JSON.stringify(lscan.text.slice(0, 6)));
+  launcherContrastAssert(
+    "图形 ≥3:1",
+    !lscan.graphicsFail || lscan.graphicsFail.length === 0,
+    JSON.stringify((lscan.graphicsFail ?? []).slice(0, 6))
+  );
+  launcherContrastAssert("最小字号 ≥13px", lscan.tooSmall.length === 0, JSON.stringify(lscan.tooSmall.slice(0, 6)));
+  if (lscan.clipped.length > 0)
+    launcherFailures.push(`LAUNCHER-CLIP: 裁切/溢出 ${JSON.stringify(lscan.clipped.slice(0, 6))}`);
+  if (lscan.docScrollWidth > 1440)
+    launcherFailures.push(`LAUNCHER-OVERFLOW: 文档横向溢出 scrollWidth=${lscan.docScrollWidth} > 1440`);
+  if (launcherExternalRequests.length > 0)
+    launcherFailures.push(`LAUNCHER-NETWORK: fixture 页出现外部请求 ${JSON.stringify(launcherExternalRequests.slice(0, 6))}`);
+
+  // launcher 页截图（1440×900 视口 + 全页）→ 卡目录工件
+  const launcherViewportShot = resolve(launcherScreensDir, "launcher-viewport-1440x900.png");
+  const launcherFullShot = resolve(launcherScreensDir, "launcher-full.png");
+  await page.screenshot({ path: launcherViewportShot, type: "png" });
+  await page.screenshot({ path: launcherFullShot, type: "png", fullPage: true });
+
+  const launcherReport = {
+    run: "UI-LAUNCHER-1 launcher render smoke",
+    date: new Date().toISOString(),
+    url: launcherUrl,
+    viewport: "1440x900@1",
+    reducedMotion: "reduce",
+    externalRequestCount: launcherExternalRequests.length,
+    dom: ldom,
+    textContrastMin: lscan.textMin,
+    graphicChecks: lscan.graphics.length,
+    graphicMinRatio: Math.min(...lscan.graphics.map((g) => g.ratio)),
+    clipIssues: lscan.clipped,
+    docScrollWidth: lscan.docScrollWidth,
+    fontTooSmall: lscan.tooSmall,
+    failures: launcherFailures,
+    notes: launcherNotes,
+    screenshots: [launcherViewportShot, launcherFullShot],
+    foundationReport: reportPath,
+    result: launcherFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const launcherReportPath = resolve(launcherOutDir, "render-smoke-launcher-report.json");
+  writeFileSync(launcherReportPath, JSON.stringify(launcherReport, null, 2), "utf-8");
+
   await browser.close();
   await server.close();
 
@@ -483,8 +660,11 @@ async function main() {
   console.log(`[test:render] external=${externalRequests.length} clip=${scan.clipped.length} tooSmall=${scan.tooSmall.length}`);
   console.log(`[test:render] report=${reportPath}`);
   console.log(`[test:render] RESULT=${report.result}`);
-  if (failures.length > 0) {
-    for (const f of failures) console.error(`[test:render] FAIL: ${f}`);
+  console.log(`[test:render] launcherReport=${launcherReportPath}`);
+  console.log(`[test:render] LAUNCHER_RESULT=${launcherReport.result}`);
+  const allFailures = [...failures, ...launcherFailures];
+  if (allFailures.length > 0) {
+    for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);
   }
   process.exit(0);
