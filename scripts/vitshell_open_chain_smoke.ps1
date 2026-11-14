@@ -202,7 +202,7 @@ foreach ($rootBase in @($MainRoot, "D:/Vit_DAW")) {
     foreach ($rel in @("VitApp/Workspace/Settings/Settings.xml", "VitApp/Workspace/default_project.xml")) {
         $src = Join-Path $rootBase $rel
         if (Test-Path $src) {
-            $dst = Join-Path $RunRoot ("snap_" + ($rootBase -replace "[\/:]", "_") + "_" + ($rel -replace "/", "_"))
+            $dst = Join-Path $RunRoot ("snap_" + ($rootBase.Replace(":", "_").Replace("/", "_").Replace(chr(92), "_")) + "_" + ($rel.Replace("/", "_")))
             Copy-Item $src $dst -Force
             $runtimeSnaps[$rootBase + "|" + $rel] = $dst
         }
