@@ -1,0 +1,105 @@
+/*
+ * 图标渲染契约 —— 语义逐字来自 v5-system.html（v5.1 定稿）：
+ *   .icon{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;
+ *         stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;overflow:visible}
+ *   .solid{fill:currentColor;stroke:none}
+ *   .selected-fill{fill:var(--icon-fill,none)}
+ *   .knockout{fill:var(--icon-bg,var(--paper));stroke:none}
+ *   .is-selected{--icon-fill:currentColor;--icon-mark:var(--icon-bg,var(--warm))}
+ *   .detail{stroke:var(--icon-mark,currentColor)}
+ *   .alert-mark{fill:var(--icon-mark,currentColor);stroke:none}
+ * 变量与类名统一加 v5 前缀/作用域，避免与现行 styles.css 冲突；
+ * symbol 内部的 class 名保持设计稿原文（由下方作用域选择器匹配）。
+ */
+
+.v5-sprite {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+/*
+ * 冻结 markup 内联引用 var(--icon-bg)（round2-sprite.svg 逐字资产，i-vit 内槽）。
+ * 这里做每元素别名映射：容器覆盖 --v5-icon-bg 时，冻结引用同步解析。
+ * 自定义属性按元素求值，必须用通配选择器让别名在每层重新解析。
+ */
+.v5-design,
+.v5-design * {
+  --icon-bg: var(--v5-icon-bg);
+}
+
+.v5-design .v5-icon {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  overflow: visible;
+  display: block;
+}
+
+.v5-design .solid {
+  fill: currentColor;
+  stroke: none;
+}
+
+.v5-design .selected-fill {
+  fill: var(--v5-icon-fill, none);
+}
+
+.v5-design .knockout {
+  fill: var(--v5-icon-bg, var(--v5-read-bg));
+  stroke: none;
+}
+
+.v5-design.is-selected,
+.v5-design .is-selected {
+  --v5-icon-fill: currentColor;
+  --v5-icon-mark: var(--v5-icon-bg, var(--v5-read-bg));
+}
+
+.v5-design .detail {
+  stroke: var(--v5-icon-mark, currentColor);
+}
+
+.v5-design .alert-mark {
+  fill: var(--v5-icon-mark, currentColor);
+  stroke: none;
+}
+
+/* 16px 最小档：形状识别优先（SPEC-V5 §7.1） */
+.v5-design .v5-icon[data-icon-size="16"] {
+  stroke-width: 2;
+}
+
+/* 状态环动效：待机 9s 慢转（虚线弧）、进行中 1.6s 快转（实线弧） */
+.v5-design .v5-ring--idle,
+.v5-design .v5-ring--busy {
+  animation: v5-ring-spin var(--v5-spin-idle, 9s) linear infinite;
+  transform-origin: 12px 12px;
+}
+
+.v5-design .v5-ring--busy {
+  animation-duration: var(--v5-spin-busy, 1.6s);
+}
+
+@keyframes v5-ring-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v5-design .v5-ring--idle,
+  .v5-design .v5-ring--busy,
+  .v5-design .v5-step-current .v5-icon {
+    animation: none !important;
+  }
+}

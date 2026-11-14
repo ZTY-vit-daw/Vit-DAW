@@ -1,0 +1,106 @@
+/*
+ * v5.1 图标雪碧图 —— 23 个 symbol 逐字内联自：
+ *   agent/webui/design/main-window-v5/round2-sprite.svg
+ *   sha256 = 746a49f5b7e42703ca030981a51044ef49449d838e0435f024437495ece5d981
+ *
+ * 23 = 22 枚功能图标 + i-vit（V 品牌标）。
+ * symbol 内部 markup 逐字冻结（含 class="selected-fill" / knockout / solid /
+ * detail / alert-mark），class 的 CSS 契约定义在 src/design/sprite.css。
+ * sprite.test.tsx 会在测试时比对本文件字符串与设计源文件逐字一致。
+ */
+
+export const SPRITE_SYMBOL_IDS = [
+  "i-project",
+  "i-new",
+  "i-open",
+  "i-minimize",
+  "i-send",
+  "i-stop",
+  "i-track",
+  "i-bus",
+  "i-fx",
+  "i-macro",
+  "i-ab",
+  "i-play",
+  "i-record",
+  "i-render",
+  "i-undo",
+  "i-snapshot",
+  "i-attach",
+  "i-idle",
+  "i-busy",
+  "i-done",
+  "i-error",
+  "i-alert",
+  "i-vit",
+] as const;
+
+export type SpriteSymbolId = (typeof SPRITE_SYMBOL_IDS)[number];
+
+/** symbol 内部 markup（不含 <symbol> 包裹），逐字来自 round2-sprite.svg。 */
+export const DESIGN_SYMBOLS: Readonly<Record<SpriteSymbolId, string>> = {
+  "i-project":
+    '<rect class="selected-fill" x="3" y="6" width="18" height="12"/><rect x="3" y="6" width="18" height="12"/><rect class="knockout" x="6" y="9" width="12" height="6"/><rect x="6" y="9" width="12" height="6"/><path class="solid" d="M10.5 12A1.5 1.5 0 0 1 9 13.5A1.5 1.5 0 0 1 7.5 12A1.5 1.5 0 0 1 9 10.5A1.5 1.5 0 0 1 10.5 12ZM16.5 12A1.5 1.5 0 0 1 15 13.5A1.5 1.5 0 0 1 13.5 12A1.5 1.5 0 0 1 15 10.5A1.5 1.5 0 0 1 16.5 12Z"/>',
+  "i-new":
+    '<rect class="selected-fill" x="3" y="6" width="18" height="12"/><rect x="3" y="6" width="18" height="12"/><rect class="knockout" x="6" y="9" width="12" height="6"/><rect x="6" y="9" width="12" height="6"/><path class="solid" d="M10.5 12A1.5 1.5 0 0 1 9 13.5A1.5 1.5 0 0 1 7.5 12A1.5 1.5 0 0 1 9 10.5A1.5 1.5 0 0 1 10.5 12ZM16.5 12A1.5 1.5 0 0 1 15 13.5A1.5 1.5 0 0 1 13.5 12A1.5 1.5 0 0 1 15 10.5A1.5 1.5 0 0 1 16.5 12Z"/><path d="M21.4 1.4V5.8M19.2 3.6H23.6" fill="none" stroke="currentColor" stroke-width="2.2"/>',
+  "i-open":
+    '<path class="selected-fill" d="M3 6H9L11 8H21V19H7L3 14Z"/><path d="M3 6H9L11 8H21V19H7L3 14Z" fill="none" stroke="currentColor" stroke-width="1.5"/><path class="detail" d="M3 10.5H21M3 10.5L7 19" fill="none" stroke-width="1.2"/><rect class="detail" x="9" y="12.5" width="6" height="3" fill="none" stroke-width="1"/>',
+  "i-minimize":
+    '<path d="M3 18H21"/><path class="selected-fill" d="M3 16H21V18H3Z"/>',
+  "i-send":
+    '<path class="selected-fill" d="M3 12L21 3L14 21L11 14L3 12Z"/><path d="M3 12L21 3L14 21L11 14L3 12Z" fill="none" stroke="currentColor" stroke-width="2"/><path class="detail" d="M3 12L11 14" fill="none" stroke-width="1.5"/>',
+  "i-stop":
+    '<path d="M7 3H3V21H7M17 3H21V21H17"/><rect class="selected-fill" x="8" y="8" width="8" height="8"/><rect x="8" y="8" width="8" height="8"/>',
+  "i-track":
+    '<path d="M3 7H21M3 17H21" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4 12L7 10L10 13.4L14 10.6L17 13L20 12" fill="none" stroke="currentColor" stroke-width="1.3"/>',
+  "i-bus":
+    '<path d="M3 7H8L12 11M3 17H8L12 13" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M12 12H21" fill="none" stroke="currentColor" stroke-width="2.5"/>',
+  "i-fx": '<rect x="3" y="4" width="18" height="16" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="10" r="2" fill="currentColor" stroke="none"/><circle cx="15.5" cy="10" r="2" fill="currentColor" stroke="none"/><path d="M7 15H17" fill="none" stroke="currentColor" stroke-width="2"/><path d="M5 4V2.5M19 4V2.5" fill="none" stroke="currentColor" stroke-width="1"/>',
+  "i-macro":
+    '<path d="M5 3V21M12 3V21M19 3V21M2 8H8M9 16H15M16 10H22"/><path class="selected-fill" d="M3 6H7V10H3ZM10 14H14V18H10ZM17 8H21V12H17Z"/>',
+  "i-ab": '<rect x="2" y="5" width="10" height="14" fill="#FFFFFF"/><rect x="12" y="5" width="10" height="14" fill="#141414"/><path d="M7 5.6L11.1 18.4H8.75L8.2 16H5.8L5.25 18.4H2.9Z M7 8.6L7.98 13.4H6.02Z" fill="#141414" fill-rule="evenodd" stroke="none"/><path d="M12.9 5.6H17.3C22.2 5.6 22.2 11.8 17.3 11.8C22.7 12.2 22.7 18.4 17.3 18.4H12.9Z M15.2 7.6H16.9C19 7.6 19 10.9 16.9 10.9H15.2Z M15.2 12.7H17.1C19.6 12.7 19.6 16.4 17.1 16.4H15.2Z" fill="#FFFFFF" fill-rule="evenodd" stroke="none"/><rect x="2" y="5" width="20" height="14" fill="none" stroke="#141414" stroke-width="0.8"/><path d="M12 5V19" fill="none" stroke="#141414" stroke-width="0.8"/>',
+  "i-play":
+    '<path class="selected-fill" d="M7 5L14 12 7 19Z"/><path d="M7 5L14 12 7 19Z"/>',
+  "i-record":
+    '<path class="solid" d="M12 5A7 7 0 0 1 19 12A7 7 0 0 1 12 19A7 7 0 0 1 5 12A7 7 0 0 1 12 5Z"/>',
+  "i-render":
+    '<path d="M12 3V15M6 9L12 15 18 9M3 15V21H21V15"/><path class="selected-fill" d="M8 17H16V20H8Z"/>',
+  "i-undo":
+    '<path d="M10 3L4 9 10 15M4 9H14A6 6 0 0 1 20 15V20H12"/><path class="selected-fill" d="M4 9H10V15Z"/>',
+  "i-snapshot":
+    '<path d="M3 8V3H8M16 3H21V8M21 16V21H16M8 21H3V16M7 7H17V17H7Z"/><rect class="selected-fill" x="7" y="7" width="10" height="10"/>',
+  "i-attach":
+    '<path d="M8 4H3V20H8" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M16 4H21V20H16" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M7 12H17" fill="none" stroke="currentColor" stroke-width="2"/><path class="selected-fill" d="M12 8L16 12L12 16Z"/><path d="M12 7L17 12L12 17" fill="none" stroke="currentColor" stroke-width="2"/>',
+  "i-idle":
+    '<path d="M12 3A9 9 0 1 1 3 12" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3.2 3.2"/>',
+  "i-busy":
+    '<path d="M12 3A9 9 0 1 1 3 12" fill="none" stroke="currentColor" stroke-width="2"/>',
+  "i-done":
+    '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7.5 12.5L10.5 15.5L16.5 8.5" fill="none" stroke="currentColor" stroke-width="2"/>',
+  "i-error":
+    '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7.5V13.5M12 16.5V17.5" fill="none" stroke="currentColor" stroke-width="2"/>',
+  "i-alert":
+    '<path d="M12 3.5L20.5 12 12 20.5 3.5 12Z"/><path class="selected-fill" d="M12 3.5L20.5 12 12 20.5 3.5 12Z"/><path class="alert-mark" d="M11 7H13V13H11ZM11 15H13V17H11Z"/>',
+  "i-vit": '<path d="M4 3L12 21L20 3H16L12 13L8 3Z" fill="currentColor" stroke="none"/><path d="M8.4 4.6L12 12.2L15.6 4.6" fill="none" stroke="var(--icon-bg, #FFFFFF)" stroke-width="1"/>',
+} as const;
+
+/**
+ * 内联雪碧图。挂载一次即可，页面内所有 <use href="#i-*"> 引用生效。
+ * 类名 v5-sprite 的布局契约见 sprite.css（0 尺寸隐藏，不占布局）。
+ */
+export function DesignSprite() {
+  return (
+    <svg className="v5-sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        {SPRITE_SYMBOL_IDS.map((id) => (
+          <symbol
+            key={id}
+            id={id}
+            viewBox="0 0 24 24"
+            dangerouslySetInnerHTML={{ __html: DESIGN_SYMBOLS[id] }}
+          />
+        ))}
+      </defs>
+    </svg>
+  );
+}
