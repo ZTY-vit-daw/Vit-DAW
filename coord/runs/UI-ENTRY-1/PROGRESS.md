@@ -82,3 +82,9 @@ coord/resources/PC-RUNTIME-STACK.md 顶部（本卡占用登记提交 hash 记�
 ## 断了几次 / 中断恢复
 
 - 本会话暂未被外部重派中断。
+
+## 终态
+
+- **DONE**：PASS run_20261114_233821 exit 0 三腿全绿；卡片 f79bf70f move doing→done（main，回执待主管决策验收）；双仓 port/ui-entry-1 已推送（主仓 b7571d9d / 前端 ae24b52）；真栈占用 da674ce1→释放 37d5581d（当前空闲）。
+- 协调 worktree（coord/uientry1-stack）已清理；实现 worktree 双仓保留（port/ui-entry-1 待主管验收；前端 worktree 含 godot-cpp junction——拆除前须先 cmd //c rmdir 摘链接，PROTOCOL §3）。
+- port worktree 内 coord/cards/doing 卡的回执编辑未提交属预期（卡片状态面以 main f79bf70f done 卡为准）。
