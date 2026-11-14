@@ -29,10 +29,11 @@
 - §2.2 流程：读 resources 顶部→独立净空亲核（五端口+五进程名）→占用登记推 main→≤60s 复核→跑验证（agent-only 先试，state gate 若需内核则 -StartKernel 重跑）→finally 拆栈释放亲核→释放登记推 main。
 - 若无内核 state gate 失败：记录 typed 失败→改用 -StartKernel 重跑（占用登记相应放宽内核端口）。
 
+- [x] S5 真栈轻腿完成：占用登记 3ce55cac（main 亲证 22:15，净空亲核 22:14 五端口+五进程名=0）→ 轮 1 22:20 装置缺陷轮（StrictMode PropertyNotFoundStrict；phase1 数据面已阳性 pid=3812 两键=1；finally 拆栈+配置还原完成；根因修复 commit af645034）→ 轮 2 22:30 **有效轮 ALL_PASS exit 0**（phase1 透传：真栈 agent pid=7156 两键=1+烟测 exit 0；phase2 回归：pid=7116 两键缺省+烟测 exit 0 零变化；无内核 state gate 通过，-StartKernel 预案未启用）→ 拆栈五端口独立复核 BUSY_COUNT=0 + global_project_config.json 哈希前后一致 4B835024…C48AA（§10）。细节见 RUN-RECORD.md。
+
 ## 下一步
 
-- S5 验证腿（真栈轻腿按 §2.2 全程登记；见上方 S5 计划）。
-- S6 回执。
+- S6 回执：卡面回填+doing→done+coord-only 推 main；实现留 port/fix-restartagent-env-1 待主管验收（合入 main 由决策侧 cherry-pick）。
 
 ## 纪律备忘
 
