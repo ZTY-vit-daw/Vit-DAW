@@ -54,13 +54,16 @@
 - [x] S1 fetch 双仓（主 f05a0351/前端 128477b）+ doing 域核对 + 双 worktree + npm install（exit 0）
 - [x] S2 领取提交 0655272d → main（远端 owner 核对 ✓）
 - [x] S2b RUNBOOK + 本 PROGRESS 落盘
-- [ ] M1 React：launcherBridge.ts + launcherData 文案 + LauncherSurface 执行/回执/烟测钩子 + 单测
-- [ ] M2 Godot：start_page 桥 handler + 治理 choice 记录 + enter 结果 flag + 烟测钩子
-- [ ] M3 Godot：launcher_nav_bridge.post_launcher_result + dock 降级 handler
-- [ ] M4 webui npm test/build/test:render 不回退（基线：529 测+三渲染面）
+- [x] M1 React：launcherBridge.ts + launcherData 文案 + LauncherSurface 执行/回执/烟测钩子 + 单测 8 例（537 全过）+ build + render 三面 PASS（主仓 commit 见 git log）
+- [x] M2/M3 Godot（前端仓 commit 3406c4f）：start_page 桥 handler + 治理 choice + enter 标记 + 烟测钩子 + nav_bridge post_launcher_result + dock 降级 handler；extension cpp 零改动——dll 为 git 跟踪工件免重编（worktree checkout 自带双变体 dll）；--import 预跑零 SCRIPT ERROR（CEF addon 缺失=既有环境面）
+- [x] M4 webui 门槛（并入 M1：npm test 537 过/build 过/test:render 三面 PASS）
 - [ ] M5 ui_bridge_smoke.ps1 编写（scripts/，主仓 worktree）
 - [ ] M6 真栈：占用登记→≤60s 复核→run（4 boots）→拆栈→释放记录
 - [ ] M7 卡面回执 + doing→done + coord 推送 + 双仓 port 分支推送
+
+## 环境备注（2026-11-14 20:3x 发现）
+
+- D:/Vit_DAW/godot-cpp 与 D:/Godot/project/vit-daw-frontend/godot-cpp 均为空实体目录（UI-OS-1/HOST-1 worktree 已被清理，其 junction 消失）——本次 extension 无需重编（cpp 零改动+dll 在 git），junction 已删；若后续卡需重编 extension，真实源可从 D:/备份/vit-daw-frontend/godot-cpp（488MB，branch 4.2+预生成 gen/）恢复到 D:/Vit_DAW/godot-cpp，版本相符性须先核对（上交主管留意）。
 
 ## 断了几次 / 中断恢复
 

@@ -249,6 +249,27 @@ function Start-BridgeGodot {
     return $proc.Id
 }
 
+# 每 boot 重建 agent（340 -RestartAgent 先例）：launcher 门副门 user_entered_project
+# 是 agent 进程级不重置（launcher_flow.go 副门语义）——共享 agent 会让 boot2-4 门关闭，
+# directive 不再路由；重启 agent = 每腿全新门态。内核不重启（在开工程跨 agent 存活，
+# L2 治理前提=新 agent shadow 从内核态同步 project_path，337 双面同源）。
+function Start-BridgeAgent {
+    param([string]$DraftRoot)
+    New-Item -ItemType Directory -Force -Path $DraftRoot | Out-Null
+    $env:VIT_HISTORY_DRAFT_ROOT = $DraftRoot
+    $env:VIT_DAW_DEV_ROOT = $RepoRoot
+    try {
+        $proc = Start-Process -FilePath $AgentBinary -ArgumentList @("-http", ($AgentHttp -replace '^http://',''), "-last-log-path", $agentLog, "-keep-last-log-lines", "8000") -WorkingDirectory $AgentDir -WindowStyle Hidden -PassThru
+    }
+    finally {
+        Remove-Item Env:VIT_HISTORY_DRAFT_ROOT -ErrorAction SilentlyContinue
+    }
+    if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds $WaitSeconds)) {
+        throw ("agent HTTP did not become ready (leg restart)")
+    }
+    return $proc.Id
+}
+
 # 单 boot 公共前段断言：boot/visible/page_loaded/surface_ready/directive.received。
 function Assert-BridgeBoot {
     param([string]$LogPath, $Leg)
@@ -308,23 +329,6 @@ try {
         throw ("kernel ZMQ REQ port $ZmqReqPort did not listen")
     }
 
-    # ---------------------------------------------------------- start agent
-    Write-Step0 "Start VitAgent (UDP 4445 bridge face + HTTP 7878)"
-    $env:VIT_HISTORY_DRAFT_ROOT = (Join-Path $RunRoot "agent_drafts")
-    New-Item -ItemType Directory -Force -Path $env:VIT_HISTORY_DRAFT_ROOT | Out-Null
-    $env:VIT_DAW_DEV_ROOT = $RepoRoot
-    try {
-        $agentProc = Start-Process -FilePath $AgentBinary -ArgumentList @("-http", ($AgentHttp -replace '^http://',''), "-last-log-path", $agentLog, "-keep-last-log-lines", "8000") -WorkingDirectory $AgentDir -WindowStyle Hidden -PassThru
-    }
-    finally {
-        Remove-Item Env:VIT_HISTORY_DRAFT_ROOT -ErrorAction SilentlyContinue
-    }
-    $agentProcId = $agentProc.Id
-    $assert["stack"]["agent_pid"] = $agentProcId
-    if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds $WaitSeconds)) {
-        throw ("agent HTTP did not become ready")
-    }
-
     # ---------------------------------------------------------- import pass
     Write-Step0 "Import pass (rebuild .godot cache in a fresh worktree)"
     $importArgs = @("--headless", "--path", $GodotProjectRoot, "--import")
@@ -335,6 +339,8 @@ try {
 
     # ================================================================== L1
     Write-Step0 "L1: zero-friction first open via bridge (no project open)"
+    $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts")
+    $assert["stack"]["agent_pid_leg1"] = $agentProcId
     $log1 = Join-Path $LogsDir "godot_boot1.log"
     $godotPid = Start-BridgeGodot -LogPath $log1 -BridgeMessage "打开烟测桥甲"
     $assert["stack"]["godot_boot1_pid"] = $godotPid
@@ -357,10 +363,13 @@ try {
     if ($proj1 -notlike "*烟测桥甲*") { throw ("L1 agent current_project not fixture A: '$proj1'") }
 
     Stop-GuiProcess $godotPid; $godotPid = 0
+    Stop-GuiProcess $agentProcId; $agentProcId = 0
     Start-Sleep -Seconds 2
 
     # ================================================================== L2a
     Write-Step0 "L2a: governance switch (kernel has 甲 open; open 乙)"
+    $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts")
+    $assert["stack"]["agent_pid_leg2a"] = $agentProcId
     $log2 = Join-Path $LogsDir "godot_boot2.log"
     $godotPid = Start-BridgeGodot -LogPath $log2 -BridgeMessage "打开烟测桥乙" -Governance "switch"
     $assert["stack"]["godot_boot2_pid"] = $godotPid
@@ -383,10 +392,13 @@ try {
     if ($proj2 -notlike "*烟测桥乙*") { throw ("L2a agent current_project not fixture B: '$proj2'") }
 
     Stop-GuiProcess $godotPid; $godotPid = 0
+    Stop-GuiProcess $agentProcId; $agentProcId = 0
     Start-Sleep -Seconds 2
 
     # ================================================================== L2b
     Write-Step0 "L2b: governance cancel (kernel has 乙 open; cancel open 甲)"
+    $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts")
+    $assert["stack"]["agent_pid_leg2b"] = $agentProcId
     $log3 = Join-Path $LogsDir "godot_boot3.log"
     $godotPid = Start-BridgeGodot -LogPath $log3 -BridgeMessage "打开烟测桥甲" -Governance "cancel"
     $assert["stack"]["godot_boot3_pid"] = $godotPid
@@ -407,10 +419,13 @@ try {
     if ($proj3 -notlike "*烟测桥乙*") { throw ("L2b kernel project changed after cancel: '$proj3'") }
 
     Stop-GuiProcess $godotPid; $godotPid = 0
+    Stop-GuiProcess $agentProcId; $agentProcId = 0
     Start-Sleep -Seconds 2
 
     # ================================================================== L2c
     Write-Step0 "L2c: governance save + dock unsupported degradation"
+    $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts")
+    $assert["stack"]["agent_pid_leg2c"] = $agentProcId
     $log4 = Join-Path $LogsDir "godot_boot4.log"
     $godotPid = Start-BridgeGodot -LogPath $log4 -BridgeMessage "打开烟测桥甲||打开烟测桥乙" -Governance "save"
     $assert["stack"]["godot_boot4_pid"] = $godotPid
@@ -448,6 +463,7 @@ try {
     $leg2c.result_ack_unsupported = $true
 
     Stop-GuiProcess $godotPid; $godotPid = 0
+    Stop-GuiProcess $agentProcId; $agentProcId = 0
     Start-Sleep -Seconds 2
 
     # ---------------------------------------------------------- zero LLM + isolation

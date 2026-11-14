@@ -5,14 +5,24 @@
 - 被测：主仓 worktree 实现（webui 桥客户端）+ 前端 worktree 实现（start_page/dock/nav_bridge，extension 零改动则 dll 不重编）；内核 D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe 零内核改动只读复用；agent 现场构建隔离二进制（go build 到 run 目录）
 - 栈协议：coord/resources/PC-RUNTIME-STACK.md 两条登记（占用+释放），登记推送后 ≤60s 复核（PROTOCOL §2.2 2026-10-25 增补）；「already listening」即停
 
-## 腿结构（一次运行 = 内核/agent 单次启动 + 4 次 Godot boot）
+## 腿结构（一次运行 = 内核单次启动 + 4 组「agent 重启 + Godot boot」）
+
+> 设计更正（M5 期发现）：launcher 门副门 user_entered_project 是 **agent 进程级不重置**
+> （launcher_flow.go 副门语义，340 落地）——共享 agent 会让 boot2-4 门关闭、directive 不再
+> 路由。故每 boot 前重启 agent（340 `-RestartAgent` 先例），内核不重启（在开工程跨 agent
+> 存活；L2 治理前提=新 agent shadow 从内核态同步 project_path，337 双面同源契约）。
 
 | 腿 | boot | 前置 kernel 态 | React 桥消息 | 治理钩子 | 期待 |
 |---|---|---|---|---|---|
-| L1 零摩擦首开 | boot1 | 无工程 | 打开烟测桥甲 | （无对话框） | 甲 open→VitDockRoot，result=opened，governance=none |
+| L1 零摩擦首开 | boot1 | 无工程（boot XML scratch，path 空） | 打开烟测桥甲 | （无对话框） | 甲 open→VitDockRoot，result=opened，governance=none |
 | L2a 三键·直接切换 | boot2 | 甲在开 | 打开烟测桥乙 | switch | 治理对话框出现，乙 open→VitDockRoot，result=opened，governance=switch |
 | L2b 三键·取消 | boot3 | 乙在开 | 打开烟测桥甲 | cancel | 无场景切换，/agent/state 仍乙，result=canceled，governance=cancel |
 | L2c 三键·保存并切换+降级 | boot4 | 乙在开 | 打开烟测桥甲 ‖（+8s）打开烟测桥乙 | save | save 乙真实落盘→甲 open→VitDockRoot；followup 在 dock 阶段→unsupported 降级回执 |
+
+L1 零摩擦前提的依据：boot 态 /agent/state current_project.path 依赖 ProjectPathHint
+（339 取证「path=草稿回退」=hint 面）——L1 全新 agent 无 hint → path 空 → 治理直行；
+L2 腿 kernel 有实开工程 → shadow 携带路径 → 对话框出现。若 L1 意外出对话框=前提被
+真栈证据推翻 → 按 §8 失败分类 3 停手上交（不原样重跑）。
 
 ## 成功条件（全部满足=exit 0）
 
