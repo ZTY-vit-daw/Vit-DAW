@@ -194,14 +194,18 @@ if (Test-Path $recentsFile) {
     Write-Ok "recents file absent before run (fresh face)"
 }
 
-# worktree runtime-state snapshot (kernel writes live in the worktree Workspace).
+# runtime-state snapshots (S10): the kernel may run from the main checkout
+# (freshness tie-break sorts D:/Vit_DAW before the worktree) and may write its
+# Workspace files there - snapshot BOTH roots; restore after the run.
 $runtimeSnaps = @{}
-foreach ($rel in @("VitApp/Workspace/Settings/Settings.xml", "VitApp/Workspace/default_project.xml")) {
-    $src = Join-Path $MainRoot $rel
-    if (Test-Path $src) {
-        $dst = Join-Path $RunRoot ("snap_" + ($rel -replace "/", "_"))
-        Copy-Item $src $dst -Force
-        $runtimeSnaps[$rel] = $dst
+foreach ($rootBase in @($MainRoot, "D:/Vit_DAW")) {
+    foreach ($rel in @("VitApp/Workspace/Settings/Settings.xml", "VitApp/Workspace/default_project.xml")) {
+        $src = Join-Path $rootBase $rel
+        if (Test-Path $src) {
+            $dst = Join-Path $RunRoot ("snap_" + ($rootBase -replace "[\/:]", "_") + "_" + ($rel -replace "/", "_"))
+            Copy-Item $src $dst -Force
+            $runtimeSnaps[$rootBase + "|" + $rel] = $dst
+        }
     }
 }
 
@@ -477,9 +481,10 @@ try {
     throw
 }
 
-# S10 runtime-state restore in the worktree (kernel writes during the run).
-foreach ($rel in $runtimeSnaps.Keys) {
-    Copy-Item $runtimeSnaps[$rel] (Join-Path $MainRoot $rel) -Force
+# S10 runtime-state restore (both roots; kernel writes during the run).
+foreach ($key in $runtimeSnaps.Keys) {
+    $parts = $key.Split("|")
+    Copy-Item $runtimeSnaps[$key] (Join-Path $parts[0] $parts[1]) -Force
 }
 
 $runMeta.finished_at_utc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
