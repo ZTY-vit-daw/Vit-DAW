@@ -1,0 +1,21 @@
+﻿{
+    "run_id":  "run_20261115_014330",
+    "started_at_utc":  "2026-11-14T17:43:30Z",
+    "card":  "SHELL-1",
+    "main_worktree":  "D:\\Vit_DAW_wt_shell1",
+    "frontend_worktree":  "D:/Godot/project/vit-daw-frontend_wt_shell1",
+    "webview2_sdk_dir":  "D:/Godot/project/vit-daw-frontend/extension/third_party/webview2",
+    "status_port":  7879,
+    "agent_port":  7878,
+    "skip_build":  false,
+    "vitshell_exe":  "D:\\Godot\\project\\vit-daw-frontend_wt_shell1\\VitShell\\build\\Release\\VitShell.exe",
+    "vitshell_exe_sha256":  "D7F17A054E6ED188460D1C34BCEDB9BFAFF212BA47790F6EFFBC38D40B513979",
+    "vitshell_exe_mtime":  "2026-11-14T17:39:45.2508978Z",
+    "agent_exe":  "D:\\Vit_DAW_wt_shell1\\agent\\bin\\VitAgent.exe",
+    "agent_exe_sha256":  "572E1B1A3762106E8778EDE61AAD188AA1A82BBB121904966C0F2F285C71894F",
+    "webui_dist_index_sha256":  "7532F6E13EFAC26D5EA91C1D3B85DF692E1916D9E1AB1D98ACEC6D050A63F2F0",
+    "vitshell_pid":  19080,
+    "result":  "FAIL",
+    "error":  "document.readyState not complete: \u0027interactive\u0027",
+    "teardown":  "best-effort executed (verify manually; PROTOCOL S2.2 residue rules apply)"
+}
