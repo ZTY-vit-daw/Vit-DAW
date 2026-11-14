@@ -43,3 +43,9 @@
 - 移交 SHELL-1：**W1 窗口尺寸策略**——`D:/Godot/project/vit-daw-frontend/app/shell/agent_chat_window.gd` `_initial_window_size()`（L742-744）96%/94% 夹取无 DPI 逻辑/物理坐标换算、无 usable_rect（任务栏）修正、无最小尺寸下限；125-150% 缩放下 screen_get_size 与 WebView2 child hwnd 坐标基准差异=「显示不全」宿主侧根因候选（只读勘察，未改宿主）
 
 ## 验收：待主管决策验收 + 用户目检（终验）
+
+## 验收（主管 2026-11-15 凌晨）
+
+- 裁定：**技术面 pass**——主管复跑 563 测+五段渲染（新 fidelity 段四分辨率 PASS）；裁切根因双侧定位采纳（webui 侧高度链已修；宿主侧 96%/94% 无 DPI 换算移交 SHELL-1，GAP-LIST C 节证据在卷）；8 项缺口上交接受（344 基座组件级差异另卡候选/P1 双按钮与 P3 抽屉条=SHELL-2 范围）。
+- 合入：55aca329+e400e023 cherry-pick 至 main（16aca1a7/ada904c1）；主检出 dist 已重建；worktree 已清理；port 分支留远端存档。
+- **终验=用户目检**（手测 v6 时对照定稿稿），技术面通过不替代目检。
