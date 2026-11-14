@@ -1,2 +1,4 @@
 - M1 进行中 (2026-11-15 晚窗): 定稿稿与实现已通读（SPEC-V5/IMPLEMENTATION-HANDOFF/p1,p3.png/mondrian-v2 vs launcher.css/project.css/LauncherSurface/ProjectSurface/344 components.css）。宿主裁切锚点已定位: agent_chat_window.gd _initial_window_size() 96%/94% 夹取（screen_get_size 无 DPI/工作区修正）→ SHELL 域移交项。
 - 下一条命令: cd agent/webui && npm run test:render（基线截图，工件落 coord/runs/UI-{FOUNDATION,LAUNCHER,PROJECT,LOADING}-1/ 旧路径）——断后人若见工件时间晚于本行即可跳过重跑。
+- M1 完成 (2026-11-15 晚窗): GAP-LIST.md 落盘（launcher L1-L11 / project P1-P10 / 裁切 W1-W2 / 多分辨率 D 节；本卡修 12 项+缺口上交 8 项+移交 SHELL 1 项）。基线 test:render 四报告全 PASS。
+- 下一步 M2: launcher.css + LauncherSurface.tsx 视觉修复（L1 28px 问候/L2 建议卡/L3 抽屉卡/L4 消息对齐/L5 圆角纪律/L6 标题栏/L7 响应式）。
