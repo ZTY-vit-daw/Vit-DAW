@@ -232,6 +232,7 @@
 
 .v5-design .v5-macro-flag--busy .v5-icon {
   --v5-icon-bg: var(--v5-control-yellow);
+  color: var(--v5-ui-text); /* 黄底上图标用墨色（SPEC §4.4：黄只做底色） */
 }
 
 .v5-design .v5-macro-flag--applied {
@@ -240,6 +241,10 @@
 
 .v5-design .v5-macro-flag--failed {
   color: var(--v5-read-bg);
+}
+
+.v5-design .v5-macro-flag--failed .v5-icon {
+  color: var(--v5-read-bg); /* 警示标题层上的图标反白 */
 }
 
 /* 失败态保留警示边框、警示底色与失败标题层（v5.1 深度规则不覆盖失败态） */
@@ -472,6 +477,7 @@
 
 .v5-design .v5-current-chip .v5-icon {
   --v5-icon-bg: var(--v5-control-yellow);
+  color: var(--v5-ui-text); /* 黄底上当前步骤图标用墨色（SPEC §4.2.1 / S2 current-icon） */
   animation: v5-step-advance 1.2s steps(3, end) infinite;
 }
 
@@ -640,6 +646,14 @@
 .v5-design .v5-dark {
   color: var(--v5-read-bg);
   --v5-icon-bg: var(--v5-control-pane-low);
+}
+
+/* 深底上的状态环样张 = 默认纸色（S3 矩阵口径；红/蓝细线在深底不达 3:1，语义色走状态点实心面） */
+.v5-design .v5-dark .v5-ring--idle,
+.v5-design .v5-dark .v5-ring--busy,
+.v5-design .v5-dark .v5-ring--done,
+.v5-design .v5-dark .v5-ring--error {
+  color: inherit;
 }
 
 /* ---------- 磁带小标志 / V 品牌标 / 身份状态点 ---------- */
