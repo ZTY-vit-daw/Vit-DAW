@@ -34,7 +34,13 @@
 
 ## 领取
 
-- 时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交：待回填
+- 时间：2026-11-14
+- origin/main hash：e854944621f6b9ec420bfd1cb9c2f71df64ede15（已 fetch 复核，344 基座 38798da7+fb50912f 在卷）
+- owner：freeflash（GLM-5.3-Flash 免费车道子代理）· PC · ZCode 主管会话派发
+- 分支：port/ui-launcher-1
+- worktree：D:/Vit_DAW_wt_uilaunch1
+- 领取时工作树状态：`git status --short` 仅本卡工件 PROGRESS.md（未跟踪），无其他改动
+- 领取提交：待本提交后回填
 
 ## 回执
 
