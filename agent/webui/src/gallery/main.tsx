@@ -22,6 +22,10 @@ import type { LauncherProjectCard } from "../api/launcher";
 import { ProjectSurface } from "../project/ProjectSurface";
 import { createProjectFixtureService } from "../project/projectFixtures";
 import type { MacroCardView, ProjectThreadItem } from "../project/projectData";
+// UI-LOADING-1（347）：P2 装载 / 执行生命周期 fixture 样张（全离线，零网络）。
+import { LoadingCard } from "../project/loading/LoadingCard";
+import { ProjectLoadingGate } from "../project/loading/ProjectLoadingGate";
+import type { LoadingCardView } from "../project/loading/loadingData";
 import "../styles/tokens.css";
 import "../design/sprite.css";
 import "../components/components.css";
@@ -811,14 +815,136 @@ function ProjectFixturePage() {
   );
 }
 
+/**
+ * UI-LOADING-1（347）P2 装载 / 执行生命周期 fixture 渲染页（gallery.html?surface=loading）。
+ * SPEC P2/S2 语义样张：三步装载状态卡（已读取工程文件/已恢复轨道/正在连接音频设备）
+ * + 磁带带量三帧（待机/进行 0.64/完成）+ 完成回执（轨迹可展开）+ 错误（重试）
+ * + 中断（重新打开）+ 装载门输入禁用/恢复。全离线（fixture 零网络）；
+ * onRetry 均为样张空操作（真实重试语义走 live 装载门 / reducer 单测）。
+ */
+const LOADING_FIXTURE_VIEW: LoadingCardView = {
+  phase: "loading",
+  title: "示例工程甲（fixture）",
+  steps: [
+    { id: "fx-l-s1", label: "已读取工程文件", status: "done", duration: "0.4s" },
+    { id: "fx-l-s2", label: "已恢复轨道", status: "done" },
+    { id: "fx-l-s3", label: "正在连接音频设备", status: "current" }
+  ],
+  progress: null // 未知进度：磁带停待机帧，不伪造推进
+};
+
+function LoadingFixturePage() {
+  return (
+    <div className="v5-design v5-gal-root" data-gallery-page="loading">
+      <DesignSprite />
+      <header className="v5-gal-header">
+        <h1 className="v5-gal-title">Vit 装载生命周期 · fixture 渲染页</h1>
+        <p className="v5-gal-note" data-fixture="notice">
+          本页工程名、步骤耗时与失败原因均为设计 fixture，不接真实 agent 数据；
+          live 装载门消费真实 ui_state 探针（?surface=project 主面）。未知进度不伪造
+          推进——磁带带量只随真实进度事件变化。
+        </p>
+      </header>
+
+      <div className="v5-gal-launcher-states" data-gallery="loading-states">
+        <div data-loading-sample="card-steps">
+          <h2 className="v5-gal-caption">装载状态卡 · 三步轨迹（SPEC P2；当前步小面积黄，未知进度停待机帧）</h2>
+          <LoadingCard view={LOADING_FIXTURE_VIEW} />
+        </div>
+
+        <div data-loading-sample="tape-progress">
+          <h2 className="v5-gal-caption">磁带带量三帧（待机 L=1/R=0.2 · 进行 p=0.64 · 完成 L=0.2/R=1；带从左盘绕到右盘）</h2>
+          <LoadingCard
+            view={{ phase: "loading", title: "示例工程甲（fixture）", steps: [], progress: null }}
+          />
+          <LoadingCard
+            view={{ phase: "loading", title: "示例工程甲（fixture）", steps: [], progress: 0.64 }}
+          />
+          <LoadingCard
+            view={{ phase: "completed", title: "示例工程甲（fixture）", steps: [], progress: null, resultNote: "3 条轨道已恢复" }}
+          />
+        </div>
+
+        <div data-loading-sample="completed">
+          <h2 className="v5-gal-caption">完成收一行回执（蓝）·轨迹可展开；输入恢复</h2>
+          <LoadingCard
+            view={{
+              phase: "completed",
+              title: "示例工程甲（fixture）",
+              steps: LOADING_FIXTURE_VIEW.steps,
+              progress: null,
+              resultNote: "3 条轨道已恢复"
+            }}
+          />
+        </div>
+
+        <div data-loading-sample="failed">
+          <h2 className="v5-gal-caption">错误路径（必测）：失败写明原因与重试入口（红警示）</h2>
+          <LoadingCard
+            view={{
+              phase: "failed",
+              title: "示例工程甲（fixture）",
+              steps: [],
+              progress: null,
+              failureReason: "音频设备被其他程序占用，装载停止。"
+            }}
+            onRetry={() => undefined}
+          />
+        </div>
+
+        <div data-loading-sample="interrupted">
+          <h2 className="v5-gal-caption">中断路径（必测）：中断写明原因与恢复入口（需留意黄）</h2>
+          <LoadingCard
+            view={{
+              phase: "interrupted",
+              title: "示例工程甲（fixture）",
+              steps: [],
+              progress: null,
+              failureReason: "宿主窗口被关闭，装载中断。"
+            }}
+            onRetry={() => undefined}
+          />
+        </div>
+
+        <div data-loading-sample="gate-disabled">
+          <h2 className="v5-gal-caption">装载门：探测失败=装载卡（children 不渲染=输入禁用）；就绪=放行工程内主窗（输入恢复）</h2>
+          <ProjectLoadingGate fixture={{ probe: "error", errorText: "连不上 Vit agent——fixture 样例。确认 VitAgent 在运行后重试。" }}>
+            <div data-gate-child-hidden>工程内主窗（不应渲染）</div>
+          </ProjectLoadingGate>
+          <ProjectLoadingGate fixture={{ probe: "ok" }}>
+            <ProjectSurface
+              fixture={{
+                context: { name: "示例工程甲（fixture）", source: "fixture", detail: "3 条轨道" }
+              }}
+            />
+          </ProjectLoadingGate>
+        </div>
+      </div>
+
+      <footer className="v5-gal-footer">
+        <p>UI-LOADING-1 · 本页为装载生命周期渲染烟测 fixture，不接 App.tsx 业务、不出网。</p>
+      </footer>
+    </div>
+  );
+}
+
 const root = document.getElementById("gallery-root");
 if (root) {
   const surfaceParam = new URLSearchParams(window.location.search).get("surface")?.toLowerCase();
   const launcherFixturePage = surfaceParam === "launcher";
   const projectFixturePage = surfaceParam === "project";
+  const loadingFixturePage = surfaceParam === "loading";
   createRoot(root).render(
     <StrictMode>
-      {launcherFixturePage ? <LauncherFixturePage /> : projectFixturePage ? <ProjectFixturePage /> : <Gallery />}
+      {launcherFixturePage ? (
+        <LauncherFixturePage />
+      ) : projectFixturePage ? (
+        <ProjectFixturePage />
+      ) : loadingFixturePage ? (
+        <LoadingFixturePage />
+      ) : (
+        <Gallery />
+      )}
     </StrictMode>
   );
 }

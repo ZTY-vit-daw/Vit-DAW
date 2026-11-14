@@ -365,3 +365,22 @@ body {
   width: 200px;
   flex-basis: 200px;
 }
+
+/* UI-LOADING-1（347）P2 装载生命周期样张（最小扩展，同 345/346 先例） */
+.v5-gal-launcher-states [data-loading-sample] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.v5-gal-launcher-states [data-loading-sample="tape-progress"] {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.v5-gal-launcher-states [data-loading-sample="tape-progress"] .v5-loading-card {
+  flex: 0 1 300px;
+  min-width: 240px;
+}
