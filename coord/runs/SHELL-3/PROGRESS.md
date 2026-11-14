@@ -21,14 +21,22 @@
 
 ## 里程碑
 
-- [ ] M0 领取：双 worktree + 卡 todo→doing + 占用登记 + coord-only 推 main
-- [ ] M1 装置扩展：scripts/vitshell_full_smoke.ps1 + scripts/vitshell_full_smoke_cdp.mjs（新腿）+ chat 帧实证（独立 agent 单腿）
+- [x] M0 领取：双 worktree + 卡 todo→doing + 占用登记 + coord-only 推 main（领取 ca097c91 + 占用 5de1ea2c 已推 main 亲证）
+- [x] M1 装置扩展：scripts/vitshell_full_smoke.ps1 + scripts/vitshell_full_smoke_cdp.mjs（新腿：probe-launcher-data/probe-project-ready/chat-roundtrip/probe-error-page；旧腿镜像 SHELL-2 语义）+ chat 帧实证（独立 agent 单腿两轮）
 - [ ] M2 RUNBOOK 冻结（3 轮口径+失败分类+止损线）+ 主腿 3 轮真栈运行（记录成功比例）
-- [ ] M3 失败注入腿运行（坏二进制/端口占位/WebView2 禁用）
-- [ ] M4 legacy/编辑器路径回归声明核证
+- [ ] M3 失败注入腿运行（坏二进制/端口占位/WebView2 禁用）——腿已并入 vitshell_full_smoke.ps1，与主腿同脚本执行
+- [ ] M4 legacy/编辑器路径回归声明核证——腿已并入 vitshell_full_smoke.ps1
 - [ ] M5 手测 v6 放行包 coord/runs/SHELL-3/HANDTEST-V6.md
 - [ ] M6 回执：卡面回填→todo/doing→done→coord-only 推送；port/shell-3 双仓留证
 
+## M1 实证记录
+
+1. **构建全绿**：agent go build / webui npm install+build / VitShell cmake x64 Release / godot --import 全 exit 0（coord/runs/SHELL-3/build/）。
+2. **chat 回包形态（实证，两次独立 agent 单腿）**：`VIT_AGENT_LLM_BASE_URL=http://127.0.0.1:1` 显式 env 覆盖（agent config.applyExplicitEnvOverrides，env 胜 config 文件）→ POST /agent/chat HTTP 200，`reply` 与 `error` 字段同时非空（reply="执行失败：Post ... dial tcp 127.0.0.1:1 ... refused"，goal_status=failed）→ 346 projectService 遇 `response.error` 抛错 → surface 渲染客户端送达失败帧（data-message-author="vit"，文案「这轮没送达（…）」）。**chat 腿断言口径据此冻结**：真实 user 帧 + 真实 /agent/chat HTTP 往返产生的 vit 位置帧（内容=诚实送达失败路径），LLM 内容生成显式出界（零计费）；348 自动化澄清 219 兜底路径需 kernel 在场意图分类，独立 agent 单腿未触发（auto_env 探针 goal_status=failed 非 clarify），不作为断言依据。
+3. **PS5.1 编码陷阱（装置纪律）**：.ps1 必须带 BOM（否则中文串 mojibake→解析错）；Invoke-WebRequest JSON body 必须转 UTF-8 byte（否则中文变 ?）。CDP 路径不受影响（Playwright fill 走 UTF-8）。
+4. **VitShell 契约面实证**（main.cpp/status_server.cpp @14d1f27）：启动序=WebView2 host.Create(579)→status.Start(679)→StartAgentOnce(702)→失败即 ShowErrorPage（phase=error，窗内错误页含重试/退出按钮）；`--agent-ready-timeout-ms` 参数在卷；POST /close=WM_CLOSE（error 相位窗口已建可用）；WebView2 缺失路径=ProbeWebView2Runtime(main.cpp 504)→MessageBoxW("Vit")，发生在 host/status 之前（无 status 端点、无 agent、无 Godot）。
+
 ## 下一步
 
-M0 进行中：worktree 已建，卡移动+占用登记+coord 推送待做。
+M1 装置已提交（port/shell-3）；进行 M1b 调试轮（-Rounds 1 全腿 shake out，失败按装置迭代取证，不计稳定性），然后冻结 RUNBOOK 跑 3 轮正式口径。
+

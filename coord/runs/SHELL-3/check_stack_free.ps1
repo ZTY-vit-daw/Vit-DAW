@@ -1,4 +1,4 @@
-# check_stack_free.ps1 - S2.2 physical pre-check (read-only)
+﻿# check_stack_free.ps1 - S2.2 physical pre-check (read-only)
 $c = 0
 foreach ($p in @('VitShell','VitAgent','VitApp','VspHub','Godot')) {
     $c += @(Get-Process -Name $p -ErrorAction SilentlyContinue).Count
