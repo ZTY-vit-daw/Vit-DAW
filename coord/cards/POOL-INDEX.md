@@ -125,7 +125,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 池序 | 卡 ID | 状态 |
 |---|---|---|
 | 343 | UI-HOST-1 | done 已验收 pass 合入（**v5.1 链头落地**：autoload 承载结构成立——同 HWND/URL 跨场景存活真栈 exit 0 + legacy 回退；[裁定](../rulings/2026-11-14-UI-HOST-1-pass.md)；前端 caaef19/主仓精选合入；R0 §4 ①②③取证达成，DPI/多屏留边界） |
-| 344 | UI-FOUNDATION-1 | done 待主管验收（回执在卷：test/build/test:render 三 exit 0 + 23/23 symbol + 对比度达标） |
+| 344 | UI-FOUNDATION-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-FOUNDATION-1-pass.md)：主管亲跑 test:render+build 复验 exit 0 + 28 文件全在授权域 + 设计哈希回指；**345 解锁，test:render=后续 UI 卡渲染面验收底座**） |
 | 345 | UI-LAUNCHER-1 | todo P1（P1 启动台 surface；依赖 344；App.tsx surface 分发由本卡持有） |
 | 346 | UI-PROJECT-1 | todo P1（P3 工程内主窗；依赖 344+345） |
 | 347 | UI-LOADING-1 | todo P1（P2 装载生命周期；依赖 346） |

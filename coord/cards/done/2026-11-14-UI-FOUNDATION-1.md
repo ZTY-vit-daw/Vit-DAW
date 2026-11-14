@@ -67,4 +67,7 @@
 
 ## 验收
 
-- 裁定文件 / 验收 commit：待回填（验收负责人：用户 + 主管决策流）
+- 裁定文件：[rulings/2026-11-14-UI-FOUNDATION-1-pass.md](../../rulings/2026-11-14-UI-FOUNDATION-1-pass.md)（**pass**；主管亲跑 test:render+build 双复验 exit 0，数值逐项吻合；diff 域审 28 文件全在授权域）
+- 合入：61bfdcf1+351cf26b cherry-pick 至 main（38798da7+fb50912f，含工件）；worktree 已清理；port/ui-foundation-1 留远端存档
+- 解锁：**345 UI-LAUNCHER-1 即刻可派**；test:render 成为 345+ 渲染面验收底座
+- 验收 commit：见本卡 git log
