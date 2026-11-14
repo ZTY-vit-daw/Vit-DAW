@@ -75,6 +75,33 @@ function Get-VitProcessCount {
     return $count
 }
 
+function Test-PortBindable {
+    # LISTEN-state checks miss bound-but-lingering sockets (e.g. a listener
+    # with live probe connections released moments ago) - the only honest
+    # "next launch can bind" test is an actual bind+close probe.
+    param([int]$Port)
+    try {
+        $l = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $Port)
+        $l.Start()
+        $l.Stop()
+        return $true
+    } catch {
+        return $false
+    }
+}
+
+function Wait-PortsBindable {
+    param([int[]]$Ports, [int]$TimeoutSec = 30)
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    while ((Get-Date) -lt $deadline) {
+        $all = $true
+        foreach ($p in $Ports) { if (-not (Test-PortBindable -Port $p)) { $all = $false; break } }
+        if ($all) { return $true }
+        Start-Sleep -Milliseconds 500
+    }
+    return $false
+}
+
 function Get-GodotProcessCount {
     return @(Get-Process -Name "Godot*" -ErrorAction SilentlyContinue).Count
 }
@@ -196,13 +223,15 @@ function Assert-ZeroGodot {
 }
 
 function Start-VitShell {
-    param([string]$OutLog, [string[]]$ExtraArgs = @(), [hashtable]$ExtraEnv = @{})
+    param([string]$OutLog, [string[]]$ExtraArgs = @(), [hashtable]$ExtraEnv = @{}, [string]$AgentExePath = "")
     $LauncherUrl = "http://127.0.0.1:$AgentPort/app/?surface=launcher"
     $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=$CdpPort"
     foreach ($k in $ExtraEnv.Keys) { Set-Item -Path ("env:" + $k) -Value $ExtraEnv[$k] }
+    $effectiveAgentExe = $AgentExe
+    if ($AgentExePath -ne "") { $effectiveAgentExe = $AgentExePath }
     $p = Start-Process -FilePath $VitShellExe `
         -ArgumentList (@(
-            "--agent-exe", $AgentExe,
+            "--agent-exe", $effectiveAgentExe,
             "--dev-root", $MainRoot,
             "--agent-url", "http://127.0.0.1:$AgentPort",
             "--agent-http-addr", "127.0.0.1:$AgentPort",
@@ -240,6 +269,7 @@ if ($preProcs -ne 0) { throw "preflight: Vit-family processes already running (c
 foreach ($port in @($AgentPort, $StatusPort)) {
     $owner = Get-TcpListenerPid -Port $port
     if ($null -ne $owner) { throw "preflight: port $port already listening (pid=$owner) - no silent reuse" }
+    if (-not (Test-PortBindable -Port $port)) { throw "preflight: port $port not bindable (lingering bound socket) - no silent reuse" }
 }
 $occupancyHead = (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n"
 if ($occupancyHead -notmatch "SHELL-3") { throw "occupancy record head does not name SHELL-3 - register before running" }
@@ -433,10 +463,12 @@ $reProcs = Get-VitProcessCount -Names $VitProcessNames
 if ($reProcs -ne 0) { throw "recheck: Vit-family processes appeared (count=$reProcs)" }
 foreach ($port in @($AgentPort, $StatusPort)) {
     if ($null -ne (Get-TcpListenerPid -Port $port)) { throw "recheck: port $port got occupied" }
+    if (-not (Test-PortBindable -Port $port)) { throw "recheck: port $port not bindable (lingering bound socket)" }
 }
 Write-Ok "clean"
 
-$StatusUrl = "http://127.0.0.1:$StatusPort"
+$StatusBase = "http://127.0.0.1:$StatusPort"
+$StatusUrl = "$StatusBase/status"
 
 # ---------- failure injection legs (once) ----------
 
@@ -445,7 +477,7 @@ if (-not $SkipFailureLegs) {
     # ---- F1: bad agent binary ----
     Write-Step "F1 bad-agent-exe: --agent-exe nonexistent -> in-window error page, zero Godot"
     try {
-        $p = Start-VitShell -OutLog "f1_bridge.log" -ExtraArgs @("--agent-exe", "D:/nonexistent_shell3_badagent/VitAgent.exe", "--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB)
+        $p = Start-VitShell -OutLog "f1_bridge.log" -AgentExePath "D:/nonexistent_shell3_badagent/VitAgent.exe" -ExtraArgs @("--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB)
         $errSnap = Wait-StatusErrorPhase -StatusUrl $StatusUrl -TimeoutSec 30 -ArtifactPath (Join-Path $RunRoot "f1_status_error.json")
         if ($errSnap.error -notmatch "start|exited|spawn|agent|CreateProcess|launch") { Write-Note ("F1 error detail: " + $errSnap.error) }
         Assert-ZeroGodot -When "after agent start failure"
@@ -453,12 +485,13 @@ if (-not $SkipFailureLegs) {
         $f1cdp = Invoke-CdpPhase -Phase "probe-error-page" -OutFile "f1_cdp_error_page.json"
         if ($f1cdp.detail.Length -lt 3) { throw "F1 error page detail empty" }
         Write-Ok ("F1 pass: phase=error, in-window error page (detail=" + $f1cdp.detail.Substring(0, [Math]::Min(60, $f1cdp.detail.Length)) + "...), VitShell alive, zero Godot")
-        $null = Get-HttpPost -Url "$StatusUrl/close" -TimeoutSec 5
+        $null = Get-HttpPost -Url "$StatusBase/close" -TimeoutSec 5
         $deadline = (Get-Date).AddSeconds(15)
         while ((Get-Date) -lt $deadline -and $null -ne (Get-Process -Id $p.Id -ErrorAction SilentlyContinue)) { Start-Sleep -Milliseconds 400 }
         Stop-TreeBestEffort -ShellPid $p.Id
         $left = Get-VitProcessCount -Names $VitProcessNames
         if ($left -ne 0) { throw "F1 teardown residue: $left Vit processes" }
+        if (-not (Wait-PortsBindable -Ports @($AgentPort, $StatusPort) -TimeoutSec 20)) { throw "F1: status/agent port not bindable after teardown (lingering bound socket)" }
         $failureResults.bad_agent_exe = "pass"
     } catch {
         Stop-TreeBestEffort -ShellPid 0
@@ -480,12 +513,21 @@ if (-not $SkipFailureLegs) {
         if ($null -eq (Get-Process -Id $p.Id -ErrorAction SilentlyContinue)) { throw "VitShell exited on occupied agent port (expected in-window error page)" }
         $f2cdp = Invoke-CdpPhase -Phase "probe-error-page" -OutFile "f2_cdp_error_page.json"
         Write-Ok "F2 pass: phase=error, in-window error page, VitShell alive, zero Godot"
-        $null = Get-HttpPost -Url "$StatusUrl/close" -TimeoutSec 5
+        # Release the injected listener BEFORE tearing VitShell down: lingering
+        # probe connections from VitShell's health poller must not hold the
+        # port into the next leg (run_20261115_035933 R1 lesson: agent got
+        # WSAEADDRINUSE on 7878 from a released-but-lingering listener bind).
+        $listener.Stop()
+        $listener = $null
+        if (-not (Wait-PortsBindable -Ports @($AgentPort) -TimeoutSec 20)) { throw "F2: agent port not bindable after listener release" }
+        Write-Ok "F2 listener released, agent port bindable again"
+        $null = Get-HttpPost -Url "$StatusBase/close" -TimeoutSec 5
         $deadline = (Get-Date).AddSeconds(15)
         while ((Get-Date) -lt $deadline -and $null -ne (Get-Process -Id $p.Id -ErrorAction SilentlyContinue)) { Start-Sleep -Milliseconds 400 }
         Stop-TreeBestEffort -ShellPid $p.Id
         $left = Get-VitProcessCount -Names $VitProcessNames
         if ($left -ne 0) { throw "F2 teardown residue: $left Vit processes" }
+        if (-not (Wait-PortsBindable -Ports @($AgentPort, $StatusPort) -TimeoutSec 20)) { throw "F2: status/agent port not bindable after teardown (lingering bound socket)" }
         $failureResults.occupied_port = "pass"
     } catch {
         Stop-TreeBestEffort -ShellPid 0
@@ -540,6 +582,7 @@ $reProcs2 = Get-VitProcessCount -Names $VitProcessNames
 if ($reProcs2 -ne 0) { throw "recheck2: Vit-family processes appeared (count=$reProcs2)" }
 foreach ($port in @($AgentPort, $StatusPort)) {
     if ($null -ne (Get-TcpListenerPid -Port $port)) { throw "recheck2: port $port got occupied" }
+    if (-not (Test-PortBindable -Port $port)) { throw "recheck2: port $port not bindable (lingering bound socket)" }
 }
 Write-Ok "clean"
 
@@ -606,7 +649,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
 
         # ---- R-L4: close DAW -> back to launcher (same window) ----
         Write-Step "R$round L4: POST /vitshell/close-daw -> Godot exits -> launcher back (same window)"
-        $closeDaw = Get-HttpPost -Url "$StatusUrl/vitshell/close-daw" -TimeoutSec 5
+        $closeDaw = Get-HttpPost -Url "$StatusBase/vitshell/close-daw" -TimeoutSec 5
         if (-not $closeDaw.ok) { throw "R$round POST close-daw failed: $($closeDaw.body)" }
         Wait-StatusField -StatusUrl $StatusUrl -Field "godot_running" -Expect "False" -TimeoutSec 30 -ArtifactPath (Join-Path $RunRoot "r${round}_status_daw_closed.json")
         $null = Invoke-CdpPhase -Phase "probe-launcher-back" -OutFile "r${round}_cdp_launcher_back.json"
@@ -639,7 +682,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
 
         # ---- R-L6: close main window -> whole tree teardown ----
         Write-Step "R$round L6: POST /close -> whole tree teardown"
-        $null = Get-HttpPost -Url "$StatusUrl/close" -TimeoutSec 5
+        $null = Get-HttpPost -Url "$StatusBase/close" -TimeoutSec 5
         $deadline = (Get-Date).AddSeconds(20)
         while ((Get-Date) -lt $deadline) {
             Start-Sleep -Milliseconds 400
@@ -664,7 +707,8 @@ for ($round = 1; $round -le $Rounds; $round++) {
             }
             if (-not $freed) { throw "R$round port $port still listening after teardown" }
         }
-        Write-Ok "R$round teardown: zero Vit-family processes, ports released"
+        if (-not (Wait-PortsBindable -Ports @($AgentPort, $StatusPort) -TimeoutSec 20)) { throw "R$round status/agent port not bindable after teardown (lingering bound socket)" }
+        Write-Ok "R$round teardown: zero Vit-family processes, ports released and bindable"
 
         $postHash = (Get-FileHash $FixtureSource -Algorithm SHA256).Hash
         if ($postHash -ne $fixtureSourceHash) { throw "R$round fixture source hash changed (pollution!)" }

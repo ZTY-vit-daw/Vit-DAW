@@ -38,5 +38,5 @@
 
 ## 下一步
 
-M1 装置已提交（port/shell-3）；进行 M1b 调试轮（-Rounds 1 全腿 shake out，失败按装置迭代取证，不计稳定性），然后冻结 RUNBOOK 跑 3 轮正式口径。
+M1b 调试完成（两例装置缺陷修复+取证在卷，见 RUNBOOK 调试轮节；bring-up 1 轮全腿 PASS run_full_20261115_040548）；M2 正式口径跑默认调用（-Rounds 3 全腿）待执行，随后 M5 放行包。
 

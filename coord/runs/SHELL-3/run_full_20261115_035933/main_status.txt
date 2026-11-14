@@ -1,0 +1,9 @@
+﻿ M scripts/vitshell_full_smoke.ps1
+?? coord/runs/SHELL-3/RUNBOOK.md
+?? coord/runs/SHELL-3/diag_manual/
+?? coord/runs/SHELL-3/diag_vitshell.ps1
+?? coord/runs/SHELL-3/eventlog_check.ps1
+?? coord/runs/SHELL-3/repro_f1.ps1
+?? coord/runs/SHELL-3/repro_f1/
+?? coord/runs/SHELL-3/run_full_20261115_035009/
+?? coord/runs/SHELL-3/run_full_20261115_035933/

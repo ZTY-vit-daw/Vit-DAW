@@ -1,0 +1,57 @@
+﻿{
+    "run_id":  "run_full_20261115_035933",
+    "started_at_utc":  "2026-11-14T19:59:33Z",
+    "card":  "SHELL-3",
+    "main_worktree":  "D:\\Vit_DAW_wt_shell3",
+    "frontend_worktree":  "D:/Godot/project/vit-daw-frontend_wt_shell3",
+    "godot_exe":  "D:/Godot/Godot_v4.6.1-stable_win64_console.exe",
+    "status_port":  7879,
+    "agent_port":  7878,
+    "cdp_port":  9333,
+    "rounds":  1,
+    "chat_text":  "这个工程现在叫什么名字？",
+    "zero_billing_override":  "VIT_AGENT_LLM_BASE_URL=http://127.0.0.1:1 (explicit env beats user config; LLM content out of scope)",
+    "skip_build":  true,
+    "skip_failure_legs":  false,
+    "skip_legacy_legs":  false,
+    "recents_snapshot_sha256":  "4B835024A463EFBDE7CB97983BC7F7B08AD157427918AF2134190E859F2C48AA",
+    "fixture_source":  "D:/Vit_DAW/temp/f3_empty_project.vit",
+    "fixture_source_sha256":  "AC0CE2E81C12E6F10E3D691CF062CD3E568365C274F12F2B963694AE3B48B41D",
+    "fixture_a":  "D:\\Vit_DAW_wt_shell3\\coord\\runs\\SHELL-3\\run_full_20261115_035933\\fixtures\\fixture_a.vit",
+    "fixture_b":  "D:\\Vit_DAW_wt_shell3\\coord\\runs\\SHELL-3\\run_full_20261115_035933\\fixtures\\fixture_b.vit",
+    "vitshell_exe":  "D:\\Godot\\project\\vit-daw-frontend_wt_shell3\\VitShell\\build\\Release\\VitShell.exe",
+    "vitshell_exe_sha256":  "1FA8EF4640E21EC6DB333E5945A3B73378D310DD180DDD1A05BF5E6C6B34C23E",
+    "agent_exe":  "D:\\Vit_DAW_wt_shell3\\agent\\bin\\VitAgent.exe",
+    "agent_exe_sha256":  "2E9347F96DA19B5E906823C5D6DB5FE7AE082469A6A6CB871B12AB75A143DE19",
+    "webui_dist_index_sha256":  "2CDA5A882543A0A63765A15056FD22E06D65A58FB5F507088E6D3BA8B676AA94",
+    "kernel_exe":  "D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe",
+    "kernel_exe_sha256":  "EDA7E1797C7B1F6AE4861CBA583E5DBC9B3EE43F6F2761868336825B98296386",
+    "hub_exe":  "D:/Vit_DAW/agent/bin/VspHub.exe",
+    "hub_exe_sha256":  "B10CC41295066C48BB446B255D12D1A58D2D8D64F164D875083667B464C71F68",
+    "legacy_leg":  "pass",
+    "legacy":  {
+                   "launch_result":  "present",
+                   "import_checkonly_exit":  0,
+                   "direct_env_gate":  "present",
+                   "open_chain_ref":  "present",
+                   "governance_dialog_file":  "present"
+               },
+    "failure_legs":  {
+                         "bad_agent_exe":  "pass",
+                         "occupied_port":  "pass",
+                         "webview2_off":  "pass"
+                     },
+    "round_results":  [
+                          {
+                              "round":  1,
+                              "started_at_utc":  "2026-11-14T20:00:10Z",
+                              "vitshell_pid":  26616,
+                              "result":  "FAIL",
+                              "error":  "timeout waiting status.phase=ready (last=unreachable)",
+                              "finished_at_utc":  "2026-11-14T20:02:14Z"
+                          }
+                      ],
+    "rounds_passed":  0,
+    "success_ratio":  "0/1",
+    "finished_at_utc":  "2026-11-14T20:02:18Z"
+}
