@@ -33,7 +33,12 @@
 
 ## 领取
 
-- 待回填
+- 时间：2026-11-14 21:49
+- 领取时 origin/main：2110e5cf（派发基线 bfe0356e 的直接后代——fetch 时主管已推 352 状态同步 coord-only 提交，ancestor 关系已核；worktree 建于最新 origin/main 之上）
+- owner：freeflash（GLM-5.3 Flash）· PC · ZCode 免费车道执行子代理（主管会话派发，会话标识见派发提示词）
+- 分支：port/env-godotcpp-restore-1（基于 origin/main 2110e5cf）
+- worktree：D:/Vit_DAW_wt_gcpp1（领取时工作树干净，status 0 项）
+- 并行核对：doing 卡 ARRLOOP-AUTHBRIDGE-1 / CLOSURE-ROUTE-ADAPT-1 / WAVESHELL-LOADING-FORENSICS-1 / LAUNCHER-ZEROFRICTION-1 / UI-LOADING-1 文件域均与本卡（仓外 godot-cpp 目录 + 本卡 coord/runs 工件）不相交
 
 ## 回执
 
