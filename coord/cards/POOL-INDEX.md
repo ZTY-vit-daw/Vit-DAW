@@ -128,7 +128,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 344 | UI-FOUNDATION-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-FOUNDATION-1-pass.md)：主管亲跑 test:render+build 复验 exit 0 + 28 文件全在授权域 + 设计哈希回指；**345 解锁，test:render=后续 UI 卡渲染面验收底座**） |
 | 345 | UI-LAUNCHER-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-LAUNCHER-1-pass.md)：主管亲跑 498 测+双渲染烟测 PASS；App.tsx 7 行分发最小改动；open/new 留 348——**346 解锁，348 前置全齐**） |
 | 346 | UI-PROJECT-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-PROJECT-1-pass.md)：529 测+三渲染面主管亲跑；选择≠应用红线单测在卷；宏快照/A-B agent 协议缺口登记候另卡） |
-| 347 | UI-LOADING-1 | todo 可领 P1（P2 装载生命周期；依赖 346✓+348✓ App.tsx 串行解锁；**v5.1 链最后一张**） |
+| 347 | UI-LOADING-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-LOADING-1-pass.md)：主管亲跑 560 测+四渲染面；无假倒计时红线全核——**v5.1 链全通：343→349 七卡单晚落地，React 启动面端到端可用（flag 门控），下一步=用户手测 v3**；live 装载分步事件候手测后裁定） |
 | 348 | UI-BRIDGE-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-BRIDGE-1-pass.md)：真栈 exit 0 桥链全通——React→directive→治理三键→open→dock 同 HWND 承接→回执 React 真收；前端 380166e；零摩擦 finding 转 352；341 撤销；godot-cpp 转 353） |
 | 349 | UI-OS-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-OS-1-pass.md)：真栈 71 断言 exit 0——关闭≠收拢/前台门控通知/同 HWND 召回；WinRT toast 按钮与通知触发链边界登记留 348/另卡；前端 128477b 已推） |
 | 350 | R0-CHAT-WINDOW-RECON-1 | done 已验收 pass 收口（取证型：设计侧预勘察收口为交付物，[裁定](../rulings/2026-11-14-R0-CHAT-WINDOW-RECON-1-pass.md)；真栈未知项移交 343） |
