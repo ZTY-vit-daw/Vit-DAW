@@ -1,0 +1,342 @@
+{
+  "run": "UI-FOUNDATION-1 render smoke",
+  "date": "2026-11-14T10:50:12.818Z",
+  "url": "http://127.0.0.1:5391/app/gallery.html",
+  "viewport": "1440x900@1",
+  "reducedMotion": "reduce",
+  "externalRequestCount": 0,
+  "externalRequests": [],
+  "dom": {
+    "spriteMounted": true,
+    "symbolCount": 23,
+    "symbolIdsInDom": [
+      "i-ab",
+      "i-alert",
+      "i-attach",
+      "i-bus",
+      "i-busy",
+      "i-done",
+      "i-error",
+      "i-fx",
+      "i-idle",
+      "i-macro",
+      "i-minimize",
+      "i-new",
+      "i-open",
+      "i-play",
+      "i-project",
+      "i-record",
+      "i-render",
+      "i-send",
+      "i-snapshot",
+      "i-stop",
+      "i-track",
+      "i-undo",
+      "i-vit"
+    ],
+    "expectedIds": [
+      "i-ab",
+      "i-alert",
+      "i-attach",
+      "i-bus",
+      "i-busy",
+      "i-done",
+      "i-error",
+      "i-fx",
+      "i-idle",
+      "i-macro",
+      "i-minimize",
+      "i-new",
+      "i-open",
+      "i-play",
+      "i-project",
+      "i-record",
+      "i-render",
+      "i-send",
+      "i-snapshot",
+      "i-stop",
+      "i-track",
+      "i-undo",
+      "i-vit"
+    ],
+    "matrix": {
+      "i-project": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-new": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-open": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-minimize": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-send": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-stop": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-track": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-bus": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-fx": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-macro": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-ab": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-play": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-record": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-render": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-undo": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-snapshot": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-attach": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-idle": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-busy": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-done": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-error": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-alert": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      },
+      "i-vit": {
+        "light-16": 1,
+        "light-20": 1,
+        "light-24": 1,
+        "dark-16": 1,
+        "dark-20": 1,
+        "dark-24": 1,
+        "selected-20": 1
+      }
+    },
+    "macroStates": [
+      "default",
+      "auditioning",
+      "applied",
+      "failed"
+    ],
+    "ringStates": [
+      4,
+      7,
+      7,
+      5
+    ],
+    "statusCardStates": [
+      "running",
+      "completed",
+      "failed"
+    ],
+    "actionConsequences": [
+      "reversible",
+      "confirm",
+      "irreversible"
+    ],
+    "inputStates": [
+      "default",
+      "disabled",
+      "busy"
+    ],
+    "buttonVariants": [
+      12,
+      8,
+      2,
+      11
+    ],
+    "messageAuthors": [
+      "user",
+      "vit"
+    ],
+    "snapshotReceipt": 1,
+    "fixtureNotice": true,
+    "contextTargets": 3,
+    "selectedContextTargets": 1,
+    "vitInTitlebar": 0,
+    "vitMarkSamples": 2,
+    "osSamples": 2,
+    "vitInIconMatrix": 7,
+    "vitOutsideOsSample": 0,
+    "tokenSwatches": 16,
+    "sectionCount": 12,
+    "disabledApplyButtons": 4
+  },
+  "textContrastMin": {
+    "text": "设计来源哈希：design-tokens-v5.",
+    "ratio": 5.077,
+    "fg": "rgb(102,102,102)",
+    "bg": "rgb(240,241,242)"
+  },
+  "graphicChecks": 227,
+  "graphicMinRatio": 4.305,
+  "clipIssues": [],
+  "docScrollWidth": 1440,
+  "fontTooSmall": [],
+  "failures": [],
+  "notes": [
+    "devServer=http://127.0.0.1:5391/app/gallery.html",
+    "reduced-motion: busy 环 animation=none 0s running"
+  ],
+  "screenshots": [
+    "D:\\Vit_DAW_wt_uifnd1\\coord\\runs\\UI-FOUNDATION-1\\screens\\gallery-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_uifnd1\\coord\\runs\\UI-FOUNDATION-1\\screens\\gallery-full.png"
+  ],
+  "result": "PASS"
+}

@@ -67,11 +67,11 @@ async function main() {
   const failures = [];
   const notes = [];
 
-  // ---- 1. 自起 vite dev server（随机端口） ----
+  // ---- 1. 自起 vite dev server（显式 host；端口被占时 vite 自动 +1 并在 resolvedUrls 报告实际值） ----
   const server = await createServer({
     root: webuiRoot,
     logLevel: "error",
-    server: { port: 0, strictPort: false },
+    server: { port: 5391, strictPort: false, host: "127.0.0.1" },
   });
   await server.listen();
   const base = (server.resolvedUrls?.local ?? [])[0] ?? "";
@@ -153,12 +153,16 @@ async function main() {
       "[data-gallery='context-target'] .v5-context-target.is-selected"
     ).length;
 
-    // V 标纪律：标题栏样例内不得出现 i-vit；OS 身份样例必须出现
+    // V 标纪律：标题栏样例内不得出现 i-vit；组件样例中 i-vit 只在 OS 身份样例出现；
+    // S3 图标矩阵（资产文档）必须含 i-vit 样张，不计入组件样例。
     out.vitInTitlebar = $$('[data-gallery="titlebar"] use[href="#i-vit"]').length;
     out.vitMarkSamples = $$("[data-vit-mark]").length;
     out.osSamples = $$("[data-os-sample]").length;
+    out.vitInIconMatrix = $$('[data-gallery="icon-matrix"] use[href="#i-vit"]').length;
     out.vitOutsideOsSample = $$("use[href='#i-vit']").filter(
-      (u) => !u.closest("[data-os-sample]")
+      (u) =>
+        !u.closest("[data-os-sample]") &&
+        !u.closest('[data-gallery="icon-matrix"]')
     ).length;
 
     // token 面板与页面主结构
@@ -232,9 +236,12 @@ async function main() {
     `targets=${dom.contextTargets} selected=${dom.selectedContextTargets}`);
   domAssert("V 标不进标题栏", dom.vitInTitlebar === 0, `titlebar 内 i-vit=${dom.vitInTitlebar}`);
   domAssert(
-    "V 标只在 OS 身份样例",
-    dom.vitMarkSamples >= 2 && dom.osSamples >= 2 && dom.vitOutsideOsSample === 0,
-    `marks=${dom.vitMarkSamples} os=${dom.osSamples} outside=${dom.vitOutsideOsSample}`
+    "V 标只在 OS 身份样例（S3 矩阵样张除外）",
+    dom.vitMarkSamples >= 2 &&
+      dom.osSamples >= 2 &&
+      dom.vitOutsideOsSample === 0 &&
+      dom.vitInIconMatrix >= 1,
+    `marks=${dom.vitMarkSamples} os=${dom.osSamples} outside=${dom.vitOutsideOsSample} matrix=${dom.vitInIconMatrix}`
   );
   domAssert("未选择时应用禁用", dom.disabledApplyButtons >= 1, "缺禁用应用按钮");
 
@@ -358,7 +365,12 @@ async function main() {
         kind = "color";
       }
       if (!fg) continue;
-      const bg = kind === "fill" ? effectiveBg(el.parentElement) : effectiveBg(el);
+      // 参照底色：stroke/color 相对「元素所在的表面」（可含自身 bg）；
+      // border/fill 相对「周围的表面」（不含自身，元素自身填充不是它的背景）。
+      const bg =
+        kind === "border" || kind === "fill"
+          ? effectiveBg(el.parentElement)
+          : effectiveBg(el);
       const eff = fg[3] < 1 ? composite(fg, bg) : fg;
       const r = ratio(eff, bg);
       const rec = {
