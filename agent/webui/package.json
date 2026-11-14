@@ -7,7 +7,8 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:render": "node src/gallery/render-smoke.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
@@ -15,9 +16,11 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@types/node": "22.20.5",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "playwright": "1.65.1",
     "typescript": "^5.7.2",
     "vite": "^6.0.0",
     "vitest": "^3.2.4"

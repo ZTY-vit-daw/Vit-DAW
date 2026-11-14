@@ -1,0 +1,713 @@
+/*
+ * v5.1 组件样式（UI-FOUNDATION-1 primitives）。
+ * 全部规则作用域在 .v5-design 之下；令牌来自 src/styles/tokens.css（--v5-*）。
+ * 语义依据：SPEC-V5.md §4/§5/§6/§8 + design-tokens-v5.json depthComputed
+ * （阴影值逐字）+ ROUND-2-PLAN.md 已确认语言。
+ * 对比度红线：文字 ≥4.5:1、图形 ≥3:1；ui-weak(#666) 不用于 control-shell 底。
+ */
+
+.v5-design {
+  font-family: var(--v5-font-sans);
+  font-size: var(--v5-t-body);
+  line-height: 1.65;
+  color: var(--v5-ui-text);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+.v5-design *,
+.v5-design *::before,
+.v5-design *::after {
+  box-sizing: border-box;
+}
+
+.v5-design button {
+  font: inherit;
+  cursor: pointer;
+  color: inherit;
+}
+
+.v5-design button:disabled {
+  cursor: not-allowed;
+}
+
+.v5-design :focus-visible {
+  outline: 2px solid var(--v5-ui-text);
+  outline-offset: 2px;
+}
+
+.v5-design .v5-dark :focus-visible {
+  outline-color: var(--v5-control-blue);
+}
+
+/* ---------- 按钮（SPEC-V5 §4.3） ---------- */
+
+.v5-design .v5-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: var(--v5-radius-control);
+  border: none;
+  padding: 8px 16px;
+  font-size: var(--v5-t-body);
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.v5-design .v5-btn--primary {
+  background: var(--v5-ui-text);
+  color: var(--v5-read-bg);
+}
+
+.v5-design .v5-btn--primary:hover:not(:disabled) {
+  background: #000000;
+}
+
+.v5-design .v5-btn--secondary {
+  background: var(--v5-read-bg);
+  color: var(--v5-ui-text);
+  border: 1.5px solid var(--v5-ui-text);
+  padding: 6.5px 14.5px;
+}
+
+.v5-design .v5-btn--secondary:hover:not(:disabled) {
+  background: var(--v5-ui-canvas);
+}
+
+.v5-design .v5-btn--danger {
+  background: var(--v5-anchored-red);
+  color: var(--v5-read-bg);
+  border: none;
+}
+
+.v5-design .v5-btn--text {
+  background: transparent;
+  color: var(--v5-ui-text);
+  border: none;
+  padding: 8px 8px;
+}
+
+.v5-design .v5-btn--text:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.v5-design .v5-btn:disabled {
+  background: var(--v5-ui-plate);
+  color: var(--v5-ui-weak);
+  border: 1.5px dashed var(--v5-ui-border);
+  padding: 6.5px 14.5px;
+}
+
+.v5-design .v5-btn--primary:disabled {
+  background: var(--v5-ui-plate);
+}
+
+.v5-design .v5-btn-icon {
+  display: block;
+}
+
+/* ---------- 输入区（§8.6 + depthComputed.composer） ---------- */
+
+.v5-design .v5-composer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-composer-edge);
+  border-radius: var(--v5-radius-control);
+  box-shadow: var(--v5-shadow-composer);
+  padding: 6px 6px 6px 12px;
+  max-width: 720px;
+}
+
+.v5-design .v5-composer-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--v5-t-body);
+  color: var(--v5-ui-text);
+  padding: 6px 0;
+}
+
+.v5-design .v5-composer-input::placeholder {
+  color: var(--v5-ui-weak);
+}
+
+.v5-design .v5-composer[data-input-state="disabled"] {
+  background: repeating-linear-gradient(
+      45deg,
+      transparent 0 6px,
+      rgba(20, 20, 20, 0.04) 6px 10px
+    ),
+    var(--v5-read-bg);
+}
+
+.v5-design .v5-composer[data-input-state="disabled"] .v5-composer-input {
+  color: var(--v5-ui-weak);
+}
+
+.v5-design .v5-composer[data-input-state="busy"] {
+  border-color: var(--v5-control-choice-edge-deep);
+}
+
+.v5-design .v5-composer-send {
+  padding: 8px;
+}
+
+/* ---------- 上下文目标 ---------- */
+
+.v5-design .v5-context-target {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--v5-context);
+  color: var(--v5-ui-text);
+  border: 1px solid var(--v5-context-edge);
+  border-radius: var(--v5-radius-control);
+  box-shadow: var(--v5-control-shadow);
+  padding: 6px 12px;
+  font-size: var(--v5-t-secondary);
+  font-weight: 600;
+}
+
+.v5-design .v5-context-target:hover {
+  background: var(--v5-ui-canvas);
+}
+
+.v5-design .v5-context-target.is-selected {
+  background: var(--v5-control-choice-selected);
+  border: 2px solid var(--v5-control-selected-edge);
+  box-shadow: var(--v5-control-selected-ring), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.v5-design .v5-context-target.is-selected .v5-icon {
+  --v5-icon-bg: var(--v5-control-choice-selected);
+}
+
+/* ---------- 宏卡（v5.1 空间关系 + §8.3） ---------- */
+
+.v5-design .v5-macro {
+  max-width: 560px;
+  background: var(--v5-control-shell-raised);
+  border-radius: 0;
+  box-shadow: var(--v5-shadow-macro-card);
+}
+
+.v5-design .v5-macro-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  background: var(--v5-control-header);
+  color: var(--v5-read-bg);
+  padding: 12px 20px;
+  --v5-icon-bg: var(--v5-control-header);
+}
+
+.v5-design .v5-macro-title {
+  margin: 0;
+  font-size: var(--v5-t-title);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.v5-design .v5-macro-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--v5-t-secondary);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.v5-design .v5-macro-flag--busy {
+  background: var(--v5-control-yellow);
+  color: var(--v5-ui-text);
+  border-radius: var(--v5-radius-control);
+  padding: 4px 10px;
+}
+
+.v5-design .v5-macro-flag--busy .v5-icon {
+  --v5-icon-bg: var(--v5-control-yellow);
+}
+
+.v5-design .v5-macro-flag--applied {
+  color: var(--v5-read-bg);
+}
+
+.v5-design .v5-macro-flag--failed {
+  color: var(--v5-read-bg);
+}
+
+/* 失败态保留警示边框、警示底色与失败标题层（v5.1 深度规则不覆盖失败态） */
+.v5-design .v5-macro--failed {
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+}
+
+.v5-design .v5-macro--failed .v5-macro-header {
+  background: var(--v5-warning-header);
+  --v5-icon-bg: var(--v5-warning-header);
+}
+
+.v5-design .v5-macro-body {
+  padding: 16px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.v5-design .v5-macro-well {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--v5-control-well-deep);
+  box-shadow: var(--v5-shadow-macro-well);
+  padding: 8px;
+}
+
+.v5-design .v5-macro-option {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: "name dot" "desc dot";
+  align-items: start;
+  text-align: left;
+  background: var(--v5-control-choice);
+  color: var(--v5-ui-text);
+  border: 1px solid var(--v5-control-choice-edge-deep);
+  border-radius: var(--v5-radius-control);
+  box-shadow: var(--v5-shadow-option-default);
+  padding: 10px 36px 10px 16px;
+}
+
+.v5-design .v5-macro-option:hover {
+  background: var(--v5-control-shell-light);
+}
+
+.v5-design .v5-macro-option.is-selected {
+  background: var(--v5-control-choice-selected);
+  border: 2px solid var(--v5-control-selected-edge);
+  box-shadow: var(--v5-shadow-option-selected);
+  padding: 9px 35px 9px 15px;
+}
+
+.v5-design .v5-macro-option.is-selected .v5-icon,
+.v5-design .v5-macro-option.is-selected {
+  --v5-icon-bg: var(--v5-control-choice-selected);
+}
+
+.v5-design .v5-macro-option-name {
+  grid-area: name;
+  font-size: var(--v5-t-key);
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.v5-design .v5-macro-option-desc {
+  grid-area: desc;
+  font-size: var(--v5-t-secondary);
+  line-height: 1.55;
+  color: var(--v5-ui-muted);
+}
+
+.v5-design .v5-macro-option-dot {
+  grid-area: dot;
+  width: 12px;
+  height: 12px;
+  margin-top: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--v5-ui-text);
+  background: transparent;
+  align-self: start;
+}
+
+.v5-design .v5-macro-option.is-selected .v5-macro-option-dot {
+  background: var(--v5-ui-text);
+}
+
+/* 浅黄底上 ui-muted 不达 4.5:1 —— 选中项描述用墨色 */
+.v5-design .v5-macro-option.is-selected .v5-macro-option-desc {
+  color: var(--v5-ui-text);
+}
+
+/* 频响轮廓：单一可视化（深色图形区 + 曲线） */
+.v5-design .v5-macro-pane {
+  background: var(--v5-control-pane);
+  box-shadow: var(--v5-shadow-contour);
+  height: 120px;
+}
+
+.v5-design .v5-contour-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.v5-design .v5-contour-line {
+  stroke: var(--v5-control-blue);
+  stroke-width: 2;
+}
+
+.v5-design .v5-contour-line.is-selected {
+  stroke: var(--v5-control-yellow);
+}
+
+.v5-design .v5-contour-midline {
+  stroke: var(--v5-control-pane-high);
+  stroke-width: 1;
+}
+
+.v5-design .v5-macro-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.v5-design .v5-macro-aux {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.v5-design .v5-macro-reason {
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-warning-edge);
+  font-weight: 600;
+}
+
+/* ---------- 状态卡 / 执行轨迹（§8.2 + §4.2.1） ---------- */
+
+.v5-design .v5-status-card {
+  max-width: 560px;
+  background: var(--v5-control-shell);
+  border: 1px solid var(--v5-control-shell-edge);
+  box-shadow: var(--v5-control-shadow);
+  padding: 16px 20px;
+}
+
+.v5-design .v5-status-card--failed {
+  background: var(--v5-warning-shell);
+  border-color: var(--v5-warning-edge);
+}
+
+.v5-design .v5-status-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.v5-design .v5-status-card-title {
+  margin: 0;
+  font-size: var(--v5-t-title);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.v5-design .v5-progress-track {
+  display: block;
+  width: 160px;
+  height: 8px;
+  background: var(--v5-ui-canvas);
+  box-shadow: var(--v5-shadow-macro-well);
+}
+
+.v5-design .v5-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--v5-control-header);
+}
+
+.v5-design .v5-status-card-reason {
+  margin: 8px 0 0;
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-warning-edge);
+}
+
+.v5-design .v5-trace {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v5-design .v5-trace-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-ui-muted);
+}
+
+.v5-design .v5-trace-step .v5-trace-done {
+  color: var(--v5-control-header);
+}
+
+.v5-design .v5-trace-step.v5-step-current {
+  color: var(--v5-ui-text);
+  font-weight: 600;
+}
+
+.v5-design .v5-current-chip {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--v5-control-yellow);
+  color: var(--v5-ui-text);
+  border: 1px solid #333333;
+  border-radius: var(--v5-radius-control);
+  flex: none;
+}
+
+.v5-design .v5-current-chip .v5-icon {
+  --v5-icon-bg: var(--v5-control-yellow);
+  animation: v5-step-advance 1.2s steps(3, end) infinite;
+}
+
+@keyframes v5-step-advance {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+.v5-design .v5-trace-time {
+  margin-left: auto;
+  font: 400 var(--v5-t-caption) / 1.5 var(--v5-font-mono);
+  color: var(--v5-ui-muted);
+}
+
+.v5-design .v5-status-card-actions {
+  margin-top: 12px;
+}
+
+.v5-design .v5-status-card-receipt {
+  margin: 12px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-ui-muted);
+}
+
+.v5-design .v5-status-card-done {
+  color: var(--v5-control-header);
+}
+
+/* ---------- 动作卡（§8.4） ---------- */
+
+.v5-design .v5-action-card {
+  max-width: 560px;
+  padding: 16px 20px;
+  background: var(--v5-ui-plate);
+  box-shadow: var(--v5-shadow-macro-card);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.v5-design .v5-action-card--confirm {
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+}
+
+.v5-design .v5-action-card--irreversible {
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+}
+
+.v5-design .v5-action-title {
+  margin: 0;
+  font-size: var(--v5-t-title);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.v5-design .v5-action-desc {
+  margin: 0;
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-ui-muted);
+}
+
+/* 黄 / 红警示底上 ui-muted 不足 4.5:1 —— 描述用墨色 */
+.v5-design .v5-action-card--confirm .v5-action-desc,
+.v5-design .v5-action-card--irreversible .v5-action-desc {
+  color: var(--v5-ui-text);
+}
+
+.v5-design .v5-action-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--v5-t-secondary);
+  font-weight: 600;
+  border-radius: var(--v5-radius-control);
+  padding: 4px 10px;
+}
+
+.v5-design .v5-action-tag--blue {
+  background: var(--v5-control-shell-light);
+  color: var(--v5-control-header);
+}
+
+.v5-design .v5-action-tag--yellow {
+  background: var(--v5-ui-text);
+  color: var(--v5-control-yellow);
+}
+
+.v5-design .v5-action-tag--red {
+  background: var(--v5-ui-text);
+  color: #ff9d99;
+}
+
+.v5-design .v5-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* ---------- 消息与快照回执（§8.1 / §8.5） ---------- */
+
+.v5-design .v5-message {
+  margin: 0;
+  max-width: 36em;
+  font-size: var(--v5-t-body);
+  line-height: 1.65;
+}
+
+.v5-design .v5-message--user {
+  background: var(--v5-ui-canvas);
+  border-radius: var(--v5-radius-control);
+  padding: 8px 12px;
+}
+
+.v5-design .v5-message--vit {
+  padding: 0 0 0 0;
+}
+
+.v5-design .v5-snapshot-receipt {
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-ui-muted);
+}
+
+.v5-design .v5-snapshot-icon {
+  color: var(--v5-control-header);
+}
+
+.v5-design .v5-snapshot-time {
+  font: 400 var(--v5-t-caption) / 1.5 var(--v5-font-mono);
+  color: var(--v5-ui-weak);
+}
+
+/* ---------- 状态环颜色（§4.2：待机中性 / 进行中深黄 / 完成 header 蓝 / 出错 edge 红） ---------- */
+
+.v5-design .v5-ring--idle {
+  color: var(--v5-ui-muted);
+}
+
+.v5-design .v5-ring--busy {
+  color: var(--v5-attention-edge);
+}
+
+.v5-design .v5-ring--done {
+  color: var(--v5-control-header);
+}
+
+.v5-design .v5-ring--error {
+  color: var(--v5-warning-edge);
+}
+
+/* 深底适配（SPEC §4.4）：深底图标默认纸色（同 S3 矩阵深底列）；语义色只走实心状态点 */
+.v5-design .v5-dark {
+  color: var(--v5-read-bg);
+  --v5-icon-bg: var(--v5-control-pane-low);
+}
+
+/* ---------- 磁带小标志 / V 品牌标 / 身份状态点 ---------- */
+
+.v5-design .v5-project-badge,
+.v5-design .v5-vit-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.v5-design .v5-id-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid #333333;
+}
+
+.v5-design .v5-id-dot--idle {
+  background: var(--v5-ui-canvas);
+}
+
+.v5-design .v5-id-dot--busy {
+  background: var(--v5-control-yellow);
+  animation: v5-dot-pulse 1.6s ease-in-out infinite;
+}
+
+.v5-design .v5-id-dot--done {
+  background: var(--v5-control-header);
+}
+
+.v5-design .v5-id-dot--error {
+  background: var(--v5-anchored-red);
+}
+
+.v5-design .v5-dark .v5-id-dot--idle {
+  background: var(--v5-control-pane-high);
+}
+
+.v5-design .v5-dark .v5-id-dot--done {
+  background: var(--v5-control-blue);
+}
+
+.v5-design .v5-dark .v5-id-dot--error {
+  background: var(--v5-anchored-red);
+}
+
+.v5-design .v5-dark .v5-id-dot {
+  border-color: rgba(255, 255, 255, 0.55);
+}
+
+@keyframes v5-dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v5-design .v5-id-dot--busy {
+    animation: none;
+  }
+}
