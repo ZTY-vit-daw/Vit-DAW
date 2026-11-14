@@ -709,7 +709,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                                 type="button"
                                 className="v5-btn v5-btn--primary"
                                 data-launcher-governance-save
-                                disabled={bridgeBusy || !bridgeAvailable}
+                                disabled={!bridgeAvailable}
                                 onClick={() => answerGovernance(item.view.requestID, "save")}
                               >
                                 {LAUNCHER_GOVERNANCE_SAVE_TEXT}
@@ -718,7 +718,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                                 type="button"
                                 className="v5-btn v5-btn--secondary"
                                 data-launcher-governance-switch
-                                disabled={bridgeBusy || !bridgeAvailable}
+                                disabled={!bridgeAvailable}
                                 onClick={() => answerGovernance(item.view.requestID, "switch")}
                               >
                                 {LAUNCHER_GOVERNANCE_SWITCH_TEXT}
@@ -727,7 +727,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                                 type="button"
                                 className="v5-btn v5-btn--secondary"
                                 data-launcher-governance-cancel
-                                disabled={bridgeBusy || !bridgeAvailable}
+                                disabled={!bridgeAvailable}
                                 onClick={() => answerGovernance(item.view.requestID, "cancel")}
                               >
                                 {LAUNCHER_GOVERNANCE_CANCEL_TEXT}
