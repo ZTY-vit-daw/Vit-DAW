@@ -107,7 +107,9 @@ Write-Host ("repo HEAD=" + $report.head + "  frontend HEAD=" + $report.frontend_
 # §2.2 复用禁令：任一端口已监听即停（栈占用以 coord/resources/PC-RUNTIME-STACK.md 为准，
 # 由调用者保证登记推送；脚本自身按 AGENTS §9 先净空后启栈）。
 Write-Step0 "Prereq: ports must be free (7878/5555/5556/8787)"
-foreach ($port in @([int]($AgentHttp -replace '^.*:(\d+)$','$1')), [int]$ZmqReqPort, 5556, [int]$VspHubPort) {
+[int]$agentPort = 7878
+if ($AgentHttp -match ':(\d+)\s*$') { $agentPort = [int]$Matches[1] }
+foreach ($port in $agentPort, [int]$ZmqReqPort, 5556, [int]$VspHubPort) {
     if (Get-TcpListener -Port $port) {
         throw ("port $port is already listening; NOT reusing a foreign stack (PROTOCOL 2.2 / AGENTS 9). Abort before any start.")
     }
@@ -226,6 +228,14 @@ try {
     $assert["agent_http_ready"] = $true
 
     # ------------------------------------------------- start Godot (autoload)
+    Write-Step0 "Import pass (rebuild .godot cache in a fresh worktree: extension_list + global class cache)"
+    $importArgs = @("--headless", "--path", $GodotProjectRoot, "--import")
+    $importProc = Start-Process -FilePath $GodotExe -ArgumentList $importArgs -WorkingDirectory $GodotProjectRoot -PassThru -Wait -WindowStyle Hidden
+    if (-not (Test-Path -LiteralPath (Join-Path $GodotProjectRoot ".godot\extension_list.cfg"))) {
+        throw ("Godot import pass did not produce .godot/extension_list.cfg")
+    }
+    $assert["godot_import_pass"] = $true
+
     Write-Step0 "Start Godot (VIT_AGENT_WINDOW_MODE=autoload + smoke open driver)"
     $env:VIT_AGENT_WINDOW_MODE = "autoload"
     $env:VIT_SMOKE_AUTO_OPEN_PROJECT = $ProjectCopy
@@ -303,20 +313,26 @@ try {
     # ---------------------------------------------------------- OS baseline
     Write-Step0 "OS baseline: title/class/count/minimize/recall via Win32"
     Add-Type -Namespace UiHostSmoke -Name Win32 -MemberDefinition @'
-[DllImport("user32.dll", SetLastError=true)] public static extern IntPtr FindWindowExW(IntPtr parent, IntPtr after, string cls, string win);
-[DllImport("user32.dll")] public static extern int GetWindowTextW(IntPtr hWnd, System.Text.StringBuilder text, int count);
+[DllImport("user32.dll")] public static extern bool EnumWindows(EnumProc cb, IntPtr lp);
+public delegate bool EnumProc(IntPtr hWnd, IntPtr lp);
+[DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetClassNameW(IntPtr hWnd, System.Text.StringBuilder text, int count);
+[DllImport("user32.dll", CharSet=CharSet.Unicode)] public static extern int GetWindowTextW(IntPtr hWnd, System.Text.StringBuilder text, int count);
 [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hWnd);
 [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr hWnd);
 [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
 '@
-    # 类名枚举：VitWebViewHostChildWindow 顶层窗恰好 1 个（无重复窗）。
-    $found = @()
-    $cursor = [IntPtr]::Zero
-    do {
-        $cursor = [UiHostSmoke.Win32]::FindWindowExW([IntPtr]::Zero, $cursor, "VitWebViewHostChildWindow", $null)
-        if ($cursor -ne [IntPtr]::Zero) { $found += $cursor }
-    } while ($cursor -ne [IntPtr]::Zero)
+    # 类名枚举（EnumWindows+GetClassName 过滤——FindWindowExW 在本环境对跨进程
+    # 顶层窗返回 0 未命中，EnumWindows 为标准枚举面）：VitWebViewHostChildWindow
+    # 顶层窗恰好 1 个（无重复窗）。
+    $found = New-Object System.Collections.ArrayList
+    $enumCb = [UiHostSmoke.Win32+EnumProc]{ param($h, $lp)
+        $cn = New-Object System.Text.StringBuilder 256
+        [void][UiHostSmoke.Win32]::GetClassNameW($h, $cn, 256)
+        if ($cn.ToString() -eq "VitWebViewHostChildWindow") { [void]$found.Add($h) }
+        return $true
+    }
+    [void][UiHostSmoke.Win32]::EnumWindows($enumCb, [IntPtr]::Zero)
     $assert["chat_window_count"] = $found.Count
     $assert["no_duplicate_window"] = ($found.Count -eq 1)
     if ($found.Count -ne 1) { throw ("expected exactly 1 VitWebViewHostChildWindow top-level window, got $($found.Count)") }
