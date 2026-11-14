@@ -7,3 +7,4 @@
 - M4 完成: render-smoke §10 多分辨率保真断言（1440×900@1 / 1920×1080@1 / 1536×864@1.25 / 1280×720@1.5 × launcher-live/project-live）：docScrollWidth/裁切/对比度/字号/关键控件视口内/fixture 标注/零外网；新增 gallery.html?surface=launcher-live|project-live fixture+fill 渲染页。
 - 三门终态: npm test 563/563 PASS；npm run build exit 0；npm run test:render 五段全 PASS（foundation/launcher/project/loading/fidelity），fidelity 8/8 PASS，工件 coord/runs/UI-VISUAL-FIDELITY-1/{render-smoke-fidelity-report.json, screens/×8}。
 - 下一步收口: 卡面回填 + git mv doing→done + coord-only 推送（实现留 port/ui-visual-fidelity-1 待主管验收）。
+- DONE (2026-11-15 晚窗): 全里程碑完成。port 分支终态=55aca329；三门=563 测 PASS / build exit 0 / test:render 五段 PASS（fidelity 8/8）；卡面回执与缺口上交见 doing→done 卡（coord-only 推 main）。实现与工件均在本分支（port/ui-visual-fidelity-1）待主管验收合入；断点恢复点=无（任务终态）。
