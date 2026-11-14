@@ -51,7 +51,7 @@
 | 323 | EQ-RECEIPT-VENDOR-EXPAND-1 | done 终验 pass 合入（vendor-scoped 最保守+双门干跑亲证——322 解锁） |
 | 324 | BRIDGE-POC-1 | **todo 候用户确认**（控制面改革方向去风险：display probe 反演双锚验证 T4/r3；零栈优先零 LLM；改革主线排展演后——2026-11-09 用户定向） |
 | 325 | FIX-CAPROUTE-RETRIEVAL-1 | done 已验收 pass 合入 a36df77d（**负结论**：sem 族三披露形态全可达零缺口+317 line18 实调亲证；防回归锚测试随卡；PENDING①条目关闭） |
-| 326 | FIX-RESTARTAGENT-ENV-1 | todo 可领（PENDING 分流②：脚本重启 agent env 透传；真栈轻腿可搭 282 同窗） |
+| 326 | FIX-RESTARTAGENT-ENV-1 | done 已验收 pass 合入（取证翻案型：重启链本就全量透传零丢失；真实丢失面=复用路径冻结+会话缺 env（有意设计）；修复收敛=契约注释+断言工具；321 run1 归因消解；真栈轻腿 exit 0+§10 哈希亲证） |
 | 327 | FIX-GOV-INTERACTION-TTL-1 | done 已验收 pass 合入 c8bb576e（勘察翻案：无 TTL，丢失=落错工作区+restore 替换+罐头伪造 completed；保活+两态回执活体 A/B 证成；park 腿降便车腿；330 解锁） |
 | 328 | FIX-FREEFLOAT-EQ-ANCHOR-1 | done 已验收 pass 合入 a670c67a（TBTECH 落盘 static_eq 50+类缺口登记+322 计数随卡修复；主管亲测三 PASS） |
 | 313 | LEGAME-UX-DESIGN-1 | done 终验 pass 合入（设计 v1 落档：L1 四件+三段式 onboarding+HUD+七卡清单；三裁定点[L1-d 案别/onboarding/HUD]候用户） |

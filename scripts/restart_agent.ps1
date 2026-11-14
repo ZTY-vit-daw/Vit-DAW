@@ -22,6 +22,13 @@ if ($OldPid -gt 0) {
 }
 
 Write-Host "Starting new VitAgent: $AgentExe"
+# FIX-RESTARTAGENT-ENV-1 (326) env contract: FULL caller-session passthrough
+# (no whitelist, no scrub, no -UseNewEnvironment) -- the agent below inherits
+# every env var of whoever invoked this script, plus the additive draft-root
+# isolation vars set above. This script always starts a fresh process, so the
+# reuse caveat in dev_agent_smoke.ps1 (running agent keeps ITS start-time env)
+# does not apply here. Standing assertion tool:
+# scripts/restart_agent_env_passthrough_check.ps1.
 Start-Process -FilePath $AgentExe -WindowStyle Hidden
 
 # Wait up to 20s for port 7878

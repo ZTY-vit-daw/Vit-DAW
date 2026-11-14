@@ -1,0 +1,19 @@
+﻿{
+    "ps_version":  "5.1.26100.9711",
+    "ps_edition":  "Desktop",
+    "out_dir":  "D:/Vit_DAW_wt_env1/coord/runs/FIX-RESTARTAGENT-ENV-1/evidence",
+    "E1_startProcess_child_has_set_env":  true,
+    "E1_evidence_file":  "D:\\Vit_DAW_wt_env1\\coord\\runs\\FIX-RESTARTAGENT-ENV-1\\evidence\\e1_child_env.txt",
+    "E2_powershellChild_chain_carries_outer_env":  true,
+    "E2_evidence_file":  "D:\\Vit_DAW_wt_env1\\coord\\runs\\FIX-RESTARTAGENT-ENV-1\\evidence\\e2_grandchild_env.txt",
+    "E3_reused_running_process_has_orig_env":  true,
+    "E3_reused_running_process_LACKS_new_env":  true,
+    "E3_evidence_file":  "D:\\Vit_DAW_wt_env1\\coord\\runs\\FIX-RESTARTAGENT-ENV-1\\evidence\\e3_surrogate_env_snapshot1.txt",
+    "E3b_restarted_process_picks_up_session_env":  true,
+    "E3b_restarted_process_still_has_orig_env":  true,
+    "E3b_evidence_file":  "D:\\Vit_DAW_wt_env1\\coord\\runs\\FIX-RESTARTAGENT-ENV-1\\evidence\\e3_surrogate_env_snapshot2.txt",
+    "failed_assertions":  [
+
+                          ],
+    "verdict":  "ALL_PASS"
+}
