@@ -134,7 +134,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 350 | R0-CHAT-WINDOW-RECON-1 | done 已验收 pass 收口（取证型：设计侧预勘察收口为交付物，[裁定](../rulings/2026-11-14-R0-CHAT-WINDOW-RECON-1-pass.md)；真栈未知项移交 343） |
 | 351 | REC-ISOLATION-CONFIGDIR-1 | todo 可领 P3（342 裁定 a 案：env VIT_DAW_USER_CONFIG_DIR 装置配置目录隔离，fail-open；真栈腿候 PC 栈空闲；**不占展演前主线**） |
 | 352 | LAUNCHER-ZEROFRICTION-1 | doing（**取证腿 pass+方案裁定采 A1**（launcher 卷门控不物化）——根因链=聊天落盘对话节点→物化 Unsaved 草稿→path hint→三键，主管亲证锚点；实施腿排 271 收口后另领） |
-| 353 | ENV-GODOTCPP-RESTORE-1 | doing（取证+恢复在飞，freeflash） |
+| 353 | ENV-GODOTCPP-RESTORE-1 | done 已验收 pass 合入（双位置全空取证+根因高置信=拆除穿透 junction（归因 open，mtime 证明早于主管 force remove）+4.2.2 恢复+scons 双变体 exit 0 亲证；§3 rmdir 实测形式补遗；B 位不恢复裁定） |
 
 - 推荐起手：**343 ∥ 344**（Godot 宿主 / WebUI 基座，文件域不相交）；345 在 344 合入后；346 在 345 后；347 在 346 后；348 等 343+345；349 等 343。
 - **341 排序约束（主管 2026-11-14 晚窗）**：341（LAUNCHER-FE-LAYOUT-FIX-1）与 343 文件域重叠（前端仓 `app/startup/start_page*`），**排在 343 合入之后**才可领取；v5.1 链落地后 341 的价值面收缩（启动面主位将转 React launcher），届时由主管重新裁定 341 范围（可能降级为 legacy fallback 最小修缮或撤销）。
