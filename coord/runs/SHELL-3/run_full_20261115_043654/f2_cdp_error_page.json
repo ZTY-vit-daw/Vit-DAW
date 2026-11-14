@@ -1,0 +1,11 @@
+{
+  "phase": "probe-error-page",
+  "ok": true,
+  "url": "about:blank",
+  "title": "Vit - error",
+  "detail": "agent process exited before becoming ready",
+  "buttons": [
+    "重试",
+    "退出"
+  ]
+}

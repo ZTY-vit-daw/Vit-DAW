@@ -1,0 +1,8 @@
+{
+  "phase": "probe-launcher",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "sentinel": 1794688710818,
+  "drawer_new": "＋新建",
+  "drawer_open": "打开…"
+}
