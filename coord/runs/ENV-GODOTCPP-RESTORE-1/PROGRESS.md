@@ -13,7 +13,7 @@
 - [x] S6 恢复1: 备份=4.2.2 官方（4bc6e67）工作树与 HEAD 零差异+fsck 过+哈希抽样在卷；api_version=4.6 系 no-op 已修正；版本相符放行（restore-version-check.md）
 - [x] S7 恢复2: robocopy RC=1 成功；3832 文件+哈希一致+git status 0（恢复核验过）
 - [x] S8 验证: 双变体 exit 0（debug 22:03 / release 22:04，log 在卷）；产物经 junction 落 A（bin 静态库重链+gen 重生成+1848 obj，git status 0）；§3 拆 junction 验证过（cmd //c rmdir 单引号反斜杠路径 rc=0，含空格样例亦过）；A 完好核验过；临时 worktree 已 remove（先摘链接后 remove）
-- [ ] S9 回执: 卡面回填 → done → coord-only 推送
+- [x] S9 回执: done 提交 14cf5808 → cherry-pick 推 main=053d7c21（期间远端又前进，按 §2.1.3 重推）；port 分支已推远端
 
 ## 长命令预告
 
@@ -22,4 +22,10 @@
 
 ## 停止/异常记录
 
-（无）
+- 停止条件未触发（备份版本相符；A 为空无覆盖面）。
+- 推送冲突 2 次（领取、done 各一次，远端并行前进）——均按 §2.1.3 cherry-pick 到新 origin/main 重推成功，非失败重跑。
+- cmd //c mklink 与内层双引号 rmdir 在 Git Bash 下失败（MSYS 路径转换/引号语义）——已实测出可用形式并记入 VERIFY.md（这正是 §3 可执行性验证的产出）。
+
+## 终态：DONE（2026-11-14 22:1x）
+
+- 四件套：①命令+退出码——robocopy /MIR RC=1（成功）、scons template_debug=0、template_release=0、rmdir=0、git push ×3 成功；②产物路径——coord/runs/ENV-GODOTCPP-RESTORE-1/（FORENSICS/restore-version-check/VERIFY/PROGRESS+3 日志，分支 port/env-godotcpp-restore-1 ed821ec2）+ D:/Vit_DAW/godot-cpp（恢复体）；③问题——api_version=4.6 前提被证伪为 no-op（已修正叙述）、备份含 ignored obj 缓存（勘误补记）、"22:3x"观察矛盾上交、USN 需管理员未读、根因执行者归因 open；④断了几次——0 次外部重派中断。
