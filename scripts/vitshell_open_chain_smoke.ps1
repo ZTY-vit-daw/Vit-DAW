@@ -140,7 +140,7 @@ function Invoke-CdpPhase {
     popd
     if ($code -ne 0) { throw ("CDP phase $Phase failed (exit $code, see $OutFile.log)") }
     Write-Ok "CDP $Phase pass"
-    return (Get-Content $out -Raw | ConvertFrom-Json)
+    return (Get-Content $out -Raw -Encoding UTF8 | ConvertFrom-Json)
 }
 
 $VitProcessNames = @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot", "godot")
@@ -363,7 +363,7 @@ try {
     }
 
     $null = Invoke-CdpPhase -Phase "probe-project" -OutFile "cdp_probe_project.json"
-    $projProbe = Get-Content (Join-Path $RunRoot "cdp_probe_project.json") -Raw | ConvertFrom-Json
+    $projProbe = Get-Content (Join-Path $RunRoot "cdp_probe_project.json") -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($projProbe.sentinel -ne $runMeta.no_reload_sentinel) { throw "no-reload sentinel changed on project surface (reload!)" }
 
     # ---- L4: direct-launch quality ----
@@ -397,7 +397,7 @@ try {
     if (-not $closeDaw.ok) { throw "POST close-daw failed: $($closeDaw.body)" }
     Wait-StatusField -StatusUrl $StatusUrl -Field "godot_running" -Expect "False" -TimeoutSec 30 -ArtifactPath (Join-Path $RunRoot "status_daw_closed.json")
     $null = Invoke-CdpPhase -Phase "probe-launcher-back" -OutFile "cdp_probe_launcher_back.json"
-    $back = Get-Content (Join-Path $RunRoot "cdp_probe_launcher_back.json") -Raw | ConvertFrom-Json
+    $back = Get-Content (Join-Path $RunRoot "cdp_probe_launcher_back.json") -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($back.sentinel -ne $runMeta.no_reload_sentinel) { throw "sentinel changed after back-to-launcher (reload!)" }
     Write-Ok "DAW closed; launcher surface back in the SAME window (sentinel intact)"
 
@@ -407,14 +407,14 @@ try {
     # --smoke-file-dialog-b): open chain runs against a different project file.
     $null = Invoke-CdpPhase -Phase "click-open" -OutFile "cdp_click_open_2.json"
     $null = Invoke-CdpPhase -Phase "assert-governance" -OutFile "cdp_assert_governance.json"
-    $gov = Get-Content (Join-Path $RunRoot "cdp_assert_governance.json") -Raw | ConvertFrom-Json
+    $gov = Get-Content (Join-Path $RunRoot "cdp_assert_governance.json") -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($gov.save -ne "保存并切换" -or $gov.switch -ne "直接切换" -or $gov.cancel -ne "取消") {
         throw ("governance keys unexpected: save=$($gov.save) switch=$($gov.switch) cancel=$($gov.cancel)")
     }
     $null = Invoke-CdpPhase -Phase "click-governance-switch" -OutFile "cdp_gov_click_2.json"
     $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 2 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "status_opened_2.json")
     $null = Invoke-CdpPhase -Phase "probe-governance-done" -OutFile "cdp_gov_done.json"
-    $govDone = Get-Content (Join-Path $RunRoot "cdp_gov_done.json") -Raw | ConvertFrom-Json
+    $govDone = Get-Content (Join-Path $RunRoot "cdp_gov_done.json") -Raw -Encoding UTF8 | ConvertFrom-Json
     if ($govDone.sentinel -ne $runMeta.no_reload_sentinel) { throw "sentinel changed after governed open (reload!)" }
     Write-Ok ("governed open done: launch_count=" + $status2.launch_count + " godot pid=" + $status2.godot_pid)
 
