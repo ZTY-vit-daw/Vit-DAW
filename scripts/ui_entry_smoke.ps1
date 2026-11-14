@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
     [string]$RepoRoot = "",
     [string]$AgentHttp = "http://127.0.0.1:7878",
@@ -107,13 +107,13 @@ function Get-AllWindows {
         [void][UiEntrySmoke.Win32]::GetClassNameW($h, $cn, 256)
         $sb = New-Object System.Text.StringBuilder 256
         [void][UiEntrySmoke.Win32]::GetWindowTextW($h, $sb, 256)
-        $pid = [uint32]0
-        [void][UiEntrySmoke.Win32]::GetWindowThreadProcessId($h, [ref]$pid)
+        $procId = [uint32]0
+        [void][UiEntrySmoke.Win32]::GetWindowThreadProcessId($h, [ref]$procId)
         [void]$found.Add([pscustomobject]@{
             Hwnd = [long]$h
             Class = $cn.ToString()
             Title = $sb.ToString()
-            Pid = [int]$pid
+            Pid = [int]$procId
             Visible = [bool][UiEntrySmoke.Win32]::IsWindowVisible($h)
         })
         return $true
@@ -387,6 +387,33 @@ try {
     if ($childHwnd -le 0) { throw ("child_hwnd missing/invalid in visible line") }
     $assert["child_hwnd"] = $childHwnd
 
+    # page_loaded（launcher URL 路由生效）——断言在单窗轮询之后（轮询须在 open 链
+    # 启动前的静置窗口内完成，page_loaded 锚点先等待会吃掉静置窗口）。
+    # 启动态单窗断言：hidden 行（SW_HIDE 生效）后轮询枚举——静置窗口内（React 页
+    # 加载中、open 链未启动）主窗必须不可见+React 启动台恰 1 个可见。轮询捕捉首个
+    # 成立点；主窗静置期提前可见=立即失败；超时=主窗从未隐藏=真失败。
+    # （run_20261114_233618 教训：page_loaded 后 sleep 2 枚举与 auto_open 竞速——
+    # open 链可在 2s 内完成并 restore 主窗，断言窗口必须前移到 hidden 锚点。）
+    $singleWindowOK = $false
+    $pollDeadline = (Get-Date).AddSeconds(20)
+    while ((Get-Date) -lt $pollDeadline) {
+        $chatVis = @((Get-AllWindows) | Where-Object { $_.Class -eq "VitWebViewHostChildWindow" -and $_.Visible })
+        $dawNow = Get-DawMainWindow -GodotPid $godotAutoloadPid
+        $dawVisNow = ($null -ne $dawNow -and $dawNow.Visible)
+        if ($chatVis.Count -eq 1 -and (-not $dawVisNow) -and ([long]$chatVis[0].Hwnd) -eq $childHwnd) {
+            $singleWindowOK = $true
+            break
+        }
+        if ($dawVisNow) { break }
+        Start-Sleep -Milliseconds 200
+    }
+    $assert["startup_single_visible_window"] = $singleWindowOK
+    if (-not $singleWindowOK) {
+        $dawFinal = Get-DawMainWindow -GodotPid $godotAutoloadPid
+        $chatFinal = @((Get-AllWindows) | Where-Object { $_.Class -eq "VitWebViewHostChildWindow" -and $_.Visible })
+        throw ("startup is not single-window within polling window: daw_visible=$($null -ne $dawFinal -and $dawFinal.Visible) visible_chat_count=$($chatFinal.Count) child_hwnd=$childHwnd")
+    }
+
     # page_loaded（launcher URL 路由生效）。
     $pageHit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] page_loaded ' -TimeoutSeconds 90
     if ($null -eq $pageHit) { throw ("AgentChatWindow page_loaded line not seen (React did not load)") }
@@ -395,19 +422,6 @@ try {
     $assert["page_loaded_url"] = $pageLoadedUrl
     $assert["page_url_is_launcher"] = ($pageLoadedUrl -like "http://127.0.0.1:7878/app/?surface=launcher*")
     if (-not $assert["page_url_is_launcher"]) { throw ("autoload startup did not route to launcher surface: $pageLoadedUrl") }
-
-    # 启动态单窗断言：可见顶层窗恰 1 个（React 启动台可见 + Godot 主窗不可见）。
-    Start-Sleep -Seconds 2
-    $dawWinStart = Get-DawMainWindow -GodotPid $godotAutoloadPid
-    $dawStartVisible = ($null -ne $dawWinStart -and $dawWinStart.Visible)
-    $assert["startup_daw_main_hidden"] = (-not $dawStartVisible)
-    $report["startup_daw_window_found"] = ($null -ne $dawWinStart)
-    $chatWinList = @((Get-AllWindows) | Where-Object { $_.Class -eq "VitWebViewHostChildWindow" -and $_.Visible })
-    $assert["startup_visible_top_windows"] = [int]($chatWinList.Count)
-    $assert["startup_single_visible_window"] = ((-not $dawStartVisible) -and $chatWinList.Count -eq 1 -and ([long]$chatWinList[0].Hwnd) -eq $childHwnd)
-    if (-not $assert["startup_single_visible_window"]) {
-        throw ("startup is not single-window: daw_visible=$dawStartVisible visible_chat_count=$($chatWinList.Count) chat_hwnds=$($chatWinList | ForEach-Object { $_.Hwnd } | Out-String)")
-    }
 
     # 驱动钩子完成（start_page open 链 → _enter_main_scene → dock）。
     $doneHit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] smoke\.auto_open\.done ' -TimeoutSeconds $SceneSettleSeconds

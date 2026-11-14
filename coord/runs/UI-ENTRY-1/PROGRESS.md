@@ -54,12 +54,22 @@
 - [x] S2 双 worktree 建立（主仓+前端仓）
 - [x] S3 领取提交 7eb334b4 → main（远端 owner 核对 ✓）
 - [x] S4 RUNBOOK + 本 PROGRESS 落盘
-- [ ] M1 webui：entrySurfaceBridge.ts + App.tsx surface 状态化 + 单测
-- [ ] M2 Godot：agent_chat_window.gd URL 路由+主窗隐藏+公共面
-- [ ] M3 Godot：start_page 回补钩子+dock 进工程接线
-- [ ] M4 webui 门槛（npm test/build/test:render）
-- [ ] M5 ui_entry_smoke.ps1 编写 + 真栈三腿（§2.2 登记→净空≤60s 复核→跑→finally 拆栈→释放）
+- [x] M1 webui：entrySurfaceBridge.ts + App.tsx surface 状态化 + 单测 3 例
+- [x] M2 Godot：agent_chat_window.gd URL 路由 launcher + 主窗隐藏/回补 + 公共面
+      （实现注：DisplayServer 无 window_set_visible GDScript API（4.6.1 parse 实证），
+      主窗可见性走 root Window 节点面——隐藏=IsWindowVisible false 满足烟测断言面）
+- [x] M3 Godot：dock _ready 进工程展开接线（start_page 零改动——回补收在 autoload 内部）
+- [x] M4 webui 门槛：npm test 563 全过（560 基线+3 新增）/build 过/test:render 四渲染面 PASS
+      （双仓实现 commit：前端 a760c05 / 主仓 3fb532d4+8688b399）
+- [x] M5a §2.2 占用登记 da674ce1 → main + owner 重读确认 + ≤60s 复核（五 TCP=0 进程=0，23:25）
+- [ ] M5b 跑 ui_entry_smoke.ps1 三腿（下一条记命令与结果）
+- [ ] M5c finally 拆栈+释放记录+run 工件入库
 - [ ] M6 卡面回执 + doing→done + coord 推送 + 双仓 port 分支推送
+
+## M5b 命令记录（长命令跑前落盘）
+
+- 命令：powershell -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW_wt_uientry1/scripts/ui_entry_smoke.ps1
+- 预计 ≤6 分钟（agent build ~30s + import ~20s + 回退腿 ~25s + autoload 腿 ~90s + legacy 腿 ~15s + 拆栈）
 
 ## 中断恢复指引
 
