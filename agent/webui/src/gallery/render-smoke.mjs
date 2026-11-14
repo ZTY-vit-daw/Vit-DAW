@@ -17,7 +17,11 @@
  * 渲染烟测——标题栏 Vit 文本/抽屉真实 recent 数/建议/输入/加载/错误/空态
  * DOM 断言 + 对比度/字号/裁切扫描 + 1440×900 截图；工件落
  * coord/runs/UI-LAUNCHER-1/{render-smoke-launcher-report.json, screens/*.png}。
- * 全离线 fixture（零真实端点请求）；344 的 gallery 断言与工件路径不变。
+ * UI-PROJECT-1（346）扩展：追加工程内主窗 fixture 页（gallery.html?surface=project）
+ * 渲染烟测——上下文头/消息流/宏卡四态/快照撤销/轨迹四态/输入四态/A-B 四态
+ * DOM 断言 + 对比度/字号/裁切扫描 + 截图；工件落
+ * coord/runs/UI-PROJECT-1/{render-smoke-project-report.json, screens/*.png}。
+ * 全离线 fixture（零真实端点请求）；344/345 的断言与工件路径不变。
  */
 
 import { chromium } from "playwright";
@@ -34,6 +38,9 @@ const screensDir = resolve(outDir, "screens");
 // UI-LAUNCHER-1（345）：launcher 渲染烟测工件独立落卡目录（344 产物路径不变）。
 const launcherOutDir = resolve(repoRoot, "coord/runs/UI-LAUNCHER-1");
 const launcherScreensDir = resolve(launcherOutDir, "screens");
+// UI-PROJECT-1（346）：工程内主窗渲染烟测工件独立落卡目录（344/345 产物路径不变）。
+const projectOutDir = resolve(repoRoot, "coord/runs/UI-PROJECT-1");
+const projectScreensDir = resolve(projectOutDir, "screens");
 
 /** 与 src/design/sprite.tsx 同源（23 symbol）。 */
 const SYMBOL_IDS = [
@@ -397,13 +404,17 @@ async function main() {
       if (r < 3) (results.graphicsFail ??= []).push(rec);
     }
 
-    // 裁切 / 溢出：hidden|auto|scroll|clip 容器内容超出；文档横向溢出
+    // 裁切 / 溢出：hidden|auto|scroll|clip 容器内容超出；文档横向溢出。
+    // UI-PROJECT-1（346）：带 data-scroll-intentional 的容器是设计声明的滚动区
+    // （如对话线程 overflow-y:auto）——内容超出=可滚动而非裁切，跳过；
+    // 其余未声明容器照常报告（344/345 页面无此标记，行为不变）。
     for (const el of document.querySelectorAll("body *")) {
       const cs = getComputedStyle(el);
       const clips = [cs.overflowX, cs.overflowY].some((v) =>
         ["hidden", "auto", "scroll", "clip"].includes(v)
       );
       if (!clips) continue;
+      if (el.hasAttribute("data-scroll-intentional")) continue;
       if (
         el.scrollWidth > el.clientWidth + 1 ||
         el.scrollHeight > el.clientHeight + 1
@@ -651,6 +662,195 @@ async function main() {
   const launcherReportPath = resolve(launcherOutDir, "render-smoke-launcher-report.json");
   writeFileSync(launcherReportPath, JSON.stringify(launcherReport, null, 2), "utf-8");
 
+  // ---- 8. UI-PROJECT-1（346）：工程内主窗 fixture 页渲染烟测 ----
+  // gallery.html?surface=project 全离线 fixture 渲染（零真实端点请求）；
+  // 断言：上下文头（i-project+工程名，无 i-vit）/消息流/宏卡四态/快照回执与撤销
+  // 留痕/轨迹四态/输入四态/A-B 四态/上下文错误态 + 对比度/字号/裁切扫描 + 截图。
+  const projectFailures = [];
+  const projectNotes = [];
+  mkdirSync(projectScreensDir, { recursive: true });
+  const projectUrl = `${galleryUrl}?surface=project`;
+  const projectRequests = [];
+  const onProjectRequest = (r) => projectRequests.push(r.url());
+  page.on("request", onProjectRequest);
+  await page.goto(projectUrl, { waitUntil: "networkidle" });
+  await page.waitForSelector("[data-project-root]");
+  await page.waitForTimeout(200);
+  const projectOrigin = new URL(page.url()).origin;
+  const projectExternalRequests = projectRequests.filter((u) => {
+    if (u.startsWith("data:") || u.startsWith("blob:")) return false;
+    return !u.startsWith(projectOrigin);
+  });
+  page.off("request", onProjectRequest);
+  projectNotes.push(`projectUrl=${projectUrl}`);
+
+  const pdDom = await page.evaluate(() => {
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => [...document.querySelectorAll(sel)];
+    // 就绪全尺寸样例 = DOM 中首个 project root；样例计数只在该 root 内取。
+    const rootEl = $("[data-project-root]");
+    const within = (sel) => [...(rootEl?.querySelectorAll(sel) ?? [])];
+    const titlebar = rootEl?.querySelector("[data-project-titlebar]") ?? null;
+    const out = {};
+    out.rootState = rootEl?.getAttribute("data-project-state") ?? "(missing)";
+    out.contextSource = rootEl?.getAttribute("data-project-context-source") ?? "(missing)";
+    out.fixtureNotices = {
+      page: !!$('[data-fixture="notice"]'),
+      surface: !!$('[data-fixture="project-surface"]'),
+    };
+    out.titlebarPresent = !!titlebar;
+    out.contextName = titlebar?.querySelector("[data-project-context-name]")?.getAttribute("data-project-context-name") ?? "";
+    // V 标纪律查全文档任何 project 标题栏；badge 计数只取首个 root 的标题栏。
+    out.titlebarVitUse = $$("[data-project-titlebar] use[href='#i-vit']").length;
+    out.titlebarProjectBadge = titlebar?.querySelectorAll("[data-project-badge]").length ?? 0;
+    out.titlebarDetail = titlebar?.querySelector(".v5-project-titlebar-detail")?.textContent ?? "";
+    out.threadPresent = !!$("[data-project-thread]");
+    out.threadScrollDeclared = $$("[data-project-thread][data-scroll-intentional='thread']").length;
+    out.messageAuthors = $$("[data-message-author]").map((e) => e.getAttribute("data-message-author"));
+    out.macroStates = $$("[data-macro-state]").map((e) => e.getAttribute("data-macro-state"));
+    out.appliedFlags = $$("[data-macro-state='applied']").length;
+    out.failedReasons = $$(".v5-macro-reason").length;
+    out.retryButtons = $$("[data-macro-state='failed'] .v5-btn").map((b) => b.textContent?.trim() ?? "");
+    out.statusCardStates = $$("[data-status-card-state]").map((e) => e.getAttribute("data-status-card-state"));
+    out.trajIdle = $$("[data-project-trajectory-state='idle']").length;
+    out.snapshotReceipts = $$("[data-snapshot-receipt]").length;
+    out.snapshotUndone = $$("[data-project-snapshot-undone]").length;
+    out.abStates = $$("[data-project-ab-state]").map((e) => e.getAttribute("data-project-ab-state"));
+    out.abReadyLabels = $$("[data-project-ab-state='ready'] .v5-project-ab-label").map((e) => e.textContent?.trim() ?? "");
+    out.composerStates = $$("[data-project-composer-state]").map((e) => e.getAttribute("data-project-composer-state"));
+    out.composerPlaceholders = $$("[data-project-composer-state='disabled'] input").map((e) => e.getAttribute("placeholder") ?? "");
+    out.busyPlaceholders = $$("[data-project-composer-state='replying'] input").map((e) => e.getAttribute("placeholder") ?? "");
+    out.contextError = !!$("[data-project-context-error]");
+    out.contextRetry = $$("[data-project-retry]").length;
+    out.appliedWithoutSelection = $$("[data-macro-state='applied']").filter(
+      (el) => !el.querySelector(".v5-macro-option.is-selected")
+    ).length;
+    return out;
+  });
+
+  const projectAssert = (name, ok, detail) => {
+    if (!ok) projectFailures.push(`PROJECT: ${name} — ${detail}`);
+  };
+  const pStateSet = (arr) => new Set(arr);
+
+  projectAssert("surface root ready", pdDom.rootState === "ready", pdDom.rootState);
+  projectAssert(
+    "fixture 标注（页面 + surface）",
+    pdDom.fixtureNotices.page && pdDom.fixtureNotices.surface,
+    JSON.stringify(pdDom.fixtureNotices)
+  );
+  projectAssert(
+    "标题栏 = i-project + 工程名（V 品牌标不进标题栏）",
+    pdDom.titlebarPresent &&
+      pdDom.contextName.includes("fixture") &&
+      pdDom.titlebarVitUse === 0 &&
+      pdDom.titlebarProjectBadge === 1,
+    `name=${pdDom.contextName} vitUse=${pdDom.titlebarVitUse} badge=${pdDom.titlebarProjectBadge}`
+  );
+  projectAssert("上下文行 ≤2 项元信息", pdDom.titlebarDetail.length > 0 && !pdDom.titlebarDetail.includes("·"), pdDom.titlebarDetail);
+  projectAssert(
+    "线程滚动区声明（overflow-y:auto 必须带 data-scroll-intentional）",
+    pdDom.threadPresent && pdDom.threadScrollDeclared >= 1,
+    `thread=${pdDom.threadPresent} declared=${pdDom.threadScrollDeclared}`
+  );
+  projectAssert("消息流在卷（user+vit）", pStateSet(pdDom.messageAuthors).has("user") && pStateSet(pdDom.messageAuthors).has("vit"), JSON.stringify(pdDom.messageAuthors));
+  projectAssert(
+    "宏卡四态",
+    pStateSet(pdDom.macroStates).size === 4 &&
+      ["default", "auditioning", "applied", "failed"].every((s) => pStateSet(pdDom.macroStates).has(s)),
+    JSON.stringify(pdDom.macroStates)
+  );
+  projectAssert("已应用样例在卷（可撤销语义）", pdDom.appliedFlags >= 1, `applied=${pdDom.appliedFlags}`);
+  projectAssert(
+    "失败样例带原因与重试（保留未应用事实）",
+    pdDom.failedReasons >= 1 && pdDom.retryButtons.some((t) => t.includes("重试")),
+    `reasons=${pdDom.failedReasons} retries=${JSON.stringify(pdDom.retryButtons)}`
+  );
+  projectAssert(
+    "无伪造已应用：applied 卡必须带选中选项",
+    pdDom.appliedWithoutSelection === 0,
+    `appliedWithoutSelection=${pdDom.appliedWithoutSelection}`
+  );
+  projectAssert(
+    "轨迹四态（running/completed/failed + idle 行）",
+    ["running", "completed", "failed"].every((s) => pStateSet(pdDom.statusCardStates).has(s)) && pdDom.trajIdle >= 1,
+    `cards=${JSON.stringify(pdDom.statusCardStates)} idle=${pdDom.trajIdle}`
+  );
+  projectAssert("快照回执在卷", pdDom.snapshotReceipts >= 1, `receipts=${pdDom.snapshotReceipts}`);
+  projectAssert("撤销留痕行在卷", pdDom.snapshotUndone >= 1, `undone=${pdDom.snapshotUndone}`);
+  projectAssert(
+    "A/B 四态（idle/preparing/ready/failed）",
+    pStateSet(pdDom.abStates).size === 4 &&
+      ["idle", "preparing", "ready", "failed"].every((s) => pStateSet(pdDom.abStates).has(s)),
+    JSON.stringify(pdDom.abStates)
+  );
+  projectAssert(
+    "A/B ready 绑定真实渲染引用语义（就绪标签，不伪造播放）",
+    pdDom.abReadyLabels.some((t) => t.includes("已就绪")),
+    JSON.stringify(pdDom.abReadyLabels)
+  );
+  projectAssert(
+    "输入四态（default/focus/disabled/replying）",
+    pStateSet(pdDom.composerStates).size === 4 &&
+      ["default", "focus", "disabled", "replying"].every((s) => pStateSet(pdDom.composerStates).has(s)),
+    JSON.stringify(pdDom.composerStates)
+  );
+  projectAssert(
+    "禁用/回复中占位文案（装载完成后可继续输入 / Vit 正在回复…）",
+    pdDom.composerPlaceholders.some((t) => t.includes("继续输入")) &&
+      pdDom.busyPlaceholders.some((t) => t.includes("正在回复")),
+    `disabled=${JSON.stringify(pdDom.composerPlaceholders)} busy=${JSON.stringify(pdDom.busyPlaceholders)}`
+  );
+  projectAssert("上下文错误态 + 重试", pdDom.contextError && pdDom.contextRetry >= 1, `error=${pdDom.contextError} retry=${pdDom.contextRetry}`);
+
+  const pscan = await scanFn();
+  const projectContrastAssert = (name, ok, detail) => {
+    if (!ok) projectFailures.push(`PROJECT-CONTRAST: ${name} — ${detail}`);
+  };
+  projectContrastAssert("正文 ≥4.5:1", pscan.text.length === 0, JSON.stringify(pscan.text.slice(0, 6)));
+  projectContrastAssert(
+    "图形 ≥3:1",
+    !pscan.graphicsFail || pscan.graphicsFail.length === 0,
+    JSON.stringify((pscan.graphicsFail ?? []).slice(0, 6))
+  );
+  projectContrastAssert("最小字号 ≥13px", pscan.tooSmall.length === 0, JSON.stringify(pscan.tooSmall.slice(0, 6)));
+  if (pscan.clipped.length > 0)
+    projectFailures.push(`PROJECT-CLIP: 裁切/溢出 ${JSON.stringify(pscan.clipped.slice(0, 6))}`);
+  if (pscan.docScrollWidth > 1440)
+    projectFailures.push(`PROJECT-OVERFLOW: 文档横向溢出 scrollWidth=${pscan.docScrollWidth} > 1440`);
+  if (projectExternalRequests.length > 0)
+    projectFailures.push(`PROJECT-NETWORK: fixture 页出现外部请求 ${JSON.stringify(projectExternalRequests.slice(0, 6))}`);
+
+  // project 页截图（1440×900 视口 + 全页）→ 卡目录工件
+  const projectViewportShot = resolve(projectScreensDir, "project-viewport-1440x900.png");
+  const projectFullShot = resolve(projectScreensDir, "project-full.png");
+  await page.screenshot({ path: projectViewportShot, type: "png" });
+  await page.screenshot({ path: projectFullShot, type: "png", fullPage: true });
+
+  const projectReport = {
+    run: "UI-PROJECT-1 project render smoke",
+    date: new Date().toISOString(),
+    url: projectUrl,
+    viewport: "1440x900@1",
+    reducedMotion: "reduce",
+    externalRequestCount: projectExternalRequests.length,
+    dom: pdDom,
+    textContrastMin: pscan.textMin,
+    graphicChecks: pscan.graphics.length,
+    graphicMinRatio: Math.min(...pscan.graphics.map((g) => g.ratio)),
+    clipIssues: pscan.clipped,
+    docScrollWidth: pscan.docScrollWidth,
+    fontTooSmall: pscan.tooSmall,
+    failures: projectFailures,
+    notes: projectNotes,
+    screenshots: [projectViewportShot, projectFullShot],
+    foundationReport: reportPath,
+    launcherReport: launcherReportPath,
+    result: projectFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const projectReportPath = resolve(projectOutDir, "render-smoke-project-report.json");
+  writeFileSync(projectReportPath, JSON.stringify(projectReport, null, 2), "utf-8");
+
   await browser.close();
   await server.close();
 
@@ -662,7 +862,9 @@ async function main() {
   console.log(`[test:render] RESULT=${report.result}`);
   console.log(`[test:render] launcherReport=${launcherReportPath}`);
   console.log(`[test:render] LAUNCHER_RESULT=${launcherReport.result}`);
-  const allFailures = [...failures, ...launcherFailures];
+  console.log(`[test:render] projectReport=${projectReportPath}`);
+  console.log(`[test:render] PROJECT_RESULT=${projectReport.result}`);
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);

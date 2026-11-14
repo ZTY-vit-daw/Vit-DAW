@@ -19,6 +19,9 @@ import { DESIGN_SYMBOLS, DesignSprite, SPRITE_SYMBOL_IDS } from "../design/sprit
 import { LauncherSurface, type LauncherThreadItem } from "../launcher/LauncherSurface";
 import { directivePlaceholder } from "../launcher/launcherData";
 import type { LauncherProjectCard } from "../api/launcher";
+import { ProjectSurface } from "../project/ProjectSurface";
+import { createProjectFixtureService } from "../project/projectFixtures";
+import type { MacroCardView, ProjectThreadItem } from "../project/projectData";
 import "../styles/tokens.css";
 import "../design/sprite.css";
 import "../components/components.css";
@@ -588,11 +591,234 @@ function LauncherFixturePage() {
   );
 }
 
+/*
+ * UI-PROJECT-1（346）P3 工程内对话主窗 fixture（卡面标注：设计 fixture，非真实
+ * 工程/真实 agent 数据）。live surface 的真实端点消费走 ?surface=project 主面
+ * （ui_state/chat/stop_turn）；此处数据只用于渲染烟测断言（上下文头/消息流/
+ * 宏卡四态/快照回执与撤销留痕/轨迹四态/输入四态/A/B 四态）。命名带（fixture）
+ * 后缀自证非真实工程名，生产代码不含任何示例工程名。
+ */
+const PROJECT_FIXTURE_OPTIONS: MacroOption[] = [
+  {
+    id: "warm",
+    name: "温暖",
+    description: "中频略厚，鼓皮更靠近听众。",
+    contour: [0.2, 0.3, 0.45, 0.62, 0.78, 0.85, 0.8, 0.72, 0.6, 0.5, 0.42, 0.35],
+  },
+  {
+    id: "bright",
+    name: "明亮",
+    description: "高频提起，镲片更清楚。",
+    contour: [0.25, 0.22, 0.2, 0.24, 0.3, 0.38, 0.5, 0.62, 0.72, 0.8, 0.86, 0.9],
+  },
+  {
+    id: "tight",
+    name: "紧实",
+    description: "低频收短，整体更靠前。",
+    contour: [0.5, 0.45, 0.35, 0.28, 0.3, 0.4, 0.55, 0.6, 0.55, 0.5, 0.55, 0.6],
+  },
+];
+
+const PROJECT_FIXTURE_CONTEXT = {
+  name: "示例工程甲（fixture）",
+  source: "fixture" as const,
+  detail: "6 条轨道"
+};
+
+function projectMacroThreadItem(
+  id: string,
+  overrides: Partial<MacroCardView>
+): ProjectThreadItem {
+  return {
+    kind: "macro",
+    id,
+    view: {
+      object: "鼓组总线",
+      name: "染色",
+      options: PROJECT_FIXTURE_OPTIONS,
+      selectedId: null,
+      state: "default",
+      ...overrides,
+    },
+  };
+}
+
+const PROJECT_FIXTURE_THREAD: ProjectThreadItem[] = [
+  { kind: "message", id: "p-u1", author: "user", text: "鼓组总线再紧一点，但别失去瞬态。" },
+  { kind: "message", id: "p-v1", author: "vit", text: "我在「染色」里准备了三个方向，试听满意后再应用，随时可以撤销。" },
+  projectMacroThreadItem("p-m1", { selectedId: "warm" }),
+  {
+    kind: "trajectory",
+    id: "p-t1",
+    view: {
+      state: "busy",
+      title: "正在应用宏「温暖」",
+      steps: [
+        { id: "p-s1", label: "读取绑定参数", status: "done", duration: "0.2s" },
+        { id: "p-s2", label: "写入 6 个绑定参数", status: "current" },
+      ],
+    },
+  },
+  { kind: "snapshot", id: "p-snap1", view: { time: "14:07", snapshotRef: "fixture-snapshot-p-m1-warm" } },
+  { kind: "ab", id: "p-ab1", view: { state: "idle", title: "鼓组总线 · 染色 对比" } },
+];
+
+/**
+ * UI-PROJECT-1 工程内主窗 fixture 渲染页（gallery.html?surface=project）。
+ * 就绪全尺寸样例 + 宏卡四态 / 轨迹四态 / 输入四态 / A/B 四态 / 快照与撤销 /
+ * 上下文错误态紧凑样例；全离线（fixture 接缝零网络）。
+ */
+function ProjectFixturePage() {
+  return (
+    <div className="v5-design v5-gal-root" data-gallery-page="project">
+      <DesignSprite />
+      <header className="v5-gal-header">
+        <h1 className="v5-gal-title">Vit 工程内主窗 surface · fixture 渲染页</h1>
+        <p className="v5-gal-note" data-fixture="notice">
+          本页所有工程名、宏名、快照引用与回执均为设计 fixture，不接真实 agent 数据；
+          真实 ui_state / chat / stop_turn 消费见主面 ?surface=project。
+        </p>
+      </header>
+
+      <ProjectSurface
+        fixture={{
+          context: PROJECT_FIXTURE_CONTEXT,
+          thread: PROJECT_FIXTURE_THREAD,
+          service: createProjectFixtureService({
+            context: PROJECT_FIXTURE_CONTEXT,
+            applyOutcome: {
+              ok: true,
+              snapshotRef: "fixture-snapshot-interactive",
+              time: "14:07"
+            }
+          })
+        }}
+      />
+
+      <div className="v5-gal-launcher-states" data-gallery="project-states">
+        <div data-project-sample="macro-states">
+          <h2 className="v5-gal-caption">宏卡四态（选择 ≠ 应用；失败保留未应用事实）</h2>
+          <ProjectSurface
+            fixture={{
+              context: PROJECT_FIXTURE_CONTEXT,
+              thread: [
+                projectMacroThreadItem("fx-m-default", {}),
+                projectMacroThreadItem("fx-m-aud", { state: "auditioning", selectedId: "warm" }),
+                projectMacroThreadItem("fx-m-applied", {
+                  state: "applied",
+                  selectedId: "warm",
+                  appliedOptionId: "warm",
+                  appliedSnapshotRef: "fixture-snapshot-fx-m-applied-warm"
+                }),
+                projectMacroThreadItem("fx-m-failed", {
+                  state: "failed",
+                  selectedId: "bright",
+                  failureReason: "音频设备被其他程序占用。"
+                })
+              ]
+            }}
+          />
+        </div>
+        <div data-project-sample="trajectory">
+          <h2 className="v5-gal-caption">执行轨迹四态（busy 步骤推进 / done 收成一行 / error 原因 / idle 待机）</h2>
+          <ProjectSurface
+            fixture={{
+              context: PROJECT_FIXTURE_CONTEXT,
+              thread: [
+                {
+                  kind: "trajectory",
+                  id: "fx-t-busy",
+                  view: {
+                    state: "busy",
+                    title: "正在渲染对比 A/B",
+                    steps: [
+                      { id: "fx-t-s1", label: "导出旁通渲染", status: "done", duration: "2.8s" },
+                      { id: "fx-t-s2", label: "导出处理渲染", status: "current" }
+                    ]
+                  }
+                },
+                { kind: "trajectory", id: "fx-t-done", view: { state: "done", title: "已应用宏「明亮」", steps: [] } },
+                {
+                  kind: "trajectory",
+                  id: "fx-t-error",
+                  view: { state: "error", title: "正在应用宏「温暖」", steps: [], failureReason: "音频设备被其他程序占用，写入失败。" }
+                },
+                { kind: "trajectory", id: "fx-t-idle", view: { state: "idle", title: "待机", steps: [] } }
+              ]
+            }}
+          />
+        </div>
+        <div data-project-sample="composer-states">
+          <h2 className="v5-gal-caption">输入框四态（默认 / 焦点 / 禁用 / Vit 回复中）</h2>
+          <ProjectSurface fixture={{ context: PROJECT_FIXTURE_CONTEXT }} />
+          <ProjectSurface fixture={{ context: PROJECT_FIXTURE_CONTEXT, forceComposerState: "focus" }} />
+          <ProjectSurface fixture={{ context: PROJECT_FIXTURE_CONTEXT, inputDisabled: true }} />
+          <ProjectSurface fixture={{ context: PROJECT_FIXTURE_CONTEXT, forceComposerState: "replying" }} />
+        </div>
+        <div data-project-sample="ab-states">
+          <h2 className="v5-gal-caption">对比 A/B 四态（准备→就绪绑定真实渲染引用；开始方式待用户裁定）</h2>
+          <ProjectSurface
+            fixture={{
+              context: PROJECT_FIXTURE_CONTEXT,
+              thread: [
+                { kind: "ab", id: "fx-ab-idle", view: { state: "idle", title: "鼓组总线 · 染色 对比" } },
+                { kind: "ab", id: "fx-ab-prep", view: { state: "preparing", title: "鼓组总线 · 染色 对比" } },
+                {
+                  kind: "ab",
+                  id: "fx-ab-ready",
+                  view: {
+                    state: "ready",
+                    title: "鼓组总线 · 染色 对比",
+                    bypassRef: "fixture-render-bypass",
+                    processedRef: "fixture-render-processed"
+                  }
+                },
+                {
+                  kind: "ab",
+                  id: "fx-ab-failed",
+                  view: { state: "failed", title: "鼓组总线 · 染色 对比", failureReason: "渲染队列已满，稍后重试。" }
+                }
+              ]
+            }}
+          />
+        </div>
+        <div data-project-sample="snapshot-undo">
+          <h2 className="v5-gal-caption">快照回执与撤销留痕（撤销绑定真实快照引用）</h2>
+          <ProjectSurface
+            fixture={{
+              context: PROJECT_FIXTURE_CONTEXT,
+              thread: [
+                { kind: "snapshot", id: "fx-snap-live", view: { time: "14:07", snapshotRef: "fixture-snapshot-live" } },
+                {
+                  kind: "snapshot",
+                  id: "fx-snap-undone",
+                  view: { time: "14:11", snapshotRef: "fixture-snapshot-undone", undone: true }
+                }
+              ]
+            }}
+          />
+        </div>
+        <div data-project-sample="context-error">
+          <h2 className="v5-gal-caption">上下文错误态（重试在卷）</h2>
+          <ProjectSurface fixture={{ contextErrorText: "连不上内核——工程上下文暂不可用（fixture 样例）。" }} />
+        </div>
+      </div>
+
+      <footer className="v5-gal-footer">
+        <p>UI-PROJECT-1 · 本页为工程内主窗渲染烟测 fixture，不接 App.tsx 业务、不出网。</p>
+      </footer>
+    </div>
+  );
+}
+
 const root = document.getElementById("gallery-root");
 if (root) {
-  const launcherFixturePage =
-    new URLSearchParams(window.location.search).get("surface")?.toLowerCase() === "launcher";
+  const surfaceParam = new URLSearchParams(window.location.search).get("surface")?.toLowerCase();
+  const launcherFixturePage = surfaceParam === "launcher";
+  const projectFixturePage = surfaceParam === "project";
   createRoot(root).render(
-    <StrictMode>{launcherFixturePage ? <LauncherFixturePage /> : <Gallery />}</StrictMode>
+    <StrictMode>
+      {launcherFixturePage ? <LauncherFixturePage /> : projectFixturePage ? <ProjectFixturePage /> : <Gallery />}
+    </StrictMode>
   );
 }

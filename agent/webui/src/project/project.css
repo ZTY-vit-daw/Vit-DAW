@@ -189,3 +189,11 @@
 .v5-project-retry {
   margin-top: 2px;
 }
+
+/* ---------- gallery fixture 页专用（[data-project-sample] 只存在于渲染烟测页，
+ * live surface 不含该属性 → 规则惰性）：状态样例框 auto 高度，线程自然展开，
+ * 不依赖滚动 —— 滚动意图由 data-scroll-intentional 在真实窗框内声明。 */
+.v5-gal-root [data-project-sample] .v5-project-frame {
+  height: auto;
+  min-height: 320px;
+}
