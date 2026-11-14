@@ -17,13 +17,21 @@
   - 复用路径（真丢失面）：agent 端口已在听且未传 -RestartAgent 时复用现有 agent（:2024-2037），现役 agent env 停留在其启动时刻，新会话 env 不生效——:1976-1980 注释已声明"a reused agent will not pick it up"。
   - Go 侧：agent/internal/shelltools/shelltools.go:45 `exec.CommandContext` 不设 cmd.Env=全量继承；:12-19 allowlist 不含 powershell/脚本→agent 无法经此工具重启栈；agent 源码对 dev_agent_smoke/restart_agent 零引用（grep 全仓零命中）→重启链纯脚本侧。
   - 历史证据：321 卡 done/:34 域外记录（run1 起栈 agent 未带缝 env）+stack_receipt.json run1 INVALID；322 编排器 phase 2b psutil 验证同链透传成功（coord/runs/PLUGIN-CONTROL-EVAL-PROQ3-FREE-1/RUNBOOK.md:60）→321 观察与 322 实证矛盾，丢失边界待实证复现裁决（候选：复用路径/env 未在实际调用进程/registry 作用域陷阱）。
-- [x] S2 领取提交：卡回填+todo→doing，coord/env1-claim 推 main（下一步执行）。
+- [x] S2 领取提交：卡回填+todo→doing，coord/env1-claim 推 main。执行记录：首次推被拒（347 终验+webui 合入落 main），按 §2.1.3 fetch 重读=卡仍在 todo 无他人领取、域零冲突→rebase 重放后推成功。origin/main=2318e22c，卡在 doing/。
+- [x] S3 取证完成（commit d8acda9e）：forensics.md 结论=四个脚本启动点全量透传零丢失（E1/E2/E3/E3b 六断言 ALL_PASS exit 0，PS 5.1.26100.9711 Desktop）；真实丢失面=复用路径（:2024-2037，已声明语义）+调用会话 env 缺失（操作面）；321 观察精确归因、与 322 实证矛盾消解；停止条件（非脚本层丢失/有意安全设计）均未触发。
+- [x] S4 修复完成（commit 见分支）：dev_agent_smoke.ps1 +27（主契约块 ~1990+P2 ~7625+P3 ~9650 指针注释）/restart_agent.ps1 +7/新兄弟 scripts/restart_agent_env_passthrough_check.ps1（断言工具：外栈守卫 exit 2/phase1 设缝型 probe 变量→dev_agent_smoke -SkipBuild -RestartAgent 真重启→psutil 活体读回断言/phase2 无变量回归断言零变化/finally 拆栈+§10 global_project_config.json 快照还原哈希亲证；退出码 0/1/2/3/4/5/6 分型）；既有脚本 diff 纯注释零行为变化；三文件 PSParser PARSE_ERRORS=0。
+
+## 下一步：S5 真栈轻腿（§2.2 全程）
+
+- 预构建命令（worktree 无 gitignore 二进制，先建后跑；agent 二进制不在被测面，仅脚本域变更）：
+  `cd D:/Vit_DAW_wt_env1/agent && go build -o bin/VitAgent.exe ./cmd/vitagent`
+- 验证命令：`powershell.exe -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW_wt_env1/scripts/restart_agent_env_passthrough_check.ps1 -RepoRoot D:/Vit_DAW_wt_env1 -ArtifactsDir <runs>/verify_<stamp>`
+- §2.2 流程：读 resources 顶部→独立净空亲核（五端口+五进程名）→占用登记推 main→≤60s 复核→跑验证（agent-only 先试，state gate 若需内核则 -StartKernel 重跑）→finally 拆栈释放亲核→释放登记推 main。
+- 若无内核 state gate 失败：记录 typed 失败→改用 -StartKernel 重跑（占用登记相应放宽内核端口）。
 
 ## 下一步
 
-- S3 零栈 PS 实验（Start-Process 继承机制实证 E1/E2 + 复用路径丢失面模拟 E3），产出 forensics.md 取证清单。
-- S4 修复 diff（按取证结论：契约注释一致化 ± 新兄弟验证脚本）。
-- S5 验证腿（优先零栈+声明；若需真栈按 §2.2 全程登记）。
+- S5 验证腿（真栈轻腿按 §2.2 全程登记；见上方 S5 计划）。
 - S6 回执。
 
 ## 纪律备忘
