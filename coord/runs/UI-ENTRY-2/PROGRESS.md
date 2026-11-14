@@ -42,3 +42,5 @@
 - S8 第 1 轮 run_20261115_002604（exit 1）：腿 1/腿 2 PASS；腿 3 败于 surface.ack 缺失。根因（真链取证）：presented 的 vit_surface 早于 React 挂载/订阅（page_loaded#2 晚于 presented=冷加载时序），消息进空网丢失；354 同构形态（双 page_loaded/双 auto_open）仅时序偶发不同=潜在竞速非本卡回归。修复=前端 83390f5（pending surface+React 就绪宣告/+5s 兜底有限重投，343 不变量不动）。第 2 轮命令同前（占用仍持有，启动前重复核）。
 - 第 2 轮 run_20261115_003340（**exit 0 PASS**）：四腿全绿——腿 3 关窗→Godot/agent/kernel 全退出+端口释放（close_* 全 true）；surface.ack(project) 经重投链收敛到达；腿 4 legacy 回归绿。RUN-SUMMARY.md 已写。
 - [x] S8 完成（finally 拆栈+亲证四 TCP=0+PROCS=0）；下一步 S9 回执：卡面回填→doing→done→coord 推送。
+- [x] S9 完成：卡面回填（receipt）→ doing→done（7b480b74）+回执补工件 commit 95bf0304 推 main；释放记录 ee31d4d8 推 main；工件精简件 0e42a861 推 port/ui-entry-2。
+- 终态：DONE（执行侧自验完成，待主管决策验收+用户手测 v5）；双仓 worktree 留 port/ui-entry-2 待主管验收后清理（无 reparse point 亲证，移除安全）。
