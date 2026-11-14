@@ -1,0 +1,77 @@
+{
+ "pre_file": "D:/Vit_DAW/coord/runs/RECENTS-HYGIENE-1\\backup\\global_project_config.pre_cleanup_20261114_182019.json",
+ "pre_sha256": "c3543f451d37d9013dff55cff123a367da9682a5c33e989de04a6424746c4fdf",
+ "post_file": "D:/Vit_DAW/coord/runs/RECENTS-HYGIENE-1\\snapshots\\global_project_config.post_cleanup_20261114_182304.json",
+ "post_sha256": "aa95ab153dab557dcf1f912fb4bc6553647e498cf292ccf403fd361ff68b41d8",
+ "live_now_sha256": "aa95ab153dab557dcf1f912fb4bc6553647e498cf292ccf403fd361ff68b41d8",
+ "live_matches_post_snapshot": true,
+ "pre_count": 10,
+ "post_count": 0,
+ "removed_count": 10,
+ "removed_entries": [
+  "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit",
+  "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit",
+  "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_195753.vit",
+  "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit",
+  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e4_surge_xt\\waveshell_stackleg_fixture_render_direct_surge_xt.vit",
+  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_fixture_render_rack_grand_rhapsody.vit",
+  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e3_fixb_warnonly_gr_v2\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit",
+  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2b_c_consistency_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit",
+  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2a_baseline_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit",
+  "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1ctrl_realtime_surge\\waveshell_stackleg_fixture_realtime_direct_surge_xt.vit"
+ ],
+ "added_count": 0,
+ "added_entries": [],
+ "kept_count": 0,
+ "kept_entries": [],
+ "residue_grep_govttl_waveshell_stackleg": 0,
+ "user_real_project_entries_in_pre": 0,
+ "user_real_project_entries_in_post": 0,
+ "user_projects_dir_evidence_at_verification": [
+  {
+   "name": ".vit_agent",
+   "size": 0,
+   "mtime": "2026-11-09T02:48:21.005856"
+  },
+  {
+   "name": ".vit_derived",
+   "size": 0,
+   "mtime": "2026-11-09T02:48:21.168220"
+  },
+  {
+   "name": ".vit_history",
+   "size": 0,
+   "mtime": "2026-11-08T19:45:32.239089"
+  },
+  {
+   "name": "_320_run8_默认态存档_20261109",
+   "size": 0,
+   "mtime": "2026-11-09T02:42:23.249211"
+  },
+  {
+   "name": "ledger",
+   "size": 0,
+   "mtime": "2026-11-08T19:57:49.430356"
+  },
+  {
+   "name": "实验·ProQ3 裸控 r1.vit",
+   "size": 7914,
+   "mtime": "2026-11-09T02:50:29.463541"
+  },
+  {
+   "name": "实验·ProQ3 裸控 r2.vit",
+   "size": 7914,
+   "mtime": "2026-11-09T02:54:23.083834"
+  },
+  {
+   "name": "实验·ProQ3 裸控 r3.vit",
+   "size": 7913,
+   "mtime": "2026-11-09T02:58:32.539445"
+  },
+  {
+   "name": "手测·小星星乐局.vit",
+   "size": 12811,
+   "mtime": "2026-11-08T19:45:31.090455"
+  }
+ ]
+}
