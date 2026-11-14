@@ -50,6 +50,22 @@ function Get-VitProcessCount {
     return $count
 }
 
+function Invoke-NativeLogged {
+    # PS5.1: under $ErrorActionPreference=Stop, native stderr lines become
+    # terminating NativeCommandErrors. Native tools legitimately write stderr
+    # (cmake/go/node/godot warnings) - run them with Continue locally, keep the
+    # exit code honest.
+    param([scriptblock]$Command, [string]$LogPath)
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $Command 2>&1 | Out-File -FilePath $LogPath -Encoding utf8
+        return $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 function Get-HttpJson {
     param([string]$Url, [int]$TimeoutSec = 5)
     try {
@@ -119,9 +135,7 @@ function Invoke-CdpPhase {
     $webuiDir = Join-Path $MainRoot "agent/webui"
     $out = Join-Path $RunRoot $OutFile
     pushd $webuiDir
-    node "$MainRoot/scripts/vitshell_open_chain_cdp.mjs" --cdp-port $CdpPort --phase $Phase --out $out 2>&1 |
-        Out-File -FilePath ($out + ".log") -Encoding utf8
-    $code = $LASTEXITCODE
+    $code = Invoke-NativeLogged -Command { node "$MainRoot/scripts/vitshell_open_chain_cdp.mjs" --cdp-port $CdpPort --phase $Phase --out $out } -LogPath ($out + ".log")
     popd
     if ($code -ne 0) { throw ("CDP phase $Phase failed (exit $code, see $OutFile.log)") }
     Write-Ok "CDP $Phase pass"
@@ -218,12 +232,9 @@ $VitShellExe = Join-Path $FrontendWorktree "VitShell/build/Release/VitShell.exe"
 if (-not $SkipBuild) {
     Write-Step "Build VitShell.exe (cmake VS x64 Release)"
     pushd $FrontendWorktree
-    cmake -S VitShell -B VitShell/build -G "Visual Studio 18 2026" -A x64 "-DVITSHELL_WEBVIEW2_DIR=$Webview2SdkDir" 2>&1 |
-        Out-File -FilePath (Join-Path $RunRoot "vitshell_cmake_configure.log") -Encoding utf8
-    if ($LASTEXITCODE -ne 0) { popd; throw "cmake configure failed" }
-    cmake --build VitShell/build --config Release 2>&1 |
-        Out-File -FilePath (Join-Path $RunRoot "vitshell_cmake_build.log") -Encoding utf8
-    $code = $LASTEXITCODE
+    $code = Invoke-NativeLogged -Command { cmake -S VitShell -B VitShell/build -G "Visual Studio 18 2026" -A x64 "-DVITSHELL_WEBVIEW2_DIR=$Webview2SdkDir" } -LogPath (Join-Path $RunRoot "vitshell_cmake_configure.log")
+    if ($code -ne 0) { popd; throw "cmake configure failed" }
+    $code = Invoke-NativeLogged -Command { cmake --build VitShell/build --config Release } -LogPath (Join-Path $RunRoot "vitshell_cmake_build.log")
     popd
     if ($code -ne 0) { throw "cmake build failed" }
     Write-Ok "VitShell build exit 0"
@@ -238,9 +249,7 @@ $AgentExe = Join-Path $MainRoot "agent/bin/VitAgent.exe"
 if (-not $SkipBuild) {
     Write-Step "Build isolated VitAgent.exe (worktree source)"
     pushd (Join-Path $MainRoot "agent")
-    go build -o ".\bin\VitAgent.exe" .\cmd\vitagent 2>&1 |
-        Out-File -FilePath (Join-Path $RunRoot "agent_build.log") -Encoding utf8
-    $code = $LASTEXITCODE
+    $code = Invoke-NativeLogged -Command { go build -o ".\bin\VitAgent.exe" .\cmd\vitagent } -LogPath (Join-Path $RunRoot "agent_build.log")
     popd
     if ($code -ne 0) { throw "go build agent failed" }
     Write-Ok "agent build exit 0"
@@ -254,8 +263,7 @@ $runMeta.agent_exe_sha256 = (Get-FileHash $AgentExe -Algorithm SHA256).Hash
 Write-Step "webui dist build (worktree source: SHELL-2 launcher face)"
 $runWebui = Join-Path $MainRoot "agent/webui"
 pushd $runWebui
-npm run build 2>&1 | Out-File -FilePath (Join-Path $RunRoot "webui_build.log") -Encoding utf8
-$code = $LASTEXITCODE
+$code = Invoke-NativeLogged -Command { npm run build } -LogPath (Join-Path $RunRoot "webui_build.log")
 popd
 if ($code -ne 0) { throw "webui build failed" }
 $runMeta.webui_dist_index_sha256 = (Get-FileHash (Join-Path $runWebui "dist/index.html") -Algorithm SHA256).Hash
@@ -283,9 +291,7 @@ Write-Ok ("kernel/hub staged (sha256 " + $runMeta.kernel_exe_sha256.Substring(0,
 Write-Step "Godot --import pre-run (worktree project caches)"
 if (-not $SkipBuild -or -not (Test-Path (Join-Path $FrontendWorktree ".godot"))) {
     pushd $FrontendWorktree
-    & $GodotExe --headless --import --path . 2>&1 |
-        Out-File -FilePath (Join-Path $RunRoot "godot_import.log") -Encoding utf8
-    $code = $LASTEXITCODE
+    $code = Invoke-NativeLogged -Command { & $GodotExe --headless --import --path . } -LogPath (Join-Path $RunRoot "godot_import.log")
     popd
     if ($code -ne 0) { throw "godot import failed (see godot_import.log)" }
 }
