@@ -91,6 +91,10 @@ export type ProjectComposerState = "default" | "focus" | "disabled" | "replying"
 export type ProjectEvent =
   | { type: "userSent"; id: string; text: string }
   | { type: "vitReplied"; id: string; text: string }
+  | { type: "replyStarted" }
+  | { type: "replySettled" }
+  | { type: "inputDisabledSet"; disabled: boolean }
+  | { type: "contextLoaded"; view: ProjectContextView }
   | { type: "turnStarted"; id: string; title: string }
   | { type: "turnStepDone"; id: string; label: string; duration?: string }
   | { type: "turnSucceeded"; id: string }
@@ -98,10 +102,12 @@ export type ProjectEvent =
   | { type: "macroSelect"; id: string; optionId: string }
   | { type: "macroAuditionStart"; id: string; optionId: string }
   | { type: "macroAuditionCancel"; id: string }
+  | { type: "macroApplyStarted"; id: string }
   | { type: "macroApplySucceeded"; id: string; optionId: string; snapshotRef: string; time: string }
   | { type: "macroApplyFailed"; id: string; reason: string }
   | { type: "macroRetry"; id: string }
   | { type: "macroUndo"; id: string; snapshotRef: string }
+  | { type: "abPrepareStarted"; id: string }
   | { type: "abPrepareSucceeded"; id: string; bypassRef: string; processedRef: string }
   | { type: "abPrepareFailed"; id: string; reason: string }
   | { type: "composerFocus"; focused: boolean };
@@ -183,6 +189,14 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
         thread: [...state.thread, { kind: "message", id: event.id, author: "vit", text }]
       };
     }
+    case "replyStarted":
+      return state.replying ? state : { ...state, replying: true };
+    case "replySettled":
+      return state.replying ? { ...state, replying: false } : state;
+    case "inputDisabledSet":
+      return { ...state, inputDisabled: event.disabled };
+    case "contextLoaded":
+      return { ...state, context: event.view };
     case "turnStarted": {
       const item: ProjectThreadItem = {
         kind: "trajectory",
@@ -250,6 +264,13 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
       // 试听取消回到 default；不产生任何「已应用」事实。
       return { ...state, thread: withMacro(state.thread, event.id, { ...macro, state: "default" }) };
     }
+    case "macroApplyStarted": {
+      // 与 requestMacroApply 同一守卫（default + 已选择 + 无在途）；通过才记在途。
+      if (state.pendingMacroId) return state;
+      const macro = findMacro(state.thread, event.id);
+      if (!macro || macro.state !== "default" || !macro.selectedId) return state;
+      return { ...state, pendingMacroId: event.id };
+    }
     case "macroApplySucceeded": {
       if (state.pendingMacroId !== event.id) return state; // 只接受在途应用的成功
       const macro = findMacro(state.thread, event.id);
@@ -313,6 +334,12 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
         return item;
       });
       return { ...state, thread: withMacro(thread, event.id, next) };
+    }
+    case "abPrepareStarted": {
+      const ab = findAB(state.thread, event.id);
+      // idle（首次）/ failed（重试）才可进入 preparing；ready 不重跑。
+      if (!ab || (ab.state !== "idle" && ab.state !== "failed")) return state;
+      return { ...state, thread: withAB(state.thread, event.id, { ...ab, state: "preparing", failureReason: undefined }) };
     }
     case "abPrepareSucceeded": {
       const ab = findAB(state.thread, event.id);
