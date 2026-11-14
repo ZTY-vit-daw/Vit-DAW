@@ -113,6 +113,8 @@ import { loadSessionFlowMainID, mainConversationDefaultTitle, saveSessionFlowMai
 import { LauncherSurface } from "./launcher/LauncherSurface";
 // UI-PROJECT-1（346）：工程内对话主窗 surface。实现在 src/project/**，此处仅分发（345 同款最小改动，full/main/workbench 行为零变化）。
 import { ProjectSurface } from "./project/ProjectSurface";
+// UI-LOADING-1（347）：P2 装载门（消费既有 ui_state 探针；不新增 agent 语义，不改打开链）。
+import { ProjectLoadingGate } from "./project/loading/ProjectLoadingGate";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
 import { observeOutputLayout, shouldLayerObserveOutput } from "./observeOutputLayering";
 import { hasLayeredPresentation, ObservePresentationView } from "./observePresentationLayered";
@@ -267,6 +269,8 @@ const initialMessage: ChatMessage = {
  * UI-LAUNCHER-1（345）：surface 分发入口。launcher 面独立组件（自带数据加载，
  * 不复用主对话的状态/轮询）；UI-PROJECT-1（346）工程内主窗同模式独立分发；
  * full/main/workbench 三 surface 原样走 MainApp，行为零变化。
+ * UI-LOADING-1（347）：project 面包装载门——agent 未就绪期间显示 P2 装载状态卡
+ * （输入禁用=children 不渲染），ui_state 就绪放行（打开链不变，渲染分支而已）。
  */
 function App() {
   const surface = appSurface();
@@ -274,7 +278,11 @@ function App() {
     return <LauncherSurface fill />;
   }
   if (surface === "project") {
-    return <ProjectSurface fill />;
+    return (
+      <ProjectLoadingGate>
+        <ProjectSurface fill />
+      </ProjectLoadingGate>
+    );
   }
   return <MainApp />;
 }
