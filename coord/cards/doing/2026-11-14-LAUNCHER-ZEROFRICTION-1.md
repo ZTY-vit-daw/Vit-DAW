@@ -44,3 +44,9 @@ React launcher 面加载即发 recents list 聊天（345 设计：完整列表�
 ## 验收
 
 - 裁定文件 / 验收 commit：待回填（候主管裁定：方案 A1 vs A2/B1 取舍；裁定后实施腿另领）
+
+## 方案裁定（主管 2026-11-14 深夜）
+
+- 取证腿验收：**pass**——三锚点主管亲证（server.go:2682 RecordConversationNodeForProject→history.Open→defaultDraftProjectPath 物化→server.go:7798 SetProjectPathHint→start_page.gd:598 治理判据，行号±2 为今晚提交漂移）；报告 `coord/runs/LAUNCHER-ZEROFRICTION-1/REPORT.md`（main @ 428a43bd）。
+- **采 A1 为主案**：launcher scope（context.launcher/webui_launcher_ 会话前缀）内、无绑定工作区时——聊天不激活工作区、不落盘对话节点（根因面修复，list/打字/未来 launcher 面全免疫；与 §3.3 判据、340 双门、launcher 卷进程内存设计零冲突）。B1（greeting 扩全量列表）列为后续可选补充卡；A2（判据放宽）触碰 §3.3 在案边界——**不采**。
+- 实施腿：本卡留在 doing，**排 271（CLOSURE-ROUTE-ADAPT-1）收口后另领**（域=agent/internal/chat 重叠）；实施验收门槛=348 烟测 ui_bridge_smoke 的零摩擦腿复跑（无聊天探针 path="" 语义在真栈 launcher 卷成立）+单测红转绿。
