@@ -948,21 +948,21 @@ async function main() {
   loadingAssert("装载中输入禁用声明在卷（data-loading-input-disabled）", ldDom.inputDisabledFlags >= 1, `flags=${ldDom.inputDisabledFlags}`);
   loadingAssert("无假倒计时文案（预计/剩余/倒计时）", ldDom.countdownText === 0, `countdown=${ldDom.countdownText}`);
 
-  const lscan = await scanFn();
+  const ldscan = await scanFn();
   const loadingContrastAssert = (name, ok, detail) => {
     if (!ok) loadingFailures.push(`LOADING-CONTRAST: ${name} — ${detail}`);
   };
-  loadingContrastAssert("正文 ≥4.5:1", lscan.text.length === 0, JSON.stringify(lscan.text.slice(0, 6)));
+  loadingContrastAssert("正文 ≥4.5:1", ldscan.text.length === 0, JSON.stringify(ldscan.text.slice(0, 6)));
   loadingContrastAssert(
     "图形 ≥3:1",
-    !lscan.graphicsFail || lscan.graphicsFail.length === 0,
-    JSON.stringify((lscan.graphicsFail ?? []).slice(0, 6))
+    !ldscan.graphicsFail || ldscan.graphicsFail.length === 0,
+    JSON.stringify((ldscan.graphicsFail ?? []).slice(0, 6))
   );
-  loadingContrastAssert("最小字号 ≥13px", lscan.tooSmall.length === 0, JSON.stringify(lscan.tooSmall.slice(0, 6)));
-  if (lscan.clipped.length > 0)
-    loadingFailures.push(`LOADING-CLIP: 裁切/溢出 ${JSON.stringify(lscan.clipped.slice(0, 6))}`);
-  if (lscan.docScrollWidth > 1440)
-    loadingFailures.push(`LOADING-OVERFLOW: 文档横向溢出 scrollWidth=${lscan.docScrollWidth} > 1440`);
+  loadingContrastAssert("最小字号 ≥13px", ldscan.tooSmall.length === 0, JSON.stringify(ldscan.tooSmall.slice(0, 6)));
+  if (ldscan.clipped.length > 0)
+    loadingFailures.push(`LOADING-CLIP: 裁切/溢出 ${JSON.stringify(ldscan.clipped.slice(0, 6))}`);
+  if (ldscan.docScrollWidth > 1440)
+    loadingFailures.push(`LOADING-OVERFLOW: 文档横向溢出 scrollWidth=${ldscan.docScrollWidth} > 1440`);
   if (loadingExternalRequests.length > 0)
     loadingFailures.push(`LOADING-NETWORK: fixture 页出现外部请求 ${JSON.stringify(loadingExternalRequests.slice(0, 6))}`);
 
@@ -980,12 +980,12 @@ async function main() {
     reducedMotion: "reduce",
     externalRequestCount: loadingExternalRequests.length,
     dom: ldDom,
-    textContrastMin: lscan.textMin,
-    graphicChecks: lscan.graphics.length,
-    graphicMinRatio: Math.min(...lscan.graphics.map((g) => g.ratio)),
-    clipIssues: lscan.clipped,
-    docScrollWidth: lscan.docScrollWidth,
-    fontTooSmall: lscan.tooSmall,
+    textContrastMin: ldscan.textMin,
+    graphicChecks: ldscan.graphics.length,
+    graphicMinRatio: Math.min(...ldscan.graphics.map((g) => g.ratio)),
+    clipIssues: ldscan.clipped,
+    docScrollWidth: ldscan.docScrollWidth,
+    fontTooSmall: ldscan.tooSmall,
     failures: loadingFailures,
     notes: loadingNotes,
     screenshots: [loadingViewportShot, loadingFullShot],
