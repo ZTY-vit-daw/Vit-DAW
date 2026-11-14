@@ -1,0 +1,10 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[AgentChatWindow] boot {"boot_index":1,"main_hwnd":8587496,"mode_active":true,"size":{"x":1920,"y":1080},"title":"Vit","url_target":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] os_event {"data":{"visible":true},"kind":"restored","mode_active":true}
+[AgentChatWindow] visible {"boot_index":1,"child_hwnd":3737838,"mode_active":true,"visible":true}
+[AgentChatWindow] health.ok {"attempt":1,"mode_active":true}
+[AgentChatWindow] navigate {"child_hwnd":3737838,"mode_active":true,"navigate_count":1,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/"}

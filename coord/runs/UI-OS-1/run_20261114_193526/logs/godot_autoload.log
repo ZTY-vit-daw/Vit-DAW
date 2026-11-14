@@ -1,0 +1,140 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[AgentChatWindow] boot {"boot_index":1,"main_hwnd":917732,"mode_active":true,"size":{"x":1920,"y":1080},"title":"Vit","url_target":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] os_event {"data":{"visible":true},"kind":"restored","mode_active":true}
+[AgentChatWindow] visible {"boot_index":1,"child_hwnd":526050,"mode_active":true,"visible":true}
+[AgentChatWindow] health.ok {"attempt":1,"mode_active":true}
+[AgentChatWindow] navigate {"child_hwnd":526050,"mode_active":true,"navigate_count":1,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":526050,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] smoke.auto_open.begin {"mode_active":true,"project":"D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193526\\fixture\\ui_os_912.vit","scene":"StartPage"}
+[AgentChatWindow] smoke.os_notify.begin {"boot_index":1,"child_hwnd":526050,"mode_active":true}
+[AgentChatWindow] os_event {"data":{"actions":"打开 Vit","foreground":true,"message":"foreground gating probe","reason":"chat_window_in_foreground","state":"done","title":"UI-OS-1 前台探针工程"},"kind":"notification_skipped","mode_active":true}
+[AgentChatWindow] notify.request {"actions":["打开 Vit"],"foreground":true,"issued":false,"message":"foreground gating probe","mode_active":true,"state":"done","title":"UI-OS-1 前台探针工程"}
+[AgentChatWindow] page_loaded {"boot_index":1,"child_hwnd":526050,"mode_active":true,"scene":"StartPage","url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] smoke.auto_open.begin {"mode_active":true,"project":"D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193526\\fixture\\ui_os_912.vit","scene":"StartPage"}
+WARNING: start_page: Project History lifecycle notify failed: HTTP 400 result 0: parent project path not found for UUID vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _notify_agent_project_lifecycle (res://app/startup/start_page.gd:1125)
+[AgentChatWindow] scene_added {"child_hwnd":526050,"mode_active":true,"node":"VitDockRoot","page_url":"http://127.0.0.1:7878/app/","scene":"VitDockRoot"}
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:246)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:250)
+       [1] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [2] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [3] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [4] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [5] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+       [1] _load_view_scene (res://vit_dock/scenes/viewport_frame.gd:253)
+       [2] _ready (res://vit_dock/scenes/viewport_frame.gd:56)
+       [3] _acquire_stage_frame (res://vit_dock/scenes/vit_dock_root.gd:1662)
+       [4] _rebuild_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1463)
+       [5] _rebuild_fixed_stage_slots (res://vit_dock/scenes/vit_dock_root.gd:1435)
+       [6] _ready (res://vit_dock/scenes/vit_dock_root.gd:234)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+WARNING: Nodes with non-equal opposite anchors will have their size overridden after _ready(). 
+If you want to set size, change the anchors or consider using set_deferred().
+   at: _set_size (scene/gui/control.cpp:1479)
+   GDScript backtrace (most recent call first):
+       [0] _sync_loaded_view_bounds (res://vit_dock/scenes/viewport_frame.gd:265)
+[AgentChatWindow] smoke.auto_open.done {"child_hwnd":526050,"mode_active":true,"navigate_count":1,"page_url":"http://127.0.0.1:7878/app/","scene":"VitDockRoot"}
+[AgentChatWindow] os_event {"data":{"topmost":false},"kind":"minimized","mode_active":true}
+[AgentChatWindow] os_event {"data":{"actions":"去确认,撤销","foreground":false,"message":"background real trigger probe","state":"confirm","title":"UI-OS-1 后台探针工程"},"kind":"notification_shown","mode_active":true}
+[AgentChatWindow] notify.request {"actions":["去确认","撤销"],"foreground":false,"issued":true,"message":"background real trigger probe","mode_active":true,"state":"confirm","title":"UI-OS-1 后台探针工程"}
+[AgentChatWindow] os_event {"data":{"state":true},"kind":"notification_visible","mode_active":true}
+[AgentChatWindow] notify.recall.begin {"child_hwnd":526050,"iconic":true,"mode_active":true}
+[AgentChatWindow] os_event {"data":{"visible":true},"kind":"restored","mode_active":true}
+[AgentChatWindow] visible {"boot_index":1,"child_hwnd":526050,"mode_active":true,"visible":true}
+[AgentChatWindow] notify.recall.done {"child_hwnd":526050,"foreground":true,"mode_active":true,"visible":true}
+[AgentChatWindow] os_event {"data":{"detached_window":true},"kind":"closed","mode_active":true}
+[AgentChatWindow] recreate.begin {"focus":false,"mode_active":true}
+[AgentChatWindow] boot {"boot_index":2,"main_hwnd":917732,"mode_active":true,"size":{"x":1920,"y":1080},"title":"Vit","url_target":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] os_event {"data":{"visible":true},"kind":"restored","mode_active":true}
+[AgentChatWindow] visible {"boot_index":2,"child_hwnd":461058,"mode_active":true,"visible":true}
+[AgentChatWindow] health.ok {"attempt":0,"mode_active":true}
+[AgentChatWindow] navigate {"child_hwnd":461058,"mode_active":true,"navigate_count":1,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] navigation_started {"mode_active":true,"url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] page_loaded {"boot_index":2,"child_hwnd":461058,"mode_active":true,"scene":"VitDockRoot","url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] smoke.auto_open.begin {"mode_active":true,"project":"D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193526\\fixture\\ui_os_912.vit","scene":"VitDockRoot"}
+[AgentChatWindow] page_loaded {"boot_index":2,"child_hwnd":461058,"mode_active":true,"scene":"VitDockRoot","url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] smoke.auto_open.begin {"mode_active":true,"project":"D:\\Vit_DAW_wt_uios1\\coord\\runs\\UI-OS-1\\run_20261114_193526\\fixture\\ui_os_912.vit","scene":"VitDockRoot"}
+[AgentChatWindow] smoke.os_notify.recreated {"boot_index":2,"child_hwnd":461058,"foreground_after":false,"foreground_before":false,"mode_active":true,"navigate_count":1,"page_loaded":true,"page_url":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] smoke.os_notify.done {"child_hwnd":461058,"mode_active":true}
