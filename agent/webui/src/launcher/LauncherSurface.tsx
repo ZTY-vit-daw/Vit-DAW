@@ -126,7 +126,7 @@ function mapResultState(status: string): LauncherDirectiveState {
 }
 
 /** 烟测 URL 参数（生产 URL 无 launcher_smoke → 全零行为）。 */
-function parseSmokeParams(): { enabled: boolean; messages: string[]; delayMs: number } {
+function parseSmokeParams(): { enabled: boolean; messages: string[]; delayMs: number; followup: string } {
   const params = new URLSearchParams(window.location.search);
   const enabled = params.get("launcher_smoke") === "1";
   const rawMessage = params.get("launcher_smoke_message") ?? "";
@@ -138,7 +138,11 @@ function parseSmokeParams(): { enabled: boolean; messages: string[]; delayMs: nu
     : [];
   const delayRaw = Number.parseInt(params.get("launcher_smoke_followup_delay_ms") ?? "8000", 10);
   const delayMs = Number.isFinite(delayRaw) && delayRaw > 0 ? delayRaw : 8000;
-  return { enabled, messages, delayMs };
+  // followup=choose_file：回执后下一段改发 launcher_choose_file（dock 降级腿——
+  // open/new directive 经 agent 门（340：进程内 user_entered_project 后关闭，
+  // 跨工程意图归 C5），choose_file 不经 agent 门，纯桥请求可驱动 dock 降级面）。
+  const followup = params.get("launcher_smoke_followup") === "choose_file" ? "choose_file" : "message";
+  return { enabled, messages, delayMs, followup };
 }
 
 export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps) {
@@ -164,19 +168,21 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
   const bridgeAvailable = useMemo(() => !fixture && isLauncherBridgeAvailable(), [fixture]);
   // fixture 模式（node 渲染/无 window）完全离线：烟测参数不解析。
   const smokeParams = useMemo(
-    () => (fixture ? { enabled: false, messages: [] as string[], delayMs: 8000 } : parseSmokeParams()),
+    () => (fixture ? { enabled: false, messages: [] as string[], delayMs: 8000, followup: "message" } : parseSmokeParams()),
     [fixture]
   );
   const [bridgeExec, setBridgeExec] = useState<BridgeExecState | null>(null);
   const lastDirectiveRef = useRef<LauncherDirective | null>(null);
   const isSmokeRef = useRef(false);
   const smokeDelayRef = useRef(8000);
+  const smokeFollowupRef = useRef("message");
   const smokeQueueRef = useRef<string[]>([]);
   const smokeStartedRef = useRef(false);
   const smokeNextRef = useRef<() => void>(() => {});
   useEffect(() => {
     isSmokeRef.current = smokeParams.enabled;
     smokeDelayRef.current = smokeParams.delayMs;
+    smokeFollowupRef.current = smokeParams.followup;
   }, [smokeParams]);
 
   // 启动台就绪握手：宿主日志留痕（React launcher surface 已加载且桥在卷）。
@@ -368,7 +374,8 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
     [busy, conversationID, fixture, executeDirective]
   );
 
-  // 烟测消息队列：greeting 就绪后发第一条；每条 vit_launcher_result 后延迟发下一条。
+  // 烟测消息队列：greeting 就绪后发第一条；每条 vit_launcher_result 后延迟发下一条
+  // （followup=choose_file 时改发桥 choose_file 请求——dock 降级腿，不经 agent 门）。
   const sendNextSmokeMessage = useCallback(() => {
     if (!isSmokeRef.current) return;
     const next = smokeQueueRef.current.shift();
@@ -376,8 +383,14 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
     void send(next);
   }, [send]);
   useEffect(() => {
-    smokeNextRef.current = sendNextSmokeMessage;
-  }, [sendNextSmokeMessage]);
+    smokeNextRef.current = () => {
+      if (smokeFollowupRef.current === "choose_file") {
+        chooseFileViaBridge();
+        return;
+      }
+      sendNextSmokeMessage();
+    };
+  }, [sendNextSmokeMessage, chooseFileViaBridge]);
   useEffect(() => {
     if (fixture || !smokeParams.enabled || smokeStartedRef.current) return;
     if (greetingState !== "ready" || smokeParams.messages.length === 0) return;
