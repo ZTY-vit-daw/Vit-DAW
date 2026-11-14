@@ -1,0 +1,11 @@
+{
+  "phase": "probe-launcher-data",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "sentinel": 1794688710818,
+  "launcher_state": "ready",
+  "bridge": "available",
+  "greeting_text": "我在。还没有最近的工程记录——想从哪开始？可以说「新建一个工程」，或从磁带流里选一个。",
+  "assistant_frames": 1,
+  "recents_count": "0"
+}

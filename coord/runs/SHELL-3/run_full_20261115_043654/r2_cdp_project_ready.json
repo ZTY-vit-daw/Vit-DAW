@@ -1,0 +1,9 @@
+{
+  "phase": "probe-project-ready",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "sentinel": 1794688685599,
+  "project_state": "ready",
+  "context_source": "agent",
+  "context_name": "fixture_a.vit"
+}
