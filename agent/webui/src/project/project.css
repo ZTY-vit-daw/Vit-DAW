@@ -1,0 +1,191 @@
+/*
+ * UI-PROJECT-1（346）P3 工程内对话主窗 surface 样式。
+ *
+ * 作用域：.v5-project 之下；令牌全部来自 src/styles/tokens.css（--v5-*，344 基座）。
+ * 组件复用：.v5-composer（TextField）/ .v5-btn（Button）/ .v5-macro / .v5-status-card /
+ * .v5-message / .v5-snapshot-receipt 等 primitives 依赖 .v5-design 作用域——
+ * project 根节点同时挂 .v5-design 与 .v5-project。
+ * 空间语言（v5.1）：阅读面 read-bg；窗框 1px window-edge + 柔影；宏卡无等重描边
+ * （344 已裁）；选中 2px 墨框 + 外环（primitives 内置）。
+ * 对比度红线（UI-FOUNDATION-1 同款）：正文 ≥4.5:1、图形 ≥3:1、最小字号 13px。
+ * 纪律：不改 styles.css 业务规则；本文件只服务 project surface。
+ */
+
+.v5-project {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 窗框：gallery 样例默认 640px 高；live surface 用 --fill 撑满视口（P3 58–62% 宽
+ * 由宿主视口决定，不锁死 1440×900 样图尺寸）。 */
+.v5-project-frame {
+  display: flex;
+  flex-direction: column;
+  width: min(880px, 100%);
+  height: 640px;
+  min-height: 0;
+  margin: 0 auto;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-window-edge);
+  border-radius: 10px;
+  box-shadow: var(--v5-shadow-window);
+  overflow: hidden;
+}
+
+.v5-project-frame--fill {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* ---------- 标题栏：i-project + 工程名（V 品牌标不进标题栏，v5.1） ---------- */
+
+.v5-project-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 0 14px;
+  background: var(--v5-ui-plate);
+  border-bottom: 1px solid var(--v5-titlebar-rule);
+}
+
+.v5-project-titlebar-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+  overflow-wrap: anywhere;
+}
+
+.v5-project-titlebar-detail {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-context-status {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-context-error {
+  padding: 10px 12px;
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* ---------- 主列：线程滚动 + 输入区 ---------- */
+
+.v5-project-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px 20px;
+  background: var(--v5-read-workspace);
+  gap: 10px;
+}
+
+.v5-project-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* 线程内的复合控件统一左对齐限宽（对话流行宽约 36 汉字语义） */
+.v5-project-thread .v5-macro,
+.v5-project-thread .v5-status-card,
+.v5-project-ab {
+  align-self: flex-start;
+  width: min(680px, 100%);
+}
+
+.v5-project-traj-idle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+/* ---------- A/B 动作行（不另起大卡；后果语义由状态图标 + 词表达） ---------- */
+
+.v5-project-ab {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--v5-read-bg);
+  border-radius: 8px;
+}
+
+.v5-project-ab-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-ab-reason {
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+  padding: 4px 8px;
+}
+
+.v5-project-ab-note {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+/* ---------- 快照回执与撤销留痕 ---------- */
+
+.v5-project-undone {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+  padding: 6px 10px;
+}
+
+/* ---------- 输入区（四态由 data-project-composer-state 承载） ---------- */
+
+.v5-project-composer {
+  flex: 0 0 auto;
+}
+
+.v5-project-composer .v5-composer {
+  background: var(--v5-read-bg);
+}
+
+.v5-project-retry {
+  margin-top: 2px;
+}
