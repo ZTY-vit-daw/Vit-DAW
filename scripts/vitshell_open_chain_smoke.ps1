@@ -143,7 +143,7 @@ function Invoke-CdpPhase {
     return (Get-Content $out -Raw -Encoding UTF8 | ConvertFrom-Json)
 }
 
-$VitProcessNames = @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot", "godot")
+$VitProcessNames = @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot*")
 
 # ---------- preflight (S2.2: no reuse of a live stack) ----------
 
@@ -433,7 +433,7 @@ try {
     }
     if ($null -ne (Get-Process -Id $proc.Id -ErrorAction SilentlyContinue)) { throw "VitShell still alive 20s after close" }
     Write-Ok "VitShell exited"
-    foreach ($name in @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot", "godot")) {
+    foreach ($name in @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot*")) {
         Get-Process -Name $name -ErrorAction SilentlyContinue | Wait-Process -Timeout 10 -ErrorAction SilentlyContinue
     }
     Start-Sleep -Seconds 2
@@ -472,7 +472,7 @@ try {
     Write-Bad ("FAIL: " + $_.Exception.Message + " - best-effort teardown")
     try { $null = Get-HttpPost -Url "http://127.0.0.1:$StatusPort/close" -TimeoutSec 3 } catch {}
     Start-Sleep -Seconds 3
-    foreach ($n in @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot", "godot")) {
+    foreach ($n in @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot*")) {
         Get-Process -Name $n -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
     }
     if (Test-Path $recentsSnap) { Copy-Item $recentsSnap $recentsFile -Force }
