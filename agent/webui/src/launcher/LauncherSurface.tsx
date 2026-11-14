@@ -178,6 +178,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
   const smokeFollowupRef = useRef("message");
   const smokeQueueRef = useRef<string[]>([]);
   const smokeStartedRef = useRef(false);
+  const smokeFollowupDoneRef = useRef(false);
   const smokeNextRef = useRef<() => void>(() => {});
   useEffect(() => {
     isSmokeRef.current = smokeParams.enabled;
@@ -384,11 +385,17 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
   }, [send]);
   useEffect(() => {
     smokeNextRef.current = () => {
-      if (smokeFollowupRef.current === "choose_file") {
-        chooseFileViaBridge();
+      // 队列先行（首条+多段消息）；队列排空后 followup=choose_file 才发一次桥
+      // choose_file 请求（done 守卫防每次 result 重发）。
+      const next = smokeQueueRef.current.shift();
+      if (next !== undefined) {
+        void send(next);
         return;
       }
-      sendNextSmokeMessage();
+      if (smokeFollowupRef.current === "choose_file" && !smokeFollowupDoneRef.current) {
+        smokeFollowupDoneRef.current = true;
+        chooseFileViaBridge();
+      }
     };
   }, [sendNextSmokeMessage, chooseFileViaBridge]);
   useEffect(() => {
