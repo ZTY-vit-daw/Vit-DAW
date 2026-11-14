@@ -229,11 +229,12 @@ function Stop-Stack {
 
 # 单 boot 助手：起 Godot（autoload + 桥烟测钩子），返回日志路径。
 function Start-BridgeGodot {
-    param([string]$LogPath, [string]$BridgeMessage, [string]$Governance = "", [string]$FollowupMs = "")
+    param([string]$LogPath, [string]$BridgeMessage, [string]$Governance = "", [string]$FollowupMs = "", [string]$Followup = "")
     $env:VIT_AGENT_WINDOW_MODE = "autoload"
     $env:VIT_SMOKE_LAUNCHER_BRIDGE = $BridgeMessage
     $env:VIT_SMOKE_LAUNCHER_GOVERNANCE = $Governance
     if (-not [string]::IsNullOrWhiteSpace($FollowupMs)) { $env:VIT_SMOKE_LAUNCHER_FOLLOWUP_MS = $FollowupMs }
+    if (-not [string]::IsNullOrWhiteSpace($Followup)) { $env:VIT_SMOKE_LAUNCHER_FOLLOWUP = $Followup }
     $env:VIT_SKIP_DEV_AUTOSTART = "1"
     $env:VIT_DAW_DEV_ROOT = $RepoRoot
     try {
@@ -244,6 +245,7 @@ function Start-BridgeGodot {
         Remove-Item Env:VIT_SMOKE_LAUNCHER_BRIDGE -ErrorAction SilentlyContinue
         Remove-Item Env:VIT_SMOKE_LAUNCHER_GOVERNANCE -ErrorAction SilentlyContinue
         Remove-Item Env:VIT_SMOKE_LAUNCHER_FOLLOWUP_MS -ErrorAction SilentlyContinue
+        Remove-Item Env:VIT_SMOKE_LAUNCHER_FOLLOWUP -ErrorAction SilentlyContinue
         Remove-Item Env:VIT_SKIP_DEV_AUTOSTART -ErrorAction SilentlyContinue
     }
     return $proc.Id
@@ -438,7 +440,7 @@ try {
     $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts")
     $assert["stack"]["agent_pid_leg2c"] = $agentProcId
     $log4 = Join-Path $LogsDir "godot_boot4.log"
-    $godotPid = Start-BridgeGodot -LogPath $log4 -BridgeMessage "打开烟测桥甲" -Governance "save" -FollowupMs "8000"
+    $godotPid = Start-BridgeGodot -LogPath $log4 -BridgeMessage "打开烟测桥甲" -Governance "save" -FollowupMs "8000" -Followup "choose_file"
     $assert["stack"]["godot_boot4_pid"] = $godotPid
     $leg2c = [ordered]@{}
     $assert["L2c_governance_save_and_dock_degradation"] = $leg2c
