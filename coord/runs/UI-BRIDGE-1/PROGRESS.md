@@ -57,14 +57,29 @@
 - [x] M1 React：launcherBridge.ts + launcherData 文案 + LauncherSurface 执行/回执/烟测钩子 + 单测 8 例（537 全过）+ build + render 三面 PASS（主仓 commit 见 git log）
 - [x] M2/M3 Godot（前端仓 commit 3406c4f）：start_page 桥 handler + 治理 choice + enter 标记 + 烟测钩子 + nav_bridge post_launcher_result + dock 降级 handler；extension cpp 零改动——dll 为 git 跟踪工件免重编（worktree checkout 自带双变体 dll）；--import 预跑零 SCRIPT ERROR（CEF addon 缺失=既有环境面）
 - [x] M4 webui 门槛（并入 M1：npm test 537 过/build 过/test:render 三面 PASS）
-- [ ] M5 ui_bridge_smoke.ps1 编写（scripts/，主仓 worktree）
-- [ ] M6 真栈：占用登记→≤60s 复核→run（4 boots）→拆栈→释放记录
-- [ ] M7 卡面回执 + doing→done + coord 推送 + 双仓 port 分支推送
+- [x] M5 ui_bridge_smoke.ps1 编写（scripts/，主仓 worktree；含腿结构更正 per-leg agent 重启）
+- [x] M6 真栈：占用 8b318712 → ≤60s 复核（20:31:19）→ 8 attempts → **PASS run_20261114_210725 exit 0** → 拆栈复核（五端口=0+四类进程=0）→ fixture 源哈希前后一致（F6CA36FA…0BD）
+- [x] M7 卡面回执 + doing→done + coord 推送 + 双仓 port 分支推送
 
 ## 环境备注（2026-11-14 20:3x 发现）
 
 - D:/Vit_DAW/godot-cpp 与 D:/Godot/project/vit-daw-frontend/godot-cpp 均为空实体目录（UI-OS-1/HOST-1 worktree 已被清理，其 junction 消失）——本次 extension 无需重编（cpp 零改动+dll 在 git），junction 已删；若后续卡需重编 extension，真实源可从 D:/备份/vit-daw-frontend/godot-cpp（488MB，branch 4.2+预生成 gen/）恢复到 D:/Vit_DAW/godot-cpp，版本相符性须先核对（上交主管留意）。
 
+## §8 运行历史（同代码版本族；每轮根因明确，无同断点两连败原样重跑）
+
+- attempt 1（run_20261114_203135，exit 1）：L1 零摩擦前提被真栈证据推翻——governance dialog 弹出（current_project="Unsaved"）。根因链：React launcher 面加载即发 recents 聊天 → agent 工作区激活 → SetProjectPathHint 物化 boot scratch 路径 → /agent/state path 非空 → 337 保守治理判据弹三键（独立探针佐证：无聊天时 path=""）。治理判据/agent hint 语义=越卡域 → L1 转为 switch 治理路径驱动 + finding 留证转主管。
+- attempt 2（run_20261114_203707，exit 1）：result.posted 缺失——start_page 链尾协程在场景切换后恢复时 get_tree()=null（backtrace 实证）。修复：LauncherNavBridge.post_launcher_result 经 Engine.get_main_loop() 兜底解析 SceneTree。
+- attempt 3（run_20261114_204131，exit 1）：governance 断言空——result.posted 日志行缺 governance 字段（装置面）。修复：取证行补 governance/action。
+- attempt 4（run_20261114_204442，exit 1）：L1 /agent/state==甲 断言败——observed=Unsaved 草稿路径。根因：agent current_project=工作区绑定面（chat 激活时绑定，open 后无新聊天不重绑；340 桥播域语义）。校准：断言域对齐卡面（kernel-open 已由 scene_added+result(opened) 证明）；L2a 增 dialog=甲 断言（内核态证明）。
+- attempt 5（run_20261114_204931，exit 1）：L2c followup directive 未到 dock——open 甲 成功触发 version.project_opened → agent 门副门（user_entered_project，进程内不重置，340 设计）关闭 → directive 不再路由（跨工程意图归 C5，launcher_flow.go 注释明文）。校准：降级腿改 choose_file（纯桥请求不经 agent 门）如实验证 dock 路由+降级回执。
+- attempt 6（run_20261114_205535，exit 1）：choose_file 未发——start_page 烟测钩子 URL 缺 followup 模式参数。修复：VIT_SMOKE_LAUNCHER_FOLLOWUP 环境变量透传。
+- attempt 7（run_20261114_210118，exit 1）：choose_file 顶掉首发消息且每次 result 重发——React 烟测 dispatch 设计错。修复：队列先排空+followup 一次守卫。
+- **attempt 8（run_20261114_210725，exit 0 PASS）**：四腿全绿（断言明细见 run 目录 report + 卡面回执）。
+
 ## 断了几次 / 中断恢复
 
-- 尚未中断。恢复指引：读本文件「设计定案」+ 卡面；git -C D:/Vit_DAW_wt_uibridge1 log --oneline 看进度；步骤勾选状态即断点。
+- 本会话未被外部重派中断；真栈 run 内部 8 attempts（7 失败均装置/断言域修复轮，每轮根因明确）。恢复指引：读本文件「设计定案」+「§8 运行历史」+ 卡面；git log 看进度。
+
+## 终态
+
+- **PASS run_20261114_210725 exit 0**；实现分支双仓 port/ui-bridge-1 留待主管验收合入。

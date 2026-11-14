@@ -1,0 +1,39 @@
+﻿{
+    "run_root":  "D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_204131",
+    "started_utc":  "2026-11-14T12:41:31.8481821Z",
+    "head":  "9a7b868fa7e45c2b3db262c38997f5b8949f5ea2",
+    "frontend_head":  "965d0e3dad3a600cf4242a69a00d4401c14e09e2",
+    "godot_project_root":  "D:\\Godot\\vit-daw-frontend_wt_uibridge1",
+    "project_source":  "D:\\Godot\\project\\vit-daw-frontend\\912.vit",
+    "legs":  {
+                 "prereq":  {
+                                "kernel_exe":  "D:\\Vit_DAW\\VitApp\\build\\VitApp_artefacts\\Release\\VitApp.exe"
+                            },
+                 "stack":  {
+                               "kernel_pid":  26024,
+                               "agent_pid_leg1":  22904,
+                               "godot_boot1_pid":  16248
+                           },
+                 "L1_boot_state_open_governance_switch":  {
+                                                              "boot_line":  "{\"boot_index\":1,\"main_hwnd\":2491338,\"mode_active\":true,\"size\":{\"x\":1920,\"y\":1080},\"title\":\"Vit\",\"url_target\":\"http://127.0.0.1:7878/app/\"}",
+                                                              "child_hwnd":  854204,
+                                                              "smoke_navigate_url":  "http://127.0.0.1:7878/app/?surface=launcher\u0026launcher_smoke=1\u0026launcher_smoke_message=%E6%89%93%E5%BC%80%E7%83%9F%E6%B5%8B%E6%A1%A5%E7%94%B2",
+                                                              "directive_request_id":  "webui_launcher_br_mwgeadtl",
+                                                              "zero_friction_dialog_current_project":  "Unsaved",
+                                                              "zero_friction_finding":  "governance dialog on kernel boot scratch (Unsaved) - zero-friction premise refuted by stack evidence; governance criterion vs agent hint semantics -\u003e supervisor ruling",
+                                                              "result_posted_status":  "opened",
+                                                              "result_governance":  ""
+                                                          }
+             },
+    "isolation":  {
+                      "fixture_source_sha256_before":  "F6CA36FA080D97E7B91CBAC755E7D2096393D453140E10563771466EB774D8BD",
+                      "fixture_a":  "D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_204131\\fixture\\烟测桥甲.vit",
+                      "fixture_b":  "D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_204131\\fixture\\烟测桥乙.vit",
+                      "agent_binary_sha256":  "9597E47FD3960F6B70839639001B97AE82B3FDCAAF2630B7EF59937C7C195D91",
+                      "ports_busy_after_teardown":  ""
+                  },
+    "exit_code":  1,
+    "error":  "governance mismatch: got \u0027\u0027 expected \u0027switch\u0027",
+    "error_type":  "RuntimeException",
+    "finished_utc":  "2026-11-14T12:41:45.5320764Z"
+}
