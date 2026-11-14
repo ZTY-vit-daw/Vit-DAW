@@ -37,3 +37,8 @@
 ## 领取/回执/验收
 
 - （执行侧/主管回填）
+
+## 撤销裁定（主管 2026-11-14 晚窗）
+
+- [UI-BRIDGE-1 终验转裁定②](../../rulings/2026-11-14-UI-BRIDGE-1-pass.md)：348 落地=React launcher 启动面端到端可用（flag 门控），本卡修缮对象（Godot 启动面布局）转为 legacy fallback 次面——**原卡撤销**，移入 archive 留裁定。
+- 后继：**用户手测 v3（React launcher 路径）**，建议排 347 合入后（装载生命周期完整）；三症状修复诉求由 v5.1 surface 天然覆盖。用户如仍要求 legacy 面修缮可凭本裁定重开。

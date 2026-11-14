@@ -1,0 +1,40 @@
+2026-11-14T21:07:57 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-14T21:07:57 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-14T21:07:57 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-14T21:07:57 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-14T21:07:57 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-14T21:07:57 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-14T21:07:57 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-14T21:07:57 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T21:07:57 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-14T21:07:57 [WARN] VSP realtime publish pending failures=1 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T21:07:57 [WARN] VSP realtime publish pending failures=1 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T21:07:57 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_210725\\fixture\\烟测桥乙.vit" replayed_deltas=0
+2026-11-14T21:07:57 [INFO] [workspace] parent history recovery skipped parent=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb target=vitproj_9ecc5ab9a454400192086c628c07b966 reason=parent project path not found for UUID vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-14T21:07:57 [INFO] [authority] restore adopted disk mode=manual_confirmation
+2026-11-14T21:07:57 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-14T21:07:57 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_210725\\fixture\\烟测桥乙.vit" uuid=vitproj_9ecc5ab9a454400192086c628c07b966 recovered=true conversations=1 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-14T21:07:59 [INFO] [webui] serving root=D:\Vit_DAW_wt_uibridge1\agent\webui\dist index_mod=2026-11-14T21:07:10+08:00 assets=ProjectSurface-Bea1K51M.js,ProjectSurface-CKm-bvCe.css,gallery-ClI_XaCt.css,gallery-OnnhOeqF.js,main-DBw89G7d.js,main-DR6t8dtt.css build_mark=project-aware-mondrian-workbench-v1-20260713
+2026-11-14T21:08:00 [INFO] [media_refs] ms=0 conversation=webui_launcher_mwgf86fk user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-14T21:08:00 [INFO] [chat.artifacts] conversation=webui_launcher_mwgf86fk response_artifacts=0 request_artifacts=0 executed=0 reply_len=75
+2026-11-14T21:08:00 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-14T21:08:00 [INFO] [timing] http.chat total_ms=541 conversation=webui_launcher_mwgf86fk message_len=15
+2026-11-14T21:08:00 [INFO] [media_refs] ms=0 conversation=webui_launcher_mwgf86fk user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-14T21:08:00 [INFO] [chat.artifacts] conversation=webui_launcher_mwgf86fk response_artifacts=0 request_artifacts=0 executed=0 reply_len=36
+2026-11-14T21:08:00 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-14T21:08:00 [INFO] [timing] http.chat total_ms=982 conversation=webui_launcher_mwgf86fk message_len=18
+2026-11-14T21:08:00 [INFO] [timing] kernel.vsp_state_snapshot ms=7 reason=version_project_opened err=false
+2026-11-14T21:08:00 [INFO] [shadow] initialized tracks=6 project_path="D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_210725\\fixture\\烟测桥甲.vit" replayed_deltas=0
+2026-11-14T21:08:00 [INFO] [timing] harness.refresh_shadow ms=15 reason=version_project_opened status=ok err=false
+2026-11-14T21:08:00 [INFO] [harness] project ledger genesis appended entries=0 project="D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_210725\\fixture\\烟测桥甲.vit"
+2026-11-14T21:08:00 [INFO] [timing] harness.invoke total_ms=53 tool=version.project_opened command=version_project_opened status=ok confirmed=true err=false
+2026-11-14T21:08:00 [INFO] [workspace] parent history recovery skipped parent=vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb target=vitproj_9ecc5ab9a454400192086c628c07b966 reason=parent project path not found for UUID vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb
+2026-11-14T21:08:00 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=vitproj_9ecc5ab9a454400192086c628c07b966
+2026-11-14T21:08:00 [INFO] [workspace] activated project="D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_210725\\fixture\\烟测桥甲.vit" uuid=vitproj_9ecc5ab9a454400192086c628c07b966 recovered=true conversations=1 retired_legacy_b2=0 retired_legacy_b3=0
+2026-11-14T21:08:02 [WARN] VSP realtime publish pending failures=6 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T21:08:02 [WARN] VSP realtime publish pending failures=6 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T21:08:03 [INFO] control reply spilled to file cmd=plugin_list_available request_id=library_plugin_list_5329740 bytes=1288808 file=D:\Vit_DAW_wt_uibridge1\coord\runs\UI-BRIDGE-1\run_20261114_210725\logs\BridgeReplies\20261114_210803_056754900_plugin_list_available_library_plugin_list_5329740.json
+2026-11-14T21:08:03 [INFO] [shadow] initialized tracks=11 project_path="D:\\Vit_DAW_wt_uibridge1\\coord\\runs\\UI-BRIDGE-1\\run_20261114_210725\\fixture\\烟测桥甲.vit" replayed_deltas=0
+2026-11-14T21:08:03 [INFO] control reply spilled to file cmd=get_project_state request_id=ipc_6 bytes=35307 file=D:\Vit_DAW_wt_uibridge1\coord\runs\UI-BRIDGE-1\run_20261114_210725\logs\BridgeReplies\20261114_210803_992266300_get_project_state_ipc_6.json
+2026-11-14T21:08:08 [WARN] VSP realtime publish pending failures=9 client=vit.agent.transport_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-14T21:08:08 [WARN] VSP realtime publish pending failures=9 client=vit.agent.realtime_publisher error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.

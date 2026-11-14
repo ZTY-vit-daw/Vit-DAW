@@ -203,3 +203,43 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
     expect(markup).toContain('data-launcher-card="launcher_project_1_test"');
   });
 });
+
+// ── UI-BRIDGE-1：Vit 桥呈现面（静态渲染；fixture 模式零桥调用）──
+
+const FIXTURE_DIRECTIVE = { action: "open_project", file_path: "D:/fixtures/甲.vit", requires_governance: true };
+
+describe("UI-BRIDGE-1 桥呈现面", () => {
+  it("fixture 线程不带 directive → 无执行按钮（纯占位呈报，行为零变化）", () => {
+    const markup = renderToStaticMarkup(
+      <LauncherSurface
+        fixture={{
+          thread: [{ kind: "directive", view: directivePlaceholder(FIXTURE_DIRECTIVE)! }]
+        }}
+      />
+    );
+    expect(markup).not.toContain("data-launcher-directive-execute");
+    expect(markup).not.toContain("data-launcher-bridge-exec");
+  });
+
+  it("占位携带 directive 且桥不可用 → 执行按钮禁用 + 诚实说明（不虚报已打开）", () => {
+    const markup = renderToStaticMarkup(
+      <LauncherSurface
+        fixture={{
+          thread: [{ kind: "directive", view: directivePlaceholder(FIXTURE_DIRECTIVE)!, directive: FIXTURE_DIRECTIVE }]
+        }}
+      />
+    );
+    expect(markup).toContain("data-launcher-directive-execute");
+    expect(markup).toContain("disabled");
+    expect(markup).toContain("Vit 桥不可用");
+    expect(markup).toContain('data-launcher-bridge="fixture"');
+    expect(markup).not.toContain("已打开");
+    expect(markup).not.toContain('data-launcher-bridge-exec');
+  });
+
+  it("fixture 模式 data-launcher-bridge=fixture；不发起任何桥请求", () => {
+    const markup = renderToStaticMarkup(<LauncherSurface fixture={{ drawerState: "empty" }} />);
+    expect(markup).toContain('data-launcher-bridge="fixture"');
+    expect(markup).not.toContain("data-launcher-choose-file");
+  });
+});

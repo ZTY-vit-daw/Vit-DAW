@@ -67,6 +67,7 @@ todo → doing → done(待验收) ─ ruling pass   → 归档 done（卡内回
 - **执行侧推 main 的推送纪律（2026-09-18 增补，C3 推送范围事故后）**：推 main 前必须确认待推提交**仅含 `coord/` 变更**。`pull --rebase` 后若本地 main 混入了实现提交（rebase 副本），禁止 `HEAD:main` 整推——改用把卡片提交 cherry-pick 到干净 `origin/main` 之上再推，或只推 `port/*` 分支；实现进 main 一律经决策侧验收 cherry-pick
 - **同机并行执行流各用独立 git worktree（2026-09-17 裁定，A1 领取事故后）**：主工作树单 HEAD 是客观踩踏面——多执行流同机并行时，各流领取后在独立 `git worktree add` 中开工，不共用主工作树；主工作树归单流/值班场景。执行侧保留的复验 worktree 在对应卡验收后由决策侧清理
 - **git mv 后必须 re-add（2026-09-24 增补，mv 暂存时序事故第四案后——FORENSIC 验收备忘）**：`git mv` 暂存的是移动瞬间的快照；**先改内容后 git mv 会把改动留在工作区而暂存旧内容**（改名入库、内容漏暂存，GATE/PLUGIN-SELECT/AUTOSWEEP 三卡实证+本次自查自纠）。纪律：卡面回执/验收写完后**最后一步 git mv，mv 后立即 `git add <新路径>` 再提交**；或 mv 完成后再编辑内容并 add。收口三步（doing 移动+回执+推送）一次完整提交
+- **worktree 清理前先拆除内部 junction/symlink（2026-11-14 增补，godot-cpp 双位置清空事故候查后）**：worktree 内借用仓外目录（godot-cpp 等）一律用 junction/符号链接；`git worktree remove --force` 的递归删除存在穿透链接删除目标目录内容的风险（根因候查中，见 ENV-GODOTCPP-RESTORE-1）。纪律：移除 worktree 前先枚举并**只删链接本身**（Windows：`cmd /c rmdir <junction路径>` 或 `fsutil reparsepoint delete`，禁用 `rm -rf` 走进链接），确认无 reparse point 后再 `git worktree remove`；发现借用型链接时优先普通 remove（非 --force）并在拒绝时先手动摘链接。
 
 ## 4. 唤醒机制：watcher 事件驱动（零 token 待机），心跳兜底
 
