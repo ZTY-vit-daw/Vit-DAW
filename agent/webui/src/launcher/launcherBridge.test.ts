@@ -11,10 +11,13 @@ import {
   isLauncherBridgeAvailable,
   LAUNCHER_BRIDGE_CHANNEL,
   LAUNCHER_BRIDGE_RESULT_TYPE,
+  LAUNCHER_GOVERNANCE_REQUIRED_TYPE,
   postLauncherChooseFile,
   postLauncherDirective,
+  postLauncherGovernanceChoice,
   postLauncherResultAck,
   postLauncherSurfaceReady,
+  subscribeGovernanceRequests,
   subscribeLauncherResults,
   type LauncherBridgeResult
 } from "./launcherBridge";
@@ -106,5 +109,55 @@ describe("launcherBridge 通道面", () => {
   it("request_id 形态与区分度", () => {
     expect(createLauncherBridgeRequestID(1700000000000)).toMatch(/^webui_launcher_br_/);
     expect(createLauncherBridgeRequestID(1)).not.toBe(createLauncherBridgeRequestID(2));
+  });
+});
+
+// ── SHELL-2：页内治理桥面（vit_governance_required 订阅 + launcher_governance_choice 回投）──
+
+describe("launcherBridge 页内治理面（SHELL-2）", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("postLauncherGovernanceChoice 走 ask_vit_launcher 通道并携带 save/switch/cancel", () => {
+    const { posted } = stubWebview();
+    expect(postLauncherGovernanceChoice("req_g1", "save")).toBe(true);
+    expect(postLauncherGovernanceChoice("req_g1", "switch")).toBe(true);
+    expect(postLauncherGovernanceChoice("req_g1", "cancel")).toBe(true);
+    expect(posted).toHaveLength(3);
+    for (const item of posted) {
+      expect(item.channel).toBe(LAUNCHER_BRIDGE_CHANNEL);
+      expect(item.type).toBe("launcher_governance_choice");
+    }
+    expect(posted[0].request_id).toBe("req_g1");
+    expect(posted[0].choice).toBe("save");
+    expect(posted[1].choice).toBe("switch");
+    expect(posted[2].choice).toBe("cancel");
+  });
+
+  it("subscribeGovernanceRequests 只转发 vit_governance_required 且 request_id 非空", () => {
+    const { listeners } = stubWebview();
+    const seen: Array<{ request_id: string; action: string; current_project: string }> = [];
+    const unsub = subscribeGovernanceRequests((request) => seen.push(request));
+    expect(listeners).toHaveLength(1);
+    listeners[0]({ data: { type: "vit_launcher_result", request_id: "x" } } as MessageEvent);
+    listeners[0]({ data: { type: LAUNCHER_GOVERNANCE_REQUIRED_TYPE } } as MessageEvent); // 缺 request_id → 过滤
+    listeners[0]({
+      data: { type: LAUNCHER_GOVERNANCE_REQUIRED_TYPE, request_id: "req_g9", action: "open_project", current_project: "D:/fixtures/甲.vit" }
+    } as MessageEvent);
+    expect(seen).toHaveLength(1);
+    expect(seen[0].request_id).toBe("req_g9");
+    expect(seen[0].action).toBe("open_project");
+    expect(seen[0].current_project).toBe("D:/fixtures/甲.vit");
+    unsub();
+    expect(listeners).toHaveLength(0);
+  });
+
+  it("无 chrome.webview → 治理订阅空转且回投返回 false（诚实降级）", () => {
+    vi.stubGlobal("window", {});
+    expect(postLauncherGovernanceChoice("req_g2", "switch")).toBe(false);
+    const unsub = subscribeGovernanceRequests(() => {});
+    expect(typeof unsub).toBe("function");
+    unsub();
   });
 });

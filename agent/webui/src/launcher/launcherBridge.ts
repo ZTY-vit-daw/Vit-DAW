@@ -19,13 +19,24 @@
 export const LAUNCHER_BRIDGE_CHANNEL = "ask_vit_launcher";
 /** 宿主 → React 结果回执 type（post_web_message 载荷）。 */
 export const LAUNCHER_BRIDGE_RESULT_TYPE = "vit_launcher_result";
+/**
+ * SHELL-2：宿主 → React 页内治理请求 type（agent/对话发起的工程切换，跟随发起方
+ * 裁定——React 三键确认卡，不出 Godot 弹窗）。载荷：{type, request_id, action,
+ * current_project}。
+ */
+export const LAUNCHER_GOVERNANCE_REQUIRED_TYPE = "vit_governance_required";
 
 /** 桥请求 type 面。 */
 export type LauncherBridgeRequestType =
   | "launcher_surface_ready"
   | "launcher_directive"
   | "launcher_choose_file"
-  | "launcher_result_ack";
+  | "launcher_result_ack"
+  | "launcher_governance_choice";
+
+/** 宿主回执状态面（全 honest：opened 只能来自宿主回执）。 */
+export type LauncherBridgeResultStatus =
+  | "opened"
 
 /** 宿主回执状态面（全 honest：opened 只能来自宿主回执）。 */
 export type LauncherBridgeResultStatus =
@@ -97,9 +108,64 @@ export function postLauncherDirective(
   return postLauncherBridge({ type: "launcher_directive", request_id: requestID, directive });
 }
 
-/** 原生文件选择请求（原生 FileDialog 由 Godot 弹，归属不变）。 */
+/** 原生文件选择请求（宿主原生文件对话框；348 语义宿主版，SHELL-2 起归属宿主）。 */
 export function postLauncherChooseFile(requestID: string): boolean {
   return postLauncherBridge({ type: "launcher_choose_file", request_id: requestID });
+}
+
+/** 页内治理三键选择面（SHELL-2：跟随发起方——agent/对话发起 → React 页内卡）。 */
+export type LauncherGovernanceChoice = "save" | "switch" | "cancel";
+
+/** 治理三键选择回投（宿主据 choice 执行保存/直行/取消）。 */
+export function postLauncherGovernanceChoice(
+  requestID: string,
+  choice: LauncherGovernanceChoice
+): boolean {
+  return postLauncherBridge({
+    type: "launcher_governance_choice",
+    request_id: requestID,
+    choice
+  });
+}
+
+/** 宿主页内治理请求载荷（vit_governance_required）。 */
+export interface LauncherGovernanceRequest {
+  request_id: string;
+  action: string;
+  current_project: string;
+}
+
+/** 订阅宿主页内治理请求；返回解订函数。桥不可用=空订阅（listener 不挂）。 */
+export function subscribeGovernanceRequests(
+  handler: (request: LauncherGovernanceRequest) => void
+): () => void {
+  const webview = launcherWebview();
+  if (!webview?.addEventListener) {
+    return () => {};
+  }
+  const listener = (event: MessageEvent) => {
+    const data: unknown = event.data;
+    if (!data || typeof data !== "object") {
+      return;
+    }
+    const record = data as Record<string, unknown>;
+    if (str(record.type) !== LAUNCHER_GOVERNANCE_REQUIRED_TYPE) {
+      return;
+    }
+    const requestID = str(record.request_id);
+    if (!requestID) {
+      return;
+    }
+    handler({
+      request_id: requestID,
+      action: str(record.action),
+      current_project: str(record.current_project)
+    });
+  };
+  webview.addEventListener("message", listener);
+  return () => {
+    webview.removeEventListener?.("message", listener);
+  };
 }
 
 /**

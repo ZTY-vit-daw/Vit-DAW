@@ -9,14 +9,21 @@
  * launcher 聊天 list 意图（"有哪些工程"）获取——greeting 只回执首项+计数。
  *
  * UI-BRIDGE-1 桥面：directive 经「让 Vit 打开/新建」按钮走 ask_vit_launcher 通道
- * （宿主治理确认 + 既有 open/new 公共链 + 原生对话框归属 Godot）；终态一律以宿主
+ * （宿主治理确认 + 既有 open/new 公共链）；终态一律以宿主
  * vit_launcher_result 回执呈现——React 不伪造「已打开」；桥不可用给诚实文案。
- * 选择文件请求经 launcher_choose_file（原生 FileDialog 归宿主）。
+ * 选择文件请求经 launcher_choose_file（宿主原生文件对话框）。
+ *
+ * SHELL-2 页内治理（跟随发起方裁定）：agent/对话发起的工程切换 → 宿主回投
+ * vit_governance_required → 本 surface 在对话流内出三键确认卡（保存并切换/直接切换/
+ * 取消，v5.1 样式），选择经 launcher_governance_choice 回投宿主执行；GUI（DAW 内）
+ * 发起的切换仍走 Godot 弹窗（不变）。
  *
  * fixture 接缝：props 传入 LauncherFixtureOverrides 时完全离线（gallery /
  * render-smoke 使用），真实端点零请求、零桥调用；不传即 live 模式。
  * 烟测接缝：URL launcher_smoke=1（生产 URL 无参零行为）——自动发送
- * launcher_smoke_message（可 || 分隔多条，回执后延迟发下一条）并自动执行 directive。
+ * launcher_smoke_message（可 || 分隔多条，回执后延迟发下一条）并自动执行 directive；
+ * launcher_smoke_governance=save|switch|cancel 时治理卡出现即自动经真实桥路径回投
+ * 选择（镜像 Godot 侧 VIT_SMOKE_LAUNCHER_GOVERNANCE 模式，生产零行为）。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -39,36 +46,47 @@ import {
   LAUNCHER_AGENT_UNAVAILABLE_TEXT,
   LAUNCHER_BRIDGE_UNAVAILABLE_TEXT,
   LAUNCHER_BRIDGE_WAITING_TEXT,
+  LAUNCHER_GOVERNANCE_CANCEL_TEXT,
+  LAUNCHER_GOVERNANCE_SAVE_TEXT,
+  LAUNCHER_GOVERNANCE_SWITCH_TEXT,
   LAUNCHER_RECENTS_ERROR_TEXT,
   LAUNCHER_SUGGESTIONS,
   launcherDirectiveResultText,
   launcherDirectiveResultRetryable,
   launcherDisplayFileName,
+  launcherGovernanceAnsweredText,
+  launcherGovernanceHeadline,
   type DirectivePlaceholderView,
   type LauncherDirectiveState,
-  type LauncherGreetingState
+  type LauncherGreetingState,
+  type LauncherGovernanceView
 } from "./launcherData";
 import {
   createLauncherBridgeRequestID,
   isLauncherBridgeAvailable,
   postLauncherChooseFile,
   postLauncherDirective,
+  postLauncherGovernanceChoice,
   postLauncherResultAck,
   postLauncherSurfaceReady,
+  subscribeGovernanceRequests,
   subscribeLauncherResults,
-  type LauncherBridgeResult
+  type LauncherBridgeResult,
+  type LauncherGovernanceChoice
 } from "./launcherBridge";
 import { ProjectBadge, TextField } from "../components";
 import "../styles/tokens.css";
 import "../components/components.css";
 import "../styles/launcher.css";
 
-/** 会话线程条目（directive 携带原始指令供桥执行；fixture 线程不带 directive）。 */
+/** 会话线程条目（directive 携带原始指令供桥执行；fixture 线程不带 directive）。
+ * SHELL-2：governance=宿主页内治理请求（跟随发起方——对话发起的工程切换在页内确认）。 */
 export type LauncherThreadItem =
   | { kind: "assistant"; text: string }
   | { kind: "user"; text: string }
   | { kind: "cards"; cards: LauncherProjectCard[] }
-  | { kind: "directive"; view: DirectivePlaceholderView; directive?: LauncherDirective };
+  | { kind: "directive"; view: DirectivePlaceholderView; directive?: LauncherDirective }
+  | { kind: "governance"; view: LauncherGovernanceView; answered?: LauncherGovernanceChoice };
 
 /** 桥执行块（单活跃执行，对应宿主 _launcher_directive_in_flight 单飞语义）。 */
 interface BridgeExecState {
@@ -126,7 +144,13 @@ function mapResultState(status: string): LauncherDirectiveState {
 }
 
 /** 烟测 URL 参数（生产 URL 无 launcher_smoke → 全零行为）。 */
-function parseSmokeParams(): { enabled: boolean; messages: string[]; delayMs: number; followup: string } {
+function parseSmokeParams(): {
+  enabled: boolean;
+  messages: string[];
+  delayMs: number;
+  followup: string;
+  governance: LauncherGovernanceChoice | "";
+} {
   const params = new URLSearchParams(window.location.search);
   const enabled = params.get("launcher_smoke") === "1";
   const rawMessage = params.get("launcher_smoke_message") ?? "";
@@ -142,7 +166,13 @@ function parseSmokeParams(): { enabled: boolean; messages: string[]; delayMs: nu
   // open/new directive 经 agent 门（340：进程内 user_entered_project 后关闭，
   // 跨工程意图归 C5），choose_file 不经 agent 门，纯桥请求可驱动 dock 降级面）。
   const followup = params.get("launcher_smoke_followup") === "choose_file" ? "choose_file" : "message";
-  return { enabled, messages, delayMs, followup };
+  // SHELL-2：治理卡自动应答（save|switch|cancel；出现即经真实桥路径回投）。
+  const rawGovernance = (params.get("launcher_smoke_governance") ?? "").toLowerCase();
+  const governance =
+    rawGovernance === "save" || rawGovernance === "switch" || rawGovernance === "cancel"
+      ? (rawGovernance as LauncherGovernanceChoice)
+      : "";
+  return { enabled, messages, delayMs, followup, governance };
 }
 
 export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps) {
@@ -168,7 +198,10 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
   const bridgeAvailable = useMemo(() => !fixture && isLauncherBridgeAvailable(), [fixture]);
   // fixture 模式（node 渲染/无 window）完全离线：烟测参数不解析。
   const smokeParams = useMemo(
-    () => (fixture ? { enabled: false, messages: [] as string[], delayMs: 8000, followup: "message" } : parseSmokeParams()),
+    () =>
+      fixture
+        ? { enabled: false, messages: [] as string[], delayMs: 8000, followup: "message", governance: "" as LauncherGovernanceChoice | "" }
+        : parseSmokeParams(),
     [fixture]
   );
   const [bridgeExec, setBridgeExec] = useState<BridgeExecState | null>(null);
@@ -176,6 +209,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
   const isSmokeRef = useRef(false);
   const smokeDelayRef = useRef(8000);
   const smokeFollowupRef = useRef("message");
+  const smokeGovernanceRef = useRef<LauncherGovernanceChoice | "">("");
   const smokeQueueRef = useRef<string[]>([]);
   const smokeStartedRef = useRef(false);
   const smokeFollowupDoneRef = useRef(false);
@@ -184,7 +218,41 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
     isSmokeRef.current = smokeParams.enabled;
     smokeDelayRef.current = smokeParams.delayMs;
     smokeFollowupRef.current = smokeParams.followup;
+    smokeGovernanceRef.current = smokeParams.governance;
   }, [smokeParams]);
+
+  // ── SHELL-2：页内治理三键卡（跟随发起方——宿主 vit_governance_required → 页内
+  // 确认卡；选择经 launcher_governance_choice 真实桥路径回投）──
+  const answerGovernance = useCallback((requestID: string, choice: LauncherGovernanceChoice) => {
+    setThread((prev) =>
+      prev.map((item) =>
+        item.kind === "governance" && item.view.requestID === requestID && !item.answered
+          ? { ...item, answered: choice }
+          : item
+      )
+    );
+    postLauncherGovernanceChoice(requestID, choice);
+  }, []);
+
+  useEffect(() => {
+    if (fixture) return;
+    return subscribeGovernanceRequests((request) => {
+      const view: LauncherGovernanceView = {
+        requestID: request.request_id,
+        action: request.action,
+        currentProject: request.current_project
+      };
+      const autoChoice = smokeGovernanceRef.current;
+      setThread((prev) => [
+        ...prev,
+        { kind: "governance", view, answered: autoChoice || undefined }
+      ]);
+      if (autoChoice) {
+        // 烟测自动应答：走同一真实桥路径（生产 URL 无参零行为）。
+        postLauncherGovernanceChoice(request.request_id, autoChoice);
+      }
+    });
+  }, [fixture]);
 
   // 启动台就绪握手：宿主日志留痕（React launcher surface 已加载且桥在卷）。
   useEffect(() => {
@@ -489,6 +557,37 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                 {drawerViewLabel}
               </span>
             </div>
+            {/* SHELL-2 抽屉手动按钮（卡面任务 1）：头部「＋新建」「打开…」——新建走
+                agent 对话流；打开走宿主原生文件对话框（348 choose_file 语义宿主版）。
+                空 recents 态两按钮主路径突出（data-drawer-primary 修饰）。 */}
+            <div
+              className="v5-launcher-drawer-actions"
+              data-launcher-drawer-actions
+              data-drawer-primary={drawerState === "empty" ? "true" : undefined}
+            >
+              <button
+                type="button"
+                className="v5-btn v5-btn--primary v5-launcher-new"
+                data-launcher-new
+                disabled={busy || (!fixture && greetingState !== "ready")}
+                onClick={() => void send("新建一个工程")}
+                title="对 Vit 说「新建一个工程」——走 agent 对话流完成新建"
+              >
+                ＋新建
+              </button>
+              {bridgeAvailable ? (
+                <button
+                  type="button"
+                  className="v5-btn v5-btn--secondary v5-launcher-choose-file v5-launcher-open"
+                  data-launcher-choose-file
+                  onClick={chooseFileViaBridge}
+                  disabled={bridgeBusy}
+                  title="由 Vit 弹出原生文件对话框选择工程"
+                >
+                  打开…
+                </button>
+              ) : null}
+            </div>
             {drawerState === "loading" ? (
               <p className="v5-launcher-drawer-note" data-launcher-drawer-loading>
                 正在读取最近工程…
@@ -519,18 +618,6 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                   </li>
                 ))}
               </ul>
-            ) : null}
-            {bridgeAvailable ? (
-              <button
-                type="button"
-                className="v5-btn v5-btn--secondary v5-launcher-choose-file"
-                onClick={chooseFileViaBridge}
-                data-launcher-choose-file
-                disabled={bridgeBusy}
-                title="由 Vit 弹出原生文件对话框选择工程"
-              >
-                从文件打开…
-              </button>
             ) : null}
           </aside>
           <section className="v5-launcher-main" aria-label="Vit 启动台对话">
@@ -592,6 +679,61 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                               </span>
                             </button>
                           ))}
+                        </div>
+                      );
+                    }
+                    if (item.kind === "governance") {
+                      // SHELL-2 页内治理三键卡（对话流内 v5.1 样式；选择经真实桥
+                      // 路径回投宿主执行；已作答后固定呈报不重放）。
+                      return (
+                        <div
+                          key={index}
+                          className="v5-launcher-governance"
+                          data-launcher-governance
+                          data-launcher-governance-request={item.view.requestID}
+                          data-launcher-governance-answered={item.answered ?? ""}
+                        >
+                          <span className="v5-launcher-governance-headline" data-launcher-governance-headline>
+                            {launcherGovernanceHeadline(item.view)}
+                          </span>
+                          <span className="v5-launcher-governance-note">
+                            治理确认跟随发起方：本次切换由对话发起，确认在此页内完成——选择后 Vit 才执行切换（保存由 Vit 完成）。
+                          </span>
+                          {item.answered ? (
+                            <span className="v5-launcher-governance-answered" data-launcher-governance-answered-text>
+                              {launcherGovernanceAnsweredText(item.answered)}
+                            </span>
+                          ) : (
+                            <div className="v5-launcher-governance-actions" data-launcher-governance-actions>
+                              <button
+                                type="button"
+                                className="v5-btn v5-btn--primary"
+                                data-launcher-governance-save
+                                disabled={bridgeBusy || !bridgeAvailable}
+                                onClick={() => answerGovernance(item.view.requestID, "save")}
+                              >
+                                {LAUNCHER_GOVERNANCE_SAVE_TEXT}
+                              </button>
+                              <button
+                                type="button"
+                                className="v5-btn v5-btn--secondary"
+                                data-launcher-governance-switch
+                                disabled={bridgeBusy || !bridgeAvailable}
+                                onClick={() => answerGovernance(item.view.requestID, "switch")}
+                              >
+                                {LAUNCHER_GOVERNANCE_SWITCH_TEXT}
+                              </button>
+                              <button
+                                type="button"
+                                className="v5-btn v5-btn--secondary"
+                                data-launcher-governance-cancel
+                                disabled={bridgeBusy || !bridgeAvailable}
+                                onClick={() => answerGovernance(item.view.requestID, "cancel")}
+                              >
+                                {LAUNCHER_GOVERNANCE_CANCEL_TEXT}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       );
                     }

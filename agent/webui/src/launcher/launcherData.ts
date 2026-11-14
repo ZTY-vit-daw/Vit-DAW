@@ -78,10 +78,12 @@ export interface DirectivePlaceholderView {
  * launcher_directive → 数据展示占位（卡面硬要求：不执行 open/new、不虚报已打开）。
  * agent 侧 requires_governance 恒 true；占位文案明确「本占位不执行」——
  * 真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，React 只发请求与呈现回执。
+ * SHELL-2：治理确认与原生对话框归属宿主（VitShell 版：Win32 对话框 + 页内治理卡；
+ * Godot 旧宿主下同文案成立——归属都是「宿主」，不点名具体宿主实现）。
  */
 export function directivePlaceholder(directive: LauncherDirective | null | undefined): DirectivePlaceholderView | null {
   if (!directive || !directive.action) return null;
-  const note = "占位呈报——本占位不执行打开/新建；真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，治理确认与原生对话框归属 Godot。";
+  const note = "占位呈报——本占位不执行打开/新建；真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，治理确认与原生对话框归属宿主。";
   if (directive.action === "open_project") {
     const name = directive.project_name?.trim() || launcherDisplayFileName(directive.file_path ?? "");
     return {
@@ -111,7 +113,7 @@ export function cardPendingPlaceholder(card: LauncherProjectCard): DirectivePlac
     action: "open",
     headline: card.name ? `准备打开《${card.name}》…` : "准备打开工程…",
     detail: card.filePath,
-    note: "占位呈报——本占位不执行打开/新建；真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，治理确认与原生对话框归属 Godot。"
+    note: "占位呈报——本占位不执行打开/新建；真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，治理确认与原生对话框归属宿主。"
   };
 }
 
@@ -150,4 +152,34 @@ export function launcherDirectiveResultText(status: string, message: string, act
 /** 终态是否允许重试（canceled/unsupported/dialog_shown 无需重试钮）。 */
 export function launcherDirectiveResultRetryable(status: string): boolean {
   return status === "failed" || status === "invalid";
+}
+
+// ── SHELL-2：页内治理确认卡（跟随发起方——agent/对话发起 → React 三键卡）──
+
+/** 页内治理卡数据视图（宿主 vit_governance_required → 本视图；对话流内呈现）。 */
+export interface LauncherGovernanceView {
+  requestID: string;
+  action: string;
+  /** 在开工程显示名（宿主回执原样；态未知=空）。 */
+  currentProject: string;
+}
+
+/** 治理卡标题（v5.1 口径：保守确认，宁多勿漏；显示名只陈述宿主回执）。 */
+export function launcherGovernanceHeadline(view: { currentProject: string }): string {
+  const name = view.currentProject.trim();
+  return name
+    ? `当前工程《${name}》还在进行中——切换前要处理它吗？`
+    : "当前可能有工程在进行（状态未知）——切换前要处理它吗？";
+}
+
+/** 三键固定文案（与 Godot LauncherGovernanceDialog 同语义三键）。 */
+export const LAUNCHER_GOVERNANCE_SAVE_TEXT = "保存并切换";
+export const LAUNCHER_GOVERNANCE_SWITCH_TEXT = "直接切换";
+export const LAUNCHER_GOVERNANCE_CANCEL_TEXT = "取消";
+
+/** 已作答后的固定呈现（不重放选择，不虚报宿主已执行）。 */
+export function launcherGovernanceAnsweredText(choice: string): string {
+  if (choice === "save") return "已选择「保存并切换」——等待 Vit 执行。";
+  if (choice === "switch") return "已选择「直接切换」——等待 Vit 执行。";
+  return "已取消——未切换工程。";
 }
