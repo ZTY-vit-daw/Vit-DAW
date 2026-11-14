@@ -25,4 +25,12 @@ recents 存储格式未知/写保护→取证上交候裁定。
 
 ## 领取/回执/验收
 
-- （执行侧/主管回填）
+### 领取（2026-11-14）
+
+- 领取时间：2026-11-14（免费车道窗口）
+- 领取时 origin/main：`a4759235136725229d48406659dccf37ed9ed8f7`（fetch 复核一致）
+- 执行 owner：freeflash（GLM-5.3-Flash 免费车道子代理）·PC·ZCode 主管会话派发
+- 执行分支：`port/recents-hygiene-1`
+- worktree：`D:/Vit_DAW_wt_recents1`（领取时工作树干净，`git status --short` 空）
+- 文件域核对：与 doing 三卡（CLOSURE-ROUTE-ADAPT-1 / ARRLOOP-AUTHBRIDGE-1 / WAVESHELL-LOADING-FORENSICS-1，域均在 agent/chat/harness/渲染面）不相交；本卡域=产品状态（内核 recents 存储，主检出活文件）+coord/runs/RECENTS-HYGIENE-1/ 工件+卡面，零内核代码
+- 领取提交：本提交（coord-only，todo→doing）
