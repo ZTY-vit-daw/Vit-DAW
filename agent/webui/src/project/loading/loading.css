@@ -1,0 +1,166 @@
+/*
+ * UI-LOADING-1（347）P2 装载状态卡样式。
+ *
+ * 落点说明（回执声明）：本文件在卡面文件域 loading/**（新增）内，不改 styles.css
+ * 业务规则（styles.css 含 html/body overflow:hidden 全局规则，gallery fixture 页
+ * 加载会破坏现有三页渲染烟测）。组件级 import 与 345 launcher.css 同款先例。
+ *
+ * 作用域：.v5-loading 之下；令牌全部来自 src/styles/tokens.css（--v5-*，344 基座）。
+ * 语义（SPEC-V5 §4.2）：变化中=当前步小面积黄 chip（不整卡黄底）；失败=红警示
+ * （warning）；中断=需留意黄（attention）；完成=蓝点缀（control-header 图标色）。
+ * 对比度红线：正文 ≥4.5:1、图形 ≥3:1、最小字号 13px（--v5-t-caption）。
+ */
+
+.v5-loading-card {
+  max-width: 560px;
+  background: var(--v5-control-shell);
+  border: 1px solid var(--v5-control-shell-edge);
+  box-shadow: var(--v5-control-shadow);
+  padding: 16px 20px;
+}
+
+/* 失败（红）：写明原因与恢复入口 */
+.v5-loading-card--failed {
+  background: var(--v5-warning-shell);
+  border-color: var(--v5-warning-edge);
+}
+
+/* 中断（黄）：结果未定，写明原因与恢复入口 */
+.v5-loading-card--interrupted {
+  background: var(--v5-attention-shell);
+  border-color: var(--v5-attention-edge);
+}
+
+.v5-loading-card--completed {
+  border-color: var(--v5-control-header);
+}
+
+.v5-loading-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.v5-loading-head-text {
+  min-width: 0;
+}
+
+.v5-loading-title {
+  margin: 0;
+  font: 600 var(--v5-t-title) / 1.4 var(--v5-font-sans);
+  color: var(--v5-ui-text);
+}
+
+.v5-loading-note {
+  margin: 4px 0 0;
+  font-size: var(--v5-t-caption);
+  color: var(--v5-ui-muted);
+}
+
+.v5-loading-tape {
+  flex: none;
+  display: block;
+  line-height: 0;
+}
+
+.v5-loading-tape svg {
+  display: block;
+}
+
+/* 步骤轨迹（同屏 ≤3；变化中的主表达，当前步小面积黄 chip） */
+.v5-loading-steps {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.v5-loading-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-ui-text);
+}
+
+.v5-loading-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: var(--v5-control-yellow);
+  border: 1px solid #333333;
+  border-radius: var(--v5-radius-control);
+  flex: none;
+}
+
+.v5-loading-chip .v5-icon {
+  --v5-icon-bg: var(--v5-control-yellow);
+  color: var(--v5-ui-text); /* 黄底上当前步骤图标用墨色（§4.2.1） */
+  animation: v5-loading-advance 1.2s steps(3, end) infinite;
+}
+
+@keyframes v5-loading-advance {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-2px);
+  }
+}
+
+.v5-loading-done {
+  color: var(--v5-control-header);
+  flex: none;
+}
+
+.v5-loading-step-time {
+  margin-left: auto;
+  font: 400 var(--v5-t-caption) / 1.5 var(--v5-font-mono);
+  color: var(--v5-ui-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 失败 / 中断块：原因 + 恢复入口 */
+.v5-loading-block {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v5-loading-reason {
+  margin: 0;
+  font-size: var(--v5-t-secondary);
+  color: var(--v5-warning-header);
+  min-width: 0;
+}
+
+.v5-loading-card--interrupted .v5-loading-reason {
+  /* attention-edge on attention-shell 仅 ~3.4:1，正文红线 4.5:1 → 用墨色 */
+  color: var(--v5-ui-text);
+}
+
+/* 完成回执（一行）+ 轨迹可展开（details） */
+.v5-loading-history {
+  margin: 12px 0 0;
+}
+
+.v5-loading-history summary {
+  cursor: pointer;
+  font-size: var(--v5-t-caption);
+  color: var(--v5-ui-muted);
+  outline-offset: 2px;
+}
+
+/* 动画弱化偏好：全局禁用（styles.css 全局规则同款；组件级兜底） */
+@media (prefers-reduced-motion: reduce) {
+  .v5-loading-chip .v5-icon {
+    animation: none;
+  }
+}
