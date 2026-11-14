@@ -1,6 +1,6 @@
 {
   "run": "UI-PROJECT-1 project render smoke",
-  "date": "2026-11-14T11:37:56.940Z",
+  "date": "2026-11-14T17:26:18.595Z",
   "url": "http://127.0.0.1:5391/app/gallery.html?surface=project",
   "viewport": "1440x900@1",
   "reducedMotion": "reduce",
@@ -85,7 +85,7 @@
     "bg": "rgb(240,241,242)"
   },
   "graphicChecks": 56,
-  "graphicMinRatio": 4.305,
+  "graphicMinRatio": 3.807,
   "clipIssues": [],
   "docScrollWidth": 1440,
   "fontTooSmall": [],
@@ -94,10 +94,10 @@
     "projectUrl=http://127.0.0.1:5391/app/gallery.html?surface=project"
   ],
   "screenshots": [
-    "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-PROJECT-1\\screens\\project-viewport-1440x900.png",
-    "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-PROJECT-1\\screens\\project-full.png"
+    "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-PROJECT-1\\screens\\project-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-PROJECT-1\\screens\\project-full.png"
   ],
-  "foundationReport": "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
-  "launcherReport": "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+  "foundationReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+  "launcherReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
   "result": "PASS"
 }

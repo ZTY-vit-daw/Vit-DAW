@@ -358,7 +358,10 @@ body {
 }
 
 .v5-gal-launcher-states [data-launcher-sample] .v5-launcher-frame {
-  height: 400px;
+  /* UI-VISUAL-FIDELITY-1：问候 28px+建议动作卡使内容增高——紧凑样例随内容自适应
+   * （同 346 project 样例 auto 高度先例），避免固定 400px 框裁切 */
+  height: auto;
+  min-height: 400px;
 }
 
 .v5-gal-launcher-states [data-launcher-sample] .v5-launcher-drawer {
@@ -383,4 +386,22 @@ body {
 .v5-gal-launcher-states [data-loading-sample="tape-progress"] .v5-loading-card {
   flex: 0 1 300px;
   min-width: 240px;
+}
+
+/* ---------- UI-VISUAL-FIDELITY-1：live 形态 fixture 页（?surface=launcher-live /
+ * project-live）——与 live surface 相同的 fill 布局；页容器=视口高度列布局，
+ * sprite 零占位，surface 撑满剩余空间。多分辨率渲染断言专用（工件落
+ * coord/runs/UI-VISUAL-FIDELITY-1/），不影响既有 gallery/launcher/project/loading 页。 */
+.v5-live-fixture {
+  display: flex;
+  flex-direction: column;
+  /* 100vh 而非 100%：gallery.html 文档流高度 auto（gallery 各页靠文档滚动），
+   * 百分比会退化——vh 锚定视口，live 形态页与生产 live 面同构 */
+  height: 100vh;
+  min-height: 0;
+}
+
+.v5-live-fixture > .v5-design {
+  flex: 1 1 auto;
+  min-height: 0;
 }

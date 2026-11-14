@@ -414,6 +414,9 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
   const drawerViewLabel = drawerCountLabel({ state: drawerState, entries: drawerEntries, count: drawerEntries.length, errorText: drawerError });
 
   const frameClass = ["v5-launcher-frame", fill ? "v5-launcher-frame--fill" : ""].filter(Boolean).join(" ");
+  // 根容器 fill 修饰（UI-VISUAL-FIDELITY-1 W2）：#root 视口高 → 根容器显式 100%，
+  // frame--fill 的 height:100% 不再按 auto 父级退化为内容高度（裁切修复）。
+  const rootClass = ["v5-design v5-launcher", fill ? "v5-launcher--fill" : ""].filter(Boolean).join(" ");
   const rootState = fixture ? (fixture.greetingErrorText ? "error" : "ready") : greetingState;
   const bridgeBusy = bridgeExec?.state === "waiting";
 
@@ -463,7 +466,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
 
   return (
     <div
-      className="v5-design v5-launcher"
+      className={rootClass}
       data-launcher-root
       data-launcher-state={rootState}
       data-launcher-bridge={bridgeAvailable ? "available" : fixture ? "fixture" : "unavailable"}
@@ -472,7 +475,6 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
       <div className={frameClass} data-launcher-frame>
         <header className="v5-launcher-titlebar" data-launcher-titlebar>
           <span className="v5-launcher-titlebar-brand">Vit</span>
-          <span className="v5-launcher-titlebar-sub">启动台</span>
         </header>
         <div className="v5-launcher-body">
           <aside
@@ -509,7 +511,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
               <ul className="v5-launcher-recents" data-launcher-recents>
                 {drawerEntries.map((entry) => (
                   <li key={entry.id} className="v5-launcher-recent" data-launcher-recent>
-                    <ProjectBadge size={20} />
+                    <ProjectBadge size={24} />
                     <span>
                       <span className="v5-launcher-recent-name">{entry.name || launcherDisplayFileName(entry.filePath)}</span>
                       {entry.filePath ? <span className="v5-launcher-recent-path">{entry.filePath}</span> : null}
@@ -550,7 +552,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                 <p className="v5-launcher-greeting" data-launcher-greeting>
                   {greetingDisplayText(greeting)}
                 </p>
-                <div className="v5-launcher-thread" data-launcher-thread>
+                <div className="v5-launcher-thread" data-launcher-thread data-scroll-intentional="thread">
                   {thread.map((item, index) => {
                     if (item.kind === "user") {
                       return (

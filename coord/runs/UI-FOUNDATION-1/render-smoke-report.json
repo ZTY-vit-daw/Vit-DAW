@@ -1,6 +1,6 @@
 {
   "run": "UI-FOUNDATION-1 render smoke",
-  "date": "2026-11-14T10:50:12.818Z",
+  "date": "2026-11-14T17:26:16.773Z",
   "url": "http://127.0.0.1:5391/app/gallery.html",
   "viewport": "1440x900@1",
   "reducedMotion": "reduce",
@@ -293,10 +293,11 @@
     "inputStates": [
       "default",
       "disabled",
-      "busy"
+      "busy",
+      "default"
     ],
     "buttonVariants": [
-      12,
+      13,
       8,
       2,
       11
@@ -315,7 +316,7 @@
     "vitInIconMatrix": 7,
     "vitOutsideOsSample": 0,
     "tokenSwatches": 16,
-    "sectionCount": 12,
+    "sectionCount": 13,
     "disabledApplyButtons": 4
   },
   "textContrastMin": {
@@ -324,7 +325,7 @@
     "fg": "rgb(102,102,102)",
     "bg": "rgb(240,241,242)"
   },
-  "graphicChecks": 227,
+  "graphicChecks": 234,
   "graphicMinRatio": 4.305,
   "clipIssues": [],
   "docScrollWidth": 1440,
@@ -335,8 +336,8 @@
     "reduced-motion: busy 环 animation=none 0s running"
   ],
   "screenshots": [
-    "D:\\Vit_DAW_wt_uifnd1\\coord\\runs\\UI-FOUNDATION-1\\screens\\gallery-viewport-1440x900.png",
-    "D:\\Vit_DAW_wt_uifnd1\\coord\\runs\\UI-FOUNDATION-1\\screens\\gallery-full.png"
+    "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-FOUNDATION-1\\screens\\gallery-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-FOUNDATION-1\\screens\\gallery-full.png"
   ],
   "result": "PASS"
 }

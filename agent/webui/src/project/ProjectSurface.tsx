@@ -342,12 +342,14 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
   const composerBusy = composerState === "replying";
 
   const frameClass = ["v5-project-frame", fill ? "v5-project-frame--fill" : ""].filter(Boolean).join(" ");
+  // 根容器 fill 修饰（UI-VISUAL-FIDELITY-1 W2）：同 launcher--fill，裁切修复。
+  const rootClass = ["v5-design v5-project", fill ? "v5-project--fill" : ""].filter(Boolean).join(" ");
   const contextName = state.context?.name ?? "";
   const contextSource = state.context?.source ?? "none";
 
   return (
     <div
-      className="v5-design v5-project"
+      className={rootClass}
       data-project-root
       data-project-state={contextLoading ? "loading" : contextError ? "error" : "ready"}
       data-project-context-source={contextSource}
