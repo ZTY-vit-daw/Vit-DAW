@@ -51,5 +51,6 @@ recents 存储格式未知/写保护→取证上交候裁定。
 
 - 裁定文件：[rulings/2026-11-14-RECENTS-HYGIENE-1-pass.md](../../rulings/2026-11-14-RECENTS-HYGIENE-1-pass.md)（**pass**；主管亲证：活状态终态空数组 / VitHeadlessService.cpp:1207/1353/1475 锚点亲 grep / Settings.xml b773c82d 零漂移重算 / cleanup_report removed=10）
 - 裁定要点：①隔离双轨——b 案即刻生效（AGENTS §10 新装置纪律条款）+ a 案另卡 REC-ISOLATION-CONFIGDIR-1（池序 351，env=VIT_DAW_USER_CONFIG_DIR，fail-open，P3 候栈）；②用户 recents 重建**候用户裁定**（不擅自写用户数据），候选五项在 `$APPDATA/Vit-DAW/projects/`
+- **用户裁定（2026-11-14 晚，主管会话转达）**：recents 重建选 **b——留空自然重建**，不做一次性写入。本卡遗留项②关闭。
 - 验收 commit：工件自 port/recents-hygiene-1 合入 + 本回填同批（见 git log，coord-only）
 
