@@ -76,17 +76,22 @@ function Get-VitProcessCount {
 }
 
 function Test-PortBindable {
-    # LISTEN-state checks miss bound-but-lingering sockets (e.g. a listener
-    # with live probe connections released moments ago) - the only honest
+    # LISTEN-state checks miss bound-but-lingering sockets - the only honest
     # "next launch can bind" test is an actual bind+close probe.
+    # CRITICAL: use a RAW socket, not TcpListener - TcpListener binds in its
+    # ctor and Stop() does NOT release a never-started listener (micro-test
+    # run_full_20261115_042646 era: fixed-probe still leaked a Bound socket).
+    # Raw Socket.Close() releases instantly.
     param([int]$Port)
+    $s = $null
     try {
-        $l = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $Port)
-        $l.Start()
-        $l.Stop()
+        $s = [System.Net.Sockets.Socket]::new([System.Net.Sockets.AddressFamily]::InterNetwork, [System.Net.Sockets.SocketType]::Stream, [System.Net.Sockets.ProtocolType]::Tcp)
+        $s.Bind([System.Net.IPEndPoint]::new([System.Net.IPAddress]::Loopback, $Port))
         return $true
     } catch {
         return $false
+    } finally {
+        if ($null -ne $s) { try { $s.Close() } catch {} }
     }
 }
 
@@ -97,6 +102,28 @@ function Wait-PortsBindable {
         $all = $true
         foreach ($p in $Ports) { if (-not (Test-PortBindable -Port $p)) { $all = $false; break } }
         if ($all) { return $true }
+        Start-Sleep -Milliseconds 500
+    }
+    return $false
+}
+
+function Get-VitWebviewProcessCount {
+    # Only OUR WebView2 browser processes (shared user data dir marker), not
+    # other apps' msedgewebview2 instances.
+    $n = 0
+    $procs = Get-CimInstance Win32_Process -Filter "Name = 'msedgewebview2.exe'" -ErrorAction SilentlyContinue
+    foreach ($p in $procs) { if ($p.CommandLine -match "VitDAW") { $n++ } }
+    return $n
+}
+
+function Wait-VitWebviewGone {
+    # A browser process lingering in shutdown can poison the NEXT VitShell's
+    # WebView2 environment creation on the shared user data folder (observed
+    # as a silent pre-status death: run_full_20261115_040758 R1). Wait it out.
+    param([int]$TimeoutSec = 45)
+    $deadline = (Get-Date).AddSeconds($TimeoutSec)
+    while ((Get-Date) -lt $deadline) {
+        if ((Get-VitWebviewProcessCount) -eq 0) { return $true }
         Start-Sleep -Milliseconds 500
     }
     return $false
@@ -226,6 +253,7 @@ function Start-VitShell {
     param([string]$OutLog, [string[]]$ExtraArgs = @(), [hashtable]$ExtraEnv = @{}, [string]$AgentExePath = "")
     $LauncherUrl = "http://127.0.0.1:$AgentPort/app/?surface=launcher"
     $env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS = "--remote-debugging-port=$CdpPort"
+    $env:VIT_WEBVIEW_DEBUG = "1"
     foreach ($k in $ExtraEnv.Keys) { Set-Item -Path ("env:" + $k) -Value $ExtraEnv[$k] }
     $effectiveAgentExe = $AgentExe
     if ($AgentExePath -ne "") { $effectiveAgentExe = $AgentExePath }
@@ -243,7 +271,12 @@ function Start-VitShell {
         ) + $ExtraArgs) `
         -RedirectStandardError (Join-Path $RunRoot ($OutLog + ".stderr.log")) -PassThru -WindowStyle Hidden
     Remove-Item Env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS -ErrorAction SilentlyContinue
+    Remove-Item Env:VIT_WEBVIEW_DEBUG -ErrorAction SilentlyContinue
     Remove-Item Env:VIT_AGENT_LLM_BASE_URL -ErrorAction SilentlyContinue
+    # ExtraEnv keys MUST be scrubbed from the script process: a lingering
+    # WEBVIEW2_BROWSER_EXECUTABLE_FOLDER (F3) poisoned every later launch's
+    # runtime probe -> silent pre-status death (run_full_20261115_041804 R1).
+    foreach ($k in $ExtraEnv.Keys) { Remove-Item -Path ("env:" + $k) -ErrorAction SilentlyContinue }
     return $p
 }
 
@@ -491,6 +524,7 @@ if (-not $SkipFailureLegs) {
         Stop-TreeBestEffort -ShellPid $p.Id
         $left = Get-VitProcessCount -Names $VitProcessNames
         if ($left -ne 0) { throw "F1 teardown residue: $left Vit processes" }
+        if (-not (Wait-VitWebviewGone -TimeoutSec 45)) { Write-Note "F1: Vit WebView2 browser processes still lingering after teardown (recorded)" }
         if (-not (Wait-PortsBindable -Ports @($AgentPort, $StatusPort) -TimeoutSec 20)) { throw "F1: status/agent port not bindable after teardown (lingering bound socket)" }
         $failureResults.bad_agent_exe = "pass"
     } catch {
@@ -500,12 +534,17 @@ if (-not $SkipFailureLegs) {
     }
 
     # ---- F2: agent port occupied ----
-    Write-Step "F2 occupied-port: 7878 taken by script listener -> agent cannot bind -> error page, zero Godot"
-    $listener = $null
+    Write-Step "F2 occupied-port: 7878 taken by script socket -> agent cannot bind -> error page, zero Godot"
+    # Bound-but-NOT-listening socket: blocks the agent's bind exactly like a
+    # real port collision, but VitShell's health-poll connects get refused
+    # (no accept queue) and Close() releases instantly. A TcpListener here was
+    # lessoned by run_full_20261115_040758: pending poll connections keep the
+    # listen socket alive after Stop() for tens of seconds.
+    $occupier = $null
     try {
-        $listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $AgentPort)
-        $listener.Start()
-        if ($null -eq (Get-TcpListenerPid -Port $AgentPort)) { throw "F2 self-check: listener not visible on $AgentPort" }
+        $occupier = [System.Net.Sockets.Socket]::new([System.Net.Sockets.AddressFamily]::InterNetwork, [System.Net.Sockets.SocketType]::Stream, [System.Net.Sockets.ProtocolType]::Tcp)
+        $occupier.Bind([System.Net.IPEndPoint]::new([System.Net.IPAddress]::Loopback, $AgentPort))
+        if (Test-PortBindable -Port $AgentPort) { throw "F2 self-check: port $AgentPort still bindable (occupier not effective)" }
         $p = Start-VitShell -OutLog "f2_bridge.log" -ExtraArgs @("--agent-ready-timeout-ms", "15000", "--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB)
         $errSnap = Wait-StatusErrorPhase -StatusUrl $StatusUrl -TimeoutSec 60 -ArtifactPath (Join-Path $RunRoot "f2_status_error.json")
         Write-Note ("F2 error detail: " + $errSnap.error)
@@ -513,28 +552,28 @@ if (-not $SkipFailureLegs) {
         if ($null -eq (Get-Process -Id $p.Id -ErrorAction SilentlyContinue)) { throw "VitShell exited on occupied agent port (expected in-window error page)" }
         $f2cdp = Invoke-CdpPhase -Phase "probe-error-page" -OutFile "f2_cdp_error_page.json"
         Write-Ok "F2 pass: phase=error, in-window error page, VitShell alive, zero Godot"
-        # Release the injected listener BEFORE tearing VitShell down: lingering
-        # probe connections from VitShell's health poller must not hold the
-        # port into the next leg (run_20261115_035933 R1 lesson: agent got
-        # WSAEADDRINUSE on 7878 from a released-but-lingering listener bind).
-        $listener.Stop()
-        $listener = $null
-        if (-not (Wait-PortsBindable -Ports @($AgentPort) -TimeoutSec 20)) { throw "F2: agent port not bindable after listener release" }
-        Write-Ok "F2 listener released, agent port bindable again"
+        # Release the occupier ONLY AFTER VitShell exits: Start-Process (with
+        # the stderr redirect pipe) spawns VitShell with handle inheritance, so
+        # the child holds a duplicate of the bound socket handle and the port
+        # stays bound until the child is gone (repro_f2hold evidence: Bound
+        # entry persisted 20s+ after parent Close() while VitShell lived).
         $null = Get-HttpPost -Url "$StatusBase/close" -TimeoutSec 5
         $deadline = (Get-Date).AddSeconds(15)
         while ((Get-Date) -lt $deadline -and $null -ne (Get-Process -Id $p.Id -ErrorAction SilentlyContinue)) { Start-Sleep -Milliseconds 400 }
         Stop-TreeBestEffort -ShellPid $p.Id
+        if ($null -ne $occupier) { $occupier.Close(); $occupier = $null }
+        if (-not (Wait-PortsBindable -Ports @($AgentPort, $StatusPort) -TimeoutSec 20)) { throw "F2: status/agent port not bindable after teardown (lingering bound socket)" }
+        Write-Ok "F2 occupier released after VitShell exit; ports bindable again"
         $left = Get-VitProcessCount -Names $VitProcessNames
         if ($left -ne 0) { throw "F2 teardown residue: $left Vit processes" }
-        if (-not (Wait-PortsBindable -Ports @($AgentPort, $StatusPort) -TimeoutSec 20)) { throw "F2: status/agent port not bindable after teardown (lingering bound socket)" }
+        if (-not (Wait-VitWebviewGone -TimeoutSec 45)) { Write-Note "F2: Vit WebView2 browser processes still lingering after teardown (recorded)" }
         $failureResults.occupied_port = "pass"
     } catch {
         Stop-TreeBestEffort -ShellPid 0
         $failureResults.occupied_port = "fail: " + $_.Exception.Message
         Write-Bad "F2 FAIL: $($failureResults.occupied_port)"
     } finally {
-        if ($null -ne $listener) { $listener.Stop() }
+        if ($null -ne $occupier) { $occupier.Close() }
     }
 
     # ---- F3: WebView2 disabled ----
@@ -567,6 +606,7 @@ if (-not $SkipFailureLegs) {
         if ($null -ne (Get-Process -Id $p.Id -ErrorAction SilentlyContinue)) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue }
         $left = Get-VitProcessCount -Names $VitProcessNames
         if ($left -ne 0) { throw "F3 teardown residue: $left Vit processes" }
+        if (-not (Wait-VitWebviewGone -TimeoutSec 45)) { Write-Note "F3: Vit WebView2 browser processes still lingering after teardown (recorded)" }
     } catch {
         Stop-TreeBestEffort -ShellPid 0
         $failureResults.webview2_off = "fail: " + $_.Exception.Message
@@ -708,6 +748,9 @@ for ($round = 1; $round -le $Rounds; $round++) {
             if (-not $freed) { throw "R$round port $port still listening after teardown" }
         }
         if (-not (Wait-PortsBindable -Ports @($AgentPort, $StatusPort) -TimeoutSec 20)) { throw "R$round status/agent port not bindable after teardown (lingering bound socket)" }
+        if ($round -lt $Rounds) {
+            if (-not (Wait-VitWebviewGone -TimeoutSec 45)) { Write-Note "R${round}: Vit WebView2 browser processes still lingering (next round may hit shared-profile contention)" }
+        }
         Write-Ok "R$round teardown: zero Vit-family processes, ports released and bindable"
 
         $postHash = (Get-FileHash $FixtureSource -Algorithm SHA256).Hash
@@ -725,10 +768,33 @@ for ($round = 1; $round -le $Rounds; $round++) {
     } catch {
         $roundMeta.result = "FAIL"
         $roundMeta.error = $_.Exception.Message
+        # Failure-state evidence snapshot before teardown (read-only).
+        $diag = [ordered]@{}
+        if ($null -ne $p) {
+            $proc = Get-Process -Id $p.Id -ErrorAction SilentlyContinue
+            $diag.vitshell_alive = ($null -ne $proc)
+            if ($null -ne $proc) {
+                $diag.main_window_title = $proc.MainWindowTitle
+                $diag.threads = $proc.Threads.Count
+            } else {
+                try { $diag.exit_code = $p.ExitCode } catch { $diag.exit_code = "unavailable" }
+            }
+        }
+        $diag.vit_webview_processes = Get-VitWebviewProcessCount
+        foreach ($dport in @($AgentPort, $StatusPort)) {
+            $holders = @()
+            Get-NetTCPConnection -LocalPort $dport -ErrorAction SilentlyContinue | ForEach-Object {
+                $pn = try { (Get-Process -Id $_.OwningProcess -ErrorAction Stop).ProcessName } catch { "?" }
+                $holders += ("state=" + $_.State + " pid=" + $_.OwningProcess + " proc=" + $pn)
+            }
+            $diag["port_" + $dport] = $holders
+        }
+        $roundMeta.failure_diag = $diag
         $roundMeta.finished_at_utc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
         $roundResults += $roundMeta
-        $roundMeta | ConvertTo-Json -Depth 5 | Out-File -FilePath (Join-Path $RunRoot "meta_round_$round.json") -Encoding utf8
-        Write-Bad ("R$round FAIL: " + $_.Exception.Message + " - best-effort teardown, stopping further rounds")
+        $roundMeta | ConvertTo-Json -Depth 6 | Out-File -FilePath (Join-Path $RunRoot "meta_round_$round.json") -Encoding utf8
+        $diag | ConvertTo-Json -Depth 4 | Out-File -FilePath (Join-Path $RunRoot "r${round}_failure_diag.json") -Encoding utf8
+        Write-Bad ("R$round FAIL: " + $_.Exception.Message + " - diag=" + ($diag | ConvertTo-Json -Depth 3 -Compress))
         Stop-TreeBestEffort -ShellPid $(if ($null -ne $p) { $p.Id } else { 0 })
         Restore-S10State
         break

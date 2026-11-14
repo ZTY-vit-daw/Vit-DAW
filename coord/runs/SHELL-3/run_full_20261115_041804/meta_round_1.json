@@ -1,0 +1,8 @@
+﻿{
+    "round":  1,
+    "started_at_utc":  "2026-11-14T20:18:52Z",
+    "vitshell_pid":  13484,
+    "result":  "FAIL",
+    "error":  "timeout waiting status.phase=ready (last=unreachable)",
+    "finished_at_utc":  "2026-11-14T20:20:55Z"
+}

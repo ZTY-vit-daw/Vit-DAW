@@ -7,10 +7,13 @@
 ## 调试轮取证（不计入正式口径）
 
 - run_full_20261115_035009：装置缺陷①——status 轮询 URL 缺 `/status` 后缀（404 全程 unreachable，转写自 SHELL-2 装置时笔误）；同步发现 F1 腿重复 `--agent-exe`（解析取首者胜，坏二进制注入失效）→ 装置修（URL 修正+AgentExePath 覆盖参数）。
-- run_full_20261115_035933：装置缺陷②——F2 脚本 TcpListener 释放后 VitShell 健康探针遗留连接使 7878/7879 短暂 linger（LISTEN 态检查不可见）→ R1 agent WSAEADDRINUSE（agent_last.log 锚点）+ R1 status 端口不可绑 → 装置修（端口可绑性探针 Test/Wait-PortsBindable 进 preflight/recheck/各 teardown；F2 listener 提前释放）。
-- run_full_20261115_035009/diag_manual+repro_f1：手动诊断工件（VitShell status 契约面实证：bad-agent→phase=error t=2s；重复 flag 首者胜）。
-- run_full_20261115_040548：调试主腿 1 轮 PASS exit 0（装置终版全腿验证，含 chat 真帧：agent 确定性无 LLM 路径回包「意图分类服务本次不可用，以上直接来自工程结构事实」=真 agent 帧非客户端兜底）。
-- 两例装置缺陷均为执行侧笔误/装置设计，非 SHELL-1/2 产品缺陷；停止条件未触发。
+- run_full_20261115_035933：装置缺陷②——F2 脚本 TcpListener 释放后 VitShell 健康探针遗留连接使 7878 短暂 linger → R1 agent WSAEADDRINUSE（agent_last.log 锚点）→ 装置修（端口可绑性探针进 preflight/recheck/teardown；F2 注入改 bound-only socket）。
+- run_full_20261115_040758：装置缺陷③——**F3 的 WEBVIEW2_BROWSER_EXECUTABLE_FOLDER 注入 env 在 Start-VitShell 返回后未从脚本进程清除**→ R1 继承死目录覆盖→WebView2 runtime probe 失败→系统错误框（进程存活+零 trace+零 status=unreachable 120s）；R1 的 agent_last.log 无 boot 记录（时间窗对齐）为关键锚点 → 装置修（ExtraEnv 用后即清）。
+- run_full_20261115_041804：装置缺陷④——**Test-PortBindable 用 TcpListener：ctor 即 bind，Start() 抛错时 Stop() 不释放未启动 listener**（micro_bind.ps1 实证）→ 探针自身泄漏 Bound socket 使后续探针全失败 → 装置修（探针改 raw Socket bind+Close，Close 即时释放实证）。
+- run_full_20261115_042646：装置缺陷④修复后验证——F1/F3/R1 全过，F2 可绑性检查仍失败（缺陷④残留效应），触发探针 raw-socket 终版修复。
+- diag_manual/repro_f1/repro_port/repro_seq/repro_f2hold/repro_r1loop/micro_bind：诊断工件（VitShell status 契约面实证：bad-agent→phase=error t=2s；重复 flag 首者胜；VIT_WEBVIEW_DEBUG=1 stderr step trace 面；TcpListener Stop pending-connection 延迟释放；额外 env 生命周期）。
+- run_full_20261115_040548：调试主腿 1 轮 PASS exit 0（无失败腿场景，含 chat 真帧：agent 确定性无 LLM 路径回包「意图分类服务本次不可用，以上直接来自工程结构事实」=真 agent 帧非客户端兜底）。
+- 四例装置缺陷均为执行侧装置设计/笔误，非 SHELL-1/2 产品缺陷；停止条件未触发。
 
 ## 运行次数与成功条件
 

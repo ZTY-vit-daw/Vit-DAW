@@ -1,0 +1,15 @@
+﻿ M coord/runs/SHELL-3/parse_check.ps1
+ M scripts/vitshell_full_smoke.ps1
+?? coord/runs/SHELL-3/HANDTEST-V6.md
+?? coord/runs/SHELL-3/repro_f2hold.ps1
+?? coord/runs/SHELL-3/repro_f2hold/
+?? coord/runs/SHELL-3/repro_port.ps1
+?? coord/runs/SHELL-3/repro_port/
+?? coord/runs/SHELL-3/repro_r1loop.ps1
+?? coord/runs/SHELL-3/repro_r1loop/
+?? coord/runs/SHELL-3/repro_seq.ps1
+?? coord/runs/SHELL-3/repro_seq/
+?? coord/runs/SHELL-3/run_full_20261115_040758/
+?? coord/runs/SHELL-3/run_full_20261115_041804/
+?? coord/runs/SHELL-3/run_full_20261115_042646/
+?? coord/runs/SHELL-3/wer_check.ps1

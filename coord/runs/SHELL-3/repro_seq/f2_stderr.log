@@ -1,0 +1,16 @@
+[VitWebViewHost] step: before Create
+[VitWebViewHost] create called parent_hwnd=0x0 ready=0
+[VitWebViewHost] create using parent=0000000000000000
+[VitWebViewHost] CreateWindowExW child=00000000003D008A parent=0000000000000000 hwnd_parent_arg=0000000000000000 detached=1 composition_host=0 bounds=(0,0 2355x1324) error=0
+[VitWebViewHost] loaded WebView2Loader from D:\Godot\project\vit-daw-frontend_wt_shell3\VitShell\build\Release\WebView2Loader.dll
+[VitWebViewHost] creating environment user_data=C:\Users\timoz\AppData\Local\VitDAW\WebView2\Profiles\Shell
+[VitWebViewHost] environment callback result=0x00000000 environment=00001F8800004410
+[VitWebViewHost] creating controller controller_parent=00000000003D008A child=00000000003D008A parent=0000000000000000
+[VitWebViewHost] controller callback result=0x00000000 controller=00001F880002CF08
+[VitWebViewHost] ready=1 parent=0000000000000000 child=00000000003D008A webview=00001F8800124C00
+[VitWebViewHost] event: on_ready
+[VitWebViewHost] step: Create ok
+[VitWebViewHost] step: before status.Start
+[VitWebViewHost] step: status.Start ok
+[VitWebViewHost] step: before agent start
+[VitWebViewHost] step: agent start returned
