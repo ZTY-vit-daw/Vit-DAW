@@ -133,9 +133,10 @@ function Wait-StatusLaunchCount {
 function Invoke-CdpPhase {
     param([string]$Phase, [string]$OutFile)
     $webuiDir = Join-Path $MainRoot "agent/webui"
+    $WebuiDir = $webuiDir
     $out = Join-Path $RunRoot $OutFile
     pushd $webuiDir
-    $code = Invoke-NativeLogged -Command { node "$MainRoot/scripts/vitshell_open_chain_cdp.mjs" --cdp-port $CdpPort --phase $Phase --out $out } -LogPath ($out + ".log")
+    $code = Invoke-NativeLogged -Command { node "$MainRoot/scripts/vitshell_open_chain_cdp.mjs" --cdp-port $CdpPort --phase $Phase --out $out --webui-dir "$WebuiDir" } -LogPath ($out + ".log")
     popd
     if ($code -ne 0) { throw ("CDP phase $Phase failed (exit $code, see $OutFile.log)") }
     Write-Ok "CDP $Phase pass"

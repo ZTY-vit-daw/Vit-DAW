@@ -16,8 +16,9 @@
 // Run from agent/webui so the pinned playwright resolves:
 //   node ../../scripts/vitshell_open_chain_cdp.mjs --cdp-port 9333 --phase probe-launcher
 
-import { chromium } from "playwright";
+import { createRequire } from "node:module";
 import { writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 function arg(name, fallback = "") {
   const idx = process.argv.indexOf("--" + name);
@@ -28,6 +29,11 @@ function arg(name, fallback = "") {
 const cdpPort = arg("cdp-port", "9333");
 const phase = arg("phase", "");
 const outPath = arg("out", "");
+// Bare-specifier ESM resolution walks up from THIS script's dir (scripts/),
+// not the cwd - anchor the pinned playwright in agent/webui explicitly.
+const webuiDir = arg("webui-dir", join(process.cwd(), "agent/webui"));
+const requireFromWebui = createRequire(join(webuiDir, "package.json"));
+const { chromium } = requireFromWebui("playwright");
 
 function fail(message) {
   const verdict = { phase, ok: false, error: message };
