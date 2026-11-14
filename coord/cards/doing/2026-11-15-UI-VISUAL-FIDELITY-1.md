@@ -24,4 +24,11 @@
 
 - 定稿稿与实现结构冲突（如设计元素在 344 组件库缺失）→ 列缺口上交，不硬仿。
 
-## 领取/回执/验收：待回填
+## 领取
+
+- 时间 / origin/main hash / owner / 分支 / worktree / 领取提交：2026-11-15 晚窗 / 4685876b / freeflash（GLM-5.3 Flash）免费车道子代理 · PC · ZCode 主管会话派发 / port/ui-visual-fidelity-1 / D:/Vit_DAW_wt_uivis1 / 领取提交见本卡所在 commit
+- 领取时基线：HEAD=4685876b（origin/main 最新，345/346/347/354/355 已合入）；worktree 全新检出 status 干净、diff 空
+- 文件域冲突核对：doing 卡 LAUNCHER-ZEROFRICTION-1 仅取证腿（只读，已完成）、实施腿未领，无写入冲突；ARRLOOP/CLOSURE/WAVESHELL 均 Go/kernel 域不相交
+- 里程碑：M0 领取→M1 差距清单（GAP-LIST.md）→M2 launcher 保真→M3 project 保真+窗口裁切→M4 多分辨率烟测；进度见 `coord/runs/UI-VISUAL-FIDELITY-1/PROGRESS.md`
+
+## 回执/验收：待回填
