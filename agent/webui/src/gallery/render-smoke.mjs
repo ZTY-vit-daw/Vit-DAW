@@ -268,8 +268,10 @@ async function main() {
   // ---- 3. 对比度 / 字号 / 裁切扫描 ----
   // UI-LAUNCHER-1（345）：同一扫描函数复用于 launcher fixture 页（见 §7）；
   // gallery 页行为不变。
-  const scanFn = () =>
-    page.evaluate(() => {
+  // UI-VISUAL-FIDELITY-1：扫描函数接受目标 page 参数（多分辨率 live 形态页复用，
+  // §10）；缺省仍为 1440×900 主 page，既有断言行为不变。
+  const scanFn = (target = page) =>
+    target.evaluate(() => {
     const results = { text: [], graphics: [], tooSmall: [], clipped: [] };
 
     const parseColor = (s) => {
@@ -997,6 +999,156 @@ async function main() {
   const loadingReportPath = resolve(loadingOutDir, "render-smoke-loading-report.json");
   writeFileSync(loadingReportPath, JSON.stringify(loadingReport, null, 2), "utf-8");
 
+  // ---- 10. UI-VISUAL-FIDELITY-1：多分辨率 live 形态渲染断言 ----
+  // 背景：宿主窗口尺寸=96%/94% 夹取+用户 DPI（agent_chat_window.gd，SHELL 域移交）；
+  // webui 侧承诺=窗口尺寸不确定时不裁切、输入区/建议始终可达、线程内滚动兜底。
+  // 视口组：1440×900@1（样图基准）/ 1920×1080@1 / 1536×864@1.25（Windows 125%
+  // 缩放等价）/ 1280×720@1.5（Windows 150% 缩放等价）。
+  // 断言面（每视口 × launcher-live / project-live）：①文档无横向溢出 ②无未声明
+  // 裁切容器 ③输入框 bounding rect 在视口内（launcher 另含首条建议卡）④正文对比度
+  // /最小字号扫描 ⑤零外部请求 ⑥fixture 标注在卷（surface root data-fixture）。
+  // 工件：coord/runs/UI-VISUAL-FIDELITY-1/{render-smoke-fidelity-report.json, screens/}。
+  // 既有 344/345/346/347 断言与工件路径不变。
+  const fidelityOutDir = resolve(repoRoot, "coord/runs/UI-VISUAL-FIDELITY-1");
+  const fidelityScreensDir = resolve(fidelityOutDir, "screens");
+  mkdirSync(fidelityScreensDir, { recursive: true });
+  const fidelityViewports = [
+    { label: "1440x900@1", width: 1440, height: 900, deviceScaleFactor: 1 },
+    { label: "1920x1080@1", width: 1920, height: 1080, deviceScaleFactor: 1 },
+    { label: "1536x864@1.25", width: 1536, height: 864, deviceScaleFactor: 1.25 },
+    { label: "1280x720@1.5", width: 1280, height: 720, deviceScaleFactor: 1.5 },
+  ];
+  const fidelitySurfaces = [
+    {
+      key: "launcher-live",
+      url: `${galleryUrl}?surface=launcher-live`,
+      waitSelector: "[data-launcher-root]",
+      fixtureAttr: '[data-fixture="launcher-surface"]',
+      visibilitySelectors: ["[data-launcher-input] input", "[data-launcher-suggestion]"],
+    },
+    {
+      key: "project-live",
+      url: `${galleryUrl}?surface=project-live`,
+      waitSelector: "[data-project-root]",
+      fixtureAttr: '[data-fixture="project-surface"]',
+      visibilitySelectors: ["[data-project-composer] input"],
+    },
+  ];
+  const fidelityFailures = [];
+  const fidelityResults = [];
+  for (const vp of fidelityViewports) {
+    const vpContext = await browser.newContext({
+      viewport: { width: vp.width, height: vp.height },
+      deviceScaleFactor: vp.deviceScaleFactor,
+      reducedMotion: "reduce",
+    });
+    const vpPage = await vpContext.newPage();
+    const vpRequests = [];
+    vpPage.on("request", (r) => vpRequests.push(r.url()));
+    for (const surf of fidelitySurfaces) {
+      const surfFailures = [];
+      vpRequests.length = 0;
+      await vpPage.goto(surf.url, { waitUntil: "networkidle" });
+      await vpPage.waitForSelector(surf.waitSelector);
+      await vpPage.waitForTimeout(200);
+      const vpOrigin = new URL(vpPage.url()).origin;
+      const vpExternal = vpRequests.filter((u) => {
+        if (u.startsWith("data:") || u.startsWith("blob:")) return false;
+        return !u.startsWith(vpOrigin);
+      });
+
+      // ①文档横向溢出 ②裁切容器 ④对比度/字号（同一扫描函数，live 形态页）
+      const fscan = await scanFn(vpPage);
+      if (fscan.docScrollWidth > vp.width) {
+        surfFailures.push(`docScrollWidth=${fscan.docScrollWidth} > ${vp.width}`);
+      }
+      if (fscan.clipped.length > 0) {
+        surfFailures.push(`clip=${JSON.stringify(fscan.clipped.slice(0, 4))}`);
+      }
+      if (fscan.text.length > 0) {
+        surfFailures.push(`contrast=${JSON.stringify(fscan.text.slice(0, 4))}`);
+      }
+      if (fscan.tooSmall.length > 0) {
+        surfFailures.push(`tooSmall=${JSON.stringify(fscan.tooSmall.slice(0, 4))}`);
+      }
+      if (vpExternal.length > 0) {
+        surfFailures.push(`external=${JSON.stringify(vpExternal.slice(0, 4))}`);
+      }
+
+      // ③关键控件在视口内 + ⑥fixture 标注（surface root）
+      const vis = await vpPage.evaluate(
+        (sels) => {
+          const rectOf = (sel) => {
+            const el = document.querySelector(sel);
+            if (!el) return null;
+            const r = el.getBoundingClientRect();
+            return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
+          };
+          return {
+            fixtureMarked: !!document.querySelector('[data-gallery-page]') &&
+              !!document.querySelector(sels.fixtureAttr),
+            rects: sels.visibilitySelectors.map((sel) => ({ sel, rect: rectOf(sel) })),
+            vw: window.innerWidth,
+            vh: window.innerHeight,
+          };
+        },
+        { fixtureAttr: surf.fixtureAttr, visibilitySelectors: surf.visibilitySelectors }
+      );
+      if (!vis.fixtureMarked) surfFailures.push("fixture 标注缺失（surface root data-fixture）");
+      for (const { sel, rect } of vis.rects) {
+        if (!rect) {
+          surfFailures.push(`viewport 可见性：${sel} 不在 DOM`);
+          continue;
+        }
+        const inside =
+          rect.top >= -1 && rect.bottom <= vis.vh + 1 && rect.left >= -1 && rect.right <= vis.vw + 1;
+        if (!inside) {
+          surfFailures.push(
+            `viewport 可见性：${sel} rect=${JSON.stringify(rect)} 超出 ${vis.vw}x${vis.vh}`
+          );
+        }
+      }
+
+      // 截图（每视口 × surface 一张）
+      const shot = resolve(fidelityScreensDir, `fidelity-${surf.key}-${vp.label.replace(/[.@]/g, "")}.png`);
+      await vpPage.screenshot({ path: shot, type: "png" });
+
+      for (const f of surfFailures) {
+        fidelityFailures.push(`FIDELITY[${surf.key} @ ${vp.label}]: ${f}`);
+      }
+      fidelityResults.push({
+        surface: surf.key,
+        viewport: vp.label,
+        docScrollWidth: fscan.docScrollWidth,
+        clipIssues: fscan.clipped,
+        textContrastMin: fscan.textMin,
+        tooSmall: fscan.tooSmall,
+        externalRequests: vpExternal,
+        visibilityRects: vis.rects,
+        screenshot: shot,
+        failures: surfFailures,
+        result: surfFailures.length === 0 ? "PASS" : "FAIL",
+      });
+    }
+    await vpContext.close();
+  }
+  const fidelityReport = {
+    run: "UI-VISUAL-FIDELITY-1 multi-resolution fidelity smoke",
+    date: new Date().toISOString(),
+    viewports: fidelityViewports,
+    surfaces: fidelitySurfaces.map((s) => s.key),
+    results: fidelityResults,
+    screenshotsDir: fidelityScreensDir,
+    foundationReport: reportPath,
+    launcherReport: launcherReportPath,
+    projectReport: projectReportPath,
+    loadingReport: loadingReportPath,
+    failures: fidelityFailures,
+    result: fidelityFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const fidelityReportPath = resolve(fidelityOutDir, "render-smoke-fidelity-report.json");
+  writeFileSync(fidelityReportPath, JSON.stringify(fidelityReport, null, 2), "utf-8");
+
   await browser.close();
   await server.close();
 
@@ -1012,7 +1164,9 @@ async function main() {
   console.log(`[test:render] PROJECT_RESULT=${projectReport.result}`);
   console.log(`[test:render] loadingReport=${loadingReportPath}`);
   console.log(`[test:render] LOADING_RESULT=${loadingReport.result}`);
-  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures];
+  console.log(`[test:render] fidelityReport=${fidelityReportPath}`);
+  console.log(`[test:render] FIDELITY_RESULT=${fidelityReport.result}`);
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);

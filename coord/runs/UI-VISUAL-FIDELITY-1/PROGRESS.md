@@ -1,3 +1,9 @@
-# UI-VISUAL-FIDELITY-1 PROGRESS
-
-- M0 (2026-11-15 晚窗): 领取。origin/main=4685876b, worktree=D:/Vit_DAW_wt_uivis1 (port/ui-visual-fidelity-1)。npm install 进行中。下一步=M1 差距清单。
+- M1 进行中 (2026-11-15 晚窗): 定稿稿与实现已通读（SPEC-V5/IMPLEMENTATION-HANDOFF/p1,p3.png/mondrian-v2 vs launcher.css/project.css/LauncherSurface/ProjectSurface/344 components.css）。宿主裁切锚点已定位: agent_chat_window.gd _initial_window_size() 96%/94% 夹取（screen_get_size 无 DPI/工作区修正）→ SHELL 域移交项。
+- 下一条命令: cd agent/webui && npm run test:render（基线截图，工件落 coord/runs/UI-{FOUNDATION,LAUNCHER,PROJECT,LOADING}-1/ 旧路径）——断后人若见工件时间晚于本行即可跳过重跑。
+- M1 完成 (2026-11-15 晚窗): GAP-LIST.md 落盘（launcher L1-L11 / project P1-P10 / 裁切 W1-W2 / 多分辨率 D 节；本卡修 12 项+缺口上交 8 项+移交 SHELL 1 项）。基线 test:render 四报告全 PASS。
+- 下一步 M2: launcher.css + LauncherSurface.tsx 视觉修复（L1 28px 问候/L2 建议卡/L3 抽屉卡/L4 消息对齐/L5 圆角纪律/L6 标题栏/L7 响应式）。
+- M2+M3 完成 (2026-11-15 晚窗): 修复落地——launcher.css（L1 28px 问候/L2 蓝壳建议卡 4px 角两列网格/L3 抽屉卡 14/600+mono path/L4 消息对齐区分/L5 圆角纪律/L6 标题栏去副标签/L7 矮窄视口紧凑档）、project.css（P1 用户消息 surface 层覆盖→S5 右对齐无色块/P2 A/B 行平铺/P9 窗框 8px/W2 矮视口档）、LauncherSurface.tsx（badge 24/去 titlebar 副标签/线程 data-scroll-intentional）、ProjectSurface.tsx（fill 根类）。
+- W2 裁切根因（webui 侧半边）实证：#root 高度 100% 但 surface 根容器 auto 高 → frame--fill height:100% 退化成内容高度 → 线程变长后输入区被推出视口且 body overflow:hidden 无滚动路径。修复=launcher--fill/project--fill/loading-gate 高度链 + gallery live fixture 页 100vh。多分辨率断言首跑曾抓到 composer top=916>900 视口的实锤，修复后 8/8 PASS。
+- M4 完成: render-smoke §10 多分辨率保真断言（1440×900@1 / 1920×1080@1 / 1536×864@1.25 / 1280×720@1.5 × launcher-live/project-live）：docScrollWidth/裁切/对比度/字号/关键控件视口内/fixture 标注/零外网；新增 gallery.html?surface=launcher-live|project-live fixture+fill 渲染页。
+- 三门终态: npm test 563/563 PASS；npm run build exit 0；npm run test:render 五段全 PASS（foundation/launcher/project/loading/fidelity），fidelity 8/8 PASS，工件 coord/runs/UI-VISUAL-FIDELITY-1/{render-smoke-fidelity-report.json, screens/×8}。
+- 下一步收口: 卡面回填 + git mv doing→done + coord-only 推送（实现留 port/ui-visual-fidelity-1 待主管验收）。

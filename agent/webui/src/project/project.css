@@ -9,12 +9,29 @@
  * （344 已裁）；选中 2px 墨框 + 外环（primitives 内置）。
  * 对比度红线（UI-FOUNDATION-1 同款）：正文 ≥4.5:1、图形 ≥3:1、最小字号 13px。
  * 纪律：不改 styles.css 业务规则；本文件只服务 project surface。
+ *
+ * UI-VISUAL-FIDELITY-1 保真修订（对照 design/main-window-v5/screens/{p3,s5}.png +
+ * SPEC-V5 §8.1；差距清单 coord/runs/UI-VISUAL-FIDELITY-1/GAP-LIST.md）：
+ * P1 用户消息=surface 层覆盖 344 Message 默认气泡 → S5 定稿语言（右对齐无色块，
+ * §8.1 对齐区分；344 原语文件不动，原语默认差异另列缺口上交）；P2 A/B 行平铺
+ * 工作面（去卡底，P3 定稿）；P9 窗框 8px 角；W2 矮视口紧凑档。
  */
 
 .v5-project {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* live 撑满（UI-VISUAL-FIDELITY-1 W2 裁切修复，同 launcher--fill）：根容器显式视口高，
+ * frame--fill 才能真正撑满；装载门 .v5-loading-gate 同步 100%（live 下父级=#root，
+ * gallery 样例内父级高度 auto → 百分比解析回 auto，样例布局不受影响）。 */
+.v5-project--fill {
+  height: 100%;
+}
+
+.v5-loading-gate {
+  height: 100%;
 }
 
 /* 窗框：gallery 样例默认 640px 高；live surface 用 --fill 撑满视口（P3 58–62% 宽
@@ -28,7 +45,7 @@
   margin: 0 auto;
   background: var(--v5-read-bg);
   border: 1px solid var(--v5-window-edge);
-  border-radius: 10px;
+  border-radius: 8px;
   box-shadow: var(--v5-shadow-window);
   overflow: hidden;
 }
@@ -106,12 +123,23 @@
   overflow-y: auto;
 }
 
-/* 线程内的复合控件统一左对齐限宽（对话流行宽约 36 汉字语义） */
+/* 线程内的复合控件统一左对齐限宽（对话流行宽约 36 汉字语义）。
+ * 用户消息例外（P1 保真）：S5 定稿=用户消息右对齐无色块（§8.1 对齐区分）——
+ * 344 Message 原语默认 canvas 气泡，此处仅 surface 层覆盖，344 文件不动。 */
 .v5-project-thread .v5-macro,
 .v5-project-thread .v5-status-card,
 .v5-project-ab {
   align-self: flex-start;
   width: min(680px, 100%);
+}
+
+.v5-project-thread .v5-message--user {
+  align-self: flex-end;
+  width: min(36em, 100%);
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  text-align: right;
 }
 
 .v5-project-traj-idle {
@@ -122,16 +150,16 @@
   color: var(--v5-ui-muted);
 }
 
-/* ---------- A/B 动作行（不另起大卡；后果语义由状态图标 + 词表达） ---------- */
+/* ---------- A/B 动作行（P2 保真：平铺在工作面上，无卡底；后果语义由状态图标 + 词表达） ---------- */
 
 .v5-project-ab {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  padding: 10px 12px;
-  background: var(--v5-read-bg);
-  border-radius: 8px;
+  padding: 2px 0;
+  background: transparent;
+  border-radius: 0;
 }
 
 .v5-project-ab-label {
@@ -196,4 +224,14 @@
 .v5-gal-root [data-project-sample] .v5-project-frame {
   height: auto;
   min-height: 320px;
+}
+
+/* ---------- 矮视口紧凑档（UI-VISUAL-FIDELITY-1 W2）：宿主 96%/94% 夹取+125-150% DPI
+ * 下窗高受限——收紧留白；线程 overflow-y:auto（data-scroll-intentional）兜底滚动。 */
+
+@media (max-height: 720px) {
+  .v5-project-main {
+    padding: 12px 16px;
+    gap: 8px;
+  }
 }

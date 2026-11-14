@@ -6,12 +6,27 @@
  * .v5-design 作用域——launcher 根节点同时挂 .v5-design 与 .v5-launcher。
  * 对比度红线（UI-FOUNDATION-1 同款）：正文 ≥4.5:1、图形 ≥3:1、最小字号 13px。
  * 纪律：不改 styles.css 业务规则；本文件只服务 launcher surface。
+ *
+ * UI-VISUAL-FIDELITY-1 保真修订（对照 design/main-window-v5/screens/p1.png +
+ * SPEC-V5 §5.3/§6 + s5.png 消息板；差距清单 coord/runs/UI-VISUAL-FIDELITY-1/GAP-LIST.md）：
+ * L1 问候=屏级标题 28px；L2 建议区=蓝壳动作卡 4px 角（§5.3 禁胶囊）；L3 抽屉工程卡
+ * 14/600+mono path；L4 消息=对齐区分（S5：user 右 / Vit 左，无色块）；L5 圆角纪律
+ * 4px（窗框 8px）；L6 标题栏仅 Vit；L7 矮/窄视口紧凑档（96%/94% 夹取+125-150% DPI
+ * 宿主裁切的 webui 侧缓解，尺寸策略不动功能语义）。
  */
 
 .v5-launcher {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* live 撑满（UI-VISUAL-FIDELITY-1 W2 裁切修复）：#root 高度=视口，但根容器原为
+ * auto 高——frame--fill 的 height:100% 按 auto 父级解析退化成内容高度，线程变长后
+ * 输入区被推出视口底部且 body overflow:hidden 无滚动路径（「窗口显示不全」根因候选
+ * 的 webui 侧半边）。根容器显式 100% 后 frame 撑满视口，线程 overflow-y:auto 兜底。 */
+.v5-launcher--fill {
+  height: 100%;
 }
 
 /* 窗框：gallery 样例默认 620px 高；live surface 用 --fill 撑满视口 */
@@ -22,7 +37,7 @@
   min-height: 0;
   background: var(--v5-read-bg);
   border: 1px solid var(--v5-window-edge);
-  border-radius: 10px;
+  border-radius: 8px;
   box-shadow: var(--v5-shadow-window);
   overflow: hidden;
 }
@@ -52,11 +67,6 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   color: var(--v5-ui-text);
-}
-
-.v5-launcher-titlebar-sub {
-  font-size: 13px;
-  color: var(--v5-ui-muted);
 }
 
 /* ---------- 主体两栏：左抽屉 + 右主列 ---------- */
@@ -111,17 +121,17 @@
 .v5-launcher-recent {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
-  padding: 8px 10px;
+  padding: 10px 12px;
   text-align: left;
   background: var(--v5-read-bg);
   border: 1px solid var(--v5-ui-border);
-  border-radius: 6px;
+  border-radius: var(--v5-radius-control);
 }
 
 .v5-launcher-recent-name {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--v5-ui-text);
   overflow-wrap: anywhere;
@@ -129,7 +139,7 @@
 
 .v5-launcher-recent-path {
   display: block;
-  font-size: 13px;
+  font: 400 13px / 1.5 var(--v5-font-mono);
   color: var(--v5-ui-weak);
   overflow-wrap: anywhere;
 }
@@ -164,10 +174,11 @@
 }
 
 .v5-launcher-greeting {
-  font-size: 18px;
+  max-width: 720px; /* 屏级标题量宽约束（对齐建议/消息 640–720 量宽语言） */
+  font-size: var(--v5-t-screen);
   font-weight: 700;
   color: var(--v5-ui-text);
-  line-height: 1.5;
+  line-height: 1.3;
 }
 
 .v5-launcher-greeting-status {
@@ -200,29 +211,30 @@
   overflow-y: auto;
 }
 
+/* 消息（UI-VISUAL-FIDELITY-1 L4）：S5 消息板语言——只靠对齐区分（用户右 / Vit 左），
+ * 不加色块徽章；正文 16px（SPEC §6 对话消息）。 */
 .v5-launcher-msg {
   max-width: 640px;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  line-height: 1.6;
+  padding: 0;
+  font-size: var(--v5-t-body);
+  line-height: 1.65;
   color: var(--v5-ui-text);
-  background: var(--v5-read-bg);
-  border: 1px solid var(--v5-ui-rule);
+  background: transparent;
+  border: none;
   overflow-wrap: anywhere;
 }
 
 .v5-launcher-msg--user {
   align-self: flex-end;
-  background: var(--v5-control-shell-light);
-  border-color: var(--v5-control-well-edge);
+  text-align: right;
 }
 
 .v5-launcher-msg--assistant {
   align-self: flex-start;
 }
 
-/* 结果卡（project_result_cards 数据展示，可点选但只切换占位态，不执行） */
+/* 结果卡（project_result_cards 数据展示，可点选但只切换占位态，不执行）。
+ * 卡面语言对齐抽屉工程卡（L3）：1px 边 4px 角、名 14/600、path mono。 */
 .v5-launcher-cards {
   display: flex;
   flex-direction: column;
@@ -238,7 +250,7 @@
   padding: 9px 12px;
   background: var(--v5-read-bg);
   border: 1px solid var(--v5-ui-border);
-  border-radius: 8px;
+  border-radius: var(--v5-radius-control);
   text-align: left;
   width: 100%;
 }
@@ -252,7 +264,7 @@
 
 .v5-launcher-card-path {
   display: block;
-  font-size: 13px;
+  font: 400 13px / 1.5 var(--v5-font-mono);
   color: var(--v5-ui-weak);
   overflow-wrap: anywhere;
 }
@@ -264,7 +276,7 @@
   padding: 12px 14px;
   background: var(--v5-attention-shell);
   border: 1px solid var(--v5-attention-edge);
-  border-radius: 8px;
+  border-radius: var(--v5-radius-control);
 }
 
 .v5-launcher-directive-headline {
@@ -289,31 +301,37 @@
   line-height: 1.5;
 }
 
-/* ---------- 建议 chips ---------- */
+/* ---------- 建议动作卡（UI-VISUAL-FIDELITY-1 L2：P1 定稿语言——蓝壳底、1px 蓝灰边、
+ * 4px 角、约两列网格；SPEC §5.3 禁胶囊形。悬停=底色加深一级（§4.3）。） ---------- */
 
 .v5-launcher-suggestions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  /* min(240px, 100%)：容器窄于 240px 时轨道取容器宽，建议卡永不横向溢出 */
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 10px;
   margin: 0;
   padding: 0;
   list-style: none;
+  max-width: 640px;
 }
 
 .v5-launcher-suggestion {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  background: var(--v5-read-bg);
-  border: 1px solid var(--v5-ui-border);
-  border-radius: 999px;
-  font-size: 13px;
+  gap: 8px;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 10px 14px;
+  background: var(--v5-control-shell);
+  border: 1px solid var(--v5-control-shell-edge);
+  border-radius: var(--v5-radius-control);
+  font-size: var(--v5-t-secondary);
+  font-weight: 600;
   color: var(--v5-ui-text);
 }
 
 .v5-launcher-suggestion:hover {
-  border-color: var(--v5-ui-text);
+  background: var(--v5-control-shell-raised);
 }
 
 /* ---------- 输入区 ---------- */
@@ -367,7 +385,7 @@
   padding: 8px 12px;
   background: var(--v5-ui-plate);
   border: 1px solid var(--v5-ui-border);
-  border-radius: 10px;
+  border-radius: var(--v5-radius-control);
   font-size: 13px;
 }
 
@@ -391,4 +409,53 @@
 
 .v5-launcher-bridge-exec-message {
   color: var(--v5-ui-muted);
+}
+
+/* ---------- 响应式紧凑档（UI-VISUAL-FIDELITY-1 L7 / W2） ----------
+ * 宿主窗口尺寸由 96%/94% 夹取+用户 DPI 决定（agent_chat_window.gd，SHELL 域）；
+ * webui 侧保证窄窗/矮窗下不裁切：窄窗收窄抽屉，矮窗收紧留白并把屏级标题降档，
+ * 线程仍由 .v5-launcher-thread overflow-y:auto 内部滚动兜底。 */
+
+@media (max-width: 900px) {
+  .v5-launcher-drawer {
+    width: 220px;
+    flex: 0 0 220px;
+    padding: 10px;
+  }
+
+  .v5-launcher-main {
+    padding: 16px 16px 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .v5-launcher-recent-path {
+    display: none; /* 窄窗只留工程名，路径信息随宽度恢复 */
+  }
+}
+
+@media (max-height: 720px) {
+  .v5-launcher-main {
+    padding-top: 12px;
+    gap: 10px;
+  }
+
+  .v5-launcher-greeting {
+    font-size: 22px; /* 矮窗降档保层级，宽窗恢复 28px 屏级标题 */
+  }
+
+  .v5-launcher-thread {
+    gap: 8px;
+  }
+
+  .v5-launcher-suggestions {
+    gap: 8px;
+  }
+}
+
+@media (max-height: 560px) {
+  .v5-launcher-greeting {
+    font-size: 18px;
+    line-height: 1.4;
+  }
 }

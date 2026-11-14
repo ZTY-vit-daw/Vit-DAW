@@ -928,12 +928,61 @@ function LoadingFixturePage() {
   );
 }
 
+/**
+ * UI-VISUAL-FIDELITY-1 live 形态 fixture 渲染页（gallery.html?surface=launcher-live /
+ * project-live）：与 live surface 完全相同的 fill 布局（撑满视口、无边框窗框），
+ * 数据仍为离线 fixture（surface root 自带 data-fixture 标注）——渲染烟测多分辨率
+ * 断言（1440×900 / 1920×1080 / 125% / 150% 缩放等价视口）用它验证宿主窗口尺寸
+ * 不确定时不裁切、输入区/建议始终可达。
+ */
+function LauncherLiveFixturePage() {
+  return (
+    <div className="v5-live-fixture" data-gallery-page="launcher-live">
+      <DesignSprite />
+      <LauncherSurface
+        fill
+        fixture={{
+          greeting: LAUNCHER_FIXTURE_GREETING,
+          drawerState: "ready",
+          drawerEntries: LAUNCHER_FIXTURE_CARDS,
+          thread: LAUNCHER_FIXTURE_THREAD
+        }}
+      />
+    </div>
+  );
+}
+
+function ProjectLiveFixturePage() {
+  return (
+    <div className="v5-live-fixture" data-gallery-page="project-live">
+      <DesignSprite />
+      <ProjectSurface
+        fill
+        fixture={{
+          context: PROJECT_FIXTURE_CONTEXT,
+          thread: PROJECT_FIXTURE_THREAD,
+          service: createProjectFixtureService({
+            context: PROJECT_FIXTURE_CONTEXT,
+            applyOutcome: {
+              ok: true,
+              snapshotRef: "fixture-snapshot-live-interactive",
+              time: "14:07"
+            }
+          })
+        }}
+      />
+    </div>
+  );
+}
+
 const root = document.getElementById("gallery-root");
 if (root) {
   const surfaceParam = new URLSearchParams(window.location.search).get("surface")?.toLowerCase();
   const launcherFixturePage = surfaceParam === "launcher";
   const projectFixturePage = surfaceParam === "project";
   const loadingFixturePage = surfaceParam === "loading";
+  const launcherLiveFixturePage = surfaceParam === "launcher-live";
+  const projectLiveFixturePage = surfaceParam === "project-live";
   createRoot(root).render(
     <StrictMode>
       {launcherFixturePage ? (
@@ -942,6 +991,10 @@ if (root) {
         <ProjectFixturePage />
       ) : loadingFixturePage ? (
         <LoadingFixturePage />
+      ) : launcherLiveFixturePage ? (
+        <LauncherLiveFixturePage />
+      ) : projectLiveFixturePage ? (
+        <ProjectLiveFixturePage />
       ) : (
         <Gallery />
       )}

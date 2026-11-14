@@ -1,6 +1,6 @@
 {
   "run": "UI-LOADING-1 loading render smoke",
-  "date": "2026-11-14T13:46:04.910Z",
+  "date": "2026-11-14T17:26:19.473Z",
   "url": "http://127.0.0.1:5391/app/gallery.html?surface=loading",
   "viewport": "1440x900@1",
   "reducedMotion": "reduce",
@@ -74,11 +74,11 @@
     "loadingUrl=http://127.0.0.1:5391/app/gallery.html?surface=loading"
   ],
   "screenshots": [
-    "D:\\Vit_DAW_wt_uiload1\\coord\\runs\\UI-LOADING-1\\screens\\loading-viewport-1440x900.png",
-    "D:\\Vit_DAW_wt_uiload1\\coord\\runs\\UI-LOADING-1\\screens\\loading-full.png"
+    "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-LOADING-1\\screens\\loading-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-LOADING-1\\screens\\loading-full.png"
   ],
-  "foundationReport": "D:\\Vit_DAW_wt_uiload1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
-  "launcherReport": "D:\\Vit_DAW_wt_uiload1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
-  "projectReport": "D:\\Vit_DAW_wt_uiload1\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
+  "foundationReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+  "launcherReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+  "projectReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
   "result": "PASS"
 }

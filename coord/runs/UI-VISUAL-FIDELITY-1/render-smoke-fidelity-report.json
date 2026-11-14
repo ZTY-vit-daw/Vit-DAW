@@ -1,0 +1,303 @@
+{
+  "run": "UI-VISUAL-FIDELITY-1 multi-resolution fidelity smoke",
+  "date": "2026-11-14T17:26:26.160Z",
+  "viewports": [
+    {
+      "label": "1440x900@1",
+      "width": 1440,
+      "height": 900,
+      "deviceScaleFactor": 1
+    },
+    {
+      "label": "1920x1080@1",
+      "width": 1920,
+      "height": 1080,
+      "deviceScaleFactor": 1
+    },
+    {
+      "label": "1536x864@1.25",
+      "width": 1536,
+      "height": 864,
+      "deviceScaleFactor": 1.25
+    },
+    {
+      "label": "1280x720@1.5",
+      "width": 1280,
+      "height": 720,
+      "deviceScaleFactor": 1.5
+    }
+  ],
+  "surfaces": [
+    "launcher-live",
+    "project-live"
+  ],
+  "results": [
+    {
+      "surface": "launcher-live",
+      "viewport": "1440x900@1",
+      "docScrollWidth": 1440,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "D:/design-fixtures/示例工程甲",
+        "ratio": 5.742,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(255,255,255)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-launcher-input] input",
+          "rect": {
+            "top": 838.609375,
+            "bottom": 877,
+            "left": 317,
+            "right": 977
+          }
+        },
+        {
+          "sel": "[data-launcher-suggestion]",
+          "rect": {
+            "top": 712.828125,
+            "bottom": 761.21875,
+            "left": 304,
+            "right": 619
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1440x9001.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "surface": "project-live",
+      "viewport": "1440x900@1",
+      "docScrollWidth": 1440,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "14:07",
+        "ratio": 5.077,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(240,241,242)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-project-composer] input",
+          "rect": {
+            "top": 838.609375,
+            "bottom": 877,
+            "left": 33,
+            "right": 693
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1440x9001.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "surface": "launcher-live",
+      "viewport": "1920x1080@1",
+      "docScrollWidth": 1920,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "D:/design-fixtures/示例工程甲",
+        "ratio": 5.742,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(255,255,255)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-launcher-input] input",
+          "rect": {
+            "top": 1018.609375,
+            "bottom": 1057,
+            "left": 317,
+            "right": 977
+          }
+        },
+        {
+          "sel": "[data-launcher-suggestion]",
+          "rect": {
+            "top": 892.828125,
+            "bottom": 941.21875,
+            "left": 304,
+            "right": 619
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1920x10801.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "surface": "project-live",
+      "viewport": "1920x1080@1",
+      "docScrollWidth": 1920,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "14:07",
+        "ratio": 5.077,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(240,241,242)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-project-composer] input",
+          "rect": {
+            "top": 1018.609375,
+            "bottom": 1057,
+            "left": 33,
+            "right": 693
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1920x10801.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "surface": "launcher-live",
+      "viewport": "1536x864@1.25",
+      "docScrollWidth": 1536,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "D:/design-fixtures/示例工程甲",
+        "ratio": 5.742,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(255,255,255)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-launcher-input] input",
+          "rect": {
+            "top": 802.609375,
+            "bottom": 841,
+            "left": 317,
+            "right": 977
+          }
+        },
+        {
+          "sel": "[data-launcher-suggestion]",
+          "rect": {
+            "top": 676.828125,
+            "bottom": 725.21875,
+            "left": 304,
+            "right": 619
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1536x864125.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "surface": "project-live",
+      "viewport": "1536x864@1.25",
+      "docScrollWidth": 1536,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "14:07",
+        "ratio": 5.077,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(240,241,242)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-project-composer] input",
+          "rect": {
+            "top": 802.609375,
+            "bottom": 841,
+            "left": 33,
+            "right": 693
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1536x864125.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "surface": "launcher-live",
+      "viewport": "1280x720@1.5",
+      "docScrollWidth": 1280,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "D:/design-fixtures/示例工程甲",
+        "ratio": 5.742,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(255,255,255)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-launcher-input] input",
+          "rect": {
+            "top": 658.609375,
+            "bottom": 697,
+            "left": 317,
+            "right": 977
+          }
+        },
+        {
+          "sel": "[data-launcher-suggestion]",
+          "rect": {
+            "top": 536.828125,
+            "bottom": 585.21875,
+            "left": 304,
+            "right": 620
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-launcher-live-1280x72015.png",
+      "failures": [],
+      "result": "PASS"
+    },
+    {
+      "surface": "project-live",
+      "viewport": "1280x720@1.5",
+      "docScrollWidth": 1280,
+      "clipIssues": [],
+      "textContrastMin": {
+        "text": "14:07",
+        "ratio": 5.077,
+        "fg": "rgb(102,102,102)",
+        "bg": "rgb(240,241,242)"
+      },
+      "tooSmall": [],
+      "externalRequests": [],
+      "visibilityRects": [
+        {
+          "sel": "[data-project-composer] input",
+          "rect": {
+            "top": 662.609375,
+            "bottom": 701,
+            "left": 29,
+            "right": 689
+          }
+        }
+      ],
+      "screenshot": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens\\fidelity-project-live-1280x72015.png",
+      "failures": [],
+      "result": "PASS"
+    }
+  ],
+  "screenshotsDir": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\screens",
+  "foundationReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+  "launcherReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+  "projectReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
+  "loadingReport": "D:\\Vit_DAW_wt_uivis1\\coord\\runs\\UI-LOADING-1\\render-smoke-loading-report.json",
+  "failures": [],
+  "result": "PASS"
+}
