@@ -119,3 +119,19 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 337 | LAUNCHER-CHAT-BE-1 | done 已验收 pass 合入（软动词分级+三分支+authority 三红线；契约增量对齐进 336/339） |
 | 338 | LAUNCHER-BRIDGE-BE-1 | done 已验收 pass 合入（context_flow 三态+volume_switch+桥接两分支 315 承接零重写；跨工程路由登记候选） |
 | 339 | LAUNCHER-SMOKE-1 | done 已验收 pass（装置+腿3 降级 exit 0+greeting 真栈全契约；**腿1/2 结构性门关取证→340 修复卡**：337 uuid 判据真栈不可达双层证据） |
+
+### 主窗口 v5.1 UI 实施（2026-11-14 发卡，343–349）
+
+| 池序 | 卡 ID | 状态 |
+|---|---|---|
+| 343 | UI-HOST-1 | todo 可领 P0（AgentChatWindow autoload + 启动即建 React 窗 + 跨 start_page→dock 存活；真实栈单 owner；依赖 R0 报告） |
+| 344 | UI-FOUNDATION-1 | todo 可领 P0/P1（v5.1 令牌/23 icon/组件基座 + 浏览器渲染烟测；**无需真栈，可 6pm 起**） |
+| 345 | UI-LAUNCHER-1 | todo P1（P1 启动台 surface；依赖 344；App.tsx surface 分发由本卡持有） |
+| 346 | UI-PROJECT-1 | todo P1（P3 工程内主窗；依赖 344+345） |
+| 347 | UI-LOADING-1 | todo P1（P2 装载生命周期；依赖 346） |
+| 348 | UI-BRIDGE-1 | todo P0/P1（React launcher → Godot open/new/治理/原生对话框；依赖 343+345；真实栈） |
+| 349 | UI-OS-1 | todo P2（P4 最小化/任务栏/通知；依赖 343；真实栈/OS） |
+
+- 推荐起手：**343 ∥ 344**（Godot 宿主 / WebUI 基座，文件域不相交）；345 在 344 合入后；346 在 345 后；347 在 346 后；348 等 343+345；349 等 343。
+- 发卡：主设计会话（lead）/ 2026-11-14；派发确认=已确认（用户「把新更新的 UI 设计任务放进任务池」）；主管可调整排序与编号。
+- 诊断卡 `R0-CHAT-WINDOW-RECON-1` 在 `todo/`，设计侧预勘察报告在 `coord/runs/R0-CHAT-WINDOW-RECON-1/REPORT.md`，候确认；不占池序。
