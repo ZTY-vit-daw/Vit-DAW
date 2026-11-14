@@ -338,21 +338,29 @@ try {
     }
 
     # ================================================================== L1
-    Write-Step0 "L1: zero-friction first open via bridge (no project open)"
+    Write-Step0 "L1: first open via bridge from boot state (governance switch; zero-friction premise refuted -> finding)"
     $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts")
     $assert["stack"]["agent_pid_leg1"] = $agentProcId
     $log1 = Join-Path $LogsDir "godot_boot1.log"
-    $godotPid = Start-BridgeGodot -LogPath $log1 -BridgeMessage "打开烟测桥甲"
+    $godotPid = Start-BridgeGodot -LogPath $log1 -BridgeMessage "打开烟测桥甲" -Governance "switch"
     $assert["stack"]["godot_boot1_pid"] = $godotPid
     $leg1 = [ordered]@{}
-    $assert["L1_zero_friction_open"] = $leg1
+    $assert["L1_boot_state_open_governance_switch"] = $leg1
     Assert-BridgeBoot -LogPath $log1 -Leg $leg1
-    $govNone = Test-LogLine -LogPath $log1 -Pattern '\[LauncherBridge\] governance\.dialog_shown' -TimeoutSeconds 5
-    $leg1.no_governance_dialog = ($null -eq $govNone)
-    if (-not $leg1.no_governance_dialog) { throw ("L1 unexpectedly showed the governance dialog (zero-friction premise broken)") }
+    # UI-BRIDGE-1 finding（attempt 1 真栈证据）：React launcher 面加载即发 recents 聊天 →
+    # agent 工作区激活 → SetProjectPathHint 物化 boot scratch（"Unsaved"）路径 →
+    # /agent/state current_project.path 非空 → 337 保守治理判据视为「有在开工程」弹三键。
+    # 零摩擦前提被真栈证据推翻（探针无聊天时 path=""；boot1 日志 dialog_shown Unsaved）。
+    # 治理判据/agent hint 语义改动越本卡域 → 转主管裁定；本腿以 switch 治理路径如实驱动。
+    $govHit1 = Test-LogLine -LogPath $log1 -Pattern '\[LauncherBridge\] governance\.dialog_shown ' -TimeoutSeconds 30
+    if ($null -eq $govHit1) { throw ("L1 governance dialog not seen (expected on boot-scratch state per attempt-1 evidence)") }
+    $leg1.zero_friction_dialog_current_project = Get-JsonString -Line $govHit1.Line -Field "current_project"
+    $leg1.zero_friction_finding = "governance dialog on kernel boot scratch (Unsaved) - zero-friction premise refuted by stack evidence; governance criterion vs agent hint semantics -> supervisor ruling"
+    $gpHit1 = Test-LogLine -LogPath $log1 -Pattern '\[LauncherBridge\] smoke\.governance\.press .*"choice":\s*"switch"' -TimeoutSeconds 30
+    if ($null -eq $gpHit1) { throw ("L1 smoke governance press (switch) not seen") }
     $obHit = Test-LogLine -LogPath $log1 -Pattern '\[LauncherBridge\] open\.begin ' -TimeoutSeconds 20
     if ($null -eq $obHit) { throw ("L1 open.begin not seen") }
-    Assert-BridgeResult -LogPath $log1 -Leg $leg1 -ExpectStatus "opened" -ExpectGovernance "none"
+    Assert-BridgeResult -LogPath $log1 -Leg $leg1 -ExpectStatus "opened" -ExpectGovernance "switch"
     $sceneHit = Test-LogLine -LogPath $log1 -Pattern 'scene_added.*VitDockRoot' -TimeoutSeconds $LegSettleSeconds
     if ($null -eq $sceneHit) { throw ("L1 scene_added VitDockRoot not seen (open chain did not dock)") }
     $leg1.scene_hwnd = Get-JsonField -Line $sceneHit.Line -Field "child_hwnd"
