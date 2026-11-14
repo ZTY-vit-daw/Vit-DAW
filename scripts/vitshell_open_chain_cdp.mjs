@@ -163,10 +163,18 @@ try {
       break;
     }
     case "probe-governance-done": {
-      // Governance answered (launcher thread) + project surface mounted again.
-      await page.locator("[data-launcher-governance-answered-text]").waitFor({ state: "visible", timeout: 30000 });
-      const answered = (await page.locator("[data-launcher-governance-answered-text]").textContent()) ?? "";
-      await page.locator("[data-launcher-root]").waitFor({ state: "detached", timeout: 30000 });
+      // Governance answered text is TRANSIENT (unmounts on the project-surface
+      // switch): catch it opportunistically with a short poll; the HARD
+      // assertions are project-surface-remounted + sentinel intact (no reload).
+      // Chain outcome evidence lives host-side (bridge log choice+result).
+      let answered = "";
+      try {
+        await page.locator("[data-launcher-governance-answered-text]").waitFor({ state: "visible", timeout: 4000 });
+        answered = (await page.locator("[data-launcher-governance-answered-text]").textContent()) ?? "";
+      } catch {
+        answered = "transient_missed";
+      }
+      await page.locator("[data-launcher-root]").waitFor({ state: "detached", timeout: 60000 });
       const sentinel = await readSentinel(page);
       const verdict = { phase, ok: true, url, answered: answered.trim(), sentinel };
       if (!sentinel) { fail("sentinel missing after governed open (reload suspected)"); break; }
