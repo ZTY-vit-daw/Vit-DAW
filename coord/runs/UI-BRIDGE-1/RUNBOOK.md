@@ -1,4 +1,4 @@
-# UI-BRIDGE-1 §8 跑前口径（冻结于任何真栈运行之前；AGENTS §8）
+﻿# UI-BRIDGE-1 §8 跑前口径（冻结于任何真栈运行之前；AGENTS §8）
 
 - 卡：coord/cards/doing/2026-11-14-UI-BRIDGE-1.md（池序 348）
 - 执行：freeflash 免费车道子代理 / PC / worktree D:/Vit_DAW_wt_uibridge1（主仓）+ D:/Godot/vit-daw-frontend_wt_uibridge1（前端仓）/ 分支 port/ui-bridge-1
@@ -17,7 +17,7 @@
 | L1 零摩擦首开 | boot1 | 无工程（boot XML scratch，path 空） | 打开烟测桥甲 | （无对话框） | 甲 open→VitDockRoot，result=opened，governance=none |
 | L2a 三键·直接切换 | boot2 | 甲在开 | 打开烟测桥乙 | switch | 治理对话框出现，乙 open→VitDockRoot，result=opened，governance=switch |
 | L2b 三键·取消 | boot3 | 乙在开 | 打开烟测桥甲 | cancel | 无场景切换，/agent/state 仍乙，result=canceled，governance=cancel |
-| L2c 三键·保存并切换+降级 | boot4 | 乙在开 | 打开烟测桥甲 ‖（+8s）打开烟测桥乙 | save | save 乙真实落盘→甲 open→VitDockRoot；followup 在 dock 阶段→unsupported 降级回执 |
+| L2c 三键·保存并切换+降级 | boot4 | 乙在开 | 打开烟测桥甲；+8s followup=choose_file | save | save 乙真实落盘→甲 open→VitDockRoot；followup choose_file 在 dock→unsupported 降级回执 |
 
 L1 零摩擦前提的依据：boot 态 /agent/state current_project.path 依赖 ProjectPathHint
 （339 取证「path=草稿回退」=hint 面）——L1 全新 agent 无 hint → path 空 → 治理直行；
@@ -30,7 +30,8 @@ L2 腿 kernel 有实开工程 → shadow 携带路径 → 对话框出现。若 
 - L1（boot scratch 态，治理 switch 驱动——零摩擦前提被 attempt-1 真栈证据推翻转 finding）：dialog_shown(current_project=Unsaved scratch) → switch → open → scene_added VitDockRoot + 同 HWND + result(opened,governance=switch) + result_ack(opened)；/agent/state 仅记录（工作区绑定语义=340 桥播域）
 - L2a：dialog_shown 且 **current_project 含烟测桥甲**（内核在开工程证明）→ switch → result(opened,switch) + scene_added + 同 HWND
 - L2b：dialog_shown → cancel → result(canceled,cancel) + result_ack(canceled) + 无 scene_added + /agent/state==乙（激活先于指令，绑定有效）
-- L2c：dialog_shown → save → result(opened,save) + scene_added + 同 HWND；followup 在 dock → dock.received + result(unsupported) + result_ack(unsupported)；/agent/state 仅记录
+- L2c：dialog_shown(current=乙) → save → result(opened,save) + scene_added + 同 HWND + result_ack(opened)；followup choose_file 在 dock → dock.received(launcher_choose_file) + result(unsupported) + result_ack(unsupported)；/agent/state 仅记录
+- 降级腿口径：open/new directive 的 dock 降级受 agent 门上游拦截（340 设计=进程内 user_entered_project 后 launcher 流关闭，跨工程意图归 LAUNCHER-BRIDGE-BE-1/C5；attempt-5 真栈证据）——dock 路由+降级回执面以 choose_file（纯桥请求不经 agent 门）如实验证
 - fixture 源（912.vit）sha256 运行前后一致；recents global_project_config.json 还原快照（净差零）；零 LLM telemetry
 - 脚本退出码 0
 

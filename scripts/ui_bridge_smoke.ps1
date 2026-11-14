@@ -438,7 +438,7 @@ try {
     $agentProcId = Start-BridgeAgent -DraftRoot (Join-Path $RunRoot "agent_drafts")
     $assert["stack"]["agent_pid_leg2c"] = $agentProcId
     $log4 = Join-Path $LogsDir "godot_boot4.log"
-    $godotPid = Start-BridgeGodot -LogPath $log4 -BridgeMessage "打开烟测桥甲||打开烟测桥乙" -Governance "save"
+    $godotPid = Start-BridgeGodot -LogPath $log4 -BridgeMessage "打开烟测桥甲" -Governance "save" -FollowupMs "8000"
     $assert["stack"]["godot_boot4_pid"] = $godotPid
     $leg2c = [ordered]@{}
     $assert["L2c_governance_save_and_dock_degradation"] = $leg2c
@@ -456,9 +456,11 @@ try {
     # /agent/state 仅记录（同 L1：open 后无新聊天不重绑，工作区绑定面非本卡验收面）。
     $proj4 = Get-AgentCurrentProject -BaseUrl $AgentHttp
     $leg2c.agent_current_project_observed = $proj4
-    # 降级段：followup 消息在 dock 阶段到达 → unsupported 回执 + React 真收。
-    $dockHit = Test-LogLine -LogPath $log4 -Pattern '\[LauncherBridge\] dock\.received .*"type":\s*"launcher_directive"' -TimeoutSeconds 60
-    if ($null -eq $dockHit) { throw ("L2c dock.received not seen (followup message did not reach the dock handler)") }
+    # 降级段：followup choose_file 请求在 dock 阶段到达 → unsupported 回执 + React 真收。
+    # （open/new directive 的 dock 降级受 agent 门上游拦截：340 设计=进程内
+    # user_entered_project 后 launcher 流关闭，跨工程意图归 C5——attempt-5 证据。）
+    $dockHit = Test-LogLine -LogPath $log4 -Pattern '\[LauncherBridge\] dock\.received .*"type":\s*"launcher_choose_file"' -TimeoutSeconds 60
+    if ($null -eq $dockHit) { throw ("L2c dock.received (choose_file) not seen (followup did not reach the dock handler)") }
     $unsHit = Test-LogLine -LogPath $log4 -Pattern ('\[LauncherBridge\] result\.posted .*"status":\s*"unsupported"') -TimeoutSeconds 30
     if ($null -eq $unsHit) { throw ("L2c unsupported result not posted (dock degradation silent?)") }
     $leg2c.dock_unsupported_posted = $true
