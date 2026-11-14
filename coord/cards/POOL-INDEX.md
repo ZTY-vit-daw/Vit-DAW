@@ -148,6 +148,6 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 池序 | 卡 ID | 状态 |
 |---|---|---|
 | 356 | SHELL-1 | done 已验收 pass 合入（**主管亲跑 PASS**：VitShell→agent→React 真数据→关窗全树退→Vit 系进程零残留；extension 零 diff；「API 连不上」=agent cwd 探测链已固化；前端 b578525——**SHELL-2 解锁**）（宿主骨架：WebView2 主窗+agent 进程树+装载态+退出清理；零 Godot 启动；含「API 连不上」真实环境验收；**过夜可跑**） |
-| 357 | SHELL-2 | todo P0（启动态桥：抽屉手动按钮+页内治理确认（跟随发起方）+Godot 直启 DAW+关 DAW 回主窗；排 SHELL-1 合入后） |
+| 357 | SHELL-2 | done 已验收 pass 合入（**主管亲跑全旅程 PASS**：抽屉按钮→零摩擦首开→直启 DAW→同窗切换→页内三键二次开→全树净退+S10 还原；两真缺陷修复采纳；执行侧直推 main 偏差记录——**SHELL-3 解锁**）（启动态桥：抽屉手动按钮+页内治理确认（跟随发起方）+Godot 直启 DAW+关 DAW 回主窗；排 SHELL-1 合入后） |
 | 358 | SHELL-3 | todo P0（全链真栈烟测+手测 v6 放行；排 SHELL-2 后） |
 | 359 | UI-VISUAL-FIDELITY-1 | done 技术面 pass 合入（[终验=用户目检 v6]；裁切双侧根因：webui 高度链已修+宿主 DPI 移交 SHELL-1；12 项修复+四分辨率烟测段；8 缺口上交清单在卷）（launcher/工程面视觉保真返工对照定稿稿+窗口裁切多分辨率修复；与 SHELL-1 并行，SHELL-2 前合入） |
