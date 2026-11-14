@@ -21,7 +21,11 @@
  * 渲染烟测——上下文头/消息流/宏卡四态/快照撤销/轨迹四态/输入四态/A-B 四态
  * DOM 断言 + 对比度/字号/裁切扫描 + 截图；工件落
  * coord/runs/UI-PROJECT-1/{render-smoke-project-report.json, screens/*.png}。
- * 全离线 fixture（零真实端点请求）；344/345 的断言与工件路径不变。
+ * UI-LOADING-1（347）扩展：追加装载生命周期 fixture 页（gallery.html?surface=loading）
+ * 渲染烟测——状态卡四态/三步轨迹/磁带带量三帧/完成回执/错误中断路径/装载门
+ * 输入禁用-恢复/无假倒计时 DOM 断言 + 扫描 + 截图；工件落
+ * coord/runs/UI-LOADING-1/{render-smoke-loading-report.json, screens/*.png}。
+ * 全离线 fixture（零真实端点请求）；344/345/346 的断言与工件路径不变。
  */
 
 import { chromium } from "playwright";
@@ -851,6 +855,148 @@ async function main() {
   const projectReportPath = resolve(projectOutDir, "render-smoke-project-report.json");
   writeFileSync(projectReportPath, JSON.stringify(projectReport, null, 2), "utf-8");
 
+  // ---- 9. UI-LOADING-1（347）：P2 装载生命周期 fixture 页渲染烟测 ----
+  // gallery.html?surface=loading 全离线 fixture 渲染（零真实端点请求）；
+  // 断言：状态卡四态/三步轨迹 ≤3/磁带带量三帧/完成回执+轨迹展开/错误（重试）
+  // /中断（重新打开）/装载门输入禁用-恢复/无假倒计时文案 + 对比度/字号/裁切
+  // 扫描 + 截图；工件落 coord/runs/UI-LOADING-1/{render-smoke-loading-report.json, screens/*.png}。
+  const loadingFailures = [];
+  const loadingNotes = [];
+  const loadingOutDir = resolve(repoRoot, "coord/runs/UI-LOADING-1");
+  const loadingScreensDir = resolve(loadingOutDir, "screens");
+  mkdirSync(loadingScreensDir, { recursive: true });
+  const loadingUrl = `${galleryUrl}?surface=loading`;
+  const loadingRequests = [];
+  const onLoadingRequest = (r) => loadingRequests.push(r.url());
+  page.on("request", onLoadingRequest);
+  await page.goto(loadingUrl, { waitUntil: "networkidle" });
+  await page.waitForSelector("[data-gallery-page='loading']");
+  await page.waitForTimeout(200);
+  const loadingOrigin = new URL(page.url()).origin;
+  const loadingExternalRequests = loadingRequests.filter((u) => {
+    if (u.startsWith("data:") || u.startsWith("blob:")) return false;
+    return !u.startsWith(loadingOrigin);
+  });
+  page.off("request", onLoadingRequest);
+  loadingNotes.push(`loadingUrl=${loadingUrl}`);
+
+  const ldDom = await page.evaluate(() => {
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => [...document.querySelectorAll(sel)];
+    const out = {};
+    out.fixtureNotice = !!$('[data-fixture="notice"]');
+    out.pagePresent = !!$("[data-gallery-page='loading']");
+    out.cardPhases = $$("[data-loading-card] > [data-loading-phase], section[data-loading-phase]").map((e) =>
+      e.getAttribute("data-loading-phase")
+    );
+    out.cards = $$("[data-loading-card]").length;
+    out.currentSteps = $$("section[data-loading-phase='loading'] [data-loading-step-status='current']").length;
+    out.doneSteps = $$("section[data-loading-phase='loading'] [data-loading-step-status='done']").length;
+    // 磁带带量帧（data-loading-tape-l/r 属性）
+    out.tapeFrames = $$("[data-loading-tape]").map((e) => `${e.getAttribute("data-loading-tape-l")}/${e.getAttribute("data-loading-tape-r")}`);
+    out.tapeSvgCount = $$("[data-loading-tape] svg").length;
+    out.receipts = $$("section[data-loading-phase='completed']").length;
+    out.receiptTexts = $$("section[data-loading-phase='completed'] [data-loading-title]").map((e) => e.textContent?.trim() ?? "");
+    out.histories = $$("[data-loading-history]").length;
+    out.failureReasons = $$("[data-loading-failure-reason]").map((e) => e.textContent?.trim() ?? "");
+    out.retryButtons = $$("[data-loading-retry]").map((b) => b.textContent?.trim() ?? "");
+    // 装载门：error 态 children 不渲染（禁用）；ok 态 composer 在场（恢复）
+    out.gateStates = $$("[data-loading-gate]").map((e) => e.getAttribute("data-loading-gate-state"));
+    out.gateHiddenChildren = $$("[data-gate-child-hidden]").length;
+    out.gateComposer = $$("[data-loading-gate-state='ok'] [data-project-composer]").length;
+    out.inputDisabledFlags = $$("section[data-loading-phase='loading'][data-loading-input-disabled='true']").length;
+    // 无假倒计时：页面文本不出现预计/剩余/倒计时
+    out.countdownText = $$("body *").filter((el) => el.children.length === 0 && /预计|剩余|倒计时/.test(el.textContent ?? "")).length;
+    out.inputDisabledSample = !!$("[data-project-composer-state='disabled']");
+    return out;
+  });
+
+  const loadingAssert = (name, ok, detail) => {
+    if (!ok) loadingFailures.push(`LOADING: ${name} — ${detail}`);
+  };
+  const lSet = (arr) => new Set(arr);
+
+  loadingAssert("fixture 标注在卷", ldDom.fixtureNotice && ldDom.pagePresent, `notice=${ldDom.fixtureNotice} page=${ldDom.pagePresent}`);
+  loadingAssert(
+    "状态卡四态（loading/completed/failed/interrupted）",
+    ["loading", "completed", "failed", "interrupted"].every((s) => lSet(ldDom.cardPhases).has(s)),
+    JSON.stringify(ldDom.cardPhases)
+  );
+  loadingAssert(
+    "三步轨迹样张（done×2 + current×1，同屏 ≤3）",
+    ldDom.doneSteps === 2 && ldDom.currentSteps === 1,
+    `done=${ldDom.doneSteps} current=${ldDom.currentSteps}`
+  );
+  loadingAssert(
+    "磁带带量三帧（待机 1.00/0.20 · 进行 0.49/0.71 · 完成 0.20/1.00）",
+    lSet(ldDom.tapeFrames).has("1.00/0.20") && lSet(ldDom.tapeFrames).has("0.49/0.71") && lSet(ldDom.tapeFrames).has("0.20/1.00"),
+    JSON.stringify(ldDom.tapeFrames)
+  );
+  loadingAssert("磁带 SVG 实件在场（tapeSVG 结构）", ldDom.tapeSvgCount >= 3, `svg=${ldDom.tapeSvgCount} cards=${ldDom.cards}`);
+  loadingAssert("完成回执在卷（已打开《…》文案）", ldDom.receipts >= 1 && ldDom.receiptTexts.some((t) => t.includes("已打开《")), JSON.stringify(ldDom.receiptTexts));
+  loadingAssert("完成轨迹可展开（details）", ldDom.histories >= 1, `histories=${ldDom.histories}`);
+  loadingAssert(
+    "错误路径：原因+重试入口（不只测顺利完成）",
+    ldDom.failureReasons.length >= 2 && ldDom.retryButtons.some((t) => t.includes("重试")) && ldDom.retryButtons.some((t) => t.includes("重新打开")),
+    `reasons=${JSON.stringify(ldDom.failureReasons)} retries=${JSON.stringify(ldDom.retryButtons)}`
+  );
+  loadingAssert(
+    "装载门：error=children 不渲染（输入禁用）；ok=composer 在场（恢复）",
+    lSet(ldDom.gateStates).has("error") && lSet(ldDom.gateStates).has("ok") && ldDom.gateHiddenChildren === 0 && ldDom.gateComposer >= 1,
+    `gates=${JSON.stringify(ldDom.gateStates)} hidden=${ldDom.gateHiddenChildren} composer=${ldDom.gateComposer}`
+  );
+  loadingAssert("装载中输入禁用声明在卷（data-loading-input-disabled）", ldDom.inputDisabledFlags >= 1, `flags=${ldDom.inputDisabledFlags}`);
+  loadingAssert("无假倒计时文案（预计/剩余/倒计时）", ldDom.countdownText === 0, `countdown=${ldDom.countdownText}`);
+
+  const lscan = await scanFn();
+  const loadingContrastAssert = (name, ok, detail) => {
+    if (!ok) loadingFailures.push(`LOADING-CONTRAST: ${name} — ${detail}`);
+  };
+  loadingContrastAssert("正文 ≥4.5:1", lscan.text.length === 0, JSON.stringify(lscan.text.slice(0, 6)));
+  loadingContrastAssert(
+    "图形 ≥3:1",
+    !lscan.graphicsFail || lscan.graphicsFail.length === 0,
+    JSON.stringify((lscan.graphicsFail ?? []).slice(0, 6))
+  );
+  loadingContrastAssert("最小字号 ≥13px", lscan.tooSmall.length === 0, JSON.stringify(lscan.tooSmall.slice(0, 6)));
+  if (lscan.clipped.length > 0)
+    loadingFailures.push(`LOADING-CLIP: 裁切/溢出 ${JSON.stringify(lscan.clipped.slice(0, 6))}`);
+  if (lscan.docScrollWidth > 1440)
+    loadingFailures.push(`LOADING-OVERFLOW: 文档横向溢出 scrollWidth=${lscan.docScrollWidth} > 1440`);
+  if (loadingExternalRequests.length > 0)
+    loadingFailures.push(`LOADING-NETWORK: fixture 页出现外部请求 ${JSON.stringify(loadingExternalRequests.slice(0, 6))}`);
+
+  // loading 页截图（1440×900 视口 + 全页）→ 卡目录工件
+  const loadingViewportShot = resolve(loadingScreensDir, "loading-viewport-1440x900.png");
+  const loadingFullShot = resolve(loadingScreensDir, "loading-full.png");
+  await page.screenshot({ path: loadingViewportShot, type: "png" });
+  await page.screenshot({ path: loadingFullShot, type: "png", fullPage: true });
+
+  const loadingReport = {
+    run: "UI-LOADING-1 loading render smoke",
+    date: new Date().toISOString(),
+    url: loadingUrl,
+    viewport: "1440x900@1",
+    reducedMotion: "reduce",
+    externalRequestCount: loadingExternalRequests.length,
+    dom: ldDom,
+    textContrastMin: lscan.textMin,
+    graphicChecks: lscan.graphics.length,
+    graphicMinRatio: Math.min(...lscan.graphics.map((g) => g.ratio)),
+    clipIssues: lscan.clipped,
+    docScrollWidth: lscan.docScrollWidth,
+    fontTooSmall: lscan.tooSmall,
+    failures: loadingFailures,
+    notes: loadingNotes,
+    screenshots: [loadingViewportShot, loadingFullShot],
+    foundationReport: reportPath,
+    launcherReport: launcherReportPath,
+    projectReport: projectReportPath,
+    result: loadingFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const loadingReportPath = resolve(loadingOutDir, "render-smoke-loading-report.json");
+  writeFileSync(loadingReportPath, JSON.stringify(loadingReport, null, 2), "utf-8");
+
   await browser.close();
   await server.close();
 
@@ -864,7 +1010,9 @@ async function main() {
   console.log(`[test:render] LAUNCHER_RESULT=${launcherReport.result}`);
   console.log(`[test:render] projectReport=${projectReportPath}`);
   console.log(`[test:render] PROJECT_RESULT=${projectReport.result}`);
-  const allFailures = [...failures, ...launcherFailures, ...projectFailures];
+  console.log(`[test:render] loadingReport=${loadingReportPath}`);
+  console.log(`[test:render] LOADING_RESULT=${loadingReport.result}`);
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);
