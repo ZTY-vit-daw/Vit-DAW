@@ -23,16 +23,14 @@
 
 - [x] M0 领取：双 worktree + 卡 todo→doing + PROGRESS 建立（主仓 29e8b0e5 已推 main）
 - [x] M1 VitShell exe 骨架+WebView2 主窗：前端仓 port/shell-1 提交 ca28e88；编译 exit 0（VS 2026 x64 Release）；extension/ 零 diff 实证（git status 仅 VitShell/ 未跟踪）；构建注意=WebView2Loader.dll 在 .git/info/exclude（worktree 无此件），CMake 经 -DVITSHELL_WEBVIEW2_DIR 指向主检出
-- [x] M2 agent 进程树代码就位（agent_manager.*：Job Object KILL_ON_JOB_CLOSE 全树终止+343/355 参数链+set-if-empty env）
-- [x] M3 装载态/错误态+status 端点代码就位（main.cpp：内嵌装载页→/agent/tools 轮询→launcher 导航→document.readyState 探针；错误页含重试/退出按钮经 postMessage）
-- [ ] M4 vitshell_smoke.ps1 + 真栈轻腿（§2.2 登记→≤60s 复核→run→拆栈→释放）
-- [ ] 回执回填 + doing→done
+- [x] M2 agent 进程树代码就位（agent_manager.*：Job Object KILL_ON_JOB_CLOSE 全树终止+343/355 参数链+set-if-empty env+cwd=agent 目录）
+- [x] M3 装载态/错误态+status 端点代码就位（main.cpp：内嵌装载页→/agent/tools 轮询→launcher 导航→document.readyState 重复探针；错误页含重试/退出按钮经 postMessage；quit-on-close 接线）
+- [x] M4 骨架手测（三缺陷修复：status CS 未初始化即发布→ntdll AV / timer 设错窗口面 / recv 非阻塞首拍 WSAEWOULDBLOCK——bb09681）+ W1 承接实现（PerMonitorV2+工作区 92%+min 下限——1880df9）
+- [x] M4 正式腿：vitshell_smoke.ps1 双 PASS exit 0（run_20261115_014402/014421 六腿全绿）——工件+脚本随主仓 port/shell-1 @ 1ab1c178 入库；webui dist=run tree 现建（npm ci+build exit 0）；「API 连不上」本验收面排除（cwd 探测链为候选根因，已固化正确 cwd）
+- [x] M5 拆栈释放（双端口+全进程亲证零）+ 卡面回执回填 + doing→done
 
-## M4 前提记录
+## 状态：DONE（执行侧自验完成，终验归 GLM 主管决策流）
 
-- worktree 无 agent/webui/dist（gitignored）；主检出有 dist 且两侧 agent/webui/src 同 commit（8faead66）、主检出 src 无脏文件——烟测将拷贝主检出 dist 至 worktree agent/webui/dist 并做同源断言+哈希留证（source-faithful，零 webui 源改动）
-- VitShell 构建命令（烟测内复跑）：`cmake -S VitShell -B VitShell/build -G "Visual Studio 18 2026" -A x64 -DVITSHELL_WEBVIEW2_DIR=D:/Godot/project/vit-daw-frontend/extension/third_party/webview2 && cmake --build VitShell/build --config Release`（前端 worktree 内执行）
-
-## 下一步
-
-§2.2 真栈占用登记（agent 链轻腿：7878+7879，无 Godot/内核）→ ≤60s 即时复核 → 手测骨架链 → vitshell_smoke.ps1 正式腿 → 拆栈释放。
+- 实现：前端 port/shell-1 @ b578525；主仓 port/shell-1 @ 1ab1c178（实现双仓留 port 候验收，不合 main）
+- 断点续跑记录：本任务全程单会话执行，无重派中断；coord 推送两次被并行会话抢先（非 fast-forward），均按 PROTOCOL §2.1.3 cherry-pick 重放（5772f766 / 4958af01）
+- 详见卡面回执（done/2026-11-15-SHELL-1.md）与 run 工件。

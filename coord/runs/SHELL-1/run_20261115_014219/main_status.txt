@@ -1,0 +1,2 @@
+﻿?? coord/runs/SHELL-1/run_20261115_014219/
+?? scripts/vitshell_smoke.ps1

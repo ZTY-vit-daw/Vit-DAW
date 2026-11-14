@@ -1,0 +1,20 @@
+﻿{
+    "run_id":  "run_20261115_014402",
+    "started_at_utc":  "2026-11-14T17:44:02Z",
+    "card":  "SHELL-1",
+    "main_worktree":  "D:\\Vit_DAW_wt_shell1",
+    "frontend_worktree":  "D:/Godot/project/vit-daw-frontend_wt_shell1",
+    "webview2_sdk_dir":  "D:/Godot/project/vit-daw-frontend/extension/third_party/webview2",
+    "status_port":  7879,
+    "agent_port":  7878,
+    "skip_build":  false,
+    "vitshell_exe":  "D:\\Godot\\project\\vit-daw-frontend_wt_shell1\\VitShell\\build\\Release\\VitShell.exe",
+    "vitshell_exe_sha256":  "1ED8F66F7DA3A13FD86D0AE0829E791D121BB89A87CEA67E6677F872B205ED66",
+    "vitshell_exe_mtime":  "2026-11-14T17:44:04.0189119Z",
+    "agent_exe":  "D:\\Vit_DAW_wt_shell1\\agent\\bin\\VitAgent.exe",
+    "agent_exe_sha256":  "572E1B1A3762106E8778EDE61AAD188AA1A82BBB121904966C0F2F285C71894F",
+    "webui_dist_index_sha256":  "7532F6E13EFAC26D5EA91C1D3B85DF692E1916D9E1AB1D98ACEC6D050A63F2F0",
+    "vitshell_pid":  10984,
+    "result":  "PASS",
+    "finished_at_utc":  "2026-11-14T17:44:12Z"
+}
