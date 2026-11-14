@@ -38,7 +38,14 @@
 
 ## 领取
 
-- 时间 / origin/main hash / owner 模型+机器+会话 / 分支 / worktree / 领取提交：待回填
+- 时间：2026-11-14（晚窗）
+- origin/main hash：a4759235136725229d48406659dccf37ed9ed8f7（fetch 复核；卡面基线一致）
+- owner：freeflash 免费车道执行子代理（GLM-5.3 Flash / ZCode）· PC · 主管会话派发（用户指令：新 UI 设计任务进池）
+- 分支：port/ui-foundation-1
+- worktree：D:/Vit_DAW_wt_uifnd1
+- 领取提交：见本卡 doing 状态提交（coord-only，推 HEAD:main）
+- 设计源哈希回执：design-tokens-v5.json = 1d985d5e7dd41bec5f7260ca16b6ed8dc3f29ca701bdc70fc2b9391e380da4ca；round2-sprite.svg = 746a49f5b7e42703ca030981a51044ef49449d838e0435f024437495ece5d981（与 CHANGELOG-V5.md v5.1 图标定稿记录一致）
+- 并行核对：doing 卡（ARRLOOP-AUTHBRIDGE-1 / CLOSURE-ROUTE-ADAPT-1 / WAVESHELL-LOADING-FORENSICS-1）文件域均不涉及 agent/webui，无冲突；UI-HOST-1 仍在 todo，文件域不相交
 
 ## 回执
 
