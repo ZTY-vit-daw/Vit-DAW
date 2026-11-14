@@ -128,6 +128,16 @@ function Read-AgentEnv {
     return Get-Content -LiteralPath $OutFile -Raw | ConvertFrom-Json
 }
 
+# StrictMode-safe property access: the psutil JSON rows only carry "error"
+# when the env read failed, and PSCustomObject property misses throw under
+# Set-StrictMode -Version Latest (device round 1 failure, 2026-11-14).
+function Get-JsonProp {
+    param($Object, [string]$Name)
+    $p = $Object.PSObject.Properties[$Name]
+    if ($null -eq $p) { return $null }
+    return $p.Value
+}
+
 function Invoke-AgentRestart {
     # One dev_agent_smoke.ps1 restart through a REAL powershell.exe child
     # (boundary A) whose own Start-Process is boundary B.
@@ -187,13 +197,20 @@ try {
         exit 3
     }
     $phase1Failures = @()
-    foreach ($v in $ProbeVars) {
-        $actual = $rows1[0].vars.$v
-        if ($actual -ne $ProbeValue) {
-            $phase1Failures += ($v + " expected '" + $ProbeValue + "' got '" + $actual + "'")
+    $row1Error = Get-JsonProp $rows1[0] "error"
+    $row1Vars = Get-JsonProp $rows1[0] "vars"
+    if ($null -eq $row1Vars) {
+        $phase1Failures += ("psutil row has no vars object" + $(if ($row1Error) { (": " + $row1Error) } else { "" }))
+    }
+    else {
+        foreach ($v in $ProbeVars) {
+            $actual = Get-JsonProp $row1Vars $v
+            if ($actual -ne $ProbeValue) {
+                $phase1Failures += ($v + " expected '" + $ProbeValue + "' got '" + $actual + "'")
+            }
         }
     }
-    if ($rows1[0].error) { $phase1Failures += ("env read error: " + $rows1[0].error) }
+    if ($row1Error) { $phase1Failures += ("env read error: " + $row1Error) }
     if ($phase1Failures.Count -gt 0) {
         foreach ($f in $phase1Failures) { Write-Fail ("phase 1 passthrough mismatch: " + $f) }
         Write-Host ("[restart-env-check] agent pid=" + $rows1[0].pid + " phase1 readback json: " + (Join-Path $ArtifactsDir "agent_env_phase1.json"))
@@ -223,11 +240,20 @@ try {
         exit 4
     }
     $phase2Failures = @()
-    foreach ($v in $ProbeVars) {
-        if ($null -ne $rows2[0].vars.$v) {
-            $phase2Failures += ($v + " expected absent, got '" + $rows2[0].vars.$v + "'")
+    $row2Error = Get-JsonProp $rows2[0] "error"
+    $row2Vars = Get-JsonProp $rows2[0] "vars"
+    if ($null -eq $row2Vars) {
+        $phase2Failures += ("psutil row has no vars object" + $(if ($row2Error) { (": " + $row2Error) } else { "" }))
+    }
+    else {
+        foreach ($v in $ProbeVars) {
+            $actual = Get-JsonProp $row2Vars $v
+            if ($null -ne $actual) {
+                $phase2Failures += ($v + " expected absent, got '" + $actual + "'")
+            }
         }
     }
+    if ($row2Error) { $phase2Failures += ("env read error: " + $row2Error) }
     if ($phase2Failures.Count -gt 0) {
         foreach ($f in $phase2Failures) { Write-Fail ("phase 2 regression mismatch: " + $f) }
         if (-not (Stop-StackStartedByThisCheck)) { Write-Fail "teardown could not confirm port release" }
