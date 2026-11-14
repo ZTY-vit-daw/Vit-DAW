@@ -33,7 +33,7 @@
 - `npm run test` → exit 0（43 文件 / 529 例，含本卡新增 project 域 52 例）
 - `npm run build` → exit 0（tsc --noEmit + vite build）
 - `npm run test:render` → exit 0（FOUNDATION PASS / LAUNCHER PASS / PROJECT PASS）
-- 领取提交 a0544d96（已推 main）；实现分支 port/ui-project-1（c8a1fc1d → 899378c2 → M5 commit）
+- 领取提交 a0544d96（已推 main）；实现分支 port/ui-project-1（c8a1fc1d → 899378c2 → 16985f5f → ec30fe99 卡面回执）；协调分支 coord/ui-project-1-done = ec12c3e5（回执+doing→done，已推 main；origin/main 领取后被 349 资源登记 203c33e9 前移一次，零域交集，协调分支从新 main 重放成功）
 
 覆盖清单（验收标准对照）：
 - P3 gallery DOM：宏卡三态+（default/auditioning/applied/failed）✓、快照回执 ✓（含撤销留痕行）、A/B 按钮 ✓（idle/preparing/ready/failed）、轨迹三态 ✓（running/completed/failed + idle 行）、输入四态 ✓（default/focus/disabled/replying）
