@@ -65,4 +65,7 @@
 
 ## 验收
 
-- 裁定文件 / 验收 commit：待主管决策流
+- 裁定文件：[rulings/2026-11-14-UI-LAUNCHER-1-pass.md](../../rulings/2026-11-14-UI-LAUNCHER-1-pass.md)（**pass**；主管亲跑 test 498+test:render gallery/launcher 双 PASS，344 断言数值不变；App.tsx 7 行 wrapper 最小性亲审；gallery 三文件扩展=卡面验收直接要求，接受）
+- 合入：c8582b35+8cb87a67+5bb87169 cherry-pick 至 main（b05184f9/69219696/2f5cab6d）；worktree 已清理；port/ui-launcher-1 留远端存档
+- 解锁：**346 即刻可派**；348 前置全齐（343✓+345✓）排 346 后/视栈空窗；341 维持 held（345✓/348 未落）
+- 验收 commit：见本卡 git log
