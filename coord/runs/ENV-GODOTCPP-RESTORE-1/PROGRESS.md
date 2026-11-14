@@ -12,7 +12,7 @@
 - [x] S5 取证4: 根因=拆除穿透 junction 删目标内容（高置信）；执行者归因 open（FORENSICS.md §3/§4）
 - [x] S6 恢复1: 备份=4.2.2 官方（4bc6e67）工作树与 HEAD 零差异+fsck 过+哈希抽样在卷；api_version=4.6 系 no-op 已修正；版本相符放行（restore-version-check.md）
 - [x] S7 恢复2: robocopy RC=1 成功；3832 文件+哈希一致+git status 0（恢复核验过）
-- [ ] S8 验证: 临时 worktree junction → scons extension 编译 exit 0 → §3 纪律拆 junction
+- [ ] S8 验证: 临时前端 worktree D:/Godot/project/vit-daw-frontend-gcppverify1 @ origin/port/ui-os-1(128477b) 已建；junction godot-cpp→A 已建（PS New-Item Junction，解析验证过）。长命令：cd wt/extension && scons platform=windows target=template_debug arch=x86_64（log→scons_debug.log）；继 target=template_release；拆 junction 按 §3：cmd /c rmdir 只删链接→核 A 完好→git worktree remove
 - [ ] S9 回执: 卡面回填 → done → coord-only 推送
 
 ## 长命令预告
