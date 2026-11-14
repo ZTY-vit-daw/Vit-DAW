@@ -27,21 +27,29 @@
 
 - [x] M0 领取：双 worktree + 卡 todo→doing + 本 PROGRESS 建立（领取提交 28cc945c 已推 main，owner 亲证）
 - [x] M0b 环境准备：webui npm install exit 0（Playwright 钉 1.65.0，SKIP_DOWNLOAD）
-- [x] M1-M4 VitShell C++（前端仓 port/shell-2 @ fa6f754）：launcher_bridge（choose_file/directive/治理/单飞状态机/线程模型：worker+UI dispatcher+三 rendezvous）+ file_dialog（IFileOpen/SaveDialog，filter 与 start_page 同族）+ godot_manager（直启 env 契约+exit watch+独立 kill-on-close Job）+ status_server（surface/chain_state/godot_pid/launch_count + POST /vitshell/launch-result + POST /vitshell/close-daw）+ main 接线；CMake 编译 exit 0
-- [x] M1-M2 React（主仓 port/shell-2 @ a817c9bc+439f63e7）：抽屉头部「＋新建」（agent 对话流 send）+「打开…」（bridgeAvailable 门控；空 recents 态 data-drawer-primary 突出）；治理三键卡（对话流线程项，v5.1 样式族）；launcherBridge 治理消息面（订阅+回投+烟测自动应答 launcher_smoke_governance）；vitest 570 全绿（563 基线零回退+7 新测）；npm run build（tsc+vite）exit 0
-- [x] M3 Godot 直启（前端仓 port/shell-2 @ b2b7243）：start_page.gd _ready 直启分支（visible=false 无启动页渲染→复用 _bootstrap_runtime_and_request_recent_projects→open_project_by_path/_create_new_project 公共链→切 VitDockRoot）；launch-result 幂等回执（root 挂 HTTPRequest 跨切场景）；_enter_main_scene/_finish_ipc_failure 回执挂点；VIT_SHELL_STATUS_PORT 契约补全；Godot headless --check-only 解析干净（.godot 缓存经 --import 预跑重建）
-- [ ] M5 真栈全旅程烟测 exit 0（RUNBOOK 先行 + §10 recents 快照还原 %APPDATA%/Vit-DAW/global_project_config.json）
-- [ ] M6 回执：卡面回填 → done → coord-only 推送；双仓 port 留证
+- [x] M1-M4 VitShell C++（前端仓 port/shell-2 @ fa6f754→ec71067→4deeb34）：launcher_bridge（choose_file/directive/治理/单飞状态机/线程模型：worker+UI dispatcher+三 rendezvous）+ file_dialog（IFileOpen/SaveDialog）+ godot_manager（直启 env 契约+exit watch+独立 kill-on-close Job+close-daw 进程子树 WM_CLOSE）+ status_server（surface/chain_state/godot_pid/launch_count + POST /vitshell/launch-result + POST /vitshell/close-daw）+ main 接线；CMake 编译 exit 0
+- [x] M1-M2 React（主仓 port/shell-2 @ a817c9bc→439f63e7→治理门控修复）：抽屉头部「＋新建」+「打开…」（空 recents 态主路径突出）；页内治理三键卡；launcherBridge 治理消息面（订阅/回投/烟测自动应答）；vitest 570 全绿零回退；tsc+vite build exit 0
+- [x] M3 Godot 直启（前端仓 port/shell-2 @ b2b7243→4deeb34）：start_page.gd 直启分支（无启动页渲染→复用 bootstrap+open_project_by_path/_create_new_project 公共链→切 VitDockRoot）+launch-result 幂等回执（Engine.get_main_loop 离树修复）+VIT_SHELL_STATUS_PORT 契约
+- [x] M5 真栈全旅程烟测 **exit 0 PASS**（run_20261115_032326；RUNBOOK 先行；L2-L7 全腿绿：抽屉按钮 DOM→CDP 真实点击→choose_file 旁路→零摩擦首开→Godot 直启（kernel/hub 自启+dock 场景+无 start_page 渲染结构性证据）→/agent/state current_project=fixture_a→关 DAW→同窗回 launcher（哨兵完好）→治理三键卡呈现→真实点击直接切换→fixture B 直启→关主窗全退（进程=0 端口=0）→recents/运行态快照还原+fixture 源哈希一致）
+- [x] M6 回执：卡面回填 → done → coord-only 推送；双仓 port 留证
 
 ## 契约终稿（烟测按此执行）
 
-- **React ↔ VitShell**（channel ask_vit_launcher）：launcher_surface_ready / launcher_directive{request_id,directive} / launcher_choose_file{request_id} / launcher_result_ack / launcher_governance_choice{request_id,choice}；回执 vit_launcher_result{request_id,status,action,message,file_path,project_name} + vit_governance_required{request_id,action,current_project} + vit_surface{surface:project|launcher}（entrySurfaceBridge 既有面）。
-- **VitShell ↔ Godot 直启**（env）：VIT_SHELL_DIRECT=1 + VIT_SHELL_LAUNCH_ACTION=open|new + VIT_SHELL_OPEN_PROJECT=<path> / VIT_SHELL_PROJECT_NAME=<name> + VIT_SHELL_STATUS_PORT=<port>；args `--path <前端工程>`；不设 VIT_AGENT_WINDOW_MODE（343 休眠）/VIT_FROM_LAUNCHER（kernel/hub 自启、agent 已答跳过）。
-- **Godot → VitShell**：POST /vitshell/launch-result {"ok","scene","detail","action","project_path"}（幂等一次）；烟测关 DAW 面：POST /vitshell/close-daw（graceful WM_CLOSE 同用户 X 路径）。
-- **烟测旁路**（生产零行为）：VitShell `--smoke-file-dialog <path>`（IFileOpenDialog 人工域旁路）；React URL `launcher_smoke_governance=switch|save|cancel`（治理卡自动应答经真实桥路径）；WebView2 CDP `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=<p>`（React DOM 断言/真实点击）。
-- **被测树**：VitShell.exe=前端 wt_shell2 构建；VitAgent.exe=主仓 wt_shell2 `go build`（webui dist=同树 npm run build）；VitApp.exe/VspHub.exe=主检出既有二进制（C++ 面本卡零改动，哈希入档——G3-ATTRIB-1 复用先例）；Godot 4.6.1=机器装;--path=前端 wt_shell2（含本卡 GDScript 改动）。VIT_DAW_DEV_ROOT 指主检出（kernel/hub 候选解析），--agent-exe 显式指 worktree 构建（webui 随 cwd/exe 目录向上解析=worktree dist）。
-- **fixture**：`D:/Vit_DAW/temp/f3_empty_project.vit` 复制到 run 独立 fixtures/ 目录两份（A/B）——仓库样例零接触（§10）。
+- **React ↔ VitShell**（channel ask_vit_launcher）：launcher_surface_ready / launcher_directive{request_id,directive} / launcher_choose_file{request_id} / launcher_result_ack / launcher_governance_choice{request_id,choice}；回执 vit_launcher_result{request_id,status,action,message,file_path,project_name} + vit_governance_required{request_id,action,current_project} + vit_surface{surface:project|launcher}（entrySurfaceBridge 既有面，surface_ack 双向留痕）。
+- **VitShell ↔ Godot 直启**（env）：VIT_SHELL_DIRECT=1 + VIT_SHELL_LAUNCH_ACTION=open|new + VIT_SHELL_OPEN_PROJECT=<path> / VIT_SHELL_PROJECT_NAME=<name> + VIT_SHELL_STATUS_PORT=<port>；args `--path <前端工程>`；不设 VIT_AGENT_WINDOW_MODE（343 休眠实证：日志 mode.off）/VIT_FROM_LAUNCHER（kernel/hub 自启、agent 已答跳过）。
+- **Godot → VitShell**：POST /vitshell/launch-result {"ok","scene","detail","action","project_path"}（幂等一次）；烟测关 DAW 面：POST /vitshell/close-daw（graceful WM_CLOSE 进程子树投递=用户 X 同路径）。
+- **烟测旁路**（生产零行为）：VitShell `--smoke-file-dialog <A> --smoke-file-dialog-b <B>`（IFileOpenDialog 人工域旁路，首链 A/后续链 B）；WebView2 CDP `--remote-debugging-port`（Playwright 1.65.0 connectOverCDP：React DOM 断言+真实点击+no-reload 哨兵）。
 
-## 状态：进行中
+## 真栈 run 记录（§8/§9 对账）
 
-下一步：M5a 占用登记推 main → RUNBOOK → 烟测脚本 → M5b 跑全旅程。
+- **run_20261115_032326 PASS exit 0**（工件=coord/runs/SHELL-2/run_20261115_032326/，随主仓 port/shell-2 入库；console 全量=smoke_console.log）。
+- 领取 HEAD：主仓 8c387721 / 前端 b578525；被测树状态=port/shell-2 实现+coord 工件（HEAD/哈希见 run 内 *_head.txt+meta.json）。
+- 进程链亲证：VitShell(24728 代)→VitAgent→（直启）Godot 包装+编辑器子进程→VitApp+VspHub；关主窗 Job 全灭（L7 亲证=0）。
+- **稳定性口径**：单 run exit 0=存在一条成功路径（卡面验收标准为全旅程 exit 0 单腿达标）；重复成功比例未另规——留 SHELL-3 放行面。
+- 前置失败 run（取证在卷，均已拆栈）：run_023349（PS5.1 stderr 终止错误，装置缺陷）；run_023650（go build 行控制字节污染，装置缺陷）；run_023936（CDP 模块解析，装置缺陷）；run_024518（launch-result 离树 get_tree() null——**真缺陷修复 Engine.get_main_loop**）；run_025439（快照文件名清洗符，装置缺陷）；run_031129（治理卡 bridgeBusy 禁用——**真产品缺陷修复**）；run_031749（瞬态 answered 断言竞速，装置断言降级）。真缺陷两次均「代码锚点+最小修复」后前进，无原样重跑凑过。
+
+## 状态：DONE（执行侧自验完成，终验归 GLM 主管决策流）
+
+- 实现：前端 port/shell-2 @ 4deeb34；主仓 port/shell-2 @（见卡面回执）；双仓留 port 候验收不合 main。
+- 断点续跑记录：本任务全程单会话执行，无重派中断；coord 推送无冲突。
+- 详见卡面回执（done/2026-11-15-SHELL-2.md）与 run 工件。

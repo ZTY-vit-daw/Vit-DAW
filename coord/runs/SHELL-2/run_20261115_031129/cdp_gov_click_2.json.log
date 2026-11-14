@@ -1,0 +1,16 @@
+﻿node : CDP_FAIL {"phase":"click-governance-switch","ok":false,"error":"locator.click: Timeout 10000ms exceeded.\nCall l
+og:\n\u001b[2m  - waiting for locator('[data-launcher-governance-switch]')\u001b[22m\n\u001b[2m    - locator resolved t
+o <button disabled type=\"button\" class=\"v5-btn v5-btn--secondary\" data-launcher-governance-switch=\"true\">直接切换</bu
+tton>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, en
+abled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u00
+1b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u
+001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m 
+     - waiting 100ms\u001b[22m\n\u001b[2m    20 × waiting for element to be visible, enabled and stable\u001b[22m\n\u00
+1b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - wait
+ing 500ms\u001b[22m\n"}
+所在位置 D:\Vit_DAW_wt_shell2\scripts\vitshell_open_chain_smoke.ps1:139 字符: 44
++ ...  -Command { node "$MainRoot/scripts/vitshell_open_chain_cdp.mjs" --cd ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CDP_FAIL {"phas...s\u001b[22m\n"}:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

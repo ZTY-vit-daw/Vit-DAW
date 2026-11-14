@@ -1,0 +1,8 @@
+﻿go : no Go files in D:\Vit_DAW_wt_shell2\agent\cmd
+所在位置 D:\Vit_DAW_wt_shell2\scripts\vitshell_open_chain_smoke.ps1:252 字符: 44
++ ... gged -Command { go build -o ".in\VitAgent.exe" .\cmditagent } -LogP ...
++                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (no Go files in ...hell2\agent\cmd:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+package itagent is not in std (C:\Program Files\Go\src\itagent)

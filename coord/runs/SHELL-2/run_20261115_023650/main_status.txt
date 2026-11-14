@@ -1,0 +1,4 @@
+﻿ M scripts/vitshell_open_chain_smoke.ps1
+?? coord/runs/SHELL-2/RUNBOOK.md
+?? coord/runs/SHELL-2/run_20261115_023349/
+?? coord/runs/SHELL-2/run_20261115_023650/

@@ -1,0 +1,111 @@
+
+>>> Preflight: stack idle + occupancy re-read
+  [OK] stack clean (processes=0, ports free), occupancy names SHELL-2
+
+>>> Artifacts: D:\Vit_DAW_wt_shell2\coord\runs\SHELL-2\run_20261115_032326
+  [OK] recents snapshot taken (4B835024A463EFBD...)
+  [OK] fixtures copied (source sha256=AC0CE2E81C12E6F1...)
+
+>>> Build VitShell.exe (cmake VS x64 Release)
+  [OK] VitShell build exit 0
+
+>>> Build isolated VitAgent.exe (worktree source)
+  [OK] agent build exit 0
+
+>>> webui dist build (worktree source: SHELL-2 launcher face)
+  [OK] webui build exit 0
+
+>>> Kernel/hub binaries into isolated worktree paths (main-checkout build, zero C++ diff)
+  [OK] kernel/hub staged (sha256 EDA7E1797C7B.../B10CC4129506...)
+
+>>> Godot --import pre-run (worktree project caches)
+  [OK] godot import ok
+
+>>> Immediate recheck (<=60s before stack start)
+  [OK] clean
+
+>>> Launch VitShell (main window + agent tree + CDP debug port)
+  [OK] VitShell pid=1512
+
+>>> L2: phase=ready + launcher surface DOM (drawer buttons)
+
+
+phase              : ready
+error              : 
+vitshell_pid       : 1512
+window_hwnd        : 29623962
+window_title       : Vit
+agent_pid          : 18520
+agent_running      : True
+agent_url          : http://127.0.0.1:7878
+agent_exe          : D:\Vit_DAW_wt_shell2\agent\bin\VitAgent.exe
+agent_cwd          : D:\Vit_DAW_wt_shell2\agent
+current_url        : http://127.0.0.1:7878/app/?surface=launcher
+document_ready     : interactive
+navigation_loading : False
+started_at_utc     : 2026-11-14T19:23:36Z
+surface            : launcher
+chain_state        : idle
+chain_detail       : 
+godot_pid          : 0
+godot_running      : False
+godot_exe          : D:/Godot/Godot_v4.6.1-stable_win64_console.exe
+godot_project_dir  : D:/Godot/project/vit-daw-frontend_wt_shell2
+launch_count       : 0
+
+  [OK] CDP probe-launcher pass
+
+>>> L3: drawer open -> choose_file bypass (fixture A) -> agent open chain -> Godot direct-launch
+  [OK] CDP click-open pass
+  [OK] first open: godot pid=31740 chain_state=opened
+  [OK] CDP probe-project pass
+
+>>> L4: direct-launch assertions (agent state / hub / kernel / godot log)
+  [OK] /agent/state current_project=fixture_a (version.project_opened arrived)
+  [OK] VspHub 8787 listening
+  [OK] godot user log: direct.begin + direct.enter_ok + VitDockRoot
+
+>>> L5: POST /vitshell/close-daw -> Godot exits -> React back to launcher
+phase              : ready
+error              : 
+vitshell_pid       : 1512
+window_hwnd        : 29623962
+window_title       : Vit
+agent_pid          : 18520
+agent_running      : True
+agent_url          : http://127.0.0.1:7878
+agent_exe          : D:\Vit_DAW_wt_shell2\agent\bin\VitAgent.exe
+agent_cwd          : D:\Vit_DAW_wt_shell2\agent
+current_url        : http://127.0.0.1:7878/app/?surface=launcher
+document_ready     : complete
+navigation_loading : False
+started_at_utc     : 2026-11-14T19:23:36Z
+surface            : launcher
+chain_state        : opened
+chain_detail       : res://vit_dock/scenes/VitDockRoot.tscn
+godot_pid          : 31740
+godot_running      : False
+godot_exe          : D:/Godot/Godot_v4.6.1-stable_win64_console.exe
+godot_project_dir  : D:/Godot/project/vit-daw-frontend_wt_shell2
+launch_count       : 1
+
+  [OK] CDP probe-launcher-back pass
+  [OK] DAW closed; launcher surface back in the SAME window (sentinel intact)
+
+>>> L6: second open -> page governance card (3 keys) -> switch -> direct-launch fixture B
+  [OK] CDP click-open pass
+  [OK] CDP assert-governance pass
+  [OK] CDP click-governance-switch pass
+  [OK] CDP probe-governance-done pass
+  [OK] governed open done: launch_count=2 godot pid=26992
+
+>>> L7: POST /close -> VitShell + agent tree + Godot tree (kernel/hub) all gone
+  [OK] VitShell exited
+  [OK] zero Vit-family processes (incl. Godot/kernel/hub)
+  [OK] port 7878 released
+  [OK] port 7879 released
+  [OK] recents restored from snapshot (S10)
+  [OK] fixture source untouched (hash consistent)
+
+PASS: vitshell_open_chain_smoke run_20261115_032326 (exit 0)
+artifacts: D:\Vit_DAW_wt_shell2\coord\runs\SHELL-2\run_20261115_032326

@@ -1,0 +1,8 @@
+﻿node : CDP_FAIL {"phase":"probe-governance-done","ok":false,"error":"locator.waitFor: Timeout 30000ms exceeded.\nCall l
+og:\n\u001b[2m  - waiting for locator('[data-launcher-governance-answered-text]') to be visible\u001b[22m\n"}
+所在位置 D:\Vit_DAW_wt_shell2\scripts\vitshell_open_chain_smoke.ps1:139 字符: 44
++ ...  -Command { node "$MainRoot/scripts/vitshell_open_chain_cdp.mjs" --cd ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CDP_FAIL {"phas...e\u001b[22m\n"}:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
