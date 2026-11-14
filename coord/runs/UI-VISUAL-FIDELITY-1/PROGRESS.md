@@ -1,0 +1,2 @@
+- M1 进行中 (2026-11-15 晚窗): 定稿稿与实现已通读（SPEC-V5/IMPLEMENTATION-HANDOFF/p1,p3.png/mondrian-v2 vs launcher.css/project.css/LauncherSurface/ProjectSurface/344 components.css）。宿主裁切锚点已定位: agent_chat_window.gd _initial_window_size() 96%/94% 夹取（screen_get_size 无 DPI/工作区修正）→ SHELL 域移交项。
+- 下一条命令: cd agent/webui && npm run test:render（基线截图，工件落 coord/runs/UI-{FOUNDATION,LAUNCHER,PROJECT,LOADING}-1/ 旧路径）——断后人若见工件时间晚于本行即可跳过重跑。
