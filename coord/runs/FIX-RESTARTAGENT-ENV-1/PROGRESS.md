@@ -35,6 +35,14 @@
 
 - S6 回执：卡面回填+doing→done+coord-only 推 main；实现留 port/fix-restartagent-env-1 待主管验收（合入 main 由决策侧 cherry-pick）。
 
+## 终态：DONE（2026-11-14 22:5x）
+
+- 卡片：done/2026-11-09-FIX-RESTARTAGENT-ENV-1.md @ main=0f8d3efa（回执全量在卡面）。
+- 验证退出码：真栈轻腿轮 2 ALL_PASS **exit 0**（卡面验收两条：透传断言 exit 0 + 无变量回归 exit 0）；零栈实验 exit 0；PSParser 0×3 文件；agent 现场构建 exit 0。
+- 实现 commit（port/fix-restartagent-env-1，待主管验收）：45261f9f（契约注释+断言工具）→ af645034（装置轮1修复）→ ff14ee68（run 工件）→ 本提交（终态）。
+- 栈协议：占用 3ce55cac → 释放 54089017（main 亲证），栈终态空闲。
+- 遗留边界（域外，供主管裁量）：restart_agent.ps1:5 硬编码绝对路径（非 env 主题）。
+
 ## 纪律备忘
 
 - 本 PROGRESS 与全部工件随 port/fix-restartagent-env-1 分支入库推远端（§6.1），不落主检出未跟踪副本。
