@@ -1,0 +1,13 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[AgentChatWindow] boot {"boot_index":1,"main_hwnd":788746,"mode_active":true,"size":{"x":1920,"y":1080},"title":"Vit","url_target":"http://127.0.0.1:7878/app/"}
+[AgentChatWindow] os_event {"data":{"visible":true},"kind":"restored","mode_active":true}
+[AgentChatWindow] visible {"boot_index":1,"child_hwnd":2098740,"mode_active":true,"visible":true}
+ERROR: Can't change visibility of main window.
+   at: set_visible (scene/main/window.cpp:939)
+   GDScript backtrace (most recent call first):
+       [0] _hide_main_window (res://app/shell/agent_chat_window.gd:213)
+       [1] _deferred_hide_main_window (res://app/shell/agent_chat_window.gd:105)
+[AgentChatWindow] main_window.hidden {"mode":"windowed","mode_active":true,"reason":"startup_launcher_exclusive"}
+[AgentChatWindow] os_event {"data":{"topmost":false},"kind":"minimized","mode_active":true}

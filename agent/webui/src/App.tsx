@@ -111,6 +111,9 @@ import { loadSessionFlowMainID, mainConversationDefaultTitle, saveSessionFlowMai
 // UI-LAUNCHER-1（345）：启动台 surface。App.tsx 仅做 surface 分发最小改动——
 // launcher 面的实现全部在 src/launcher/**（原 App 主体更名为 MainApp，行为零变化）。
 import { LauncherSurface } from "./launcher/LauncherSurface";
+// UI-ENTRY-1：入口 surface 切换桥（宿主→React 单向 + React 取证回执）——进工程展开
+// DAW 时宿主通知 React 切 project surface，走内部 setState 零导航零重载（343 不变量）。
+import { postEntrySurfaceAck, subscribeEntrySurface } from "./launcher/entrySurfaceBridge";
 // UI-PROJECT-1（346）：工程内对话主窗 surface。实现在 src/project/**，此处仅分发（345 同款最小改动，full/main/workbench 行为零变化）。
 import { ProjectSurface } from "./project/ProjectSurface";
 // UI-LOADING-1（347）：P2 装载门（消费既有 ui_state 探针；不新增 agent 语义，不改打开链）。
@@ -271,9 +274,32 @@ const initialMessage: ChatMessage = {
  * full/main/workbench 三 surface 原样走 MainApp，行为零变化。
  * UI-LOADING-1（347）：project 面包装载门——agent 未就绪期间显示 P2 装载状态卡
  * （输入禁用=children 不渲染），ui_state 就绪放行（打开链不变，渲染分支而已）。
+ * UI-ENTRY-1：surface 状态化——初始值仍来自 URL 参数（浏览器 dev 直开不变）；
+ * 宿主 vit_surface 消息（进工程展开 DAW）经 entrySurfaceBridge 订阅切换 surface，
+ * 走 React 内部 setState **零导航零重载**（343 不变量：同一 HWND 同一页面，
+ * navigate_count 不增，禁止整页导航）。合法载荷回执 vit_surface_ack（宿主日志
+ * 留痕=React 真收证明）；桥不可用（浏览器 dev）=订阅空转+回执不发。
  */
+const appSurfaces: ReadonlySet<AppSurface> = new Set<AppSurface>([
+  "full",
+  "main",
+  "workbench",
+  "launcher",
+  "project"
+]);
+
 function App() {
-  const surface = appSurface();
+  const [surface, setSurface] = useState<AppSurface>(() => appSurface());
+  useEffect(() => {
+    return subscribeEntrySurface((next) => {
+      const target = next.toLowerCase() as AppSurface;
+      if (!appSurfaces.has(target)) {
+        return;
+      }
+      setSurface(target);
+      postEntrySurfaceAck(target);
+    });
+  }, []);
   if (surface === "launcher") {
     return <LauncherSurface fill />;
   }

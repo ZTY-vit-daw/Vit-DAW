@@ -140,4 +140,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 - **341 排序约束（主管 2026-11-14 晚窗）**：341（LAUNCHER-FE-LAYOUT-FIX-1）与 343 文件域重叠（前端仓 `app/startup/start_page*`），**排在 343 合入之后**才可领取；v5.1 链落地后 341 的价值面收缩（启动面主位将转 React launcher），届时由主管重新裁定 341 范围（可能降级为 legacy fallback 最小修缮或撤销）。
 - 发卡：主设计会话（lead）/ 2026-11-14；派发确认=已确认（用户「把新更新的 UI 设计任务放进任务池」）；主管可调整排序与编号。
 - R0 勘察卡已由主管确认收口（池序 350，done 归档；报告 `coord/runs/R0-CHAT-WINDOW-RECON-1/REPORT.md`）。
-| 354 | UI-ENTRY-1 | todo 可领 P0（**手测 v3 返工主卡**：单窗入口——启动态 React 启动台独占+Godot 主窗隐藏+进工程展开+回退；surface 同窗不重载切换；[裁定](../decisions/2026-11-14-handtest-v3-form-ruling.md)方案 B） |
+| 354 | UI-ENTRY-1 | done 已验收 pass 合入（P0（**手测 v3 返工主卡**：单窗入口——启动态 React 启动台独占+Godot 主窗隐藏+进工程展开+回退；surface 同窗不重载切换；[裁定](../rulings/2026-11-14-UI-ENTRY-1-pass.md)——**手测 v4 放行**，方案 B 当日闭环） |
