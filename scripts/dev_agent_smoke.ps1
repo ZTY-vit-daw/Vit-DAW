@@ -1984,6 +1984,28 @@ if (-not [string]::IsNullOrWhiteSpace($LlmTimeoutSec)) {
     Write-Ok ("llm timeout adapt passthrough: VIT_AGENT_LLM_TIMEOUT_SEC=" + $env:VIT_AGENT_LLM_TIMEOUT_SEC)
 }
 
+# FIX-RESTARTAGENT-ENV-1 (326): agent-start environment contract. Applies to
+# every Start-Process VitAgent.exe site in this script (main restart below
+# ~line 2012, harness_ab per-mode restart ~line 7604, chat auth stamp restart
+# ~line 9629) and to scripts/restart_agent.ps1:25.
+# FULL PASSTHROUGH is the chosen convention (matches the additive-only env
+# writes this script already does; no whitelist, no scrub, no
+# -UseNewEnvironment): caller shell env -> this powershell process ->
+# Start-Process child inherits the FULL environment at every boundary
+# (verified zero-stack on PS 5.1: coord/runs/FIX-RESTARTAGENT-ENV-1/
+# evidence/). The agent therefore sees every env var present in the session
+# that invoked this script at start time (e.g. the VIT_PLUGIN_CONTROL_EVAL_SEAM
+# family), plus the additive script-owned vars set above before start (draft
+# root / com root / write-lease / telemetry / llm-timeout; caller-provided
+# values win). REUSE CAVEAT (intentional, see the LlmTimeoutSec comment above):
+# when the agent port is already listening and -RestartAgent is not passed,
+# the running agent is reused as-is and its env stays frozen at ITS start
+# time -- env vars set afterwards do NOT reach it; -RestartAgent is the only
+# refresh path. Standing assertion tool:
+# scripts/restart_agent_env_passthrough_check.ps1 (sets seam-style probe vars,
+# restarts the agent via this script, psutil-reads the live agent env, and
+# runs a no-var regression leg).
+
 if ($RestartAgent) {
     $listener = Get-TcpListener -Port $httpPort
 }
@@ -7601,6 +7623,9 @@ if ($ScenarioMode) {
             $abRawChatPath = Join-Path $ScenarioRunDir ("harness_ab_chat_raw_" + $abMode + ".jsonl")
             $abAgentLog = Join-Path $LogsDir ("agent_harness_ab_" + $abMode + ".log")
             Assert-DraftRootIsolation
+            # env contract: full caller-session passthrough, same as the main
+            # agent start (FIX-RESTARTAGENT-ENV-1 block above ~line 1990); the
+            # mode/telemetry vars set just above are additive on top of it.
             Start-Process -FilePath $AgentExe -ArgumentList @(
                 "-http", $AgentHttpAddr,
                 "-last-log-path", $abAgentLog,
@@ -9626,6 +9651,8 @@ if ($ChatAuthStampSmoke) {
         "-last-log-path", $AgentLog,
         "-keep-last-log-lines", "800"
     )
+    # env contract: full caller-session passthrough, same as the main agent
+    # start (FIX-RESTARTAGENT-ENV-1 block above ~line 1990).
     Start-Process -FilePath $AgentExe -ArgumentList $authStampAgentArgs -WorkingDirectory $AgentDir -WindowStyle Hidden | Out-Null
     if (-not (Wait-HttpReady -BaseUrl $AgentHttp -TimeoutSeconds $WaitSeconds)) {
         throw "chat auth stamp restart: agent HTTP did not become ready at " + $AgentHttp
