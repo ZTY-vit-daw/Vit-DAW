@@ -62,14 +62,17 @@
 - [x] M4 webui 门槛：npm test 563 全过（560 基线+3 新增）/build 过/test:render 四渲染面 PASS
       （双仓实现 commit：前端 a760c05 / 主仓 3fb532d4+8688b399）
 - [x] M5a §2.2 占用登记 da674ce1 → main + owner 重读确认 + ≤60s 复核（五 TCP=0 进程=0，23:25）
-- [ ] M5b 跑 ui_entry_smoke.ps1 三腿（下一条记命令与结果）
-- [ ] M5c finally 拆栈+释放记录+run 工件入库
+- [x] M5b 三腿烟测 7 attempts：1=BOM 装置轮 / 2=$pid 自动变量装置轮 / 3-5=引擎限制发现+确认轮
+      （Godot 4.6.1 主窗 hide 降级最小化，probe_232728/232856 铁证）/ 6=extension SW_HIDE face
+      落地+脚本竞速暴露 / **7=run_20261114_233821 PASS exit 0 三腿全绿**
+- [x] M5c finally 拆栈复核（五 TCP=0+进程=0）+ run 工件精简件+脚本修复随 port/ui-entry-1 入库
+      （cd354f2a；前端 extension face=ae24b52）
 - [ ] M6 卡面回执 + doing→done + coord 推送 + 双仓 port 分支推送
 
 ## M5b 命令记录（长命令跑前落盘）
 
 - 命令：powershell -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW_wt_uientry1/scripts/ui_entry_smoke.ps1
-- 预计 ≤6 分钟（agent build ~30s + import ~20s + 回退腿 ~25s + autoload 腿 ~90s + legacy 腿 ~15s + 拆栈）
+- 详见 RUN-SUMMARY.md §8 运行历史（7 attempts 根因链）
 
 ## 中断恢复指引
 
