@@ -459,3 +459,58 @@
     line-height: 1.4;
   }
 }
+
+/* ── SHELL-2：抽屉手动按钮（头部「＋新建」「打开…」）────────────────────── */
+
+.v5-launcher-drawer-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 空 recents 态两按钮主路径突出（359 保真基座上的加宽强调）。 */
+.v5-launcher-drawer-actions[data-drawer-primary="true"] {
+  margin-top: 14px;
+}
+
+.v5-launcher-drawer-actions .v5-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+/* ── SHELL-2：页内治理三键确认卡（对话流内，v5.1 样式同 directive 卡族）── */
+
+.v5-launcher-governance {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-text);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-launcher-governance-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-launcher-governance-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-launcher-governance-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.v5-launcher-governance-answered {
+  font-size: 12.5px;
+  color: var(--v5-ui-muted);
+}

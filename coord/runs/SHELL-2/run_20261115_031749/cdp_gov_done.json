@@ -1,0 +1,5 @@
+{
+  "phase": "probe-governance-done",
+  "ok": false,
+  "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-launcher-governance-answered-text]') to be visible\u001b[22m\n"
+}

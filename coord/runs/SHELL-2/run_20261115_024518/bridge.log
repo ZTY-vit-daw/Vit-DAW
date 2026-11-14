@@ -1,0 +1,6 @@
+2026-11-15T02:45:29.549 [LauncherBridge] surface_ready
+2026-11-15T02:45:30.126 [LauncherBridge] smoke.file_dialog.bypass {"chain_index":0}
+2026-11-15T02:45:30.632 [LauncherBridge] governance.none {"reason":"no current project"}
+2026-11-15T02:45:30.643 [LauncherBridge] godot.spawn {"pid":6328}
+2026-11-15T02:49:30.555 [LauncherBridge] launch.failed {"detail":""}
+2026-11-15T02:49:30.555 [LauncherBridge] result {"request_id":"webui_launcher_br_mwgra7wu","status":"failed","action":"open_project","message":"工程装载失败：宿主未给出原因"}

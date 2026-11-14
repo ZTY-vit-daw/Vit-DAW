@@ -1,0 +1,7 @@
+﻿适用于 .NET Framework MSBuild 版本 18.4.0+6e61e96ac
+
+  1>Checking Build System
+  Building Custom Rule D:/Godot/project/vit-daw-frontend_wt_shell2/VitShell/CMakeLists.txt
+  VitShell.vcxproj -> D:\Godot\project\vit-daw-frontend_wt_shell2\VitShell\build\Release\VitShell.exe
+  Copying WebView2Loader.dll next to VitShell.exe
+  Building Custom Rule D:/Godot/project/vit-daw-frontend_wt_shell2/VitShell/CMakeLists.txt

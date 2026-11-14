@@ -6,7 +6,7 @@
  */
 
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { LauncherSurface } from "./LauncherSurface";
 import {
   cardPendingPlaceholder,
@@ -241,5 +241,81 @@ describe("UI-BRIDGE-1 桥呈现面", () => {
     const markup = renderToStaticMarkup(<LauncherSurface fixture={{ drawerState: "empty" }} />);
     expect(markup).toContain('data-launcher-bridge="fixture"');
     expect(markup).not.toContain("data-launcher-choose-file");
+  });
+});
+
+// ── SHELL-2：抽屉手动按钮 + 页内治理三键卡 ──
+
+describe("launcherSurface 抽屉手动按钮（SHELL-2）", () => {
+  it("fixture 线程就绪时抽屉头部有「＋新建」按钮（agent 对话流入口）", () => {
+    const markup = renderToStaticMarkup(
+      <LauncherSurface fixture={{ drawerState: "empty" }} />
+    );
+    expect(markup).toContain("data-launcher-new");
+    expect(markup).toContain("＋新建");
+    expect(markup).toContain("data-launcher-drawer-actions");
+    // 空 recents 态主路径突出修饰在场。
+    expect(markup).toContain('data-drawer-primary="true"');
+  });
+
+  it("live 桥可用（stub chrome.webview）→ 头部打开按钮在场（宿主原生对话框）", () => {
+    vi.stubGlobal("window", {
+      location: { search: "" },
+      chrome: { webview: { postMessage: () => {}, addEventListener: () => {}, removeEventListener: () => {} } }
+    });
+    try {
+      // live 面（无 fixture prop）：bridgeAvailable 只由 chrome.webview 在场判定。
+      const markup = renderToStaticMarkup(<LauncherSurface />);
+      expect(markup).toContain('data-launcher-choose-file');
+      expect(markup).toContain("打开…");
+      // 有 recents 时不加空态突出修饰。
+      expect(markup).not.toContain('data-drawer-primary="true"');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe("launcherSurface 页内治理三键卡（SHELL-2）", () => {
+  it("fixture 线程治理项 → 三键全在场且 headline 陈述在开工程", () => {
+    const markup = renderToStaticMarkup(
+      <LauncherSurface
+        fixture={{
+          greeting: { status: "ok", reply: "fixture" },
+          thread: [
+            { kind: "governance", view: { requestID: "req_gov_1", action: "open_project", currentProject: "D:/fixtures/测试工程甲.vit" } }
+          ]
+        }}
+      />
+    );
+    expect(markup).toContain('data-launcher-governance-request="req_gov_1"');
+    expect(markup).toContain("data-launcher-governance-save");
+    expect(markup).toContain("data-launcher-governance-switch");
+    expect(markup).toContain("data-launcher-governance-cancel");
+    expect(markup).toContain("保存并切换");
+    expect(markup).toContain("直接切换");
+    expect(markup).toContain("取消");
+    expect(markup).toContain("测试工程甲");
+    // 未作答： answered 标记为空，作答文案不在场。
+    expect(markup).toContain('data-launcher-governance-answered=""');
+    expect(markup).not.toContain("已取消——未切换工程");
+  });
+
+  it("已作答治理卡 → 三键退场，固定呈报在场（不重放选择）", () => {
+    const markup = renderToStaticMarkup(
+      <LauncherSurface
+        fixture={{
+          greeting: { status: "ok", reply: "fixture" },
+          thread: [
+            { kind: "governance", view: { requestID: "req_gov_2", action: "open_project", currentProject: "" }, answered: "switch" }
+          ]
+        }}
+      />
+    );
+    expect(markup).toContain('data-launcher-governance-answered="switch"');
+    expect(markup).toContain("已选择「直接切换」——等待 Vit 执行。");
+    expect(markup).not.toContain("data-launcher-governance-save");
+    // 态未知 headline 保守呈现（不虚构工程名）。
+    expect(markup).toContain("状态未知");
   });
 });
