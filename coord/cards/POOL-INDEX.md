@@ -127,10 +127,10 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 343 | UI-HOST-1 | done 已验收 pass 合入（**v5.1 链头落地**：autoload 承载结构成立——同 HWND/URL 跨场景存活真栈 exit 0 + legacy 回退；[裁定](../rulings/2026-11-14-UI-HOST-1-pass.md)；前端 caaef19/主仓精选合入；R0 §4 ①②③取证达成，DPI/多屏留边界） |
 | 344 | UI-FOUNDATION-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-FOUNDATION-1-pass.md)：主管亲跑 test:render+build 复验 exit 0 + 28 文件全在授权域 + 设计哈希回指；**345 解锁，test:render=后续 UI 卡渲染面验收底座**） |
 | 345 | UI-LAUNCHER-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-LAUNCHER-1-pass.md)：主管亲跑 498 测+双渲染烟测 PASS；App.tsx 7 行分发最小改动；open/new 留 348——**346 解锁，348 前置全齐**） |
-| 346 | UI-PROJECT-1 | todo P1（P3 工程内主窗；依赖 344+345） |
-| 347 | UI-LOADING-1 | todo P1（P2 装载生命周期；依赖 346） |
-| 348 | UI-BRIDGE-1 | todo P0/P1（React launcher → Godot open/new/治理/原生对话框；依赖 343+345；真实栈） |
-| 349 | UI-OS-1 | todo P2（P4 最小化/任务栏/通知；依赖 343；真实栈/OS） |
+| 346 | UI-PROJECT-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-PROJECT-1-pass.md)：529 测+三渲染面主管亲跑；选择≠应用红线单测在卷；宏快照/A-B agent 协议缺口登记候另卡） |
+| 347 | UI-LOADING-1 | todo P1（P2 装载生命周期；依赖 346✓；**与 348 同持 App.tsx → 排 348 合入后**） |
+| 348 | UI-BRIDGE-1 | todo 可领 P0/P1（React launcher → Godot open/new/治理/原生对话框；前置 343✓+345✓ 全齐+栈空窗；**链尾关键卡**） |
+| 349 | UI-OS-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-UI-OS-1-pass.md)：真栈 71 断言 exit 0——关闭≠收拢/前台门控通知/同 HWND 召回；WinRT toast 按钮与通知触发链边界登记留 348/另卡；前端 128477b 已推） |
 | 350 | R0-CHAT-WINDOW-RECON-1 | done 已验收 pass 收口（取证型：设计侧预勘察收口为交付物，[裁定](../rulings/2026-11-14-R0-CHAT-WINDOW-RECON-1-pass.md)；真栈未知项移交 343） |
 | 351 | REC-ISOLATION-CONFIGDIR-1 | todo 可领 P3（342 裁定 a 案：env VIT_DAW_USER_CONFIG_DIR 装置配置目录隔离，fail-open；真栈腿候 PC 栈空闲与 343 错峰；**不占展演前主线**） |
 
