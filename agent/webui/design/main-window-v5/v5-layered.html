@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>鼓组混音 v2</title>
+<style>
+:root{
+  --ink:#090B0E;--paper:#F6F4EC;--warm:#FBF9F1;--canvas:#E8E4D7;
+  --blue:#065BC7;--blue-lt:#73B8F5;--red:#DB1214;--yellow:#FACC1A;--dark:#14181C;
+  --text-2:#4A4F55;--text-3:#62666B;--text-2d:#A9ADB1;--text-3d:#8D9195;
+  --line:rgba(9,11,14,.14);--line-dark:rgba(246,244,236,.14);--scrim:rgba(9,11,14,.12);
+  --shadow-window:0 12px 32px rgba(9,11,14,.18),0 32px 80px rgba(9,11,14,.22);
+  --shadow-popover:0 8px 24px rgba(9,11,14,.18);
+  --sans:Inter,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;--mono:Consolas,monospace;
+  --t-caption:13px;--t-secondary:14px;--t-body:16px;--t-title:18px;--t-key:22px;--t-screen:28px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:40px;--s8:48px;--s9:64px;
+  --border-structural:2px;--border-control:1.5px;--border-divider:1px;--radius-control:4px;--radius-surface:0px;
+}
+*{box-sizing:border-box}html,body{margin:0;width:1440px;min-height:900px}body{font:400 var(--t-body)/1.65 var(--sans);letter-spacing:0;color:var(--ink);font-variant-numeric:tabular-nums;background:var(--canvas)}
+h1,h2,h3,p{margin:0}button,textarea{font-family:var(--sans);letter-spacing:0}button{display:inline-flex;align-items:center;justify-content:center;gap:8px;appearance:none;border:0;background:transparent;color:inherit;font-size:var(--t-body);font-weight:600;line-height:1.5;padding:8px 16px;border-radius:var(--radius-control);cursor:pointer}button:hover:not(:disabled){background:var(--canvas)}button:focus-visible,textarea:focus-visible{outline:2px solid var(--ink);outline-offset:2px}button:disabled{color:var(--text-3);cursor:default;border:1.5px dashed var(--text-3)}
+.screen{width:1440px;height:900px;position:relative;overflow:hidden}.icon{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;overflow:visible}svg{display:block}.sprite{position:absolute;width:0;height:0;overflow:hidden}.solid{fill:currentColor;stroke:none}.selected-fill{fill:var(--icon-fill,none)}.knockout{fill:var(--icon-bg,var(--paper));stroke:none}.is-selected{--icon-fill:currentColor;--icon-mark:var(--icon-bg,var(--warm))}.detail{stroke:var(--icon-mark,currentColor)}.alert-mark{fill:var(--icon-mark,currentColor);stroke:none}
+.daw{position:absolute;inset:0;background:var(--dark);color:var(--paper);--icon-bg:var(--dark)}.daw-title{height:36px;display:flex;align-items:center;gap:32px;padding:0 24px;border-bottom:1px solid var(--line-dark);font-size:var(--t-secondary)}.daw-title span:last-child{margin-left:auto;color:var(--text-2d)}.daw-menu{height:40px;display:flex;align-items:center;gap:32px;padding:0 24px;font-size:var(--t-secondary);color:var(--text-2d);border-bottom:1px solid var(--line-dark)}
+.transport{height:72px;display:flex;align-items:center;gap:16px;padding:0 24px;border-bottom:1px solid var(--line-dark)}.transport button{padding:8px;width:40px;height:40px}.transport .record{color:var(--red)}.transport .record .icon{width:24px;height:24px}.transport .time{font:700 var(--t-key)/1.25 var(--mono);margin-left:24px}.transport .tempo{font-size:var(--t-secondary);margin-left:auto;color:var(--text-2d)}.transport .tempo b{font:400 var(--t-body)/1.65 var(--mono);color:var(--paper);margin-right:8px}.daw button:focus-visible{outline-color:var(--blue-lt)}
+.workspace{height:704px;display:grid;grid-template-columns:248px 1fr 224px}.track-list{border-right:1px solid var(--line-dark)}.pane-heading{height:48px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--line-dark);font-size:var(--t-secondary);color:var(--text-2d)}.track{height:88px;padding:16px 24px;border-bottom:1px solid var(--line-dark)}.track-name{display:flex;gap:12px;align-items:center;font-size:var(--t-body)}.track-name .icon{color:var(--text-2d)}.track-controls{display:flex;align-items:center;gap:16px;margin:12px 0 0 32px;font-size:var(--t-caption);color:var(--text-2d)}.level{height:4px;background:var(--text-3d);width:80px}.track-list .collapsed{padding:20px 24px;font-size:var(--t-secondary);color:var(--text-2d)}
+.timeline{position:relative}.ruler{height:48px;display:flex;justify-content:space-around;align-items:center;color:var(--text-2d);font:400 var(--t-secondary)/1.55 var(--mono);border-bottom:1px solid var(--line-dark)}.lane{height:88px;border-bottom:1px solid var(--line-dark);position:relative}.clip{position:absolute;inset:12px 16px;background:var(--ink);border:1px solid var(--line-dark);overflow:hidden}.waveform{position:absolute;width:100%;height:48px;left:0;bottom:6px;stroke:var(--text-3d);stroke-width:1;fill:none}.clip-label{position:relative;font-size:var(--t-caption);color:var(--text-2d);padding-left:12px}.playhead{position:absolute;left:74%;top:48px;bottom:0;width:1px;background:var(--paper)}.bar-lines{position:absolute;inset:48px 0 0;display:flex;justify-content:space-evenly;pointer-events:none}.bar-lines i{width:1px;background:var(--line-dark)}
+.rack{border-left:1px solid var(--line-dark)}.rack-unit{padding:24px;border-bottom:1px solid var(--line-dark);font-size:var(--t-body)}.rack-unit>div{display:flex;align-items:center;gap:12px}.rack-unit p{font-size:var(--t-secondary);color:var(--text-2d);margin-top:8px;margin-left:32px}.daw-bottom{height:48px;display:flex;align-items:center;gap:32px;padding:0 24px;font-size:var(--t-secondary);color:var(--text-2d);border-top:1px solid var(--line-dark)}.daw-bottom span:last-child{margin-left:auto}.daw-scrim{position:absolute;inset:0;background:var(--scrim);pointer-events:none}
+.vit-window{position:absolute;left:288px;top:32px;width:864px;height:808px;background:var(--paper);border:2px solid var(--ink);box-shadow:var(--shadow-window);display:flex;flex-direction:column}.titlebar{height:48px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px 0 20px;border-bottom:1px solid var(--line)}.titlebar h1{font-size:var(--t-body);font-weight:600;line-height:1.65}.vit-mark{position:relative;display:block}.vit-mark .icon{width:24px;height:24px}.busy-dot{position:absolute;right:-2px;bottom:1px;width:8px;height:8px;border:1px solid var(--ink);border-radius:50%;background:var(--yellow)}.titlebar .minimize{margin-left:auto;width:40px;height:32px;padding:6px}.window-body{display:flex;min-height:0;flex:1}
+.project-rail{width:72px;flex:none;background:var(--canvas);border-right:2px solid var(--ink);padding-top:16px;display:flex;flex-direction:column;align-items:center;gap:16px}.rail-action{width:70px;min-height:56px;padding:8px 0;display:flex;flex-direction:column;gap:4px;font-size:var(--t-caption);font-weight:400;line-height:1.5;white-space:nowrap}.rail-action .icon{width:24px;height:24px}
+.conversation{flex:1;min-width:0;display:flex;flex-direction:column}.project-context{height:48px;flex:none;display:flex;align-items:center;gap:12px;padding:0 32px;border-bottom:1px solid var(--line)}.project-context strong{font-size:var(--t-body);font-weight:600}.project-context>span{font-size:var(--t-secondary);color:var(--text-2)}.project-context button{margin-left:auto;font-size:var(--t-secondary);font-weight:400;padding:4px 0}
+.flow{padding:20px 32px 16px;flex:1;min-height:0}.message{font-size:var(--t-body);line-height:1.65;max-width:36em}.user-message{margin-left:auto;text-align:right;margin-bottom:12px}.vit-message{margin-right:auto;margin-bottom:20px}
+.macro-card{background:var(--warm);padding:20px;margin-top:0}.macro-heading{display:flex;align-items:center;gap:12px;margin-bottom:16px}.macro-heading h2{font-size:var(--t-title);font-weight:600;line-height:1.4}.applied{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:var(--t-secondary);color:var(--blue)}.applied .icon{width:16px;height:16px}
+.macro-options{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.macro-option{min-width:0;display:block;text-align:left;padding:12px;background:var(--paper);border:2px solid transparent;color:var(--ink);font-weight:400;line-height:1.55}.macro-option[aria-checked="true"]{border-color:var(--ink);background:var(--warm)}.macro-name{display:block;font-size:var(--t-key);font-weight:700;line-height:1.25}.macro-description{display:block;font-size:var(--t-secondary);font-weight:400;line-height:1.55;color:var(--text-2);margin-top:8px;white-space:nowrap}.contour{width:100%;height:36px;margin-top:12px;fill:none;stroke:var(--ink);stroke-width:2}.contour .baseline{stroke:var(--line);stroke-width:1}
+.macro-actions{display:flex;align-items:center;gap:16px;margin-top:16px}.primary{background:var(--ink);color:var(--paper);border:0}.primary:hover:not(:disabled){background:var(--text-2)}.macro-actions .primary{padding:8px 24px}.text-button{font-size:var(--t-secondary);font-weight:400;padding:8px 0}
+.receipt{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:var(--t-secondary);color:var(--text-2)}.receipt>.icon{width:16px;height:16px;color:var(--blue)}.receipt time{font:400 var(--t-caption)/1.5 var(--mono);color:var(--text-2)}.receipt button{font-size:var(--t-body);font-weight:400;padding:0 4px;color:var(--ink)}
+.comparison{display:flex;align-items:center;justify-content:space-between;gap:24px;margin-top:16px}.trace{display:flex;flex-direction:column;gap:4px}.trace-step{display:flex;align-items:center;gap:8px;font-size:var(--t-secondary);line-height:1.55;color:var(--text-2)}.trace-step>.icon{width:16px;height:16px}.trace-step time{font:400 var(--t-caption)/1.5 var(--mono);margin-left:8px;color:var(--text-3)}.trace-step.current{color:var(--ink)}.current-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:var(--yellow);color:var(--ink)}.current-icon .icon{width:16px;height:16px;animation:advance 1.2s steps(3,end) infinite}.compare-action{display:flex;flex-direction:column;align-items:center;gap:8px}.compare-action button{border:1.5px dashed var(--text-3);padding:8px 16px}.compare-action p{font-size:var(--t-caption);line-height:1.5;color:var(--text-3)}
+.composer{flex:none;margin:0 32px 24px;background:var(--warm);border:1px solid var(--line);border-radius:4px;padding:12px;display:flex;align-items:center;gap:16px}.composer textarea{height:32px;min-width:0;flex:1;resize:none;border:0;border-radius:4px;background:var(--warm);color:var(--ink);font-size:var(--t-body);line-height:1.65;padding:2px 4px}.composer textarea::placeholder{color:var(--text-3);opacity:1}.composer .primary{height:40px;padding:8px 12px}
+@keyframes advance{0%,100%{transform:translateY(1px)}50%{transform:translateY(-1px)}}@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* Monochrome structure and typography; colour belongs to instrument graphics and explicit status marks. */
+:root{
+ --read-bg:#FFFFFF;--ui-text:#141414;--ui-muted:#555555;--ui-weak:#666666;
+ --ui-canvas:#F4F4F4;--ui-rail:#EFEFEF;--ui-plate:#F6F6F6;--ui-border:#D3D3D3;--ui-rule:#E2E2E2;
+ --display:#1C1C1C;--display-grid:#383838;--display-frame:#4C4C4C;
+ --control-red:#DB5146;--control-yellow:#FACC1A;--control-blue:#73B8F5;
+}
+body{background:var(--ui-canvas);color:var(--ui-text)}
+.vit-window{background:var(--read-bg);border-color:var(--ui-text)}
+.titlebar{background:var(--read-bg);color:var(--ui-text);border-bottom-color:var(--ui-rule);--icon-bg:var(--read-bg)}
+.project-rail{background:var(--ui-rail);border-right:1px solid var(--ui-border);color:var(--ui-text);gap:12px}
+.rail-action{width:64px}
+button:hover:not(:disabled){background:var(--ui-rail)}
+.busy-dot{background:#888888;border-color:var(--read-bg);animation:advance 1.2s steps(3,end) infinite}
+.project-context{height:52px;background:var(--ui-plate);border-bottom-color:var(--ui-rule)}
+.project-context>span{color:var(--ui-muted)}
+.project-context button{color:var(--ui-text)}
+.flow{padding-top:20px}
+.user-message{margin-bottom:12px}
+.vit-message{margin-bottom:20px}
+.macro-card{padding:0;background:var(--ui-plate);border:1px solid var(--ui-border);color:var(--ui-text)}
+.macro-heading{height:56px;margin:0;padding:0 20px;gap:12px}
+.macro-heading h2{font-size:var(--t-title)}
+.applied{background:transparent;color:var(--ui-muted);font-size:var(--t-secondary);font-weight:400;gap:8px;margin-left:auto}
+.level-dot{display:block;width:7px;height:7px;border-radius:50%;background:var(--blue);flex:none}
+.macro-options{padding:0 20px;gap:12px}
+.macro-option{display:block;height:180px;padding:14px;background:var(--read-bg);border:1px solid #C5C5C5;color:var(--ui-text)}
+.macro-option[aria-checked="true"]{border:2px solid var(--ui-text);padding:13px;background:var(--read-bg)}
+.macro-option:hover:not(:disabled){background:var(--read-bg);border-color:var(--ui-text)}
+.option-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.macro-name{font-size:var(--t-key);line-height:1.25}
+.macro-description{font-size:var(--t-secondary);color:var(--ui-muted);margin-top:8px}
+.selection-lamp{width:12px;height:12px;border-radius:50%;border:1px solid #A0A0A0;background:var(--read-bg);flex:none}
+.macro-option[aria-checked="true"] .selection-lamp{border:3px solid var(--ui-text);background:var(--read-bg)}
+.contour{display:block;width:100%;height:72px;margin-top:14px;background:var(--display);border:1px solid var(--display-frame);fill:none;stroke:none;overflow:hidden}
+.chart-grid{stroke:var(--display-grid);stroke-width:.6}
+.response{stroke:var(--curve);stroke-width:3;fill:none}
+.tone-warm{--curve:var(--control-red)}.tone-bright{--curve:var(--control-yellow)}.tone-tight{--curve:var(--control-blue)}
+.macro-actions{padding:12px 20px;margin-top:16px;border-top:1px solid var(--ui-rule);background:var(--read-bg);gap:20px}
+.primary{background:var(--ui-text);color:var(--read-bg)}
+.primary:hover:not(:disabled){background:#333333;color:var(--read-bg)}
+.text-button{color:var(--ui-text)}
+.receipt{margin-top:12px;color:var(--ui-muted)}
+.receipt>.icon{color:var(--ui-muted)}
+.receipt time{color:var(--ui-muted)}
+.receipt button{color:var(--ui-text)}
+.comparison{margin-top:20px;padding-top:16px;border-top:1px solid var(--ui-rule)}
+.trace-step,.trace-step time{color:var(--ui-muted)}
+.trace-step.current{color:var(--ui-text)}
+.current-icon{background:var(--yellow);color:var(--ui-text)}
+.compare-action button:disabled{color:var(--ui-weak);border-color:#A4A4A4;background:var(--ui-plate);border-style:solid}
+.compare-action p{color:var(--ui-weak)}
+.composer{margin-bottom:20px;background:var(--read-bg);border:1px solid #A9A9A9;padding:12px}
+.composer textarea{background:var(--read-bg);color:var(--ui-text)}
+.composer textarea::placeholder{color:var(--ui-weak)}
+.daw{background:#161616;color:#F4F4F4;--icon-bg:#161616}
+.daw-title,.daw-menu,.transport,.track,.pane-heading,.track-list,.ruler,.lane,.rack,.rack-unit,.daw-bottom{border-color:#343434}
+.daw-title span:last-child,.daw-menu,.transport .tempo,.pane-heading,.track-controls,.track-list .collapsed,.ruler,.rack-unit p,.daw-bottom{color:#B4B4B4}
+.transport .tempo b,.track-name{color:#F4F4F4}
+.track-name .icon{color:#B4B4B4}
+.level{background:#909090}
+.clip{background:#101010;border-color:#343434}
+.clip-label{color:#B4B4B4}
+.waveform{stroke:#909090}
+.playhead{background:#EEEEEE}
+.bar-lines i{background:#343434}
+.daw-scrim{background:rgba(0,0,0,.10)}
+
+/* Layered control study: coloured component surfaces enclosed by a frame; neutral shell and typography. */
+:root{
+ --control-shell:#CDDEF2;--control-shell-light:#E3EDF8;--control-shell-edge:#526C8D;
+ --control-shell-rim:#F5F9FF;--control-shell-lip:#9FB6D1;
+ --control-well:#B7CAE2;--control-well-edge:#8CA4C1;
+ --control-choice:#FFFFFF;--control-choice-edge:#8796A8;
+ --control-choice-selected:#F6E7AA;--control-choice-selected-edge:#B6A26C;
+ --control-pane:#1D2228;--control-pane-low:#101318;--control-pane-high:#8290A0;
+}
+.project-context .context-target{margin-left:0;height:34px;gap:10px;padding:4px 12px;background:var(--control-shell-light);border:1px solid var(--control-shell-edge);border-radius:4px;box-shadow:inset 0 1px 0 var(--control-shell-rim),inset 0 -2px 0 #BECFE4;color:var(--ui-text)}
+.project-context .context-target:hover{background:#D4E4F7}
+.project-context>button:last-child{margin-left:auto}
+.macro-card{background:var(--control-shell);border:1px solid var(--control-shell-edge);box-shadow:inset 0 1px 0 var(--control-shell-rim),inset 0 -3px 0 var(--control-shell-lip),0 2px 4px rgba(0,0,0,.10)}
+.macro-heading{height:56px}
+.applied{color:#3F3F3F}
+.macro-options{margin:0 16px;padding:10px;gap:10px;background:var(--control-well);border:1px solid var(--control-well-edge);border-top-color:#7189A5;border-bottom-color:#E9F1FB;box-shadow:inset 0 1px 2px rgba(29,44,65,.10)}
+.macro-option{height:178px;padding:12px;background:var(--control-choice);border:1px solid var(--control-choice-edge);box-shadow:inset 0 1px 0 #FFFFFF,0 1px 1px rgba(0,0,0,.08)}
+.macro-option[aria-checked="true"]{padding:11px;background:var(--control-choice-selected);border:2px solid var(--ui-text);box-shadow:inset 0 1px 0 #FFF7D5,inset 0 -2px 0 #D7C47E}
+.macro-option:hover:not(:disabled){background:#F4F7FB}
+.macro-option[aria-checked="true"]:hover{background:#F6E7AA}
+.macro-name{font-size:var(--t-key)}
+.macro-description{font-size:var(--t-secondary);color:#4E4E4E}
+.selection-lamp{border-color:#9B9B9B}
+.macro-option[aria-checked="true"] .selection-lamp{background:var(--ui-text);border:3px solid var(--ui-text)}
+.contour{height:72px;margin-top:14px;background:var(--control-pane);border-top:1px solid var(--control-pane-low);border-left:1px solid var(--control-pane-low);border-right:1px solid var(--control-pane-high);border-bottom:1px solid var(--control-pane-high);box-shadow:inset 0 1px 3px rgba(0,0,0,.4)}
+.chart-grid{stroke:#39414A}
+.macro-actions{margin-top:16px;padding:12px 20px 15px;border-top:1px solid #A7BBD3;background:var(--control-shell-light);box-shadow:inset 0 1px 0 var(--control-shell-rim)}
+.macro-actions .primary{border:1px solid #101010;box-shadow:inset 0 1px 0 #474747;padding:7px 23px}
+.macro-actions .text-button{color:var(--ui-text)}
+.macro-actions .text-button:hover{background:#FFFFFF}
+
+/* Second visual review: a darker title tier, a lighter deck, fewer equal-weight outlines. */
+:root{--control-header:#31567D;--control-shell-edge:#3E5B7C;--control-shell:#D0DFEF;--control-shell-light:#ECF2F8;}
+.macro-heading{background:var(--control-header);color:#FFFFFF;border-top:1px solid #6583A1;border-bottom:1px solid #24415F;height:56px}
+.macro-heading .applied{color:#F4F4F4}
+.macro-heading .level-dot{background:var(--control-blue)}
+.macro-options{margin-top:14px;border-left:0;border-right:0;border-top:1px solid #8CA4BF;border-bottom:1px solid #F1F6FB;background:#BDCEE1}
+.macro-actions{margin-top:14px;border-top-color:#9EB4CC}
+
+/* Compact the nested control to preserve breathing room above the composer. */
+.macro-heading{height:48px}
+.macro-options{margin-top:12px;padding:8px}
+.macro-option{height:176px}
+.macro-actions{margin-top:12px;padding-bottom:12px}
+.context-target:active{transform:translateY(1px);box-shadow:inset 0 1px 2px rgba(29,44,65,.20)}
+.macro-option:active{transform:translateY(1px)}
+.macro-actions .primary:active{background:#080808;box-shadow:inset 0 1px 3px rgba(0,0,0,.45)}
+</style>
+</head>
+<body>
+<main id="p3" class="screen" aria-label="鼓组混音 v2 工作区">
+  <div class="daw" aria-label="音频工作区">
+    <div class="daw-title"><strong>鼓组混音 v2</strong><span>已保存</span></div>
+    <nav class="daw-menu" aria-label="音频工作区菜单"><span>文件</span><span>编辑</span><span>轨道</span><span>视图</span></nav>
+    <div class="transport">
+      <button class="record" aria-label="录音" data-state-color="red"><svg class="icon"><use href="#i-record"/></svg></button>
+      <button aria-label="播放"><svg class="icon"><use href="#i-play"/></svg></button>
+      <button aria-label="停止播放"><svg class="icon"><use href="#i-stop"/></svg></button>
+      <span class="time">0009 : 01 : 000</span><span class="tempo"><b>96.0</b>BPM　　4/4</span>
+    </div>
+    <div class="workspace">
+      <div class="track-list"><div class="pane-heading">轨道</div><div id="tracks"></div><div class="collapsed">其余 8 条轨道</div></div>
+      <div class="timeline"><div class="ruler"><span>1</span><span>5</span><span>9</span><span>13</span><span>17</span><span>21</span><span>25</span><span>29</span></div><div class="bar-lines"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div id="lanes"></div><div class="playhead"></div></div>
+      <div class="rack"><div class="pane-heading"><svg class="icon"><use href="#i-bus"/></svg>鼓组总线</div><div class="rack-unit"><div><svg class="icon"><use href="#i-fx"/></svg>总线均衡</div><p>已启用</p></div><div class="rack-unit"><div><svg class="icon"><use href="#i-fx"/></svg>磁带饱和</div><p>温暖</p></div><div class="rack-unit"><div><svg class="icon"><use href="#i-fx"/></svg>染色压缩</div><p>已启用</p></div><div class="rack-unit"><div><svg class="icon"><use href="#i-fx"/></svg>房间混响</div><p>发送</p></div></div>
+    </div>
+    <div class="daw-bottom"><span>6 条轨道已选中</span><span>循环区间 9–17 小节</span><span>48 kHz / 24 位</span></div>
+  </div>
+  <div class="daw-scrim" aria-hidden="true"></div>
+  <div class="vit-window" role="region" aria-label="Vit 对话窗口">
+    <header class="titlebar"><span class="vit-mark"><svg class="icon" aria-label="Vit"><use href="#i-vit"/></svg><span class="busy-dot" aria-label="Vit 正在准备对比 A/B"></span></span><h1>鼓组混音 v2</h1><button class="minimize" aria-label="最小化窗口"><svg class="icon"><use href="#i-minimize"/></svg></button></header>
+    <div class="window-body">
+      <nav class="project-rail" aria-label="工程操作"><button class="rail-action" aria-label="新建工程"><svg class="icon"><use href="#i-new"/></svg><span>新建工程</span></button><button class="rail-action" aria-label="打开文件夹"><svg class="icon"><use href="#i-open"/></svg><span>打开文件夹</span></button></nav>
+      <div class="conversation">
+        <div class="project-context"><button class="context-target" aria-label="选择鼓组总线"><svg class="icon"><use href="#i-bus"/></svg><strong>鼓组总线</strong></button><span>6 条轨道</span><button aria-label="引用轨道"><svg class="icon"><use href="#i-attach"/></svg>引用轨道</button></div>
+        <div class="flow">
+          <p class="message user-message">让鼓组暖一点，保留底鼓的冲击。</p>
+          <p class="message vit-message">我保留了底鼓的起音，让高频更柔和。试试「温暖」。</p>
+          <section class="macro-card" aria-labelledby="macro-title">
+            <div class="macro-heading"><svg class="icon"><use href="#i-macro"/></svg><h2 id="macro-title">鼓组总线 · 染色</h2><span class="applied" data-info-level="safe"><span class="level-dot" aria-hidden="true"></span><span>已应用 · 可撤销</span></span></div>
+            <div class="macro-options" role="radiogroup" aria-label="选择鼓组染色">
+              <button class="macro-option tone-warm" role="radio" aria-checked="true"><span class="option-heading"><span class="macro-name">温暖</span><span class="selection-lamp" aria-hidden="true"></span></span><span class="macro-description">高频柔和，鼓声更厚</span><svg class="contour" viewBox="0 0 180 64" data-visualization="frequency" aria-label="温暖的频响轮廓"><path class="chart-grid" d="M0 16H180M0 32H180M0 48H180M45 0V64M90 0V64M135 0V64"/><path class="response" d="M0 34C30 34 34 14 65 18S116 38 180 42"/></svg></button>
+              <button class="macro-option tone-bright" role="radio" aria-checked="false"><span class="option-heading"><span class="macro-name">明亮</span><span class="selection-lamp" aria-hidden="true"></span></span><span class="macro-description">镲片清晰，空气更足</span><svg class="contour" viewBox="0 0 180 64" data-visualization="frequency" aria-label="明亮的频响轮廓"><path class="chart-grid" d="M0 16H180M0 32H180M0 48H180M45 0V64M90 0V64M135 0V64"/><path class="response" d="M0 42C54 42 80 42 106 34S146 14 180 16"/></svg></button>
+              <button class="macro-option tone-tight" role="radio" aria-checked="false"><span class="option-heading"><span class="macro-name">紧实</span><span class="selection-lamp" aria-hidden="true"></span></span><span class="macro-description">低频收紧，起音集中</span><svg class="contour" viewBox="0 0 180 64" data-visualization="frequency" aria-label="紧实的频响轮廓"><path class="chart-grid" d="M0 16H180M0 32H180M0 48H180M45 0V64M90 0V64M135 0V64"/><path class="response" d="M0 48C20 46 30 14 52 18S88 42 112 40 150 32 180 34"/></svg></button>
+            </div>
+            <div class="macro-actions"><button class="primary"><svg class="icon"><use href="#i-macro"/></svg>应用</button><button class="text-button">存为我的快照</button></div>
+          </section>
+          <div class="receipt"><svg class="icon" aria-label="快照已保存"><use href="#i-snapshot"/></svg><span>已保存快照 <time>14:07</time> ·</span><button>撤销</button></div>
+          <div class="comparison">
+            <div class="trace" aria-label="执行轨迹">
+              <div class="trace-step"><svg class="icon"><use href="#i-done"/></svg><span>已读取鼓组总线</span><time>0.2 秒</time></div>
+              <div class="trace-step"><svg class="icon"><use href="#i-done"/></svg><span>已应用「温暖」</span><time>0.4 秒</time></div>
+              <div class="trace-step current"><span class="current-icon" data-state-color="yellow" aria-label="正在渲染对比 A/B"><svg class="icon"><use href="#i-busy"/></svg></span><span>正在渲染对比 A/B</span></div>
+            </div>
+            <div class="compare-action"><button disabled><svg class="icon"><use href="#i-ab"/></svg>对比 A/B</button><p>准备好后可对比</p></div>
+          </div>
+        </div>
+        <form class="composer" onsubmit="return false"><textarea aria-label="消息" placeholder="继续描述你想要的声音…"></textarea><button class="primary" type="button" aria-label="停止当前执行"><svg class="icon"><use href="#i-stop"/></svg>停止</button></form>
+      </div>
+    </div>
+  </div>
+</main>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-new" viewBox="0 0 24 24"><path class="selected-fill" d="M3 3H15V9H21V21H3Z"/><path d="M3 3H15V9H21V21H3Z"/><path class="detail" d="M9 11V19M5 15H13"/><path d="M17 3V7H21"/></symbol>
+<symbol id="i-open" viewBox="0 0 24 24"><path class="selected-fill" d="M3 8V5H10V8H21V20H3Z"/><path d="M3 8V5H10V8H21V20H3ZM3 11H21"/></symbol>
+<symbol id="i-minimize" viewBox="0 0 24 24"><path d="M3 18H21"/><path class="selected-fill" d="M3 16H21V18H3Z"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M3 12H20M12 4L20 12 12 20"/><path class="selected-fill" d="M11 5L18 12 11 19Z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><path d="M7 3H3V21H7M17 3H21V21H17"/><rect class="selected-fill" x="8" y="8" width="8" height="8"/><rect x="8" y="8" width="8" height="8"/></symbol>
+<symbol id="i-track" viewBox="0 0 24 24"><path class="selected-fill" d="M3 4H7V20H3Z"/><path d="M3 4H21V20H3ZM7 4V20M10 8H18M10 12H21M10 16H16"/></symbol>
+<symbol id="i-bus" viewBox="0 0 24 24"><path d="M3 4H9V10H3ZM15 4H21V10H15ZM6 10V14H18V10M12 14V20M7 20H17"/><path class="selected-fill" d="M3 4H9V10H3ZM15 4H21V10H15Z"/></symbol>
+<symbol id="i-fx" viewBox="0 0 24 24"><path d="M3 3H21V21H3ZM5 15H9V9H15V15H19"/><path class="selected-fill" d="M9 9H15V15H9Z"/></symbol>
+<symbol id="i-macro" viewBox="0 0 24 24"><path d="M5 3V21M12 3V21M19 3V21M2 8H8M9 16H15M16 10H22"/><path class="selected-fill" d="M3 6H7V10H3ZM10 14H14V18H10ZM17 8H21V12H17Z"/></symbol>
+<symbol id="i-ab" viewBox="0 0 24 24"><path d="M3 7H9V19H3ZM15 5H21V17H15ZM4 3H11L14 6M20 21H13L10 18"/><path class="selected-fill" d="M3 7H9V19H3Z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path class="selected-fill" d="M7 5L14 12 7 19Z"/><path d="M7 5L14 12 7 19Z"/></symbol>
+<symbol id="i-record" viewBox="0 0 24 24"><path class="solid" d="M12 5A7 7 0 0 1 19 12A7 7 0 0 1 12 19A7 7 0 0 1 5 12A7 7 0 0 1 12 5Z"/></symbol>
+<symbol id="i-render" viewBox="0 0 24 24"><path d="M12 3V15M6 9L12 15 18 9M3 15V21H21V15"/><path class="selected-fill" d="M8 17H16V20H8Z"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M10 3L4 9 10 15M4 9H14A6 6 0 0 1 20 15V20H12"/><path class="selected-fill" d="M4 9H10V15Z"/></symbol>
+<symbol id="i-snapshot" viewBox="0 0 24 24"><path d="M3 8V3H8M16 3H21V8M21 16V21H16M8 21H3V16M7 7H17V17H7Z"/><rect class="selected-fill" x="7" y="7" width="10" height="10"/></symbol>
+<symbol id="i-attach" viewBox="0 0 24 24"><path d="M8 3H3V21H8M16 3H21V21H16M7 12H17M12 7L17 12 12 17"/><path class="selected-fill" d="M12 8L16 12 12 16Z"/></symbol>
+<symbol id="i-idle" viewBox="0 0 24 24"><path d="M11 3H3V11M13 21H21V13"/><rect class="solid" x="10" y="10" width="4" height="4"/><path class="selected-fill" d="M3 3H8V8H3ZM16 16H21V21H16Z"/></symbol>
+<symbol id="i-busy" viewBox="0 0 24 24"><path d="M3 20H9V14H15V8H21M5 14V20M11 8V14M17 2V8"/><rect class="solid" x="18" y="3" width="4" height="4"/><path class="selected-fill" d="M3 17H8V20H3ZM9 11H14V14H9Z"/></symbol>
+<symbol id="i-done" viewBox="0 0 24 24"><path d="M10 3H3V21H21V14M7 11L12 16 21 7"/><path class="selected-fill" d="M3 17H8V21H3Z"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5L20.5 12 12 20.5 3.5 12Z"/><path class="selected-fill" d="M12 3.5L20.5 12 12 20.5 3.5 12Z"/><path class="alert-mark" d="M11 7H13V13H11ZM11 15H13V17H11Z"/></symbol>
+<symbol id="i-vit" viewBox="0 0 24 24"><rect class="selected-fill" x="3" y="6" width="18" height="12"/><rect x="3" y="6" width="18" height="12"/><rect class="knockout" x="6" y="9" width="12" height="6"/><rect x="6" y="9" width="12" height="6"/><path class="solid" d="M10.5 12A1.5 1.5 0 0 1 9 13.5A1.5 1.5 0 0 1 7.5 12A1.5 1.5 0 0 1 9 10.5A1.5 1.5 0 0 1 10.5 12ZM16.5 12A1.5 1.5 0 0 1 15 13.5A1.5 1.5 0 0 1 13.5 12A1.5 1.5 0 0 1 15 10.5A1.5 1.5 0 0 1 16.5 12Z"/></symbol>
+</defs></svg>
+<script>
+var INK="#090B0E",WIN="#FBF9F1",HUB="#FAFAF2",ACC="#1A1A1F",TINT="#E6E6E6";
+function tapeSVG(w,h,a){ // a=atmos 可为 null（默认灰壳满盘）
+  var bx=2,by=2,bw=w-4,bh=h-4;
+  var wx=bx+8,wy=by+8,ww=bw-16,wh=bh-26;
+  var cy=wy+wh/2,c1x=wx+ww*0.28,c2x=wx+ww*0.72;
+  var r=Math.min(wh*0.3,22);
+  var d1=a?r*(0.34+0.5*a.L):r, d2=a?r*(0.34+0.5*a.R):r;
+  var labelY=by+bh-12;
+  var bodyFill=a?rgba(a.c1,0.62):TINT;
+  var s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+" "+h+'">';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="'+bodyFill+'"/>';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="'+WIN+'"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  [[c1x,d1],[c2x,d2]].forEach(function(reel){
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+reel[1]+'" fill="'+ACC+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+(r*0.32)+'" fill="'+HUB+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  });
+  s+='<line x1="'+(bx+10)+'" y1="'+labelY+'" x2="'+(bx+bw-10)+'" y2="'+labelY+'" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<line x1="'+(bx+10)+'" y1="'+(labelY+6)+'" x2="'+(bx+bw*0.55)+'" y2="'+(labelY+6)+'" stroke="rgba(31,36,43,0.6)" stroke-width="1"/>';
+  return s+"</svg>";
+}
+function rgba(c,alpha){return "rgba("+c[0]+","+c[1]+","+c[2]+","+alpha+")";}
+const tracks=['鼓组总线','底鼓','军鼓','闭镲','头顶麦','房间麦'];
+document.querySelector('#tracks').innerHTML=tracks.map((name,i)=>`<div class="track"><div class="track-name"><svg class="icon"><use href="#i-${i?'track':'bus'}"/></svg>${name}</div><div class="track-controls"><span>静音</span><span>独奏</span><i class="level" style="width:${72-i*6}px"></i></div></div>`).join('');
+document.querySelector('#lanes').innerHTML=tracks.map((name,i)=>{let d='';for(let n=0;n<200;n++){const x=n*5,h=3+Math.abs(Math.sin(n*(i+2)*1.87))*13*(n%7===0?1.7:1);d+=`M${x} ${24-h}V${24+h}`;}return `<div class="lane"><div class="clip"><span class="clip-label">${name}</span><svg class="waveform" viewBox="0 0 1000 48" preserveAspectRatio="none" aria-hidden="true"><path d="${d}"/></svg></div></div>`}).join('');
+</script>
+</body>
+</html>

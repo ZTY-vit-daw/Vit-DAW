@@ -1,0 +1,114 @@
+{
+  "status": "user-approved visual direction; depth revision adopted as v5.1 (2026-11-14)",
+  "source": "build-round2.py generated v5-product.html / v5-system.html",
+  "roles": {
+    "default": "blue compound control",
+    "selected": "light yellow with 2px dark outline and 1px outer ring; lower shadow than unselected",
+    "higherWarning": "red panel with cause and recovery/confirmation",
+    "text": "black or white; neutral secondary",
+    "progress": "ordered trace and motion",
+    "depth": "plane differences + contact/soft shadows; no uniform heavy outlines"
+  },
+  "tokens": {
+    "read-bg": "#FFFFFF",
+    "read-workspace": "#F0F1F2",
+    "ui-text": "#141414",
+    "ui-muted": "#555555",
+    "ui-weak": "#666666",
+    "ui-canvas": "#F4F4F4",
+    "ui-rail": "#EFEFEF",
+    "ui-plate": "#F6F6F6",
+    "ui-border": "#D3D3D3",
+    "ui-rule": "#E2E2E2",
+    "control-header": "#31567D",
+    "control-shell": "#D0DFEF",
+    "control-shell-raised": "#D4E1EF",
+    "control-shell-light": "#ECF2F8",
+    "control-shell-edge": "#3E5B7C",
+    "control-well": "#BDCEE1",
+    "control-well-deep": "#BDCDDF",
+    "control-well-edge": "#8CA4C1",
+    "control-choice": "#FFFFFF",
+    "control-choice-edge": "#8796A8",
+    "control-choice-edge-deep": "#9BA8B7",
+    "control-choice-selected": "#F6E7AA",
+    "control-selected-edge": "#141414",
+    "control-selected-ring": "0 0 0 1px rgba(20,20,20,.20)",
+    "control-pane": "#1D2228",
+    "control-pane-low": "#101318",
+    "control-pane-high": "#8290A0",
+    "control-blue": "#73B8F5",
+    "control-yellow": "#FACC1A",
+    "window-edge": "#5B626A",
+    "titlebar-rule": "#D9DDE1",
+    "rail": "#E9ECEF",
+    "rail-edge": "#CAD0D7",
+    "context": "#FAFBFC",
+    "context-edge": "#D0D5DB",
+    "depth-line": "#718094",
+    "warning-shell": "#F7E9E8",
+    "warning-edge": "#9D3430",
+    "warning-header": "#943733",
+    "attention-shell": "#F6E7AA",
+    "attention-edge": "#8E782F",
+    "control-shadow": "0 2px 4px rgba(0,0,0,.10)",
+    "depth-contact": "0 1px 2px rgba(0,0,0,.18)",
+    "depth-control": "0 6px 16px rgba(21,36,54,.12)",
+    "shadow-window": "0 2px 4px rgba(0,0,0,.28),0 18px 48px rgba(0,0,0,.28),0 48px 96px rgba(0,0,0,.18)",
+    "shadow-popover": "0 8px 24px rgba(9,11,14,.18)",
+    "sans": "Inter,\"Segoe UI\",\"Microsoft YaHei\",\"PingFang SC\",sans-serif",
+    "mono": "Consolas,monospace",
+    "t-caption": "13px",
+    "t-secondary": "14px",
+    "t-body": "16px",
+    "t-title": "18px",
+    "t-key": "22px",
+    "t-screen": "28px"
+  },
+  "depthComputed": {
+    "window": {
+      "border": "1px solid #5B626A",
+      "shadow": "0 2px 4px rgba(0,0,0,.28), 0 18px 48px rgba(0,0,0,.28), 0 48px 96px rgba(0,0,0,.18)"
+    },
+    "macroCard": {
+      "border": "0",
+      "background": "#D4E1EF",
+      "shadow": "0 1px 2px rgba(0,0,0,.18), 0 6px 16px rgba(21,36,54,.12)"
+    },
+    "macroWell": {
+      "border": "0",
+      "background": "#BDCDDF",
+      "shadow": "inset 0 2px 4px rgba(29,44,65,.16), 0 1px 0 rgba(255,255,255,.7)"
+    },
+    "optionDefault": {
+      "border": "1px solid #9BA8B7",
+      "background": "#FFFFFF",
+      "shadow": "inset 0 1px 0 #FFFFFF, 0 1px 2px rgba(0,0,0,.12), 0 4px 8px rgba(29,44,65,.10)"
+    },
+    "optionSelected": {
+      "border": "2px solid #141414",
+      "background": "#F6E7AA",
+      "shadow": "inset 0 1px 0 #FFF8D8, inset 0 -2px 0 #D7C47E, 0 0 0 1px rgba(20,20,20,.20), 0 1px 2px rgba(0,0,0,.10)"
+    },
+    "contour": {
+      "border": "0",
+      "background": "#1D2228",
+      "shadow": "inset 0 2px 4px rgba(0,0,0,.55), 0 1px 0 rgba(255,255,255,.8)"
+    },
+    "composer": {
+      "border": "1px solid #9BA4AE",
+      "shadow": "inset 0 1px 2px rgba(0,0,0,.045), 0 2px 8px rgba(0,0,0,.055)"
+    }
+  },
+  "viewport": {
+    "screen": [
+      1440,
+      900
+    ],
+    "p3Window": [
+      864,
+      808
+    ],
+    "gridGap": 40
+  }
+}

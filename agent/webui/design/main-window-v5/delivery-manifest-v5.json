@@ -1,0 +1,15 @@
+{
+  "stage": "v5.1 delivery (depth + icon finalization)",
+  "productHtmlSha256": "8d7c25bde7a223cb62b9378e8f0eb4eb1525d04361b94dbb37096d4e9d55ad10",
+  "systemHtmlSha256": "e763de3f1aec6158a15f58fdd812d42ceab923652a6974ef005a7f4a9bf245fe",
+  "spriteSha256": "746a49f5b7e42703ca030981a51044ef49449d838e0435f024437495ece5d981",
+  "renderEvidence": "audit/full-v51-icons-8/acceptance.json",
+  "review": "REVIEW-V5.html",
+  "handoff": "IMPLEMENTATION-HANDOFF.md",
+  "approvedDirection": "blue controls; yellow selection; red higher warning; depth language; final icon set (23 symbols)",
+  "pending": [
+    "A/B start behaviour",
+    "whether history experiment enters product",
+    "window instance survival probe before implementation"
+  ]
+}
