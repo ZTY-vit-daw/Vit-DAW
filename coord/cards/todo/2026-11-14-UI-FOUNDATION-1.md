@@ -18,6 +18,7 @@
 ## 文件域
 
 `agent/webui/src/design/**`（新增）、`agent/webui/src/components/**`（新增）、`agent/webui/src/styles/tokens.css`（新增）、`agent/webui/src/gallery/**`（新增）、`agent/webui/package.json`（仅 scripts/devDeps）、`agent/webui/public/**`（图标静态资产，如需要）。**不修改** `App.tsx`、现有 `styles.css` 业务规则、agent/Godot。
+- **域扩展（主管 2026-11-14 晚窗授权）**：gallery 独立入口可新增 `agent/webui/gallery.html`（vite 多页入口）+ `agent/webui/vite.config.ts` 的**仅 `rollupOptions.input` 增量**（不得动其他配置项）；回执注明用了本扩展。
 
 ## 并行与资源
 
