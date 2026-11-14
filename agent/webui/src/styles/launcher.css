@@ -330,3 +330,65 @@
 .v5-launcher-retry {
   margin-top: 2px;
 }
+
+/* ---------- UI-BRIDGE-1：Vit 桥执行面 ---------- */
+
+/* directive 执行动作行（让 Vit 打开/新建 + 桥不可用诚实说明） */
+.v5-launcher-directive-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.v5-launcher-execute {
+  font-size: 13px;
+}
+
+.v5-launcher-bridge-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+/* 抽屉内选择文件入口（原生 FileDialog 归宿主） */
+.v5-launcher-choose-file {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+/* 桥执行状态块（waiting/终态；终态文案全部来自宿主回执） */
+.v5-launcher-bridge-exec {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.v5-launcher-bridge-exec--ok {
+  border-color: var(--v5-ui-text);
+}
+
+.v5-launcher-bridge-exec--wait {
+  background: var(--v5-read-bg);
+}
+
+.v5-launcher-bridge-exec--bad {
+  background: var(--v5-warning-shell);
+  border-color: var(--v5-warning-edge);
+}
+
+.v5-launcher-bridge-exec-label {
+  font-weight: 600;
+  color: var(--v5-ui-text);
+}
+
+.v5-launcher-bridge-exec-message {
+  color: var(--v5-ui-muted);
+}

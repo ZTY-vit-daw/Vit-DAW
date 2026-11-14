@@ -8,20 +8,25 @@
  * （context.launcher=true，agent 端确定性意图路由零 LLM）。完整最近工程列表经
  * launcher 聊天 list 意图（"有哪些工程"）获取——greeting 只回执首项+计数。
  *
- * 硬边界（卡面）：结果卡 / directive 只做数据展示，不执行 open/new；
- * directive 一律渲染「准备打开…/准备新建…」占位。不硬编码示例工程名。
+ * UI-BRIDGE-1 桥面：directive 经「让 Vit 打开/新建」按钮走 ask_vit_launcher 通道
+ * （宿主治理确认 + 既有 open/new 公共链 + 原生对话框归属 Godot）；终态一律以宿主
+ * vit_launcher_result 回执呈现——React 不伪造「已打开」；桥不可用给诚实文案。
+ * 选择文件请求经 launcher_choose_file（原生 FileDialog 归宿主）。
  *
  * fixture 接缝：props 传入 LauncherFixtureOverrides 时完全离线（gallery /
- * render-smoke 使用），真实端点零请求；不传即 live 模式。
+ * render-smoke 使用），真实端点零请求、零桥调用；不传即 live 模式。
+ * 烟测接缝：URL launcher_smoke=1（生产 URL 无参零行为）——自动发送
+ * launcher_smoke_message（可 || 分隔多条，回执后延迟发下一条）并自动执行 directive。
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   cardsToEntries,
   fetchLauncherGreeting,
   sendLauncherChat,
   type LauncherChatResult,
+  type LauncherDirective,
   type LauncherGreeting,
   type LauncherProjectCard
 } from "../api/launcher";
@@ -32,23 +37,46 @@ import {
   drawerCountLabel,
   greetingDisplayText,
   LAUNCHER_AGENT_UNAVAILABLE_TEXT,
+  LAUNCHER_BRIDGE_UNAVAILABLE_TEXT,
+  LAUNCHER_BRIDGE_WAITING_TEXT,
   LAUNCHER_RECENTS_ERROR_TEXT,
   LAUNCHER_SUGGESTIONS,
+  launcherDirectiveResultText,
+  launcherDirectiveResultRetryable,
   launcherDisplayFileName,
   type DirectivePlaceholderView,
+  type LauncherDirectiveState,
   type LauncherGreetingState
 } from "./launcherData";
+import {
+  createLauncherBridgeRequestID,
+  isLauncherBridgeAvailable,
+  postLauncherChooseFile,
+  postLauncherDirective,
+  postLauncherResultAck,
+  postLauncherSurfaceReady,
+  subscribeLauncherResults,
+  type LauncherBridgeResult
+} from "./launcherBridge";
 import { ProjectBadge, TextField } from "../components";
 import "../styles/tokens.css";
 import "../components/components.css";
 import "../styles/launcher.css";
 
-/** 会话线程条目（问候之后的所有展示均为数据呈现，无执行副作用）。 */
+/** 会话线程条目（directive 携带原始指令供桥执行；fixture 线程不带 directive）。 */
 export type LauncherThreadItem =
   | { kind: "assistant"; text: string }
   | { kind: "user"; text: string }
   | { kind: "cards"; cards: LauncherProjectCard[] }
-  | { kind: "directive"; view: DirectivePlaceholderView };
+  | { kind: "directive"; view: DirectivePlaceholderView; directive?: LauncherDirective };
+
+/** 桥执行块（单活跃执行，对应宿主 _launcher_directive_in_flight 单飞语义）。 */
+interface BridgeExecState {
+  requestId: string;
+  action: string;
+  state: LauncherDirectiveState;
+  message: string;
+}
 
 export interface LauncherFixtureOverrides {
   /** fixture greeting（离线注入）。 */
@@ -77,6 +105,42 @@ type DrawerState = "loading" | "ready" | "error" | "empty";
 /** list 意图词面（确定性零 LLM，见 agent launcherClassifyMessage）。 */
 const RECENTS_LIST_MESSAGE = "有哪些工程";
 
+/** 宿主回执 status → 桥执行态（未知一律 failed，不静默）。 */
+function mapResultState(status: string): LauncherDirectiveState {
+  switch (status) {
+    case "opened":
+      return "opened";
+    case "canceled":
+      return "canceled";
+    case "unsupported":
+      return "unsupported";
+    case "dialog_shown":
+      return "dialog_shown";
+    case "invalid":
+      return "invalid";
+    case "failed":
+      return "failed";
+    default:
+      return "failed";
+  }
+}
+
+/** 烟测 URL 参数（生产 URL 无 launcher_smoke → 全零行为）。 */
+function parseSmokeParams(): { enabled: boolean; messages: string[]; delayMs: number } {
+  const params = new URLSearchParams(window.location.search);
+  const enabled = params.get("launcher_smoke") === "1";
+  const rawMessage = params.get("launcher_smoke_message") ?? "";
+  const messages = enabled
+    ? rawMessage
+        .split("||")
+        .map((part) => part.trim())
+        .filter((part) => part.length > 0)
+    : [];
+  const delayRaw = Number.parseInt(params.get("launcher_smoke_followup_delay_ms") ?? "8000", 10);
+  const delayMs = Number.isFinite(delayRaw) && delayRaw > 0 ? delayRaw : 8000;
+  return { enabled, messages, delayMs };
+}
+
 export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps) {
   const fixtureGreeting = fixture?.greeting;
   const fixtureThread = fixture?.thread;
@@ -95,6 +159,100 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
   const [busy, setBusy] = useState(false);
   const [conversationID] = useState(() => createLauncherConversationID());
   const loadRunRef = useRef(0);
+
+  // ── UI-BRIDGE-1：桥可用性（一次性判定）+ 烟测参数（URL 一次性解析）+ 执行态 ──
+  const bridgeAvailable = useMemo(() => !fixture && isLauncherBridgeAvailable(), [fixture]);
+  // fixture 模式（node 渲染/无 window）完全离线：烟测参数不解析。
+  const smokeParams = useMemo(
+    () => (fixture ? { enabled: false, messages: [] as string[], delayMs: 8000 } : parseSmokeParams()),
+    [fixture]
+  );
+  const [bridgeExec, setBridgeExec] = useState<BridgeExecState | null>(null);
+  const lastDirectiveRef = useRef<LauncherDirective | null>(null);
+  const isSmokeRef = useRef(false);
+  const smokeDelayRef = useRef(8000);
+  const smokeQueueRef = useRef<string[]>([]);
+  const smokeStartedRef = useRef(false);
+  const smokeNextRef = useRef<() => void>(() => {});
+  useEffect(() => {
+    isSmokeRef.current = smokeParams.enabled;
+    smokeDelayRef.current = smokeParams.delayMs;
+  }, [smokeParams]);
+
+  // 启动台就绪握手：宿主日志留痕（React launcher surface 已加载且桥在卷）。
+  useEffect(() => {
+    if (fixture) return;
+    postLauncherSurfaceReady();
+  }, [fixture]);
+
+  // 宿主结果回执订阅（live only）：更新执行态 + 烟测 ack/排队。
+  const handleBridgeResult = useCallback((result: LauncherBridgeResult) => {
+    const status = result.status || "failed";
+    if (isSmokeRef.current && result.request_id) {
+      postLauncherResultAck(result.request_id, status);
+    }
+    setBridgeExec((prev) => {
+      if (!prev) return prev;
+      if (result.request_id && result.request_id !== prev.requestId) return prev;
+      const state = mapResultState(status);
+      const message = launcherDirectiveResultText(status, result.message ?? "", result.action || prev.action);
+      return { ...prev, state, message };
+    });
+    if (isSmokeRef.current) {
+      const delay = smokeDelayRef.current;
+      window.setTimeout(() => smokeNextRef.current(), delay);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (fixture) return;
+    return subscribeLauncherResults(handleBridgeResult);
+  }, [fixture, handleBridgeResult]);
+
+  // ── 桥执行：请求经宿主治理 + 公共链；终态只来自 vit_launcher_result ──
+  const executeDirective = useCallback(
+    (directive: LauncherDirective) => {
+      if (fixture) return;
+      if (!isLauncherBridgeAvailable()) {
+        lastDirectiveRef.current = directive;
+        setBridgeExec({
+          requestId: createLauncherBridgeRequestID(),
+          action: directive.action ?? "",
+          state: "failed",
+          message: LAUNCHER_BRIDGE_UNAVAILABLE_TEXT
+        });
+        return;
+      }
+      lastDirectiveRef.current = directive;
+      const requestId = createLauncherBridgeRequestID();
+      setBridgeExec({ requestId, action: directive.action ?? "", state: "waiting", message: LAUNCHER_BRIDGE_WAITING_TEXT });
+      const posted = postLauncherDirective(directive as unknown as Record<string, unknown>, requestId);
+      if (!posted) {
+        setBridgeExec({
+          requestId,
+          action: directive.action ?? "",
+          state: "failed",
+          message: LAUNCHER_BRIDGE_UNAVAILABLE_TEXT
+        });
+      }
+    },
+    [fixture]
+  );
+
+  const chooseFileViaBridge = useCallback(() => {
+    if (fixture || !isLauncherBridgeAvailable()) return;
+    const requestId = createLauncherBridgeRequestID();
+    setBridgeExec({ requestId, action: "choose_file", state: "waiting", message: LAUNCHER_BRIDGE_WAITING_TEXT });
+    const posted = postLauncherChooseFile(requestId);
+    if (!posted) {
+      setBridgeExec({ requestId, action: "choose_file", state: "failed", message: LAUNCHER_BRIDGE_UNAVAILABLE_TEXT });
+    }
+  }, [fixture]);
+
+  const retryLastDirective = useCallback(() => {
+    const directive = lastDirectiveRef.current;
+    if (directive) executeDirective(directive);
+  }, [executeDirective]);
 
   const loadRecents = useCallback(async (run: number) => {
     setDrawerState("loading");
@@ -185,12 +343,17 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
         if (reply) items.push({ kind: "assistant", text: reply });
         const cards = cardsToEntries(result.project_result_cards);
         if (cards.length > 0) items.push({ kind: "cards", cards });
-        const placeholder = directivePlaceholder(result.launcher_directive);
-        if (placeholder) items.push({ kind: "directive", view: placeholder });
+        const directive = result.launcher_directive;
+        const placeholder = directivePlaceholder(directive);
+        if (placeholder) items.push({ kind: "directive", view: placeholder, directive: directive ?? undefined });
         if (items.length === 0) {
           items.push({ kind: "assistant", text: result.error?.trim() || "Vit 没有返回内容——换个说法再试一次。" });
         }
         setThread((prev) => [...prev, ...items]);
+        // 烟测钩子（URL launcher_smoke=1 才生效）：directive 到达即自动执行（生产零行为）。
+        if (isSmokeRef.current && directive && directive.action) {
+          executeDirective(directive);
+        }
       } catch (error) {
         const text = error instanceof Error ? error.message : "launcher 聊天请求失败";
         setThread((prev) => [
@@ -202,8 +365,26 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
         setBusy(false);
       }
     },
-    [busy, conversationID, fixture]
+    [busy, conversationID, fixture, executeDirective]
   );
+
+  // 烟测消息队列：greeting 就绪后发第一条；每条 vit_launcher_result 后延迟发下一条。
+  const sendNextSmokeMessage = useCallback(() => {
+    if (!isSmokeRef.current) return;
+    const next = smokeQueueRef.current.shift();
+    if (next === undefined) return;
+    void send(next);
+  }, [send]);
+  useEffect(() => {
+    smokeNextRef.current = sendNextSmokeMessage;
+  }, [sendNextSmokeMessage]);
+  useEffect(() => {
+    if (fixture || !smokeParams.enabled || smokeStartedRef.current) return;
+    if (greetingState !== "ready" || smokeParams.messages.length === 0) return;
+    smokeStartedRef.current = true;
+    smokeQueueRef.current = [...smokeParams.messages];
+    smokeNextRef.current();
+  }, [fixture, greetingState, smokeParams, sendNextSmokeMessage]);
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -214,12 +395,58 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
 
   const frameClass = ["v5-launcher-frame", fill ? "v5-launcher-frame--fill" : ""].filter(Boolean).join(" ");
   const rootState = fixture ? (fixture.greetingErrorText ? "error" : "ready") : greetingState;
+  const bridgeBusy = bridgeExec?.state === "waiting";
+
+  const renderBridgeExec = () => {
+    if (!bridgeExec) return null;
+    const terminal = bridgeExec.state !== "waiting" && bridgeExec.state !== "pending";
+    const stateClass = `v5-launcher-bridge-exec--${
+      bridgeExec.state === "opened" || bridgeExec.state === "dialog_shown"
+        ? "ok"
+        : bridgeExec.state === "waiting"
+          ? "wait"
+          : "bad"
+    }`;
+    return (
+      <div
+        className={`v5-launcher-bridge-exec ${stateClass}`}
+        data-launcher-bridge-exec
+        data-launcher-bridge-exec-state={bridgeExec.state}
+      >
+        <span className="v5-launcher-bridge-exec-label">
+          {bridgeExec.state === "waiting"
+            ? "Vit 执行中…"
+            : bridgeExec.state === "opened"
+              ? "已打开"
+              : bridgeExec.state === "canceled"
+                ? "已取消"
+                : bridgeExec.state === "unsupported"
+                  ? "暂未开放"
+                  : bridgeExec.state === "dialog_shown"
+                    ? "对话框已弹出"
+                    : "未完成"}
+        </span>
+        <span className="v5-launcher-bridge-exec-message">{bridgeExec.message}</span>
+        {terminal && launcherDirectiveResultRetryable(bridgeExec.state) ? (
+          <button
+            type="button"
+            className="v5-btn v5-btn--secondary v5-launcher-retry"
+            onClick={retryLastDirective}
+            data-launcher-bridge-retry
+          >
+            重试
+          </button>
+        ) : null}
+      </div>
+    );
+  };
 
   return (
     <div
       className="v5-design v5-launcher"
       data-launcher-root
       data-launcher-state={rootState}
+      data-launcher-bridge={bridgeAvailable ? "available" : fixture ? "fixture" : "unavailable"}
       data-fixture={fixture ? "launcher-surface" : undefined}
     >
       <div className={frameClass} data-launcher-frame>
@@ -271,6 +498,18 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                 ))}
               </ul>
             ) : null}
+            {bridgeAvailable ? (
+              <button
+                type="button"
+                className="v5-btn v5-btn--secondary v5-launcher-choose-file"
+                onClick={chooseFileViaBridge}
+                data-launcher-choose-file
+                disabled={bridgeBusy}
+                title="由 Vit 弹出原生文件对话框选择工程"
+              >
+                从文件打开…
+              </button>
+            ) : null}
           </aside>
           <section className="v5-launcher-main" aria-label="Vit 启动台对话">
             {greetingState === "loading" ? (
@@ -317,8 +556,11 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                               className="v5-launcher-card"
                               data-launcher-card={card.id}
                               onClick={() => {
-                                // 仅切换占位展示（数据呈现），不执行任何 open/new。
-                                setThread((prev) => [...prev, { kind: "directive", view: cardPendingPlaceholder(card) }]);
+                                // 卡片点选 = 切换到该 directive 的占位呈报（真实执行走桥按钮）。
+                                setThread((prev) => [
+                                  ...prev,
+                                  { kind: "directive", view: cardPendingPlaceholder(card), directive: card.directive ?? undefined }
+                                ]);
                               }}
                             >
                               <ProjectBadge size={20} />
@@ -336,9 +578,29 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                         <span className="v5-launcher-directive-headline">{item.view.headline}</span>
                         {item.view.detail ? <span className="v5-launcher-directive-detail">{item.view.detail}</span> : null}
                         <span className="v5-launcher-directive-note">{item.view.note}</span>
+                        {item.directive ? (
+                          <div className="v5-launcher-directive-actions" data-launcher-directive-actions>
+                            <button
+                              type="button"
+                              className="v5-btn v5-btn--primary v5-launcher-execute"
+                              data-launcher-directive-execute
+                              disabled={bridgeBusy || !bridgeAvailable}
+                              onClick={() => executeDirective(item.directive as LauncherDirective)}
+                              title={bridgeAvailable ? "经 Vit 桥执行（治理确认与原生对话框由宿主处理）" : LAUNCHER_BRIDGE_UNAVAILABLE_TEXT}
+                            >
+                              {item.directive.action === "new_project" ? "让 Vit 新建" : "让 Vit 打开"}
+                            </button>
+                            {!bridgeAvailable ? (
+                              <span className="v5-launcher-bridge-note" data-launcher-bridge-note>
+                                {LAUNCHER_BRIDGE_UNAVAILABLE_TEXT}
+                              </span>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                     );
                   })}
+                  {renderBridgeExec()}
                 </div>
               </>
             ) : null}
