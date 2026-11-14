@@ -38,3 +38,4 @@
 
 - exit 0=PASS；断言失败/环境中断/装置缺陷分开记录；同代码同断点连续 2 败停原样重跑。
 - 装置风险预登记：PS1 中文注释须 BOM；EnumWindows delegate 内禁 `$pid`（用 $procId）；OS.alert 原生框为阻塞模态（烟测以 EnumWindows 找 #32770 对话框 + WM_CLOSE 关闭后断言进程退出，不留悬挂模态）。
+- S8 运行中（00:3x）：`powershell -NoProfile -ExecutionPolicy Bypass -File D:/Vit_DAW_wt_uientry2/scripts/ui_entry2_smoke.ps1`（占用登记 98ed4ed7 已推 main+重读确认+≤60s 复核 PROCS=0/五端口 free；run 根=coord/runs/UI-ENTRY-2/run_<stamp>；断了重派先查 run 目录是否已有本轮产物再决定续跑或新 run）
