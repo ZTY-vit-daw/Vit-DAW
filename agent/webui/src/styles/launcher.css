@@ -189,13 +189,15 @@
   align-items: flex-start;
 }
 
-/* 会话线程（问候 / 用户 / Vit 回执 / 结果卡 / 指令占位） */
+/* 会话线程（问候 / 用户 / Vit 回执 / 结果卡 / 指令占位）。
+ * overflow-y:auto：消息累积超出可视空间时线程内滚动，不叠压建议/输入区。 */
 .v5-launcher-thread {
   display: flex;
   flex-direction: column;
   gap: 10px;
   flex: 1 1 auto;
   min-height: 0;
+  overflow-y: auto;
 }
 
 .v5-launcher-msg {

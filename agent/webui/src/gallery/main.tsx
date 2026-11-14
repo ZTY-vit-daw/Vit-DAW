@@ -16,6 +16,9 @@ import {
   type MacroOption,
 } from "../components";
 import { DESIGN_SYMBOLS, DesignSprite, SPRITE_SYMBOL_IDS } from "../design/sprite";
+import { LauncherSurface, type LauncherThreadItem } from "../launcher/LauncherSurface";
+import { directivePlaceholder } from "../launcher/launcherData";
+import type { LauncherProjectCard } from "../api/launcher";
 import "../styles/tokens.css";
 import "../design/sprite.css";
 import "../components/components.css";
@@ -26,6 +29,63 @@ import "./gallery.css";
  * 本页全部工程名 / 消息 / 数据均为设计 fixture（页面顶部有固定标注），
  * 不接 App.tsx 业务，不代表真实 agent 数据。
  */
+
+/*
+ * UI-LAUNCHER-1（345）launcher fixture（卡面标注：设计 fixture，非真实工程/真实
+ * agent 数据）。live surface 的真实端点消费走 ?surface=launcher 主面；此处数据
+ * 只用于渲染烟测断言（标题/抽屉/recent 数/建议/输入/加载/错误态）。
+ * 命名带（fixture）后缀自证非真实工程名，生产代码不含任何示例工程名。
+ */
+const LAUNCHER_FIXTURE_CARDS: LauncherProjectCard[] = [
+  {
+    id: "fixture_launcher_project_1",
+    kind: "launcher_project",
+    type: "project_open_candidate",
+    name: "示例工程甲（fixture）",
+    filePath: "D:/design-fixtures/示例工程甲.vit",
+    directive: { action: "open_project", file_path: "D:/design-fixtures/示例工程甲.vit", requires_governance: true }
+  },
+  {
+    id: "fixture_launcher_project_2",
+    kind: "launcher_project",
+    type: "project_open_candidate",
+    name: "示例工程乙（fixture）",
+    filePath: "D:/design-fixtures/示例工程乙.vit",
+    directive: { action: "open_project", file_path: "D:/design-fixtures/示例工程乙.vit", requires_governance: true }
+  },
+  {
+    id: "fixture_launcher_project_3",
+    kind: "launcher_project",
+    type: "project_open_candidate",
+    name: "示例工程丙（fixture）",
+    filePath: "D:/design-fixtures/示例工程丙.vit",
+    directive: { action: "open_project", file_path: "D:/design-fixtures/示例工程丙.vit", requires_governance: true }
+  }
+];
+
+const LAUNCHER_FIXTURE_THREAD: LauncherThreadItem[] = [
+  { kind: "user", text: "看看最近的工程" },
+  { kind: "assistant", text: "最近的工程有 3 个——点卡片打开，或直接跟我说名字：" },
+  { kind: "cards", cards: LAUNCHER_FIXTURE_CARDS },
+  { kind: "user", text: "打开示例工程甲" },
+  { kind: "assistant", text: "好的，打开《示例工程甲（fixture）》。" },
+  {
+    kind: "directive",
+    view: directivePlaceholder({
+      action: "open_project",
+      file_path: "D:/design-fixtures/示例工程甲.vit",
+      requires_governance: true
+    })!
+  }
+];
+
+const LAUNCHER_FIXTURE_GREETING = {
+  status: "ok",
+  launcher: true,
+  reply: "我在。最近的工程是《示例工程甲（fixture）》——想从哪开始？",
+  recent_project: { name: "示例工程甲（fixture）", file_path: "D:/design-fixtures/示例工程甲.vit" },
+  recent_count: 3
+};
 
 const ICON_LABELS: Record<string, string> = {
   "i-project": "工程",
@@ -435,6 +495,25 @@ function Gallery() {
         </div>
       </Section>
 
+      <Section
+        id="launcher-surface"
+        title="启动台 surface（UI-LAUNCHER-1）"
+        desc="?surface=launcher 主面样例：左抽屉真实最近工程（此处为 fixture）+ 问候语 + 建议 + 输入；标题栏只写 Vit 文本；结果卡/directive 一律数据展示占位，不执行 open/new。全状态样例见 gallery.html?surface=launcher。"
+      >
+        <LauncherSurface
+          fixture={{
+            greeting: LAUNCHER_FIXTURE_GREETING,
+            drawerState: "ready",
+            drawerEntries: LAUNCHER_FIXTURE_CARDS,
+            thread: LAUNCHER_FIXTURE_THREAD
+          }}
+        />
+        <p className="v5-gal-caption" data-launcher-gallery-note>
+          directive 卡 = 「准备打开…」占位（数据呈报，agent 端 requires_governance 恒 true；
+          打开/新建动作待工程桥接后执行）。
+        </p>
+      </Section>
+
       <footer className="v5-gal-footer">
         <p>
           设计来源哈希：design-tokens-v5.json = 1d985d5e…；
@@ -455,11 +534,65 @@ if (typeof window !== "undefined") {
     { ...DESIGN_SYMBOLS };
 }
 
+/**
+ * UI-LAUNCHER-1 启动台 fixture 渲染页（gallery.html?surface=launcher）。
+ * 渲染烟测专页：ready 全尺寸样例 + 加载/错误/空态紧凑样例；全离线（fixture
+ * 接缝零网络）。所有工程名与回执均为设计 fixture。
+ */
+function LauncherFixturePage() {
+  return (
+    <div className="v5-design v5-gal-root" data-gallery-page="launcher">
+      <DesignSprite />
+      <header className="v5-gal-header">
+        <h1 className="v5-gal-title">Vit 启动台 surface · fixture 渲染页</h1>
+        <p className="v5-gal-note" data-fixture="notice">
+          本页所有工程名与回执均为设计 fixture，不接真实 agent 数据；真实
+          /agent/launcher/greeting 与 launcher 聊天消费见主面 ?surface=launcher。
+        </p>
+      </header>
+
+      <LauncherSurface
+        fixture={{
+          greeting: LAUNCHER_FIXTURE_GREETING,
+          drawerState: "ready",
+          drawerEntries: LAUNCHER_FIXTURE_CARDS,
+          thread: LAUNCHER_FIXTURE_THREAD
+        }}
+      />
+
+      <div className="v5-gal-launcher-states" data-gallery="launcher-states">
+        <div data-launcher-sample="loading">
+          <h2 className="v5-gal-caption">加载态（greeting / 最近工程读取中）</h2>
+          <LauncherSurface fixture={{ thread: [], drawerState: "loading" }} />
+        </div>
+        <div data-launcher-sample="error">
+          <h2 className="v5-gal-caption">错误态（agent 不可用 + 最近工程失败，各带重试）</h2>
+          <LauncherSurface
+            fixture={{
+              greetingErrorText: "连不上 Vit agent——启动台暂时不可用。确认 VitAgent 已启动后重试。",
+              drawerState: "error",
+              drawerErrorText: "最近工程列表暂时读不到（内核未就绪或 agent 异常）。"
+            }}
+          />
+        </div>
+        <div data-launcher-sample="empty">
+          <h2 className="v5-gal-caption">空态（还没有最近工程记录）</h2>
+          <LauncherSurface fixture={{ greeting: { reply: "我在。还没有最近的工程记录——想从哪开始？" }, drawerState: "empty" }} />
+        </div>
+      </div>
+
+      <footer className="v5-gal-footer">
+        <p>UI-LAUNCHER-1 · 本页为 launcher 渲染烟测 fixture，不接 App.tsx 业务、不出网。</p>
+      </footer>
+    </div>
+  );
+}
+
 const root = document.getElementById("gallery-root");
 if (root) {
+  const launcherFixturePage =
+    new URLSearchParams(window.location.search).get("surface")?.toLowerCase() === "launcher";
   createRoot(root).render(
-    <StrictMode>
-      <Gallery />
-    </StrictMode>
+    <StrictMode>{launcherFixturePage ? <LauncherFixturePage /> : <Gallery />}</StrictMode>
   );
 }

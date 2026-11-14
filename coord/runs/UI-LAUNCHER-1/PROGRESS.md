@@ -14,13 +14,25 @@
   - 344 基座：components.css 全部规则作用域 .v5-design 下 → launcher 根节点须挂 .v5-design 类；tokens/sprite/Button/TextField/ProjectBadge 可复用；gallery fixture 标注模式与 render-smoke 断言/截图/对比度/裁切/外部网络禁令全读毕。
   - 设计决定：surface 分发走 App.tsx 包一层（function App→MainApp + 新 wrapper App，零 hooks 成本）；drawer 完整 recents 列表经 launcher chat list 意图（"有哪些工程"）获取——greeting 只给首项+计数，无独立全量 recents HTTP 端点；fixture 接缝=LauncherSurface props（gallery/smoke 不出网）。
   - 文件域解释：卡面验收强制「launcher 渲染面进 test:render 底座」→ src/gallery/main.tsx + render-smoke.mjs 的扩展属验收要求本身，按最小扩展执行并计入回执边界声明；不改 src/project/**、styles.css、types.ts、src/lib/api.ts、344 基座文件（components/design/tokens 只 import 不改）。
-- [ ] M1 surface 骨架
-- [ ] M2 greeting 消费
-- [ ] M3 结果卡渲染
-- [ ] M4 渲染烟测扩展
-- [ ] M5 回执+done 移动
+- [x] M1 surface 骨架（c8582b35）：App.tsx 分发（App→MainApp 更名+wrapper）+ src/launcher/** + src/api/launcher.ts + src/styles/launcher.css
+- [x] M2 greeting 消费（c8582b35）：GET /agent/launcher/greeting live 模式 + agent 不可用 banner/重试
+- [x] M3 结果卡渲染（c8582b35）：launcher chat（context.launcher=true）+ list 意图装填抽屉 + 结果卡数据展示 + directive「准备打开/新建…」占位（不执行）；17 个单测
+- [x] M4 渲染烟测扩展（2026-11-14）：gallery section + gallery.html?surface=launcher fixture 页 + render-smoke §7；双页 PASS。修复两处：fixture 标注断言（全角括号）与建议计数跨样例混计（改 first-root 作用域）；修复 thread 可见溢出叠压建议/输入（thread overflow-y:auto + gallery 样例框 height:auto）
+- [x] M5 三命令自验（2026-11-14）：全 exit 0（见下）
+- [ ] M6 回执+done 移动
 
 ## 长命令记录（重派时判断是否需重跑）
 
-- npm install（agent/webui）：已完成，exit 0（2026-11-14，playwright 1.65.0 钉版未动）
-- （待记：npm run test / npm run build / npm run test:render）
+- npm install（agent/webui）：已完成，exit 0（2026-11-14，playwright 1.65.0 钉版未动，复用本机 chromium）
+- npm run test：exit 0，498 passed（481 现有 + 17 新增 launcher 单测）
+- npm run build：exit 0（tsc --noEmit + vite build）
+- npm run test:render：exit 0，gallery RESULT=PASS + launcher LAUNCHER_RESULT=PASS
+  - 工件：coord/runs/UI-LAUNCHER-1/{render-smoke-launcher-report.json, screens/launcher-viewport-1440x900.png, screens/launcher-full.png}
+  - 副作用：344 目录 coord/runs/UI-FOUNDATION-1/{render-smoke-report.json, screens/gallery-full.png} 被本次运行重生成（tracked 文件呈 modified）——属 344 域，本卡不提交、不回滚，留验收侧处置
+
+## 遗留与边界（回执引用）
+
+- 真实栈端到端（真实 agent 进程 + 真实 recents）不在本卡：live 模式代码路径按 Go 契约实现，端到端留 343/348。
+- directive/结果卡不执行 open/new（卡面硬边界）；执行面待 UI-BRIDGE-1。
+- main surface 回归面：App.tsx 仅分发最小改动（App→MainApp 原样保留）；481 现有 vitest（含 App/主对话面）全绿 + gallery 渲染烟测 PASS。
+- 文件域扩展说明：src/gallery/{main.tsx,gallery.css,render-smoke.mjs} 的最小扩展是卡面验收「launcher 渲染面进 test:render 底座」的直接要求，未触碰 344 已验收断言与工件路径；344 基座文件（components/design/tokens）只 import 未改。
