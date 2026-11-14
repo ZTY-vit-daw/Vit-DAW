@@ -49,8 +49,22 @@
 
 ## 回执
 
-- commit hash / 测试命令与退出码 / 截图工件路径 / 端测覆盖边界声明：待回填
+- 执行侧自验：PASS（2026-11-14 晚窗，freeflash 免费车道子代理）
+- 实现分支：port/ui-foundation-1（已推 origin；head = 351cf26b；领取提交 5e9f2766；基线 a4759235）
+  - 61bfdcf1 基座：tokens.css / 23 symbol 内联雪碧图 / S3·S4·S5 primitives / gallery 多页入口 / 渲染烟测脚手架
+  - 351cf26b 烟测达标修正 + 工件入库（对比度修正、V 标断言口径、工件入库）
+- 测试命令与退出码（worktree D:/Vit_DAW_wt_uifnd1/agent/webui 内按序复跑）：
+  - `npm run test` → **0**（40 文件 / 481 测试全过，含新增 sprite.test.tsx 10 项：23 symbol 逐字比对 + 令牌回指 + 语义红线）
+  - `npm run build` → **0**（tsc --noEmit + vite build；双入口 index.html + gallery.html 均产出）
+  - `npm run test:render` → **0**（新增验收底座：vite dev 自起 + Playwright chromium headless，viewport 1440×900@1 + reduced-motion）——PASS 明细：23 symbol 全在；图标矩阵 16/20/24 × 浅底/深底/选中全齐（23×7 样张）；正文最低对比度 **5.077:1**（与设计自验值一致）；图形最低 **4.305:1**（227 项 ≥3:1 检查）；外部请求 **0**；裁切/横向溢出 **0**；最小字号 13px；reduced-motion 停转；V 标不进标题栏样例
+- 截图与报告工件：`coord/runs/UI-FOUNDATION-1/render-smoke-report.json`、`coord/runs/UI-FOUNDATION-1/screens/gallery-viewport-1440x900.png`、`screens/gallery-full.png`（入库分支 = port/ui-foundation-1）
+- 设计源回指：design-tokens-v5.json = 1d985d5e7dd4…；round2-sprite.svg = 746a49f5b7e4…（与 CHANGELOG-V5.md「图标定稿 v5.1」记录一致；sprite.test.tsx 对 23 个 symbol markup 做逐字包含断言；tokens.css 令牌值逐项回指 JSON）
+- 域扩展使用声明：**已使用**主管 2026-11-14 晚窗授权扩展——新增 `agent/webui/gallery.html` + `vite.config.ts` 仅 `rollupOptions.input` 增量（base/plugins/server 等其余配置未动）
+- 改动面核对：`App.tsx`、现有 `styles.css` 业务规则、agent/、Godot 均零改动；仅新增文件 + package.json（scripts.test:render + devDeps playwright@1.65.0、@types/node）+ package-lock（随 devDeps）+ vite.config.ts（input）
+- 端测覆盖边界声明：本卡不需要真实栈（卡面明确）。**已覆盖** = 浏览器渲染面烟测（DOM 断言 + 对比度 + 裁切 + 外部请求 + 1440×900 截图，`npm run test:render` 退出 0，可作为后续 UI 卡的验收底座）。**未覆盖** = 真实三件套栈烟测（本卡不适用）、webui 主 App 渲染面与用户旅程（App.tsx 未接本基座；gallery 为独立入口 /app/gallery.html，主 App 行为零变化）
+- 停止条件：未触发（未需改 App.tsx 或既有业务样式；gallery 全部工程名/消息/数据带 fixture 标注，无冒充真实数据）
+- 遗留/边界：宏「试听取消」、A/B 开始方式等行为语义按 IMPLEMENTATION-HANDOFF.md 留待后续切片；i-vit 在 S3 矩阵中的样张属资产文档（渲染烟测的 V 标断言已区分「OS 身份样例」与「矩阵样张」）；Playwright 1.65.1 需 build 1255 浏览器而本机缓存为 1254，已钉 1.65.0 复用本机浏览器（环境事实，记录备查）
 
 ## 验收
 
-- 裁定文件 / 验收 commit：待回填
+- 裁定文件 / 验收 commit：待回填（验收负责人：用户 + 主管决策流）
