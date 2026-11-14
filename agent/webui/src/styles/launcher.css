@@ -1,0 +1,330 @@
+/*
+ * UI-LAUNCHER-1 启动台 surface 样式。
+ *
+ * 作用域：.v5-launcher 之下；令牌全部来自 src/styles/tokens.css（--v5-*，344 基座）。
+ * 组件复用：.v5-composer（TextField）/ .v5-btn（Button）等 primitives 依赖
+ * .v5-design 作用域——launcher 根节点同时挂 .v5-design 与 .v5-launcher。
+ * 对比度红线（UI-FOUNDATION-1 同款）：正文 ≥4.5:1、图形 ≥3:1、最小字号 13px。
+ * 纪律：不改 styles.css 业务规则；本文件只服务 launcher surface。
+ */
+
+.v5-launcher {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 窗框：gallery 样例默认 620px 高；live surface 用 --fill 撑满视口 */
+.v5-launcher-frame {
+  display: flex;
+  flex-direction: column;
+  height: 620px;
+  min-height: 0;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-window-edge);
+  border-radius: 10px;
+  box-shadow: var(--v5-shadow-window);
+  overflow: hidden;
+}
+
+.v5-launcher-frame--fill {
+  height: 100%;
+  border-radius: 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* ---------- 标题栏：只写 "Vit" 文本（V 品牌标不进标题栏） ---------- */
+
+.v5-launcher-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  flex: 0 0 40px;
+  padding: 0 14px;
+  background: var(--v5-ui-plate);
+  border-bottom: 1px solid var(--v5-titlebar-rule);
+}
+
+.v5-launcher-titlebar-brand {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--v5-ui-text);
+}
+
+.v5-launcher-titlebar-sub {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+/* ---------- 主体两栏：左抽屉 + 右主列 ---------- */
+
+.v5-launcher-body {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* ---------- 左侧工程抽屉 ---------- */
+
+.v5-launcher-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 280px;
+  flex: 0 0 280px;
+  min-height: 0;
+  padding: 12px;
+  background: var(--v5-ui-rail);
+  border-right: 1px solid var(--v5-rail-edge);
+}
+
+.v5-launcher-drawer-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.v5-launcher-drawer-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-launcher-drawer-count {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-launcher-recents {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.v5-launcher-recent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: left;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: 6px;
+}
+
+.v5-launcher-recent-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--v5-ui-text);
+  overflow-wrap: anywhere;
+}
+
+.v5-launcher-recent-path {
+  display: block;
+  font-size: 13px;
+  color: var(--v5-ui-weak);
+  overflow-wrap: anywhere;
+}
+
+.v5-launcher-drawer-note {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+  line-height: 1.5;
+}
+
+.v5-launcher-drawer-error {
+  padding: 10px;
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  line-height: 1.5;
+}
+
+/* ---------- 右主列 ---------- */
+
+.v5-launcher-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  padding: 20px 24px 16px;
+  background: var(--v5-read-workspace);
+  gap: 12px;
+}
+
+.v5-launcher-greeting {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+  line-height: 1.5;
+}
+
+.v5-launcher-greeting-status {
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-launcher-agent-error {
+  padding: 12px 14px;
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* 会话线程（问候 / 用户 / Vit 回执 / 结果卡 / 指令占位） */
+.v5-launcher-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.v5-launcher-msg {
+  max-width: 640px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--v5-ui-text);
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-rule);
+  overflow-wrap: anywhere;
+}
+
+.v5-launcher-msg--user {
+  align-self: flex-end;
+  background: var(--v5-control-shell-light);
+  border-color: var(--v5-control-well-edge);
+}
+
+.v5-launcher-msg--assistant {
+  align-self: flex-start;
+}
+
+/* 结果卡（project_result_cards 数据展示，可点选但只切换占位态，不执行） */
+.v5-launcher-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-self: flex-start;
+  max-width: 640px;
+}
+
+.v5-launcher-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: 8px;
+  text-align: left;
+  width: 100%;
+}
+
+.v5-launcher-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--v5-ui-text);
+  overflow-wrap: anywhere;
+}
+
+.v5-launcher-card-path {
+  display: block;
+  font-size: 13px;
+  color: var(--v5-ui-weak);
+  overflow-wrap: anywhere;
+}
+
+/* directive 占位卡（attention 语义：待执行，不虚报已执行） */
+.v5-launcher-directive {
+  align-self: flex-start;
+  max-width: 640px;
+  padding: 12px 14px;
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+  border-radius: 8px;
+}
+
+.v5-launcher-directive-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-launcher-directive-detail {
+  display: block;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+.v5-launcher-directive-note {
+  display: block;
+  font-size: 13px;
+  color: var(--v5-ui-muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+/* ---------- 建议 chips ---------- */
+
+.v5-launcher-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.v5-launcher-suggestion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--v5-ui-text);
+}
+
+.v5-launcher-suggestion:hover {
+  border-color: var(--v5-ui-text);
+}
+
+/* ---------- 输入区 ---------- */
+
+.v5-launcher-composer {
+  flex: 0 0 auto;
+}
+
+.v5-launcher-composer .v5-composer {
+  background: var(--v5-read-bg);
+}
+
+/* 重试按钮复用 v5-btn primitives（.v5-design 作用域内生效） */
+.v5-launcher-retry {
+  margin-top: 2px;
+}
