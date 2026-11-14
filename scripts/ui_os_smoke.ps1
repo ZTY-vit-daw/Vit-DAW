@@ -288,15 +288,20 @@ try {
     $godotAutoloadPid = $godotProc.Id
     $assert["godot_autoload_pid"] = $godotAutoloadPid
 
-    # boot 行（child_hwnd 留证）。
+    # boot 行（main_hwnd/boot_index 留证）。
     $bootHit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] boot ' -TimeoutSeconds $WaitSeconds
     if ($null -eq $bootHit) { throw ("AgentChatWindow boot line not seen in " + $godotAutoloadLog) }
     $assert["boot_line"] = ($bootHit.Line -replace '^.*\[AgentChatWindow\] boot ', '').Trim()
-    $childHwnd = Get-JsonField -Line $bootHit.Line -Field "child_hwnd"
     $bootIndex1 = Get-JsonField -Line $bootHit.Line -Field "boot_index"
-    if ($childHwnd -le 0) { throw ("boot line missing child_hwnd") }
-    $assert["child_hwnd"] = $childHwnd
     $assert["boot_index_first"] = $bootIndex1
+
+    # visible 行（child_hwnd 留证——343 同源：boot 行无 child_hwnd，visible 行才有）。
+    $visHit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] visible ' -TimeoutSeconds 30
+    if ($null -eq $visHit) { throw ("AgentChatWindow visible line not seen") }
+    $assert["visible_line"] = ($visHit.Line -replace '^.*\[AgentChatWindow\] visible ', '').Trim()
+    $childHwnd = Get-JsonField -Line $visHit.Line -Field "child_hwnd"
+    if ($childHwnd -le 0) { throw ("visible line missing child_hwnd") }
+    $assert["child_hwnd"] = $childHwnd
 
     # page_loaded 行（React 页面加载完成）。
     $pageHit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] page_loaded ' -TimeoutSeconds 90
@@ -305,7 +310,7 @@ try {
 
     # N1：前台门控（page_loaded 即刻 notify → foreground=true → issued=false）。
     Write-Step0 "N1: foreground gating (notify while chat window is in the foreground)"
-    $n1Hit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] notify\.request \{"state":\s*"done"' -TimeoutSeconds 30
+    $n1Hit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] notify\.request .*"state":\s*"done"' -TimeoutSeconds 30
     if ($null -eq $n1Hit) { throw ("N1 notify.request (done) not seen") }
     $n1Foreground = Get-JsonBool -Line $n1Hit.Line -Field "foreground"
     $n1Issued = Get-JsonBool -Line $n1Hit.Line -Field "issued"
@@ -422,7 +427,7 @@ public delegate bool EnumProc(IntPtr hWnd, IntPtr lp);
     $assert["minimized_event_logged"] = ($null -ne $minEventHit)
     if ($topmostAfterMinimize) { throw ("topmost survived minimize (always-on-top must hold only in the open state)") }
 
-    $n2Hit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] notify\.request \{"state":\s*"confirm"' -TimeoutSeconds 30
+    $n2Hit = Test-LogLine -LogPath $godotAutoloadLog -Pattern '\[AgentChatWindow\] notify\.request .*"state":\s*"confirm"' -TimeoutSeconds 30
     if ($null -eq $n2Hit) { throw ("N2 notify.request (confirm) not seen") }
     $n2Foreground = Get-JsonBool -Line $n2Hit.Line -Field "foreground"
     $n2Issued = Get-JsonBool -Line $n2Hit.Line -Field "issued"
