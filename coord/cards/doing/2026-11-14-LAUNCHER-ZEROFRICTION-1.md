@@ -33,8 +33,14 @@ React launcher 面加载即发 recents list 聊天（345 设计：完整列表�
 
 ## 回执
 
-- 报告链接 / 端测覆盖边界声明：待回填
+- 报告链接 / 端测覆盖边界声明：**取证腿完成**（2026-11-14 晚窗，owner=freeflash·PC）——报告 `coord/runs/LAUNCHER-ZEROFRICTION-1/REPORT.md`（本分支+coord-only 推送入库），回执/进度 `coord/runs/LAUNCHER-ZEROFRICTION-1/PROGRESS.md`。
+  - 三锚点结论：①hint 物化链=launcher recents 聊天轮内对话节点落盘经 `Open("")` 物化 boot scratch（history.go:1020-1021/2509-2529，server.go:2680）→ chat 收尾/调度器激活绑定草稿（server.go:7743-7780）→ hint 发布进读侧（server.go:7798）→ /agent/state 回放（server.go:1065/1076）→ Godot 三键（start_page.gd:598-612）；348 attempt1 运行时日志逐跳佐证（activation pending→chat→activated Unsaved.vit 同秒）。
+  - ②治理判据面：BE 门 340 已废 uuid 判据（UI 声明+user_entered_project 双门）；UI 治理面维持 path 保守判据=设计稿 §3.3 在案设计；boot scratch 算「在开工程」=判据输入被聊天副作用污染+草稿分类无在案定义。
+  - ③可区分性：可区分数据全在卷（context.launcher/会话前缀/确定性意图分类）但现有顺序不生效；修复无需新协议字段。
+  - 方案矩阵候裁定：**A1（agent 侧 launcher 卷门控：scope 内无绑定工作区聊天不激活/不落盘）=推荐主案**；A2 判据放宽（候裁定备选，触碰 §3.3 边界不推荐）；B1 greeting 扩展全量列表（可选补充，单独对打字路径不充分）；B2 延迟查询（单独不充分）。实施腿候裁定且排 271 收口后（chat 域重叠）。
+- 端测覆盖边界声明：本腿=只读取证+方案文档，零生产改动、零真实栈、零测试运行（AGENTS §5 门槛不适用于本腿产物；实施腿验收门槛已在 REPORT 案 A/B 各列）。
+- 状态：**卡留 doing，附「方案候裁定」——取证腿完成≠整卡完成**。
 
 ## 验收
 
-- 裁定文件 / 验收 commit：待回填
+- 裁定文件 / 验收 commit：待回填（候主管裁定：方案 A1 vs A2/B1 取舍；裁定后实施腿另领）
