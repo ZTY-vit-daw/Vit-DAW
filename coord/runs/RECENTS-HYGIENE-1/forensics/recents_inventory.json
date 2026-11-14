@@ -1,0 +1,46 @@
+{
+  "card": "RECENTS-HYGIENE-1",
+  "captured_at": "2026-11-14 (freeflash 免费车道子代理·PC)",
+  "storage": {
+    "path_windows": "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\global_project_config.json",
+    "path_env": "%APPDATA%\\Vit-DAW\\global_project_config.json",
+    "format": "JSON object {\"recent_projects\": [绝对路径字符串数组]}，无时间戳字段",
+    "writer_code": "VitApp/Source/Core/VitGlobalProjectConfig.cpp（maxRecentEntries=10，prepend+大小写不敏感去重+超限尾删）",
+    "sha256_before_cleanup": "c3543f451d37d9013dff55cff123a367da9682a5c33e989de04a6424746c4fdf",
+    "size_bytes": 1418,
+    "mtime_before_cleanup": "2026-11-10 00:29:51 +0800"
+  },
+  "entries_before_cleanup": [
+    {"idx": 0, "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_200213.vit", "class": "device_fixture", "source_card": "FIX-GOV-INTERACTION-TTL-1 (govttl 327 装置 stackleg_20261109)", "leak_mechanism": "gov_ttl_replay_driver.py new_project+save_as_project+open_project 经内核 ZMQ"},
+    {"idx": 1, "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_200213.vit", "class": "device_fixture", "source_card": "FIX-GOV-INTERACTION-TTL-1", "leak_mechanism": "同上 save_as_project"},
+    {"idx": 2, "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_round_20261109_195753.vit", "class": "device_fixture", "source_card": "FIX-GOV-INTERACTION-TTL-1", "leak_mechanism": "同上（前一轮 stamp）"},
+    {"idx": 3, "path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\govttl_327_projects\\govttl_warm_20261109_195753.vit", "class": "device_fixture", "source_card": "FIX-GOV-INTERACTION-TTL-1", "leak_mechanism": "同上"},
+    {"idx": 4, "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e4_surge_xt\\waveshell_stackleg_fixture_render_direct_surge_xt.vit", "class": "smoke_fixture", "source_card": "WAVESHELL-OFFRENDER-FIX-1 (309) stackleg e4", "leak_mechanism": "waveshell_stackleg_smoke.py new_project+save_as_project 经内核 ZMQ"},
+    {"idx": 5, "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e5_rack_gr\\waveshell_stackleg_fixture_render_rack_grand_rhapsody.vit", "class": "smoke_fixture", "source_card": "WAVESHELL-OFFRENDER-FIX-1 (309) stackleg e5", "leak_mechanism": "同上"},
+    {"idx": 6, "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e3_fixb_warnonly_gr_v2\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit", "class": "smoke_fixture", "source_card": "WAVESHELL-OFFRENDER-FIX-1 (309) stackleg e3_v2", "leak_mechanism": "同上"},
+    {"idx": 7, "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2b_c_consistency_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit", "class": "smoke_fixture", "source_card": "WAVESHELL-OFFRENDER-FIX-1 (309) stackleg e2b", "leak_mechanism": "同上"},
+    {"idx": 8, "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e2a_baseline_gr\\waveshell_stackleg_fixture_render_direct_grand_rhapsody.vit", "class": "smoke_fixture", "source_card": "WAVESHELL-OFFRENDER-FIX-1 (309) stackleg e2a", "leak_mechanism": "同上"},
+    {"idx": 9, "path": "D:\\Vit_DAW_wt_309recon\\coord\\runs\\WAVESHELL-OFFRENDER-FIX-1\\stackleg_20261109_1906\\e1ctrl_realtime_surge\\waveshell_stackleg_fixture_realtime_direct_surge_xt.vit", "class": "smoke_fixture", "source_card": "WAVESHELL-OFFRENDER-FIX-1 (309) stackleg e1ctrl", "leak_mechanism": "同上"}
+  ],
+  "classification_summary": {
+    "total": 10,
+    "device_fixture_govttl_327": 4,
+    "smoke_fixture_waveshell_309": 6,
+    "user_real_project": 0,
+    "uncertain_kept": 0,
+    "note": "当前 10 条全部为装置/烟测 fixture；用户真实工程条目 0 条（已被 11-09 晚 fixture 洪泛按 max=10 挤出）。卡面所述 339-340 复跑条目不在当前清单——339/340 装置自身做了 recents 原样还原（哈希亲证），净差零；但其还原基准快照已含 11-09 晚更早泄漏，故原样保留。"
+  },
+  "user_real_projects_on_disk_not_in_recents": [
+    "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\手测·小星星乐局.vit",
+    "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r1.vit",
+    "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r2.vit",
+    "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\实验·ProQ3 裸控 r3.vit",
+    "C:\\Users\\timoz\\AppData\\Roaming\\Vit-DAW\\projects\\_320_run8_默认态存档_20261109"
+  ],
+  "eviction_evidence": {
+    "fact": "recents 上限 10 条、prepend 语义；当前 10 条全 fixture，$APPDATA/Vit-DAW/projects/ 下的用户真实工程均不在清单内",
+    "witness": "339（LAUNCHER-SMOKE-1）腿 1 Phase B greeting 真栈回执：『我在+《小星星乐局》+recent_count=16』（2026-11-09 23:26，种子窗口内）——证明用户工程曾在 recents 面",
+    "exact_evicted_list_recoverable": false,
+    "recovery_note": "coord/runs 无早于 2026-11-09 23:19 的 recents 快照（最早=339 main_A before，已含污染）；精确恢复被挤出清单不可行，是否按 projects/ 目录重建候主管裁定"
+  }
+}

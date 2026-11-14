@@ -176,6 +176,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\run_ab_result_smok
 - 关键 fixture 或样例工程在运行前后应核对哈希；发现污染时先定位写入者并隔离影响，再判断功能结果。
 - 测试运行时状态写入 `t.TempDir()`、专用临时目录或脚本创建的隔离工作区，禁止落到源码树、固定历史目录或共享真实工程。
 - 不得通过弱化 G7/G8、改变 sealed 期望、硬编码轨道标识或加入领域动词来凑通过。
+- **装置腿 recents 快照还原纪律（RECENTS-HYGIENE-1 裁定 b 案，2026-11-14）**：内核在 open/save/save_as 成功后无条件写用户 recents（`VitHeadlessService.cpp` 三处 `prependRecentProject`，用户级共享文件 `%APPDATA%\Vit-DAW\global_project_config.json`）。凡启动真实内核的装置腿：**启动前快照**该文件（run 工件留 before.json）→ **teardown 强制还原并做哈希一致亲证**；还原失败=装置非零退出按环境中断分类，不得静默。结构性隔离（env `VIT_DAW_USER_CONFIG_DIR`）落地（351 卡）后本条保留为老内核兜底。
 
 ## 11. 持久化兼容、不稳定测试与越域处理
 

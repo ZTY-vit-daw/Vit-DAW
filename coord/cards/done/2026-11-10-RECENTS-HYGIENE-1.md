@@ -46,3 +46,10 @@ recents 存储格式未知/写保护→取证上交候裁定。
 - **端测覆盖边界声明（AGENTS §5）**：本卡为零栈产品状态域任务（不占真栈），验收面=存储文件取证/diff/哈希对账/清理亲证，无渲染面与用户旅程改动；启动面 recents 呈现效果建议用户下次手测时目检（非本卡门槛）。内核未运行（全程三轮进程核查全零），清理写入不构成启动影响（recents 仅被 get_recent_projects 读出呈现，空数组解析路径已核）
 - **停止条件核对**：存储格式已明、文件可写、清理不影响内核启动/工程状态加载——三条均未触发
 - **遗留候裁定项**：①隔离方案 a/b 取舍；②被挤出用户 recents 是否重建（候选五项，精确原序不可恢复）
+
+## 验收（主管 2026-11-14 晚窗）
+
+- 裁定文件：[rulings/2026-11-14-RECENTS-HYGIENE-1-pass.md](../../rulings/2026-11-14-RECENTS-HYGIENE-1-pass.md)（**pass**；主管亲证：活状态终态空数组 / VitHeadlessService.cpp:1207/1353/1475 锚点亲 grep / Settings.xml b773c82d 零漂移重算 / cleanup_report removed=10）
+- 裁定要点：①隔离双轨——b 案即刻生效（AGENTS §10 新装置纪律条款）+ a 案另卡 REC-ISOLATION-CONFIGDIR-1（池序 351，env=VIT_DAW_USER_CONFIG_DIR，fail-open，P3 候栈）；②用户 recents 重建**候用户裁定**（不擅自写用户数据），候选五项在 `$APPDATA/Vit-DAW/projects/`
+- 验收 commit：工件自 port/recents-hygiene-1 合入 + 本回填同批（见 git log，coord-only）
+

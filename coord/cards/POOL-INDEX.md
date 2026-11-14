@@ -113,7 +113,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 334 | FIX-GOALSTATUS-FORGERY-SWEEP-1 | todo 可领 P3（goal_status 伪造面全树普查+同型修——327/330 缺陷族收尾；随手清型） |
 | 340 | LAUNCHER-GATE-FIX-1 | done 已验收 pass 合入（**门修复+腿1/2 双 exit 0——手测 v2 启动面就绪**；launcher 路由首次真栈走通+338 桥接段证成） |
 | 341 | LAUNCHER-FE-LAYOUT-FIX-1 | todo 可领 P1（手测 v2 首验返工：实机布局三症状——装配层错位非结构缺失；**验收升级=视口截图探针**） |
-| 342 | RECENTS-HYGIENE-1 | todo 可领 P2（烟测装置工程污染用户 recents——排查+清理+隔离机制候裁定） |
+| 342 | RECENTS-HYGIENE-1 | done 已验收 pass 合入（[裁定](../rulings/2026-11-14-RECENTS-HYGIENE-1-pass.md)：10 条 fixture 清出零残留+Settings.xml 零漂移亲证；泄漏锚点=VitHeadlessService 三处无条件写；隔离双轨——b 案已入 AGENTS §10 装置纪律 / a 案=351 新卡；用户 recents 重建候用户裁定） |
 | 335 | LAUNCHER-CHAT-FE-1 | done 已验收 pass（零栈段——探针 38/38 亲测+红线零触碰；渲染观感候 339+用户 GUI） |
 | 336 | LAUNCHER-NAV-FE-1 | done 已验收 pass（探针 71/71 亲测+红线零触碰+前端 main 已合并——用户手测入口即刻可见） |
 | 337 | LAUNCHER-CHAT-BE-1 | done 已验收 pass 合入（软动词分级+三分支+authority 三红线；契约增量对齐进 336/339） |
@@ -132,6 +132,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 348 | UI-BRIDGE-1 | todo P0/P1（React launcher → Godot open/new/治理/原生对话框；依赖 343+345；真实栈） |
 | 349 | UI-OS-1 | todo P2（P4 最小化/任务栏/通知；依赖 343；真实栈/OS） |
 | 350 | R0-CHAT-WINDOW-RECON-1 | done 已验收 pass 收口（取证型：设计侧预勘察收口为交付物，[裁定](../rulings/2026-11-14-R0-CHAT-WINDOW-RECON-1-pass.md)；真栈未知项移交 343） |
+| 351 | REC-ISOLATION-CONFIGDIR-1 | todo 可领 P3（342 裁定 a 案：env VIT_DAW_USER_CONFIG_DIR 装置配置目录隔离，fail-open；真栈腿候 PC 栈空闲与 343 错峰；**不占展演前主线**） |
 
 - 推荐起手：**343 ∥ 344**（Godot 宿主 / WebUI 基座，文件域不相交）；345 在 344 合入后；346 在 345 后；347 在 346 后；348 等 343+345；349 等 343。
 - **341 排序约束（主管 2026-11-14 晚窗）**：341（LAUNCHER-FE-LAYOUT-FIX-1）与 343 文件域重叠（前端仓 `app/startup/start_page*`），**排在 343 合入之后**才可领取；v5.1 链落地后 341 的价值面收缩（启动面主位将转 React launcher），届时由主管重新裁定 341 范围（可能降级为 legacy fallback 最小修缮或撤销）。
