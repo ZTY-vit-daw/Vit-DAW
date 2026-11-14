@@ -14,7 +14,7 @@
 
 ## 仅磁盘（按派发词不入 git）
 
-- `backup/global_project_config.pre_cleanup_20261114_181919.json`（sha256 c3543f45…，字节级可回滚）
-- `backup/Settings.xml.pre_evidence_20261114_181919.xml`（既有未提交运行时改动留证，本卡零触碰）
+- `backup/global_project_config.pre_cleanup_20261114_182019.json`（sha256 c3543f45…，字节级可回滚）
+- `backup/Settings.xml.pre_evidence_20261114_182019.xml`（既有未提交运行时改动留证，本卡零触碰）
 - `snapshots/global_project_config.post_cleanup_20261114_182304.json` + `snapshots/cleanup_report_20261114_182304.json`
 - `PROGRESS.md`（断点续跑日志，全程 7 里程碑）

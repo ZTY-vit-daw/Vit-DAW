@@ -1,7 +1,7 @@
 # RECENTS-HYGIENE-1 清理亲证（执行侧自验）
 
 - 清理执行：2026-11-14 18:23:04（cleanup_recents.py，exit 0；写前进程核查 VitApp/VitAgent/godot 全零）
-- 数据三件套：pre=backup/global_project_config.pre_cleanup_20261114_181919.json、post=snapshots/global_project_config.post_cleanup_20261114_182304.json、diff=diff/cleanup_diff.json
+- 数据三件套：pre=backup/global_project_config.pre_cleanup_20261114_182019.json、post=snapshots/global_project_config.post_cleanup_20261114_182304.json、diff=diff/cleanup_diff.json
 
 ## 1. 装置条目零残留亲证
 
