@@ -377,7 +377,7 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
               </button>
             </div>
           ) : null}
-          <div className="v5-project-thread" data-project-thread>
+          <div className="v5-project-thread" data-project-thread data-scroll-intentional="thread">
             {state.thread.map((item) => {
               if (item.kind === "message") {
                 return (

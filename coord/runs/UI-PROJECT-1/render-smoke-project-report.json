@@ -1,0 +1,103 @@
+{
+  "run": "UI-PROJECT-1 project render smoke",
+  "date": "2026-11-14T11:37:56.940Z",
+  "url": "http://127.0.0.1:5391/app/gallery.html?surface=project",
+  "viewport": "1440x900@1",
+  "reducedMotion": "reduce",
+  "externalRequestCount": 0,
+  "dom": {
+    "rootState": "ready",
+    "contextSource": "fixture",
+    "fixtureNotices": {
+      "page": true,
+      "surface": true
+    },
+    "titlebarPresent": true,
+    "contextName": "示例工程甲（fixture）",
+    "titlebarVitUse": 0,
+    "titlebarProjectBadge": 1,
+    "titlebarDetail": "6 条轨道",
+    "threadPresent": true,
+    "threadScrollDeclared": 10,
+    "messageAuthors": [
+      "user",
+      "vit"
+    ],
+    "macroStates": [
+      "default",
+      "default",
+      "auditioning",
+      "applied",
+      "failed"
+    ],
+    "appliedFlags": 1,
+    "failedReasons": 1,
+    "retryButtons": [
+      "应用",
+      "存为我的快照",
+      "重试"
+    ],
+    "statusCardStates": [
+      "running",
+      "running",
+      "completed",
+      "failed"
+    ],
+    "trajIdle": 1,
+    "snapshotReceipts": 2,
+    "snapshotUndone": 1,
+    "abStates": [
+      "idle",
+      "idle",
+      "preparing",
+      "ready",
+      "failed"
+    ],
+    "abReadyLabels": [
+      "对比 A/B 已就绪"
+    ],
+    "composerStates": [
+      "default",
+      "default",
+      "default",
+      "default",
+      "focus",
+      "disabled",
+      "replying",
+      "default",
+      "default",
+      "default"
+    ],
+    "composerPlaceholders": [
+      "装载完成后可继续输入"
+    ],
+    "busyPlaceholders": [
+      "Vit 正在回复…"
+    ],
+    "contextError": true,
+    "contextRetry": 1,
+    "appliedWithoutSelection": 0
+  },
+  "textContrastMin": {
+    "text": "14:07",
+    "ratio": 5.077,
+    "fg": "rgb(102,102,102)",
+    "bg": "rgb(240,241,242)"
+  },
+  "graphicChecks": 56,
+  "graphicMinRatio": 4.305,
+  "clipIssues": [],
+  "docScrollWidth": 1440,
+  "fontTooSmall": [],
+  "failures": [],
+  "notes": [
+    "projectUrl=http://127.0.0.1:5391/app/gallery.html?surface=project"
+  ],
+  "screenshots": [
+    "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-PROJECT-1\\screens\\project-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-PROJECT-1\\screens\\project-full.png"
+  ],
+  "foundationReport": "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+  "launcherReport": "D:\\Vit_DAW_wt_uiproj1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+  "result": "PASS"
+}

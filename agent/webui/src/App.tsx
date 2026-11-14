@@ -111,6 +111,8 @@ import { loadSessionFlowMainID, mainConversationDefaultTitle, saveSessionFlowMai
 // UI-LAUNCHER-1（345）：启动台 surface。App.tsx 仅做 surface 分发最小改动——
 // launcher 面的实现全部在 src/launcher/**（原 App 主体更名为 MainApp，行为零变化）。
 import { LauncherSurface } from "./launcher/LauncherSurface";
+// UI-PROJECT-1（346）：工程内对话主窗 surface。实现在 src/project/**，此处仅分发（345 同款最小改动，full/main/workbench 行为零变化）。
+import { ProjectSurface } from "./project/ProjectSurface";
 import { authorityContext, checkoutBlockedByState, continuationChainLive, isAgentTurnRunning } from "./turnControl";
 import { observeOutputLayout, shouldLayerObserveOutput } from "./observeOutputLayering";
 import { hasLayeredPresentation, ObservePresentationView } from "./observePresentationLayered";
@@ -196,7 +198,7 @@ type ConnectionStatus = "loading" | "ready" | "offline";
 type WorkbenchTab = "history" | "media" | "macro";
 type SettingsTab = "agent" | "llm" | "multimodal" | "browser" | "diagnostics";
 type MediaContextMenuState = { artifact: ArtifactSummary; x: number; y: number };
-type AppSurface = "full" | "main" | "workbench" | "launcher";
+type AppSurface = "full" | "main" | "workbench" | "launcher" | "project";
 type MacroValueOverride = { value: number; macro: MacroControl; expiresAt: number };
 type BrowserBridgeState = {
   ready?: boolean;
@@ -263,13 +265,16 @@ const initialMessage: ChatMessage = {
 
 /**
  * UI-LAUNCHER-1（345）：surface 分发入口。launcher 面独立组件（自带数据加载，
- * 不复用主对话的状态/轮询）；full/main/workbench 三 surface 原样走 MainApp，
- * 行为零变化。
+ * 不复用主对话的状态/轮询）；UI-PROJECT-1（346）工程内主窗同模式独立分发；
+ * full/main/workbench 三 surface 原样走 MainApp，行为零变化。
  */
 function App() {
   const surface = appSurface();
   if (surface === "launcher") {
     return <LauncherSurface fill />;
+  }
+  if (surface === "project") {
+    return <ProjectSurface fill />;
   }
   return <MainApp />;
 }
@@ -1856,7 +1861,7 @@ function MainApp() {
 
 function appSurface(): AppSurface {
   const value = new URLSearchParams(window.location.search).get("surface")?.toLowerCase();
-  if (value === "main" || value === "workbench" || value === "launcher") {
+  if (value === "main" || value === "workbench" || value === "launcher" || value === "project") {
     return value;
   }
   return "full";
