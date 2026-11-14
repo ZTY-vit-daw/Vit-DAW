@@ -21,13 +21,18 @@
 
 ## 里程碑
 
-- [x] M0 领取（本提交）：双 worktree + 卡 todo→doing + PROGRESS 建立
-- [ ] M1 VitShell exe 骨架+WebView2 主窗（共享核心+构建脚本+编译 exit 0）
-- [ ] M2 agent 进程树（拉起/健康轮询/退出全树终止）
-- [ ] M3 装载态/错误态 + status 端点
+- [x] M0 领取：双 worktree + 卡 todo→doing + PROGRESS 建立（主仓 29e8b0e5 已推 main）
+- [x] M1 VitShell exe 骨架+WebView2 主窗：前端仓 port/shell-1 提交 ca28e88；编译 exit 0（VS 2026 x64 Release）；extension/ 零 diff 实证（git status 仅 VitShell/ 未跟踪）；构建注意=WebView2Loader.dll 在 .git/info/exclude（worktree 无此件），CMake 经 -DVITSHELL_WEBVIEW2_DIR 指向主检出
+- [x] M2 agent 进程树代码就位（agent_manager.*：Job Object KILL_ON_JOB_CLOSE 全树终止+343/355 参数链+set-if-empty env）
+- [x] M3 装载态/错误态+status 端点代码就位（main.cpp：内嵌装载页→/agent/tools 轮询→launcher 导航→document.readyState 探针；错误页含重试/退出按钮经 postMessage）
 - [ ] M4 vitshell_smoke.ps1 + 真栈轻腿（§2.2 登记→≤60s 复核→run→拆栈→释放）
 - [ ] 回执回填 + doing→done
 
+## M4 前提记录
+
+- worktree 无 agent/webui/dist（gitignored）；主检出有 dist 且两侧 agent/webui/src 同 commit（8faead66）、主检出 src 无脏文件——烟测将拷贝主检出 dist 至 worktree agent/webui/dist 并做同源断言+哈希留证（source-faithful，零 webui 源改动）
+- VitShell 构建命令（烟测内复跑）：`cmake -S VitShell -B VitShell/build -G "Visual Studio 18 2026" -A x64 -DVITSHELL_WEBVIEW2_DIR=D:/Godot/project/vit-daw-frontend/extension/third_party/webview2 && cmake --build VitShell/build --config Release`（前端 worktree 内执行）
+
 ## 下一步
 
-M1：在前端仓 worktree 建 VitShell/ 工程（shared 核心 + main + CMake），编译 exit 0。
+§2.2 真栈占用登记（agent 链轻腿：7878+7879，无 Godot/内核）→ ≤60s 即时复核 → 手测骨架链 → vitshell_smoke.ps1 正式腿 → 拆栈释放。
