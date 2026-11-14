@@ -19,7 +19,9 @@
 - [x] M3 结果卡渲染（c8582b35）：launcher chat（context.launcher=true）+ list 意图装填抽屉 + 结果卡数据展示 + directive「准备打开/新建…」占位（不执行）；17 个单测
 - [x] M4 渲染烟测扩展（2026-11-14）：gallery section + gallery.html?surface=launcher fixture 页 + render-smoke §7；双页 PASS。修复两处：fixture 标注断言（全角括号）与建议计数跨样例混计（改 first-root 作用域）；修复 thread 可见溢出叠压建议/输入（thread overflow-y:auto + gallery 样例框 height:auto）
 - [x] M5 三命令自验（2026-11-14）：全 exit 0（见下）
-- [ ] M6 回执+done 移动
+- [x] M5.5 surface 分发浏览器冒烟（2026-11-14，一次性临时脚本不入库，代理指向关闭端口 127.0.0.1:9 零真实栈接触）：?surface=launcher → LauncherSurface 挂载 + agent 不可用 banner + 重试（.app-shell 不渲染）；?surface=main → .app-shell app-shell-main-surface 照常渲染。exit 0。
+- [x] M6 回执回填 + doing→done（本提交后执行）
+- 终态：DONE（执行侧自验完成，待主管决策验收；实现分支 port/ui-launcher-1）
 
 ## 长命令记录（重派时判断是否需重跑）
 
@@ -29,6 +31,7 @@
 - npm run test:render：exit 0，gallery RESULT=PASS + launcher LAUNCHER_RESULT=PASS
   - 工件：coord/runs/UI-LAUNCHER-1/{render-smoke-launcher-report.json, screens/launcher-viewport-1440x900.png, screens/launcher-full.png}
   - 副作用：344 目录 coord/runs/UI-FOUNDATION-1/{render-smoke-report.json, screens/gallery-full.png} 被本次运行重生成（tracked 文件呈 modified）——属 344 域，本卡不提交、不回滚，留验收侧处置
+- node dispatch-check（临时脚本）：exit 0（见 M5.5）
 
 ## 遗留与边界（回执引用）
 
