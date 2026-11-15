@@ -167,5 +167,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 |---|---|---|
 | 369 | G0-SCORE-SPIKE-1 | doing（2026-11-15 23:21 领取，GLM-5.3 执行子代理/PC，worktree `D:/Vit_DAW_wt_369coord` 分支 `coord/369-claim`，基线 9cc3048c） |
 | 370 | G0-LEGAME-CONTRACT-1 | done 候验收（GLM-5.3-Flash 执行流 2026-11-15 深夜；契约正本 docs/LEGAME_DESIGN_CONTRACT_V0.md+schema 草案+覆盖核验 119/119+实施卡草案×3 在卷 coord/runs/G0-LEGAME-CONTRACT-1/；**候用户裁定项 R1-R6 单列**，裁定回填前实施卡不发）（W01 乐局设计源契约冻结草案 vit.legame_design.v0；P0） |
-| 371 | G0-STACKGATE-1 | done 候验收（单栈验收口径冻结 DG1-DG3——docs/STACKGATE_DG1_DG3_V1.md 候审；owner GLM-5.3-Flash 执行流/PC，worktree wt_371coord） |
+| 371 | G0-STACKGATE-1 | done 已验收 pass 合入（[docs/STACKGATE_DG1_DG3_V1.md](../../docs/STACKGATE_DG1_DG3_V1.md)=现行关卡契约——DG1 三能力关/DG2 旅程 J1-J10/DG3 渲染手测 M1-M4+卡面引用模板；锚点抽核真实；CURRENT-STATE 索引登记随 gate） |
 | 372 | GEN-YUE-WIRE-1 | doing（2026-11-15 深夜领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_yue1` 分支 `port/gen-yue-wire-1`，基线 3997e11b；零栈段先行，真栈+真实生成烟测腿候栈第 2 位） |
