@@ -17,4 +17,14 @@
 | 4 | 参照系读完：vitshell_full_smoke.ps1（L0-L6/F1-F3/S10/占用六步/退出码 0-1）+vitshell_full_smoke_cdp.mjs（CDP phase 机制）+journey1（退出码 0/1/2+隔离契约）+run_webui_rendered_dom_smoke（E2E-WEBUI-1 门槛）+run_yue_dialect_smoke（leg0/1/2+VRAM ceiling+引擎所有权）+edu_jam/legame_intro（0/2/4+零 LLM 遥测）+g_runtime_readonly（白名单 GET）+审计 README/SCHEDULE/WORK-PACKAGES+裁定+占用记录+兄弟卡 369/370/372 | 无（读） | 写关卡定义文档 |
 | 5 | 出声机械断言锚点核实：内核 l2_render_probe 命令面（scripts/dad_probe.py 驱动）；YuE2 WAV 时长合理窗+SheetSage2 转写回读（yue_dialect_smoke.py） | 无（读） | 写关卡定义文档 |
 | 6 | 关卡定义文档落 docs/ 候审：DG1-A/B/C 断言面+DG2 乐局段 J1-J10+DG3 双门槛+手测节点 M1-M4+引用模板+映射表 12 行 | docs/STACKGATE_DG1_DG3_V1.md | 收口提交（卡转 done+回执+POOL-INDEX） |
+| 7 | 收口提交 62c72415（卡 doing→done+回执+POOL-INDEX 371 done 行+工件）；推送被顶一次→并入 372 领取态（POOL-INDEX 冲突按 371 done 行+372 doing 行合并）→c6576ff9 推 main 成功；远端核对：done 卡回执在场+docs 文档在场 | 提交链 8e31e9d8→a1db8cf7→62c72415→c6576ff9（main@c6576ff9） | DONE |
+
+## 终态：DONE（2026-11-15）
+
+- 执行的命令+退出码：git worktree add（exit 0）/ git mv+add+commit×4（exit 0）/ git push HEAD:main（领取段两次被顶→pull --no-rebase 合并解决→成功；收口段一次被顶→合并→成功）；无测试/构建执行义务（文档卡）。
+- 产物路径：docs/STACKGATE_DG1_DG3_V1.md（canonical，候审）；coord/runs/G0-STACKGATE-1/PROGRESS.md（本文件）；coord/cards/done/2026-11-15-G0-STACKGATE-1.md（含领取节+回执）。
+- 遇到的问题：POOL-INDEX 并发领取冲突三次，均为「两侧各改相邻行」模式，按两侧真实状态逐行合并（369/370/372 的 doing 行保留+本卡行推进），无内容丢失。
+- 断了几次：断 0 次（会话未中断；"被顶"为并行领取的正常 push 竞争，非中断）。
+- 下一步（决策侧）：验收本卡→定稿 docs/STACKGATE_DG1_DG3_V1.md 并纳入 CURRENT-STATE 索引；369/370/372 及下游能力卡按 §6 引用模板挂 DG 关卡。
+
 
