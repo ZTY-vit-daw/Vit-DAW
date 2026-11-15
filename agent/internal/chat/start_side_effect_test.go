@@ -79,10 +79,24 @@ func TestActivateWorkspaceUsesMaterializedDraftWithoutNewDir(t *testing.T) {
 	}
 	server := newChatServerForTest(t, nil, startSideChannelShadow(projectUUID), nil)
 
+	// SHELL-5（用户裁定 2026-11-15：启动页阶段 agent 无工程上下文）：内核随窗
+	// 在线的 boot 默认身份（uuid-only）+ 已物化 draft，在用户尚未进入任何工程
+	//（user_entered_project 未置）时不再绑定——agent 位置=「启动页」。
 	server.activateCurrentProjectWorkspace(context.Background())
-
 	server.workspaceMu.Lock()
 	activePath := server.activeWorkspacePath
+	server.workspaceMu.Unlock()
+	if strings.TrimSpace(activePath) != "" {
+		t.Fatalf("launcher-stage activation bound the boot draft: active workspace = %q, want none", activePath)
+	}
+
+	// 真实进工程/新建后（宿主 version.project_opened 播报置位）：激活采用同一
+	// 已物化 draft（FIX-START-DRAFT-SIDE-EFFECT-1 的核心价值不回退——不另建
+	// 第二个 draft 目录）。
+	server.markUserEnteredProject()
+	server.activateCurrentProjectWorkspace(context.Background())
+	server.workspaceMu.Lock()
+	activePath = server.activeWorkspacePath
 	server.workspaceMu.Unlock()
 	if !strings.EqualFold(filepath.Clean(activePath), filepath.Clean(draftPath)) {
 		t.Fatalf("active workspace = %q, want materialized draft %q", activePath, draftPath)

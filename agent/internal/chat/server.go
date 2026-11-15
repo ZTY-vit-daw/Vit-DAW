@@ -166,6 +166,11 @@ type Server struct {
 	// version.project_opened 工程进入播报到达即置 true，进程内不重置（重启回
 	// false）。s.mu 保护。
 	userEnteredProject bool
+	// launcherScopeGateSeen（SHELL-5）是启动台激活门的日志去重指纹（身份
+	// path+uuid）：continuation 调度器 250ms tick 每轮都会重放激活尝试，同一
+	// 身份的「launcher scope kept」留痕只发一次（AUTH-RESTORE-LOGSPAM-1 同款
+	// 去重纪律；不持久化，s.mu 保护）。
+	launcherScopeGateSeen string
 	// kernelBootWait（SHELL-4 内核随窗就绪）：有界等待内核引导完成的钩子，
 	// cmd/vitagent 注入（runtimehost.Supervisor.WaitKernelReady）；nil=未注入
 	// （旧链/测试——greeting 不等待，直接按内核探测结果三态回执）。只读并发
@@ -7669,6 +7674,13 @@ func (s *Server) contextWithCurrentProjectWorkspace(ctx context.Context, in map[
 	if projectUUID == "" {
 		return out
 	}
+	// SHELL-5：启动台阶段零工程范围——内核随窗在线时 boot 默认工程只有 uuid
+	// 没有路径（unsaved）；用户尚未进入任何工程（340 会话事实未置位）的对话轮
+	// 不注入工程字段（LLM 上下文不带工程范围）。进工程/新建后（会话事实置位，
+	// 或身份带真实路径——Godot 直启链竞态窗口）恢复注入，旧链零回归。
+	if projectPath == "" && !s.userEnteredProjectSnapshot() {
+		return out
+	}
 	out["project_path"] = projectPath
 	out["current_project_path"] = projectPath
 	out["project_uuid"] = projectUUID
@@ -7706,8 +7718,36 @@ func (s *Server) activateCurrentProjectWorkspace(ctx context.Context) {
 		projectPath = history.CurrentDraftProjectPath()
 	}
 	if projectPath == "" {
-		if s.logger != nil {
+		// SHELL-5：SHELL-4 内核随窗在线后调度器 250ms tick 会反复到达这里
+		//（uuid-only 身份+未物化 draft 的启动台阶段此前一tick即绑定、从未
+		// 显露）；现在该态可能持续存在——同身份去重留痕，防 4Hz 刷爆滚动日志。
+		pendingFingerprint := "\x00pending\x00" + projectUUID + "\x00" + recoveryReason
+		s.mu.Lock()
+		pendingSeen := s.launcherScopeGateSeen == pendingFingerprint
+		s.launcherScopeGateSeen = pendingFingerprint
+		s.mu.Unlock()
+		if s.logger != nil && !pendingSeen {
 			s.logger.Info("[workspace] activation pending uuid=%s reason=%s", projectUUID, recoveryReason)
+		}
+		return
+	}
+	// SHELL-5（用户裁定 2026-11-15：启动页阶段 agent 无工程上下文）：内核随窗
+	// 在线（SHELL-4）使 agent 在启动台阶段就能解析出内核 boot 默认工程
+	//（unsaved draft）。该身份不是用户进入的工程——user_entered_project
+	//（340 会话事实，宿主 version.project_opened 播报，handleInvoke 置位）未
+	// 置位且身份是进程 draft 时不激活 workspace：agent 位置=「启动页」，上下文
+	// 零工程范围。真实进工程/新建（directive 经桥执行 → lifecycle 播报置位 →
+	// 本函数再次到达）后绑定链不变（含 SHELL-4 ui/state 草稿回填依赖的激活
+	// 路径）。非 draft 身份（Godot 直启链内核已载入真实工程的竞态窗口）不受
+	// 此门影响——旧链零回归。
+	if history.IsDraftProjectPath(projectPath) && !s.userEnteredProjectSnapshot() {
+		gateFingerprint := projectPath + "\x00" + projectUUID
+		s.mu.Lock()
+		seen := s.launcherScopeGateSeen
+		s.launcherScopeGateSeen = gateFingerprint
+		s.mu.Unlock()
+		if s.logger != nil && seen != gateFingerprint {
+			s.logger.Info("[workspace] launcher scope kept (boot draft not activated) project=%q uuid=%s", projectPath, projectUUID)
 		}
 		return
 	}

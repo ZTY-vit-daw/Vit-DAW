@@ -132,6 +132,14 @@ const (
 	launcherIntentList = "list"
 )
 
+// launcherDefaultNewProjectName 生成缺省新工程名（SHELL-5：无名新建意图与
+// 启动台「＋新建」按钮直接执行时的草稿名——MMDD_HHmm 时间戳；名实相符的
+// 内核侧承接是 363 域，进工程后可改名）。webui 侧
+// defaultNewProjectName（launcherData.ts）同格式镜像。
+func launcherDefaultNewProjectName(now time.Time) string {
+	return "新工程_" + now.Format("0102_1504")
+}
+
 type launcherIntent struct {
 	Kind string
 	Ref  string // open：工程引用；空=裸继续（目标=最近一条）
@@ -505,15 +513,21 @@ func (s *Server) handleLauncherFlowChat(ctx context.Context, chatCtx map[string]
 	entries := launcherRecentEntries(paths)
 	switch intent.Kind {
 	case launcherIntentNew:
-		if intent.Name == "" {
-			resp.Reply = "好——新工程想叫什么名字？直接说「新建 XX 的工程」就行。"
-			return resp, true
+		// SHELL-5（用户裁定 2026-11-15：对话流新建/打开意图=自动执行）：无名
+		// 新建不再问询循环——以缺省草稿名直接出 directive（UI 自动经桥执行）。
+		// 名实相符的内核侧承接是 363 域；此处先以时间戳草稿名呈报（进工程后
+		// 可改名）。
+		name := intent.Name
+		if name == "" {
+			name = launcherDefaultNewProjectName(time.Now())
+			resp.Reply = "好——这就新建一个工程（暂名《" + name + "》，进去后可以改名）并进入。"
+		} else {
+			resp.Reply = "好——这就新建工程《" + name + "》并进入。"
 		}
-		resp.Reply = "好的，新建工程《" + intent.Name + "》。"
 		resp.LauncherDirective = &LauncherDirective{
 			Action:             launcherActionNew,
-			ProjectName:        intent.Name,
-			Reason:             "新建工程《" + intent.Name + "》",
+			ProjectName:        name,
+			Reason:             "新建工程《" + name + "》",
 			RequiresGovernance: true,
 		}
 		return resp, true
@@ -526,7 +540,7 @@ func (s *Server) handleLauncherFlowChat(ctx context.Context, chatCtx map[string]
 			resp.Reply = launcherNoRecentsReply
 			return resp, true
 		}
-		resp.Reply = fmt.Sprintf("最近的工程有 %d 个——点卡片打开，或直接跟我说名字：", len(entries))
+		resp.Reply = fmt.Sprintf("最近的工程有 %d 个——点卡片直接打开，或直接跟我说名字：", len(entries))
 		resp.ProjectResultCards = launcherProjectCards(entries, launcherMaxCards)
 		return resp, true
 	default: // launcherIntentOpen
@@ -540,7 +554,7 @@ func (s *Server) handleLauncherFlowChat(ctx context.Context, chatCtx map[string]
 			case 0:
 				resp.Reply = launcherNoRecentsReply
 			case 1:
-				resp.Reply = "好的，继续《" + entries[0].Name + "》。"
+				resp.Reply = "好——这就继续《" + entries[0].Name + "》并进入。"
 				resp.LauncherDirective = launcherOpenDirective(entries[0])
 			default:
 				resp.Reply = "最近打开过几个工程——挑一个接着来（最近的在最前）："
@@ -554,7 +568,7 @@ func (s *Server) handleLauncherFlowChat(ctx context.Context, chatCtx map[string]
 				resp.Reply = launcherNoRecentsReply
 				return resp, true
 			}
-			resp.Reply = fmt.Sprintf("最近的工程有 %d 个——点卡片打开，或直接跟我说名字：", len(entries))
+			resp.Reply = fmt.Sprintf("最近的工程有 %d 个——点卡片直接打开，或直接跟我说名字：", len(entries))
 			resp.ProjectResultCards = launcherProjectCards(entries, launcherMaxCards)
 			return resp, true
 		}
@@ -566,15 +580,15 @@ func (s *Server) handleLauncherFlowChat(ctx context.Context, chatCtx map[string]
 		}
 		switch {
 		case len(hits) == 1:
-			resp.Reply = "好的，打开《" + hits[0].Name + "》。"
+			resp.Reply = "好——这就打开《" + hits[0].Name + "》并进入。"
 			resp.LauncherDirective = launcherOpenDirective(hits[0])
 		case len(hits) > 1:
-			resp.Reply = "有好几个都像「" + intent.Ref + "」——点一张卡片打开，或说得更具体一点："
+			resp.Reply = "有好几个都像「" + intent.Ref + "」——点一张卡片直接打开，或说得更具体一点："
 			resp.ProjectResultCards = launcherProjectCards(hits, launcherMaxCards)
 		case len(entries) == 0:
 			resp.Reply = "还没找到叫「" + intent.Ref + "」的工程，最近也没有工程记录——可以说「新建一个工程」开始。"
 		default:
-			resp.Reply = "没找到叫「" + intent.Ref + "」的工程。这些是最近的工程——点卡片打开，或换个说法："
+			resp.Reply = "没找到叫「" + intent.Ref + "」的工程。这些是最近的工程——点卡片直接打开，或换个说法："
 			resp.ProjectResultCards = launcherProjectCards(entries, launcherMaxCards)
 		}
 		return resp, true

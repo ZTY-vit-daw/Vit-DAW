@@ -45,10 +45,29 @@
 # the VitShell process tree; explicit env beats ~/.vit/config.json per agent
 # config.applyExplicitEnvOverrides); no GUI automation (read-only process and
 # window-title inspection only).
+#
+# SHELL-5 extension (card pool #364, launcher-project-semantics ruling
+# 2026-11-15):
+#   L1e zero-binding       launcher stage = ZERO agent workspace binding:
+#                         /agent/state current_project.path empty (uuid may be
+#                         present = kernel boot identity disclosed, unbound) +
+#                         agent log has NO "[workspace] activated" line at the
+#                         launcher stage (gate marker "launcher scope kept"
+#                         recorded when the boot draft was resolvable).
+#   L1c intent auto-exec  launcher chat bare "新建工程" (name-less, the exact
+#                         user retest criterion) -> directive AUTO-executes
+#                         (no manual execute button, no question loop) ->
+#                         kernel new -> project surface (launch 1).
+#   L1c2 button direct    close DAW -> back at launcher -> drawer "＋新建"
+#                         posts a new_project directive DIRECTLY through the
+#                         bridge (no chat round; governance answered 直接切换)
+#                         -> project surface (launch 2); close DAW again ->
+#                         kernel survives.
+#   L2/L5 launch counts   shifted to 3/4 (button direct-new is launch 2).
 
 param(
-    [string]$FrontendWorktree = "D:/Godot/project/vit-daw-frontend_wt_shell4",
-    [string]$CardId = "SHELL-4",
+    [string]$FrontendWorktree = "D:/Godot/project/vit-daw-frontend_wt_shell5",
+    [string]$CardId = "SHELL-5",
     [string]$Webview2SdkDir = "D:/Godot/project/vit-daw-frontend/extension/third_party/webview2",
     [string]$GodotExe = "D:/Godot/Godot_v4.6.1-stable_win64_console.exe",
     [string]$FixtureSource = "D:/Vit_DAW/temp/f3_empty_project.vit",
@@ -267,8 +286,11 @@ function Invoke-CdpPhase {
         $nodeArgs += @("--chat-text", $ChatText, "--chat-timeout-ms", "$ChatTimeoutMs")
     }
     if ($Phase -eq "launcher-chat-new") {
-        if ([string]::IsNullOrWhiteSpace($NewProjectName)) { throw "launcher-chat-new requires -NewProjectName" }
-        $nodeArgs += @("--new-project-name", $NewProjectName)
+        # SHELL-5: NewProjectName 为空 = 无名「新建工程」自动执行腿（用户复测口径）；
+        # 非空 = 具名新建（SHELL-4 语义保留）。
+        if (-not [string]::IsNullOrWhiteSpace($NewProjectName)) {
+            $nodeArgs += @("--new-project-name", $NewProjectName)
+        }
     }
     $code = Invoke-NativeLogged -Command { node @nodeArgs } -LogPath ($out + ".log")
     popd
@@ -347,7 +369,7 @@ Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), oc
 
 if ([string]::IsNullOrWhiteSpace($RunRoot)) {
     $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $RunRoot = Join-Path $MainRoot "coord/runs/SHELL-4/run_full_$stamp"
+    $RunRoot = Join-Path $MainRoot "coord/runs/$CardId/run_full_$stamp"
 }
 New-Item -ItemType Directory -Path $RunRoot -Force | Out-Null
 $fixturesDir = Join-Path $RunRoot "fixtures"
@@ -794,39 +816,79 @@ for ($round = 1; $round -le $Rounds; $round++) {
         }
         Write-Ok ("R$round L1b: kernel online at launcher (VitApp=" + $kernelProcs.Count + " VspHub=" + $hubProcs.Count + " agent-owned; greeting real data recents=" + $greetingJson.recent_count + ")")
 
-        # ---- R-L1c: SHELL-4 new-project end-to-end (launcher chat -> directive -> bridge -> kernel new -> project) ----
-        Write-Step "R$round L1c: new-project end-to-end (launcher chat -> kernel create -> enter project)"
-        $newName = "SHELL4NP_R$round"
-        $null = Invoke-CdpPhase -Phase "launcher-chat-new" -OutFile "r${round}_cdp_chat_new.json" -NewProjectName $newName
+        # ---- R-L1e (SHELL-5): launcher stage = zero agent workspace binding ----
+        # The kernel is online (L1b) and its boot identity is resolvable, but the
+        # agent must NOT bind a workspace yet ("启动页零工程范围" ruling): HTTP face
+        # /agent/state current_project.path stays empty (uuid present = kernel
+        # boot identity disclosed unbound), and the agent log shows NO workspace
+        # activation at the launcher stage. The gate marker is recorded as bonus
+        # evidence when the boot draft was resolvable in-process.
+        Write-Step "R$round L1e: SHELL-5 launcher stage zero-binding (/agent/state + agent log)"
+        $noBind = Invoke-CdpPhase -Phase "probe-launcher-no-binding" -OutFile "r${round}_cdp_no_binding.json"
+        if (-not [string]::IsNullOrWhiteSpace("$($noBind.current_project_path)")) {
+            throw "R$round L1e: launcher-stage current_project.path must be empty (boot draft bound as workspace!), got: $($noBind.current_project_path)"
+        }
+        if ([string]::IsNullOrWhiteSpace("$($noBind.current_project_uuid)")) {
+            throw "R$round L1e: current_project.uuid empty (kernel boot identity not even disclosed - identity chain dead, gate untested)"
+        }
+        $agentLog = Join-Path $MainRoot "VitApp/Workspace/Logs/agent_last.log"
+        if (-not (Test-Path $agentLog)) { throw "R$round L1e: agent log missing at $agentLog" }
+        # logx rewrites the rolling file from in-memory lines: after this round's
+        # agent wrote its first line, the file holds ONLY the current process.
+        $activatedLines = @(Select-String -Path $agentLog -Pattern '\[workspace\] activated' -ErrorAction SilentlyContinue)
+        if ($activatedLines.Count -gt 0) {
+            throw "R$round L1e: workspace got ACTIVATED at launcher stage ($($activatedLines.Count) line(s): $($activatedLines[0].Line.Substring(0, [Math]::Min(120, $activatedLines[0].Line.Length))))"
+        }
+        $gateMarker = @(Select-String -Path $agentLog -Pattern 'launcher scope kept' -ErrorAction SilentlyContinue)
+        Copy-Item $agentLog (Join-Path $RunRoot "r${round}_agent_launcher_stage_log.txt") -Force
+        $roundMeta.launcher_zero_binding = @{
+            current_project_path = "$($noBind.current_project_path)"
+            current_project_uuid = "$($noBind.current_project_uuid)"
+            gate_marker_lines    = $gateMarker.Count
+        }
+        Write-Ok ("R$round L1e: launcher stage zero-binding (path empty, uuid disclosed unbound, activated-lines=0, gate-marker=" + $gateMarker.Count + ")")
+
+        # ---- R-L1c: SHELL-5 name-less intent auto-execute -> kernel new -> project (launch 1) ----
+        # The exact user retest criterion: chat "新建工程" (NO name) must
+        # auto-execute with the default draft name - no question loop, no manual
+        # execute button (CDP phase asserts both).
+        Write-Step "R$round L1c: name-less new intent auto-executes (launcher chat -> kernel create -> enter project)"
+        $null = Invoke-CdpPhase -Phase "launcher-chat-new" -OutFile "r${round}_cdp_chat_new.json"
         $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 1 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_new.json")
         $newReady = Invoke-CdpPhase -Phase "probe-project-ready" -OutFile "r${round}_cdp_new_ready.json"
         if ([string]::IsNullOrWhiteSpace("$($newReady.context_name)")) { throw "R$round L1c: project surface ready but context name empty" }
-        $roundMeta.new_project_name = $newName
+        $roundMeta.new_project_intent = "name-less auto-exec"
         $roundMeta.new_project_context_name = $newReady.context_name
-        Write-Ok ("R$round L1c: new project entered end-to-end (context=" + $newReady.context_name + ", launch_count=1)")
+        Write-Ok ("R$round L1c: name-less new intent entered end-to-end (context=" + $newReady.context_name + ", launch_count=1)")
 
-        # ---- R-L1d: close DAW -> kernel survives (lifecycle belongs to main window) ----
-        Write-Step "R$round L1d: close DAW -> kernel survives"
+        # ---- R-L1c2: SHELL-5 button direct-new (close DAW -> launcher -> ＋新建 -> project, launch 2) ----
+        Write-Step "R$round L1c2: close DAW -> launcher back -> ＋新建 direct new -> enter project"
         $closeDawNew = Get-HttpPost -Url "$StatusBase/vitshell/close-daw" -TimeoutSec 5
-        if (-not $closeDawNew.ok) { throw "R$round L1d: POST close-daw failed: $($closeDawNew.body)" }
+        if (-not $closeDawNew.ok) { throw "R$round L1c2: POST close-daw failed: $($closeDawNew.body)" }
         Wait-StatusField -StatusUrl $StatusUrl -Field "godot_running" -Expect "False" -TimeoutSec 30 -ArtifactPath (Join-Path $RunRoot "r${round}_status_new_daw_closed.json")
         $null = Invoke-CdpPhase -Phase "probe-launcher-back" -OutFile "r${round}_cdp_new_back.json"
         $kAfterNew = @(Get-Process -Name "VitApp" -ErrorAction SilentlyContinue).Count
         $hAfterNew = @(Get-Process -Name "VspHub" -ErrorAction SilentlyContinue).Count
         if ($kAfterNew -lt 1 -or $hAfterNew -lt 1) {
-            throw "R$round L1d: kernel/hub died with DAW close (VitApp=$kAfterNew VspHub=$hAfterNew) - lifecycle must belong to the main window"
+            throw "R$round L1c2: kernel/hub died with DAW close (VitApp=$kAfterNew VspHub=$hAfterNew) - lifecycle must belong to the main window"
         }
         $roundMeta.kernel_survives_daw_close_after_new = $true
-        Write-Ok ("R$round L1d: DAW closed, kernel survives (VitApp=$kAfterNew VspHub=$hAfterNew)")
+        $null = Invoke-CdpPhase -Phase "launcher-button-new" -OutFile "r${round}_cdp_button_new.json"
+        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 2 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_button_new.json")
+        $btnReady = Invoke-CdpPhase -Phase "probe-project-ready" -OutFile "r${round}_cdp_button_ready.json"
+        if ([string]::IsNullOrWhiteSpace("$($btnReady.context_name)")) { throw "R$round L1c2: button-new project surface ready but context name empty" }
+        $roundMeta.button_new_context_name = $btnReady.context_name
+        Write-Ok ("R$round L1c2: ＋新建 direct new entered end-to-end (context=" + $btnReady.context_name + ", launch_count=2; kernel survived VitApp=$kAfterNew VspHub=$hAfterNew)")
 
         # ---- R-L2: first file open (zero friction expected) -> direct-launch -> project ----
         Write-Step "R$round L2: drawer open (fixture A) -> agent open chain -> Godot direct-launch"
-        # SHELL-4: the L1c new project was launch 1; the fixture_a file open is
-        # launch 2. The L1c blank draft is the active project, so the in-page
-        # governance card is EXPECTED on this open - answer it via the real
-        # bridge path (mirror of L5) instead of waiting for a launch that never
-        # comes without a choice. Baseline BEFORE the click: the governance
-        # request fires inside the click-open CDP phase (choose_file chain).
+        # SHELL-5: L1c (intent new) was launch 1, L1c2 (button new) is launch 2;
+        # the fixture_a file open is launch 3. The button-new blank draft is the
+        # active project, so the in-page governance card is EXPECTED on this
+        # open - answer it via the real bridge path (mirror of L5) instead of
+        # waiting for a launch that never comes without a choice. Baseline
+        # BEFORE the click: the governance request fires inside the click-open
+        # CDP phase (choose_file chain).
         $bridgeLog = Join-Path $RunRoot "r${round}_bridge.log"
         $govBeforeOpen = (Select-String -Path $bridgeLog -Pattern "governance.required" -ErrorAction SilentlyContinue | Measure-Object).Count
         $null = Invoke-CdpPhase -Phase "click-open" -OutFile "r${round}_cdp_click_open_1.json"
@@ -838,17 +900,17 @@ for ($round = 1; $round -le $Rounds; $round++) {
             if ($govNow -gt $govBeforeOpen) { $govSeen = $true; break }
             $snap = Get-HttpJson -Url $StatusUrl -TimeoutSec 3
             if ($snap.ok) {
-                try { if ([int]($snap.body | ConvertFrom-Json).launch_count -ge 2) { break } } catch {}
+                try { if ([int]($snap.body | ConvertFrom-Json).launch_count -ge 3) { break } } catch {}
             }
         }
         $roundMeta.first_open_governance = if ($govSeen) { "required" } else { "none" }
         if ($govSeen) {
             $null = Invoke-CdpPhase -Phase "click-governance-switch" -OutFile "r${round}_cdp_gov_click_1.json"
         }
-        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 2 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_1.json")
+        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 3 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_1.json")
         if (-not $status.godot_running) { throw "R$round godot not running after first file open" }
         $roundMeta.godot_pid_1 = $status.godot_pid
-        Write-Ok ("R$round first file open: godot pid=" + $status.godot_pid + " launch_count=2 (governance=" + $roundMeta.first_open_governance + ")")
+        Write-Ok ("R$round first file open: godot pid=" + $status.godot_pid + " launch_count=3 (governance=" + $roundMeta.first_open_governance + ")")
         $null = Invoke-CdpPhase -Phase "probe-project" -OutFile "r${round}_cdp_probe_project.json"
         $projReady = Invoke-CdpPhase -Phase "probe-project-ready" -OutFile "r${round}_cdp_project_ready.json"
         if ($projReady.context_name -notmatch "fixture_a") { throw "R$round project context name unexpected: $($projReady.context_name)" }
@@ -891,8 +953,9 @@ for ($round = 1; $round -le $Rounds; $round++) {
             throw ("R$round governance keys unexpected: save=$($gov.save) switch=$($gov.switch) cancel=$($gov.cancel)")
         }
         $null = Invoke-CdpPhase -Phase "click-governance-switch" -OutFile "r${round}_cdp_gov_click_2.json"
-        # SHELL-4: launch 1 = L1c new project, launch 2 = fixture_a open, this = 3.
-        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 3 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
+        # SHELL-5: launch 1 = L1c intent new, launch 2 = L1c2 button new,
+        # launch 3 = fixture_a open, this governed fixture_b open = 4.
+        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 4 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
         $null = Invoke-CdpPhase -Phase "probe-governance-done" -OutFile "r${round}_cdp_gov_done.json"
         $govDone = Get-Content (Join-Path $RunRoot "r${round}_cdp_gov_done.json") -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($govDone.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round sentinel changed after governed open (reload!)" }

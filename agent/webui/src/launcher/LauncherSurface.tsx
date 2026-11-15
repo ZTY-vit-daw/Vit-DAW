@@ -8,10 +8,15 @@
  * （context.launcher=true，agent 端确定性意图路由零 LLM）。完整最近工程列表经
  * launcher 聊天 list 意图（"有哪些工程"）获取——greeting 只回执首项+计数。
  *
- * UI-BRIDGE-1 桥面：directive 经「让 Vit 打开/新建」按钮走 ask_vit_launcher 通道
- * （宿主治理确认 + 既有 open/new 公共链）；终态一律以宿主
- * vit_launcher_result 回执呈现——React 不伪造「已打开」；桥不可用给诚实文案。
- * 选择文件请求经 launcher_choose_file（宿主原生文件对话框）。
+ * UI-BRIDGE-1 桥面（SHELL-5：directive 到达即自动执行）：launcher 确定性路由
+ * 命中 新建/打开 → directive 自动经 ask_vit_launcher 通道发出（不再等
+ * 「让 Vit 新建/打开」手动按钮；治理确认仍按 337 语义仅在需要时由宿主出）；
+ * 终态一律以宿主 vit_launcher_result 回执呈现——React 不伪造「已打开」；
+ * 桥不可用给诚实文案。选择文件请求经 launcher_choose_file（宿主原生文件
+ * 对话框）。抽屉「＋新建」按钮=直连 directive（缺省草稿名，不经对话问询——
+ * 点击即建并自动进工程）；「打开…」保持宿主原生文件对话框。
+ * 呈现区分（SHELL-5）：执行轮=「正在…」占位+下方桥执行态回执；确定性问答
+ * （列表/说明）=纯文本回执——用户可分辨「Vit 正在执行」与「预设应答」。
  *
  * SHELL-2 页内治理（跟随发起方裁定）：agent/对话发起的工程切换 → 宿主回投
  * vit_governance_required → 本 surface 在对话流内出三键确认卡（保存并切换/直接切换/
@@ -21,9 +26,11 @@
  * fixture 接缝：props 传入 LauncherFixtureOverrides 时完全离线（gallery /
  * render-smoke 使用），真实端点零请求、零桥调用；不传即 live 模式。
  * 烟测接缝：URL launcher_smoke=1（生产 URL 无参零行为）——自动发送
- * launcher_smoke_message（可 || 分隔多条，回执后延迟发下一条）并自动执行 directive；
- * launcher_smoke_governance=save|switch|cancel 时治理卡出现即自动经真实桥路径回投
- * 选择（镜像 Godot 侧 VIT_SMOKE_LAUNCHER_GOVERNANCE 模式，生产零行为）。
+ * launcher_smoke_message（可 || 分隔多条，回执后延迟发下一条）并回执
+ * launcher_result_ack（取证）；directive 自动执行是生产默认（SHELL-5 转正，
+ * 不再限于烟测参数）；launcher_smoke_governance=save|switch|cancel 时治理卡
+ * 出现即自动经真实桥路径回投选择（镜像 Godot 侧 VIT_SMOKE_LAUNCHER_GOVERNANCE
+ * 模式，生产零行为）。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -38,6 +45,7 @@ import {
   type LauncherProjectCard
 } from "../api/launcher";
 import {
+  buildDirectNewDirective,
   cardPendingPlaceholder,
   createLauncherConversationID,
   directivePlaceholder,
@@ -332,6 +340,19 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
     if (directive) executeDirective(directive);
   }, [executeDirective]);
 
+  // ── SHELL-5：抽屉「＋新建」=直连 directive（不经对话问询）──
+  // 点击即建（缺省草稿名=MMDD_HHmm 时间戳，进工程后可改；363 承接名实相符）
+  // 并自动进工程；对话流内呈报「正在新建《X》…」+ 桥执行态回执。
+  const directNewProject = useCallback(() => {
+    if (fixture) return;
+    const directive = buildDirectNewDirective();
+    const view = directivePlaceholder(directive);
+    if (view) {
+      setThread((prev) => [...prev, { kind: "directive", view, directive }]);
+    }
+    executeDirective(directive);
+  }, [executeDirective, fixture]);
+
   const loadRecents = useCallback(async (run: number) => {
     setDrawerState("loading");
     setDrawerError("");
@@ -428,8 +449,9 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
           items.push({ kind: "assistant", text: result.error?.trim() || "Vit 没有返回内容——换个说法再试一次。" });
         }
         setThread((prev) => [...prev, ...items]);
-        // 烟测钩子（URL launcher_smoke=1 才生效）：directive 到达即自动执行（生产零行为）。
-        if (isSmokeRef.current && directive && directive.action) {
+        // SHELL-5：directive 到达即自动执行（生产默认——烟测接缝的 auto-execute
+        // 语义转正；治理确认仍由宿主按 337 语义仅在需要时出）。
+        if (directive && directive.action) {
           executeDirective(directive);
         }
       } catch (error) {
@@ -563,8 +585,9 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                 {drawerViewLabel}
               </span>
             </div>
-            {/* SHELL-2 抽屉手动按钮（卡面任务 1）：头部「＋新建」「打开…」——新建走
-                agent 对话流；打开走宿主原生文件对话框（348 choose_file 语义宿主版）。
+            {/* SHELL-2 抽屉手动按钮；SHELL-5 语义收口：「＋新建」=直连 directive
+                （缺省草稿名，点击即建并自动进工程，不经对话问询）；「打开…」=
+                宿主原生文件对话框（348 choose_file 语义宿主版，行为不变）。
                 空 recents 态两按钮主路径突出（data-drawer-primary 修饰）。 */}
             <div
               className="v5-launcher-drawer-actions"
@@ -575,9 +598,10 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                 type="button"
                 className="v5-btn v5-btn--primary v5-launcher-new"
                 data-launcher-new
-                disabled={busy || (!fixture && greetingState !== "ready")}
-                onClick={() => void send("新建一个工程")}
-                title="对 Vit 说「新建一个工程」——走 agent 对话流完成新建"
+                data-launcher-new-mode="direct"
+                disabled={busy || bridgeBusy || (!fixture && greetingState !== "ready")}
+                onClick={directNewProject}
+                title="直接新建工程并进入（不经对话问询；缺省名进工程后可改）"
               >
                 ＋新建
               </button>
@@ -609,7 +633,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
             ) : null}
             {drawerState === "empty" ? (
               <p className="v5-launcher-drawer-note" data-launcher-drawer-empty>
-                还没有最近工程记录。可以说「新建一个工程」，或点「打开…」选择工程文件。
+                还没有最近工程记录。点「＋新建」直接新建一个工程，或点「打开…」选择工程文件。
               </p>
             ) : null}
             {drawerEntries.length > 0 ? (
@@ -672,11 +696,16 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                               className="v5-launcher-card"
                               data-launcher-card={card.id}
                               onClick={() => {
-                                // 卡片点选 = 切换到该 directive 的占位呈报（真实执行走桥按钮）。
+                                // 卡片点选 = 自动执行该卡 directive（SHELL-5：点卡即开，
+                                // 不再出「让 Vit 打开」手动按钮等待）。
+                                const cardDirective = card.directive ?? undefined;
                                 setThread((prev) => [
                                   ...prev,
-                                  { kind: "directive", view: cardPendingPlaceholder(card), directive: card.directive ?? undefined }
+                                  { kind: "directive", view: cardPendingPlaceholder(card), directive: cardDirective }
                                 ]);
+                                if (cardDirective && cardDirective.action) {
+                                  executeDirective(cardDirective);
+                                }
                               }}
                             >
                               {/* UI-REC-TAPE-1（365）：建议卡工程位磁带 cassette 头像 */}
@@ -746,28 +775,14 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                       );
                     }
                     return (
-                      <div key={index} className="v5-launcher-directive" data-launcher-directive data-launcher-directive-state="pending">
+                      <div key={index} className="v5-launcher-directive" data-launcher-directive data-launcher-directive-state="auto">
                         <span className="v5-launcher-directive-headline">{item.view.headline}</span>
                         {item.view.detail ? <span className="v5-launcher-directive-detail">{item.view.detail}</span> : null}
                         <span className="v5-launcher-directive-note">{item.view.note}</span>
-                        {item.directive ? (
-                          <div className="v5-launcher-directive-actions" data-launcher-directive-actions>
-                            <button
-                              type="button"
-                              className="v5-btn v5-btn--primary v5-launcher-execute"
-                              data-launcher-directive-execute
-                              disabled={bridgeBusy || !bridgeAvailable}
-                              onClick={() => executeDirective(item.directive as LauncherDirective)}
-                              title={bridgeAvailable ? "经 Vit 桥执行（治理确认与原生对话框由宿主处理）" : LAUNCHER_BRIDGE_UNAVAILABLE_TEXT}
-                            >
-                              {item.directive.action === "new_project" ? "让 Vit 新建" : "让 Vit 打开"}
-                            </button>
-                            {!bridgeAvailable ? (
-                              <span className="v5-launcher-bridge-note" data-launcher-bridge-note>
-                                {LAUNCHER_BRIDGE_UNAVAILABLE_TEXT}
-                              </span>
-                            ) : null}
-                          </div>
+                        {item.directive && !bridgeAvailable ? (
+                          <span className="v5-launcher-bridge-note" data-launcher-bridge-note>
+                            {LAUNCHER_BRIDGE_UNAVAILABLE_TEXT}
+                          </span>
                         ) : null}
                       </div>
                     );
