@@ -7,7 +7,11 @@ import { describe, expect, it } from "vitest";
 import {
   composerStateOf,
   emptyProjectState,
+  PROJECT_CONFIRM_APPROVE_TEXT,
+  PROJECT_CONFIRM_CANCEL_TEXT,
+  projectThreadItemsFromOutcome,
   reduceProject,
+  replyAsksConfirmation,
   requestMacroApply,
   type MacroCardView,
   type ProjectSurfaceState,
@@ -302,5 +306,125 @@ describe("消息线程", () => {
     expect(s.thread.length).toBe(0);
     s = reduceProject(s, { type: "userSent", id: "u1", text: "把鼓组压紧一点" });
     expect(s.thread.length).toBe(1);
+  });
+});
+
+/* ── SHELL-6（池序 367）：回执载荷 → 交互卡映射 + 确认语义不变式 ── */
+
+describe("SHELL-6：replyAsksConfirmation（LLM 兜底确认语义检测）", () => {
+  it("紧口径命中：需要确认/请确认/要不要等确认语态", () => {
+    for (const text of [
+      "这个操作需要确认后再执行。",
+      "要不要我先这样做？",
+      "请确认后我再继续。",
+      "我需要确认一下你的意图。",
+      "是否确认切换工程？",
+      "等你确认。",
+      "确认后执行。"
+    ]) {
+      expect(replyAsksConfirmation(text)).toBe(true);
+    }
+  });
+
+  it("普通陈述/指令/通知不命中", () => {
+    for (const text of [
+      "好——这就新建工程《下一段》并切换过去。",
+      "已应用宏「温暖」。",
+      "本轮没有候选，稍后再试。",
+      "确认函已收到。", // 「确认」一词但非确认请求语态
+      ""
+    ]) {
+      expect(replyAsksConfirmation(text)).toBe(false);
+    }
+  });
+});
+
+describe("SHELL-6：projectThreadItemsFromOutcome 不变式（需要确认⇒可点交互面）", () => {
+  const nextID = (prefix: string) => `${prefix}-t`;
+
+  it("needs_confirmation=true（chat 确认协议位）→ 必伴随确认承接卡（两键可点语义）", () => {
+    const mapped = projectThreadItemsFromOutcome(
+      { text: "当前操作仍在等待确认，请先确认执行或取消。", needsConfirmation: true },
+      nextID
+    );
+    const confirm = mapped.items.find((item) => item.kind === "confirm");
+    expect(confirm).toBeDefined();
+    if (confirm?.kind === "confirm") {
+      expect(confirm.view.approveText).toBe(PROJECT_CONFIRM_APPROVE_TEXT);
+      expect(confirm.view.cancelText).toBe(PROJECT_CONFIRM_CANCEL_TEXT);
+    }
+  });
+
+  it("LLM 纯文字确认语义（无 directive/卡兜底）→ 同样伴随确认承接卡", () => {
+    const mapped = projectThreadItemsFromOutcome(
+      { text: "这个改动比较大，需要确认一下再动手。" },
+      nextID
+    );
+    expect(mapped.items.some((item) => item.kind === "confirm")).toBe(true);
+    expect(mapped.autoDirective).toBeUndefined();
+  });
+
+  it("directive 回执 → directive 占位卡 + autoDirective（自动经桥执行语义）", () => {
+    const mapped = projectThreadItemsFromOutcome(
+      {
+        text: "好——这就新建一个工程并切换过去。",
+        directive: { action: "new_project", project_name: "新工程_1115_2330", requires_governance: true }
+      },
+      nextID
+    );
+    const directive = mapped.items.find((item) => item.kind === "directive");
+    expect(directive).toBeDefined();
+    expect(mapped.autoDirective?.action).toBe("new_project");
+    // directive 轮的「切换确认」由宿主治理卡承接，不再叠确认承接卡。
+    expect(mapped.items.some((item) => item.kind === "confirm")).toBe(false);
+  });
+
+  it("结果卡回执（多命中点选）→ cards 卡批，无 directive 无确认卡", () => {
+    const mapped = projectThreadItemsFromOutcome(
+      {
+        text: "有好几个都像「混音」——点一张卡片直接切换：",
+        cards: [
+          { id: "c1", name: "鼓组混音v2（fixture）", filePath: "D:/x/鼓组混音v2.vit", directive: null },
+          { id: "c2", name: "人声混音（fixture）", filePath: "D:/x/人声混音.vit", directive: null }
+        ]
+      },
+      nextID
+    );
+    const cards = mapped.items.find((item) => item.kind === "cards");
+    expect(cards && cards.kind === "cards" && cards.cards.length).toBe(2);
+    expect(mapped.autoDirective).toBeUndefined();
+    expect(mapped.items.some((item) => item.kind === "confirm")).toBe(false);
+  });
+
+  it("普通回复 → 仅消息条目", () => {
+    const mapped = projectThreadItemsFromOutcome({ text: "已就绪。" }, nextID);
+    expect(mapped.items.length).toBe(1);
+    expect(mapped.items[0]?.kind).toBe("message");
+  });
+});
+
+describe("SHELL-6：治理/确认卡 reducer", () => {
+  it("governanceRequested 幂等（同一 request_id 不叠卡）；作答一次固定", () => {
+    let s = emptyProjectState();
+    const view = { requestID: "req-1", action: "new_project", currentProject: "测试工程甲（fixture）" };
+    s = reduceProject(s, { type: "governanceRequested", id: "g1", view });
+    s = reduceProject(s, { type: "governanceRequested", id: "g2", view });
+    expect(s.thread.filter((item) => item.kind === "governance").length).toBe(1);
+    s = reduceProject(s, { type: "governanceAnswered", id: "g1", choice: "switch" });
+    s = reduceProject(s, { type: "governanceAnswered", id: "g1", choice: "cancel" });
+    const gov = s.thread.find((item) => item.kind === "governance");
+    expect(gov && gov.kind === "governance" && gov.answered).toBe("switch");
+  });
+
+  it("confirmAnswered 一次固定，不重放", () => {
+    let s = emptyProjectState();
+    s = reduceProject(s, {
+      type: "outcomeItemsArrived",
+      items: [{ kind: "confirm", id: "cf1", view: { note: "…", approveText: "确认执行", cancelText: "取消" } }]
+    });
+    s = reduceProject(s, { type: "confirmAnswered", id: "cf1", choice: "approve" });
+    s = reduceProject(s, { type: "confirmAnswered", id: "cf1", choice: "cancel" });
+    const confirm = s.thread.find((item) => item.kind === "confirm");
+    expect(confirm && confirm.kind === "confirm" && confirm.answered).toBe("approve");
   });
 });

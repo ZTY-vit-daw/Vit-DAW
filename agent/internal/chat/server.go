@@ -2959,6 +2959,19 @@ func (s *Server) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// SHELL-6（池序 367）：工程面跨工程意图确定性路由（零 LLM）。条件=宿主已
+	// 播报工程进入（user_entered_project 会话事实——launcher 分支副门的补集）：
+	// 工程面对话（及进入过工程后的启动台回访会话）说 新建/打开工程 → directive
+	// 回执由 UI 自动经桥执行，跨工程治理确认由宿主按需出页内三键卡（337 语义）。
+	// 修复缺陷：22:49 工程面「新建工程」裸落 LLM 4 调用 → 纯文字「要确认」→
+	// 无可交互确认面。红线与 launcher 分支一致：不触 authority/pendingmanager，
+	// 不产生 chat 确认面（NeedsConfirmation 恒 false）。
+	if resp, handled := s.handleProjectFlowChat(r.Context(), conversationID, req.Message, agentMode); handled {
+		s.remember(conversationID, req.Message, resp.Reply)
+		writeChat(http.StatusOK, resp)
+		return
+	}
+
 	if resp, handled := s.handlePendingPluginParameterTreatmentChat(r.Context(), conversationID, ChatRequest{
 		ConversationID: conversationID,
 		Message:        req.Message,

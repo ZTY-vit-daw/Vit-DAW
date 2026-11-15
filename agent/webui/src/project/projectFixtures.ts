@@ -12,6 +12,7 @@
 import type {
   ABActionView,
   MacroApplyOutcome,
+  ProjectChatOutcome,
   ProjectContextView,
   ProjectService,
   ProjectThreadItem
@@ -22,6 +23,10 @@ export interface ProjectFixtureConfig {
   context?: ProjectContextView;
   /** 发送对话的 fixture 回执文案。 */
   reply?: string;
+  /** SHELL-6：发送对话的完整回执载荷（省略时用 reply/默认占位构造）。 */
+  chatOutcome?: ProjectChatOutcome;
+  /** 发送过的消息台账（SHELL-6 确认卡点击发送断言用；由调用方读）。 */
+  sentMessages?: string[];
   /** 应用宏的 fixture 回执（成功带 snapshotRef / 失败带 reason）。 */
   applyOutcome?: MacroApplyOutcome;
   /** 撤销是否成功（false 时抛错，用于样例失败态）。 */
@@ -51,10 +56,12 @@ export function createProjectFixtureService(config: ProjectFixtureConfig = {}): 
       if (!config.context) throw new Error("fixture 未配置工程上下文（context）");
       return config.context;
     },
-    async sendMessage(text: string): Promise<string> {
+    async sendMessage(text: string): Promise<ProjectChatOutcome> {
       await delay(latency);
       sendCount += 1;
-      return config.reply ?? `（fixture 回执）收到：「${text}」。`;
+      config.sentMessages?.push(text);
+      if (config.chatOutcome) return config.chatOutcome;
+      return { text: config.reply ?? `（fixture 回执）收到：「${text}」。` };
     },
     async stopReply(): Promise<void> {
       await delay(latency);
