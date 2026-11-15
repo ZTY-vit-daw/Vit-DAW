@@ -156,4 +156,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 362 | UI-MSG-SHADOWBOX-1 | done 已验收 pass 合入（主管复跑三门+两面 computed 亲核+负对照采纳；实现 65c659bf→main 3a3d2973/合并 52641eb1；真实栈候用户目检）（[用户裁定：用户消息阴影框标识](../decisions/2026-11-15-user-message-shadowbox-ruling.md)——两面 1px 灰边+柔影+右对齐，assistant 无框；SPEC-V5 §8.1/§11 修订在卷） |
 | 363 | KERNEL-NEWPROJ-NAME-1 | todo（SHELL-4 遗留边界承接：内核 new_project 命令面接受工程名——新建《X》名实相符+空白草稿治理豁免裁定；内核 C++ 域；**候排期**） |
 | 364 | SHELL-5 | todo（[用户裁定：启动台-工程语义四条](../decisions/2026-11-15-launcher-project-semantics-ruling.md)——＋新建按钮直建+自动进工程/对话意图自动执行（移除按钮等待）/启动页 agent 无工程上下文（boot 草稿不绑定 workspace，取证 agent_last.log:30）/呈现区分执行 vs 预设应答；P0；**候用户触发领取**） |
-| 365 | UI-REC-TAPE-1 | todo（[同裁定第 1/4 条]——工程列表磁带 cassette 造型头像（修订 §7.3.1 的 48px 简化适用）+进工程收起回归守卫断言；零栈；与 364 并行可跑；**候领取**） |
+| 365 | UI-REC-TAPE-1 | doing（[同裁定第 1/4 条]——工程列表磁带 cassette 造型头像（修订 §7.3.1 的 48px 简化适用）+进工程收起回归守卫断言；零栈；与 364 并行可跑；**已领取**：GLM-5.3 Flash 执行流 @ port/ui-rec-tape-1（基线 origin/main 6fb854fd），worktree D:/Vit_DAW_wt_rectape，2026-11-15） |
