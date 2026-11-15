@@ -160,3 +160,12 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 366 | UI-REC-TAPECARD-1 | **暂缓**（[surface 收敛裁定]——磁带卡造型直接做在装修后统一 surface 上（勘察 368 阶段 1 落位），避免双返工；用户可随时提前） |
 | 367 | SHELL-6 | doing（GLM-5.3 执行流领取 2026-11-15 深夜，基线 2ff2690d，分支 port/shell-6——工程面意图执行链+确认卡全 surface 渲染；P0） |
 | 368 | UI-CONVERGE-RECON-1 | done 已验收 pass（技术面）——报告七节+分阶段卡草案在卷（阶段 1 五卡 5.5–8.5 天/阶段 2 七卡/关键路径 CONVERGE-SHELL-1）；**分阶段方案候用户过目发卡**；Godot 重试导航收编点纳入 ENTRY-1 |
+
+### 展演能力线（2026-11-15 深夜进度驱动重排，[裁定](../decisions/2026-11-15-progress-driven-ruling.md)：无日期锚/无工期，按依赖就绪度并行）
+
+| 池序 | 卡 ID | 状态 |
+|---|---|---|
+| 369 | G0-SCORE-SPIKE-1 | todo（谱面库选型 spike——展演关键路径去风险：候选打分+≤2 候选最小 spike+主开发卡草案；**已确认候领取**） |
+| 370 | G0-LEGAME-CONTRACT-1 | todo（W01 乐局设计源契约冻结草案 vit.legame_design.v0——分层 schema+level_card 迁移契约+裁定项清单；**已确认候领取**） |
+| 371 | G0-STACKGATE-1 | todo（单栈验收口径冻结 DG1-DG3——能力关/集成关/渲染手测关定义；**已确认候领取**） |
+| 372 | GEN-YUE-WIRE-1 | todo（YuE2 成曲链真实接线——审计 H6 六项：MIDI→方言/prompt 映射/纯器乐/请求卫生/后台 job/引擎托管；烟测候栈位；**已确认候领取**） |
