@@ -34,4 +34,21 @@
 
 挂载后出现样式冲突（sprite.css 全局泄漏）且非显式选择器可收敛→取证上交。
 
-## 领取/回执/验收：待回填
+## 领取/回执/验收
+
+### 领取（2026-11-15）
+
+- owner：GLM-5.3 Flash 执行流（ZCode 免费车道量产子代理，PC / Git Bash）
+- 领取时 origin/main：5957e5a2132ff7fc2b0be21b8c9af3ac73f8604b
+- 主仓本地 main：5672fc39（=origin/main + 4 个 coord-only 未推提交 358/360/361/362 发卡与裁定，逐提交 show --stat 核对仅含 coord/ 变更；领取提交随其一同 fast-forward 推送）
+- 主仓工作树领取时状态（非本卡文件域，不触碰不整理）：
+  - tracked 改动：`CURRENT-STATE.md`、`VitApp/Workspace/Settings/Settings.xml`、`VitApp/Workspace/default_project.xml`、`coord/decisions/2026-11-11-legame-demo-experience-first.md`、`tracktion_engine`（submodule 指针，diff --stat 5 files +4464/−4421）
+  - untracked：`.vit_derived/`、`.zcode/`、`agent/webui/design/*` 设计稿等
+- 执行分支：port/ui-sprite-1（基线=origin/main 5957e5a2）
+- worktree：D:/Vit_DAW_wt_uisprite1
+- 文件域：`agent/webui/src/main.tsx`（挂载+sprite.css 导入）、`agent/webui/src/design/sprite.tsx`（如需微调，预期不动）、`agent/webui/src/gallery/render-smoke.mjs`（图标计数/非空断言+本卡工件）、coord 工件；禁入：LauncherSurface.tsx、App.tsx、launcher.css、agent/internal/**、scripts/**
+- 勘察补充事实（同缺陷链，回执详述）：sprite.css 全仓仅 gallery/main.tsx 导入——真实入口缺 CSS 导入，只挂载不导入会致 .v5-sprite 裸 svg 以默认 300×150 显示；修复=挂载+导入均在 main.tsx。渲染烟测只测 gallery.html fixture 面（各面自挂 sprite），从不加载真实入口 index.html——挂载缺失因此逃逸。
+
+### 回执：待回填（实现 commit / 三门退出码 / 截图工件 / 双图标体系清单 / 覆盖边界）
+
+### 验收：待主管决策流
