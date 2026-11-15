@@ -309,6 +309,9 @@ export function ScoreWorkbenchPanel({
     if (!applied.ok) {
       setStatus(`写入失败：${applied.error}`);
       setApplyState("error");
+      // 失败也关确认框：错误已在状态行显形，缓冲保留可继续编辑或放弃
+      // （渲染面烟测实证：留开的模态会遮挡后续操作）。
+      setConfirmOpen(false);
       return;
     }
     setBuffer(createEditBuffer(applied.value.model));

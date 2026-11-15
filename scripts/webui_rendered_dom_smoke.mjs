@@ -2939,6 +2939,32 @@ async function main() {
 
   const health = await getJSON("/health");
   log("agent health:", JSON.stringify(health));
+  // SCORE-WORKBENCH-1 (374) harness adaptation: FIX-START-DRAFT-SIDE-EFFECT-1
+  // made read paths stop materializing the default draft (harness.go
+  // ProjectHistorySummaryForProject -> history.Status returns draft_pending),
+  // so this zero-kernel smoke's seeding precondition (ui/state exposing a
+  // draft project_path/state_dir) went red on current main (baseline-proven
+  // 2026-11-16: clean fea0829a fails at seedConversation). Materialize the
+  // draft explicitly through the host lifecycle notification face
+  // (POST /agent/invoke version.project_new, RiskDirect, deterministic, zero
+  // LLM) -- a production seam, not a test backdoor. Seeding/assertions below
+  // are unchanged.
+  {
+    const materialize = await fetch(agentBase + "/agent/invoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tool: "version.project_new", source: "webui_rendered_dom_smoke" })
+    });
+    const materializeBody = await materialize.json().catch(() => ({ status: "error" }));
+    report.draft_materialization = {
+      http_status: materialize.status,
+      accepted: !!(materializeBody.result && materializeBody.result.accepted)
+    };
+    if (!report.draft_materialization.accepted) {
+      throw new Error("draft materialization via version.project_new failed: " + JSON.stringify(materializeBody).slice(0, 200));
+    }
+    log("draft materialized via version.project_new:", JSON.stringify(report.draft_materialization));
+  }
   const state = await getJSON("/agent/ui/state");
   report.seeded = seedConversation(graphFixture, state);
   log("seeded graph nodes:", report.seeded.commitsWritten, "skipped:", report.seeded.nodesSkipped.length);
@@ -5068,6 +5094,146 @@ async function main() {
   record("session-semantics-SS3", checkSessionSemanticsRebind(sessionSemanticsPass));
 
 
+
+  // ------------------------------------------------------ SCORE-WORKBENCH-1
+  // Score workbench rendered-surface pass (SCORE-WORKBENCH-1 M5, DG3 section 5.1
+  // threshold-1 extension): real browser, real bundle, real pointer pipeline.
+  // The agent in this harness runs WITHOUT a kernel, so the mount auto-load must
+  // fail honest (visible load-failure status while the local 2/4 model stays
+  // editable) -- that fail-honest shape is asserted, not avoided. The
+  // kernel-backed write/read-back round-trip is covered by the DG1-A berth leg
+  // (scripts/score_workbench_smoke.mjs under dev_agent_smoke.ps1).
+  report.score_workbench_source =
+    "real interactions on the rendered surface: score tab click, symbol clicks through the real " +
+    "pointer pipeline (coordinates derived from data-score-tick-rows anchors), local edit buffer " +
+    "assertions via data-score-model; kernel absent => fail-honest load state is part of the gate";
+  {
+    const context = await browser.newContext({ viewport });
+    await installReplay(context, { strictConversation: true });
+    const page = await context.newPage();
+    await page.goto(agentBase + "/app/", { waitUntil: "domcontentloaded" });
+    await page.waitForTimeout(2500);
+
+    const sample = { tabCount: 0, kernelTag: "", loadStatus: "", svgCount: 0, tickRowsRaw: "", afterPlace: null, afterSecondPlace: null, applyState: "", applyStatus: "", afterDiscard: null, cursorWhenLocal: "" };
+    const scoreFailures = [];
+    const scoreNotes = [];
+    const modelOf = async () => JSON.parse(await page.getAttribute("[data-score-root]", "data-score-model"));
+
+    const tabButton = page.locator('[data-workbench-tab="score"]');
+    sample.tabCount = await tabButton.count();
+    if (sample.tabCount !== 1) {
+      scoreFailures.push("S0 score tab missing (data-workbench-tab=score count=" + sample.tabCount + ")");
+    } else {
+      await tabButton.click();
+      await page.waitForSelector("[data-score-root]", { timeout: 15000 });
+      await page.waitForTimeout(600);
+
+      // S1: panel mounted; kernel bridge present (agent bridge) but no kernel in
+      // this harness => mount load must fail honest and stay visible.
+      sample.kernelTag = (await page.getAttribute("[data-score-root]", "data-score-kernel")) || "";
+      sample.loadStatus = (await page.getAttribute("[data-score-root]", "data-score-status")) || "";
+      if (sample.kernelTag !== "connected") {
+        scoreFailures.push("S1 kernel tag expected connected (agent bridge wired), got '" + sample.kernelTag + "'");
+      }
+      if (!sample.loadStatus.includes("装载失败")) {
+        scoreFailures.push("S1 fail-honest load state not visible without a kernel (status='" + sample.loadStatus.slice(0, 80) + "')");
+      }
+
+      // S2: local default model renders (2/4, one measure of rests -> svg present).
+      sample.svgCount = await page.locator("[data-score-svg] svg").count();
+      if (sample.svgCount < 1) {
+        scoreFailures.push("S2 score svg did not render (count=" + sample.svgCount + ")");
+      }
+      const localModel = await modelOf();
+      if (localModel.timeSignature.numerator !== 2 || localModel.notes.length !== 0) {
+        scoreFailures.push("S2 local default model expected empty 2/4, got " + JSON.stringify(localModel.timeSignature) + " notes=" + localModel.notes.length);
+      }
+
+      // S3: place a note at the beat-1 rest cell through the real pointer pipeline.
+      sample.tickRowsRaw = (await page.getAttribute("[data-score-svg]", "data-score-tick-rows")) || "";
+      const parseRows = (raw) => {
+        const rows = new Map();
+        for (const part of raw.split(";")) {
+          const m = /^m([0-9]+):(.*)$/.exec(part);
+          if (!m) continue;
+          rows.set(Number(m[1]), m[2].split(",").map((pair) => pair.split("@").map(Number)).filter((pair) => pair.length === 2 && Number.isFinite(pair[0]) && Number.isFinite(pair[1])));
+        }
+        return rows;
+      };
+      const overlayBox = await page.locator("[data-score-overlay]").boundingBox();
+      const clickSymbol = async (tick) => {
+        const rows = parseRows((await page.getAttribute("[data-score-svg]", "data-score-tick-rows")) || "");
+        const row = rows.get(0) || [];
+        const point = row.find(([t]) => t === tick);
+        if (!point || !overlayBox) throw new Error("no anchor for tick " + tick);
+        await page.mouse.click(overlayBox.x + point[1] + 1, overlayBox.y + 4 + 20);
+        await page.waitForTimeout(400);
+      };
+      await clickSymbol(4); // beat 1.0 (eighth rest cell in the default 2/4 measure)
+      sample.afterPlace = await modelOf();
+      if (sample.afterPlace.notes.length !== 1) {
+        scoreFailures.push("S3 note placement did not reach the model (notes=" + sample.afterPlace.notes.length + ")");
+      } else {
+        const placed = sample.afterPlace.notes[0];
+        if (placed.startBeats !== 1 || placed.lengthBeats !== 0.5) {
+          scoreFailures.push("S3 placed note shape mismatch: " + JSON.stringify(placed));
+        }
+      }
+
+      // S4: switch duration to quarter, place a second note at beat 1.5 cell.
+      await page.click('[data-score-dur="4"]');
+      await page.waitForTimeout(200);
+      await clickSymbol(6);
+      sample.afterSecondPlace = await modelOf();
+      const second = sample.afterSecondPlace.notes.find((note) => note.startBeats === 1.5);
+      if (!second || second.lengthBeats !== 1) {
+        scoreFailures.push("S4 duration palette + second placement failed: " + JSON.stringify(sample.afterSecondPlace.notes));
+      }
+      if ((await page.getAttribute("[data-score-root]", "data-score-dirty")) !== "true") {
+        scoreFailures.push("S4 dirty flag not set after edits");
+      }
+
+      // S5: apply without a kernel must fail honest (no fake saved state).
+      await page.click('[data-score-apply]');
+      await page.waitForTimeout(300);
+      const confirmCount = await page.locator("[data-score-confirm]").count();
+      if (confirmCount !== 1) {
+        scoreFailures.push("S5 confirm dialog did not open (count=" + confirmCount + ")");
+      } else {
+        await page.click("[data-score-confirm-apply]");
+        await page.waitForTimeout(600);
+        sample.applyState = (await page.getAttribute("[data-score-root]", "data-score-apply-state")) || "";
+        sample.applyStatus = (await page.getAttribute("[data-score-root]", "data-score-status")) || "";
+        if (sample.applyState !== "error") {
+          scoreFailures.push("S5 apply without kernel must end in error state, got '" + sample.applyState + "'");
+        }
+        if (!sample.applyStatus.includes("未连接内核") && !sample.applyStatus.includes("装载失败") && !sample.applyStatus.includes("写入失败")) {
+          scoreFailures.push("S5 apply failure not surfaced honestly (status='" + sample.applyStatus.slice(0, 80) + "')");
+        }
+        if ((await page.getAttribute("[data-score-root]", "data-score-dirty")) !== "true") {
+          scoreFailures.push("S5 buffer must be kept after failed apply");
+        }
+      }
+
+      // S6: discard reverts to the baseline model.
+      await page.click("[data-score-discard]");
+      await page.waitForTimeout(400);
+      sample.afterDiscard = await modelOf();
+      if (sample.afterDiscard.notes.length !== 0) {
+        scoreFailures.push("S6 discard did not revert (notes=" + sample.afterDiscard.notes.length + ")");
+      }
+
+      // S7: no cursor without a kernel snapshot (single-tempo fail-honest, M4).
+      sample.cursorWhenLocal = (await page.getAttribute("[data-score-root]", "data-score-cursor-beat")) || "";
+      if (sample.cursorWhenLocal !== "") {
+        scoreFailures.push("S7 cursor must stay hidden without a kernel snapshot, beat='" + sample.cursorWhenLocal + "'");
+      }
+      scoreNotes.push("tick rows: " + sample.tickRowsRaw);
+    }
+    await context.close();
+    report.score_workbench = sample;
+    record("score-panel-S", { failures: scoreFailures, notes: scoreNotes });
+  }
 
   report.finished_at = new Date().toISOString();
   report.events_served_from_fixture = seededEventsRequests;
