@@ -336,6 +336,26 @@ func TestLauncherFlowGateUIFlagAndSessionFact(t *testing.T) {
 			t.Fatalf("置位不得改 authority mode: %q -> %q", authorityBefore, after)
 		}
 	})
+
+	// SHELL-5 回归（真栈 run1 22:20:09 亲证）：宿主新建链只播报
+	// version.project_new（start_page _try_enter_main 随即进入工作区，无后续
+	// project_opened）——project_new 到达同置会话位，否则启动台激活门永不
+	// 放行新建工程的草稿绑定（工程面「尚未装载」）。
+	t.Run("SHELL-5 project_new播报同置会话位", func(t *testing.T) {
+		s := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, nil)
+		body, err := json.Marshal(map[string]any{
+			"tool":    "version.project_new",
+			"command": map[string]any{"cmd": "version_project_new"},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+		rec := httptest.NewRecorder()
+		s.handleInvoke(rec, httptest.NewRequest(http.MethodPost, "/agent/invoke", bytes.NewReader(body)))
+		if !s.userEnteredProjectSnapshot() {
+			t.Fatal("version.project_new 播报到达必须置 user_entered_project 位（宿主新建链无 project_opened 后续）")
+		}
+	})
 }
 
 // 红线断言：launcher:true 不改 authority_mode——服务端 authority 状态是唯一
