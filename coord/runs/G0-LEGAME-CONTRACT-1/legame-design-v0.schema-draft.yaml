@@ -1,0 +1,168 @@
+# =============================================================================
+# vit.legame_design.v0 schema 结构草案（W01 冻结草案，候审——非可运行解析器）
+# 卡：G0-LEGAME-CONTRACT-1（池序 370）；契约权威：docs/LEGAME_DESIGN_CONTRACT_V0.md
+# 本文件是字段骨架+注释规约，供实施卡（W01-A 解析校验门）逐键落地；
+# 键名/枚举与设计源实例 coord/lesson-designs/music-creation-unit2/design.v1.yaml
+# （revision 3）逐键对齐，覆盖性核验见同目录 design-source-coverage-check.md。
+# 记法：[L0可选]=最小意图层全可选；[L1必填]=乐局层硬必填；[L1可选]=乐局层可选；
+#       [结构键]=判层机制键必须存在（契约 §3.3，R2）；
+#       E/W/I=诊断级别（契约 §5）；R#=候用户裁定项（契约 §7）。
+# =============================================================================
+
+schema_version: vit.legame_design.v0     # [结构键] 枚举{vit.legame_design.v0}；保留值 vit.project_intent.v0(R1)；未知值 fail-closed E-SCHEMA
+
+# ---------------------------------------------------------------------------
+# L0 最小意图层（一切工程包可携带；除 schema_version 外全可选，契约 §3.1）
+# ---------------------------------------------------------------------------
+id: <str>                                # [L0可选] 编译目标须与包目录一致（加载口收口）
+revision: <int>=0                        # [L0可选] >=1；入内容哈希（缓存键，契约 §6.5）
+title: <str>                             # [L0可选] 编译目标非空（E）
+brief:                                   # [L0可选] 全子字段可选
+  audience: <str>
+  music_task: <str>
+  final_deliverable: <str>
+  prerequisites: [<str>, ...]
+  estimated_minutes: <int|null>          # null=不以课时限制（仅 I）
+guidance:                                # [L0可选] 顶层教学策略（自由文本，无枚举）
+  approach: <str>
+  help_policy: <str>
+  exploration_policy: <str>
+  learner_decision_policy: <str>
+budget:                                  # [L0可选] 空值编译策略=R5
+  max_turns: <int|null>                  # null=运行时决定；编译目标须 >=1
+  max_llm_calls: <int|null>              # 同上
+  on_limit: preserve_and_pause           # 枚举{preserve_and_pause}（v0 仅此值，扩值须扩门）
+pending_questions: [<str>, ...]          # [L0可选] 自由文本；编译回执罗列（I）
+
+# ---------------------------------------------------------------------------
+# L1 乐局层（schema_version=vit.legame_design.v0 时生效；契约 §3.1）
+# 五个硬必填段：objectives / materials / checks / flow / workspace.regions
+# （§15"regions"≙ workspace.regions，不提升顶层——解释备案①）
+# ---------------------------------------------------------------------------
+
+objectives:                              # [L1必填] 非空列表（E-REQ）
+  - id: <str>                            #   段内唯一（E-REF）
+    kind: learning                       #   枚举{learning, music_task}（E-SCHEMA）
+    description: <str>                   #   非空（E）
+    evidence_checks: [<check.id>, ...]   #   非空（缺→W）；每项 ⊆ checks[].id（E-REF REF-OBJ）
+
+materials:                               # [L1必填] 非空列表（E-REQ）
+  - id: <str>                            #   段内唯一（E-REF）
+    kind: text                           #   枚举{text, image, symbolic_reference, midi_or_audio, midi, material_group}（E-SCHEMA）
+    file: <str|null>                     #   null=未备料（合法，W-MAT）；非 null=相对设计源所在目录的包内相对路径；
+                                         #     绝对路径/越出包根→E-MAT(MAT-PATH)；存在性+哈希在编译期收口（E-MAT(MAT-FILE)）
+    purpose: <str>                       #   非空
+    source: <str>                        #   非空；"未听核/待转写"字样→W-MAT（内容面 lint）
+    locator:                             #   可选
+      pdf_pages: [<int>, ...]            #     可空可缺
+      printed_pages: [<int>, ...]        #     可空可缺
+      music_region: <str|list[str]|null> #     两态并存为设计源既定；归一方向=R6（编译期归一 list）
+
+workspace:
+  timing:                                # [L0可选]（工程计量默认，§13/§14 两层计量落点）
+    time_signature: "2/4"                #   格式 N/D 正整数（E）；缺省=内核内建默认
+    key_signature: C                     #   词表=R6（草案 token ^[A-G][#b]?$）；缺省 C；材料可覆盖（§14）；
+                                         #     消费方=记谱拼写+YuE2 ABC K:；不迁移进卡（T-10，I-NOTE）
+    tempo_bpm: <float|null>              #   null=编译 E+覆盖参数（R5）；>0
+    pickup_beats: <float>=0              #   >=0
+  tracks:                                # [L1可选]
+    - id: <str>                          #   段内唯一（E-REF）；regions[].track 引用键
+      name: <str>                        #   非空（显示名）
+      role: reference                    #   枚举{reference, user_work, assist_generated, generated_result}（E-SCHEMA）
+      initial_material: <str|null>       #   null 合法；非 null ⊆ materials[].id（E-REF REF-MAT）
+      editable_by_user: <bool>=false     #   不进卡（I-NOTE；前端/交互层消费）
+  regions:                               # [L1必填] 非空列表（E-REQ）
+    - id: <str>                          #   段内唯一（E-REF）；checks[].target 引用键
+      track: <track.id>                  #   ⊆ tracks[].id（E-REF REF-REGION）
+      locator:                           #   联合形态（契约 §4.6，混写→E-REQ REG-LOC）：
+        scope: selected_reference_excerpt #   scope 型：枚举{selected_reference_excerpt, four_clips,
+                                         #     prototype_and_variant, generated_audio_versions}
+        clip_alias: <str>                #   clip 型：单 clip 寻址；跨 regions 全局唯一（E-REQ REG-ALIAS，H3 作业身份）
+        clip_aliases: [<str>, ...]       #   多 clip 型（scope=four_clips）
+        bars: <int>                      #   clip 型小节数
+        bars_per_clip: <int>             #   four_clips 专用
+        time_signature: "2/4"            #   region 级须=workspace.timing.time_signature（E-REQ REG-METER）；
+                                         #     材料自带拍号演示属材料层，不经 region 声明（§13）
+      purpose: <str>                     #   非空
+
+capability_requests:                     # [L1可选]
+  - id: <str>                            #   段内唯一；flow.nodes[].uses_capabilities 引用键
+    request: <str>                       #   自由文本意图；不直接编译为命令（契约 §6.3 CAP-BRIDGE 闭包表）
+    required: <bool>                     #   true 且无闭包表条目→E-CAP
+    fallback: <str|null>                 #   null=无 fallback
+
+checks:                                  # [L1必填] 非空列表（E-REQ）
+  - id: <str>                            #   段内唯一（E-REF）
+    purpose: task_progress               #   枚举{task_progress, learning_evidence}
+    method: deterministic                #   枚举{user_judgment, rubric, deterministic}
+    target: <region.id|submission_snapshot>  # ⊆ regions[].id ∪ {submission_snapshot}（E-REF REF-CHK）
+    criterion: <str>                     #   非空自然语言判据；编译器不把它变成代码（契约 §2 纪律 2）
+    evidence: <str>                      #   非空
+    on_unavailable: pause_and_report     #   枚举{request_review, pause_and_report}
+
+flow:
+  progression: ordered                   # 枚举{ordered}（v0 仅此值）
+  nodes:                                 # [L1必填] 非空（E-REQ）
+    - id: <str>                          #   段内唯一（E-REF，同卡拒绝路径 9 同型）
+      title: <str>                       #   非空
+      objective_refs: [<objective.id>]   #   每项 ⊆ objectives[].id（E-REF REF-NODE-OBJ）；空表合法
+      task: <str>                        #   非空；编译→卡 node.goal
+      lead: human                        #   枚举{human, model}；全节点一致→lead_default（T-4，混写 E）
+      uses_materials: [<material.id>]    #   ⊆ materials[].id（E-REF REF-NODE-MAT）；不进卡（I；注入语境 W02）
+      uses_regions: [<region.id>]        #   ⊆ regions[].id（E-REF REF-NODE-REG）；同上
+      uses_capabilities: [<cap.id>]      #   ⊆ capability_requests[].id（E-REF REF-NODE-CAP）；同上
+      human_decides: [<str>]             #   自由文本；不进卡（注入语境 W02）
+      model_may_do: [<str>]              #   编译→卡 model_does 直拷（T-16）
+      freedom:                           #   自由文本两栏；不进卡（I）
+        fixed: [<str>, ...]
+        open: [<str>, ...]
+      guidance:                          #   节点级教学
+        introduction: <str>
+        teaching_points: [<str>, ...]    #   编译→卡 teaching.note（join"；"，T-14 附）
+        hint_ladder: [<str>, ...]        #   编译→卡 hint_ladder（advisory）
+        on_stuck: <str>
+      complete_when: [<check.id>, ...]   #   [L1必填] 非空（E-REQ FLOW-CW）；⊆ checks[].id（E-REF REF-NODE-CHK）；
+                                         #     可编译项→done_when（T-14 白名单），全不可编译→E-FLOW
+      collect_evidence: [<check.id>, ...] #  ⊆ checks[].id（E-REF）；编译→teaching.objectives 关联（T-16）
+      leaves_behind: <str>               #   自由文本；不进卡（I 摘要）
+      transition: <str>                  #   自由文本；不迁移为卡 then（T-16，语义不同）
+
+evidence_recording:                      # [L1可选] 缺省=保守全记录（契约 §4.11）；false→W
+  requested_granularity: [key_action, region, saved_revision]  # 枚举{key_action, region, saved_revision}
+  record_initiator_and_executor: true
+  record_help_disclosed: true
+  record_verified_progression: true
+  pin_submission_log_range: true
+  unknown_source: mark_unverified        # 枚举{mark_unverified}（v0 仅此值）
+  checkpoints: [node_entry, meaningful_revision, submission]   # 枚举三值全取为缺省
+
+submission:                              # [L1可选] 缺省=设计源实例值（契约 §4.12）
+  freeze_project_and_evidence_snapshot: true
+  teacher_review_required: true
+  review_by_objective: true
+  retain_previous_submissions: true
+  on_return: preserve_history_and_continue  # 枚举{preserve_history_and_continue}（v0 仅此值）
+  reports: [assignment_report, key_context_summary]  # 枚举{assignment_report, key_context_summary}
+  include_raw_evidence_index: true
+  summary_claims_require_evidence_refs: true
+
+completion:                              # [L1可选]
+  required_deliverables: [<str>, ...]    #   自由文本
+  required_checks: [<check.id>, ...]     #   ⊆ checks[].id（E-REF REF-COMP）
+  learning_evidence_to_record: [<check.id>, ...]  # 同上
+  user_confirm_closure: true             #   缺省 true（收紧不放松）
+  export: optional                       #   枚举{optional}（v0 仅此值，扩值须扩门）
+
+# ---------------------------------------------------------------------------
+# 引用完整性规则汇总（E-REF 族，契约 §5.2）：
+#   REF-OBJ     objectives[].evidence_checks ⊆ checks[].id
+#   REF-CHK     checks[].target ∈ regions[].id ∪ {submission_snapshot}
+#   REF-NODE-*  flow.nodes[].objective_refs/uses_materials/uses_regions/
+#               uses_capabilities/complete_when/collect_evidence ⊆ 对应段 id
+#   REF-COMP    completion.required_checks / learning_evidence_to_record ⊆ checks[].id
+#   REF-REGION  regions[].track ⊆ tracks[].id
+#   REF-MAT     tracks[].initial_material ⊆ materials[].id
+#   ID-UNIQ     各列表 id 唯一；region clip_alias/clip_aliases 跨 regions 全局唯一
+# ---------------------------------------------------------------------------
+# 编译出口（契约 §6）：LevelCard(vit.level_card.v0) + compile manifest；
+# 终检=现行 ValidateLevelCard；缓存键四元组=源 SHA-256+编译器版本+装配输入清单哈希+卡 schema 版本。
