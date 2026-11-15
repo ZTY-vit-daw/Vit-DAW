@@ -170,3 +170,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 371 | G0-STACKGATE-1 | done 已验收 pass 合入（[docs/STACKGATE_DG1_DG3_V1.md](../../docs/STACKGATE_DG1_DG3_V1.md)=现行关卡契约——DG1 三能力关/DG2 旅程 J1-J10/DG3 渲染手测 M1-M4+卡面引用模板；锚点抽核真实；CURRENT-STATE 索引登记随 gate） |
 | 372 | GEN-YUE-WIRE-1 | doing（2026-11-15 深夜领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_yue1` 分支 `port/gen-yue-wire-1`，基线 3997e11b；零栈段先行，真栈+真实生成烟测腿候栈第 2 位） |
 | 373 | SRC-TEMPLATE-1 | todo（课程固定健康音源模板——旋律音源+辅助律动鼓预设+可移植模板包+DG1-B 过关（PCA 无越权红线）；真栈验证候栈位（367→372→本卡）；**已确认候领取**） |
+| 374 | SCORE-WORKBENCH-1 | todo（**展演关键路径主开发**：VexFlow5+自研模型——M1 模型推导渲染→M2 编辑（本地缓冲+显式 apply）→M3 内核真写回读→M4 随谱游标→M5 DG1-A+渲染面验收；369 选型定案承接；**已确认候领取**） |
+| 375 | KERNEL-TIMESIG-1 | todo-hold（内核 set_time_signature 命令面+创建工程 2/4 应用+重开回读一致——审计阻塞点；**候 373 锚定 VitApp 域后发**（避免并行内核文件冲突）；候发） |
