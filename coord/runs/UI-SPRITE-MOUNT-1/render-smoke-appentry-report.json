@@ -1,6 +1,6 @@
 {
   "run": "UI-SPRITE-MOUNT-1 real entry render smoke",
-  "date": "2026-11-15T11:14:26.563Z",
+  "date": "2026-11-15T20:33:11.109Z",
   "url": "http://127.0.0.1:5391/app/",
   "viewport": "1440x900@1",
   "externalRequestCount": 0,
@@ -74,15 +74,15 @@
     "spriteUseCount=0（主 surface=lucide 内联体系，可为 0）"
   ],
   "screenshots": [
-    "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-SPRITE-MOUNT-1\\screens\\appentry-viewport-1440x900.png",
-    "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-SPRITE-MOUNT-1\\screens\\appentry-full.png"
+    "D:\\Vit_DAW\\coord\\runs\\UI-SPRITE-MOUNT-1\\screens\\appentry-viewport-1440x900.png",
+    "D:\\Vit_DAW\\coord\\runs\\UI-SPRITE-MOUNT-1\\screens\\appentry-full.png"
   ],
   "fixtureReports": {
-    "foundation": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
-    "launcher": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
-    "project": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
-    "loading": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-LOADING-1\\render-smoke-loading-report.json",
-    "fidelity": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\render-smoke-fidelity-report.json"
+    "foundation": "D:\\Vit_DAW\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+    "launcher": "D:\\Vit_DAW\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+    "project": "D:\\Vit_DAW\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
+    "loading": "D:\\Vit_DAW\\coord\\runs\\UI-LOADING-1\\render-smoke-loading-report.json",
+    "fidelity": "D:\\Vit_DAW\\coord\\runs\\UI-VISUAL-FIDELITY-1\\render-smoke-fidelity-report.json"
   },
   "result": "PASS"
 }

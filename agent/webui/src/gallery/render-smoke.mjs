@@ -55,6 +55,12 @@
  *     data-tape-badge 零残留 + data-loading-gate 接管；负对照=无桥页不分发不切换；
  *  c) 本卡工件：coord/runs/UI-REC-TAPE-1/{render-smoke-rec-tape-report.json, screens/}
  *     （345/346/361/362 原路径不变）。
+ * UI-SMOKE-AUTOASSERT-1（376）扩展：LAUNCHER 面 directive 断言对齐 SHELL-5 自动执行
+ * 态（产品=用户裁定口径；旧「待执行占位（准备打开…）+手动执行按钮」断言过时致
+ * test:render LAUNCHER+SHADOWBOX 两面红）——state=auto + 执行语态 headline（正在打开
+ * 《X》…）+「已自动经 Vit 桥」note + 无手动执行按钮（data-launcher-directive-execute）
+ * 与不虚报「已打开」负断言；SHADOWBOX 报告为 launcher/project failures 聚合，随
+ * LAUNCHER 转绿。零产品行为改动（diff 仅断言）。
  * 全离线 fixture（零真实端点请求）；344/345/346 的断言与工件路径不变。
  */
 
@@ -615,6 +621,9 @@ async function main() {
     out.directiveState = directive?.getAttribute("data-launcher-directive-state") ?? "(missing)";
     out.directiveHeadline = directive?.querySelector(".v5-launcher-directive-headline")?.textContent ?? "";
     out.directiveNote = directive?.querySelector(".v5-launcher-directive-note")?.textContent ?? "";
+    // UI-SMOKE-AUTOASSERT-1（376）：SHELL-5 移除手动执行按钮——负断言数据（旧按钮
+    // data-launcher-directive-execute「让 Vit 打开/新建」，回归=非 0 计数）。
+    out.directiveExecuteButtons = $$("[data-launcher-directive-execute]").length;
     out.suggestions = suggestions.length;
     out.inputPresent = !!$("[data-launcher-input] input");
     out.loadingSample = !!$('[data-launcher-sample="loading"] [data-drawer-state="loading"]');
@@ -724,12 +733,23 @@ async function main() {
   launcherAssert("问候语在卷", ldom.greetingPresent, "缺 data-launcher-greeting");
   launcherAssert("会话线程在卷", ldom.threadPresent, "缺 data-launcher-thread");
   launcherAssert("结果卡数据展示（3 张 fixture 卡）", ldom.resultCards === 3, `cards=${ldom.resultCards}`);
+  // UI-SMOKE-AUTOASSERT-1（376）：directive 断言对齐 SHELL-5 自动执行态（产品行为
+  // =用户裁定口径，SHEE-5/367 验收缺口致断言漂移；旧「待执行占位（准备打开…，
+  // 不虚报已打开）+手动执行按钮」期望已废）。
   launcherAssert(
-    "directive = 待执行占位（准备打开…，不虚报已打开）",
-    ldom.directiveState === "pending" &&
-      ldom.directiveHeadline.startsWith("准备打开") &&
-      ldom.directiveNote.includes("不执行"),
+    "directive = 自动执行态（state=auto + 执行语态 headline 正在打开《X》… + Vit 桥已发出 note）",
+    ldom.directiveState === "auto" &&
+      ldom.directiveHeadline.startsWith("正在打开《") &&
+      ldom.directiveHeadline.endsWith("》…") &&
+      ldom.directiveNote.includes("已自动经 Vit 桥"),
     `state=${ldom.directiveState} headline=${ldom.directiveHeadline} note=${ldom.directiveNote}`
+  );
+  launcherAssert(
+    "directive 无手动执行按钮（不回归「让 Vit 打开/新建」）+ 不虚报已打开",
+    ldom.directiveExecuteButtons === 0 &&
+      !ldom.directiveHeadline.includes("已打开") &&
+      !ldom.directiveNote.includes("已打开"),
+    `execButtons=${ldom.directiveExecuteButtons} headline=${ldom.directiveHeadline} note=${ldom.directiveNote}`
   );
   launcherAssert("上下文建议 3–4 个", ldom.suggestions >= 3 && ldom.suggestions <= 4, `count=${ldom.suggestions}`);
   launcherAssert("输入框在卷", ldom.inputPresent, "缺 data-launcher-input input");

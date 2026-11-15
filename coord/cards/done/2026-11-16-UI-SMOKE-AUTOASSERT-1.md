@@ -30,4 +30,14 @@ test:render 全段 PASS 亲证（主管复跑）+零行为改动（diff 仅断�
 
 - 领取（2026-11-16，GLM-5.3 flash 执行子代理 / PC 主检出 / 零栈微卡直做）：owner=本执行子代理，基线 HEAD 456b96effd6b8e5a09a36ec1015afa3aa1c0cb2d；工作树已有他卡改动（CURRENT-STATE.md、coord/runs/*、VitApp/Workspace/* 等）零触碰，本卡文件域=render-smoke.mjs 断言+coord 工件。领取时 render-smoke.mjs 工作树干净（无未提交改动）。工件目录=coord/runs/UI-SMOKE-AUTOASSERT-1/（PROGRESS.md 断点续跑账）。
 
-## 回执/验收：待回填
+## 回执（执行侧自验，2026-11-16）
+
+- diff：仅 `agent/webui/src/gallery/render-smoke.mjs`（24+/4-——头注释条目+directiveExecuteButtons 提取字段+LAUNCHER directive 断言两条重写：自动执行态正断言+无手动执行按钮/不虚报已打开负断言）；产品 src 零触碰，零行为改动亲证。
+- 三门（agent/webui 下，均 exit 0）：
+  1. `npm run test` → 598/598 PASS（与基线一致，48 文件）；
+  2. `npm run build` → tsc --noEmit+vite build 成功（1.45s）；
+  3. `npm run test:render` → **全段 PASS**：GALLERY/LAUNCHER/PROJECT/LOADING/FIDELITY/SHADOWBOX/REC-TAPE 七报告全 PASS，exit 0；LAUNCHER 转绿实测 directiveState=auto、headline=正在打开《示例工程甲》…、note 含「已自动经 Vit 桥（UI-BRIDGE-1）发出」、directiveExecuteButtons=0；SHADOWBOX（failures=launcher+project 聚合）随 LAUNCHER 转绿。
+- 工件：coord/runs/UI-{LAUNCHER-1,MSG-SHADOWBOX-1,FOUNDATION-1,PROJECT-1,LOADING-1,VISUAL-FIDELITY-1,REC-TAPE-1}/ 报告+截图（本 run 重生成，PASS 态）；断点账 coord/runs/UI-SMOKE-AUTOASSERT-1/PROGRESS.md。
+- 领取提交 7ab5cca0 已推 main；本回执后随完成提交入库。
+
+## 验收：待主管复跑裁定
