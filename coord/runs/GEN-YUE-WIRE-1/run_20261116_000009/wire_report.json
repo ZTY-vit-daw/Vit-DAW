@@ -1,0 +1,238 @@
+{
+ "schema_version": "yue_wire_smoke.v1",
+ "started_utc": "2026-11-15T16:00:35Z",
+ "w0": {
+  "providers_head": "",
+  "yue_listed": true,
+  "engine_down_precondition": true
+ },
+ "w1_fixture": {
+  "track_id": "1007",
+  "clip_id": "1010",
+  "project_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\student_score_project.vit",
+  "note_count": 16
+ },
+ "w2_start": {
+  "rtt_seconds": 0.04,
+  "job_id": "genjob-20261116-000037-732",
+  "raw_head": ""
+ },
+ "jobs": {
+  "v1": {
+   "job_id": "genjob-20261116-000037-732",
+   "final_state": "done",
+   "task_id": "6d7289990beafcec",
+   "phase_seen": [
+    "complete",
+    "engine + conditioning"
+   ],
+   "engine_up_seen_midrun": true,
+   "window_providers_rtt_s": null,
+   "status": {
+    "artifacts": [
+     {
+      "bytes": 8860,
+      "duration_seconds": 0,
+      "format": "json",
+      "kind": "replay",
+      "local_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-6d7289990beafcec.replay.json",
+      "source_url": "http://127.0.0.1:8087/job?id=6d7289990beafcec&result=1",
+      "title": "yue-local json"
+     },
+     {
+      "bytes": 11519788,
+      "duration_seconds": 0,
+      "format": "wav",
+      "kind": "audio",
+      "local_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-6d7289990beafcec.wav",
+      "source_url": "response:body",
+      "title": "yue-local wav"
+     }
+    ],
+    "conditioning_actions": [
+     "abc: converted 16 student notes to the YuE2 ABC dialect (deterministic program conversion)",
+     "style: derived verbatim from the user prompt (yue_local has no free-prompt channel; translate to English tags upstream if needed)",
+     "style: instrumental tag added (instrumental switch requested)",
+     "abc: Vocal voice already silent (no sounding notes to rest)"
+    ],
+    "dialect": "yue_local",
+    "dispatched": {
+     "abc_chars": 193,
+     "abc_head": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=120\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" …",
+     "cot": "full",
+     "duration": 60,
+     "extra_params_effective": [],
+     "lyrics": false,
+     "lyrics_chars": 0,
+     "not_forwarded": [
+      "prompt",
+      "tempo_bpm",
+      "musical_key",
+      "title",
+      "instrumental (as a switch)"
+     ],
+     "output_format": "wav16",
+     "steps": 32,
+     "style": "欢快的钢琴独奏，突出学生旋律, instrumental"
+    },
+    "ended_at": "2026-11-15T16:01:08.8567764Z",
+    "job_id": "genjob-20261116-000037-732",
+    "phase": "complete",
+    "provider_id": "yue-local",
+    "replay_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-6d7289990beafcec.replay.json",
+    "source_abc_head": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=120\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" …",
+    "source_score": {
+     "key": "",
+     "notes": 16,
+     "tempo_bpm": 120,
+     "time_signature": "4/4"
+    },
+    "started_at": "2026-11-15T16:00:37.7325965Z",
+    "state": "done",
+    "status": "ok",
+    "status_trail": [
+     "running",
+     "running",
+     "running",
+     "running",
+     "running",
+     "running",
+     "running",
+     "running",
+     "running",
+     "done",
+     "result_replay_json",
+     "result_audio_wav"
+    ],
+    "task_id": "6d7289990beafcec",
+    "version_label": "v1"
+   }
+  },
+  "v2": {
+   "job_id": "genjob-20261116-000112-244",
+   "final_state": "done",
+   "task_id": "45b1a3cbc41bbef5",
+   "phase_seen": [
+    "complete",
+    "engine + conditioning"
+   ],
+   "engine_up_seen_midrun": true,
+   "window_providers_rtt_s": 0.05,
+   "status": {
+    "artifacts": [
+     {
+      "bytes": 7555,
+      "duration_seconds": 0,
+      "format": "json",
+      "kind": "replay",
+      "local_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-45b1a3cbc41bbef5.replay.json",
+      "source_url": "http://127.0.0.1:8087/job?id=45b1a3cbc41bbef5&result=1",
+      "title": "yue-local json"
+     },
+     {
+      "bytes": 9784108,
+      "duration_seconds": 0,
+      "format": "wav",
+      "kind": "audio",
+      "local_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-45b1a3cbc41bbef5.wav",
+      "source_url": "response:body",
+      "title": "yue-local wav"
+     }
+    ],
+    "conditioning_actions": [
+     "abc: converted 16 student notes to the YuE2 ABC dialect (deterministic program conversion)",
+     "style: derived verbatim from the user prompt (yue_local has no free-prompt channel; translate to English tags upstream if needed)",
+     "style: instrumental tag added (instrumental switch requested)",
+     "abc: Vocal voice already silent (no sounding notes to rest)"
+    ],
+    "dialect": "yue_local",
+    "dispatched": {
+     "abc_chars": 193,
+     "abc_head": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=120\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" …",
+     "cot": "full",
+     "duration": 60,
+     "extra_params_effective": [],
+     "lyrics": false,
+     "lyrics_chars": 0,
+     "not_forwarded": [
+      "prompt",
+      "tempo_bpm",
+      "musical_key",
+      "title",
+      "instrumental (as a switch)"
+     ],
+     "output_format": "wav16",
+     "steps": 32,
+     "style": "深沉的弦乐合奏，温柔铺底, instrumental"
+    },
+    "ended_at": "2026-11-15T16:01:30.2896581Z",
+    "job_id": "genjob-20261116-000112-244",
+    "phase": "complete",
+    "provider_id": "yue-local",
+    "replay_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-45b1a3cbc41bbef5.replay.json",
+    "source_abc_head": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=120\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" …",
+    "source_score": {
+     "key": "",
+     "notes": 16,
+     "tempo_bpm": 120,
+     "time_signature": "4/4"
+    },
+    "started_at": "2026-11-15T16:01:12.2440273Z",
+    "state": "done",
+    "status": "ok",
+    "status_trail": [
+     "running",
+     "running",
+     "running",
+     "running",
+     "running",
+     "running",
+     "done",
+     "result_replay_json",
+     "result_audio_wav"
+    ],
+    "task_id": "45b1a3cbc41bbef5",
+    "version_label": "v2"
+   }
+  }
+ },
+ "w7_engine": {
+  "up_midrun": true,
+  "up_final": true,
+  "supervisor_logs": {
+   "stdout": true,
+   "stderr": true
+  }
+ },
+ "w8": {
+  "wav_v1": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-6d7289990beafcec.wav",
+  "duration_v1": 59.998666666666665,
+  "replay_v1": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-6d7289990beafcec.replay.json"
+ },
+ "w3": {
+  "ins_note_count": 16,
+  "archived_source_notes": 16,
+  "vocal_lines_checked": 1,
+  "vocal_rest_only": true
+ },
+ "w4": {
+  "style_v1": "欢快的钢琴独奏，突出学生旋律, instrumental",
+  "style_v2": "深沉的弦乐合奏，温柔铺底, instrumental",
+  "window_providers_rtt_s": 0.05
+ },
+ "w5": {
+  "job_v1": "genjob-20261116-000037-732",
+  "job_v2": "genjob-20261116-000112-244",
+  "task_v1": "6d7289990beafcec",
+  "task_v2": "45b1a3cbc41bbef5",
+  "wav_v2": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-45b1a3cbc41bbef5.wav",
+  "listed_count": 2
+ },
+ "w9": {
+  "vocal_lines_checked": 2,
+  "vocal_rest_only": false,
+  "offender": "\"C\"z8|\"Em\"z8|\"F\"z8|\"C\"z6ed|",
+  "abc_back_head": "X:1\nT:\nM:2/4\nL:1/16\nQ:1/4=60\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" snm=\"Inst.\"\nK:C\n% intro\nV: Vocal\n\"C\"z8|\"Cmaj7/E\"z8|\"F\"z8|\"C\"z8|\nV: Ins\nc'2e'2g'2c''2|b'2g'2e'2g'2|a'2f'2d'2f'2|e'2c'2d'2e'2|\nV: Vocal\n\"C\"z8|\"Em\"z8|\"F\"z8|\"C\"z6ed|\nV: Ins\ng'2e'2g'2c''",
+  "note": "probabilistic class per GEN-YUE-DIALECT-1 ruling B (score layer holds; acoustic layer not promised)"
+ }
+}
