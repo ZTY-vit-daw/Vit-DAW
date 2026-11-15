@@ -153,3 +153,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 359 | UI-VISUAL-FIDELITY-1 | done 技术面 pass 合入（[终验=用户目检 v6]；裁切双侧根因：webui 高度链已修+宿主 DPI 移交 SHELL-1；12 项修复+四分辨率烟测段；8 缺口上交清单在卷）（launcher/工程面视觉保真返工对照定稿稿+窗口裁切多分辨率修复；与 SHELL-1 并行，SHELL-2 前合入） |
 | 360 | SHELL-4 | todo（[用户裁定：内核随窗就绪](../decisions/2026-11-15-kernel-ready-at-shell-start-ruling.md)——启动台内核在线+新建/列表/问候真数据+单内核所有权+内核生命周期归属主窗+磁带流文案对齐；手测 v6 观测 3/5 触发；**候用户触发领取**） |
 | 361 | UI-SPRITE-MOUNT-1 | todo（**DesignSprite 全局未挂载→全应用 sprite 图标渲染为空**（发送键黑方块/回复中无指示）；渲染烟测图标断言空转连带修；双图标体系记录；**候用户触发领取**） |
+| 362 | UI-MSG-SHADOWBOX-1 | todo（[用户裁定：用户消息阴影框标识](../decisions/2026-11-15-user-message-shadowbox-ruling.md)——v5.1「右对齐无色块」条款修订+两面实施+SPEC-V5 同步+渲染断言；排 361 后领取；**候用户触发领取**） |
