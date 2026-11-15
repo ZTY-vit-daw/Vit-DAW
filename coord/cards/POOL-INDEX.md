@@ -158,7 +158,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 364 | SHELL-5 | done 已验收 pass 合入（主管亲核零绑定/按钮直建/意图自动执行 3/3 轮+三门复跑；实现三提交→main 10f97b12；attempt2 产品缺陷自修复链采纳；用户复测腿就绪）——细节见卡面回执 |
 | 365 | UI-REC-TAPE-1 | done 已验收 pass 合入（主管复跑三门+**磁带造型目检亲证**（外壳+窗口+双带轮 20px 一眼可辨）+收起守卫采纳；实现 62fd380c→main b2eec1dd；氛围色真实名散布辨识度候用户目检）（磁带 cassette 头像 TapeBadge+§7.3/§7.3.1 v5.1.1 修订+§12 收起回归守卫，细节见卡面回执） |
 | 366 | UI-REC-TAPECARD-1 | **暂缓**（[surface 收敛裁定]——磁带卡造型直接做在装修后统一 surface 上（勘察 368 阶段 1 落位），避免双返工；用户可随时提前） |
-| 367 | SHELL-6 | doing（GLM-5.3 执行流领取 2026-11-15 深夜，基线 2ff2690d，分支 port/shell-6——工程面意图执行链+确认卡全 surface 渲染；P0） |
+| 367 | SHELL-6 | done 待验收（GLM-5.3 执行流 2026-11-15 深夜——工程面意图执行链（user_entered_project 开门，覆盖 22:49 回访会话形态）+确认卡全 surface 渲染+不变式断言面；真栈 run_full_20261115_233941 **PASS exit 0** 3/3+三门+legacy；vitest 598/598（基线+14）；chat 全包绿；实现 port/shell-6 @ 6529d473；LLM 计费=0；attempt 分记在卡面——细节见卡面回执） |
 | 368 | UI-CONVERGE-RECON-1 | done 已验收 pass（技术面）——报告七节+分阶段卡草案在卷（阶段 1 五卡 5.5–8.5 天/阶段 2 七卡/关键路径 CONVERGE-SHELL-1）；**分阶段方案候用户过目发卡**；Godot 重试导航收编点纳入 ENTRY-1 |
 
 ### 展演能力线（2026-11-15 深夜进度驱动重排，[裁定](../decisions/2026-11-15-progress-driven-ruling.md)：无日期锚/无工期，按依赖就绪度并行）
@@ -168,7 +168,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 369 | G0-SCORE-SPIKE-1 | done 已验收 pass——**选型定案：VexFlow 5+自研 beat-grid**（双 spike exit 0 亲核；Verovio=材料显示可选件候裁定；内核无 set_time_signature→375 承接）；主开发卡草案→374 |
 | 370 | G0-LEGAME-CONTRACT-1 | done 已验收 pass（技术面）——[docs/LEGAME_DESIGN_CONTRACT_V0.md](../../docs/LEGAME_DESIGN_CONTRACT_V0.md) 34 节+覆盖 119/119；**R1-R6 候用户裁定（主管整理带建议裁定单）**；W01-A/B/C 实施卡候裁定回填后发 |
 | 371 | G0-STACKGATE-1 | done 已验收 pass 合入（[docs/STACKGATE_DG1_DG3_V1.md](../../docs/STACKGATE_DG1_DG3_V1.md)=现行关卡契约——DG1 三能力关/DG2 旅程 J1-J10/DG3 渲染手测 M1-M4+卡面引用模板；锚点抽核真实；CURRENT-STATE 索引登记随 gate） |
-| 372 | GEN-YUE-WIRE-1 | doing（2026-11-15 深夜领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_yue1` 分支 `port/gen-yue-wire-1`，基线 3997e11b；零栈段先行，真栈+真实生成烟测腿候栈第 2 位） |
+| 372 | GEN-YUE-WIRE-1 | doing（2026-11-16 凌晨零栈段完成：六项实现+单测/集成测全绿（实现 a88580d1 @ port/gen-yue-wire-1 已推）；真栈+真实生成烟测腿候栈第 2 位候 371 口径，RUNBOOK-DRAFT 在 coord/runs/GEN-YUE-WIRE-1/；owner GLM-5.3 L2 执行子代理/PC，worktree wt_yue1） |
 | 373 | SRC-TEMPLATE-1 | todo（课程固定健康音源模板——旋律音源+辅助律动鼓预设+可移植模板包+DG1-B 过关（PCA 无越权红线）；真栈验证候栈位（367→372→本卡）；**已确认候领取**） |
 | 374 | SCORE-WORKBENCH-1 | todo（**展演关键路径主开发**：VexFlow5+自研模型——M1 模型推导渲染→M2 编辑（本地缓冲+显式 apply）→M3 内核真写回读→M4 随谱游标→M5 DG1-A+渲染面验收；369 选型定案承接；**已确认候领取**） |
 | 375 | KERNEL-TIMESIG-1 | todo-hold（内核 set_time_signature 命令面+创建工程 2/4 应用+重开回读一致——审计阻塞点；**候 373 锚定 VitApp 域后发**（避免并行内核文件冲突）；候发） |

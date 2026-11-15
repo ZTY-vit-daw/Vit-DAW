@@ -59,8 +59,41 @@ YuE2 引擎本地托管与本机环境冲突且不可按需管理→取证上交
 
 ## 回执
 
-（待回填）
+- 2026-11-16 凌晨交付（零栈段完成；真栈+真实生成烟测腿候栈排队，见下）；实现 commit `a88580d1` @ `port/gen-yue-wire-1`（已推远端，含 coord/runs/GEN-YUE-WIRE-1/RUNBOOK-DRAFT.md 工件）
+
+### 六项逐项证据
+
+1. **MIDI→方言转换**：`agent/internal/genapi/yue_abc.go`——`ConvertMidiToYueABC`（kernel notes+拍号/速度/调号→dual voices+`%` 段注释+行内引号和弦+`L:1/32` 网格量化+跨小节 tie 拆分；学生旋律默认乘 Ins 声部）+`ParseYueABC`（per-voice 小节游标、Z 多小节休止收尾线语义、tie 合并、和弦标注跳过）。往返单测 5 例（`yue_abc_test.go`）：简单旋律/2/4 跨小节 tie+反拍/变化音降号拼写+段落+和弦/方言样例解析/错误面，pitch-start-length 全等断言。
+2. **prompt→条件映射**：`yue_prepare.go` `YuePrepareRequest`——style_tags 空→userPrompt 原文逐字映射进 style 通道（中文翻译属 agent 运行时上游，action 披露）；`YueDispatchedSummary` 实发摘要（style 全文/abc 头 120 字/lyrics/时长/cot-steps-format 有效值/未转发字段清单）；harness `gen_generate.go` yue_local 分支接线，回执携带 `dispatched`+`conditioning_actions`；`gen_generate_context.go` evidence 透出 `user_prompt`（prompt 非空约束与实发矛盾消除——prompt 真实进 style，不再是静默丢弃）。
+3. **纯器乐条件**：`YuePrepareRequest` instrumental 路径——style 追加 instrumental tag + `RestYueVocalPart` 谱面声部休止化（Vocal 行音符 run→等长 z，和弦标注与小节线保真；等价重写 Ins 行零接触）；单测断言休止后 Vocal 声部解析回读零音符。
+4. **请求面卫生**：`dialects.go` `yueRequestBuilder`——extra_params 中 `abc/style/lyrics` 三保护键跳过（引擎旋钮 cot/steps/seed/synth_batch_size 仍可覆写），`Limitations` 逐键披露；`YuePrepareRequest` 将 count>1 折叠为 1 并披露「每版本一个 job」；单测断言学生字段胜出+旋钮仍覆写+披露在场。
+5. **后台 job+状态**：`harness/gen_jobs.go`——`gen.jobs.start/status/list` 三工具（catalog 行级注册）；start 立即返回 job_id，引擎 ensure+条件映射+提交/轮询+ingest 全在后台 goroutine（`context.WithoutCancel`+provider.Timeout 兜底）；状态面 starting→preparing→running→done/failed+dispatched+actions+status_trail+工件路径；版本留档=JSON 档案（原 MIDI notes 全量+源谱头+dispatched 请求+replay/音频路径+conditioning actions），存 `~/.vit/genapi_jobs/`（env `VIT_GENAPI_JOBS_DIR` 隔离），跨 agent 重启 reload。集成测 3 例（`gen_jobs_test.go`）：yue 假引擎全生命周期（引擎实收断言=转换谱+映射 style+无 prompt 泄漏+卫生）/未知 provider 快速失败/持久化重载。
+6. **最小引擎托管**：`genapi/engine.go`+平台文件——`EnsureYueEngine`（probe→已在=external 复用零管理；未在→按 provider `engine` 块启动（config.go 新增 EngineConfig：command/args/working_dir/env/ready_timeout/poll_interval）→就绪轮询→owned handle；早退/超时分类错误并自清）;`EngineStop` 只停自己启动的进程树（Windows taskkill /T，跨平台进程组）；`EngineStatus` 披露面；ExampleConfig yue-local 条目加 engine 块示例。单测 4 例（`engine_test.go`）：probe 真假/外部复用+停为 no-op/自起→就绪→停→面下线亲证（测试二进制 helper 子进程真实监听）/早退分类。零手工服务：用户填一次 engine.command，gen.generate/gen.jobs.start 自动按需拉起。
+
+### 测试与退出码（三门不回退）
+
+- `go build ./...` exit 0
+- `go test ./internal/genapi/ ./internal/harness/ ./internal/tools/ ./internal/genctx/ -count=1` 全绿（genapi 5.9s/harness 17.9s/tools/genctx <1s；含既有 yue 全链/请求形状/纯谱请求例零回退）
+- webui：本卡零 webui 改动；vitest 584/584 在主仓同源 src 执行（worktree 无 node_modules；主仓与分支 `agent/webui/` 零 diff 亲证——同源声明在案）
+- `go vet` genapi/harness：唯一警告=既有 `shm_windows.go` unsafe.Pointer（非本卡域，不处理）
+
+### 端测覆盖边界声明（AGENTS §5）
+
+- 本段=**零栈段**：单测（genapi 确定性转换/映射/卫生/引擎托管）+定向集成测（harness 后台 job 全链，假引擎+假内核）。**未覆盖**：真实栈（VitApp/Godot/agent 三件套）、真实 YuE2 引擎（E:\AI\YuE2 实环境按需启动/VRAM/生成耗时）、渲染面与用户旅程（本卡零 webui 改动，状态公布走 gen.jobs.* 工具回执=agent 对话面；卡面「webui 生成状态面（如需）」按最小面裁定不做，理由=App.tsx 大文件+367 在飞域风险，主管可另卡）。
+- **真栈+真实生成烟测腿候栈第 2 位**（第 1 位=367）：RUNBOOK-DRAFT 已落 `coord/runs/GEN-YUE-WIRE-1/`（腿定义 leg0-leg4+§8 口径草案：生成预算 3 次/失败分类/止损线/VRAM 6.3GB 线/零 LLM 面；**候 371 DG1-DG3 口径终冻后执行**）；栈释放后按 PC-RUNTIME-STACK.md §2.2 全协议排队。
+- 用户听核节点：真实生成产出后由用户人耳听核两版本（登记待烟测腿后）。
+
+### 遗留与已知边界（如实）
+
+- 引擎本地托管与真机环境（E:\AI\YuE2）的按需启动链**未实跑**（单测为 helper 子进程模拟）；若真栈腿触发卡面停止条件（引擎侧环境冲突不可按需管理）→取证上交候用户定向。
+- 学生谱无和弦输入时转换器输出裸方言行（无引号和弦）；裸行引擎接受度/声学效果=真实生成腿验证项（YUE2-ABC-ADHERENCE-1 结论=方言特征含和弦，往返与映射不承诺声学）。
+- 中文 prompt 原文映射进 style（确定性透传）；引擎对中文 style tag 的响应特性未验证（§13 裁定翻译属 agent 运行时上游，本卡提供映射管道+摘要）。
+- instrumental 谱面路径的声学边界沿 GEN-YUE-DIALECT-1 复验裁定 B（谱面层确定性成立，声学层不承诺——YuE2 渲染先验可能填稀疏伴奏）。
+
+### 计费
+
+- 零栈段零 LLM、零真实生成（全部确定性测试）；LLM 相关面无涉。
 
 ## 验收
 
-（待回填）
+（待主管决策流）
