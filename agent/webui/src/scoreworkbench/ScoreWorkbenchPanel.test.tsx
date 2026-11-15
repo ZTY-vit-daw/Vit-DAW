@@ -278,7 +278,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "not under test" }),
       reload: async () => ({ ok: true, value: snapshot })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -295,7 +295,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "not under test" }),
       reload: async () => ({ ok: false, error: "analyze_midi_transformations requires a connected kernel" })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -334,7 +334,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       },
       reload: async () => ({ ok: true, value: baseSnapshot })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -375,7 +375,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       reload: async () => ({ ok: true, value: snapshot })
     };
     // playhead 1.0s、clip 起点 0.5s、120bpm → clip 内 1 拍
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -400,7 +400,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "RiskConfirm rejected" }),
       reload: async () => ({ ok: false, error: "unreachable" })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });

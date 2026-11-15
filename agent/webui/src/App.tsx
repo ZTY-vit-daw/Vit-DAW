@@ -7231,16 +7231,16 @@ function Workbench({
   onRefresh: () => Promise<void>;
   checkoutBlocked: boolean;
 }) {
-  // SCORE-WORKBENCH-1（374）：谱面桥按 Workbench 生命周期建一次（挂载回读+apply 走
-  // /agent/invoke 生产缝；多 clip 工程由桥 fail-honest 报错，clip 选择 UI 候后续卡）。
-  const scoreKernelBridge = useMemo(() => createAgentScoreBridge(), []);
+  // SCORE-WORKBENCH-1（374）：谱面桥工厂（面板持 clip 选择，换 clip 重建桥；
+  // apply 走 /agent/invoke 生产缝；多 clip 工程显式选择，不自动猜目标）。
+  const scoreKernelFactory = useCallback(createAgentScoreBridge, []);
   if (activeTab === "history") {
     return <HistoryPane uiState={uiState} onRefresh={onRefresh} checkoutBlocked={checkoutBlocked} />;
   }
   if (activeTab === "score") {
     // SCORE-WORKBENCH-1：谱面工作台页签——M3 接入 agent 桥（挂载即回读装载，
     // apply=单次 confirmed replace_region；无内核环境 fail-honest 显形）。
-    return <ScoreWorkbenchPanel initialModel={defaultScoreModel()} kernel={scoreKernelBridge} />;
+    return <ScoreWorkbenchPanel initialModel={defaultScoreModel()} kernelFactory={scoreKernelFactory} />;
   }
   if (activeTab === "macro") {
     return (

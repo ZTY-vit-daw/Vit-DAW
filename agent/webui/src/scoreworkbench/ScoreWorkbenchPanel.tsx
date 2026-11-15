@@ -26,8 +26,9 @@ import {
 import { GRID_PER_BEAT, serializeModel, type ScoreModel } from "./model";
 import { hitTest, renderScoreInto, type RenderResult } from "./render";
 import { cursorPosition, playheadClipBeats } from "./cursor";
-import { createNoKernelBridge, type ScoreClipSnapshot, type ScoreKernelBridge } from "./kernel";
+import { createNoKernelBridge, type ScoreClipSnapshot, type ScoreKernelBridgeFactory } from "./kernel";
 import { fetchUIState } from "../lib/api";
+import type { JsonRecord } from "../types";
 import "./scoreworkbench.css";
 
 function firstFinite(...values: unknown[]): number | null {
@@ -61,16 +62,25 @@ const PITCH_OPTIONS = [
 
 type Selection = { kernelId: string; tick: number } | null;
 
+export type ClipOption = { clipID: string; trackID: string; label: string };
+
 export function ScoreWorkbenchPanel({
   initialModel,
   clipLengthBeats: fallbackClipLengthBeats = 8,
-  kernel
+  kernelFactory
 }: {
   initialModel: ScoreModel;
   clipLengthBeats?: number;
-  kernel?: ScoreKernelBridge | null;
+  kernelFactory?: ScoreKernelBridgeFactory | null;
 }) {
-  const activeKernel = kernel ?? null;
+  // clip 选择（多 clip 工程=常态）：shadow 轨表列出 clip；单 clip 自动选中，
+  // 多 clip 显式选择（不自动猜目标——错 clip 写入比多一步选择更糟）。
+  const [clipOptions, setClipOptions] = useState<ClipOption[]>([]);
+  const [clipID, setClipID] = useState("");
+  const activeKernel = useMemo(
+    () => (kernelFactory ? kernelFactory({ clipID: clipID || undefined }) : null),
+    [kernelFactory, clipID]
+  );
   const [buffer, setBuffer] = useState<EditBuffer>(() => createEditBuffer(initialModel));
   const [mode, setMode] = useState<"note" | "rest">("note");
   const [duration, setDurationValue] = useState<ScoreDuration>(2);
@@ -85,7 +95,50 @@ export function ScoreWorkbenchPanel({
   const [playheadSeconds, setPlayheadSeconds] = useState<number | null>(null);
   const [transportPlaying, setTransportPlaying] = useState(false);
 
-  // M3：agent 桥在场时挂载即回读装载（fail-honest——失败显形，保留本地模型不假成功）。
+  // M5：clip 清单（shadow 轨表）——单 clip 自动选中；失败显形不阻塞本地编辑。
+  useEffect(() => {
+    if (!kernelFactory) {
+      return;
+    }
+    let cancelled = false;
+    fetchUIState()
+      .then((state) => {
+        if (cancelled) {
+          return;
+        }
+        const tracks = Array.isArray(state.tracks) ? state.tracks : [];
+        const options: ClipOption[] = [];
+        tracks.forEach((track, trackIndex) => {
+          const trackID = String((track as JsonRecord).track_id ?? (track as JsonRecord).id ?? "");
+          const trackName = String((track as JsonRecord).name ?? `轨 ${trackIndex + 1}`);
+          const clips = Array.isArray((track as JsonRecord).clips) ? ((track as JsonRecord).clips as JsonRecord[]) : [];
+          clips.forEach((clip, clipIndex) => {
+            const id = String(clip.clip_id ?? clip.id ?? "");
+            if (!id) {
+              return;
+            }
+            const clipName = String(clip.name ?? `clip ${clipIndex + 1}`);
+            options.push({ clipID: id, trackID, label: `${trackName} · ${clipName}` });
+          });
+        });
+        setClipOptions(options);
+        if (options.length === 1) {
+          setClipID(options[0].clipID);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStatus("clip 清单不可得（agent 状态面不可达）——本地编辑仍可用");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kernelFactory]);
+
+  // M3：agent 桥在场时（含换 clip 重建桥）即回读装载（fail-honest——失败显形，
+  // 保留本地模型不假成功；clip 未选时桥带空 clipID，harness 多 clip 拒绝=提示选择）。
   useEffect(() => {
     if (!activeKernel || activeKernel.kind !== "agent") {
       return;
@@ -108,7 +161,7 @@ export function ScoreWorkbenchPanel({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeKernel]);
 
   const svgHostRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -373,7 +426,7 @@ export function ScoreWorkbenchPanel({
     setSelection(null);
   }, [activeKernel, applyPatch]);
 
-  const kernelTag = activeKernel ? (activeKernel.kind === "agent" ? "connected" : "local") : "local";
+  const kernelTag = kernelFactory ? "connected" : "local";
 
   // M4 游标位置（快照+playhead 都在场才换算；clip 外或渲染范围外=不画）。
   const cursor =
@@ -386,8 +439,21 @@ export function ScoreWorkbenchPanel({
       : null;
 
   return (
-    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""} data-score-cursor-beat={cursor ? cursor.beat.toFixed(3) : ""} data-score-cursor-playing={transportPlaying ? "true" : "false"}>
+    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""} data-score-cursor-beat={cursor ? cursor.beat.toFixed(3) : ""} data-score-cursor-playing={transportPlaying ? "true" : "false"} data-score-clip-id={clipID}>
       <div className="score-toolbar">
+        {kernelFactory && (
+          <label className="score-tool score-clip">
+            Clip
+            <select data-score-clip-select value={clipID} onChange={(event) => setClipID(event.currentTarget.value)}>
+              <option value="">（选择 clip）</option>
+              {clipOptions.map((option) => (
+                <option key={option.clipID} value={option.clipID}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <div className="score-tool-group" role="group" aria-label="输入模式">
           <button type="button" className={`score-tool ${mode === "note" ? "active" : ""}`} data-score-mode-note onClick={() => setMode("note")}>
             音符

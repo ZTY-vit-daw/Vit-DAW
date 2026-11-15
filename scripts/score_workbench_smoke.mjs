@@ -219,7 +219,14 @@ async function main() {
     if ((await tab.count()) !== 1) throw new Error("score tab missing on " + phaseName);
     await tab.click();
     await page.waitForSelector("[data-score-root]", { timeout: 15000 });
-    await page.waitForTimeout(1200); // mount auto-load
+    // 多 clip 工程=常态（boot 演示工程 7 轨+本腿 fixture）：显式选择 fixture clip
+    //（真实 UI 事件，非测试后门；单 clip 工程会自动选中无需此步）。
+    await page.waitForSelector("[data-score-clip-select]", { timeout: 10000 });
+    const currentClip = await page.getAttribute("[data-score-root]", "data-score-clip-id");
+    if (currentClip !== clipID) {
+      await page.selectOption('[data-score-clip-select]', clipID);
+    }
+    await page.waitForTimeout(1800); // clip 选择 -> 桥重建 -> 回读装载
   };
   const domModel = async () => JSON.parse(await page.getAttribute("[data-score-root]", "data-score-model"));
   const rootAttr = async (name) => (await page.getAttribute("[data-score-root]", name)) || "";
