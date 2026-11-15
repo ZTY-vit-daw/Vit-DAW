@@ -156,13 +156,20 @@ export function ScoreWorkbenchPanel({
   }, [snapshot]);
 
   // 推导重绘：working 变化即重渲染（369 spike 模式：编辑→推导→重绘全链）。
+  // data-score-tick-rows：符号锚点几何可见性（m<measure>:<tick>@<x>,...; 分号分行）——
+  // 渲染面烟测/真栈腿据此换算真实指针点击坐标（点击仍走 pointer 事件管线）。
   useEffect(() => {
     const host = svgHostRef.current;
     if (!host) {
       return;
     }
     const width = host.clientWidth && host.clientWidth > 80 ? host.clientWidth : 340;
-    renderResultRef.current = renderScoreInto(host, buffer.working, { width });
+    const result = renderScoreInto(host, buffer.working, { width });
+    renderResultRef.current = result;
+    const rows = [...result.tickRows.entries()]
+      .map(([measure, row]) => `m${measure}:${row.map(([tick, x]) => `${tick}@${Math.round(x)}`).join(",")}`)
+      .join(";");
+    host.setAttribute("data-score-tick-rows", rows);
   }, [buffer.working]);
 
   const localOffset = useCallback((event: { clientX: number; clientY: number }, element: HTMLElement | null) => {
