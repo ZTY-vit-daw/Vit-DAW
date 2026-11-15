@@ -1,0 +1,158 @@
+{
+  "id": "genjob-20261116-000112-244",
+  "version_label": "v2",
+  "provider_id": "yue-local",
+  "dialect": "yue_local",
+  "state": "done",
+  "phase": "complete",
+  "task_id": "45b1a3cbc41bbef5",
+  "started_at": "2026-11-15T16:01:12.2440273Z",
+  "ended_at": "2026-11-15T16:01:30.2896581Z",
+  "dispatched": {
+    "abc_chars": 193,
+    "abc_head": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=120\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" …",
+    "cot": "full",
+    "duration": 60,
+    "extra_params_effective": [],
+    "lyrics": false,
+    "lyrics_chars": 0,
+    "not_forwarded": [
+      "prompt",
+      "tempo_bpm",
+      "musical_key",
+      "title",
+      "instrumental (as a switch)"
+    ],
+    "output_format": "wav16",
+    "steps": 32,
+    "style": "深沉的弦乐合奏，温柔铺底, instrumental"
+  },
+  "conditioning_actions": [
+    "abc: converted 16 student notes to the YuE2 ABC dialect (deterministic program conversion)",
+    "style: derived verbatim from the user prompt (yue_local has no free-prompt channel; translate to English tags upstream if needed)",
+    "style: instrumental tag added (instrumental switch requested)",
+    "abc: Vocal voice already silent (no sounding notes to rest)"
+  ],
+  "source_score": {
+    "notes": [
+      {
+        "pitch": 0,
+        "start": 0,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 1,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 2,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 3,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 4,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 5,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 6,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 7,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 8,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 9,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 10,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 11,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 12,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 13,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 14,
+        "length": 1
+      },
+      {
+        "pitch": 0,
+        "start": 15,
+        "length": 1
+      }
+    ],
+    "numerator": 4,
+    "denominator": 4,
+    "tempo_bpm": 120,
+    "key": "",
+    "title": ""
+  },
+  "source_abc": "X:1\nT:\nM:4/4\nL:1/32\nQ:1/4=120\nV: Vocal clef=treble name=\"Vocal Melody\" snm=\"Vocal\"\nV: Ins clef=treble name=\"Ins Melody\" …",
+  "artifacts": [
+    {
+      "bytes": 7555,
+      "duration_seconds": 0,
+      "format": "json",
+      "kind": "replay",
+      "local_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-45b1a3cbc41bbef5.replay.json",
+      "source_url": "http://127.0.0.1:8087/job?id=45b1a3cbc41bbef5\u0026result=1",
+      "title": "yue-local json"
+    },
+    {
+      "bytes": 9784108,
+      "duration_seconds": 0,
+      "format": "wav",
+      "kind": "audio",
+      "local_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-45b1a3cbc41bbef5.wav",
+      "source_url": "response:body",
+      "title": "yue-local wav"
+    }
+  ],
+  "replay_path": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads\\yue-local-45b1a3cbc41bbef5.replay.json",
+  "status_trail": [
+    "running",
+    "running",
+    "running",
+    "running",
+    "running",
+    "running",
+    "done",
+    "result_replay_json",
+    "result_audio_wav"
+  ]
+}
