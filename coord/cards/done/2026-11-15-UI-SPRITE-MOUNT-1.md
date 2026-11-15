@@ -69,3 +69,10 @@
 - 停止条件核对：sprite.css 全局泄漏未发生——appentry 截图页面完整（无 300×150 裸块、无非图标元素样式漂移）；sprite.css 选择器全部 .v5-sprite/.v5-design 作用域，无全局裸选择器。
 
 ### 验收：待主管决策流（+用户目检发送/停止键图标可见）
+
+### 验收（主管 2026-11-15 晚窗）
+
+- 裁定：**pass**——diff 域栅栏亲核（仅 main.tsx +7/render-smoke.mjs +220，零越域）；三门主管复跑全绿（vitest exit 0 / build exit 0 / test:render 6 段 PASS exit 0）；**负对照主管亲证**（摘除挂载→APPENTRY_RESULT=FAIL，spriteCount=0+symbols=0 双断言拦截；main.tsx 复原后复跑全绿）。sprite.css 作用域核查接受（.v5-sprite/.v5-design 无全局裸选择器）。
+- 合入：实现 `59842aa8` cherry-pick 至 main（`1ea32119`）已推；worktree wt_uisprite1 留存（362 排本卡后，装置可参考）。
+- 双图标体系清单采纳在卷——统一裁定挂后续（候主管排期，非本卡域）。
+- 残余：真实栈图标可见性（VitShell 全链）候 SHELL-4 烟测顺带断言或用户目检；不阻塞本卡验收。
