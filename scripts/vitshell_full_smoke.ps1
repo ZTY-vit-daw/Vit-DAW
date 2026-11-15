@@ -880,6 +880,19 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $roundMeta.button_new_context_name = $btnReady.context_name
         Write-Ok ("R$round L1c2: ＋新建 direct new entered end-to-end (context=" + $btnReady.context_name + ", launch_count=2; kernel survived VitApp=$kAfterNew VspHub=$hAfterNew)")
 
+        # ---- R-L1d: close DAW -> back to launcher (same window); kernel survives ----
+        Write-Step "R$round L1d: close DAW -> kernel survives; launcher back for the open chain"
+        $closeDawBtn = Get-HttpPost -Url "$StatusBase/vitshell/close-daw" -TimeoutSec 5
+        if (-not $closeDawBtn.ok) { throw "R$round L1d: POST close-daw failed: $($closeDawBtn.body)" }
+        Wait-StatusField -StatusUrl $StatusUrl -Field "godot_running" -Expect "False" -TimeoutSec 30 -ArtifactPath (Join-Path $RunRoot "r${round}_status_btn_daw_closed.json")
+        $null = Invoke-CdpPhase -Phase "probe-launcher-back" -OutFile "r${round}_cdp_btn_back.json"
+        $kAfterBtn = @(Get-Process -Name "VitApp" -ErrorAction SilentlyContinue).Count
+        $hAfterBtn = @(Get-Process -Name "VspHub" -ErrorAction SilentlyContinue).Count
+        if ($kAfterBtn -lt 1 -or $hAfterBtn -lt 1) {
+            throw "R$round L1d: kernel/hub died with DAW close (VitApp=$kAfterBtn VspHub=$hAfterBtn) - lifecycle must belong to the main window"
+        }
+        Write-Ok ("R$round L1d: DAW closed; launcher back; kernel survives (VitApp=$kAfterBtn VspHub=$hAfterBtn)")
+
         # ---- R-L2: first file open (zero friction expected) -> direct-launch -> project ----
         Write-Step "R$round L2: drawer open (fixture A) -> agent open chain -> Godot direct-launch"
         # SHELL-5: L1c (intent new) was launch 1, L1c2 (button new) is launch 2;
