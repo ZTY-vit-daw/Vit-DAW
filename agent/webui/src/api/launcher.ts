@@ -50,6 +50,9 @@ export interface LauncherGreeting {
   reply?: string;
   recent_project?: { name?: string; file_path?: string } | null;
   recent_count?: number;
+  /** SHELL-4 三态之三：内核不可达（agent 显式区分——不是对话 API 故障，
+   *  也不是「没有记录」的空态；启动台据此给内核态标识与诚实呈现）。 */
+  kernel_unavailable?: boolean;
 }
 
 /** POST /agent/chat（launcher 卷）回执中本卡消费的字段。 */

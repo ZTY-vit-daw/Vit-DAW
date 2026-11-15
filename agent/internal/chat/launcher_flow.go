@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 	"unicode/utf8"
 )
 
@@ -98,6 +99,28 @@ func (s *Server) userEnteredProjectSnapshot() bool {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.userEnteredProject
+}
+
+// SetKernelBootWait 注入内核引导有界等待钩子（SHELL-4 内核随窗就绪；
+// runtimehost.Supervisor.WaitKernelReady）。nil=撤销（greeting 不等待）。
+// server 路由启用前注入；并发调用安全。
+func (s *Server) SetKernelBootWait(fn func(context.Context, time.Duration) bool) {
+	if s == nil {
+		return
+	}
+	s.mu.Lock()
+	s.kernelBootWait = fn
+	s.mu.Unlock()
+}
+
+// kernelBootWaitSnapshot 只读快照（s.mu 保护）。
+func (s *Server) kernelBootWaitSnapshot() func(context.Context, time.Duration) bool {
+	if s == nil {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.kernelBootWait
 }
 
 // ── 意图识别（纯函数，零 LLM）───────────────────────────────────────────────
@@ -369,7 +392,21 @@ func launcherMatchReference(ref string, entries []launcherProjectEntry) []launch
 
 // launcherRecentProjectPaths 读 kernel get_recent_projects（project.recent 工具
 // 同一 RiskDirect 只读面；chat 内直接只读调用=runtimeKernelStatus ping 先例）。
+// SHELL-4：冷启动引导窗口内（VitShell 链 agent 与内核并行起）首次失败先经
+// kernelBootWait 有界等待再试一次——监督器已放弃（无候选/失败/超时）时等待
+// 立即返回 false，不拖慢诚实降级；未注入钩子（旧链/测试）零等待零行为变化。
 func (s *Server) launcherRecentProjectPaths(ctx context.Context) ([]string, error) {
+	paths, err := s.launcherRecentProjectPathsOnce(ctx)
+	if err == nil {
+		return paths, nil
+	}
+	if wait := s.kernelBootWaitSnapshot(); wait != nil && wait(ctx, launcherGreetingBootWaitBudget) {
+		return s.launcherRecentProjectPathsOnce(ctx)
+	}
+	return nil, err
+}
+
+func (s *Server) launcherRecentProjectPathsOnce(ctx context.Context) ([]string, error) {
 	if s == nil || s.harness == nil {
 		return nil, fmt.Errorf("harness is nil")
 	}
@@ -544,14 +581,33 @@ func (s *Server) handleLauncherFlowChat(ctx context.Context, chatCtx map[string]
 	}
 }
 
+// ── 回执文案（SHELL-4 对齐 v5.1：无磁带流元素；内核不可用与 API/LLM 不可用
+// 是两回事，文案显式区分——手测 v6 观测 3/3b）───────────────────────────────
+
 const (
-	launcherNoRecentsReply         = "还没有最近的工程记录。可以说「新建一个工程」，或从磁带流里选文件打开。"
-	launcherKernelUnavailableReply = "我这儿暂时连不上内核，看不到工程列表——稍等一下再说一次，或先从磁带流里选工程打开。"
+	launcherNoRecentsReply = "还没有最近的工程记录。可以说「新建一个工程」，或点「打开…」选择工程文件。"
+	// launcherKernelUnavailableReply 保留「连不上内核」词面（Go 测试与 webui
+	// 抽屉错误态回执的共同锚点），并显式澄清不是对话 API 的问题。
+	launcherKernelUnavailableReply = "我这儿暂时连不上内核（不是对话 API 的问题）——最近工程列表稍后再试，或点「打开…」直接选择工程文件。"
+	// launcherGreetingKernelUnavailable greeting 端点内核不可达专用（三态之三）。
+	launcherGreetingKernelUnavailable = "我在。暂时连不上内核，最近工程列表取不到（不是对话 API 的问题）——稍等片刻再试，或点「打开…」选择工程文件。"
+	// launcherGreetingNoRecents 内核在线但确无记录（三态之二，诚实空态）。
+	launcherGreetingNoRecents = "我在。还没有最近的工程记录——想从哪开始？可以说「新建一个工程」，或点「打开…」选择工程文件。"
 )
 
-// handleLauncherGreeting 服务门厅简版开场白（确定性模板，零 LLM）：在场问候+
-// 最近工程一条（project.recent 首项）+「想从哪开始？」。启动窗在 agent 就绪
-// 时 GET 一次；无最近工程/内核暂不可达时给同样确定的降级模板。
+// launcherGreetingBootWaitBudget 是 launcherRecentProjectPaths 对内核引导的
+// 有界等待（SHELL-4：VitShell 冷启动时 agent 与内核并行起，greeting/列表可
+// 能抢在内核 ZMQ 就绪前；等到即真数据，监督器放弃或超时走内核不可达诚实
+// 三态，不冒充空态）。20s≥SHELL-2 既有 IPC 就绪预算（64×0.25s）覆盖慢冷启；
+// 监督器已放弃时等待立即返回，真故障降级不被拖慢。
+const launcherGreetingBootWaitBudget = 20 * time.Second
+
+// handleLauncherGreeting 服务门厅简版开场白（确定性模板，零 LLM）三态：
+//  1. 内核在线+有 recents → 真数据问候（最近一条+计数）；
+//  2. 内核在线+无 recents → 诚实空态（launcherGreetingNoRecents）；
+//  3. 内核不可达 → kernel_unavailable=true + 专用文案（不冒充「没有记录」，
+//     也不与 API/LLM 故障混淆）。冷启动引导窗口由 launcherRecentProjectPaths
+//     统一桥接（含有界等待），此处不重复等待。
 func (s *Server) handleLauncherGreeting(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		writeJSON(w, http.StatusMethodNotAllowed, map[string]any{"status": "error", "error": "GET required"})
@@ -567,10 +623,17 @@ func (s *Server) handleLauncherGreeting(w http.ResponseWriter, r *http.Request) 
 		writeJSON(w, http.StatusOK, response)
 		return
 	}
-	if err != nil && s != nil && s.logger != nil {
-		s.logger.Warn("[launcher.greeting] recent projects unavailable: %v", err)
+	if err != nil {
+		if s != nil && s.logger != nil {
+			s.logger.Warn("[launcher.greeting] kernel unreachable: %v", err)
+		}
+		response["kernel_unavailable"] = true
+		response["reply"] = launcherGreetingKernelUnavailable
+		response["recent_count"] = 0
+		writeJSON(w, http.StatusOK, response)
+		return
 	}
-	response["reply"] = "我在。还没有最近的工程记录——想从哪开始？可以说「新建一个工程」，或从磁带流里选一个。"
+	response["reply"] = launcherGreetingNoRecents
 	response["recent_count"] = 0
 	writeJSON(w, http.StatusOK, response)
 }
@@ -654,7 +717,9 @@ func (s *Server) applyChatContextFlowMark(resp *ChatResponse) {
 // 触发条件（全查）：
 //  1. 该会话在 launcher 卷有过轮次（rememberLauncherFlowConversation 标记——
 //     跨卷衔接只对 launcher 起源的会话发生，普通工程进入行为零差异）
-//  2. 工程已绑定（activation 后 activeWorkspacePath 非空）
+//  2. 工程已绑定（activation 后 activeWorkspacePath 非空）且 340 会话事实在案
+//     （SHELL-4：宿主 version.project_opened 播报后才算「跨卷进入」——内核
+//     常驻 boot 默认绑定不触发播报）
 //  3. 无乐局 binding（binding 在案=315 承接域，fail-closed 让位，零干预）
 //  4. 该（会话,工程）尚未播报过（LoadOrStore 原子领取，会话级一次性）
 //  5. 非空/斜杠/乐局命令词消息（归既有命令面，315 同款守卫）
@@ -681,6 +746,14 @@ func (s *Server) launcherBridgeBroadcastCheckpoint(_ context.Context, conversati
 	s.mu.Unlock()
 	if projectPath == "" {
 		return ChatResponse{}, false // 未绑定：仍在 launcher 卷，无桥接可言
+	}
+	if !s.userEnteredProjectSnapshot() {
+		// SHELL-4：内核随窗就绪后 agent 启动即绑定内核默认工程（boot draft）——
+		// 该绑定不是「用户经 launcher directive 进入工程」的跨卷事实。桥接播报
+		// 只在 340 会话事实（宿主 version.project_opened 播报）之后承接；否则
+		// 常驻内核的默认绑定会在启动台阶段劫持 launcher 轮（真栈 debug_3 证据：
+		// 「新建工程 X」被答成「已进入《Unsaved》…」）。
+		return ChatResponse{}, false
 	}
 	if _, hasBinding := loadLegameBinding(projectPath); hasBinding {
 		return ChatResponse{}, false // binding 工程=315 自动开场/恢复播报承接域

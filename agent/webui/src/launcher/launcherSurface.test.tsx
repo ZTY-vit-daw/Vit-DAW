@@ -276,6 +276,54 @@ describe("launcherSurface 抽屉手动按钮（SHELL-2）", () => {
   });
 });
 
+// ── SHELL-4：内核态呈现（三态之二/之三的 UI 侧诚实区分）──
+
+describe("launcherSurface 内核态呈现（SHELL-4）", () => {
+  it("greeting kernel_unavailable=true → data-launcher-kernel=unavailable（内核不可达不冒充在线/空态）", () => {
+    const markup = renderToStaticMarkup(
+      <LauncherSurface
+        fixture={{
+          greeting: {
+            status: "ok",
+            launcher: true,
+            reply: "我在。暂时连不上内核，最近工程列表取不到（不是对话 API 的问题）——稍等片刻再试，或点「打开…」选择工程文件。",
+            recent_count: 0,
+            kernel_unavailable: true
+          },
+          drawerState: "error",
+          drawerErrorText: "我这儿暂时连不上内核（不是对话 API 的问题）——最近工程列表稍后再试。"
+        }}
+      />
+    );
+    expect(markup).toContain('data-launcher-kernel="unavailable"');
+    expect(markup).toContain("不是对话 API 的问题");
+    expect(markup).toContain('data-drawer-state="error"');
+    expect(markup).toContain('data-launcher-drawer-retry');
+    // 与 agent 故障区分：agent 不可用 banner 不在场（agent 在线、内核不可达）。
+    expect(markup).not.toContain("连不上 Vit agent");
+  });
+
+  it("greeting 无 kernel 标记 → data-launcher-kernel=online", () => {
+    const markup = renderToStaticMarkup(
+      <LauncherSurface
+        fixture={{
+          greeting: { status: "ok", launcher: true, reply: "我在。最近的工程是《测试工程甲》——想从哪开始？", recent_count: 1 },
+          drawerState: "ready",
+          drawerEntries: [FIXTURE_CARD]
+        }}
+      />
+    );
+    expect(markup).toContain('data-launcher-kernel="online"');
+  });
+
+  it("空态文案不再引用磁带流（v5.1 UI 无磁带流元素）", () => {
+    const markup = renderToStaticMarkup(<LauncherSurface fixture={{ drawerState: "empty" }} />);
+    expect(markup).toContain('data-drawer-state="empty"');
+    expect(markup).toContain("还没有最近工程记录");
+    expect(markup).not.toContain("磁带流");
+  });
+});
+
 describe("launcherSurface 页内治理三键卡（SHELL-2）", () => {
   it("fixture 线程治理项 → 三键全在场且 headline 陈述在开工程", () => {
     const markup = renderToStaticMarkup(

@@ -23,7 +23,21 @@
 # start_page.gd direct-launch env-gate structural checks (F5 path untouched).
 #
 # PASS = exit 0: legacy leg pass + all failure legs pass-or-declared-boundary +
-# main rounds $Rounds/$Rounds PASS. Artifacts under coord/runs/SHELL-3/.
+# main rounds $Rounds/$Rounds PASS. Artifacts under coord/runs/SHELL-4/.
+#
+# SHELL-4 extension (card pool #360, kernel-ready-at-start ruling 2026-11-15):
+#   L1b kernel-online     launcher stage MUST have VitApp+VspHub alive and
+#                         agent-owned (parent=agent pid); greeting real data
+#                         (seeded recents) via live HTTP; kernel attr=online.
+#   L1c new-project chain launcher chat -> directive -> bridge -> Godot
+#                         direct-launch new -> kernel new_project -> project
+#                         surface; then close-DAW -> kernel SURVIVES (lifecycle
+#                         belongs to the main window, not the DAW window).
+#   L4 survival assert    kernel/hub still alive after fixture_a DAW close.
+#   S10 hardening         recents seeded before rounds (deterministic real
+#                         data) + restore is hash-verified (mismatch = env
+#                         interrupt, non-zero exit); absent-before case now
+#                         deletes the run-created file and verifies absence.
 # Disciplines: S2.2 stack occupancy + <=60s recheck; S10 recents snapshot and
 # restore (%APPDATA%/Vit-DAW/global_project_config.json) + both-root Workspace
 # runtime snapshots; repo fixtures copied into run dir (source hash before/
@@ -33,7 +47,8 @@
 # window-title inspection only).
 
 param(
-    [string]$FrontendWorktree = "D:/Godot/project/vit-daw-frontend_wt_shell3",
+    [string]$FrontendWorktree = "D:/Godot/project/vit-daw-frontend_wt_shell4",
+    [string]$CardId = "SHELL-4",
     [string]$Webview2SdkDir = "D:/Godot/project/vit-daw-frontend/extension/third_party/webview2",
     [string]$GodotExe = "D:/Godot/Godot_v4.6.1-stable_win64_console.exe",
     [string]$FixtureSource = "D:/Vit_DAW/temp/f3_empty_project.vit",
@@ -86,6 +101,21 @@ function Test-PortBindable {
     $s = $null
     try {
         $s = [System.Net.Sockets.Socket]::new([System.Net.Sockets.AddressFamily]::InterNetwork, [System.Net.Sockets.SocketType]::Stream, [System.Net.Sockets.ProtocolType]::Tcp)
+        $s.Bind([System.Net.IPEndPoint]::new([System.Net.IPAddress]::Loopback, $Port))
+        return $true
+    } catch {
+        return $false
+    } finally {
+        if ($null -ne $s) { try { $s.Close() } catch {} }
+    }
+}
+
+function Test-UdpBindable {
+    # UDP 4445 (agent command port) bindable probe: bind+close on loopback.
+    param([int]$Port)
+    $s = $null
+    try {
+        $s = [System.Net.Sockets.Socket]::new([System.Net.Sockets.AddressFamily]::InterNetwork, [System.Net.Sockets.SocketType]::Dgram, [System.Net.Sockets.ProtocolType]::Udp)
         $s.Bind([System.Net.IPEndPoint]::new([System.Net.IPAddress]::Loopback, $Port))
         return $true
     } catch {
@@ -227,7 +257,7 @@ function Wait-StatusLaunchCount {
 }
 
 function Invoke-CdpPhase {
-    param([string]$Phase, [string]$OutFile)
+    param([string]$Phase, [string]$OutFile, [string]$NewProjectName = "")
     $webuiDir = Join-Path $MainRoot "agent/webui"
     $WebuiDir = $webuiDir
     $out = Join-Path $RunRoot $OutFile
@@ -235,6 +265,10 @@ function Invoke-CdpPhase {
     $nodeArgs = @("$MainRoot/scripts/vitshell_full_smoke_cdp.mjs", "--cdp-port", "$CdpPort", "--phase", $Phase, "--out", $out, "--webui-dir", "$WebuiDir")
     if ($Phase -eq "chat-roundtrip") {
         $nodeArgs += @("--chat-text", $ChatText, "--chat-timeout-ms", "$ChatTimeoutMs")
+    }
+    if ($Phase -eq "launcher-chat-new") {
+        if ([string]::IsNullOrWhiteSpace($NewProjectName)) { throw "launcher-chat-new requires -NewProjectName" }
+        $nodeArgs += @("--new-project-name", $NewProjectName)
     }
     $code = Invoke-NativeLogged -Command { node @nodeArgs } -LogPath ($out + ".log")
     popd
@@ -299,14 +333,15 @@ $VitProcessNames = @("VitShell", "VitAgent", "VitApp", "VspHub", "Godot*")
 Write-Step "Preflight: stack idle + occupancy re-read"
 $preProcs = Get-VitProcessCount -Names $VitProcessNames
 if ($preProcs -ne 0) { throw "preflight: Vit-family processes already running (count=$preProcs) - no silent reuse" }
-foreach ($port in @($AgentPort, $StatusPort)) {
+foreach ($port in @($AgentPort, $StatusPort, 8787, 5555)) {
     $owner = Get-TcpListenerPid -Port $port
     if ($null -ne $owner) { throw "preflight: port $port already listening (pid=$owner) - no silent reuse" }
     if (-not (Test-PortBindable -Port $port)) { throw "preflight: port $port not bindable (lingering bound socket) - no silent reuse" }
 }
+if (-not (Test-UdpBindable -Port 4445)) { throw "preflight: UDP 4445 not bindable - no silent reuse" }
 $occupancyHead = (Get-Content (Join-Path $MainRoot "coord/resources/PC-RUNTIME-STACK.md") -TotalCount 6) -join "`n"
-if ($occupancyHead -notmatch "SHELL-3") { throw "occupancy record head does not name SHELL-3 - register before running" }
-Write-Ok "stack clean (processes=0, ports free), occupancy names SHELL-3"
+if ($occupancyHead -notmatch $CardId) { throw "occupancy record head does not name $CardId - register before running" }
+Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy names $CardId"
 
 # ---------- artifacts scaffold + S10 snapshots ----------
 
@@ -322,7 +357,7 @@ Write-Step "Artifacts: $RunRoot"
 $runMeta = [ordered]@{
     run_id = (Split-Path -Leaf $RunRoot)
     started_at_utc = (Get-Date).ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ")
-    card = "SHELL-3"
+    card = $CardId
     main_worktree = $MainRoot
     frontend_worktree = $FrontendWorktree
     godot_exe = $GodotExe
@@ -339,18 +374,48 @@ $runMeta = [ordered]@{
 
 $recentsFile = Join-Path $env:APPDATA "Vit-DAW/global_project_config.json"
 $recentsSnap = Join-Path $RunRoot "recents_snapshot.json"
+# SHELL-4: restore is hash-verified (RECENTS-HYGIENE-1 b-case discipline):
+# restore failure is recorded and fails the run as ENV-INTERRUPT (never silent).
+$script:s10RecentsExistedBefore = $false
+$script:s10RecentsHash = ""
+$script:s10RuntimeHashes = @{}
+$script:s10RestoreErrors = @()
 function Restore-S10State {
-    if (Test-Path $recentsSnap) { Copy-Item $recentsSnap $recentsFile -Force }
+    # Recents: snapshot existed -> copy back + hash-verify; absent-before ->
+    # remove the run-created file + verify absence (SHELL-4 hardening).
+    if ($script:s10RecentsExistedBefore) {
+        Copy-Item $recentsSnap $recentsFile -Force
+        $restored = (Get-FileHash $recentsFile -Algorithm SHA256).Hash
+        if ($restored -ne $script:s10RecentsHash) {
+            $script:s10RestoreErrors += ("recents hash mismatch after restore (want=" + $script:s10RecentsHash + " got=" + $restored + ")")
+        }
+    } elseif (Test-Path $recentsFile) {
+        Remove-Item $recentsFile -Force
+        if (Test-Path $recentsFile) {
+            $script:s10RestoreErrors += "recents file still present after absent-before restore"
+        }
+    }
     foreach ($key in $script:runtimeSnaps.Keys) {
         $parts = $key.Split("|")
         $dst = Join-Path $parts[0] $parts[1]
         $src = $script:runtimeSnaps[$key]
-        if (Test-Path $src) { Copy-Item $src $dst -Force }
+        if (Test-Path $src) {
+            Copy-Item $src $dst -Force
+            $want = $script:s10RuntimeHashes[$key]
+            if ($want) {
+                $got = (Get-FileHash $dst -Algorithm SHA256).Hash
+                if ($got -ne $want) {
+                    $script:s10RestoreErrors += ("runtime snapshot hash mismatch: " + $dst)
+                }
+            }
+        }
     }
 }
 if (Test-Path $recentsFile) {
     Copy-Item $recentsFile $recentsSnap -Force
-    $runMeta.recents_snapshot_sha256 = (Get-FileHash $recentsSnap -Algorithm SHA256).Hash
+    $script:s10RecentsExistedBefore = $true
+    $script:s10RecentsHash = (Get-FileHash $recentsSnap -Algorithm SHA256).Hash
+    $runMeta.recents_snapshot_sha256 = $script:s10RecentsHash
     Write-Ok ("recents snapshot taken (" + $runMeta.recents_snapshot_sha256.Substring(0, 16) + "...)")
 } else {
     $runMeta.recents_snapshot = "absent-before-run"
@@ -365,6 +430,7 @@ foreach ($rootBase in @($MainRoot, "D:/Vit_DAW")) {
             $dst = Join-Path $RunRoot ("snap_" + ($rootBase.Replace(":", "_").Replace("/", "_").Replace([string][char]92, "_")) + "_" + ($rel.Replace("/", "_")))
             Copy-Item $src $dst -Force
             $script:runtimeSnaps[$rootBase + "|" + $rel] = $dst
+            $script:s10RuntimeHashes[$rootBase + "|" + $rel] = (Get-FileHash $src -Algorithm SHA256).Hash
         }
     }
 }
@@ -380,6 +446,25 @@ Copy-Item $FixtureSource $fixtureB -Force
 Write-Ok ("fixtures copied (source sha256=" + $fixtureSourceHash.Substring(0, 16) + "...)")
 $runMeta.fixture_a = $fixtureA
 $runMeta.fixture_b = $fixtureB
+
+# SHELL-4: seed fixture_a at the recents head (kernel get_recent_projects reads
+# this file live) so the launcher real-data legs are deterministic on any host.
+# S10 restore (hash-verified) brings the user's file back exactly.
+$existing = @()
+if (Test-Path $recentsFile) {
+    try {
+        $parsed = Get-Content $recentsFile -Raw -Encoding UTF8 | ConvertFrom-Json
+        if ($null -ne $parsed.recent_projects) { $existing = @($parsed.recent_projects) }
+    } catch { $existing = @() }
+}
+$merged = @($fixtureA)
+foreach ($path in $existing) {
+    if ("$path" -ne "$fixtureA") { $merged += "$path" }
+}
+@{ recent_projects = $merged } | ConvertTo-Json -Depth 3 | Out-File -FilePath $recentsFile -Encoding utf8
+$runMeta.recents_seeded_fixture = $fixtureA
+$runMeta.recents_seeded_sha256 = (Get-FileHash $recentsFile -Algorithm SHA256).Hash
+Write-Ok ("recents seeded with fixture_a (deterministic greeting; seeded sha256=" + $runMeta.recents_seeded_sha256.Substring(0, 12) + "...)")
 
 pushd $MainRoot
 git rev-parse HEAD 2>$null | Out-File -FilePath (Join-Path $RunRoot "main_head.txt") -Encoding utf8
@@ -488,6 +573,19 @@ if (-not $SkipLegacyLegs) {
 }
 $runMeta.legacy_leg = $legacyResult
 $runMeta.legacy = $legacyMeta
+
+# ---------- SHELL-4: boot-draft write surface baseline (user-area hygiene) ----------
+# Kernel-online-at-start makes the agent materialize a boot draft workspace under
+# %LOCALAPPDATA%/Vit/ProjectHistory/drafts on every start (pre-existing F11
+# machinery). The run deletes exactly the drafts IT created (name-set diff).
+$script:draftsRoot = Join-Path $env:LOCALAPPDATA "Vit/ProjectHistory/drafts"
+$script:draftsBefore = @{}
+if (Test-Path $script:draftsRoot) {
+    Get-ChildItem $script:draftsRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        $script:draftsBefore[$_.Name] = $true
+    }
+}
+$runMeta.boot_drafts_baseline_count = $script:draftsBefore.Count
 
 # ---------- immediate recheck (S2.2 <=60s) ----------
 
@@ -656,21 +754,93 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $roundMeta.recents_count = $ldata.recents_count
         Write-Ok ("R$round launcher data: greeting=" + $ldata.greeting_text.Substring(0, [Math]::Min(40, $ldata.greeting_text.Length)) + "... recents=" + $ldata.recents_count)
 
-        # ---- R-L2: first open (zero friction) -> direct-launch -> project ----
-        Write-Step "R$round L2: drawer open (fixture A) -> agent open chain -> Godot direct-launch"
-        $null = Invoke-CdpPhase -Phase "click-open" -OutFile "r${round}_cdp_click_open_1.json"
-        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 1 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_1.json")
-        if (-not $status.godot_running) { throw "R$round godot not running after first open" }
-        $roundMeta.godot_pid_1 = $status.godot_pid
-        Write-Ok ("R$round first open: godot pid=" + $status.godot_pid + " launch_count=1")
-        $bridgeLog = Join-Path $RunRoot "r${round}_bridge.log"
-        $govCount1 = (Select-String -Path $bridgeLog -Pattern "governance.required" -ErrorAction SilentlyContinue | Measure-Object).Count
-        $roundMeta.first_open_governance = if ($govCount1 -gt 0) { "required" } else { "none" }
-        if ($govCount1 -gt 0) {
-            Write-Bad "R$round governance appeared on FIRST open (stale persisted state) - driving switch via CDP (recorded, not zero-friction)"
-            $null = Invoke-CdpPhase -Phase "click-governance-switch" -OutFile "r${round}_cdp_gov_click_1.json"
-            $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 1 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_1b.json")
+        # ---- R-L1b: SHELL-4 kernel online at launcher stage ----
+        Write-Step "R$round L1b: kernel online at launcher (VitApp+VspHub alive, agent-owned)"
+        $kernelProcs = @(Get-Process -Name "VitApp" -ErrorAction SilentlyContinue)
+        if ($kernelProcs.Count -lt 1) { throw "R$round L1b: VitApp not running at launcher stage (kernel-ready-at-start missing)" }
+        $hubProcs = @(Get-Process -Name "VspHub" -ErrorAction SilentlyContinue)
+        if ($hubProcs.Count -lt 1) { throw "R$round L1b: VspHub not running at launcher stage" }
+        $agentPidLive = [int]$status.agent_pid
+        if ($agentPidLive -le 0) { throw "R$round L1b: agent_pid missing from status snapshot" }
+        foreach ($pair in @(@("VitApp", $kernelProcs), @("VspHub", $hubProcs))) {
+            foreach ($proc in $pair[1]) {
+                $parent = (Get-CimInstance Win32_Process -Filter "ProcessId = $($proc.Id)" -ErrorAction SilentlyContinue).ParentProcessId
+                if ([int]$parent -ne $agentPidLive) {
+                    throw "R$round L1b: $($pair[0]) pid=$($proc.Id) parent=$parent != agent pid=$agentPidLive (spawn ownership broke)"
+                }
+            }
         }
+        $greetingHttp = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/launcher/greeting" -TimeoutSec 45
+        if (-not $greetingHttp.ok) { throw "R$round L1b: greeting HTTP unreachable: $($greetingHttp.body)" }
+        $greetingJson = $greetingHttp.body | ConvertFrom-Json
+        if ([bool]$greetingJson.kernel_unavailable) { throw "R$round L1b: greeting kernel_unavailable=true (kernel-online leg)" }
+        if ([int]$greetingJson.recent_count -lt 1) { throw "R$round L1b: greeting recent_count=$($greetingJson.recent_count) (expected >=1 seeded real data)" }
+        if ("$($greetingJson.reply)" -notmatch "fixture_a") { throw "R$round L1b: greeting reply does not name the seeded recent: $($greetingJson.reply)" }
+        $kernelOnline = Invoke-CdpPhase -Phase "probe-launcher-kernel-online" -OutFile "r${round}_cdp_kernel_online.json"
+        $roundMeta.kernel_online = @{
+            vitapp_count = $kernelProcs.Count
+            vsphub_count = $hubProcs.Count
+            agent_pid = $agentPidLive
+            greeting_recent_count = [int]$greetingJson.recent_count
+            drawer_rows = $kernelOnline.recents_rows
+        }
+        Write-Ok ("R$round L1b: kernel online at launcher (VitApp=" + $kernelProcs.Count + " VspHub=" + $hubProcs.Count + " agent-owned; greeting real data recents=" + $greetingJson.recent_count + ")")
+
+        # ---- R-L1c: SHELL-4 new-project end-to-end (launcher chat -> directive -> bridge -> kernel new -> project) ----
+        Write-Step "R$round L1c: new-project end-to-end (launcher chat -> kernel create -> enter project)"
+        $newName = "SHELL4NP_R$round"
+        $null = Invoke-CdpPhase -Phase "launcher-chat-new" -OutFile "r${round}_cdp_chat_new.json" -NewProjectName $newName
+        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 1 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_new.json")
+        $newReady = Invoke-CdpPhase -Phase "probe-project-ready" -OutFile "r${round}_cdp_new_ready.json"
+        if ([string]::IsNullOrWhiteSpace("$($newReady.context_name)")) { throw "R$round L1c: project surface ready but context name empty" }
+        $roundMeta.new_project_name = $newName
+        $roundMeta.new_project_context_name = $newReady.context_name
+        Write-Ok ("R$round L1c: new project entered end-to-end (context=" + $newReady.context_name + ", launch_count=1)")
+
+        # ---- R-L1d: close DAW -> kernel survives (lifecycle belongs to main window) ----
+        Write-Step "R$round L1d: close DAW -> kernel survives"
+        $closeDawNew = Get-HttpPost -Url "$StatusBase/vitshell/close-daw" -TimeoutSec 5
+        if (-not $closeDawNew.ok) { throw "R$round L1d: POST close-daw failed: $($closeDawNew.body)" }
+        Wait-StatusField -StatusUrl $StatusUrl -Field "godot_running" -Expect "False" -TimeoutSec 30 -ArtifactPath (Join-Path $RunRoot "r${round}_status_new_daw_closed.json")
+        $null = Invoke-CdpPhase -Phase "probe-launcher-back" -OutFile "r${round}_cdp_new_back.json"
+        $kAfterNew = @(Get-Process -Name "VitApp" -ErrorAction SilentlyContinue).Count
+        $hAfterNew = @(Get-Process -Name "VspHub" -ErrorAction SilentlyContinue).Count
+        if ($kAfterNew -lt 1 -or $hAfterNew -lt 1) {
+            throw "R$round L1d: kernel/hub died with DAW close (VitApp=$kAfterNew VspHub=$hAfterNew) - lifecycle must belong to the main window"
+        }
+        $roundMeta.kernel_survives_daw_close_after_new = $true
+        Write-Ok ("R$round L1d: DAW closed, kernel survives (VitApp=$kAfterNew VspHub=$hAfterNew)")
+
+        # ---- R-L2: first file open (zero friction expected) -> direct-launch -> project ----
+        Write-Step "R$round L2: drawer open (fixture A) -> agent open chain -> Godot direct-launch"
+        # SHELL-4: the L1c new project was launch 1; the fixture_a file open is
+        # launch 2. The L1c blank draft is the active project, so the in-page
+        # governance card is EXPECTED on this open - answer it via the real
+        # bridge path (mirror of L5) instead of waiting for a launch that never
+        # comes without a choice. Baseline BEFORE the click: the governance
+        # request fires inside the click-open CDP phase (choose_file chain).
+        $bridgeLog = Join-Path $RunRoot "r${round}_bridge.log"
+        $govBeforeOpen = (Select-String -Path $bridgeLog -Pattern "governance.required" -ErrorAction SilentlyContinue | Measure-Object).Count
+        $null = Invoke-CdpPhase -Phase "click-open" -OutFile "r${round}_cdp_click_open_1.json"
+        $govDeadline = (Get-Date).AddSeconds(20)
+        $govSeen = $false
+        while ((Get-Date) -lt $govDeadline) {
+            Start-Sleep -Milliseconds 400
+            $govNow = (Select-String -Path $bridgeLog -Pattern "governance.required" -ErrorAction SilentlyContinue | Measure-Object).Count
+            if ($govNow -gt $govBeforeOpen) { $govSeen = $true; break }
+            $snap = Get-HttpJson -Url $StatusUrl -TimeoutSec 3
+            if ($snap.ok) {
+                try { if ([int]($snap.body | ConvertFrom-Json).launch_count -ge 2) { break } } catch {}
+            }
+        }
+        $roundMeta.first_open_governance = if ($govSeen) { "required" } else { "none" }
+        if ($govSeen) {
+            $null = Invoke-CdpPhase -Phase "click-governance-switch" -OutFile "r${round}_cdp_gov_click_1.json"
+        }
+        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 2 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_1.json")
+        if (-not $status.godot_running) { throw "R$round godot not running after first file open" }
+        $roundMeta.godot_pid_1 = $status.godot_pid
+        Write-Ok ("R$round first file open: godot pid=" + $status.godot_pid + " launch_count=2 (governance=" + $roundMeta.first_open_governance + ")")
         $null = Invoke-CdpPhase -Phase "probe-project" -OutFile "r${round}_cdp_probe_project.json"
         $projReady = Invoke-CdpPhase -Phase "probe-project-ready" -OutFile "r${round}_cdp_project_ready.json"
         if ($projReady.context_name -notmatch "fixture_a") { throw "R$round project context name unexpected: $($projReady.context_name)" }
@@ -695,7 +865,14 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $null = Invoke-CdpPhase -Phase "probe-launcher-back" -OutFile "r${round}_cdp_launcher_back.json"
         $back = Get-Content (Join-Path $RunRoot "r${round}_cdp_launcher_back.json") -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($back.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round sentinel changed after back-to-launcher (reload!)" }
-        Write-Ok "R$round DAW closed; launcher back in the SAME window (sentinel intact)"
+        # SHELL-4: kernel/hub must survive the DAW close (lifecycle = main window).
+        $kAfterL4 = @(Get-Process -Name "VitApp" -ErrorAction SilentlyContinue).Count
+        $hAfterL4 = @(Get-Process -Name "VspHub" -ErrorAction SilentlyContinue).Count
+        if ($kAfterL4 -lt 1 -or $hAfterL4 -lt 1) {
+            throw "R$round L4: kernel/hub died with DAW close (VitApp=$kAfterL4 VspHub=$hAfterL4) - lifecycle must belong to the main window"
+        }
+        $roundMeta.kernel_survives_daw_close_l4 = $true
+        Write-Ok ("R$round DAW closed; launcher back in the SAME window (sentinel intact; kernel survives VitApp=$kAfterL4 VspHub=$hAfterL4)")
 
         # ---- R-L5: second open -> governance card -> switch (fixture B) ----
         Write-Step "R$round L5: second open -> governance 3-key card -> switch -> fixture B direct-launch"
@@ -706,7 +883,8 @@ for ($round = 1; $round -le $Rounds; $round++) {
             throw ("R$round governance keys unexpected: save=$($gov.save) switch=$($gov.switch) cancel=$($gov.cancel)")
         }
         $null = Invoke-CdpPhase -Phase "click-governance-switch" -OutFile "r${round}_cdp_gov_click_2.json"
-        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 2 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
+        # SHELL-4: launch 1 = L1c new project, launch 2 = fixture_a open, this = 3.
+        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 3 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
         $null = Invoke-CdpPhase -Phase "probe-governance-done" -OutFile "r${round}_cdp_gov_done.json"
         $govDone = Get-Content (Join-Path $RunRoot "r${round}_cdp_gov_done.json") -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($govDone.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round sentinel changed after governed open (reload!)" }
@@ -757,7 +935,10 @@ for ($round = 1; $round -le $Rounds; $round++) {
         if ($postHash -ne $fixtureSourceHash) { throw "R$round fixture source hash changed (pollution!)" }
 
         Restore-S10State
-        Write-Ok "R$round S10 restore done (recents + runtime state)"
+        if ($script:s10RestoreErrors.Count -gt 0) {
+            throw ("R$round S10 restore FAILED (env interrupt): " + ($script:s10RestoreErrors -join "; "))
+        }
+        Write-Ok "R$round S10 restore done (recents + runtime state, hash-verified)"
 
         $roundMeta.result = "PASS"
         $roundResults += $roundMeta
@@ -768,6 +949,13 @@ for ($round = 1; $round -le $Rounds; $round++) {
     } catch {
         $roundMeta.result = "FAIL"
         $roundMeta.error = $_.Exception.Message
+        # SHELL-4 (AGENTS §8): separate failure classes - teardown/S10/fixture
+        # pollution issues are environment interrupts, not product assertions.
+        if ($roundMeta.error -match "S10|teardown|residue|pollution|not bindable|still listening") {
+            $roundMeta.failure_class = "env_interrupt"
+        } else {
+            $roundMeta.failure_class = "assertion_failure"
+        }
         # Failure-state evidence snapshot before teardown (read-only).
         $diag = [ordered]@{}
         if ($null -ne $p) {
@@ -797,8 +985,39 @@ for ($round = 1; $round -le $Rounds; $round++) {
         Write-Bad ("R$round FAIL: " + $_.Exception.Message + " - diag=" + ($diag | ConvertTo-Json -Depth 3 -Compress))
         Stop-TreeBestEffort -ShellPid $(if ($null -ne $p) { $p.Id } else { 0 })
         Restore-S10State
+        if ($script:s10RestoreErrors.Count -gt 0) {
+            Write-Bad ("R$round S10 restore ALSO FAILED (env interrupt): " + ($script:s10RestoreErrors -join "; "))
+            if (-not $roundMeta.failure_class) { $roundMeta.failure_class = "env_interrupt" }
+        }
         break
     }
+}
+
+# ---------- SHELL-4: boot-draft cleanup (delete exactly the run's drafts) ----------
+$draftsCreated = @()
+if (Test-Path $script:draftsRoot) {
+    Get-ChildItem $script:draftsRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        if (-not $script:draftsBefore.ContainsKey($_.Name)) { $draftsCreated += $_.FullName }
+    }
+}
+foreach ($draftDir in $draftsCreated) {
+    Remove-Item $draftDir -Recurse -Force -ErrorAction SilentlyContinue
+}
+$draftsLeft = @()
+if (Test-Path $script:draftsRoot) {
+    Get-ChildItem $script:draftsRoot -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+        if (-not $script:draftsBefore.ContainsKey($_.Name)) { $draftsLeft += $_.Name }
+    }
+}
+$runMeta.boot_drafts_created = $draftsCreated.Count
+$runMeta.boot_drafts_left_after_cleanup = $draftsLeft
+if ($draftsLeft.Count -gt 0) {
+    Write-Bad ("S10 boot drafts not cleaned (env interrupt): " + ($draftsLeft -join "; "))
+    $overallOk = $false
+    $runMeta.boot_draft_cleanup = "FAILED (env interrupt)"
+} else {
+    $runMeta.boot_draft_cleanup = "ok"
+    Write-Ok ("boot drafts cleaned (" + $draftsCreated.Count + " created by this run, all removed)")
 }
 
 # ---------- final meta + verdict ----------

@@ -166,7 +166,12 @@ type Server struct {
 	// version.project_opened 工程进入播报到达即置 true，进程内不重置（重启回
 	// false）。s.mu 保护。
 	userEnteredProject bool
-	authorityMode      string
+	// kernelBootWait（SHELL-4 内核随窗就绪）：有界等待内核引导完成的钩子，
+	// cmd/vitagent 注入（runtimehost.Supervisor.WaitKernelReady）；nil=未注入
+	// （旧链/测试——greeting 不等待，直接按内核探测结果三态回执）。只读并发
+	// 安全（注入发生在 server 启动前，SetKernelBootWait 自带 s.mu）。
+	kernelBootWait func(context.Context, time.Duration) bool
+	authorityMode  string
 	// authorityModeExplicit marks an in-process authority selection (authority
 	// control switch or a chat turn's binding). Both restore surfaces — the
 	// workspace activation path and the scheduler's disk reload — replay the
@@ -1273,6 +1278,13 @@ func (s *Server) handleUIState(w http.ResponseWriter, r *http.Request) {
 	goal := s.harness.RuntimeStatus("")
 	uiContext := s.uiContextSnapshot()
 	state := mergeUIContext(s.harness.UserStateSummary(r.Context()), uiContext)
+	// SHELL-4：内核随窗就绪后「新建工程」链落地为无 path 的空白 edit+草稿
+	// 工作区——shadow state 的 project_path 此时为空，而 /agent/state 的治理
+	// 面已按身份解析出草稿路径（先例：VitShell governance.required 带 draft
+	// path）。ui/state 对齐同一语义：state 无 path 时回填活跃工作区路径，
+	// 工程面（projectContextFromUIState 判据 project_path 非空）才能装载
+	// 新建工程的上下文（真栈 debug_4/5 证据：projectState=error「尚未装载」）。
+	backfillUIStateProjectPath(state, s.activeWorkspacePathSnapshotForUI())
 	projection := uiStateProjection(state)
 	macroControls := uiMacroControls(state)
 	projectHistory := s.harness.ProjectHistorySummaryForProject(r.Context(), goal.GoalID, firstStringFromMap(state, "project_path", "current_project_path"))
@@ -2214,6 +2226,33 @@ func uiProjectState(state map[string]any) map[string]any {
 		"last_delta_seq":   state["last_delta_seq"],
 		"delta_seq_gaps":   state["delta_seq_gaps"],
 	}
+}
+
+// activeWorkspacePathSnapshotForUI 只读活跃工作区路径快照（s.mu 保护）。
+func (s *Server) activeWorkspacePathSnapshotForUI() string {
+	if s == nil {
+		return ""
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return strings.TrimSpace(s.activeWorkspacePath)
+}
+
+// backfillUIStateProjectPath 在 state 无 project_path 时回填活跃工作区路径
+//（空白新建工程的草稿态）。已有 path 原样保留（打开工程零差异）；activePath
+// 为空不写入（无可回填=不虚构）。
+func backfillUIStateProjectPath(state map[string]any, activePath string) {
+	if state == nil {
+		return
+	}
+	if firstStringFromMap(state, "project_path", "current_project_path") != "" {
+		return
+	}
+	activePath = strings.TrimSpace(activePath)
+	if activePath == "" {
+		return
+	}
+	state["project_path"] = activePath
 }
 
 func uiTransportState(state map[string]any) map[string]any {

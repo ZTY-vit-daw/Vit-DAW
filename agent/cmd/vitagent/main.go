@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -18,9 +19,22 @@ import (
 	"vit-daw-agent/internal/kernel"
 	"vit-daw-agent/internal/logx"
 	"vit-daw-agent/internal/mixboard"
+	"vit-daw-agent/internal/runtimehost"
 	"vit-daw-agent/internal/shadow"
 	"vit-daw-agent/internal/vspclient"
 )
+
+// hubHealthURLFromVSP 从 VSP hub 端点推导 /health 探测端点（…/vsp → …/health）。
+func hubHealthURLFromVSP(vspURL string) string {
+	trimmed := strings.TrimRight(strings.TrimSpace(vspURL), "/")
+	if trimmed == "" {
+		return ""
+	}
+	if idx := strings.LastIndex(trimmed, "/"); idx >= 0 {
+		return trimmed[:idx] + "/health"
+	}
+	return trimmed + "/health"
+}
 
 func main() {
 	configureCapabilityRuntimeV1Defaults()
@@ -75,9 +89,16 @@ func main() {
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
+	// SHELL-4：显式先 bind 再 Serve——bind 失败在 spawn 任何 runtime children
+	// 之前同步退出（occupied-port 腿保持「agent 退出、零残留」语义）。
+	listener, err := net.Listen("tcp", *httpAddr)
+	if err != nil {
+		logger.Error("HTTP listen failed on %s: %v", *httpAddr, err)
+		os.Exit(1)
+	}
 	go func() {
 		logger.Info("HTTP agent API listening on http://%s", *httpAddr)
-		if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := httpServer.Serve(listener); err != nil && err != http.ErrServerClosed {
 			logger.Error("HTTP server failed: %v", err)
 			stop()
 		}
@@ -89,6 +110,22 @@ func main() {
 			stop()
 		}
 	}()
+
+	// SHELL-4 内核随窗就绪：VitShell 委派（env VIT_AGENT_SPAWN_RUNTIME=1）时，
+	// agent 启动即保障 headless 内核+VspHub 在线（探测先行，缺才 spawn；
+	// children 挂 agent 树=随 VitShell 主窗退出而退出；agent 退出兜底 kill）。
+	runtimeHost := runtimehost.New(runtimehost.Config{
+		Enabled:      runtimehost.EnabledFromEnv(),
+		DevRoot:      runtimehost.DevRootFromEnv(),
+		KernelReqURL: *zmqReqURL,
+		HubHealthURL: hubHealthURLFromVSP(*vspHubURL),
+		Logger:       logger,
+	})
+	if runtimeHost != nil {
+		runtimeHost.Start(ctx)
+		defer runtimeHost.Shutdown()
+		chatServer.SetKernelBootWait(runtimeHost.WaitKernelReady)
+	}
 
 	startVSPHubRegistration(ctx, logger, *vspHubURL, *vspHubReq, reqTimeout, stop)
 

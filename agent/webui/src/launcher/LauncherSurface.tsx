@@ -538,6 +538,9 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
       data-launcher-root
       data-launcher-state={rootState}
       data-launcher-bridge={bridgeAvailable ? "available" : fixture ? "fixture" : "unavailable"}
+      data-launcher-kernel={
+        greeting?.kernel_unavailable ? "unavailable" : greetingState === "ready" ? "online" : undefined
+      }
       data-fixture={fixture ? "launcher-surface" : undefined}
     >
       <div className={frameClass} data-launcher-frame>
@@ -603,7 +606,7 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
             ) : null}
             {drawerState === "empty" ? (
               <p className="v5-launcher-drawer-note" data-launcher-drawer-empty>
-                还没有最近工程记录。可以说「新建一个工程」，或从磁带流里选文件打开。
+                还没有最近工程记录。可以说「新建一个工程」，或点「打开…」选择工程文件。
               </p>
             ) : null}
             {drawerEntries.length > 0 ? (

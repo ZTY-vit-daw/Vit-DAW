@@ -27,6 +27,9 @@ type launcherFakeKernel struct {
 	recents []string
 	err     error
 	calls   int
+	// failFirstN：前 N 次调用按 err 失败（SHELL-4 引导等待用例——冷启动
+	// 引导窗口内首读失败、等待后重读成功）。
+	failFirstN int
 }
 
 func (f *launcherFakeKernel) SendCommand(_ context.Context, cmd map[string]any) (map[string]any, string, error) {
@@ -34,7 +37,10 @@ func (f *launcherFakeKernel) SendCommand(_ context.Context, cmd map[string]any) 
 	if name := fmt.Sprint(cmd["cmd"]); name != "get_recent_projects" {
 		return map[string]any{"status": "error", "error": "unexpected cmd " + name}, "", nil
 	}
-	if f.err != nil {
+	if f.err != nil && f.calls <= f.failFirstN {
+		return nil, "", f.err
+	}
+	if f.err != nil && f.failFirstN == 0 {
 		return nil, "", f.err
 	}
 	arr := make([]any, len(f.recents))
@@ -395,15 +401,75 @@ func TestLauncherGreetingEndpoint(t *testing.T) {
 			t.Fatalf("fallback greeting body: %s", rec.Body.String())
 		}
 	})
-	t.Run("内核不可达-降级模板", func(t *testing.T) {
+	t.Run("内核不可达-诚实三态不冒充空态", func(t *testing.T) {
+		// SHELL-4：内核不可达不再是「还没有最近的工程记录」——显式
+		// kernel_unavailable=true + 专用文案（与 API/LLM 故障区分）。
 		s := newLauncherTestServer(&launcherFakeKernel{err: errors.New("down")}, nil)
 		rec := httptest.NewRecorder()
 		s.handleLauncherGreeting(rec, httptest.NewRequest(http.MethodGet, "/agent/launcher/greeting", nil))
 		if rec.Code != http.StatusOK {
 			t.Fatalf("status=%d", rec.Code)
 		}
-		if !strings.Contains(rec.Body.String(), "还没有最近的工程记录") {
-			t.Fatalf("degraded greeting body: %s", rec.Body.String())
+		body := rec.Body.String()
+		var payload struct {
+			Reply             string `json:"reply"`
+			KernelUnavailable bool   `json:"kernel_unavailable"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+			t.Fatal(err)
+		}
+		if !payload.KernelUnavailable {
+			t.Fatalf("kernel_unavailable must be true, body: %s", body)
+		}
+		if !strings.Contains(payload.Reply, "暂时连不上内核") || !strings.Contains(payload.Reply, "不是对话 API 的问题") {
+			t.Fatalf("kernel-unavailable greeting reply: %q", payload.Reply)
+		}
+		if strings.Contains(payload.Reply, "还没有最近的工程记录") {
+			t.Fatalf("kernel-unavailable greeting must not masquerade as empty recents: %q", payload.Reply)
+		}
+	})
+	t.Run("冷启动引导窗口-等待后真数据", func(t *testing.T) {
+		// SHELL-4：kernelBootWait 注入时，首读失败先有界等待再读；等待成功
+		// →真数据 greeting（不是降级）。
+		kernel := &launcherFakeKernel{recents: launcherTestRecents, err: errors.New("booting"), failFirstN: 1}
+		s := newLauncherTestServer(kernel, nil)
+		waitCalled := false
+		s.SetKernelBootWait(func(_ context.Context, _ time.Duration) bool {
+			waitCalled = true
+			return true
+		})
+		rec := httptest.NewRecorder()
+		s.handleLauncherGreeting(rec, httptest.NewRequest(http.MethodGet, "/agent/launcher/greeting", nil))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("status=%d body=%s", rec.Code, rec.Body.String())
+		}
+		if !waitCalled {
+			t.Fatal("boot wait hook must be consulted on first read failure")
+		}
+		if !strings.Contains(rec.Body.String(), "小星星乐局") {
+			t.Fatalf("post-wait greeting must carry real recents, body: %s", rec.Body.String())
+		}
+		var payload struct {
+			KernelUnavailable bool `json:"kernel_unavailable"`
+		}
+		if err := json.Unmarshal(rec.Body.Bytes(), &payload); err != nil {
+			t.Fatal(err)
+		}
+		if payload.KernelUnavailable {
+			t.Fatalf("post-wait greeting must not be kernel_unavailable, body: %s", rec.Body.String())
+		}
+	})
+	t.Run("等待放弃-快速诚实降级", func(t *testing.T) {
+		kernel := &launcherFakeKernel{err: errors.New("down forever")}
+		s := newLauncherTestServer(kernel, nil)
+		s.SetKernelBootWait(func(_ context.Context, _ time.Duration) bool { return false })
+		rec := httptest.NewRecorder()
+		s.handleLauncherGreeting(rec, httptest.NewRequest(http.MethodGet, "/agent/launcher/greeting", nil))
+		if rec.Code != http.StatusOK {
+			t.Fatalf("status=%d", rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), "连不上内核") {
+			t.Fatalf("gave-up greeting must be the honest kernel-unavailable template: %s", rec.Body.String())
 		}
 	})
 	t.Run("非GET拒绝", func(t *testing.T) {
@@ -524,7 +590,9 @@ func TestAgentStateDisclosesCurrentProject(t *testing.T) {
 // LLM 零真栈。
 
 // launcherBridgeBindProject 在 t.TempDir 造真实工程文件（可控 mtime）并绑定为
-// 活跃工作区（eduJam 测试同款 s.mu 直设先例）。
+// 活跃工作区（eduJam 测试同款 s.mu 直设先例）。SHELL-4 起同步置 340 会话事实
+// （user_entered_project）——真实链路里 directive 执行后绑定生效即宿主已播报
+// version.project_opened（UI 执行 → activation → 宿主播报），测试模拟对齐全链。
 func launcherBridgeBindProject(t *testing.T, s *Server, name string, modTime time.Time) string {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), name+".vit")
@@ -538,6 +606,7 @@ func launcherBridgeBindProject(t *testing.T, s *Server, name string, modTime tim
 	s.activeWorkspacePath = path
 	s.activeWorkspaceUUID = "vitproj_bridge_" + name
 	s.mu.Unlock()
+	s.markUserEnteredProject()
 	return path
 }
 
@@ -685,6 +754,29 @@ func TestLauncherBridgeBroadcastNoBindingProject(t *testing.T) {
 			t.Fatal("unbound state must not broadcast (仍在 launcher 卷)")
 		}
 	})
+	t.Run("SHELL-4 boot默认绑定未进入-不播报且launcher路由可达", func(t *testing.T) {
+		// 内核随窗就绪：agent 启动即绑定内核默认工程（activeWorkspacePath 非
+		// 空）但宿主从未播报 version.project_opened——桥接播报不得劫持 launcher
+		// 轮；确定性 launcher 路由（new/open/list）照常服务。
+		s := newLauncherTestServer(&launcherFakeKernel{recents: launcherTestRecents}, nil)
+		if _, handled := s.handleLauncherFlowChat(ctx, launcherChatCtx(), "conv-boot-bound", "打开小星星", "default"); !handled {
+			t.Fatal("launcher turn not handled (origin marker)")
+		}
+		s.mu.Lock()
+		s.activeWorkspacePath = filepath.Join(t.TempDir(), "Unsaved.vit")
+		s.activeWorkspaceUUID = "vitproj_boot_default"
+		s.mu.Unlock()
+		if s.userEnteredProjectSnapshot() {
+			t.Fatal("precondition: host never broadcast project_opened")
+		}
+		if _, served := s.launcherBridgeBroadcastCheckpoint(ctx, "conv-boot-bound", "chat", "新建工程 调试曲"); served {
+			t.Fatal("boot-default binding must not hijack launcher turns (SHELL-4 gate)")
+		}
+		resp, handled := s.handleLauncherFlowChat(ctx, launcherChatCtx(), "conv-boot-bound", "新建工程 调试曲", "default")
+		if !handled || resp.LauncherDirective == nil || resp.LauncherDirective.Action != "new_project" || resp.LauncherDirective.ProjectName != "调试曲" {
+			t.Fatalf("launcher new-intent must still serve directive, handled=%v directive=%+v", handled, resp.LauncherDirective)
+		}
+	})
 	t.Run("斜杠与命令词-放行且不消耗一次性名额", func(t *testing.T) {
 		s, _ := newBoundServer(t, "conv-bridge-cmd")
 		for _, msg := range []string{"/status", "开始乐局"} {
@@ -705,6 +797,7 @@ func TestLauncherBridgeBroadcastNoBindingProject(t *testing.T) {
 		s.activeWorkspacePath = filepath.Join(t.TempDir(), "不存在工程.vit")
 		s.activeWorkspaceUUID = "vitproj_bridge_missing"
 		s.mu.Unlock()
+		s.markUserEnteredProject() // SHELL-4：340 会话事实（宿主已播报进入）
 		resp, served := s.launcherBridgeBroadcastCheckpoint(ctx, "conv-bridge-soft", "chat", "在吗")
 		if !served {
 			t.Fatal("stat failure must degrade, not suppress the broadcast")
@@ -873,5 +966,27 @@ func TestLauncherDirectiveConfirmationSentence(t *testing.T) {
 				t.Fatalf("directive receipt context_flow=%q want %q", resp.ContextFlow, launcherFlowLauncher)
 			}
 		})
+	}
+}
+
+// SHELL-4：ui/state project_path 回填（新建空白工程的草稿态装载）。
+func TestBackfillUIStateProjectPath(t *testing.T) {
+	// 空 state + 草稿活跃路径 → 回填。
+	state := map[string]any{"initialized": true}
+	backfillUIStateProjectPath(state, `C:\d\draft_1\Unsaved.vit`)
+	if got := firstStringFromMap(state, "project_path"); got != `C:\d\draft_1\Unsaved.vit` {
+		t.Fatalf("backfill missing: %q", got)
+	}
+	// 已有 path（打开工程）→ 原样保留，零差异。
+	state = map[string]any{"project_path": "D:/p/甲.vit"}
+	backfillUIStateProjectPath(state, "C:/other/Unsaved.vit")
+	if got := firstStringFromMap(state, "project_path"); got != "D:/p/甲.vit" {
+		t.Fatalf("existing path must stay: %q", got)
+	}
+	// 无可回填 → 不虚构。
+	state = map[string]any{}
+	backfillUIStateProjectPath(state, "  ")
+	if _, has := state["project_path"]; has {
+		t.Fatal("empty active path must not fabricate project_path")
 	}
 }
