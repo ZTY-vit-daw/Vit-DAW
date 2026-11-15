@@ -302,7 +302,11 @@ async function main() {
       "ids drifted after apply");
 
     // ---- P4 A6 save -> reopen -> reload round-trip ----
-    const projectPath = String((await invoke("get_project_state", {})).project?.file_path || "");
+    const stateResult = await invoke("get_project_state", {});
+    const projectObj = stateResult.project && typeof stateResult.project === "object" ? stateResult.project : {};
+    const projectPath = String(
+      projectObj.file_path || projectObj.path || stateResult.project_path || stateResult.current_project_path || ""
+    );
     await invoke("save_project", {}, true);
     const savedNotes = await readKernelNotes(clipID, trackID);
     const savedSet = noteSetOf(savedNotes);
