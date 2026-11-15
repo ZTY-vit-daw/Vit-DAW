@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 )
@@ -102,10 +103,23 @@ func EnsureYueEngine(ctx context.Context, cfg ProviderConfig) (*EngineHandle, er
 		env = append(env, k+"="+v)
 	}
 	cmd.Env = env
-	// Discard engine output so a chatty engine cannot block on a full pipe;
-	// the engine's own log surface is its own concern.
-	cmd.Stdout = nil
-	cmd.Stderr = nil
+	// Engine output goes to append-mode log files when configured (startup
+	// forensics) and is discarded otherwise — a chatty engine can never block
+	// the supervisor on a full pipe.
+	if path := strings.TrimSpace(ec.StdoutLog); path != "" {
+		if f, oerr := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644); oerr == nil {
+			cmd.Stdout = f
+			// The file handle lives with the process; closed on exit by the
+			// runtime once cmd.Wait reaps it.
+			defer func() { _ = f.Close() }()
+		}
+	}
+	if path := strings.TrimSpace(ec.StderrLog); path != "" {
+		if f, oerr := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644); oerr == nil {
+			cmd.Stderr = f
+			defer func() { _ = f.Close() }()
+		}
+	}
 	applyEngineSysProcAttr(cmd)
 	if serr := cmd.Start(); serr != nil {
 		return nil, &Error{Class: ClassConfigError, ProviderMessage: fmt.Sprintf("engine start failed for provider %q (%s): %v", cfg.ID, ec.Command, serr)}

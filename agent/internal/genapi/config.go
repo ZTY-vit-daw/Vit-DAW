@@ -164,6 +164,10 @@ type EngineConfig struct {
 	WorkingDir string `json:"working_dir,omitempty"`
 	// Env overlays the process environment (PATH additions, model roots...).
 	Env map[string]string `json:"env,omitempty"`
+	// StdoutLog/StderrLog redirect the engine process output to append-mode
+	// files (failure forensics for C7-class startup issues; empty=discard).
+	StdoutLog string `json:"stdout_log,omitempty"`
+	StderrLog string `json:"stderr_log,omitempty"`
 	// ReadyTimeoutSeconds bounds the start-to-ready wait (default 300).
 	ReadyTimeoutSeconds int `json:"ready_timeout_seconds,omitempty"`
 	// PollIntervalSeconds between readiness probes (default 2).

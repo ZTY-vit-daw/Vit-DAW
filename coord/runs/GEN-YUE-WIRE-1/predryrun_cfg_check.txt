@@ -1,0 +1,6 @@
+id: yue-local dialect: yue_local
+command: E:\AI\YuE2\engine\yue-server.exe
+model arg: E:\AI\YuE2\models\YuE2-3B-Q8_0.gguf
+working_dir: E:\AI\YuE2\engine
+stdout_log: C:\Users\timoz\AppData\Local\Temp\yuewire_cfg_jgpmx0ij\engine_supervisor_stdout.log
+JSON_CFG_DRYRUN_OK
