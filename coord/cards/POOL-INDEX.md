@@ -172,3 +172,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 373 | SRC-TEMPLATE-1 | done 已验收 pass 合入（**DG1-B 真栈 B1-B7 全绿**：melody-drum-v1 模板（2/4/80/C+Surge 血统+鼓 groove）+coursetemplate 包；save→.vit 语义发现入卷；**用户听核 M2 候用户**（Godot 链 lesson_project.vit）） |
 | 374 | SCORE-WORKBENCH-1 | doing（2026-11-16 00:1x 领取：owner GLM-5.3 L2 执行子代理/PC，worktree `C:/Users/timoz/wt_score1`（D 盘净空不足落 C 盘）分支 `port/score-workbench-1`，基线 fea0829a；M1→M5 顺序执行，装配点=App.tsx WorkbenchTab 三点接线；真栈腿候栈 372 占用中→373 DG1-B→本卡） |
 | 375 | KERNEL-TIMESIG-1 | done 已验收 pass 合入（set_time_signature+创建 2/4 应用+§11 全过亲证（ctest 15/15+T1-T5 真栈）；实现→main aea3c37a/456b96ef；**374 M3 解锁**；legacy.command 语义发现入卷） |
+| 376 | UI-SMOKE-AUTOASSERT-1 | doing（2026-11-16 领取：owner GLM-5.3 flash 执行子代理/PC 主检出零栈直做，基线 456b96ef；render-smoke.mjs LAUNCHER/SHADOWBOX directive 断言对齐 SHELL-5 自动执行态，diff 仅断言；**紧急——374 M5 三门被此红阻塞**） |
