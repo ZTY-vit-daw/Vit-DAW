@@ -49,6 +49,7 @@ VF5 在真实装配面不可用（npm/许可意外）→取证上交；治理粒
 
 ## 回执
 
+- **M2 完成**（commit 634a2bc3 @ port/score-workbench-1）：edit.ts 编辑全集（放符/时值/附点表 2↔3/4↔6/休止/延音建立=相邻同音高合并/延音解除=链内拆分/删除/拖动；paint 语义）+buildApplyPatch=单次 replace_region 整段覆盖（治理粒度=本地缓冲+显式 apply 单次确认落实）；ScoreWorkbenchPanel（data-score-* 锚点族；无内核 fail-honest）；App.tsx 三点接线完成（类型+页签+分支+宽度行）。测试 +20（panel 交互 12+edit 纯函数 8；react-dom/client+React19 act 零新依赖）。三门：vitest 652/652/build exit 0。已知边界：vexflow 静态进主包（chunk 大小警告，懒加载候后续）。
 - **M1 完成**（commit 93a414d8 @ port/score-workbench-1 已推）：DERIVATION_RULES.md v1 成文（R1 切分/R2 符号表+休止填充表/R3 延音链；R1.5 整小节归并=不做，W18 候裁定）+model.ts（fail-honest 网格校验/序列化往返）+derive.ts（4/4、3/4 支持面）+render.ts（VF5 薄适配，唯一 vexflow import 点；tick→x 行表+命中检测）。测试：scoreworkbench 34 例全绿（jsdom env 文件头注释成文）；三门= vitest 632/632（基线 598 亲测+34 新增）/npm run build exit 0/go 不涉。VF5 类型面新漂移实证：Voice 参数 camelCase（numBeats/beatValue）——适配层吸收，另 Renderer 容器类型收窄 HTMLDivElement。
 
 ## 验收
