@@ -67,3 +67,11 @@
 - 覆盖边界（零栈卡声明）：本卡为浏览器渲染面（零栈）验证——三门全绿 + 两面 fixture computed 断言 + 负对照拦截实证 + 两面截图在卷。**真实栈表现（真数据线程下的用户消息框、窄窗/长文本换行表现、launcher live 面真实 agent 数据）候主管烟测/用户目检复验**；工程面 v5 线程仅覆盖 fixture 数据面。
 
 ### 验收：待主管决策流（+用户目检用户消息来源一眼可辨）
+
+### 验收（主管 2026-11-15 晚窗）
+
+- 裁定：**pass**——diff 域亲核（launcher.css/project.css/SPEC-V5/render-smoke+工件，零越域）；三门主管复跑全绿（vitest 573/573、build、test:render SHADOWBOX_RESULT=PASS）；**两面 computed 证据亲核**（launcher/project 用户消息 border solid 1px+双层柔影+右对齐，assistant 无框负断言在卷）；负对照拦截（摘框→FAIL exit 1）执行侧实证接受；工程面 width→max-width 视觉变更采纳。
+- 合入：实现 `65c659bf` cherry-pick 至 main（`3a3d2973`），合并 `52641eb1`。
+- 留主管观察项采纳：Message.tsx 旧口径注释/测试用例名（344 时代）下次域内卡顺手清理。
+- 事故记录：执行流协调过程曾在 doing/todo 副本产生 GBK 双编码损坏（违反派发提示词的 PowerShell 禁令）；远端终态干净、损坏仅限未跟踪残留，主管已清理（doing/todo 两副本删除），零内容损失。
+- 残余：真实栈表现（真数据线程/窄窗长文本/live 面）候用户目检一并复验。
