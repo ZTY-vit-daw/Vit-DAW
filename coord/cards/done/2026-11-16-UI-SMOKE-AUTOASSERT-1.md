@@ -41,3 +41,8 @@ test:render 全段 PASS 亲证（主管复跑）+零行为改动（diff 仅断�
 - 领取提交 7ab5cca0 已推 main；本回执后随完成提交入库。
 
 ## 验收：待主管复跑裁定
+
+### 验收（主管 2026-11-16 凌晨）
+
+- 裁定：**pass**——主管复跑 test:render **七段全 PASS 亲证**（LAUNCHER/SHADOWBOX 转绿；directiveState=auto+零手动按钮负断言在卷）；vitest 598+build 不回退；diff 断言域（旧按钮选择器转为回归守卫=好手法）；微卡直改主检出合规（生产 src 零触碰）。
+- **374 M5 三门阻塞解除**。验收缺口归因链（364/367 验收未跑 render+栅栏禁入）在 375 卡面+本卡闭环。
