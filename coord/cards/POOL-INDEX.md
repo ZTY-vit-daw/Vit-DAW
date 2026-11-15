@@ -168,4 +168,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 369 | G0-SCORE-SPIKE-1 | doing（2026-11-15 23:21 领取，GLM-5.3 执行子代理/PC，worktree `D:/Vit_DAW_wt_369coord` 分支 `coord/369-claim`，基线 9cc3048c） |
 | 370 | G0-LEGAME-CONTRACT-1 | doing（GLM-5.3-Flash 执行流领取 2026-11-15 深夜，基线 9cc3048c，主工作树 main——W01 乐局设计源契约冻结草案 vit.legame_design.v0；P0） |
 | 371 | G0-STACKGATE-1 | doing（单栈验收口径冻结 DG1-DG3——能力关/集成关/渲染手测关定义；owner GLM-5.3-Flash 执行流/PC，基线 9cc3048c，worktree wt_371coord） |
-| 372 | GEN-YUE-WIRE-1 | doing（2026-11-15 深夜领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_yue1` 分支 `port/gen-yue-wire-1`，基线 3997e11b；零栈段先行，真栈+真实生成烟测腿候栈第 2 位） |
+| 372 | GEN-YUE-WIRE-1 | doing（2026-11-16 凌晨零栈段完成：六项实现+单测/集成测全绿（实现 a88580d1 @ port/gen-yue-wire-1 已推）；真栈+真实生成烟测腿候栈第 2 位候 371 口径，RUNBOOK-DRAFT 在 coord/runs/GEN-YUE-WIRE-1/；owner GLM-5.3 L2 执行子代理/PC，worktree wt_yue1） |
