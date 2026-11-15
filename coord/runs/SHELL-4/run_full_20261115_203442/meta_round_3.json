@@ -1,0 +1,29 @@
+﻿{
+    "round":  3,
+    "started_at_utc":  "2026-11-15T12:36:37Z",
+    "recents_seeded_sha256":  "2C60154081235DDCEDD9697F682C9663B65B16E5567BF772E1958FFFAA58B68C",
+    "vitshell_pid":  17884,
+    "no_reload_sentinel":  1794746201396,
+    "greeting_text":  "我在。最近的工程是《fixture_a》——想从哪开始？",
+    "recents_count":  "6",
+    "kernel_online":  {
+                          "vitapp_count":  1,
+                          "greeting_recent_count":  7,
+                          "agent_pid":  1224,
+                          "vsphub_count":  1,
+                          "drawer_rows":  6
+                      },
+    "new_project_name":  "SHELL4NP_R3",
+    "new_project_context_name":  "Unsaved.vit",
+    "kernel_survives_daw_close_after_new":  true,
+    "first_open_governance":  "required",
+    "godot_pid_1":  17116,
+    "project_context_name":  "fixture_a.vit",
+    "chat_assistant_reply":  "当前工程还没有任何轨道。请先加入音频内容，之后我可以再做混音观察或诊断。\n\n（意图分类服务本次不可用，以上直接来自工程结构事实。）",
+    "chat_user_frames":  1,
+    "chat_vit_frames":  1,
+    "kernel_survives_daw_close_l4":  true,
+    "agent_current_project_after_open2":  "D:\\Vit_DAW_wt_shell4\\coord\\runs\\SHELL-4\\run_full_20261115_203442\\fixtures\\fixture_b.vit",
+    "result":  "PASS",
+    "finished_at_utc":  "2026-11-15T12:37:11Z"
+}

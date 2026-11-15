@@ -347,7 +347,7 @@ Write-Ok "stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), oc
 
 if ([string]::IsNullOrWhiteSpace($RunRoot)) {
     $stamp = Get-Date -Format "yyyyMMdd_HHmmss"
-    $RunRoot = Join-Path $MainRoot "coord/runs/SHELL-3/run_full_$stamp"
+    $RunRoot = Join-Path $MainRoot "coord/runs/SHELL-4/run_full_$stamp"
 }
 New-Item -ItemType Directory -Path $RunRoot -Force | Out-Null
 $fixturesDir = Join-Path $RunRoot "fixtures"
@@ -449,22 +449,29 @@ $runMeta.fixture_b = $fixtureB
 
 # SHELL-4: seed fixture_a at the recents head (kernel get_recent_projects reads
 # this file live) so the launcher real-data legs are deterministic on any host.
-# S10 restore (hash-verified) brings the user's file back exactly.
-$existing = @()
-if (Test-Path $recentsFile) {
-    try {
-        $parsed = Get-Content $recentsFile -Raw -Encoding UTF8 | ConvertFrom-Json
-        if ($null -ne $parsed.recent_projects) { $existing = @($parsed.recent_projects) }
-    } catch { $existing = @() }
+# Seeding runs BEFORE EVERY round's cold start: each round's teardown restore
+# brings the user's original file back, and the next round's kernel must see
+# the seeded head again (formal attempt 1 lesson: seed-once broke round 2).
+# The FINAL state after the last round's restore is the user's original file.
+function Seed-S4Recents {
+    param([string]$FixturePath)
+    $existing = @()
+    if (Test-Path $recentsFile) {
+        try {
+            $parsed = Get-Content $recentsFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            if ($null -ne $parsed.recent_projects) { $existing = @($parsed.recent_projects) }
+        } catch { $existing = @() }
+    }
+    $merged = @($FixturePath)
+    foreach ($path in $existing) {
+        if ("$path" -ne "$FixturePath") { $merged += "$path" }
+    }
+    @{ recent_projects = $merged } | ConvertTo-Json -Depth 3 | Out-File -FilePath $recentsFile -Encoding utf8
+    $seedHash = (Get-FileHash $recentsFile -Algorithm SHA256).Hash
+    Write-Ok ("recents seeded with fixture_a head (deterministic greeting; sha256=" + $seedHash.Substring(0, 12) + "...)")
+    return $seedHash
 }
-$merged = @($fixtureA)
-foreach ($path in $existing) {
-    if ("$path" -ne "$fixtureA") { $merged += "$path" }
-}
-@{ recent_projects = $merged } | ConvertTo-Json -Depth 3 | Out-File -FilePath $recentsFile -Encoding utf8
 $runMeta.recents_seeded_fixture = $fixtureA
-$runMeta.recents_seeded_sha256 = (Get-FileHash $recentsFile -Algorithm SHA256).Hash
-Write-Ok ("recents seeded with fixture_a (deterministic greeting; seeded sha256=" + $runMeta.recents_seeded_sha256.Substring(0, 12) + "...)")
 
 pushd $MainRoot
 git rev-parse HEAD 2>$null | Out-File -FilePath (Join-Path $RunRoot "main_head.txt") -Encoding utf8
@@ -735,6 +742,7 @@ for ($round = 1; $round -le $Rounds; $round++) {
     try {
         # ---- R-L0: cold start with process-level zero-Godot asserts ----
         Write-Step "R$round L0: cold start (zero Godot assert pre+post ready)"
+        $roundMeta.recents_seeded_sha256 = Seed-S4Recents -FixturePath $fixtureA
         $p = Start-VitShell -OutLog "r${round}_bridge.log" -ExtraArgs @("--smoke-file-dialog", $fixtureA, "--smoke-file-dialog-b", $fixtureB) -ExtraEnv @{ VIT_AGENT_LLM_BASE_URL = "http://127.0.0.1:1" }
         Assert-ZeroGodot -When "immediately after VitShell spawn"
         $roundMeta.vitshell_pid = $p.Id

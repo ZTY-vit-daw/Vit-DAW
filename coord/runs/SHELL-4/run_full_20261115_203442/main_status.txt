@@ -1,0 +1,9 @@
+﻿?? coord/runs/SHELL-4/debug_1/
+?? coord/runs/SHELL-4/debug_2/
+?? coord/runs/SHELL-4/debug_3/
+?? coord/runs/SHELL-4/debug_4/
+?? coord/runs/SHELL-4/debug_5/
+?? coord/runs/SHELL-4/debug_6/
+?? coord/runs/SHELL-4/debug_7/
+?? coord/runs/SHELL-4/debug_8/
+?? coord/runs/SHELL-4/run_full_20261115_203442/

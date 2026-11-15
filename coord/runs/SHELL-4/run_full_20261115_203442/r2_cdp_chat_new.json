@@ -1,0 +1,9 @@
+{
+  "phase": "launcher-chat-new",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "new_project_name": "SHELL4NP_R2",
+  "directive_headline": "准备新建《SHELL4NP_R2》…",
+  "assistant_reply": "好的，新建工程《SHELL4NP_R2》。",
+  "governance": "switch"
+}
