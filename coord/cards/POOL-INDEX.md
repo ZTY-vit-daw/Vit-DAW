@@ -159,4 +159,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 365 | UI-REC-TAPE-1 | done 已验收 pass 合入（主管复跑三门+**磁带造型目检亲证**（外壳+窗口+双带轮 20px 一眼可辨）+收起守卫采纳；实现 62fd380c→main b2eec1dd；氛围色真实名散布辨识度候用户目检）（磁带 cassette 头像 TapeBadge+§7.3/§7.3.1 v5.1.1 修订+§12 收起回归守卫，细节见卡面回执） |
 | 366 | UI-REC-TAPECARD-1 | **暂缓**（[surface 收敛裁定]——磁带卡造型直接做在装修后统一 surface 上（勘察 368 阶段 1 落位），避免双返工；用户可随时提前） |
 | 367 | SHELL-6 | doing（GLM-5.3 执行流领取 2026-11-15 深夜，基线 2ff2690d，分支 port/shell-6——工程面意图执行链+确认卡全 surface 渲染；P0） |
-| 368 | UI-CONVERGE-RECON-1 | **done 候验收**（[surface 收敛裁定](../decisions/2026-11-15-surface-convergence-ruling.md)——勘察完成：七节报告 [coord/runs/UI-CONVERGE-RECON-1/REPORT.md](../runs/UI-CONVERGE-RECON-1/REPORT.md)（App.tsx 21 块画像/T9 三批拆解/嫁接 8 锚点/收编 9 路径/阶段 1 五卡+阶段 2 七卡草案/风险定价 13–20 执行日）；vitest 584 基线亲证；越界登记：Godot 重试导航裸 URL 残留+render-smoke 实为 8 段；候主管验收+用户过目分阶段方案） |
+| 368 | UI-CONVERGE-RECON-1 | done 已验收 pass（技术面）——报告七节+分阶段卡草案在卷（阶段 1 五卡 5.5–8.5 天/阶段 2 七卡/关键路径 CONVERGE-SHELL-1）；**分阶段方案候用户过目发卡**；Godot 重试导航收编点纳入 ENTRY-1 |
