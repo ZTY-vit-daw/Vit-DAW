@@ -168,4 +168,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 369 | G0-SCORE-SPIKE-1 | doing（2026-11-15 23:21 领取，GLM-5.3 执行子代理/PC，worktree `D:/Vit_DAW_wt_369coord` 分支 `coord/369-claim`，基线 9cc3048c） |
 | 370 | G0-LEGAME-CONTRACT-1 | doing（GLM-5.3-Flash 执行流领取 2026-11-15 深夜，基线 9cc3048c，主工作树 main——W01 乐局设计源契约冻结草案 vit.legame_design.v0；P0） |
 | 371 | G0-STACKGATE-1 | done 候验收（单栈验收口径冻结 DG1-DG3——docs/STACKGATE_DG1_DG3_V1.md 候审；owner GLM-5.3-Flash 执行流/PC，worktree wt_371coord） |
-| 372 | GEN-YUE-WIRE-1 | todo（YuE2 成曲链真实接线——审计 H6 六项：MIDI→方言/prompt 映射/纯器乐/请求卫生/后台 job/引擎托管；烟测候栈位；**已确认候领取**） |
+| 372 | GEN-YUE-WIRE-1 | doing（2026-11-15 深夜领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_yue1` 分支 `port/gen-yue-wire-1`，基线 3997e11b；零栈段先行，真栈+真实生成烟测腿候栈第 2 位） |
