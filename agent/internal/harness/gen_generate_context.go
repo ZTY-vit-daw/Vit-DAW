@@ -50,6 +50,7 @@ func (h *Harness) genRenderPrompt(ctx context.Context, cmd map[string]any) (rend
 			"constraints_block":   false,
 			"guidance_block":      false,
 			"injected":            false,
+			"user_prompt":         userPrompt,
 		}, nil
 	}
 
@@ -82,6 +83,10 @@ func (h *Harness) genRenderPrompt(ctx context.Context, cmd map[string]any) (rend
 		"constraints_block":   strings.Contains(out, "== CONSTRAINTS"),
 		"guidance_block":      strings.Contains(out, "== GUIDANCE"),
 		"injected":            strings.Contains(out, "== MUSIC CONTEXT"),
+		// GEN-YUE-WIRE-1: the raw user free text (pre-render) is the
+		// deterministic style-mapping base for dialects without a free-prompt
+		// channel (yue_local); the rendered blocks never reach those engines.
+		"user_prompt": userPrompt,
 		"snapshot": map[string]any{
 			"schema_version":   snap.SchemaVersion,
 			"tempo_bpm":        snap.TempoBPM,

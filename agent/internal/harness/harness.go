@@ -124,6 +124,11 @@ type Harness struct {
 	projectHintMu   sync.RWMutex
 	projectHintPath string
 	projectHintUUID string
+
+	// GEN-YUE-WIRE-1: generation background job store (gen.jobs.*). Lazily
+	// initialized by genJobStore(); nil = no jobs started this process.
+	genJobsMu sync.Mutex
+	genJobs   *genJobStore
 }
 
 // LoudnessWatchHook is the chat-registered loudness watch seam. The harness
@@ -2886,6 +2891,15 @@ func (h *Harness) invokeLocal(ctx context.Context, spec tools.CommandSpec, cmd m
 		return resultWithErr(hook.Status(), nil), true
 	case "genapi_generate":
 		result, err := h.genGenerate(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "genapi_jobs_start":
+		result, err := h.genJobsStart(ctx, cmd)
+		return resultWithErr(result, err), true
+	case "genapi_jobs_status":
+		result, err := h.genJobsStatus(cmd)
+		return resultWithErr(result, err), true
+	case "genapi_jobs_list":
+		result, err := h.genJobsList()
 		return resultWithErr(result, err), true
 	case "genapi_providers":
 		result, err := h.genProviders()

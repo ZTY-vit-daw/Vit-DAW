@@ -1,0 +1,27 @@
+{
+  "providers": [
+    {
+      "id": "yue-local",
+      "dialect": "yue_local",
+      "base_url": "http://127.0.0.1:8087",
+      "api_key": "",
+      "download_dir": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\downloads",
+      "extra_params": { "seed": 11, "abc": "POLLUTED-ABC", "style": "polluted-style" },
+      "engine": {
+        "command": "E:\\AI\\YuE2\\engine\\yue-server.exe",
+        "args": [
+          "--model", "E:\\AI\\YuE2\\models\\YuE2-3B-Q8_0.gguf",
+          "--vae", "E:\\AI\\YuE2\\models\\YuE2-Vae-F32.gguf",
+          "--transcriber", "E:\\AI\\YuE2\\models\\SheetSage2-Q8_0.gguf",
+          "--tokenizer", "E:\\AI\\YuE2\\models\\yue2-mothersuperior-realaudio-tokenizer-v4-Q8_0.gguf",
+          "--host", "127.0.0.1", "--port", "8087", "--max-seq", "24576"
+        ],
+        "working_dir": "E:\\AI\\YuE2\\engine",
+        "stdout_log": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\engine_supervisor_stdout.log",
+        "stderr_log": "D:\\Vit_DAW_wt_yue1\\coord\\runs\\GEN-YUE-WIRE-1\\run_20261116_000009\\engine_supervisor_stderr.log",
+        "ready_timeout_seconds": 300,
+        "poll_interval_seconds": 2
+      }
+    }
+  ]
+}

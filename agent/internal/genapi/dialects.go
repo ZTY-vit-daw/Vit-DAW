@@ -204,7 +204,10 @@ func sunoRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) ma
 // limitations instead of being silently dropped. cot/steps/output_format are
 // pinned to the locally validated baseline (cot=full, steps=32, wav16) and
 // can be overridden per provider via extra_params (e.g. seed,
-// synth_batch_size, semantic_tokens replay).
+// synth_batch_size, semantic_tokens replay). The student's own abc/style/
+// lyrics fields are protected: a provider's fixed extra_params cannot
+// override them (audit H6 item 4) — protected keys are skipped here and
+// disclosed via Limitations.
 func yueRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) map[string]any {
 	body := map[string]any{
 		"cot":           "full",
@@ -224,6 +227,11 @@ func yueRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) map
 		body["duration"] = req.DurationSeconds
 	}
 	for k, v := range cfg.ExtraParams {
+		if yueKeyProtected(k) {
+			// The request's abc/style/lyrics carry the student's own score
+			// and style; a fixed provider overlay must not replace them.
+			continue
+		}
 		body[k] = v
 	}
 	return body
@@ -360,6 +368,11 @@ func (p ProviderConfig) Limitations(req GenerationRequest) []string {
 		}
 		if strings.TrimSpace(req.Title) != "" {
 			out = append(out, "title: yue_local has no title field")
+		}
+		for k := range p.ExtraParams {
+			if yueKeyProtected(k) {
+				out = append(out, fmt.Sprintf("extra_params.%s: protected student-facing field (abc/style/lyrics) — the fixed provider overlay is not applied; the request's own value is sent", k))
+			}
 		}
 	}
 	return out

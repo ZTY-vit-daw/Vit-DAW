@@ -53,6 +53,24 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 		ABC:             firstString(cmd, "abc", "abc_notation", "score_abc"),
 	}
 
+	// GEN-YUE-WIRE-1: the yue_local path applies the deterministic
+	// conditioning map (student score conversion, prompt->style mapping,
+	// instrumental score resting, dispatched summary) and ensures the local
+	// engine is up before any request leaves the process.
+	var (
+		prepared      *genapi.YuePrepareResult
+		engineHandle  *genapi.EngineHandle
+		scoreInput    *genapi.YueScoreInput
+	)
+	if provider.Dialect == "yue_local" {
+		prepared, engineHandle, scoreInput, rerr = h.genYuePrepareLocal(ctx, provider, cmd, req, promptEvidence)
+		if rerr != nil {
+			gerr := genapi.AsError(rerr)
+			return map[string]any{"status": "error", "error": gerr.Error(), "hint": "yue_local conditioning failed before submit; nothing was sent to the engine"}, gerr
+		}
+		req = prepared.Request
+	}
+
 	limitations := provider.Limitations(req)
 
 	genCtx, cancel := context.WithTimeout(ctx, provider.Timeout())
@@ -82,6 +100,38 @@ func (h *Harness) genGenerate(ctx context.Context, cmd map[string]any) (map[stri
 
 	out["scene"] = string(scene)
 	out["prompt_context"] = promptEvidence
+
+	// GEN-YUE-WIRE-1 disclosure face: what actually got dispatched to the
+	// engine (audit H6 items 2-4) plus the engine supervision state.
+	if prepared != nil {
+		out["dispatched"] = prepared.Dispatched
+		if len(prepared.Actions) > 0 {
+			out["conditioning_actions"] = prepared.Actions
+		}
+	}
+	if engineHandle != nil {
+		out["engine"] = map[string]any{
+			"external":       engineHandle.External,
+			"base_url":       engineHandle.BaseURL,
+			"pid":            engineHandle.PID,
+			"started_command": engineHandle.Command,
+			"ready_after_ms": engineHandle.ReadyAfter.Milliseconds(),
+		}
+	}
+	if scoreInput != nil {
+		// Full note list: this is the version-archive face (the original
+		// student MIDI truth the arrangement was generated from).
+		notes := make([]any, 0, len(scoreInput.Notes))
+		for _, n := range scoreInput.Notes {
+			notes = append(notes, map[string]any{"pitch": n.Pitch, "start": n.Start, "length": n.Length})
+		}
+		out["source_score"] = map[string]any{
+			"notes":          notes,
+			"time_signature": fmt.Sprintf("%d/%d", scoreInput.Numerator, scoreInput.Denominator),
+			"tempo_bpm":      scoreInput.TempoBPM,
+			"key":            scoreInput.Key,
+		}
+	}
 
 	trackID := firstString(cmd, "track_id", "target_track_id")
 	if trackID == "" {
@@ -234,4 +284,124 @@ func intValueFromMap(row map[string]any, keys ...string) int {
 		return 0
 	}
 	return int(v)
+}
+
+// genYuePrepareLocal runs the yue_local conditioning map (GEN-YUE-WIRE-1):
+// ensure the engine surface (starting it per the provider engine config when
+// configured and down), read the student score from the kernel when clip_id
+// is given, and apply the deterministic request preparation. It returns the
+// prepared request, the engine supervision handle and the raw score input
+// (for job version archiving).
+func (h *Harness) genYuePrepareLocal(ctx context.Context, provider genapi.ProviderConfig, cmd map[string]any, req genapi.GenerationRequest, promptEvidence map[string]any) (*genapi.YuePrepareResult, *genapi.EngineHandle, *genapi.YueScoreInput, error) {
+	// Engine supervision first: classified failure before any submit.
+	engineHandle, eerr := genapi.EnsureYueEngine(ctx, provider)
+	if eerr != nil {
+		return nil, nil, nil, eerr
+	}
+
+	// Student score face: kernel truth only (existing read-only commands,
+	// zero kernel changes).
+	scoreInput, serr := h.genReadStudentScore(ctx, cmd)
+	if serr != nil {
+		return nil, engineHandle, nil, serr
+	}
+
+	userPrompt := ""
+	if promptEvidence != nil {
+		if s, ok := promptEvidence["user_prompt"].(string); ok {
+			userPrompt = s
+		}
+	}
+	prepared, perr := genapi.YuePrepareRequest(req, genapi.YuePrepareOptions{
+		UserPrompt: userPrompt,
+		Score:      scoreInput,
+	})
+	if perr != nil {
+		return nil, engineHandle, scoreInput, perr
+	}
+	return &prepared, engineHandle, scoreInput, nil
+}
+
+// genReadStudentScore reads the student melody clip through the existing
+// read-only kernel commands (get_midi_clip_notes + get_project_state's
+// music_context) and assembles the deterministic conversion input. Nil clip
+// (or no clip_id) returns nil without error — no score face requested.
+func (h *Harness) genReadStudentScore(ctx context.Context, cmd map[string]any) (*genapi.YueScoreInput, error) {
+	clipID := firstString(cmd, "clip_id", "score_clip_id", "melody_clip_id")
+	if strings.TrimSpace(clipID) == "" {
+		return nil, nil
+	}
+	if h.kernel == nil {
+		return nil, fmt.Errorf("score face requires a connected kernel (clip_id=%s)", clipID)
+	}
+	notesCmd := tools.BuildCommand("get_midi_clip_notes", map[string]any{"clip_id": clipID})
+	notesReply, _, nerr := h.KernelSendCommand(ctx, notesCmd)
+	if nerr != nil || !kernelReplySucceeded(notesReply) {
+		return nil, fmt.Errorf("get_midi_clip_notes failed for %s (err=%v reply_status=%s)", clipID, nerr, firstString(notesReply, "status"))
+	}
+	rows, ok := notesReply["notes"].([]any)
+	if !ok {
+		return nil, fmt.Errorf("get_midi_clip_notes for %s returned no notes[] array (is the clip a MIDI clip?)", clipID)
+	}
+	in := &genapi.YueScoreInput{Title: firstString(cmd, "title")}
+	for i, raw := range rows {
+		row, ok := raw.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("notes[%d] is not an object", i)
+		}
+		pitch, pOK := numberValueFromMap(row, "pitch")
+		start, sOK := numberValueFromMap(row, "start")
+		length, lOK := numberValueFromMap(row, "length")
+		if !pOK || !sOK || !lOK {
+			return nil, fmt.Errorf("notes[%d] missing pitch/start/length", i)
+		}
+		in.Notes = append(in.Notes, genapi.YueNote{Pitch: int(pitch), Start: start, Length: length})
+	}
+	if len(in.Notes) == 0 {
+		return nil, fmt.Errorf("clip %s has no notes to convert", clipID)
+	}
+	// music_context for meter/tempo/key (missing context degrades to 4/4 C —
+	// disclosed through the converted header, never a hidden guess about
+	// audible values).
+	stateCmd := tools.BuildCommand("get_project_state", map[string]any{})
+	if stateReply, _, serr := h.KernelSendCommand(ctx, stateCmd); serr == nil && kernelReplySucceeded(stateReply) {
+		if mc, ok := stateReply["music_context"].(map[string]any); ok {
+			if n, ok := numberValueFromMap(mc, "time_signature_numerator"); ok && n > 0 {
+				in.Numerator = int(n)
+			}
+			if d, ok := numberValueFromMap(mc, "time_signature_denominator"); ok && d > 0 {
+				in.Denominator = int(d)
+			}
+			if t, ok := numberValueFromMap(mc, "tempo_bpm"); ok {
+				in.TempoBPM = t
+			}
+			if key, ok := mc["key_signature"].(map[string]any); ok {
+				root := strings.TrimSpace(stringOfAnyMap(key, "root_name"))
+				scale := strings.TrimSpace(stringOfAnyMap(key, "scale"))
+				if root != "" {
+					k := root
+					if strings.EqualFold(scale, "minor") && !strings.HasSuffix(k, "m") {
+						k += "m"
+					}
+					in.Key = k
+				}
+			}
+		}
+	}
+	if in.Numerator == 0 {
+		in.Numerator = 4
+	}
+	if in.Denominator == 0 {
+		in.Denominator = 4
+	}
+	return in, nil
+}
+
+func stringOfAnyMap(m map[string]any, key string) string {
+	if v, ok := m[key]; ok {
+		if s, ok := v.(string); ok {
+			return s
+		}
+	}
+	return ""
 }

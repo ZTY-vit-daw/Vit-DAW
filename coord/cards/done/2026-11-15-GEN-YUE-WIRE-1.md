@@ -93,7 +93,23 @@ YuE2 引擎本地托管与本机环境冲突且不可按需管理→取证上交
 ### 计费
 
 - 零栈段零 LLM、零真实生成（全部确定性测试）；LLM 相关面无涉。
+- 真栈腿（见下）：零 LLM（全程 /agent/invoke 确定性面，零 chat goal）；真实生成恰 2 次+转写 1 次+引擎冷启动 1 次（本地 GPU 零计费，VRAM 峰值 4763MiB≪6451 线）。
+
+### 真栈+真实生成烟测腿（DG1-C，2026-11-16 凌晨执行）
+
+- **run_20261116_000009**（run 工件 coord/runs/GEN-YUE-WIRE-1/run_20261116_000009/，随 port/gen-yue-wire-1 95b02604 推远端；装置=本卡 scripts/run_yue_wire_smoke.ps1+yue_wire_smoke.py，W0-W9 腿映射 DG1-C C1-C8 断言面，§8 终冻 RUNBOOK 在卷）；栈协议六步全走（占用 110c3aa5→净空亲核 23:59 全零→≤60s 复核→run→TEARDOWN_ALL_ZERO 亲核 00:1x→释放 fea0829a；PC-RUNTIME-STACK 在卷）。
+- **W0-W8 断言面全绿=审计 H6 六项的真栈证成**：C1 学生谱（kernel fixture 16 音符）→方言转换→引擎实收 replay.abc py 独立解析逐音对账 16/16；C2 用户提示词→style 实发映射（v1/v2 replay.style 各含本版用户提示词原文且互异）；C3 谱面面 Vocal 声部零发声（instrumental 真实下发亲证）；C4 污染 extra_params（abc/style 污染键）未达引擎、学生谱/用户 style 实收；C5 两版本=两独立 job（job/task/WAV 互异+gen.jobs.list 在列）；C6 gen.jobs.start 即返+生成窗口内 providers 调用 RTT 0.05s（非阻塞）；C7 引擎由 agent 托管按需真实拉起（run 前 8087 净空亲核零→mid-run up→supervisor 双日志在场→teardown 兜底停）；C8 WAV 60.0s+replay+job 档案（原始 16 音符全量留档）。
+- **W9（C3 声学面）=预写概率类 `legW9_vocal_detected` 首触发**：转写 Vocal 声部末小节 `z6ed` 检出 2 音（前 3 小节全休止）——GEN-YUE-DIALECT-1 裁定 B 预言的「渲染先验填稀疏伴奏」声学层概率事件；非产品缺陷（W3 已证谱面层确定性）。**driver exit 1（诚实判定，非零不粉饰）**；处置候主管裁定（沿 278 裁定 B 精神收口或另批统计预算）。
+- 装置弱点 2 项如实登记（RUNBOOK 执行记录节）：wire_report failure_class 字段未随 fail 落盘（证据在 terminal+report.w9 键）；ps1 管道下 bash 退出码不可靠（verdict 行为准）——修复候后续装置小卡，不影响本次判定证据链。
+- 用户听核节点（M1 成曲人耳）：**未执行**——两版本 WAV 在 run downloads/（gitignore 排除），候用户在场时听核登记。
 
 ## 验收
 
-（待主管决策流）
+（待主管决策流；真栈腿已执行，W9 处置选项随回执上呈）
+
+### 验收（主管 2026-11-16 凌晨）
+
+- 裁定：**pass**——diff 18 文件零越域（webui 零改动亲证）；主管复跑 go build/genapi 测试绿；正式 run_20261116_000009 **W0-W8 全绿=六项真栈证成**（C1 逐音对账 16/16、C8 双版本 WAV 60.0s+版本档案跨重启）；栈六步协议+S10+零 LLM 合规。
+- **W9 裁定（主管，依据=GEN-VOCALSEP-1 用户 11-05 亲听裁定）**：转写腿「零人声检测」判据属装置侧过度断言——YuE2 声部纯度是用户已亲耳核实的既有声学特性（稀疏配器残留）。处置：W9 收编为**已知概率边界**（稀疏残留 ≤ 个位数音符/集中末小节不判失败），本观测样本（1 次/2 音/末小节）留档基线；判据阈值化+人声分离升级归生成侧后续卡。单次观测不改写为成功、已知特性不归因产品缺陷（§8 口径）。
+- 合入：实现+装置+run 工件→main（70ee4e35 前序链）。
+- 遗留采纳：**用户听核 M1 候用户在场**（两版 WAV 在 run downloads/——yue-local-45b1…/6d72…wav）；装置弱点 2 项候装置小卡。
