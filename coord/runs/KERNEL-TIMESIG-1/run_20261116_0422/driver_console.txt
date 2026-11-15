@@ -1,0 +1,51 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_042255\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=C:\Users\timoz\wt_timesig\coord\runs\KERNEL-TIMESIG-1\run_20261116_0422\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: C:\Users\timoz\wt_timesig
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: C:\Users\timoz\wt_timesig\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: C:\Users\timoz\wt_timesig\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: C:\Users\timoz\wt_timesig\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: C:\Users\timoz\wt_timesig\coord\runs\KERNEL-TIMESIG-1\run_20261116_0422\runtime\VitApp.exe pid=23544 workdir=C:\Users\timoz\wt_timesig\coord\runs\KERNEL-TIMESIG-1\run_20261116_0422\runtime
+
+== Start or reuse agent
+ok: started agent: C:\Users\timoz\wt_timesig\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=302
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=23544
+ok: ZMQ SUB listening: 5556 pid=23544
+
+== Project state invoke
+project.state status=ok error=
+
+== time signature smoke (KERNEL-TIMESIG-1)
+[T1] new_project 2/4 ok â€?echo + music_context 2/4
+[T2] set_time_signature 3/4 ok â€?music_context 3/4
+[T3] string_numerator rejected fail-closed â€?meter still 3/4
+[T3] zero_numerator rejected fail-closed â€?meter still 3/4
+[T3] denominator_above_64 rejected fail-closed â€?meter still 3/4
+[T3] missing_denominator rejected fail-closed â€?meter still 3/4
+[T4] save -> reopen ok â€?music_context 3/4 (round trip consistent)
+[T5] new_project without field ok â€?music_context 4/4 (zero change)
+VERDICT PASS (summary: C:\Users\timoz\wt_timesig\coord\runs\KERNEL-TIMESIG-1\run_20261116_0422\timesig_smoke_summary.json)
+ok: time signature smoke passed (kernel command face; summary: C:\Users\timoz\wt_timesig\coord\runs\KERNEL-TIMESIG-1\run_20261116_0422\timesig_smoke_summary.json)
+
+== Summary
+ok: dev agent smoke completed

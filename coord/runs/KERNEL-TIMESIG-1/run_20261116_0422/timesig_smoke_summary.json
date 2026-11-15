@@ -1,0 +1,79 @@
+{
+  "card": "KERNEL-TIMESIG-1",
+  "leg": "timesig_smoke",
+  "url": "tcp://127.0.0.1:5555",
+  "started_at": "2026-11-15T20:23:00Z",
+  "legs": {
+    "T1_create_2_4": {
+      "echo": "2/4",
+      "music_context": {
+        "time_signature": "2/4",
+        "numerator": 2,
+        "denominator": 4
+      }
+    },
+    "T2_set_3_4": {
+      "echo": "3/4",
+      "music_context": {
+        "time_signature": "3/4",
+        "numerator": 3,
+        "denominator": 4
+      }
+    },
+    "T3_fail_closed": {
+      "string_numerator": {
+        "rejected": true,
+        "message": "set_time_signature requires an integer numerator field",
+        "music_context": {
+          "time_signature": "3/4",
+          "numerator": 3,
+          "denominator": 4
+        }
+      },
+      "zero_numerator": {
+        "rejected": true,
+        "message": "time signature values must be integers in 1..64",
+        "music_context": {
+          "time_signature": "3/4",
+          "numerator": 3,
+          "denominator": 4
+        }
+      },
+      "denominator_above_64": {
+        "rejected": true,
+        "message": "time signature values must be integers in 1..64",
+        "music_context": {
+          "time_signature": "3/4",
+          "numerator": 3,
+          "denominator": 4
+        }
+      },
+      "missing_denominator": {
+        "rejected": true,
+        "message": "set_time_signature requires an integer denominator field",
+        "music_context": {
+          "time_signature": "3/4",
+          "numerator": 3,
+          "denominator": 4
+        }
+      }
+    },
+    "T4_save_reopen": {
+      "project_file": "C:\\Users\\timoz\\wt_timesig\\coord\\runs\\KERNEL-TIMESIG-1\\run_20261116_0422\\timesig_project.vit",
+      "music_context": {
+        "time_signature": "3/4",
+        "numerator": 3,
+        "denominator": 4
+      }
+    },
+    "T5_default_4_4": {
+      "music_context": {
+        "time_signature": "4/4",
+        "numerator": 4,
+        "denominator": 4
+      }
+    }
+  },
+  "finished_at": "2026-11-15T20:23:00Z",
+  "result": "PASS"
+}
