@@ -1,0 +1,20 @@
+/*
+ * UI-REC-TAPE-1（365）：启动台磁带 cassette 头像样式（TapeBadge）。
+ *
+ * 造型冻结源 = main-window-v3/SPEC.md §3 tapeSVG（组件内 SVG 几何自带描边/
+ * 填充，本文件只管容器布局，不重绘图形——冻结结构不可动，SPEC-V5 §7.3）。
+ * 场用位裁定 = 用户裁定 2026-11-15 第 1 条：启动台工程列表（recents 行 +
+ * 建议卡工程位）用磁带 cassette 造型；i-project 简化标志保留给其余 ≤48px
+ * 场用位（清单见 SPEC-V5 §7.3.1 修订段）。样式独立成文件（launcher.css 归
+ * SHELL-5 文件域，本卡不触碰）。
+ */
+
+.v5-tape-badge {
+  display: inline-flex;
+  flex: none;
+  line-height: 0;
+}
+
+.v5-tape-badge svg {
+  display: block;
+}

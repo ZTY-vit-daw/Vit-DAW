@@ -271,6 +271,11 @@ v4 两版（`../main-window-v3/v4-1-refined.html`、`v4-2-refined.html`）的问
 
 `tapeSVG` 在高度小于约 48px 时窗口区过窄、读不清，因此不在 48px 以下使用。
 
+> **v5.1.1 修订（2026-11-15，[用户裁定：启动台-工程语义四条](../../../../coord/decisions/2026-11-15-launcher-project-semantics-ruling.md) 第 1 条）**：上行的 48px 规则**不适用于启动台工程列表**（recents 工程行 + 对话流建议卡的工程位）。该场用位按用户裁定使用磁带 cassette 造型头像 `TapeBadge`（组件 `agent/webui/src/components/ProjectBadge.tsx`）：
+> - **<48px 走同造型等比简化档**：拓扑与冻结源一致（壳/窗/双带轮+毂/底标双线），令牌、带量公式 `d=r*(0.34+0.5*fill)`、毂比 0.32r、壳填充 `rgba(c1,0.62)` 逐字保留；24 网格基准，结构笔触 1.5px（§7.1 小尺寸下限）。冻结源在 20px 直绘时窗口宽为 0（`ww=bw-16`），等比简化档是「磁带盒一眼可辨」的唯一小尺寸实现路径；造型核对以旧启动页磁带卡 logo（`launcher-route-mondrian-v2.html` 磁带卡）为准。
+> - **≥48px 仍走冻结 `tapeSVG` 几何**（`main-window-v3/SPEC.md` §3 逐字，结构不动）。
+> - 氛围色＝工程名 FNV-1a 哈希（§7.4，`tape_atmosphere.gd` 确定性移植）；无工程名＝中性灰壳满盘（冻结源 null 氛围语义）。
+
 #### 7.3.1 小尺寸工程标志 `i-project` 与 V 品牌标 `i-vit`
 
 > **v5.1 修订**：磁带标志改名为 `i-project`，归工程对象；`i-vit` 改为 V 品牌标，只用于应用图标、任务栏 Vit 条目与系统通知，**不进入对话窗标题栏**。下文“磁带 logo”的旧描述保留为资产来源说明；现行 symbol 以 `round2-sprite.svg` 与 S3 为准。
@@ -279,6 +284,17 @@ v4 两版（`../main-window-v3/v4-1-refined.html`、`v4-2-refined.html`）的问
 - `i-vit` 用途：应用图标、P4 任务栏 Vit 条目、系统通知、≤32px 的 Vit 身份位置；造型为实心 V + 1px 内槽，和桌面端 `Vit-logo icon.png` 同源。
 - 状态叠加：右下角一个小状态点，颜色按 §4.2（变化中时状态点可以动）。不得把整个标志染成状态色。
 - 规格板 S3 上把 `i-project` 与 48px 以上的 `tapeSVG` 并排展示，证明两者是一家。
+
+**≤48px 工程位场用清单（v5.1.1 回填，2026-11-15）**：简化标志规则的适用面逐位核对如下；后续新增 ≤48px 工程位须在此表登记归属（磁带 cassette 或 `i-project`），不得默认沿用。
+
+| 场用位 | 造型 | 代码锚点（webui/src） |
+|---|---|---|
+| 启动台 recents 工程行头像 | 磁带 cassette `TapeBadge`（裁定例外） | `launcher/LauncherSurface.tsx` recents 行 |
+| 启动台建议卡工程位头像 | 磁带 cassette `TapeBadge`（裁定例外） | `launcher/LauncherSurface.tsx` 结果卡 |
+| 工程内标题栏工程标 | `i-project`（简化标志保留） | `project/ProjectSurface.tsx` v5-project-titlebar |
+| 对话窗标题栏样例（gallery） | `i-project` | `gallery/main.tsx` titlebar 样例 |
+| S3 规格板尺寸行（gallery） | `i-project` 16/20/24 | `gallery/main.tsx` os-identity |
+| 任务栏工程条目样例（gallery） | `i-project` | `gallery/main.tsx` taskbar 样例 |
 
 ### 7.4 磁带三态：用带量表达进度（不改结构）
 

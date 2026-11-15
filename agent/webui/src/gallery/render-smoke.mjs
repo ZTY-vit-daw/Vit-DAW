@@ -42,6 +42,19 @@
  *     维持；--assistant/--vit 无框负断言（无边框+无阴影，防回归）；
  *  b) 两面汇总报告 + 两面截图落 coord/runs/UI-MSG-SHADOWBOX-1/
  *     {render-smoke-shadowbox-report.json, screens/}（345/346/361 原路径不变）。
+ * UI-REC-TAPE-1（365）扩展：启动台磁带 cassette 头像 + 进工程收起回归守卫
+ * （用户裁定 2026-11-15 第 1/4 条）——
+ *  a) launcher fixture 面新增断言：磁带头像在 recents 每行在场（壳+窗+双带轮拓扑）、
+ *     建议卡工程位同款；氛围色=工程名 FNV-1a 哈希（烟测内移植 6 色对逐行核对）；
+ *     带轮盘对窗口对比度 ≥3:1（computed fill 实测）；墨描边元素以 data-graphic="tape"
+ *     并入全页 ≥3:1 图形扫描；
+ *  b) 真实入口收起守卫（§12）：entrySurfaceBridge 生产路径驱动（addInitScript 注入
+ *     chrome.webview mock 捕获取证回执，dispatch 真实 vit_surface MessageEvent）——
+ *     ?surface=launcher 直开语义保留；vit_surface=project 分发后 React ack 回执在场 +
+ *     data-launcher-*（root/drawer/recents/new/greeting/thread）零残留 +
+ *     data-tape-badge 零残留 + data-loading-gate 接管；负对照=无桥页不分发不切换；
+ *  c) 本卡工件：coord/runs/UI-REC-TAPE-1/{render-smoke-rec-tape-report.json, screens/}
+ *     （345/346/361/362 原路径不变）。
  * 全离线 fixture（零真实端点请求）；344/345/346 的断言与工件路径不变。
  */
 
@@ -68,6 +81,10 @@ const spriteMountScreensDir = resolve(spriteMountOutDir, "screens");
 // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框渲染烟测工件目录（两面 computed 断言报告 + 两面截图）。
 const shadowboxOutDir = resolve(repoRoot, "coord/runs/UI-MSG-SHADOWBOX-1");
 const shadowboxScreensDir = resolve(shadowboxOutDir, "screens");
+// UI-REC-TAPE-1（365）：磁带 cassette 头像 + 收起回归守卫工件目录（launcher tape 断言 +
+// 真实入口守卫报告 + 磁带特写/整面/守卫前后截图）。
+const recTapeOutDir = resolve(repoRoot, "coord/runs/UI-REC-TAPE-1");
+const recTapeScreensDir = resolve(recTapeOutDir, "screens");
 
 /** 与 src/design/sprite.tsx 同源（23 symbol）。 */
 const SYMBOL_IDS = [
@@ -630,6 +647,47 @@ async function main() {
     out.userMsgCount = launcherUserMsgs.length;
     out.userMsgFrame = msgFrameOf(launcherUserMsgs[0] ?? null);
     out.assistantMsgFrame = msgFrameOf(launcherAsstMsgs[0] ?? null);
+    // UI-REC-TAPE-1（365）：磁带 cassette 头像——recents 每行在场 + 拓扑要素 +
+    // 氛围壳色（fill 属性逐字核对）+ 带轮盘/窗底对比度实测（computed fill）。
+    const lum = (c) => {
+      const lin = (v) => {
+        const x = v / 255;
+        return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+      };
+      return 0.2126 * lin(c[0]) + 0.7152 * lin(c[1]) + 0.0722 * lin(c[2]);
+    };
+    const contrast = (a, b) => {
+      const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+      return (hi + 0.05) / (lo + 0.05);
+    };
+    const opaqueFill = (el) => {
+      if (!el) return null;
+      const m = /rgba?\(([^)]+)\)/.exec(getComputedStyle(el).fill);
+      if (!m) return null;
+      const parts = m[1].split(",").map((x) => parseFloat(x.trim()));
+      return parts.length >= 3 ? parts.slice(0, 3) : null;
+    };
+    const tapeBadges = within("[data-tape-badge]");
+    out.tapeBadgeCount = tapeBadges.length;
+    out.tapeBadges = tapeBadges.map((b) => {
+      const win = b.querySelector("[data-tape-window]");
+      const reelFill = opaqueFill(b.querySelector("[data-tape-reel]"));
+      const winFill = opaqueFill(win);
+      return {
+        reels: b.querySelectorAll("[data-tape-reel]").length,
+        window: !!win,
+        label: !!b.querySelector("[data-tape-label]"),
+        shell: b.querySelector("[data-tape-shell]")?.getAttribute("fill") ?? "",
+        reelWindowContrast:
+          reelFill && winFill ? Number(contrast(reelFill, winFill).toFixed(3)) : null,
+      };
+    });
+    out.tapeRecentRows = within("[data-launcher-recent]").filter((row) =>
+      row.querySelector("[data-tape-badge]")
+    ).length;
+    out.tapeResultCards = within("[data-launcher-card]").filter((card) =>
+      card.querySelector("[data-tape-badge]")
+    ).length;
     return out;
   });
 
@@ -713,6 +771,63 @@ async function main() {
     `frame=${JSON.stringify(ldom.assistantMsgFrame)}`
   );
 
+  // UI-REC-TAPE-1（365）：磁带 cassette 头像断言（用户裁定第 1 条）。
+  // recents 3 行 + 建议卡 3 枚 = 6 枚 tape badge（ready 全尺寸样例内）。
+  launcherAssert(
+    "磁带 cassette 头像在 recents 每行在场（3/3 行）",
+    ldom.recentsInDom === 3 && ldom.tapeRecentRows === 3,
+    `recents=${ldom.recentsInDom} tapeRows=${ldom.tapeRecentRows}`
+  );
+  launcherAssert(
+    "建议卡工程位磁带头像（3/3 卡）",
+    ldom.resultCards === 3 && ldom.tapeResultCards === 3,
+    `cards=${ldom.resultCards} tapeCards=${ldom.tapeResultCards}`
+  );
+  launcherAssert(
+    "磁带盒拓扑（窗+双带轮+底标线，每枚在场）",
+    ldom.tapeBadgeCount === 6 &&
+      ldom.tapeBadges.every((b) => b.window && b.reels === 2 && b.label),
+    `count=${ldom.tapeBadgeCount} badges=${JSON.stringify(ldom.tapeBadges)}`
+  );
+  // 氛围色=工程名 FNV-1a 哈希（tape_atmosphere.gd 移植源逐字；烟测内独立重算，
+  // 行级核对——recents 行在前、建议卡在后，文档序=fixture 序）。
+  const TAPE_PAIRS = [
+    [[0x73, 0xb8, 0xf5], [0x06, 0x5b, 0xc7]], [[0xfa, 0xcc, 0x1a], [0x73, 0xb8, 0xf5]],
+    [[0x06, 0x5b, 0xc7], [0xfa, 0xcc, 0x1a]], [[0x73, 0xb8, 0xf5], [0xfa, 0xcc, 0x1a]],
+    [[0x06, 0x5b, 0xc7], [0x73, 0xb8, 0xf5]], [[0xfa, 0xcc, 0x1a], [0x06, 0x5b, 0xc7]],
+  ];
+  const tapeHash = (s) => {
+    let h = 0x811c9dc5;
+    for (let i = 0; i < s.length; i++) {
+      const c = s.charCodeAt(i);
+      h = (h ^ (c & 0xff)) >>> 0;
+      h = Math.imul(h, 0x01000193) >>> 0;
+      if (c > 0xff) {
+        h = (h ^ ((c >> 8) & 0xff)) >>> 0;
+        h = Math.imul(h, 0x01000193) >>> 0;
+      }
+    }
+    return h >>> 0;
+  };
+  // 与 gallery/main.tsx LAUNCHER_FIXTURE_CARDS 同源 fixture 名（仅测试域）。
+  const TAPE_FIXTURE_NAMES = ["示例工程甲（fixture）", "示例工程乙（fixture）", "示例工程丙（fixture）"];
+  const expectedShells = TAPE_FIXTURE_NAMES.map((n) => {
+    const p = TAPE_PAIRS[tapeHash(n) % 6];
+    return `rgba(${p[0][0]},${p[0][1]},${p[0][2]},0.62)`;
+  });
+  launcherAssert(
+    "氛围色=工程名哈希（FNV-1a 色对逐枚一致，recents 行+建议卡）",
+    JSON.stringify(ldom.tapeBadges.map((b) => b.shell)) ===
+      JSON.stringify([...expectedShells, ...expectedShells]),
+    `shells=${JSON.stringify(ldom.tapeBadges.map((b) => b.shell))} expected=${JSON.stringify(expectedShells)}`
+  );
+  launcherAssert(
+    "磁带图形对比度 ≥3:1（带轮盘 vs 窗底 computed fill 实测，每枚）",
+    ldom.tapeBadgeCount >= 1 &&
+      ldom.tapeBadges.every((b) => b.reelWindowContrast !== null && b.reelWindowContrast >= 3),
+    `contrasts=${JSON.stringify(ldom.tapeBadges.map((b) => b.reelWindowContrast))}`
+  );
+
   const lscan = await scanFn();
   const launcherContrastAssert = (name, ok, detail) => {
     if (!ok) launcherFailures.push(`LAUNCHER-CONTRAST: ${name} — ${detail}`);
@@ -749,6 +864,16 @@ async function main() {
   const shadowboxLauncherFull = resolve(shadowboxScreensDir, "launcher-fixture-full.png");
   await page.screenshot({ path: shadowboxLauncherViewport, type: "png" });
   await page.screenshot({ path: shadowboxLauncherFull, type: "png", fullPage: true });
+  // UI-REC-TAPE-1（365）：本卡工件——磁带头像特写（recents 区+单徽）+ 整面另存
+  //（345/361/362 路径不变）
+  const recTapeRecentsShot = resolve(recTapeScreensDir, "launcher-recents-tape-closeup.png");
+  await page.locator("[data-launcher-recents]").first().screenshot({ path: recTapeRecentsShot });
+  const recTapeBadgeShot = resolve(recTapeScreensDir, "launcher-tape-badge-closeup.png");
+  await page.locator("[data-tape-badge]").first().screenshot({ path: recTapeBadgeShot });
+  const recTapeLauncherViewport = resolve(recTapeScreensDir, "launcher-fixture-viewport-1440x900.png");
+  const recTapeLauncherFull = resolve(recTapeScreensDir, "launcher-fixture-full.png");
+  await page.screenshot({ path: recTapeLauncherViewport, type: "png" });
+  await page.screenshot({ path: recTapeLauncherFull, type: "png", fullPage: true });
 
   const launcherReport = {
     run: "UI-LAUNCHER-1 launcher render smoke",
@@ -1510,6 +1635,178 @@ async function main() {
     page.off("request", onAppRequest);
   }
 
+  // ---- 12. UI-REC-TAPE-1（365）：进工程收起回归守卫（真实入口 surface 分发） ----
+  // 用户裁定第 4 条前半（2026-11-15）：进工程后启动台面（含工程列表）整体卸载。
+  // 机制已在（App.tsx surface 分发 subscribeEntrySurface → setSurface → 卸载
+  // LauncherSurface），本段守卫防退化。驱动=生产路径：entrySurfaceBridge 订阅
+  // chrome.webview "message"（宿主 vit_surface）；浏览器无宿主 webview →
+  // addInitScript 注入桥 mock（只补宿主事件面，不改任何应用代码），再以真实
+  // MessageEvent 分发 vit_surface——消费生产订阅/回执路径，非测试开关。
+  // 断言：
+  //  ① ?surface=launcher 直开语义保留：data-launcher-root 在场（含 drawer）
+  //  ② vit_surface=project 分发后 React 取证回执 ack=project（ack 在场=React 真收
+  //    在场证明，参照 entrySurfaceBridge 纪律）
+  //  ③ 启动台标记零残留：root/drawer/recents/new/greeting/thread 全部卸载
+  //  ④ 磁带头像零残留：data-tape-badge=0（随启动台卸载）
+  //  ⑤ 工程面形态接管：data-loading-gate 在场（离线真实入口装载门渲染）
+  //  ⑥ 负对照：桥不可用（无 webview mock）分发 vit_surface 不切换（诚实降级，
+  //    343 不变量：surface 切换只走桥，禁止整页导航）
+  const recTapeFailures = [];
+  const recTapeNotes = [];
+  const guardAssert = (name, ok, detail) => {
+    if (!ok) recTapeFailures.push(`REC-TAPE-GUARD: ${name} — ${detail}`);
+  };
+  const guardCommon = {
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+    reducedMotion: "reduce",
+  };
+  const guardContext = await browser.newContext(guardCommon);
+  await guardContext.addInitScript(() => {
+    const acks = [];
+    const listeners = [];
+    window.chrome = {
+      webview: {
+        postMessage: (msg) => acks.push(msg),
+        addEventListener: (type, listener) => {
+          if (type === "message") listeners.push(listener);
+        },
+        removeEventListener: (type, listener) => {
+          const i = listeners.indexOf(listener);
+          if (i >= 0) listeners.splice(i, 1);
+        },
+      },
+    };
+    window.__vitSurfaceAcks = acks;
+    window.__vitSurfaceListeners = listeners;
+  });
+  const guardPage = await guardContext.newPage();
+  const guardUrl = `${base.replace(/\/$/, "").replace("localhost", "127.0.0.1")}/?surface=launcher`;
+  recTapeNotes.push(`guardUrl=${guardUrl}`);
+  let guardAfter = null;
+  try {
+    await guardPage.goto(guardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await guardPage.waitForSelector("[data-launcher-root]", { timeout: 30000 });
+    await guardPage.waitForTimeout(300);
+    const before = await guardPage.evaluate(() => ({
+      launcherRoot: !!document.querySelector("[data-launcher-root]"),
+      drawer: !!document.querySelector("[data-launcher-drawer]"),
+      listenerCount: (window.__vitSurfaceListeners ?? []).length,
+    }));
+    guardAssert(
+      "?surface=launcher 直开语义保留（真实入口 launcher root 在场）",
+      before.launcherRoot,
+      JSON.stringify(before)
+    );
+    guardAssert("启动台 drawer 在场（守卫前置）", before.drawer, `drawer=${before.drawer}`);
+    guardAssert(
+      "桥 mock 订阅在场（entrySurfaceBridge 已挂 listener）",
+      before.listenerCount >= 1,
+      `listeners=${before.listenerCount}`
+    );
+    const beforeShot = resolve(recTapeScreensDir, "realentry-collapse-guard-before.png");
+    await guardPage.screenshot({ path: beforeShot, type: "png" });
+
+    // 生产路径分发：真实 MessageEvent + vit_surface=project（走订阅回调，无测试开关）
+    await guardPage.evaluate(() => {
+      const evt = new MessageEvent("message", { data: { type: "vit_surface", surface: "project" } });
+      for (const l of window.__vitSurfaceListeners ?? []) l(evt);
+    });
+    await guardPage.waitForSelector("[data-launcher-root]", { state: "detached", timeout: 15000 });
+    await guardPage.waitForSelector("[data-loading-gate]", { timeout: 15000 });
+    await guardPage.waitForTimeout(300);
+    guardAfter = await guardPage.evaluate(() => ({
+      acks: window.__vitSurfaceAcks ?? [],
+      launcherMarkers: ["root", "drawer", "recents", "new", "greeting", "thread"]
+        .map((k) => `${k}:${document.querySelectorAll(`[data-launcher-${k}]`).length}`)
+        .join(" "),
+      tapeBadges: document.querySelectorAll("[data-tape-badge]").length,
+      loadingGate: !!document.querySelector("[data-loading-gate]"),
+    }));
+    const ackOk = guardAfter.acks.some(
+      (a) => a && a.type === "vit_surface_ack" && a.surface === "project"
+    );
+    guardAssert("React 取证回执 ack=project（vit_surface_ack 在场）", ackOk, JSON.stringify(guardAfter.acks));
+    guardAssert(
+      "启动台标记零残留（root/drawer/recents/new/greeting/thread 全卸载）",
+      guardAfter.launcherMarkers.split(" ").every((kv) => kv.endsWith(":0")),
+      `markers=${guardAfter.launcherMarkers}`
+    );
+    guardAssert(
+      "磁带头像零残留（data-tape-badge=0，随启动台卸载）",
+      guardAfter.tapeBadges === 0,
+      `tape=${guardAfter.tapeBadges}`
+    );
+    guardAssert("工程面形态接管（data-loading-gate 在场）", guardAfter.loadingGate, `gate=${guardAfter.loadingGate}`);
+    const afterShot = resolve(recTapeScreensDir, "realentry-collapse-guard-after.png");
+    await guardPage.screenshot({ path: afterShot, type: "png" });
+  } catch (err) {
+    recTapeFailures.push(`REC-TAPE-GUARD: 守卫运行异常 — ${String(err)}`);
+  } finally {
+    await guardContext.close();
+  }
+
+  // 负对照（⑥）：无 webview mock 的页面 → subscribeEntrySurface 空订阅 → 分发
+  // vit_surface 不切换（诚实降级不伪造）。
+  const negContext = await browser.newContext(guardCommon);
+  const negPage = await negContext.newPage();
+  try {
+    await negPage.goto(guardUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await negPage.waitForSelector("[data-launcher-root]", { timeout: 30000 });
+    await negPage.evaluate(() => {
+      window.dispatchEvent(new MessageEvent("message", { data: { type: "vit_surface", surface: "project" } }));
+    });
+    await negPage.waitForTimeout(500);
+    const neg = await negPage.evaluate(() => ({
+      launcherRoot: !!document.querySelector("[data-launcher-root]"),
+      gate: !!document.querySelector("[data-loading-gate]"),
+    }));
+    guardAssert(
+      "负对照：无桥不分发不切换（launcher root 维持在场）",
+      neg.launcherRoot && !neg.gate,
+      JSON.stringify(neg)
+    );
+  } catch (err) {
+    recTapeFailures.push(`REC-TAPE-GUARD: 负对照异常 — ${String(err)}`);
+  } finally {
+    await negContext.close();
+  }
+
+  const tapeGraphicChecks = lscan.graphics.filter((g) => g.kind === "tape");
+  const recTapeReport = {
+    run: "UI-REC-TAPE-1 tape badge + collapse guard render smoke",
+    date: new Date().toISOString(),
+    launcherTape: {
+      recentsRows: ldom.tapeRecentRows,
+      resultCards: ldom.tapeResultCards,
+      badgeCount: ldom.tapeBadgeCount,
+      badges: ldom.tapeBadges,
+      expectedShells,
+      tapeGraphicChecks: tapeGraphicChecks.length,
+      tapeGraphicMinRatio: tapeGraphicChecks.length
+        ? Math.min(...tapeGraphicChecks.map((g) => g.ratio))
+        : null,
+    },
+    collapseGuard: {
+      url: guardUrl,
+      before: null,
+      after: guardAfter,
+      notes: recTapeNotes,
+    },
+    screenshots: {
+      recentsCloseup: recTapeRecentsShot,
+      badgeCloseup: recTapeBadgeShot,
+      launcherViewport: recTapeLauncherViewport,
+      launcherFull: recTapeLauncherFull,
+      guardBefore: resolve(recTapeScreensDir, "realentry-collapse-guard-before.png"),
+      guardAfter: resolve(recTapeScreensDir, "realentry-collapse-guard-after.png"),
+    },
+    failures: recTapeFailures,
+    result: recTapeFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const recTapeReportPath = resolve(recTapeOutDir, "render-smoke-rec-tape-report.json");
+  writeFileSync(recTapeReportPath, JSON.stringify(recTapeReport, null, 2), "utf-8");
+
   await browser.close();
   await server.close();
 
@@ -1531,7 +1828,11 @@ async function main() {
   console.log(
     `[test:render] SHADOWBOX_RESULT=${shadowboxReport.result} launcherUserFrame=${JSON.stringify(ldom.userMsgFrame)} projectUserFrame=${JSON.stringify(pdDom.userMsgFrame)}`
   );
-  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures];
+  console.log(`[test:render] recTapeReport=${recTapeReportPath}`);
+  console.log(
+    `[test:render] REC-TAPE_RESULT=${recTapeReport.result} tapeBadges=${ldom.tapeBadgeCount} tapeRows=${ldom.tapeRecentRows} tapeMinContrast=${recTapeReport.launcherTape.tapeGraphicMinRatio}`
+  );
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures, ...recTapeFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);

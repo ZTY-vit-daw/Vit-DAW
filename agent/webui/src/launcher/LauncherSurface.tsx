@@ -74,7 +74,10 @@ import {
   type LauncherBridgeResult,
   type LauncherGovernanceChoice
 } from "./launcherBridge";
-import { ProjectBadge, TextField } from "../components";
+import { TextField } from "../components";
+// UI-REC-TAPE-1（365）：启动台工程列表头像换磁带 cassette 造型（用户裁定第 1 条；
+// i-project 简化标志保留给其余 ≤48px 场用位，见 SPEC-V5 §7.3.1 修订段）。
+import { TapeBadge } from "../components/ProjectBadge";
 import "../styles/tokens.css";
 import "../components/components.css";
 import "../styles/launcher.css";
@@ -613,7 +616,8 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
               <ul className="v5-launcher-recents" data-launcher-recents>
                 {drawerEntries.map((entry) => (
                   <li key={entry.id} className="v5-launcher-recent" data-launcher-recent>
-                    <ProjectBadge size={24} />
+                    {/* UI-REC-TAPE-1（365）：工程列表磁带 cassette 头像（氛围色=工程名哈希） */}
+                    <TapeBadge size={24} name={entry.name || launcherDisplayFileName(entry.filePath)} />
                     <span>
                       <span className="v5-launcher-recent-name">{entry.name || launcherDisplayFileName(entry.filePath)}</span>
                       {entry.filePath ? <span className="v5-launcher-recent-path">{entry.filePath}</span> : null}
@@ -675,7 +679,8 @@ export function LauncherSurface({ fixture, fill = false }: LauncherSurfaceProps)
                                 ]);
                               }}
                             >
-                              <ProjectBadge size={20} />
+                              {/* UI-REC-TAPE-1（365）：建议卡工程位磁带 cassette 头像 */}
+                              <TapeBadge size={20} name={card.name || launcherDisplayFileName(card.filePath)} />
                               <span>
                                 <span className="v5-launcher-card-name">{card.name || launcherDisplayFileName(card.filePath)}</span>
                                 {card.filePath ? <span className="v5-launcher-card-path">{card.filePath}</span> : null}
