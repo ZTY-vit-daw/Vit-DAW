@@ -10,8 +10,14 @@
 //                         cold-start stage: kernel attr online + real recents
 //                         (seeded) + drawer ready — no degraded greeting face.
 //   launcher-chat-new     (SHELL-4) new-project end-to-end via launcher chat:
-//                         type 新建工程 <name> -> directive -> execute ->
-//                         governance auto-switch if shown.
+//                         type 新建工程 <name> (or bare 新建工程 = SHELL-5
+//                         name-less auto-execute) -> directive AUTO-executes
+//                         (no manual button) -> governance auto-switch if shown.
+//   launcher-button-new   (SHELL-5) drawer ＋新建 = DIRECT new: click posts a
+//                         new_project directive straight through the bridge
+//                         (no chat round, no question loop).
+//   probe-launcher-no-binding (SHELL-5) launcher stage zero-binding: /agent/state
+//                         current_project.path empty (boot draft not bound).
 //
 // Everything else mirrors vitshell_open_chain_cdp.mjs semantics:
 //   probe-launcher / click-open / probe-project / probe-launcher-back /
@@ -188,20 +194,24 @@ try {
       break;
     }
     case "launcher-chat-new": {
-      // SHELL-4 leg: new-project chain END-TO-END through the launcher chat:
-      // type the new-project message, send, wait for the deterministic
-      // directive placeholder, click the real execute button; if an in-page
-      // governance card appears (a project is active), answer 直接切换.
-      if (!newProjectName) { fail("launcher-chat-new requires --new-project-name"); break; }
+      // SHELL-4 leg, SHELL-5 semantics: new-project chain END-TO-END through the
+      // launcher chat. Type the new-project message (named when --new-project-name
+      // is given, else the bare "新建工程" — the exact user retest criterion: the
+      // name-less intent must auto-execute with the default draft name, NOT enter
+      // a question loop), send, and assert the directive placeholder appears AND
+      // auto-executes (bridge exec block reaches waiting on its own — no manual
+      // execute button click); if an in-page governance card appears (a project
+      // is active), answer 直接切换.
       const root = page.locator("[data-launcher-root]");
       await root.waitFor({ state: "visible", timeout: 30000 });
       const composer = page.locator('[data-launcher-input] input.v5-composer-input');
       await composer.waitFor({ state: "visible", timeout: 15000 });
-      await composer.fill("新建工程 " + newProjectName, { timeout: 10000 });
+      const message = newProjectName ? ("新建工程 " + newProjectName) : "新建工程";
+      await composer.fill(message, { timeout: 10000 });
       const sendBtn = page.locator('[data-launcher-input] .v5-composer-send');
       await sendBtn.waitFor({ state: "visible", timeout: 10000 });
       await sendBtn.click({ timeout: 10000 });
-      // Deterministic launcher route: directive placeholder with the name.
+      // Deterministic launcher route: directive placeholder (auto-executing).
       const directive = page.locator("[data-launcher-directive]");
       await directive.waitFor({ state: "visible", timeout: 30000 })
         .catch(async () => {
@@ -222,16 +232,36 @@ try {
           fail("no directive placeholder after new-project message (launcher intent gate closed or agent route missing)", evidence);
         });
       const headline = ((await page.locator("[data-launcher-directive] .v5-launcher-directive-headline").textContent()) ?? "").trim();
-      if (!headline.includes(newProjectName)) {
+      if (newProjectName && !headline.includes(newProjectName)) {
         fail("directive headline does not carry the new project name (headline=" + headline + ")");
+      }
+      if (!newProjectName && !headline.includes("新工程_")) {
+        fail("name-less new intent must carry the default draft name (headline=" + headline + ")");
       }
       const replyText = ((await page.locator('[data-launcher-msg="assistant"]').last().textContent()) ?? "").trim();
       if (replyText.includes("连不上内核")) {
         fail("new-project reply is the kernel-unavailable template: " + replyText);
       }
-      const execBtn = page.locator("[data-launcher-directive-execute]");
-      await execBtn.waitFor({ state: "visible", timeout: 10000 });
-      await execBtn.click({ timeout: 10000 });
+      if (replyText.includes("想叫什么名字")) {
+        fail("name-less new intent fell back into the question loop (SHELL-5 removed it): " + replyText);
+      }
+      // SHELL-5: NO manual execute button — the directive must AUTO-execute. The
+      // bridge exec block reaching waiting on its own is the production default
+      // now; a visible manual execute button is a regression.
+      const manualBtn = await page.locator("[data-launcher-directive-execute]").count();
+      if (manualBtn > 0) {
+        fail("manual execute button still present (SHELL-5 auto-execute regressed)");
+      }
+      let bridgeExecState = "absent";
+      try {
+        await page.locator("[data-launcher-bridge-exec]").waitFor({ state: "visible", timeout: 10000 });
+        bridgeExecState = (await page.locator("[data-launcher-bridge-exec]").getAttribute("data-launcher-bridge-exec-state")) ?? "?";
+      } catch {
+        bridgeExecState = "absent";
+      }
+      if (bridgeExecState === "absent") {
+        fail("directive did not auto-execute (bridge exec block never appeared — auto-execute seam not live)");
+      }
       // Governance may appear when a project is active; answer 直接切换 via the
       // real bridge path (mirrors the smoke governance hook, production zero).
       let governance = "none";
@@ -244,10 +274,90 @@ try {
       }
       const verdict = {
         phase, ok: true, url,
-        new_project_name: newProjectName,
+        message,
+        new_project_name: newProjectName || "(default)",
         directive_headline: headline,
         assistant_reply: replyText,
+        auto_execute: true,
+        bridge_exec_state_seen: bridgeExecState,
         governance
+      };
+      if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
+      console.log("CDP_OK " + JSON.stringify(verdict));
+      break;
+    }
+    case "launcher-button-new": {
+      // SHELL-5 leg: drawer "＋新建" = DIRECT new (no chat round): click the real
+      // button, assert the bridge exec block appears (direct directive posted),
+      // answer the in-page governance card if shown (a project is active).
+      const root = page.locator("[data-launcher-root]");
+      await root.waitFor({ state: "visible", timeout: 30000 });
+      const newBtn = page.locator("[data-launcher-new]");
+      await newBtn.waitFor({ state: "visible", timeout: 15000 });
+      await newBtn.click({ timeout: 10000 });
+      // Direct directive: bridge exec block must appear WITHOUT any chat turn.
+      let bridgeExecState = "absent";
+      try {
+        await page.locator("[data-launcher-bridge-exec]").waitFor({ state: "visible", timeout: 10000 });
+        bridgeExecState = (await page.locator("[data-launcher-bridge-exec]").getAttribute("data-launcher-bridge-exec-state")) ?? "?";
+      } catch {
+        bridgeExecState = "absent";
+      }
+      if (bridgeExecState === "absent") {
+        fail("＋新建 button did not post a direct new_project directive (bridge exec block absent)");
+      }
+      // No chat question loop: the button must not send a chat message (no new
+      // assistant preset reply asking for a name).
+      const assistantMsgs = (await page.locator('[data-launcher-msg="assistant"]').allTextContents()).map((s) => s.trim());
+      const lastAssistant = assistantMsgs[assistantMsgs.length - 1] ?? "";
+      if (lastAssistant.includes("想叫什么名字")) {
+        fail("＋新建 button went through the chat question loop (SHELL-5 direct semantics broken)");
+      }
+      let governance = "none";
+      try {
+        await page.locator("[data-launcher-governance-actions]").waitFor({ state: "visible", timeout: 6000 });
+        governance = "switch";
+        await page.locator("[data-launcher-governance-switch]").click({ timeout: 10000 });
+      } catch {
+        governance = "none";
+      }
+      const verdict = {
+        phase, ok: true, url,
+        clicked: "data-launcher-new",
+        direct_mode: true,
+        bridge_exec_state_seen: bridgeExecState,
+        last_assistant_reply: lastAssistant,
+        governance
+      };
+      if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
+      console.log("CDP_OK " + JSON.stringify(verdict));
+      break;
+    }
+    case "probe-launcher-no-binding": {
+      // SHELL-5 leg: launcher stage = ZERO workspace binding on the agent face.
+      // /agent/state current_project.path must be empty (the kernel boot draft
+      // must not be bound as the agent's workspace). Read via the live page's
+      // fetch (same origin as the agent).
+      const state = await page.evaluate(async () => {
+        try {
+          const r = await fetch("/agent/state");
+          const j = await r.json();
+          return {
+            status: r.status,
+            current_project_path: String(j.current_project?.path ?? ""),
+            current_project_uuid: String(j.current_project?.uuid ?? "")
+          };
+        } catch (e) {
+          return { error: String(e) };
+        }
+      });
+      if (state.error) {
+        fail("/agent/state unreachable from launcher page: " + state.error);
+      }
+      const verdict = {
+        phase, ok: true, url,
+        current_project_path: state.current_project_path,
+        current_project_uuid: state.current_project_uuid
       };
       if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
       console.log("CDP_OK " + JSON.stringify(verdict));

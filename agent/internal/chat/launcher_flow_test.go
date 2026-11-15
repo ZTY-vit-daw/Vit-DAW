@@ -79,6 +79,7 @@ func TestLauncherFlowChatThreeBranches(t *testing.T) {
 		wantDirective bool
 		wantAction    string // directive.action（wantDirective 时必填）
 		wantTarget    string // open=file_path / new=project_name
+		wantTargetRe  string // wantTarget 的正则替代（SHELL-5 缺省名时间戳）
 		wantCards     int
 		replyContains []string
 	}{
@@ -117,12 +118,16 @@ func TestLauncherFlowChatThreeBranches(t *testing.T) {
 		{
 			name: "新建-带名", message: "新建一个叫测试小样的工程",
 			wantHandled: true, wantDirective: true, wantAction: "new_project",
-			wantTarget: "测试小样",
+			wantTarget:   "测试小样",
+			replyContains: []string{"这就新建"},
 		},
 		{
-			name: "新建-无名追问", message: "新建工程",
-			wantHandled: true, wantDirective: false,
-			replyContains: []string{"名字"},
+			// SHELL-5：无名新建不再问询循环——缺省时间戳草稿名直接出 directive
+			//（UI 自动经桥执行；名实相符的内核承接是 363 域）。
+			name: "新建-无名直接执行（SHELL-5 缺省名）", message: "新建工程",
+			wantHandled: true, wantDirective: true, wantAction: "new_project",
+			wantTargetRe: `^新工程_\d{4}_\d{4}$`,
+			replyContains: []string{"这就新建", "暂名"},
 		},
 		{
 			name: "列表-问句", message: "我有哪些工程",
@@ -184,7 +189,11 @@ func TestLauncherFlowChatThreeBranches(t *testing.T) {
 				} else if d.ProjectName != "" || strings.TrimSpace(d.FilePath) == "" {
 					t.Fatal("open_project directive must carry file_path only")
 				}
-				if got != tc.wantTarget {
+				if tc.wantTargetRe != "" {
+					if !regexp.MustCompile(tc.wantTargetRe).MatchString(got) {
+						t.Fatalf("directive target=%q want re %q", got, tc.wantTargetRe)
+					}
+				} else if got != tc.wantTarget {
 					t.Fatalf("directive target=%q want %q", got, tc.wantTarget)
 				}
 			}
@@ -953,8 +962,9 @@ func TestLauncherDirectiveConfirmationSentence(t *testing.T) {
 			if resp.LauncherDirective.Action == launcherActionOpen {
 				name = launcherProjectDisplayName(resp.LauncherDirective.FilePath)
 			}
-			if !strings.Contains(resp.Reply, "好的") || !strings.Contains(resp.Reply, "《"+name+"》") {
-				t.Fatalf("confirmation sentence missing 好的/《%s》: %q", name, resp.Reply)
+			// SHELL-5：执行语态确认句（「好——这就…并进入」）仍携名且不重复。
+			if !strings.Contains(resp.Reply, "这就") || !strings.Contains(resp.Reply, "《"+name+"》") {
+				t.Fatalf("confirmation sentence missing 这就/《%s》: %q", name, resp.Reply)
 			}
 			if got := strings.Count(resp.Reply, "《"+name+"》"); got != 1 {
 				t.Fatalf("confirmation sentence duplicated %d times: %q", got, resp.Reply)
@@ -988,5 +998,115 @@ func TestBackfillUIStateProjectPath(t *testing.T) {
 	backfillUIStateProjectPath(state, "  ")
 	if _, has := state["project_path"]; has {
 		t.Fatal("empty active path must not fabricate project_path")
+	}
+}
+
+// ── SHELL-5：启动页阶段 agent 无工程上下文（用户裁定 2026-11-15）─────────────
+// ① workspace 激活门：user_entered_project（340 会话事实）未置位 + 身份是
+//    draft（内核随窗在线的 boot 默认工程）→ 不激活 workspace；
+//    置位后（真实进工程/新建）激活链恢复。
+// ② chat 上下文注入门：启动台阶段（未进工程 + 内核 unsaved 默认身份无路径）
+//    不注入 project 字段——LLM 上下文零工程范围。
+// ③ 无名新建缺省名格式（与 webui defaultNewProjectName 同格式镜像）。
+
+func TestActivateWorkspaceLauncherScopeGate(t *testing.T) {
+	// 隔离 draft 根（含 ProjectHistory 段以满足 IsDraftProjectPath 的
+	// /projecthistory/drafts/ 判据）；真实链跑 t.TempDir 落盘。
+	draftRoot := filepath.Join(t.TempDir(), "ProjectHistory")
+	t.Setenv("VIT_HISTORY_DRAFT_ROOT", draftRoot)
+	draftPath := filepath.Join(draftRoot, "drafts", "draft_shell5_gate", "Unsaved.vit")
+	if err := os.MkdirAll(filepath.Dir(draftPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(draftPath, []byte(`<EDIT draft="true"/>`), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": draftPath,
+		"project_uuid": "vitproj_shell5_gate",
+	})
+	s := newLauncherTestServer(&launcherFakeKernel{}, project)
+	ctx := context.Background()
+
+	// 启动台阶段（未进工程）：boot draft 不激活——agent 位置=「启动页」。
+	s.activateCurrentProjectWorkspace(ctx)
+	s.mu.Lock()
+	gotPath, gotUUID := s.activeWorkspacePath, s.activeWorkspaceUUID
+	s.mu.Unlock()
+	if gotPath != "" || gotUUID != "" {
+		t.Fatalf("launcher stage must not activate the boot draft, got path=%q uuid=%q", gotPath, gotUUID)
+	}
+
+	// 真实进工程/新建后（宿主 version.project_opened 播报置位）：激活链恢复。
+	s.markUserEnteredProject()
+	s.activateCurrentProjectWorkspace(ctx)
+	s.mu.Lock()
+	gotPath, gotUUID = s.activeWorkspacePath, s.activeWorkspaceUUID
+	s.mu.Unlock()
+	if !sameWorkspacePath(gotPath, draftPath) || gotUUID != "vitproj_shell5_gate" {
+		t.Fatalf("post-entry activation must bind the draft workspace, got path=%q uuid=%q", gotPath, gotUUID)
+	}
+}
+
+// 非 draft 身份（Godot 直启链内核已载入真实工程的竞态窗口）不受启动台门影响：
+// 未置位 user_entered_project 也照旧激活（旧链零回归）。
+func TestActivateWorkspaceRealProjectBypassesLauncherGate(t *testing.T) {
+	realPath := filepath.Join(t.TempDir(), "真实工程.vit")
+	if err := os.WriteFile(realPath, []byte("shell5-real-project"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": realPath,
+		"project_uuid": "vitproj_shell5_real",
+	})
+	s := newLauncherTestServer(&launcherFakeKernel{}, project)
+	s.activateCurrentProjectWorkspace(context.Background())
+	s.mu.Lock()
+	gotPath := s.activeWorkspacePath
+	s.mu.Unlock()
+	if !sameWorkspacePath(gotPath, realPath) {
+		t.Fatalf("real project must activate without the launcher gate, got path=%q", gotPath)
+	}
+}
+
+func TestContextInjectionLauncherScope(t *testing.T) {
+	// 内核随窗在线的 boot 默认身份：只有 uuid 没有路径（unsaved）。
+	project := shadow.New(nil)
+	project.Initialize(map[string]any{"status": "ok", "project_uuid": "vitproj_shell5_boot"})
+	s := newLauncherTestServer(&launcherFakeKernel{}, project)
+	ctx := context.Background()
+
+	// 启动台阶段（未进工程）：对话上下文不注入任何工程字段。
+	out := s.contextWithCurrentProjectWorkspace(ctx, map[string]any{"foo": "bar"})
+	if _, has := out["project_uuid"]; has {
+		t.Fatalf("launcher stage must not inject project_uuid, got %v", out)
+	}
+	if _, has := out["project_path"]; has {
+		t.Fatalf("launcher stage must not inject project_path, got %v", out)
+	}
+	if out["foo"] != "bar" {
+		t.Fatalf("unrelated context keys must pass through, got %v", out)
+	}
+
+	// 进工程/新建后（会话事实置位）：恢复注入（新建空白工程=uuid 优先、路径
+	// 可能仍空——SHELL-4 ui/state 回填同族语义）。
+	s.markUserEnteredProject()
+	out = s.contextWithCurrentProjectWorkspace(ctx, map[string]any{})
+	if out["project_uuid"] != "vitproj_shell5_boot" {
+		t.Fatalf("post-entry context must carry project_uuid, got %v", out)
+	}
+}
+
+func TestLauncherDefaultNewProjectNameFormat(t *testing.T) {
+	name := launcherDefaultNewProjectName(time.Date(2026, 11, 15, 21,32, 5, 0, time.Local))
+	if !regexp.MustCompile(`^新工程_\d{4}_\d{4}$`).MatchString(name) {
+		t.Fatalf("default new project name format broken: %q", name)
+	}
+	if name != "新工程_1115_2132" {
+		t.Fatalf("default new project name value: %q", name)
 	}
 }

@@ -9,8 +9,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { LauncherSurface } from "./LauncherSurface";
 import {
+  buildDirectNewDirective,
   cardPendingPlaceholder,
   createLauncherConversationID,
+  defaultNewProjectName,
   directivePlaceholder,
   drawerCountLabel,
   greetingDisplayText,
@@ -49,15 +51,16 @@ describe("launcherData 纯函数", () => {
     expect(launcherDisplayFileName("")).toBe("");
   });
 
-  it("directive 占位：open/new 一律「准备…」且注明不执行", () => {
+  it("directive 占位（SHELL-5）：open/new 一律「正在…」自动执行语态，不虚报已打开", () => {
     const open = directivePlaceholder({ action: "open_project", file_path: "D:/fixtures/甲.vit", requires_governance: true });
-    expect(open?.headline).toBe("准备打开《甲》…");
+    expect(open?.headline).toBe("正在打开《甲》…");
     expect(open?.detail).toBe("D:/fixtures/甲.vit");
-    expect(open?.note).toContain("不执行");
+    expect(open?.note).toContain("正在执行");
+    expect(open?.note).toContain("UI-BRIDGE-1");
 
     const fresh = directivePlaceholder({ action: "new_project", project_name: "新曲草稿", requires_governance: true });
-    expect(fresh?.headline).toBe("准备新建《新曲草稿》…");
-    expect(fresh?.note).toContain("不执行");
+    expect(fresh?.headline).toBe("正在新建《新曲草稿》…");
+    expect(fresh?.note).toContain("正在执行");
 
     expect(directivePlaceholder(null)).toBeNull();
     expect(directivePlaceholder({ action: "", requires_governance: true })).toBeNull();
@@ -65,14 +68,23 @@ describe("launcherData 纯函数", () => {
 
   it("缺字段 directive 退到通用占位，不虚构工程名", () => {
     const open = directivePlaceholder({ action: "open_project", requires_governance: true });
-    expect(open?.headline).toBe("准备打开工程…");
+    expect(open?.headline).toBe("正在打开工程…");
   });
 
-  it("结果卡点击占位复用卡内 directive", () => {
+  it("结果卡点击占位复用卡内 directive（自动执行语态）", () => {
     const view = cardPendingPlaceholder(FIXTURE_CARD);
     expect(view.action).toBe("open");
-    expect(view.headline).toBe("准备打开《测试工程甲》…");
+    expect(view.headline).toBe("正在打开《测试工程甲》…");
     expect(view.note).toContain("UI-BRIDGE-1");
+  });
+
+  it("缺省新工程名与直连 directive（SHELL-5：＋新建按钮直建）", () => {
+    expect(defaultNewProjectName(new Date(2026, 10, 15, 21, 32).getTime())).toBe("新工程_1115_2132");
+    expect(defaultNewProjectName(new Date(2026, 0, 2, 3, 4).getTime())).toBe("新工程_0102_0304");
+    const directive = buildDirectNewDirective(new Date(2026, 10, 15, 21, 32).getTime());
+    expect(directive.action).toBe("new_project");
+    expect(directive.project_name).toBe("新工程_1115_2132");
+    expect(directive.requires_governance).toBe(true);
   });
 
   it("greeting 空回执给确定性文案，不编造工程名", () => {
@@ -173,7 +185,7 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
     expect(markup).toContain('data-launcher-drawer-retry');
   });
 
-  it("directive 线程条目渲染为待执行占位（不虚报已打开）", () => {
+  it("directive 线程条目渲染为自动执行回执（SHELL-5：无手动按钮、不虚报已打开）", () => {
     const markup = renderToStaticMarkup(
       <LauncherSurface
         fixture={{
@@ -183,8 +195,11 @@ describe("LauncherSurface 静态渲染（fixture 模式，零网络）", () => {
         }}
       />
     );
-    expect(markup).toContain('data-launcher-directive-state="pending"');
-    expect(markup).toContain("准备打开《甲》…");
+    expect(markup).toContain('data-launcher-directive-state="auto"');
+    expect(markup).toContain("正在打开《甲》…");
+    // 自动执行语义：不再出「让 Vit 打开/新建」手动按钮。
+    expect(markup).not.toContain("data-launcher-directive-execute");
+    expect(markup).not.toContain("让 Vit 打开");
     expect(markup).not.toContain("已打开");
   });
 
@@ -221,7 +236,7 @@ describe("UI-BRIDGE-1 桥呈现面", () => {
     expect(markup).not.toContain("data-launcher-bridge-exec");
   });
 
-  it("占位携带 directive 且桥不可用 → 执行按钮禁用 + 诚实说明（不虚报已打开）", () => {
+  it("占位携带 directive（SHELL-5 自动执行）→ 无手动执行按钮；桥不可用给诚实说明", () => {
     const markup = renderToStaticMarkup(
       <LauncherSurface
         fixture={{
@@ -229,10 +244,13 @@ describe("UI-BRIDGE-1 桥呈现面", () => {
         }}
       />
     );
-    expect(markup).toContain("data-launcher-directive-execute");
-    expect(markup).toContain("disabled");
-    expect(markup).toContain("Vit 桥不可用");
+    expect(markup).toContain('data-launcher-directive-state="auto"');
+    expect(markup).not.toContain("data-launcher-directive-execute");
+    expect(markup).not.toContain("让 Vit 打开");
     expect(markup).toContain('data-launcher-bridge="fixture"');
+    // fixture 模式 bridgeAvailable=false → 桥不可用诚实说明随 directive 在场。
+    expect(markup).toContain("Vit 桥不可用");
+    expect(markup).toContain('data-launcher-bridge-note');
     expect(markup).not.toContain("已打开");
     expect(markup).not.toContain('data-launcher-bridge-exec');
   });
@@ -246,16 +264,20 @@ describe("UI-BRIDGE-1 桥呈现面", () => {
 
 // ── SHELL-2：抽屉手动按钮 + 页内治理三键卡 ──
 
-describe("launcherSurface 抽屉手动按钮（SHELL-2）", () => {
-  it("fixture 线程就绪时抽屉头部有「＋新建」按钮（agent 对话流入口）", () => {
+describe("launcherSurface 抽屉手动按钮（SHELL-2；SHELL-5 语义收口）", () => {
+  it("抽屉头部「＋新建」=直连新建（不经对话问询）+「打开…」宿主对话框", () => {
     const markup = renderToStaticMarkup(
       <LauncherSurface fixture={{ drawerState: "empty" }} />
     );
     expect(markup).toContain("data-launcher-new");
+    expect(markup).toContain('data-launcher-new-mode="direct"');
     expect(markup).toContain("＋新建");
+    expect(markup).toContain("不经对话问询");
     expect(markup).toContain("data-launcher-drawer-actions");
     // 空 recents 态主路径突出修饰在场。
     expect(markup).toContain('data-drawer-primary="true"');
+    // 空态文案指向直建按钮（SHELL-5）。
+    expect(markup).toContain("点「＋新建」直接新建");
   });
 
   it("live 桥可用（stub chrome.webview）→ 头部打开按钮在场（宿主原生对话框）", () => {

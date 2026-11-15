@@ -7,10 +7,11 @@
 
 import type { LauncherDirective, LauncherGreeting, LauncherProjectCard } from "../api/launcher";
 
-/** 输入框上方的上下文建议（3–4 个，确定性意图词面，见 launcher_flow.go 分类器）。 */
+/** 输入框上方的上下文建议（3–4 个，确定性意图词面，见 launcher_flow.go 分类器）。
+ * SHELL-5：新建建议=直接执行语义（agent 出缺省草稿名 directive，不再问询循环）。 */
 export const LAUNCHER_SUGGESTIONS: ReadonlyArray<{ text: string; hint: string }> = [
   { text: "看看最近的工程", hint: "列出最近工程卡片" },
-  { text: "新建一个工程", hint: "新建意图，agent 会追问工程名" },
+  { text: "新建一个工程", hint: "直接新建并进入工程（缺省名，进去后可改）" },
   { text: "继续", hint: "接着上一次的工程" }
 ];
 
@@ -66,29 +67,30 @@ export type LauncherDirectiveState =
 
 export interface DirectivePlaceholderView {
   action: LauncherPendingAction;
-  /** 占位标题：「准备打开《X》…」/「准备新建《X》…」。 */
+  /** 占位标题：「正在打开《X》…」/「正在新建《X》…」（SHELL-5 自动执行语态）。 */
   headline: string;
   /** 数据行：文件路径 / 工程名（原样呈报）。 */
   detail: string;
-  /** 固定说明：本卡只做数据展示，执行留待工程桥接。 */
+  /** 固定说明：已自动经 Vit 桥执行，终态以宿主回执为准。 */
   note: string;
 }
 
 /**
- * launcher_directive → 数据展示占位（卡面硬要求：不执行 open/new、不虚报已打开）。
- * agent 侧 requires_governance 恒 true；占位文案明确「本占位不执行」——
- * 真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，React 只发请求与呈现回执。
- * SHELL-2：治理确认与原生对话框归属宿主（VitShell 版：Win32 对话框 + 页内治理卡；
- * Godot 旧宿主下同文案成立——归属都是「宿主」，不点名具体宿主实现）。
+ * launcher_directive → 自动执行回执占位（SHELL-5：directive 到达即自动经
+ * Vit 桥执行——不再等「让 Vit 新建/打开」手动按钮；本视图只呈报执行中事实，
+ * 终态一律以下方桥执行态（宿主 vit_launcher_result）为准，不虚报已打开）。
+ * agent 侧 requires_governance 恒 true；治理确认与原生对话框归属宿主
+ * （VitShell 版：Win32 对话框 + 页内治理卡；Godot 旧宿主同文案成立——归属
+ * 都是「宿主」，不点名具体宿主实现）。
  */
 export function directivePlaceholder(directive: LauncherDirective | null | undefined): DirectivePlaceholderView | null {
   if (!directive || !directive.action) return null;
-  const note = "占位呈报——本占位不执行打开/新建；真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，治理确认与原生对话框归属宿主。";
+  const note = "Vit 正在执行——已自动经 Vit 桥（UI-BRIDGE-1）发出，治理确认（如需）与原生对话框归属宿主，执行回执见下方状态。";
   if (directive.action === "open_project") {
     const name = directive.project_name?.trim() || launcherDisplayFileName(directive.file_path ?? "");
     return {
       action: "open",
-      headline: name ? `准备打开《${name}》…` : "准备打开工程…",
+      headline: name ? `正在打开《${name}》…` : "正在打开工程…",
       detail: directive.file_path?.trim() ?? "",
       note
     };
@@ -97,23 +99,41 @@ export function directivePlaceholder(directive: LauncherDirective | null | undef
     const name = directive.project_name?.trim();
     return {
       action: "new",
-      headline: name ? `准备新建《${name}》…` : "准备新建工程…",
+      headline: name ? `正在新建《${name}》…` : "正在新建工程…",
       detail: directive.reason?.trim() ?? "",
       note
     };
   }
-  return { action: "unknown", headline: "准备执行 launcher 指令…", detail: "", note };
+  return { action: "unknown", headline: "正在执行 launcher 指令…", detail: "", note };
 }
 
-/** 结果卡点击（仅数据展示态切换）时的占位视图。 */
+/** 结果卡点击（自动执行同一指令）时的占位视图。 */
 export function cardPendingPlaceholder(card: LauncherProjectCard): DirectivePlaceholderView {
   const fromDirective = directivePlaceholder(card.directive);
   if (fromDirective) return fromDirective;
   return {
     action: "open",
-    headline: card.name ? `准备打开《${card.name}》…` : "准备打开工程…",
+    headline: card.name ? `正在打开《${card.name}》…` : "正在打开工程…",
     detail: card.filePath,
-    note: "占位呈报——本占位不执行打开/新建；真实执行经 Vit 桥（UI-BRIDGE-1）由宿主完成，治理确认与原生对话框归属宿主。"
+    note: "Vit 正在执行——已自动经 Vit 桥（UI-BRIDGE-1）发出，治理确认（如需）与原生对话框归属宿主，执行回执见下方状态。"
+  };
+}
+
+/** 缺省新工程名（SHELL-5：MMDD_HHmm 时间戳草稿名；agent 侧
+ * launcherDefaultNewProjectName 同格式镜像——名实相符的内核承接是 363 域）。 */
+export function defaultNewProjectName(now: number = Date.now()): string {
+  const d = new Date(now);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `新工程_${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+}
+
+/** 启动台「＋新建」按钮的直连 directive（不经对话问询——点击即建并进入）。 */
+export function buildDirectNewDirective(now: number = Date.now()): LauncherDirective {
+  return {
+    action: "new_project",
+    project_name: defaultNewProjectName(now),
+    reason: "新建工程（启动台「＋新建」按钮）",
+    requires_governance: true
   };
 }
 
