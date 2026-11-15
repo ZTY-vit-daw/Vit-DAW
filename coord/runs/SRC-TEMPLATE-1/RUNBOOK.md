@@ -43,6 +43,20 @@
 - `scripts/src_template_build.py` 确定性再生（同 sha256）；`scripts/src_template_smoke.py` py_compile+纯函数离线测（wav_diff/日志窗口过滤）过；`dev_agent_smoke.ps1` Parser PARSE_OK（既有腿字节不变）。
 - webui 零改动（vitest/构建面不适用，回执声明端测边界）。
 
-## 6. 真栈腿执行记录（跑后回填）
+## 6. 真栈腿执行记录（2026-11-16 执行后回填）
 
-- 待回填：run_id、起止、HEAD、占用/释放登记链接、B1-B7 逐判定、工件路径、计费亲证、异常分记。
+- **run_id**：`run_20261116_0012`（coord/runs/SRC-TEMPLATE-1/run_20261116_0012/）；栈登记=占用 main 7a7bee6f（00:0x 实际登记；登记行时间戳笔误写 00:3x）/释放=本批提交。
+- **被测**：worktree D:/Vit_DAW_wt_src1 @ port/src-template-1（正式轮 F 代码=装置修复后）；agent=现场构建（wrapper go build exit 0）；内核=主检出 build 目录只读复用 sha256 eda7e179…（mtime 2026-11-09 19:39，含 vit_music_key_signature 2026-10-12 面；本卡零内核改动）。
+- **正式轮（轮 F）**：driver exit 0，B1-B7 九断言全绿（summary assertions 节）：
+  - B1 open ok+identity=模板 uuid+五轨名齐；B2 旋律探针 max_abs 0.295/非零；B3 鼓探针 max_abs 0.461/非零；B4 readback 命中+WAV 差分 20501（阈 500，前后峰 13442/15320 双非静音）；B5 save→`lesson_project.vit`（加密生产形态）→重开回读相等+探针 0.315；B6 五轨+三 Surge+快照钉（2/4/80/C/ch10/改后音高/Surge×3+role×3）；B7 零 bypass/零 agent 侧插件控制。
+- **无效轮分记（§8，全为本卡装置域修复，非产品断言失败、非原样重跑）**：
+  - 轮 A：ps1 调用于错误分支态（登记分支切换后工作树无装置接线）→param 不识别，零栈零进程，即时发现；
+  - 轮 B：wrapper 全前置绿（agent 构建/隔离/内核起栈 16880+agent 12488），driver argparse 缺 `--output` 定义→leg 未执行；
+  - 轮 C：precheck 模板 sha256 CRLF 漂移（git autocrlf 检出改写行尾）→改规范形哈希（LF 归一，三处一致）；
+  - 轮 D：B1 身份取位错（project.project_uuid→实际在 project_history.project_uuid）+内核面 track_name 键名；
+  - 轮 E：B1-B4 全绿后 B5 fail——**生产语义发现**：`normalizeProjectPathForSave` 把任意路径扩展名规范化为 .vit（VitProjectFile.cpp:15），save_project 对 .xml 工程实际落加密 lesson_project.vit；装置改走生产形态（重开 reply 报告的 .vit=用户真实保存/重开链），B6 timing 钉改挂 `project_snapshot_export` 快照面；
+  - 轮 F：全绿 PASS。
+- **计费亲证**：telemetry 文件未创建（absent=零行）+-NoChatSmoke+VIT_AGENT_LLM_BASE_URL 死端点三重，¥0。
+- **隔离还原**：recents 快照 d9b53ba7…→还原→哈希亲证一致；VIT_PROJECT_XML/VIT_HISTORY_DRAFT_ROOT 全程 run 目录隔离；模板源 sha256 前后一致（规范形 a188defd…）；拆栈 TEARDOWN_ALL_ZERO 亲证 00:23:02（VitApp=16880/VitAgent=12488 亲停，PROCS/TCP/UDP 全 0）。
+- **观测记录（非断言）**：B4 旋律轨探针 sum_abs 相对变化 0.02%——同轨单音改动的能量代理不敏感，如实记录；主判据=WAV 逐样本差分（20501≫500）。
+- **M2 人耳节点**：旋律/鼓音色健康待用户听核（run 目录 lesson_project.vit 可作听核对象；机械非静音不替代音色判定）。

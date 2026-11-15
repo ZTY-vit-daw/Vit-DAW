@@ -15,6 +15,7 @@
 package coursetemplate
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/xml"
@@ -285,7 +286,10 @@ func Load(dir string) (*Loaded, error) {
 	if err != nil {
 		return nil, fmt.Errorf("coursetemplate: read template: %w", err)
 	}
-	sum := sha256.Sum256(data)
+	// Canonical-form hash: normalize CRLF->LF so the pinned hash is stable
+	// across git autocrlf checkout modes (generator emits LF; a Windows
+	// checkout may rewrite line endings on disk).
+	sum := sha256.Sum256(bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n")))
 	got := hex.EncodeToString(sum[:])
 	if m.TemplateSHA256 != "" && got != m.TemplateSHA256 {
 		return nil, fmt.Errorf("coursetemplate: template sha256 mismatch: manifest %s != file %s (%s)", m.TemplateSHA256, got, templatePath)
