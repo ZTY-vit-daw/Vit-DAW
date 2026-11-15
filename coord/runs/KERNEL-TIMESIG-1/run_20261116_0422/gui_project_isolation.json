@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD 318f2f171fbacc597745a93d61bb342a2da3eafa:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-11-16T04:22:55.4938709+08:00",
+    "marker_path":  "C:\\Users\\timoz\\wt_timesig\\coord\\runs\\KERNEL-TIMESIG-1\\run_20261116_0422\\gui_project_isolation.json",
+    "isolated_copy":  "C:\\Users\\timoz\\wt_timesig\\coord\\runs\\KERNEL-TIMESIG-1\\run_20261116_0422\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}

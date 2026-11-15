@@ -151,8 +151,21 @@ def wait_for_kernel(ctx: zmq.Context, url: str, timeout_ms: int) -> zmq.Socket:
 
 
 def send_vsp_command(sock: zmq.Socket, session_id: str, command: str, args: dict[str, Any], timeout_ms: int) -> dict[str, Any]:
-    reply = send_command(sock, vsp_envelope(session_id, {"command": command, "args": args}, timeout_ms))
-    if reply.get("type") != "command.response":
+    # Project-lifecycle and meter commands are not in the kernel's canonical
+    # VSP command map (that face covers automation./clip./marker. families);
+    # they ride the legacy.command envelope instead — same path the agent
+    # takes for set_tempo et al. Inner legacy replies come back as
+    # command.response (ok) or command.error (kernel-level rejection), both
+    # carrying payload.legacy_reply; the caller asserts on that inner reply.
+    reply = send_command(
+        sock,
+        vsp_envelope(
+            session_id,
+            {"command": "legacy.command", "legacy": {"cmd": command, "args": args}},
+            timeout_ms,
+        ),
+    )
+    if reply.get("type") not in {"command.response", "command.error"}:
         raise RuntimeError(f"VSP {command} returned unexpected reply: {reply}")
     payload = reply.get("payload")
     if not isinstance(payload, dict):
@@ -246,16 +259,19 @@ def main() -> None:
     print("[T2] set_time_signature 3/4 ok — music_context 3/4")
 
     # T3 — fail-closed counter-examples; meter must stay 3/4 throughout.
+    # Each case pins the verbatim kernel rejection reason (field-type
+    # rejections name the command + field; range rejections come from the
+    # shared validator with the 1..64 domain).
     counter_examples = {
-        "string_numerator": {"numerator": "3", "denominator": 4},
-        "zero_numerator": {"numerator": 0, "denominator": 4},
-        "denominator_above_64": {"numerator": 3, "denominator": 128},
-        "missing_denominator": {"numerator": 3},
+        "string_numerator": ({"numerator": "3", "denominator": 4}, "requires an integer numerator"),
+        "zero_numerator": ({"numerator": 0, "denominator": 4}, "must be integers in 1..64"),
+        "denominator_above_64": ({"numerator": 3, "denominator": 128}, "must be integers in 1..64"),
+        "missing_denominator": ({"numerator": 3}, "requires an integer denominator"),
     }
     t3_rows: dict[str, Any] = {}
-    for name, payload in counter_examples.items():
+    for name, (payload, reason_pattern) in counter_examples.items():
         reply = send_vsp_command(sock, session_id, "set_time_signature", payload, args.timeout_ms)
-        require_error(f"T3 {name}", reply, "set_time_signature")
+        require_error(f"T3 {name}", reply, reason_pattern)
         row = assert_meter(f"T3 {name} untouched", music_context(sock, session_id, args.timeout_ms), 3, 4)
         t3_rows[name] = {"rejected": True, "message": str(reply.get("message") or ""), "music_context": row}
         print(f"[T3] {name} rejected fail-closed — meter still 3/4")
