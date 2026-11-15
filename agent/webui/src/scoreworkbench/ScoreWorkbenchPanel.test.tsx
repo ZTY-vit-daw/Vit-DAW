@@ -247,9 +247,64 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
     expect(rootEl(container).getAttribute("data-score-dirty")).toBe("false");
   });
 
-  it("apply with a kernel bridge: single replace_region payload, reload rebases, saved state", async () => {
+  it("mount with an agent bridge auto-loads the kernel snapshot (M3)", async () => {
+    const kernelModel: ScoreModel = {
+      timeSignature: { numerator: 4, denominator: 4 },
+      notes: [
+        { id: "kernel-1", pitch: 60, startBeats: 0, lengthBeats: 0.75 },
+        { id: "kernel-2", pitch: 62, startBeats: 0.75, lengthBeats: 0.25 }
+      ]
+    };
+    const snapshot = {
+      model: kernelModel,
+      clipLengthBeats: 8,
+      tempoBPM: 120,
+      timeSignatureLabel: "4/4",
+      clipStartSeconds: 0
+    };
+    const bridge: ScoreKernelBridge = {
+      kind: "agent",
+      applyPatch: async () => ({ ok: false, error: "not under test" }),
+      reload: async () => ({ ok: true, value: snapshot })
+    };
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const root = rootEl(container);
+    expect(serializeModel(modelOf(container))).toBe(serializeModel(kernelModel));
+    expect(root.getAttribute("data-score-dirty")).toBe("false");
+    expect(root.getAttribute("data-score-timesig")).toBe("4/4");
+    expect(root.getAttribute("data-score-tempo")).toBe("120");
+  });
+
+  it("mount load failure keeps the local model and surfaces the error (fail-honest)", async () => {
+    const bridge: ScoreKernelBridge = {
+      kind: "agent",
+      applyPatch: async () => ({ ok: false, error: "not under test" }),
+      reload: async () => ({ ok: false, error: "analyze_midi_transformations requires a connected kernel" })
+    };
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const root = rootEl(container);
+    expect(serializeModel(modelOf(container))).toBe(serializeModel(fixture));
+    expect(root.getAttribute("data-score-status")).toContain("装载失败");
+    expect(root.getAttribute("data-score-dirty")).toBe("false");
+  });
+
+  it("apply with a kernel bridge: single replace_region payload, snapshot rebases, saved state", async () => {
     const applied: ApplyPatchOp[] = [];
-    const reloadModel: ScoreModel = {
+    const baseModel: ScoreModel = {
+      timeSignature: { numerator: 2, denominator: 4 },
+      notes: [
+        { id: "kernel-1", pitch: 72, startBeats: 0, lengthBeats: 0.75 },
+        { id: "kernel-2", pitch: 67, startBeats: 0.75, lengthBeats: 0.25 },
+        { id: "kernel-3", pitch: 71, startBeats: 1.5, lengthBeats: 0.5 }
+      ]
+    };
+    const editedModel: ScoreModel = {
       timeSignature: { numerator: 2, denominator: 4 },
       notes: [
         { id: "kernel-1", pitch: 72, startBeats: 0, lengthBeats: 0.75 },
@@ -258,21 +313,26 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
         { id: "kernel-4", pitch: 72, startBeats: 1, lengthBeats: 0.5 }
       ]
     };
+    const baseSnapshot = { model: baseModel, clipLengthBeats: 8, tempoBPM: 90, timeSignatureLabel: "2/4", clipStartSeconds: 0 };
+    const editedSnapshot = { model: editedModel, clipLengthBeats: 8, tempoBPM: 90, timeSignatureLabel: "2/4", clipStartSeconds: 0 };
     const bridge: ScoreKernelBridge = {
       kind: "agent",
       applyPatch: async (patch) => {
         applied.push(patch);
-        return { ok: true, value: true } as KernelBridgeResult<true>;
+        return { ok: true, value: editedSnapshot };
       },
-      reload: async () => ({ ok: true, value: reloadModel })
+      reload: async () => ({ ok: true, value: baseSnapshot })
     };
     const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
-    fire(overlayOf(container), "pointerdown", clickAt(anchorFor(fixture, 4)));
-    clickButton(container, "data-score-apply");
-    clickButton(container, "data-score-confirm-apply");
     await act(async () => {
       await Promise.resolve();
     });
+    expect(serializeModel(modelOf(container))).toBe(serializeModel(baseModel));
+    // 在空档（tick4=beat1.0，baseModel 该处为休止）放一个八分 → dirty
+    fire(overlayOf(container), "pointerdown", clickAt(anchorFor(baseModel, 4)));
+    expect(rootEl(container).getAttribute("data-score-dirty")).toBe("true");
+    clickButton(container, "data-score-apply");
+    clickButton(container, "data-score-confirm-apply");
     await act(async () => {
       await Promise.resolve();
     });
@@ -284,7 +344,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
     const root = rootEl(container);
     expect(root.getAttribute("data-score-apply-state")).toBe("saved");
     expect(root.getAttribute("data-score-dirty")).toBe("false");
-    expect(serializeModel(modelOf(container))).toBe(serializeModel(reloadModel));
+    expect(serializeModel(modelOf(container))).toBe(serializeModel(editedModel));
     expect(root.getAttribute("data-score-kernel")).toBe("connected");
   });
 
@@ -295,6 +355,10 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       reload: async () => ({ ok: false, error: "unreachable" })
     };
     const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    // 装载失败保留本地 fixture（fail-honest），编辑基于本地模型
     fire(overlayOf(container), "pointerdown", clickAt(anchorFor(fixture, 4)));
     clickButton(container, "data-score-apply");
     clickButton(container, "data-score-confirm-apply");

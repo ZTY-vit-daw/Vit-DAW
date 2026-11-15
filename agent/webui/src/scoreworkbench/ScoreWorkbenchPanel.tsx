@@ -25,7 +25,7 @@ import {
 } from "./edit";
 import { GRID_PER_BEAT, serializeModel, type ScoreModel } from "./model";
 import { hitTest, renderScoreInto, type RenderResult } from "./render";
-import { createNoKernelBridge, type ScoreKernelBridge } from "./kernel";
+import { createNoKernelBridge, type ScoreClipSnapshot, type ScoreKernelBridge } from "./kernel";
 import "./scoreworkbench.css";
 
 export type ScoreDuration = 1 | 2 | 3 | 4;
@@ -52,7 +52,7 @@ type Selection = { kernelId: string; tick: number } | null;
 
 export function ScoreWorkbenchPanel({
   initialModel,
-  clipLengthBeats = 8,
+  clipLengthBeats: fallbackClipLengthBeats = 8,
   kernel
 }: {
   initialModel: ScoreModel;
@@ -68,6 +68,33 @@ export function ScoreWorkbenchPanel({
   const [status, setStatus] = useState("就绪");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [applyState, setApplyState] = useState<"idle" | "busy" | "saved" | "error">("idle");
+  const [snapshot, setSnapshot] = useState<ScoreClipSnapshot | null>(null);
+  const [clipLengthBeats, setClipLengthBeats] = useState(fallbackClipLengthBeats);
+
+  // M3：agent 桥在场时挂载即回读装载（fail-honest——失败显形，保留本地模型不假成功）。
+  useEffect(() => {
+    if (!activeKernel || activeKernel.kind !== "agent") {
+      return;
+    }
+    let cancelled = false;
+    activeKernel.reload().then((result) => {
+      if (cancelled) {
+        return;
+      }
+      if (result.ok && result.value) {
+        setBuffer(createEditBuffer(result.value.model));
+        setSnapshot(result.value);
+        setClipLengthBeats(result.value.clipLengthBeats);
+        setStatus(`已从内核装载（${result.value.timeSignatureLabel} @ ${result.value.tempoBPM}bpm，clip ${result.value.clipLengthBeats} 拍）`);
+      } else {
+        setStatus(`内核装载失败：${result.ok ? "空模型" : result.error}`);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const svgHostRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -277,22 +304,17 @@ export function ScoreWorkbenchPanel({
       return;
     }
     setApplyState("busy");
+    // M3：applyPatch 内部已完成 回读+验证（A5：比对一致才返回 ok；桥即真栈链）。
     const applied = await activeKernel.applyPatch(applyPatch);
     if (!applied.ok) {
       setStatus(`写入失败：${applied.error}`);
       setApplyState("error");
       return;
     }
-    const reloaded = await activeKernel.reload();
-    if (reloaded.ok && reloaded.value) {
-      setBuffer(createEditBuffer(reloaded.value));
-      setStatus("已写入内核并回读重建（已保存）");
-    } else {
-      // 写入成功但回读失败：fail-honest 显形，不伪装已保存。
-      setStatus(`写入成功但回读失败：${reloaded.ok ? "空模型" : reloaded.error}`);
-      setApplyState("error");
-      return;
-    }
+    setBuffer(createEditBuffer(applied.value.model));
+    setSnapshot(applied.value);
+    setClipLengthBeats(applied.value.clipLengthBeats);
+    setStatus("已写入内核并回读验证一致（已保存）");
     setApplyState("saved");
     setConfirmOpen(false);
     setSelection(null);
@@ -301,7 +323,7 @@ export function ScoreWorkbenchPanel({
   const kernelTag = activeKernel ? (activeKernel.kind === "agent" ? "connected" : "local") : "local";
 
   return (
-    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)}>
+    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""}>
       <div className="score-toolbar">
         <div className="score-tool-group" role="group" aria-label="输入模式">
           <button type="button" className={`score-tool ${mode === "note" ? "active" : ""}`} data-score-mode-note onClick={() => setMode("note")}>
