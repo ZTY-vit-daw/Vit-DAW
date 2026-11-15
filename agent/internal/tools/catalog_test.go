@@ -550,6 +550,41 @@ func TestTransportLoopToolsAreCataloged(t *testing.T) {
 	}
 }
 
+// KERNEL-TIMESIG-1: the project meter command face — aligned with the
+// set_tempo tier (RiskUndoable transport mutation, no confirmation gate,
+// refresh after) with a fail-closed integer arg hint (1..64 each; the
+// kernel rejects anything else without touching state).
+func TestTimeSignatureToolIsCataloged(t *testing.T) {
+	catalog := DefaultCatalog()
+	spec, ok := catalog.LookupTool("transport.set_time_signature")
+	if !ok {
+		t.Fatal("transport.set_time_signature missing")
+	}
+	if spec.CommandName != "set_time_signature" || spec.Category != "transport" ||
+		!spec.MutatesProject || !spec.SupportsUndo || spec.RequiresConfirmation ||
+		spec.RiskLevel != RiskUndoable || !spec.RefreshAfter {
+		t.Fatalf("transport.set_time_signature metadata = %+v", spec)
+	}
+	// Tier parity with set_tempo (the card's precedent face).
+	tempo, ok := catalog.LookupTool("transport.set_tempo")
+	if !ok {
+		t.Fatal("transport.set_tempo missing")
+	}
+	if spec.RiskLevel != tempo.RiskLevel || spec.RequiresConfirmation != tempo.RequiresConfirmation || spec.RefreshAfter != tempo.RefreshAfter {
+		t.Fatalf("set_time_signature tier diverged from set_tempo: %+v vs %+v", spec, tempo)
+	}
+	if hint := argHint("set_time_signature"); !strings.Contains(hint, "numerator:int(1..64)") || !strings.Contains(hint, "denominator:int(1..64)") {
+		t.Fatalf("set_time_signature arg hint = %q", hint)
+	}
+	summary := catalog.ModelSummary()
+	if !strings.Contains(summary, "set_time_signature tool=transport.set_time_signature risk=undoable") {
+		t.Fatal("ModelSummary missing transport.set_time_signature entry")
+	}
+	if !strings.Contains(summary, "args=numerator:int(1..64) denominator:int(1..64)") {
+		t.Fatal("ModelSummary missing set_time_signature arg hint")
+	}
+}
+
 func TestMixTickToolsAreAgentLayerCataloged(t *testing.T) {
 	catalog := DefaultCatalog()
 	propose, ok := catalog.LookupTool("mix.propose_tick")

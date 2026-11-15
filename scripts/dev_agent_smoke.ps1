@@ -30,6 +30,14 @@ param(
     # ref.diff identity+content 边界）。
     [switch]$RefQuerySmoke,
     [switch]$AutomationCurveSmoke,
+    # KERNEL-TIMESIG-1：工程拍号命令面真栈腿（内核 ZMQ 直连，全确定性零 LLM）。
+    # 断言体在 scripts/timesig_smoke.py。腿：T1 new_project time_signature
+    # "2/4"（W01 契约 wire form）→回执+music_context 2/4 → T2 set_time_signature
+    # 3/4 → T3 fail-closed 四反例零写入 → T4 save_project(.vit)→open_project
+    # 重开回读 3/4 → T5 无字段 new_project=4/4 零变化。腿只需内核栈在
+    # -StartKernel 后可用（不启 UI，不需 agent HTTP 面）；kernel 须为含本卡
+    # 改动的构建（-KernelExe 指 run-dir 运行时）。
+    [switch]$TimesigSmoke,
     # M3-ENVELOPE-TRACK-SOURCE-1 (196): track-level parameter family
     # addressing probe leg (assertion body in scripts/automation_curve_smoke.py
     # --probe-tracks mode; kernel ZMQ command face direct -- same shape as the
@@ -1430,7 +1438,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke -or $SrcTemplateSmoke -or $LauncherFlow) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke -or $SrcTemplateSmoke -or $LauncherFlow -or $TimesigSmoke) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -9006,6 +9014,43 @@ if ($TrackParamDescriptorSmoke) {
         throw ("track param descriptor smoke passed but summary artifact missing: " + $trackDescriptorSummaryPath)
     }
     Write-Ok ("track param descriptor smoke passed (kernel command face; summary: " + $trackDescriptorSummaryPath + ")")
+}
+
+if ($TimesigSmoke) {
+    Write-Step "time signature smoke (KERNEL-TIMESIG-1)"
+    # 工程拍号命令面真栈腿：断言体在 scripts/timesig_smoke.py（形态=
+    # automation_curve_smoke.py，内核 ZMQ 命令面直连）。腿：T1 new_project
+    # time_signature "2/4"（W01 契约 wire form，§13/§14 本课工程拍号）→
+    # 回执 echo+music_context 2/4 → T2 set_time_signature 3/4 → T3 fail-closed
+    # 四反例（字符串分子/零分子/分母>64/缺分母）逐例后拍号仍 3/4 零写入 →
+    # T4 save_project(.vit run 目录)→open_project 重开 music_context 3/4 →
+    # T5 无字段 new_project=4/4（旧调用零变化）。腿只需内核栈在
+    # -StartKernel 后可用；不依赖 agent HTTP 面；kernel 须为含本卡改动的
+    # 构建（-KernelExe 指 run-dir 运行时，回执记哈希/时间）。
+    $timesigSmokeScript = Join-Path $RepoRoot "scripts\timesig_smoke.py"
+    if (-not (Test-Path -LiteralPath $timesigSmokeScript)) {
+        throw ("time signature smoke script missing: " + $timesigSmokeScript)
+    }
+    $timesigArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($timesigArtifactsDir)) {
+        $timesigArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\timesig_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $timesigArtifactsDir)) {
+        New-Item -ItemType Directory -Path $timesigArtifactsDir -Force | Out-Null
+    }
+    $timesigSummaryPath = Join-Path $timesigArtifactsDir "timesig_smoke_summary.json"
+    $timesigConsolePath = Join-Path $timesigArtifactsDir "timesig_smoke_console.txt"
+    $timesigProjectPath = Join-Path $timesigArtifactsDir "timesig_project.vit"
+    & python $timesigSmokeScript --url ("tcp://127.0.0.1:" + $ZmqReqPort) --project-file $timesigProjectPath --output $timesigSummaryPath > $timesigConsolePath 2>&1
+    $timesigExit = $LASTEXITCODE
+    Get-Content -LiteralPath $timesigConsolePath | ForEach-Object { Write-Host $_ }
+    if ($timesigExit -ne 0) {
+        throw ("time signature smoke failed with exit code $timesigExit (console: " + $timesigConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $timesigSummaryPath)) {
+        throw ("time signature smoke passed but summary artifact missing: " + $timesigSummaryPath)
+    }
+    Write-Ok ("time signature smoke passed (kernel command face; summary: " + $timesigSummaryPath + ")")
 }
 
 if ($EnvelopePresenceSmoke) {

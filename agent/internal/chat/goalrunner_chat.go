@@ -5233,6 +5233,8 @@ func agentLoopTransportTools() []string {
 		// 注册面，276 EDU-SYMBOL-CORE-1 同型——缺行时 transport 能力轮对模
 		// 型遮蔽该工具，chat 驱动路径不可达）。
 		"transport.set_loop", "transport.clear_loop",
+		// KERNEL-TIMESIG-1：工程拍号命令面（同上白名单机理——缺行即遮蔽）。
+		"transport.set_time_signature",
 	}
 }
 

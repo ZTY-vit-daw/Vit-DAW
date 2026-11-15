@@ -238,6 +238,29 @@ if(EXISTS "${VIT_TRACKTION_ENGINE_DIR}/CMakeLists.txt")
         juce::juce_recommended_config_flags)
     add_test(NAME VitRefSchemaTests COMMAND VitRefSchemaTests)
 
+    # KERNEL-TIMESIG-1: project time-signature command face — set 2/4 happy
+    # path + fail-closed rejections, W01 "N/D" contract-string parse
+    # (new_project creation payload), persistence round-trip
+    # (set -> saveAs -> reload), and AGENTS §11 legacy compatibility (TIMESIG
+    # without meter properties loads 4/4 via engine CachedValue defaults).
+    # Tracktion-linked like the SendRoute tests.
+    juce_add_console_app(VitTimeSignatureTests PRODUCT_NAME "VitTimeSignatureTests")
+    juce_generate_juce_header(VitTimeSignatureTests)
+    target_sources(VitTimeSignatureTests PRIVATE
+        TimeSignatureTests.cpp
+        ../Source/Service/TimeSignatureService.cpp
+        ../Source/Service/TimeSignatureService.h)
+    target_compile_features(VitTimeSignatureTests PRIVATE cxx_std_20)
+    target_include_directories(VitTimeSignatureTests PRIVATE ../Source)
+    target_compile_definitions(VitTimeSignatureTests PRIVATE JUCE_USE_CURL=0 JUCE_WEB_BROWSER=0)
+    target_link_libraries(VitTimeSignatureTests PRIVATE
+        tracktion::tracktion_core
+        tracktion::tracktion_engine
+        tracktion::tracktion_graph
+        juce::juce_audio_utils
+        juce::juce_recommended_config_flags)
+    add_test(NAME VitTimeSignatureTests COMMAND VitTimeSignatureTests)
+
     # KERNEL-SENDROUTE-IMPL-1: send/return inter-track routing — command face
     # (5 commands, bus allocator, anti-loop gates, auto-create transaction,
     # fail-open compatibility) plus the five audio legs inherited from the
@@ -310,6 +333,9 @@ if(MSVC)
     if(TARGET VitSendRouteTests)
         target_compile_options(VitSendRouteTests PRIVATE /W4 /permissive-)
     endif()
+    if(TARGET VitTimeSignatureTests)
+        target_compile_options(VitTimeSignatureTests PRIVATE /W4 /permissive-)
+    endif()
     if(TARGET VitMasterVolumeCalibrationTests)
         target_compile_options(VitMasterVolumeCalibrationTests PRIVATE /W4 /permissive-)
     endif()
@@ -338,6 +364,9 @@ else()
     endif()
     if(TARGET VitSendRouteTests)
         target_compile_options(VitSendRouteTests PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    if(TARGET VitTimeSignatureTests)
+        target_compile_options(VitTimeSignatureTests PRIVATE -Wall -Wextra -Wpedantic)
     endif()
     if(TARGET VitMasterVolumeCalibrationTests)
         target_compile_options(VitMasterVolumeCalibrationTests PRIVATE -Wall -Wextra -Wpedantic)

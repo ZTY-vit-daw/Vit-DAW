@@ -2,6 +2,7 @@
 
 #include "AudioFeatureService.h"
 #include "ProjectAudioSettingsService.h"
+#include "TimeSignatureService.h"
 
 #include "../Core/VitEncryptionCore.h"
 #include "../Core/VitGraphSwapCoordinator.h"
@@ -1117,6 +1118,30 @@ juce::String VitHeadlessService::ipcGetRecentProjects()
 
 juce::String VitHeadlessService::ipcNewBlankProject (const juce::DynamicObject& object)
 {
+    // KERNEL-TIMESIG-1: optional creation-time project meter. Payload field
+    // time_signature takes the W01 contract string form "N/D"
+    // (docs/LEGAME_DESIGN_CONTRACT_V0.md §4.6 workspace.timing.time_signature;
+    // lesson-YAML 工程拍号由该段统一声明、创建时应用——§13/§14 裁定。Bridging
+    // note for the 373 coursetemplate assembly: this kernel accepts exactly
+    // that field's value; the course template layer passes it through, it
+    // does not re-derive meter). Validated BEFORE the blank edit is created —
+    // fail-closed: an invalid value rejects the whole command instead of
+    // silently creating a 4/4 project. No field = current behaviour (4/4
+    // blank template), zero change for every existing caller.
+    int requestedNumerator = 0;
+    int requestedDenominator = 0;
+    const auto timeSignaturePayload = object.getProperty ("time_signature");
+
+    if (! timeSignaturePayload.isVoid())
+    {
+        juce::String parseError;
+        if (! TimeSignatureService::parseTimeSignatureString (timeSignaturePayload.toString(),
+                                                              requestedNumerator,
+                                                              requestedDenominator,
+                                                              parseError))
+            return CommandDispatcher::makeErrorReply ("new_project: " + parseError);
+    }
+
     auto loadedEdit = loadEditFromXmlString (engineDevice.getEngine(),
                                              paths::detail::getBlankProjectXmlTemplate(),
                                              0,
@@ -1147,6 +1172,16 @@ juce::String VitHeadlessService::ipcNewBlankProject (const juce::DynamicObject& 
                                                                &audioSettingsWarnings);
         audioSettingsChanged = true;
     }
+
+    bool timeSignatureApplied = false;
+    if (! timeSignaturePayload.isVoid())
+    {
+        juce::String applyError;
+        if (! TimeSignatureService::applyToEdit (*loadedEdit, requestedNumerator, requestedDenominator, applyError))
+            return CommandDispatcher::makeErrorReply ("new_project: " + applyError);
+        timeSignatureApplied = true;
+    }
+
     const auto monitoringPluginsAdded = ensureMonitoringPluginsForEdit (*loadedEdit);
     const auto trackRackChanged = ensureTrackRackGraphForEdit (*loadedEdit);
     primeEditPlaybackGraph (*loadedEdit);
@@ -1166,7 +1201,7 @@ juce::String VitHeadlessService::ipcNewBlankProject (const juce::DynamicObject& 
     if (edit != nullptr)
         deltaHub.attach (edit->state);
 
-    if (audioSettingsChanged || monitoringPluginsAdded || trackRackChanged)
+    if (audioSettingsChanged || monitoringPluginsAdded || trackRackChanged || timeSignatureApplied)
         saveProjectToDefaultXml();
 
     edit->getUndoManager().clearUndoHistory();
@@ -1180,6 +1215,14 @@ juce::String VitHeadlessService::ipcNewBlankProject (const juce::DynamicObject& 
     response->setProperty ("project_id", projectUUID);
     response->setProperty ("project_path", "");
     response->setProperty ("current_project_path", "");
+    if (timeSignatureApplied)
+    {
+        // Echo the applied meter so creation callers (lesson assembly) can
+        // assert the project actually started in the requested state.
+        response->setProperty ("time_signature", juce::String (requestedNumerator) + "/" + juce::String (requestedDenominator));
+        response->setProperty ("time_signature_numerator", requestedNumerator);
+        response->setProperty ("time_signature_denominator", requestedDenominator);
+    }
     if (! audioSettingsWarnings.isEmpty())
         response->setProperty ("warnings", juce::var (audioSettingsWarnings));
     return juce::JSON::toString (juce::var (response.release()));

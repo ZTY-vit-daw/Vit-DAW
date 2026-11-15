@@ -208,6 +208,16 @@ func executedCommandReply(before, after map[string]any, d policy.Decision, reply
 			return fmt.Sprintf("已把速度设为 %s BPM。", bpm)
 		}
 		return "已更新工程速度。"
+	case "set_time_signature":
+		if sig := firstText(cmd, "time_signature"); sig != "" {
+			return fmt.Sprintf("已把工程拍号设为 %s。", sig)
+		}
+		if num := firstText(cmd, "numerator"); num != "" {
+			if den := firstText(cmd, "denominator"); den != "" {
+				return fmt.Sprintf("已把工程拍号设为 %s/%s。", num, den)
+			}
+		}
+		return "已更新工程拍号。"
 	case "play":
 		return "已开始播放。"
 	case "stop":
