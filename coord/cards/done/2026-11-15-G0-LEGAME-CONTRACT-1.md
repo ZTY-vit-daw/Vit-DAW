@@ -51,3 +51,10 @@ schema 草案完整覆盖设计源 YAML 全字段+迁移契约可执行+裁定�
 - 边界声明：本卡不改生产代码、不实现解析器（非目标既定）；未跑 go/npm 测试——验收标准为文档契约完备性，以机械覆盖核验（python -I 只读）自证；落 docs/ 的契约属候审文档，CURRENT-STATE.md 索引登记留给决策侧验收时处理（该文件有领取前他人改动，本卡未触碰）。
 - 提交：领取 9a2994f3（pull --no-rebase 合并 3997e11b，369 卡并发领取冲突已按双方 doing 态解决）；收尾 50474de2（POOL-INDEX 两度并发冲突按双方状态合并 90e4a8a6/e00cbf41；最终远程 main=e00cbf41 含本卡全部产物）。
 - 验收：待主管决策流过目（候验收）；§7 R1-R6 候用户裁定。
+
+### 验收（主管 2026-11-15 深夜）
+
+- 裁定：**技术面 pass**——docs/LEGAME_DESIGN_CONTRACT_V0.md（34 节）：两层 schema（L0 全可选/L1 五必填段）+17 顶层段契约表+T-1..T-21 编译映射+装配绑定契约（UUID binding/clip_alias 作业身份/缓存失效四元组）+设计源 revision 3 覆盖核验 **119/119 结构路径+14 枚举面无溢出**（python -I 只读脚本两轮在卷）；与 §13/§14/§15+H1/H3 逐条对照；零生产改动；并发冲突三度按协议合并零丢失。
+- **R1-R6 候用户裁定**（契约 §7）：R1 非乐局保留值/L0 子集、R2 判层机制（schema_version 必填键解读）、R3 track_index 指派、R4 objectives 多 evidence_checks 编译、R5 budget/tempo 空值、R6 key_signature 词表封闭度+music_region 归一——**主管将整理带建议裁定单转用户**。
+- **下游 W01-A/B/C 实施卡在 R1-R6 回填前不发**（执行侧已守）。
+- CURRENT-STATE 索引登记随 gate（同 371 原因：既有未提交改动不混入）。
