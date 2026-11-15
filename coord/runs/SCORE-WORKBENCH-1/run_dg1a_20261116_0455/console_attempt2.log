@@ -1,0 +1,77 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_044908\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: C:\Users\timoz\wt_score1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: C:\Users\timoz\wt_score1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: C:\Users\timoz\wt_score1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: C:\Users\timoz\wt_score1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\kernel_runtime\VitApp.exe pid=32668 workdir=C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\kernel_runtime
+
+== Start or reuse agent
+ok: started agent: C:\Users\timoz\wt_score1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=298
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=32668
+ok: ZMQ SUB listening: 5556 pid=32668
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== score workbench DG1-A berth smoke (SCORE-WORKBENCH-1 / STACKGATE 3.1)
+ok: score wb recents snapshot: C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\global_project_config.before.json sha256=D9B53BA7C1C9
+[score-wb] agent health: {"service":"VitAgent","status":"ok"}
+[score-wb] music_context_echo: {"tempo_bpm":null,"tempo_setting_count":null,"time_signature":null,"time_signature_denominator":null,"time_signature_numerator":null}
+[score-wb] playwright: C:\Users\timoz\wt_score1\agent\webui\node_modules\playwright\index.mjs
+[score-wb] A4-timesig-disclosed FAIL DOM timesig='local-2/4' vs kernel '0/0' (2/4 project semantics = card 375 boundary)
+[score-wb] A1-load-equality FAIL DOM [] vs kernel [[72,0,3],[67,3,1],[71,6,2],[76,10,4],[79,14,4]]
+[score-wb] A3-fixture-loaded FAIL notes=0
+[score-wb] A3-svg-glyphs FAIL noteheads=2 notes=0 tieGlyph=false
+[score-wb] A3-dotted FAIL no dotted note
+[score-wb] A3-rest-window PASS
+[score-wb] A3-syncopation FAIL no syncopation note
+[score-wb] A3-cross-bar-tie FAIL no cross-barline tie note
+[score-wb] A2-id-binding FAIL DOM ids [] vs kernel ["note_0dd48a95ed34415fbc943f91c27fc889","note_1a484a911c1d48cd8d96b545ef5b312f","note_33e7e6a30a8b46cfaa3fdd521518d33e","note_7bba67c8b973413e850cba311409d4f8","note_c1664f53e1804af18eb2488fde83cc1f"]
+[score-wb] A1-write-readback FAIL kernel [[72,0,3],[67,3,1],[71,6,2],[76,10,4],[79,14,4]] vs expected [[72,0,3],[67,3,1],[72,4,2],[71,6,2],[76,10,4],[79,14,4]]
+[score-wb] A5-saved-only-after-verify FAIL applyState=error (bridge already verified readback before surfacing saved)
+[score-wb] A2-id-stable-edit-apply FAIL ids drifted after apply
+[score-wb] A6-reopen-readback FAIL project file_path not disclosed; reopen round-trip not provable on this stack
+[score-wb] verdict: FAIL (13 assertions)
+ok: score wb recents restored and hash-verified: D9B53BA7C1C9
+score workbench smoke failed with exit code 1 (console: C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_
+20261116_0455\score_workbench_console.txt)
+所在位置 C:\Users\timoz\wt_score1\scripts\dev_agent_smoke.ps1:9135 字符: 9
++         throw ("score workbench smoke failed with exit code $scoreWbE ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (score workbench...ch_console.txt):String) [], RuntimeException
+    + FullyQualifiedErrorId : score workbench smoke failed with exit code 1 (console: C:\Users\timoz\wt_score1\coord\r 
+   uns\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\score_workbench_console.txt)
+ 

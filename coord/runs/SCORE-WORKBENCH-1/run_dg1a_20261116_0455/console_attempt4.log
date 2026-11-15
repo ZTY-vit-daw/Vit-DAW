@@ -1,0 +1,58 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_050012\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: C:\Users\timoz\wt_score1
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: C:\Users\timoz\wt_score1\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: C:\Users\timoz\wt_score1\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: C:\Users\timoz\wt_score1\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\kernel_runtime\VitApp.exe pid=27224 workdir=C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\kernel_runtime
+
+== Start or reuse agent
+ok: started agent: C:\Users\timoz\wt_score1\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=298
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=27224
+ok: ZMQ SUB listening: 5556 pid=27224
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== score workbench DG1-A berth smoke (SCORE-WORKBENCH-1 / STACKGATE 3.1)
+ok: score wb recents snapshot: C:\Users\timoz\wt_score1\coord\runs\SCORE-WORKBENCH-1\run_dg1a_20261116_0455\global_project_config.before.json sha256=AC073230F229
+node.exe : [score-wb] FAIL exit=2 phase=runtime: leg crashed: Error: invoke get_midi_clip_notes failed: midi.read_notes
+ could not resolve clip target: clip_id "1042" is not present in the current user-visible project state
+所在位置 C:\Users\timoz\wt_score1\scripts\dev_agent_smoke.ps1:9120 字符: 5
++     & node $scoreWbScript --agent-http $AgentHttp --artifacts-dir $sc ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([score-wb] FAIL...e project state:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
