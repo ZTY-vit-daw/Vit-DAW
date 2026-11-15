@@ -25,8 +25,19 @@ import {
 } from "./edit";
 import { GRID_PER_BEAT, serializeModel, type ScoreModel } from "./model";
 import { hitTest, renderScoreInto, type RenderResult } from "./render";
+import { cursorPosition, playheadClipBeats } from "./cursor";
 import { createNoKernelBridge, type ScoreClipSnapshot, type ScoreKernelBridge } from "./kernel";
+import { fetchUIState } from "../lib/api";
 import "./scoreworkbench.css";
+
+function firstFinite(...values: unknown[]): number | null {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
 
 export type ScoreDuration = 1 | 2 | 3 | 4;
 
@@ -70,6 +81,9 @@ export function ScoreWorkbenchPanel({
   const [applyState, setApplyState] = useState<"idle" | "busy" | "saved" | "error">("idle");
   const [snapshot, setSnapshot] = useState<ScoreClipSnapshot | null>(null);
   const [clipLengthBeats, setClipLengthBeats] = useState(fallbackClipLengthBeats);
+  // M4 随谱游标：playhead 秒轮询（/agent/ui/state ui_context 白名单键）+单 tempo 门内换算。
+  const [playheadSeconds, setPlayheadSeconds] = useState<number | null>(null);
+  const [transportPlaying, setTransportPlaying] = useState(false);
 
   // M3：agent 桥在场时挂载即回读装载（fail-honest——失败显形，保留本地模型不假成功）。
   useEffect(() => {
@@ -111,6 +125,35 @@ export function ScoreWorkbenchPanel({
     }
     return notation.events.filter((event) => event.kernelId === selectedNote.id).map((event) => event.tick);
   }, [notation, selectedNote]);
+
+  // M4：游标轮询（250ms；快照在场才轮询——无 tempo/clip 起点不画游标=单 tempo
+  // fail-honest，不静默错位）。读取缝=/agent/ui/state ui_context（服务端白名单
+  // playhead/current_playhead/transport_position/is_playing 键族）。
+  useEffect(() => {
+    if (!snapshot) {
+      return;
+    }
+    let stopped = false;
+    const tickPlayhead = async () => {
+      try {
+        const state = await fetchUIState();
+        const context = state.ui_context ?? {};
+        const seconds = firstFinite(context.playhead_seconds, context.current_playhead_seconds, context.transport_position_seconds);
+        if (!stopped && seconds !== null) {
+          setPlayheadSeconds(seconds);
+          setTransportPlaying(context.is_playing === true || context.playing === true);
+        }
+      } catch {
+        // 轮询失败静默保留上一位置（面不可达由装载状态显形；不重复报错刷屏）。
+      }
+    };
+    void tickPlayhead();
+    const timer = window.setInterval(() => void tickPlayhead(), 250);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [snapshot]);
 
   // 推导重绘：working 变化即重渲染（369 spike 模式：编辑→推导→重绘全链）。
   useEffect(() => {
@@ -322,8 +365,18 @@ export function ScoreWorkbenchPanel({
 
   const kernelTag = activeKernel ? (activeKernel.kind === "agent" ? "connected" : "local") : "local";
 
+  // M4 游标位置（快照+playhead 都在场才换算；clip 外或渲染范围外=不画）。
+  const cursor =
+    snapshot && playheadSeconds !== null && renderResultRef.current
+      ? cursorPosition(
+          renderResultRef.current,
+          playheadClipBeats(playheadSeconds, snapshot.clipStartSeconds, snapshot.tempoBPM),
+          buffer.working.timeSignature.numerator
+        )
+      : null;
+
   return (
-    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""}>
+    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""} data-score-cursor-beat={cursor ? cursor.beat.toFixed(3) : ""} data-score-cursor-playing={transportPlaying ? "true" : "false"}>
       <div className="score-toolbar">
         <div className="score-tool-group" role="group" aria-label="输入模式">
           <button type="button" className={`score-tool ${mode === "note" ? "active" : ""}`} data-score-mode-note onClick={() => setMode("note")}>
@@ -367,6 +420,14 @@ export function ScoreWorkbenchPanel({
       </div>
       <div className="score-stage">
         <div className="score-svg-host" ref={svgHostRef} data-score-svg />
+        {cursor && (
+          <div
+            className="score-cursor"
+            data-score-cursor
+            data-score-cursor-measure={cursor.measure}
+            style={{ left: `${cursor.x}px`, top: `${cursor.y}px`, height: `${cursor.height}px` }}
+          />
+        )}
         <div
           className="score-overlay"
           ref={overlayRef}
