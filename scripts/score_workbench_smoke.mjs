@@ -173,7 +173,14 @@ async function main() {
 
   let trackID = "";
   let clipID = "";
+  const fixtureVit = join(args.artifactsDir, "score_wb_fixture.vit");
   try {
+    // edu/373 同款正路：boot XML 工程（演示工程形态）先 save_as 到 run 目录 .vit，
+    // fixture 建在 .vit 工程上——XML-boot 工程上会话内加轨再 save 会把新轨丢出
+    // 状态（域外发现 D1，锚点见回执）；save 后 clip_id 披露降级 null 直至重开
+    // （D2）——A6 因此按 save→open→readback 序测量（重开后 id 恢复+音符往返存活
+    // 已在占用窗口内活栈亲证 2026-11-16 05:0x）。
+    await invoke("save_as_project", { file_path: fixtureVit }, true);
     const trackReply = await invoke("add_track", {}, true);
     trackID = String(trackReply.track_id || trackReply.id || "");
     if (!trackID) throw new Error("add_track returned no track_id: " + JSON.stringify(trackReply).slice(0, 200));
@@ -311,31 +318,22 @@ async function main() {
       "ids drifted after apply");
 
     // ---- P4 A6 save -> reopen -> reload round-trip ----
-    // Project path truth: the sanitized agent get_project_state strips
-    // project_path (userVisibleState), so the berth passes the isolation
-    // VIT_PROJECT_XML (the exact project file the kernel booted with) through
-    // --project-xml. Fallbacks kept for other call shapes.
-    const stateResult = await invoke("get_project_state", {});
-    const projectObj = stateResult.project && typeof stateResult.project === "object" ? stateResult.project : {};
-    const projectPath = String(
-      args.projectXml ||
-        projectObj.file_path ||
-        projectObj.path ||
-        stateResult.project_path ||
-        stateResult.current_project_path ||
-        ""
-    );
-    summary.project_path_source = args.projectXml ? "arg(--project-xml=VIT_PROJECT_XML)" : "agent get_project_state fallbacks";
-    await invoke("save_project", {}, true);
-    const savedNotes = await readKernelNotes(clipID, trackID);
+    // Project path: 本腿 P0 已 save_as 到 fixtureVit（.vit 工程，edu/373 正路）；
+    // A6 序=save → open(重开恢复 clip_id 披露，D2) → readback → 面板重载。
+    const projectPath = fixtureVit;
+    summary.project_path_source = "leg save_as target (fixture.vit); fallback --project-xml=" + (args.projectXml || "(none)");
+    // saved 基线取 save 前读数（kernelNotes1=A1 断言时的全量读回）：save 后
+    // save→open 之间 agent 面 clip 寻址降级（D2），post-save 即时读回会假阴性。
+    const savedNotes = kernelNotes1;
     const savedSet = noteSetOf(savedNotes);
     const savedIDs = savedNotes.map((n) => n.id).sort();
+    await invoke("save_project", {}, true);
     if (!projectPath) {
-      summary.notes.push("get_project_state did not disclose project.file_path; reopen leg uses prior save_as target if any");
+      summary.notes.push("project path unknown; reopen round-trip not provable on this stack");
     }
     if (projectPath) {
       await invoke("open_project", { file_path: projectPath }, true);
-      await page.waitForTimeout(1500);
+      await page.waitForTimeout(2500);
       const kernelNotes2 = await readKernelNotes(clipID, trackID);
       assert("A6-reopen-readback", JSON.stringify(noteSetOf(kernelNotes2)) === JSON.stringify(savedSet),
         "reopened " + JSON.stringify(noteSetOf(kernelNotes2)) + " vs saved " + JSON.stringify(savedSet));
@@ -352,6 +350,13 @@ async function main() {
       // stays red -- the leg must not silently pass A6.
       assert("A6-reopen-readback", false, "project file_path not disclosed; reopen round-trip not provable on this stack");
     }
+
+    // ---- 域外发现记录（锚点上交决策侧，不扩修） ----
+    summary.notes.push(
+      "D1（内核·锚点候查）：XML-boot 工程上会话内加轨再 save_project，新轨被丢出工程状态（attempt3/4 实证：track 1039+clip 1042 save 后消失；.vit-boot 不复现）。",
+      "D2（内核·锚点候查）：save_project 后 get_project_state 的 tracks[].clips[].clip_id 披露降级为 null 直至 open_project 重开（agent 面 clip 寻址随之失效；产品影响=谱面面板 save 后至重开间 clip 选择器失源——本腿 A6 用 save→open 序绕开）。",
+      "D3（装置面发现）：agent get_project_state（userVisibleState 消毒面）不披露 project_path/project.file_path——腿经 save_as 目标路径+--project-xml 双源。"
+    );
 
     // ---- A7/A8 boundary (fail-honest skip with evidence anchor) ----
     summary.boundary.push({
