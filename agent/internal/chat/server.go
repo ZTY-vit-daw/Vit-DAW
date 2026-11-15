@@ -1760,11 +1760,17 @@ func (s *Server) handleInvoke(w http.ResponseWriter, r *http.Request) {
 		// The Kernel has already switched identity. Preserve the old in-memory
 		// workspace until the lifecycle notification establishes the new one.
 		s.persistCurrentProjectWorkspace()
-		if tool == "version.project_opened" {
+		if tool == "version.project_opened" || tool == "version.project_new" {
 			// LAUNCHER-GATE-FIX-1（340）：工程进入播报到达即置会话位——launcher
 			// 门副门（user_entered_project）从此关闭，进程内不重置。放在执行
 			// 之前：播报本身声明宿主已切换工程身份，后续恢复细节失败不改变
 			// 「用户已进入工程」的会话事实。
+			// SHELL-5：version.project_new 同置——宿主新建链（start_page
+			// _try_enter_main）只播报 project_new 即进入工作区（无后续
+			// project_opened；vit_dock 在工程内新建同族）。新建=进入工程，
+			// 启动台激活门（userEnteredProject 未置+draft 不激活）随之正确
+			// 放行新建工程的草稿绑定（真栈 run1 22:20:09 亲证：门未放行→
+			// 工程面「尚未装载」）。
 			s.markUserEnteredProject()
 		}
 	} else {
