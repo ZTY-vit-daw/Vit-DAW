@@ -170,6 +170,6 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 371 | G0-STACKGATE-1 | done 已验收 pass 合入（[docs/STACKGATE_DG1_DG3_V1.md](../../docs/STACKGATE_DG1_DG3_V1.md)=现行关卡契约——DG1 三能力关/DG2 旅程 J1-J10/DG3 渲染手测 M1-M4+卡面引用模板；锚点抽核真实；CURRENT-STATE 索引登记随 gate） |
 | 372 | GEN-YUE-WIRE-1 | done 已验收 pass 合入（**H6 六项真栈证成 W0-W8**：MIDI→方言/prompt 映射/纯器乐/请求卫生/后台 job/引擎托管；C1 逐音 16/16+C8 双版 WAV；W9=已知概率边界裁定在卡；**用户听核 M1 候用户**——WAV 在 run downloads） |
 | 373 | SRC-TEMPLATE-1 | done 已验收 pass 合入（**DG1-B 真栈 B1-B7 全绿**：melody-drum-v1 模板（2/4/80/C+Surge 血统+鼓 groove）+coursetemplate 包；save→.vit 语义发现入卷；**用户听核 M2 候用户**（Godot 链 lesson_project.vit）） |
-| 374 | SCORE-WORKBENCH-1 | doing（2026-11-16 00:1x 领取：owner GLM-5.3 L2 执行子代理/PC，worktree `C:/Users/timoz/wt_score1`（D 盘净空不足落 C 盘）分支 `port/score-workbench-1`，基线 fea0829a；M1→M5 顺序执行，装配点=App.tsx WorkbenchTab 三点接线；真栈腿候栈 372 占用中→373 DG1-B→本卡） |
+| 374 | SCORE-WORKBENCH-1 | done 待验收（GLM-5.3 执行子代理 2026-11-16 05:1x——M1-M5 全量完成：模型+DERIVATION_RULES v1+VF5 渲染命中/编辑全集（本地缓冲+显式 apply）/agent 桥内核真写回读/随谱游标；**DG1-A 真栈腿 attempt5 PASS exit 0 十五断言（A1-A6；A7/A8=373 边界）**+渲染面烟测 exit 0；vitest 668/668（基线 598+70）；实现 @ port/score-workbench-1 322a82fd；域外 D1/D2/D3 锚点上交；占用 4136b54d/释放 f0d2106a TEARDOWN_ALL_ZERO 亲证——细节见卡面回执） |
 | 375 | KERNEL-TIMESIG-1 | done 已验收 pass 合入（set_time_signature+创建 2/4 应用+§11 全过亲证（ctest 15/15+T1-T5 真栈）；实现→main aea3c37a/456b96ef；**374 M3 解锁**；legacy.command 语义发现入卷） |
 | 376 | UI-SMOKE-AUTOASSERT-1 | done 已验收 pass（渲染断言对齐 SHELL-5 自动执行态——主管复跑七段全 PASS 亲证；374 M5 阻塞解除；验收缺口归因闭环） |
