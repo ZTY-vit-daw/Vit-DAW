@@ -84,3 +84,11 @@
 ### 验收
 
 - 待主管决策流验收（真栈腿证据链：RUNBOOK §8/§9+run_20261116_0422 工件+栈登记两行）。
+
+### 验收（主管 2026-11-16 凌晨）
+
+- 裁定：**pass**——diff 16 文件零越域；§11 硬性亲核采纳（ctest 15/15+VERDICT PASS：C 组 2/4 存→重开回读/D2 缺省 4/4 零变化/D3 未知 99 fail-closed）；真栈 run_20261116_0422 亲核（driver exit 0，T1-T5 全绿含 fail-closed 四反例零写入）；栈登记/释放+S10 哈希还原+计费 ¥0 合规；中断-续跑记录在卷（断点零丢失）。
+- 合入：cherry-pick aea3c37a/456b96ef→main（ps1 透传缝并集冲突主管手工解决=SrcTemplate+LauncherFlow+Timesig 三缝共存）。
+- 采纳：VSP canonical 命令图不含工程级命令→legacy.command 信封语义发现入卷（374 如需 canonical 形另开小卡）。
+- 解锁：374 M3 的 2/4 工程语义。
+- 附注：test:render 基线红（LAUNCHER/SHADOWBOX 断言漂移）非本卡域——根因=主管验收 364/367 未跑 render+栅栏禁入致漂移，微修卡 376 在飞。
