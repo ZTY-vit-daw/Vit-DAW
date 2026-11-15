@@ -25,6 +25,12 @@
 - [S4] 负对照实证：临时摘除挂载行复跑 test:render → exit 1，APPENTRY 三断言拦截（spriteCount=0/symbols=0/css=null）；恢复后复跑 GATE3_FINAL_EXIT=0。证明修复前不可拦截的缺陷现已可拦截。
 - [S5] 断言实质计数（去空转后首跑）：gallery icons=221/graphics=234；launcher icons=10/graphics=10；project icons=44/graphics=56；loading icons=8/graphics=9；fidelity live 每视口 icons=7-8/graphics=7-11；APPENTRY spriteCount=1/symbols=23/css absolute+0x0/uses=0(主面 lucide,预期)/external=0。
 - [S6] 实现提交 59842aa8 推 port/ui-sprite-1 成功（2 files +226/−1，仅 main.tsx+render-smoke.mjs；worktree 内冒测重写的他卡 tracked 工件不随本卡提交）。本卡工件已拷贝主仓 coord/runs/UI-SPRITE-MOUNT-1/（report+4 PNG+PROGRESS）。下一步：回执回填+卡 done+POOL-INDEX+coord 提交推 main。
+- [S7] 完成提交 138549fa（卡 doing→done+回执回填+POOL-INDEX+工件入库）push 被拒——并发 SHELL-4 执行流已推其领取提交 9d2eb585（coord-only，卡 360）。按派发协议 git pull --no-rebase；POOL-INDEX.md 相邻行 360/361 冲突，保留双方更新（360=SHELL-4 doing、361=本卡 done）后合并提交 01360b85 推送成功（合并两侧均核对仅 coord/ 变更）。
+- [S8] DONE（2026-11-15）。终态四件套：
+  - 命令+退出码：npm run test exit 0（570/570）；npm run build exit 0；npm run test:render exit 0（6 报告 PASS）+负对照 exit 1（拦截实证）+恢复复跑 exit 0；git push main（领取 b0ecfec5、完成经合并 01360b85）；git push port/ui-sprite-1（59842aa8）。
+  - 产物：实现分支 port/ui-sprite-1 @ 59842aa8（候主管验收 cherry-pick 进 main）；工件 coord/runs/UI-SPRITE-MOUNT-1/；卡 done/2026-11-15-UI-SPRITE-MOUNT-1.md（回执全量）。
+  - 遇到的问题：①worktree 无 node_modules→npm install 补装；②POOL-INDEX.md 并发领取冲突→按协议 no-rebase 合并解决；③烟测重写他卡 tracked 工件（worktree 内）→不入本卡提交。
+  - 断点感知：未感知重派，单会话一次完成；上游派发时主仓 4 个 coord-only 提交未推，随领取提交一并 fast-forward 推送（逐提交核对仅 coord/）。
   - npm run test（worktree agent/webui/ 下；vitest 基线 570）
   - npm run build（worktree agent/webui/ 下）
   - npm run test:render（worktree agent/webui/ 下；自起 vite dev server 127.0.0.1 随机端口+headless chromium；工件写 worktree coord/runs/ 各卡目录，完成后拷贝本卡目录到主仓）
