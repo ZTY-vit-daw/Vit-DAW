@@ -102,8 +102,13 @@ export function beatsRoundedToTicks(beats: number): number {
   return rounded;
 }
 
-export function serializeModel(model: ScoreModel): string {
-  return JSON.stringify({
+// defaultScoreModel：本地起步模型（2/4 两小节空谱——点击放符开始编辑；
+// 课程硬需求拍号=2/4，内核工程拍号语义候 375 卡，见 DERIVATION_RULES §6）。
+export function defaultScoreModel(): ScoreModel {
+  return { timeSignature: { numerator: 2, denominator: 4 }, notes: [] };
+}
+
+export function serializeModel(model: ScoreModel): string {  return JSON.stringify({
     timeSignature: model.timeSignature,
     notes: model.notes.map((note) => ({
       id: note.id,

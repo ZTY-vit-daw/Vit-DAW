@@ -16,6 +16,7 @@ import {
   FileImage,
   FileText,
   Film,
+  Music,
   Gauge,
   GitBranch,
   Globe,
@@ -136,6 +137,9 @@ import {
   stampConsumedInteractionActions
 } from "./interactionGuard";
 import { DeclarativeInteractionCard, declarativeCardFromAction } from "./interactionCardKit";
+// SCORE-WORKBENCH-1（374）：谱面工作台页签装配（三点最小接线之一）。
+import { ScoreWorkbenchPanel } from "./scoreworkbench/ScoreWorkbenchPanel";
+import { defaultScoreModel } from "./scoreworkbench/model";
 import { SessionFlowSidebar } from "./SessionFlowSidebar";
 import {
   classifyHistoryScopeChange,
@@ -200,7 +204,7 @@ console.info(`[VitWebUI] loaded ${WEBUI_BUILD_MARK}`);
 const mixBoardUserNoteDrafts = new Map<string, string>();
 
 type ConnectionStatus = "loading" | "ready" | "offline";
-type WorkbenchTab = "history" | "media" | "macro";
+type WorkbenchTab = "history" | "media" | "macro" | "score";
 type SettingsTab = "agent" | "llm" | "multimodal" | "browser" | "diagnostics";
 type MediaContextMenuState = { artifact: ArtifactSummary; x: number; y: number };
 type AppSurface = "full" | "main" | "workbench" | "launcher" | "project";
@@ -237,6 +241,7 @@ const modeItems: Array<{ key: AgentMode; label: string; hint: string; icon: Luci
 const workbenchTabs: Array<{ key: WorkbenchTab; label: string; icon: LucideIcon }> = [
   { key: "media", label: "资料库", icon: Archive },
   { key: "macro", label: "宏控制", icon: Wand2 },
+  { key: "score", label: "谱面", icon: Music },
   { key: "history", label: "历史树", icon: Clock }
 ];
 
@@ -7228,6 +7233,10 @@ function Workbench({
   if (activeTab === "history") {
     return <HistoryPane uiState={uiState} onRefresh={onRefresh} checkoutBlocked={checkoutBlocked} />;
   }
+  if (activeTab === "score") {
+    // SCORE-WORKBENCH-1：谱面工作台页签（本地编辑缓冲+显式 apply；内核桥 M3 接线）。
+    return <ScoreWorkbenchPanel initialModel={defaultScoreModel()} />;
+  }
   if (activeTab === "macro") {
     return (
       <MacroPane
@@ -11831,6 +11840,7 @@ function loadRightPanelWidths(): Record<WorkbenchTab, number> {
   return {
     media: loadPanelWidth("right", "media", defaultRightPanelWidth, minRightPanelWidth),
     macro: loadPanelWidth("right", "macro", defaultRightPanelWidth, minRightPanelWidth),
+    score: loadPanelWidth("right", "score", defaultRightPanelWidth, minRightPanelWidth),
     history: loadPanelWidth("right", "history", defaultRightPanelWidth, minRightPanelWidth)
   };
 }
