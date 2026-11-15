@@ -1,0 +1,94 @@
+{
+  "schema_version": "score_workbench_smoke.v1",
+  "card": "SCORE-WORKBENCH-1",
+  "gate": "DG1-A (docs/STACKGATE_DG1_DG3_V1.md section 3.1)",
+  "leg_form": "berth (kernel + agent, real browser on /app/)",
+  "started_at": "2026-11-15T21:05:07.181Z",
+  "agent_http": "http://127.0.0.1:7878",
+  "assertions": {
+    "A4-timesig-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-load-equality": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-fixture-loaded": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-svg-glyphs": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-dotted": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-rest-window": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-syncopation": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-cross-bar-tie": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-binding": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-write-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A5-saved-only-after-verify": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-edit-apply": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-reopen-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-reopen": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-panel-reload": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "boundary": [
+    {
+      "id": "A7",
+      "status": "skipped-pending-373",
+      "reason": "offline render probe needs an enabled instrument on the MIDI track; a bare MIDI track can never pass node creation (VitProductionCoordinator refuses; sound source line = SRC-TEMPLATE-1). Not downgraded to a graphics-only pass (STACKGATE 3.1)."
+    },
+    {
+      "id": "A8",
+      "status": "skipped-pending-373",
+      "reason": "same instrument dependency as A7 (edit-diff render probe)."
+    }
+  ],
+  "failure_class": "",
+  "notes": [
+    "D1（内核·锚点候查）：XML-boot 工程上会话内加轨再 save_project，新轨被丢出工程状态（attempt3/4 实证：track 1039+clip 1042 save 后消失；.vit-boot 不复现）。",
+    "D2（内核·锚点候查）：save_project 后 get_project_state 的 tracks[].clips[].clip_id 披露降级为 null 直至 open_project 重开（agent 面 clip 寻址随之失效；产品影响=谱面面板 save 后至重开间 clip 选择器失源——本腿 A6 用 save→open 序绕开）。",
+    "D3（装置面发现）：agent get_project_state（userVisibleState 消毒面）不披露 project_path/project.file_path——腿经 save_as 目标路径+--project-xml 双源。"
+  ],
+  "finished_at": "2026-11-15T21:05:23.814Z",
+  "project_path_source": "leg save_as target (fixture.vit); fallback --project-xml=C:\\Users\\timoz\\wt_score1\\coord\\runs\\SCORE-WORKBENCH-1\\run_dg1a_20261116_0455\\default_project.xml",
+  "exit_code": 0,
+  "duration_ms": 16632,
+  "clip_id": "1042",
+  "track_id": "1039"
+}

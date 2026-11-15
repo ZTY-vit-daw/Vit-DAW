@@ -1,0 +1,6 @@
+# 运行时重物不入库（AGENTS §12）：内核运行时拼装目录/内核工作区/派生状态/隔离工程副本
+kernel_runtime/
+Workspace/
+.vit_derived/
+default_project.xml
+preflight_project.xml

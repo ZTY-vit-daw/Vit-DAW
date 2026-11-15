@@ -1,0 +1,8 @@
+﻿{
+    "card":  "SMOKE-STACK-GUARD-1",
+    "source":  "git HEAD 0afd95951ceafd00407617a48d327af008acaed1:VitApp/Workspace/default_project.xml",
+    "created_at":  "2026-11-16T05:05:00.6304856+08:00",
+    "marker_path":  "C:\\Users\\timoz\\wt_score1\\coord\\runs\\SCORE-WORKBENCH-1\\run_dg1a_20261116_0455\\gui_project_isolation.json",
+    "isolated_copy":  "C:\\Users\\timoz\\wt_score1\\coord\\runs\\SCORE-WORKBENCH-1\\run_dg1a_20261116_0455\\default_project.xml",
+    "mode":  "gui_leg_default_isolation"
+}
