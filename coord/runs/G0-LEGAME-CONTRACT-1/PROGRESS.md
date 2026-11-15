@@ -25,7 +25,7 @@
 | 4 | done | schema 草案（结构骨架 YAML，含注释） | coord/runs/G0-LEGAME-CONTRACT-1/legame-design-v0.schema-draft.yaml |
 | 5 | done | 现行设计源对 schema 草案逐段核验（机械方法：python -I 全树路径提取，589 实例路径→119 结构路径，schema 草案键覆盖 119/119 未覆盖 0；14 枚举面实测值⊆契约闭集无溢出；引用完整性规则实例执行违例 0） | coord/runs/G0-LEGAME-CONTRACT-1/design-source-coverage-check.md + design-source-paths.txt |
 | 6 | done | 实施卡草案（解析/校验/装配绑定）×3 | coord/runs/G0-LEGAME-CONTRACT-1/impl-cards-draft.md |
-| 7 | done | 卡面回执+转 done 候验收+POOL-INDEX 更新，提交推 main | 收尾提交见 git log（push 成功 exit 0） |
+| 7 | done | 卡面回执+转 done 候验收+POOL-INDEX 更新，提交推 main | 收尾提交 50474de2；两度被顶（371/372 并发）pull --no-rebase 合并 90e4a8a6、e00cbf41 均成功推 main |
 
 ## 命令记录（长命令先记账）
 
@@ -34,7 +34,7 @@
 ## 结尾报告
 
 - 终态：DONE（2026-11-15）。
-- 执行命令+退出码：领取提交 9a2994f3（push 被顶 d7d84c94=369 卡领取 → `git pull --no-rebase` 合并，POOL-INDEX 369/370 两行冲突按双方 doing 态保双方解决 → 合并提交 3997e11b push 成功，exit 0）；收尾提交 hash 见步骤 7；核验命令为 `python -I` 只读脚本（产物 design-source-paths.txt，exit 0）；无 go/npm 测试命令（本卡不改生产代码，卡面非目标明确）。
+- 执行命令+退出码：领取提交 9a2994f3（push 被顶 d7d84c94=369 卡领取 → `git pull --no-rebase` 合并，POOL-INDEX 369/370 两行冲突按双方 doing 态保双方解决 → 合并提交 3997e11b push 成功，exit 0）；收尾提交 50474de2（两度被顶：371 done 态、371 PROGRESS 补记；合并 90e4a8a6/e00cbf41 后推 main=远程 e00cbf41，exit 0）；核验命令为 `python -I` 只读脚本（产物 design-source-paths.txt，exit 0）；无 go/npm 测试命令（本卡不改生产代码，卡面非目标明确）。
 - 产物路径：`docs/LEGAME_DESIGN_CONTRACT_V0.md`（契约正本候审）；`coord/runs/G0-LEGAME-CONTRACT-1/`（legame-design-v0.schema-draft.yaml / design-source-coverage-check.md / design-source-paths.txt / impl-cards-draft.md / PROGRESS.md）。
 - 遇到的问题：无阻塞。如实记录三点：①工作树领取前已有改动（含 tracktion_engine 子模块指针与决策文档 +8 行），本卡提交严格限定文件域未混入；②push 被顶一次（369 卡并发领取），按协议 pull --no-rebase 合并解决，无 force push；③实施卡 W01-C 文件域涉 projectpackage/edu_jam_chat，已在其卡面标注"领取前须主管核对文件域不相交"。
 - 断了几次：0（未感知重派）。
