@@ -45,3 +45,8 @@
 - 关键接口锚点（静态盘点）：回读=`get_midi_clip_notes`（notes[]{id,pitch,start,length}，beats 相对 clip）+`music_context`（拍号/速度+单段门）+`current_selection.playhead_seconds`；写入=`apply_midi_note_patch`（ops+time_unit:beats，RiskConfirm）；**无 set_time_signature 生产命令（拍号写入须独立内核卡）**。
 - 端测覆盖边界声明（AGENTS §5）：本卡为零栈勘察卡——验证面=确定性 node 断言（exit 0），**无浏览器渲染面烟测、无真栈烟测**（非目标）；真实出声与渲染面验证属主开发卡 M5。
 - 回执提交：即本次 coord(369) 收口提交（卡移 done/、REPORT+scratch 工件、POOL-INDEX 同批；hash 见 `git log -- coord/cards/done/2026-11-15-G0-SCORE-SPIKE-1.md`）。
+
+### 验收（主管 2026-11-16 凌晨）
+
+- 裁定：**pass**——选型结论采纳：**主路线 VexFlow 5+自研 beat-grid 记谱模型**（Verovio=材料只读显示可选件候单裁定；abcjs/OSMD/alphaTab 排除理由在卷）；双 spike 主管亲核（vexflow 27 断言/verovio 32 断言 exit 0，artifacts 在 main）；内核命令面静态盘点采纳（get_midi_clip_notes/apply_midi_note_patch/playhead_seconds；**无 set_time_signature 生产命令→独立内核卡 375 承接**）；SCORE-WORKBENCH-1 草案转正式卡 374；零栈零生产改动合规。
+- R2（治理确认粒度）主管工作假设：**本地编辑缓冲+显式 apply 单次确认**（对齐 RiskConfirm 语义不打断节奏输入）——随用户裁定单确认，不阻塞 M1-M2。
