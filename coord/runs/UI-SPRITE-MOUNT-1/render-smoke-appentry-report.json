@@ -1,0 +1,88 @@
+{
+  "run": "UI-SPRITE-MOUNT-1 real entry render smoke",
+  "date": "2026-11-15T11:14:26.563Z",
+  "url": "http://127.0.0.1:5391/app/",
+  "viewport": "1440x900@1",
+  "externalRequestCount": 0,
+  "externalRequests": [],
+  "dom": {
+    "appShellPresent": true,
+    "spriteCount": 1,
+    "spriteMounted": true,
+    "symbolCount": 23,
+    "symbolIdsInDom": [
+      "i-ab",
+      "i-alert",
+      "i-attach",
+      "i-bus",
+      "i-busy",
+      "i-done",
+      "i-error",
+      "i-fx",
+      "i-idle",
+      "i-macro",
+      "i-minimize",
+      "i-new",
+      "i-open",
+      "i-play",
+      "i-project",
+      "i-record",
+      "i-render",
+      "i-send",
+      "i-snapshot",
+      "i-stop",
+      "i-track",
+      "i-undo",
+      "i-vit"
+    ],
+    "expectedIds": [
+      "i-ab",
+      "i-alert",
+      "i-attach",
+      "i-bus",
+      "i-busy",
+      "i-done",
+      "i-error",
+      "i-fx",
+      "i-idle",
+      "i-macro",
+      "i-minimize",
+      "i-new",
+      "i-open",
+      "i-play",
+      "i-project",
+      "i-record",
+      "i-render",
+      "i-send",
+      "i-snapshot",
+      "i-stop",
+      "i-track",
+      "i-undo",
+      "i-vit"
+    ],
+    "spriteCss": {
+      "position": "absolute",
+      "width": "0px",
+      "height": "0px",
+      "overflow": "hidden"
+    },
+    "spriteUseCount": 0,
+    "unresolvedUses": 0
+  },
+  "notes": [
+    "appUrl=http://127.0.0.1:5391/app/",
+    "spriteUseCount=0（主 surface=lucide 内联体系，可为 0）"
+  ],
+  "screenshots": [
+    "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-SPRITE-MOUNT-1\\screens\\appentry-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-SPRITE-MOUNT-1\\screens\\appentry-full.png"
+  ],
+  "fixtureReports": {
+    "foundation": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-FOUNDATION-1\\render-smoke-report.json",
+    "launcher": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+    "project": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json",
+    "loading": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-LOADING-1\\render-smoke-loading-report.json",
+    "fidelity": "D:\\Vit_DAW_wt_uisprite1\\coord\\runs\\UI-VISUAL-FIDELITY-1\\render-smoke-fidelity-report.json"
+  },
+  "result": "PASS"
+}
