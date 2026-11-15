@@ -29,4 +29,28 @@ DG1-A 真栈腿 exit 0+渲染面烟测 PASS+vitest 全绿（基线 584+新增）
 
 VF5 在真实装配面不可用（npm/许可意外）→取证上交；治理粒度工作假设被用户否决→M2 确认面返工段停候新裁定。
 
-## 领取/回执/验收：待回填
+## 领取
+
+- 时间：2026-11-16 00:1x +0800（领取提交时间以 git 为准）
+- 基线：origin/main `fea0829a`（fetch 后亲核：含 373 领取 bd7e8c49、372 真栈占用+释放 fea0829a、367 终验合入 4ce8862a/1837811f；首次推送被 372 释放提交顶掉一次，按协议在最新 main 上重应用）
+- owner：GLM-5.3 执行子代理（ZCode L2 会话）/ PC
+- 分支：`port/score-workbench-1`；worktree `C:/Users/timoz/wt_score1`（D 盘净空 1.78GB < 检出 1.66GB+node_modules，worktree 落 C 盘，路径如实登记）；协调 worktree `C:/Users/timoz/wt_score1coord`
+- 领取时基线核对：HEAD=110c3aa5，status 干净，diff=0（协调 worktree 新建即净）
+- 文件域锚定（精确清单）：
+  - `agent/webui/src/scoreworkbench/**`（新目录全套：beat-grid 模型/记谱推导/VF5 渲染/游标表/编辑缓冲/内核桥 + ScoreWorkbenchPanel + 测试 + css）
+  - `agent/webui/package.json`（仅 dependencies +`vexflow@5.0.0` 一行、devDependencies +`jsdom` 一行；`package-lock.json` 为 npm install 必然副产物一并入库）
+  - composer 装配接线点：`agent/webui/src/App.tsx` **三点最小接线**——①L203 `WorkbenchTab` 类型 +`"score"`；②L237 `workbenchTabs` 数组 +谱面页签；③`Workbench()` 渲染分支（L7228 附近）+ScoreWorkbenchPane 分支与 import。核对：App.tsx 最近触碰=354 UI-ENTRY/LOADING（已合入），非 367 域（367=src/project/**+chat server+vitshell 脚本）；当前 doing 卡（372/373）文件域不涉 App.tsx
+  - `scripts/dev_agent_smoke.ps1`（+`-ScoreWorkbenchSmoke` 场景开关，同模式扩展）
+  - `scripts/score_workbench_smoke.mjs`（新：DG1-A berth 腿断言体——node+playwright 驱动真实 webui 面板经 agent HTTP/tool face 到内核 ZMQ）
+  - `scripts/webui_rendered_dom_smoke.mjs`（+score 渲染面断言段，DG3 §5.1 门槛 1 扩展）
+  - `coord/runs/SCORE-WORKBENCH-1/**`（run 工件，port 分支入库）
+  - `coord/cards/` 卡状态 + `coord/resources/PC-RUNTIME-STACK.md` 真栈登记（M5 候栈队列=372 占用中 → 373 DG1-B 腿 → 本卡 DG1-A 腿）
+- 边界预告（如实）：DG1-A A7/A8（真实出声+改音差分）依赖 MIDI 轨音源=373 模板线（内核无内建合成器，offline render 对无乐器 MIDI 轨 fail-honest 拒绝——VitProductionCoordinator.cpp:965-979 锚点）；A4 双拍号之 2/4 工程语义候 375。本卡 M5 腿对 A1-A6（+4/4 拍号面）exit 0，A7/A8/A4-2/4 作显式边界由决策侧裁定。
+
+## 回执
+
+（逐 M 回填）
+
+## 验收
+
+（决策侧回填）

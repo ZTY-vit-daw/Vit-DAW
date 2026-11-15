@@ -170,5 +170,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 371 | G0-STACKGATE-1 | done 已验收 pass 合入（[docs/STACKGATE_DG1_DG3_V1.md](../../docs/STACKGATE_DG1_DG3_V1.md)=现行关卡契约——DG1 三能力关/DG2 旅程 J1-J10/DG3 渲染手测 M1-M4+卡面引用模板；锚点抽核真实；CURRENT-STATE 索引登记随 gate） |
 | 372 | GEN-YUE-WIRE-1 | doing（2026-11-16 凌晨零栈段完成：六项实现+单测/集成测全绿（实现 a88580d1 @ port/gen-yue-wire-1 已推）；真栈+真实生成烟测腿候栈第 2 位候 371 口径，RUNBOOK-DRAFT 在 coord/runs/GEN-YUE-WIRE-1/；owner GLM-5.3 L2 执行子代理/PC，worktree wt_yue1） |
 | 373 | SRC-TEMPLATE-1 | doing（2026-11-15 23:5x 领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_src1` 分支 `port/src-template-1`，基线 430b234b；零栈段先行（模板/单测/装置/RUNBOOK），DG1-B 真栈腿候栈第 3 位（372 后）） |
-| 374 | SCORE-WORKBENCH-1 | todo（**展演关键路径主开发**：VexFlow5+自研模型——M1 模型推导渲染→M2 编辑（本地缓冲+显式 apply）→M3 内核真写回读→M4 随谱游标→M5 DG1-A+渲染面验收；369 选型定案承接；**已确认候领取**） |
+| 374 | SCORE-WORKBENCH-1 | doing（2026-11-16 00:1x 领取：owner GLM-5.3 L2 执行子代理/PC，worktree `C:/Users/timoz/wt_score1`（D 盘净空不足落 C 盘）分支 `port/score-workbench-1`，基线 fea0829a；M1→M5 顺序执行，装配点=App.tsx WorkbenchTab 三点接线；真栈腿候栈 372 占用中→373 DG1-B→本卡） |
 | 375 | KERNEL-TIMESIG-1 | todo-hold（内核 set_time_signature 命令面+创建工程 2/4 应用+重开回读一致——审计阻塞点；**候 373 锚定 VitApp 域后发**（避免并行内核文件冲突）；候发） |
