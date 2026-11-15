@@ -7177,7 +7177,7 @@ function WorkbenchTabs({
   return (
     <div className="workbench-tabs">
       {workbenchTabs.map(({ key, label, icon: Icon }) => (
-        <button key={key} type="button" className={activeTab === key ? "active" : ""} onClick={() => setActiveTab(key)}>
+        <button key={key} type="button" className={activeTab === key ? "active" : ""} data-workbench-tab={key} onClick={() => setActiveTab(key)}>
           <Icon size={15} />
           <span>{label}</span>
         </button>
