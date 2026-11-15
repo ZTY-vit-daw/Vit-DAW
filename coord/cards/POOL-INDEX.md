@@ -158,7 +158,7 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 364 | SHELL-5 | done 已验收 pass 合入（主管亲核零绑定/按钮直建/意图自动执行 3/3 轮+三门复跑；实现三提交→main 10f97b12；attempt2 产品缺陷自修复链采纳；用户复测腿就绪）——细节见卡面回执 |
 | 365 | UI-REC-TAPE-1 | done 已验收 pass 合入（主管复跑三门+**磁带造型目检亲证**（外壳+窗口+双带轮 20px 一眼可辨）+收起守卫采纳；实现 62fd380c→main b2eec1dd；氛围色真实名散布辨识度候用户目检）（磁带 cassette 头像 TapeBadge+§7.3/§7.3.1 v5.1.1 修订+§12 收起回归守卫，细节见卡面回执） |
 | 366 | UI-REC-TAPECARD-1 | **暂缓**（[surface 收敛裁定]——磁带卡造型直接做在装修后统一 surface 上（勘察 368 阶段 1 落位），避免双返工；用户可随时提前） |
-| 367 | SHELL-6 | done 待验收（GLM-5.3 执行流 2026-11-15 深夜——工程面意图执行链（user_entered_project 开门，覆盖 22:49 回访会话形态）+确认卡全 surface 渲染+不变式断言面；真栈 run_full_20261115_233941 **PASS exit 0** 3/3+三门+legacy；vitest 598/598（基线+14）；chat 全包绿；实现 port/shell-6 @ 6529d473；LLM 计费=0；attempt 分记在卡面——细节见卡面回执） |
+| 367 | SHELL-6 | done 已验收 pass 合入（工程面意图执行+治理/确认卡全 surface 渲染；L3b 3/3 亲证+vitest 598；实现→main 4ce8862a；**不变式=任何确认必有可点交互面**；用户复测腿就绪） |
 | 368 | UI-CONVERGE-RECON-1 | done 已验收 pass（技术面）——报告七节+分阶段卡草案在卷（阶段 1 五卡 5.5–8.5 天/阶段 2 七卡/关键路径 CONVERGE-SHELL-1）；**分阶段方案候用户过目发卡**；Godot 重试导航收编点纳入 ENTRY-1 |
 
 ### 展演能力线（2026-11-15 深夜进度驱动重排，[裁定](../decisions/2026-11-15-progress-driven-ruling.md)：无日期锚/无工期，按依赖就绪度并行）

@@ -16,6 +16,11 @@
  */
 
 import type { MacroCardState, MacroOption, TraceStep } from "../components";
+// SHELL-6（池序 367）：工程面交互卡数据面。launcher 面已有的两个纯数据件复用
+// （import-only，零修改 launcher/）——directive 占位视图：两面对同一 agent/宿主
+// 契约（launcher_directive），视图构造不该各写一套。
+import type { LauncherDirective, LauncherProjectCard } from "../api/launcher";
+import { directivePlaceholder, type DirectivePlaceholderView } from "../launcher/launcherData";
 
 /* ------------------------------------------------------------------ */
 /* 视图模型                                                            */
@@ -73,13 +78,35 @@ export interface ABActionView {
   failureReason?: string;
 }
 
-/** 会话线程条目（全部为数据呈现；宏/A/B 的执行结果只能来自服务事件）。 */
+/** 会话线程条目（全部为数据呈现；宏/A/B 的执行结果只能来自服务事件）。
+ * SHELL-6 新增四类交互卡：directive（自动执行占位）/ cards（点卡切换）/
+ * governance（宿主三键治理卡）/ confirm（确认语义承接卡）。 */
 export type ProjectThreadItem =
   | { kind: "message"; id: string; author: "user" | "vit"; text: string }
   | { kind: "trajectory"; id: string; view: TrajectoryView }
   | { kind: "macro"; id: string; view: MacroCardView }
   | { kind: "snapshot"; id: string; view: SnapshotReceiptView }
-  | { kind: "ab"; id: string; view: ABActionView };
+  | { kind: "ab"; id: string; view: ABActionView }
+  | { kind: "directive"; id: string; view: DirectivePlaceholderView; directive?: LauncherDirective }
+  | { kind: "cards"; id: string; cards: LauncherProjectCard[] }
+  | { kind: "governance"; id: string; view: ProjectGovernanceView; answered?: string }
+  | { kind: "confirm"; id: string; view: ProjectConfirmView; answered?: "approve" | "cancel" };
+
+/** SHELL-6：宿主页内治理三键卡视图（vit_governance_required 载荷镜像）。 */
+export interface ProjectGovernanceView {
+  requestID: string;
+  action: string;
+  /** 在开工程显示名（宿主回执原样；态未知=空）。 */
+  currentProject: string;
+}
+
+/** SHELL-6：确认语义承接卡视图（协议位或检测命中共用）。 */
+export interface ProjectConfirmView {
+  /** 引导语态说明（点按钮或直接输入都行——按钮=用户本可亲口说的话）。 */
+  note: string;
+  approveText: string;
+  cancelText: string;
+}
 
 /** 输入区状态（§8.6 四态）。 */
 export type ProjectComposerState = "default" | "focus" | "disabled" | "replying";
@@ -110,6 +137,10 @@ export type ProjectEvent =
   | { type: "abPrepareStarted"; id: string }
   | { type: "abPrepareSucceeded"; id: string; bypassRef: string; processedRef: string }
   | { type: "abPrepareFailed"; id: string; reason: string }
+  | { type: "outcomeItemsArrived"; items: ProjectThreadItem[] }
+  | { type: "governanceRequested"; id: string; view: ProjectGovernanceView }
+  | { type: "governanceAnswered"; id: string; choice: string }
+  | { type: "confirmAnswered"; id: string; choice: "approve" | "cancel" }
   | { type: "composerFocus"; focused: boolean };
 
 export interface ProjectSurfaceState {
@@ -362,6 +393,39 @@ export function reduceProject(state: ProjectSurfaceState, event: ProjectEvent): 
     }
     case "composerFocus":
       return { ...state, composerFocused: event.focused };
+    case "outcomeItemsArrived": {
+      // 追加一批交互卡（消息/卡/directive/确认卡）；空批零变化。
+      if (event.items.length === 0) return state;
+      return { ...state, thread: [...state.thread, ...event.items] };
+    }
+    case "governanceRequested": {
+      // 幂等：同一 request_id 只挂一张卡（宿主重发不叠卡）。
+      const exists = state.thread.some(
+        (item) => item.kind === "governance" && item.view.requestID === event.view.requestID
+      );
+      if (exists) return state;
+      return { ...state, thread: [...state.thread, { kind: "governance", id: event.id, view: event.view }] };
+    }
+    case "governanceAnswered": {
+      return {
+        ...state,
+        thread: state.thread.map((item) =>
+          item.kind === "governance" && item.id === event.id && !item.answered
+            ? { ...item, answered: event.choice }
+            : item
+        )
+      };
+    }
+    case "confirmAnswered": {
+      return {
+        ...state,
+        thread: state.thread.map((item) =>
+          item.kind === "confirm" && item.id === event.id && !item.answered
+            ? { ...item, answered: event.choice }
+            : item
+        )
+      };
+    }
     default:
       return state;
   }
@@ -394,11 +458,23 @@ export type MacroApplyOutcome =
   | { ok: true; snapshotRef: string; time: string }
   | { ok: false; reason: string };
 
+/** SHELL-6：一句对话的完整回执载荷（消息文本 + 交互面）。 */
+export interface ProjectChatOutcome {
+  /** 呈现文本（回执 reply；空由调用方给占位）。 */
+  text: string;
+  /** launcher_directive（agent 确定性意图路由回执；到达即自动经桥执行）。 */
+  directive?: LauncherDirective | null;
+  /** project_result_cards（点卡=执行同指令切换）。 */
+  cards?: LauncherProjectCard[];
+  /** chat 确认协议位（needs_confirmation）：必须伴随可点确认卡（不变式）。 */
+  needsConfirmation?: boolean;
+}
+
 export interface ProjectService {
   /** 工程上下文（live: GET /agent/ui_state → project）。 */
   fetchContext(): Promise<ProjectContextView>;
-  /** 发送一句对话（live: POST /agent/chat，本 surface 会话）。 */
-  sendMessage(text: string): Promise<string>;
+  /** 发送一句对话（live: POST /agent/chat，本 surface 会话）——SHELL-6 起返回完整回执载荷。 */
+  sendMessage(text: string): Promise<ProjectChatOutcome>;
   /** 停止当前回复（live: POST /agent/stop_turn）。 */
   stopReply(): Promise<void>;
   /** 应用宏（fixture：接缝回执；live 无快照协议 → 必须由 fixture/后续卡接入，不伪造）。 */
@@ -413,4 +489,93 @@ let idCounter = 0;
 export function nextProjectItemID(prefix: string): string {
   idCounter += 1;
   return `${prefix}-${Date.now().toString(36)}-${idCounter}`;
+}
+
+/* ------------------------------------------------------------------ */
+/* SHELL-6：回执载荷 → 线程交互卡（纯函数；不变式断言面）                  */
+/* ------------------------------------------------------------------ */
+
+/** 确认/取消按钮发送的话术=用户本可亲口说的既有确认协议话术（不硬造协议）。 */
+export const PROJECT_CONFIRM_APPROVE_TEXT = "确认执行";
+export const PROJECT_CONFIRM_CANCEL_TEXT = "取消";
+
+/**
+ * 纯文字确认语义检测（紧口径——仅 LLM 兜底用：协议位 needs_confirmation 之外，
+ * 意图路由未命中而 LLM 产出确认语态的文字）。误检代价=多一张可点卡，不伪造动作。
+ */
+const CONFIRMATION_TEXT_PATTERNS = [
+  "需要确认",
+  "要确认",
+  "请确认",
+  "确认一下",
+  "是否确认",
+  "要不要",
+  "等你确认",
+  "确认后执行"
+];
+
+export function replyAsksConfirmation(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  return CONFIRMATION_TEXT_PATTERNS.some((pattern) => trimmed.includes(pattern));
+}
+
+/** 确认承接卡视图（protocol=true：chat 确认协议位；false：LLM 纯文字兜底）。 */
+export function buildProjectConfirmView(protocol: boolean): ProjectConfirmView {
+  return {
+    note: protocol
+      ? "Vit 正在等一句确认——点下面的按钮，或直接输入确认话术，效果相同。"
+      : "这条回复带着确认的意思但没有给出可点的动作——点下面的按钮（等同你亲口说），或换个更直接的说法（例如「新建工程」）。",
+    approveText: PROJECT_CONFIRM_APPROVE_TEXT,
+    cancelText: PROJECT_CONFIRM_CANCEL_TEXT
+  };
+}
+
+/** projectThreadItemsFromOutcome 的产出：线程卡批 + 自动执行指令。 */
+export interface OutcomeProjectItems {
+  items: ProjectThreadItem[];
+  /** directive 到达即自动经桥执行（SHELL-6 语义平移；执行态/终态只认宿主回执）。 */
+  autoDirective?: LauncherDirective;
+}
+
+/**
+ * 回执载荷 → 线程卡批（纯函数，render 与单测共用一条映射）。
+ * SHELL-6 不变式（卡面断言面）：任何「需要确认」语义回复必须伴随可点交互面——
+ *  - needs_confirmation=true → confirm 卡（按钮走既有确认话术协议）；
+ *  - 纯文字确认语义（无 directive/卡兜底）→ 同一张 confirm 卡（引导语态）；
+ *  - directive 回执 → directive 占位卡 + autoDirective（UI 自动经桥执行，
+ *    治理确认由宿主按需出三键卡）。
+ */
+export function projectThreadItemsFromOutcome(
+  outcome: ProjectChatOutcome,
+  nextID: (prefix: string) => string = nextProjectItemID
+): OutcomeProjectItems {
+  const items: ProjectThreadItem[] = [];
+  const text = outcome.text.trim();
+  if (text) {
+    items.push({ kind: "message", id: nextID("msg-vit"), author: "vit", text });
+  }
+  const cards = (outcome.cards ?? []).filter((card) => card && (card.name || card.filePath));
+  if (cards.length > 0) {
+    items.push({ kind: "cards", id: nextID("cards"), cards });
+  }
+  let autoDirective: LauncherDirective | undefined;
+  if (outcome.directive && outcome.directive.action) {
+    autoDirective = outcome.directive;
+    const view = directivePlaceholder(outcome.directive);
+    if (view) {
+      items.push({ kind: "directive", id: nextID("directive"), view, directive: outcome.directive });
+    }
+  }
+  const confirmationSemantic =
+    Boolean(outcome.needsConfirmation) ||
+    (!autoDirective && cards.length === 0 && replyAsksConfirmation(text));
+  if (confirmationSemantic) {
+    items.push({
+      kind: "confirm",
+      id: nextID("confirm"),
+      view: buildProjectConfirmView(Boolean(outcome.needsConfirmation))
+    });
+  }
+  return { items, autoDirective };
 }

@@ -1,0 +1,10 @@
+{
+  "phase": "launcher-button-new",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "clicked": "data-launcher-new",
+  "direct_mode": true,
+  "bridge_exec_state_seen": "waiting",
+  "last_assistant_reply": "我在。最近的工程是《fixture_a》——想从哪开始？",
+  "governance": "switch"
+}

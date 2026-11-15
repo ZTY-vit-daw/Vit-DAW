@@ -1,0 +1,39 @@
+﻿{
+    "round":  3,
+    "started_at_utc":  "2026-11-15T15:41:58Z",
+    "recents_seeded_sha256":  "D07D5988471363D6ED5576E0E7BC4AE24C6A0C0D67D6C0E95E32FCE32435BD5D",
+    "vitshell_pid":  20784,
+    "no_reload_sentinel":  1794757322475,
+    "greeting_text":  "我在。最近的工程是《fixture_a》——想从哪开始？",
+    "recents_count":  "6",
+    "kernel_online":  {
+                          "vitapp_count":  1,
+                          "greeting_recent_count":  7,
+                          "agent_pid":  17396,
+                          "vsphub_count":  1,
+                          "drawer_rows":  6
+                      },
+    "launcher_zero_binding":  {
+                                  "gate_marker_lines":  1,
+                                  "current_project_path":  "",
+                                  "current_project_uuid":  "vitproj_853676cf0f4d4c9e9f8373cf90f5e5fb"
+                              },
+    "new_project_intent":  "name-less auto-exec",
+    "new_project_context_name":  "Unsaved.vit",
+    "kernel_survives_daw_close_after_new":  true,
+    "button_new_context_name":  "Unsaved.vit",
+    "first_open_governance":  "required",
+    "godot_pid_1":  8984,
+    "project_context_name":  "fixture_a.vit",
+    "chat_assistant_reply":  "当前工程还没有任何轨道。请先加入音频内容，之后我可以再做混音观察或诊断。\n\n（意图分类服务本次不可用，以上直接来自工程结构事实。）",
+    "chat_user_frames":  1,
+    "chat_vit_frames":  1,
+    "inproject_new_directive":  "正在新建《新工程_1115_2342》…",
+    "inproject_new_governance":  "switch",
+    "agent_current_project_after_inproject_new":  "C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261115T154227_67e30486\\Unsaved.vit",
+    "inproject_new_context_name":  "Unsaved.vit",
+    "kernel_survives_daw_close_l4":  true,
+    "agent_current_project_after_open2":  "D:\\Vit_DAW_wt_shell6\\coord\\runs\\SHELL-6\\run_full_20261115_233941\\fixtures\\fixture_b.vit",
+    "result":  "PASS",
+    "finished_at_utc":  "2026-11-15T15:42:44Z"
+}

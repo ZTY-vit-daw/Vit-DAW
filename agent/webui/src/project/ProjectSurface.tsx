@@ -17,7 +17,7 @@
  * render-smoke 使用），真实端点零请求；不传即 live 模式。
  */
 
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import type { FormEvent } from "react";
 import {
   Button,
@@ -34,6 +34,7 @@ import {
   composerStateOf,
   emptyProjectState,
   nextProjectItemID,
+  projectThreadItemsFromOutcome,
   reduceProject,
   type ABActionView,
   type MacroCardView,
@@ -48,6 +49,33 @@ import {
 } from "./projectData";
 import { createProjectLiveService } from "./projectService";
 import { abReadyLabel } from "./projectFixtures";
+// SHELL-6（池序 367）：工程面交互链复用 launcher 面的桥客户端与纯文案/视图件
+//（import-only，零修改 launcher/）。同一 ask_vit_launcher 契约、同一
+// vit_governance_required 页内治理载荷——宿主（VitShell LauncherBridge）对
+// 整个 webview 生效，不区分 surface；工程面只差订阅与渲染。
+import {
+  createLauncherBridgeRequestID,
+  isLauncherBridgeAvailable,
+  postLauncherDirective,
+  postLauncherGovernanceChoice,
+  subscribeGovernanceRequests,
+  subscribeLauncherResults,
+  type LauncherBridgeResult,
+  type LauncherGovernanceChoice
+} from "../launcher/launcherBridge";
+import {
+  LAUNCHER_BRIDGE_UNAVAILABLE_TEXT,
+  LAUNCHER_BRIDGE_WAITING_TEXT,
+  LAUNCHER_GOVERNANCE_CANCEL_TEXT,
+  LAUNCHER_GOVERNANCE_SAVE_TEXT,
+  LAUNCHER_GOVERNANCE_SWITCH_TEXT,
+  launcherDirectiveResultText,
+  launcherDirectiveResultRetryable,
+  launcherGovernanceAnsweredText,
+  launcherGovernanceHeadline,
+  type LauncherDirectiveState
+} from "../launcher/launcherData";
+import type { LauncherDirective } from "../api/launcher";
 import "../styles/tokens.css";
 import "../components/components.css";
 import "./project.css";
@@ -79,6 +107,54 @@ function statusCardState(view: TrajectoryView): "running" | "completed" | "faile
   if (view.state === "busy") return "running";
   if (view.state === "done") return "completed";
   return "failed";
+}
+
+/** 宿主回执 status → 桥执行态（与 launcher 面同表；未知一律 failed，不静默）。 */
+function mapBridgeResultState(status: string): LauncherDirectiveState {
+  switch (status) {
+    case "opened":
+      return "opened";
+    case "canceled":
+      return "canceled";
+    case "unsupported":
+      return "unsupported";
+    case "dialog_shown":
+      return "dialog_shown";
+    case "invalid":
+      return "invalid";
+    case "failed":
+      return "failed";
+    default:
+      return "failed";
+  }
+}
+
+/** SHELL-6：桥执行块（单活跃执行；终态只来自宿主 vit_launcher_result 回执）。 */
+interface ProjectBridgeExecState {
+  requestId: string;
+  action: string;
+  state: LauncherDirectiveState;
+  message: string;
+}
+
+function bridgeExecStateLabel(state: ProjectBridgeExecState["state"]): string {
+  switch (state) {
+    case "waiting":
+    case "pending":
+      return "Vit 执行中…";
+    case "opened":
+      return "已完成";
+    case "canceled":
+      return "已取消";
+    case "unsupported":
+      return "暂未开放";
+    case "dialog_shown":
+      return "对话框已弹出";
+    case "invalid":
+      return "指令无效";
+    default:
+      return "未完成";
+  }
 }
 
 function TrajectoryItem({ view }: { view: TrajectoryView }) {
@@ -251,6 +327,112 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
   const serviceRef = useRef<ProjectService | null>(fixtureService);
   const contextRunRef = useRef(0);
 
+  // ── SHELL-6：工程面交互链（桥执行 + 页内治理三键卡 + 确认承接卡）──
+  const bridgeAvailable = useMemo(() => !fixture && isLauncherBridgeAvailable(), [fixture]);
+  const [bridgeExec, setBridgeExec] = useState<ProjectBridgeExecState | null>(null);
+  const lastDirectiveRef = useRef<LauncherDirective | null>(null);
+  const sendRef = useRef<(text: string) => Promise<void>>(async () => {});
+
+  const refreshContextQuietly = useCallback(() => {
+    // 切换工程成功后（宿主回执 opened）刷新标题栏工程名；失败静默（标题栏
+    // 旧名保持，下一次显式重试仍可用）。
+    const service = serviceRef.current;
+    if (!service) return;
+    const run = ++contextRunRef.current;
+    void service
+      .fetchContext()
+      .then((view) => {
+        if (contextRunRef.current !== run) return;
+        dispatch({ type: "contextLoaded", view });
+      })
+      .catch(() => undefined);
+  }, []);
+
+  // 桥执行：请求经宿主治理 + 公共链；终态只来自 vit_launcher_result（与
+  // launcher 面同一诚实边界——React 不伪造「已切换」）。
+  const executeDirective = useCallback(
+    (directive: LauncherDirective) => {
+      if (fixture) return;
+      lastDirectiveRef.current = directive;
+      if (!isLauncherBridgeAvailable()) {
+        setBridgeExec({
+          requestId: createLauncherBridgeRequestID(),
+          action: directive.action ?? "",
+          state: "failed",
+          message: LAUNCHER_BRIDGE_UNAVAILABLE_TEXT
+        });
+        return;
+      }
+      const requestId = createLauncherBridgeRequestID();
+      setBridgeExec({ requestId, action: directive.action ?? "", state: "waiting", message: LAUNCHER_BRIDGE_WAITING_TEXT });
+      const posted = postLauncherDirective(directive as unknown as Record<string, unknown>, requestId);
+      if (!posted) {
+        setBridgeExec({
+          requestId,
+          action: directive.action ?? "",
+          state: "failed",
+          message: LAUNCHER_BRIDGE_UNAVAILABLE_TEXT
+        });
+      }
+    },
+    [fixture]
+  );
+
+  const retryLastDirective = useCallback(() => {
+    const directive = lastDirectiveRef.current;
+    if (directive) executeDirective(directive);
+  }, [executeDirective]);
+
+  // 宿主回执订阅：更新桥执行态；opened 后静默刷新工程上下文（切工程全链收口）。
+  useEffect(() => {
+    if (fixture) return;
+    return subscribeLauncherResults((result: LauncherBridgeResult) => {
+      setBridgeExec((prev) => {
+        if (!prev) return prev;
+        if (result.request_id && result.request_id !== prev.requestId) return prev;
+        const status = result.status || "failed";
+        const state = mapBridgeResultState(status);
+        const message = launcherDirectiveResultText(status, result.message ?? "", result.action || prev.action);
+        if (state === "opened") {
+          refreshContextQuietly();
+        }
+        return { ...prev, state, message };
+      });
+    });
+  }, [fixture, refreshContextQuietly]);
+
+  // 页内治理三键卡（SHELL-2 语义全 surface 覆盖——工程面同样渲染；宿主
+  // vit_governance_required → 线程卡；选择经 launcher_governance_choice 回投）。
+  const answerGovernance = useCallback((itemId: string, requestID: string, choice: LauncherGovernanceChoice) => {
+    dispatch({ type: "governanceAnswered", id: itemId, choice });
+    postLauncherGovernanceChoice(requestID, choice);
+  }, []);
+
+  useEffect(() => {
+    if (fixture) return;
+    return subscribeGovernanceRequests((request) => {
+      dispatch({
+        type: "governanceRequested",
+        id: nextProjectItemID("governance"),
+        view: {
+          requestID: request.request_id,
+          action: request.action,
+          currentProject: request.current_project
+        }
+      });
+    });
+  }, [fixture]);
+
+  // 确认承接卡：按钮=把用户本可亲口说的确认/取消话术走同一对话通道（真实
+  // 协议，不硬造）；已作答后固定呈报不重放。
+  const answerConfirm = useCallback(
+    (itemId: string, choice: "approve" | "cancel", approveText: string, cancelText: string) => {
+      dispatch({ type: "confirmAnswered", id: itemId, choice });
+      void sendRef.current?.(choice === "approve" ? approveText : cancelText);
+    },
+    []
+  );
+
   // live 模式：服务与上下文各就位（fixture 模式零网络）。
   useEffect(() => {
     if (fixture) {
@@ -309,8 +491,16 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
       setInput("");
       dispatch({ type: "replyStarted" });
       try {
-        const reply = await service.sendMessage(trimmed);
-        dispatch({ type: "vitReplied", id: nextProjectItemID("msg-vit"), text: reply });
+        // SHELL-6：完整回执载荷 → 线程卡批（消息/结果卡/directive 占位/确认
+        // 承接卡——映射单点在 projectThreadItemsFromOutcome，不变式在那里断言）。
+        const outcome = await service.sendMessage(trimmed);
+        const mapped = projectThreadItemsFromOutcome(outcome);
+        dispatch({ type: "outcomeItemsArrived", items: mapped.items });
+        // directive 到达即自动经桥执行（SHELL-5 语义平移到工程面；治理确认
+        // 由宿主按 337 语义仅在需要时出页内三键卡）。
+        if (mapped.autoDirective) {
+          executeDirective(mapped.autoDirective);
+        }
       } catch (error) {
         const message = error instanceof Error ? error.message : "请求失败";
         dispatch({ type: "vitReplied", id: nextProjectItemID("msg-err"), text: `这轮没送达（${message}）。确认 VitAgent 在运行后重发一次。` });
@@ -319,8 +509,13 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
         dispatch({ type: "replySettled" });
       }
     },
-    [state.inputDisabled, state.replying]
+    [state.inputDisabled, state.replying, executeDirective]
   );
+
+  // 确认卡/建议入口要调 send：以 ref 解回调环（send 定义于桥执行块之后）。
+  useEffect(() => {
+    sendRef.current = send;
+  }, [send]);
 
   const stopReply = useCallback(() => {
     const service = serviceRef.current;
@@ -353,6 +548,7 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
       data-project-root
       data-project-state={contextLoading ? "loading" : contextError ? "error" : "ready"}
       data-project-context-source={contextSource}
+      data-project-bridge={bridgeAvailable ? "available" : fixture ? "fixture" : "unavailable"}
       data-fixture={fixture ? "project-surface" : undefined}
     >
       <div className={frameClass} data-project-frame>
@@ -428,6 +624,148 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
                   />
                 );
               }
+              if (item.kind === "directive") {
+                // SHELL-6：directive 占位卡（自动执行语态；终态以桥执行块为准）。
+                return (
+                  <div
+                    key={item.id}
+                    className="v5-project-directive"
+                    data-project-directive
+                    data-project-directive-state="auto"
+                  >
+                    <span className="v5-project-directive-headline">{item.view.headline}</span>
+                    {item.view.detail ? <span className="v5-project-directive-detail">{item.view.detail}</span> : null}
+                    <span className="v5-project-directive-note">{item.view.note}</span>
+                    {item.directive && !bridgeAvailable ? (
+                      <span className="v5-project-bridge-note" data-project-bridge-note>
+                        {LAUNCHER_BRIDGE_UNAVAILABLE_TEXT}
+                      </span>
+                    ) : null}
+                  </div>
+                );
+              }
+              if (item.kind === "cards") {
+                // SHELL-6：结果卡（多命中/最近清单）——点卡=执行该卡 directive。
+                return (
+                  <div key={item.id} className="v5-project-cards" data-project-cards>
+                    {item.cards.map((card) => (
+                      <button
+                        key={card.id}
+                        type="button"
+                        className="v5-project-card"
+                        data-project-card={card.id}
+                        onClick={() => {
+                          const cardDirective = card.directive ?? undefined;
+                          const mapped = projectThreadItemsFromOutcome({
+                            text: "",
+                            directive: cardDirective ?? null
+                          });
+                          dispatch({ type: "outcomeItemsArrived", items: mapped.items });
+                          if (mapped.autoDirective) {
+                            executeDirective(mapped.autoDirective);
+                          }
+                        }}
+                      >
+                        <span className="v5-project-card-name">{card.name || card.filePath}</span>
+                        {card.filePath ? <span className="v5-project-card-path">{card.filePath}</span> : null}
+                      </button>
+                    ))}
+                  </div>
+                );
+              }
+              if (item.kind === "governance") {
+                // SHELL-6：页内治理三键卡（SHELL-2 语义全 surface 覆盖；选择经
+                // 真实桥路径回投宿主执行；已作答后固定呈报不重放）。
+                return (
+                  <div
+                    key={item.id}
+                    className="v5-project-governance"
+                    data-project-governance
+                    data-project-governance-request={item.view.requestID}
+                    data-project-governance-answered={item.answered ?? ""}
+                  >
+                    <span className="v5-project-governance-headline" data-project-governance-headline>
+                      {launcherGovernanceHeadline(item.view)}
+                    </span>
+                    <span className="v5-project-governance-note">
+                      治理确认跟随发起方：本次切换由对话发起，确认在此页内完成——选择后 Vit 才执行切换（保存由 Vit 完成）。
+                    </span>
+                    {item.answered ? (
+                      <span className="v5-project-governance-answered" data-project-governance-answered-text>
+                        {launcherGovernanceAnsweredText(item.answered)}
+                      </span>
+                    ) : (
+                      <div className="v5-project-governance-actions" data-project-governance-actions>
+                        <button
+                          type="button"
+                          className="v5-btn v5-btn--primary"
+                          data-project-governance-save
+                          disabled={!bridgeAvailable}
+                          onClick={() => answerGovernance(item.id, item.view.requestID, "save")}
+                        >
+                          {LAUNCHER_GOVERNANCE_SAVE_TEXT}
+                        </button>
+                        <button
+                          type="button"
+                          className="v5-btn v5-btn--secondary"
+                          data-project-governance-switch
+                          disabled={!bridgeAvailable}
+                          onClick={() => answerGovernance(item.id, item.view.requestID, "switch")}
+                        >
+                          {LAUNCHER_GOVERNANCE_SWITCH_TEXT}
+                        </button>
+                        <button
+                          type="button"
+                          className="v5-btn v5-btn--secondary"
+                          data-project-governance-cancel
+                          disabled={!bridgeAvailable}
+                          onClick={() => answerGovernance(item.id, item.view.requestID, "cancel")}
+                        >
+                          {LAUNCHER_GOVERNANCE_CANCEL_TEXT}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+              if (item.kind === "confirm") {
+                // SHELL-6：确认承接卡（不变式面——「需要确认」语义回复必伴随
+                // 可点交互面；按钮=用户本可亲口说的确认/取消话术走同一通道）。
+                return (
+                  <div
+                    key={item.id}
+                    className="v5-project-confirm"
+                    data-project-confirm
+                    data-project-confirm-answered={item.answered ?? ""}
+                  >
+                    <span className="v5-project-confirm-note" data-project-confirm-note>{item.view.note}</span>
+                    {item.answered ? (
+                      <span className="v5-project-confirm-answered" data-project-confirm-answered-text>
+                        {item.answered === "approve" ? "已发送「确认执行」。" : "已发送「取消」。"}
+                      </span>
+                    ) : (
+                      <div className="v5-project-confirm-actions" data-project-confirm-actions>
+                        <button
+                          type="button"
+                          className="v5-btn v5-btn--primary"
+                          data-project-confirm-approve
+                          onClick={() => answerConfirm(item.id, "approve", item.view.approveText, item.view.cancelText)}
+                        >
+                          {item.view.approveText}
+                        </button>
+                        <button
+                          type="button"
+                          className="v5-btn v5-btn--secondary"
+                          data-project-confirm-cancel
+                          onClick={() => answerConfirm(item.id, "cancel", item.view.approveText, item.view.cancelText)}
+                        >
+                          {item.view.cancelText}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
               return (
                 <ABItem
                   key={item.id}
@@ -460,6 +798,32 @@ export function ProjectSurface({ fixture, fill = false }: ProjectSurfaceProps) {
                   知道了
                 </button>
               </p>
+            ) : null}
+            {bridgeExec ? (
+              <div
+                className={`v5-project-bridge-exec v5-project-bridge-exec--${
+                  bridgeExec.state === "opened" || bridgeExec.state === "dialog_shown"
+                    ? "ok"
+                    : bridgeExec.state === "waiting" || bridgeExec.state === "pending"
+                      ? "wait"
+                      : "bad"
+                }`}
+                data-project-bridge-exec
+                data-project-bridge-exec-state={bridgeExec.state}
+              >
+                <span className="v5-project-bridge-exec-label">{bridgeExecStateLabel(bridgeExec.state)}</span>
+                <span className="v5-project-bridge-exec-message">{bridgeExec.message}</span>
+                {bridgeExec.state !== "waiting" && bridgeExec.state !== "pending" && launcherDirectiveResultRetryable(bridgeExec.state) ? (
+                  <button
+                    type="button"
+                    className="v5-btn v5-btn--secondary v5-project-bridge-retry"
+                    onClick={retryLastDirective}
+                    data-project-bridge-retry
+                  >
+                    重试
+                  </button>
+                ) : null}
+              </div>
             ) : null}
           </div>
           <form className="v5-project-composer" data-project-composer onSubmit={onSubmit}>

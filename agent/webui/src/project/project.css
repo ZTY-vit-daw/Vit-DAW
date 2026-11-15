@@ -242,3 +242,168 @@
     gap: 8px;
   }
 }
+
+/* ---------- SHELL-6（池序 367）：工程面交互卡（directive/结果卡/治理三键卡/
+ * 确认承接卡/桥执行块）——v5.1 样式与 launcher 面同族，按工程面色板落地。 */
+
+.v5-project-directive {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: flex-start;
+  max-width: 640px;
+  padding: 12px 14px;
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-directive-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-directive-detail {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+  word-break: break-all;
+}
+
+.v5-project-directive-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-bridge-note {
+  font-size: 12px;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-self: stretch;
+}
+
+.v5-project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  cursor: pointer;
+}
+
+.v5-project-card:hover {
+  border-color: var(--v5-ui-text);
+}
+
+.v5-project-card-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-card-path {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+  word-break: break-all;
+}
+
+.v5-project-governance {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  background: var(--v5-ui-plate);
+  border: 1px solid var(--v5-ui-text);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-governance-headline {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-governance-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-governance-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.v5-project-governance-answered {
+  font-size: 12.5px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-confirm-note {
+  font-size: 12px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-confirm-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.v5-project-confirm-answered {
+  font-size: 12.5px;
+  color: var(--v5-ui-muted);
+}
+
+.v5-project-bridge-exec {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  font-size: 13px;
+  border-radius: var(--v5-radius-control);
+}
+
+.v5-project-bridge-exec--ok {
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-text);
+}
+
+.v5-project-bridge-exec--wait {
+  background: var(--v5-attention-shell);
+  border: 1px solid var(--v5-attention-edge);
+}
+
+.v5-project-bridge-exec--bad {
+  background: var(--v5-warning-shell);
+  border: 1px solid var(--v5-warning-edge);
+}
+
+.v5-project-bridge-exec-label {
+  font-weight: 700;
+  color: var(--v5-ui-text);
+}
+
+.v5-project-bridge-exec-message {
+  color: var(--v5-ui-muted);
+}

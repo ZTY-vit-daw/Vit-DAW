@@ -1,0 +1,9 @@
+{
+  "phase": "assert-governance",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "save": "保存并切换",
+  "switch": "直接切换",
+  "cancel": "取消",
+  "headline": "当前工程《C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261115T154142_ef0b16e8\\Unsaved.vit》还在进行中——切换前要处理它吗？"
+}

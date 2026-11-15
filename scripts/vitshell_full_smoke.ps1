@@ -64,10 +64,26 @@
 #                         -> project surface (launch 2); close DAW again ->
 #                         kernel survives.
 #   L2/L5 launch counts   shifted to 3/4 (button direct-new is launch 2).
+#
+# SHELL-6 extension (card pool #367, project-face intent execution + full-
+# surface confirmation rendering, 2026-11-15):
+#   L3b project-chat-new  IN-PROJECT chat bare "新建工程" (user retest #3:
+#                         the 22:49 defect was LLM free-text "要确认" with no
+#                         interactive face) -> deterministic project-face
+#                         intent route (handleProjectFlowChat) -> directive
+#                         AUTO-executes via bridge -> in-page governance 3-key
+#                         card rendered IN THE PROJECT SURFACE (SHELL-2
+#                         semantics extended to all surfaces; invariant:
+#                         confirmation semantics always come with a clickable
+#                         face) -> 直接切换 -> close DAW -> kernel new ->
+#                         project surface again (titlebar refreshed off the old
+#                         project onto the new Unsaved.vit draft — name-real
+#                         draft naming is card 363; launch 4).
+#   L2/L5 launch counts   shifted to 3/5 (L3b in-project switch is launch 4).
 
 param(
     [string]$FrontendWorktree = "D:/Godot/project/vit-daw-frontend_wt_shell5",
-    [string]$CardId = "SHELL-5",
+    [string]$CardId = "SHELL-6",
     [string]$Webview2SdkDir = "D:/Godot/project/vit-daw-frontend/extension/third_party/webview2",
     [string]$GodotExe = "D:/Godot/Godot_v4.6.1-stable_win64_console.exe",
     [string]$FixtureSource = "D:/Vit_DAW/temp/f3_empty_project.vit",
@@ -276,7 +292,7 @@ function Wait-StatusLaunchCount {
 }
 
 function Invoke-CdpPhase {
-    param([string]$Phase, [string]$OutFile, [string]$NewProjectName = "")
+    param([string]$Phase, [string]$OutFile, [string]$NewProjectName = "", [string]$ExpectName = "")
     $webuiDir = Join-Path $MainRoot "agent/webui"
     $WebuiDir = $webuiDir
     $out = Join-Path $RunRoot $OutFile
@@ -284,6 +300,10 @@ function Invoke-CdpPhase {
     $nodeArgs = @("$MainRoot/scripts/vitshell_full_smoke_cdp.mjs", "--cdp-port", "$CdpPort", "--phase", $Phase, "--out", $out, "--webui-dir", "$WebuiDir")
     if ($Phase -eq "chat-roundtrip") {
         $nodeArgs += @("--chat-text", $ChatText, "--chat-timeout-ms", "$ChatTimeoutMs")
+    }
+    if ($Phase -eq "probe-project-ready" -and -not [string]::IsNullOrWhiteSpace($ExpectName)) {
+        # SHELL-6: 页内切工程后标题栏工程名应变为期望名（上下文刷新断言）。
+        $nodeArgs += @("--expect-name", $ExpectName)
     }
     if ($Phase -eq "launcher-chat-new") {
         # SHELL-5: NewProjectName 为空 = 无名「新建工程」自动执行腿（用户复测口径）；
@@ -940,6 +960,40 @@ for ($round = 1; $round -le $Rounds; $round++) {
         $godotDuringChat = Get-GodotProcessCount
         if ($godotDuringChat -lt 1) { throw "R$round Godot gone during in-project chat (expected running DAW)" }
 
+        # ---- R-L3b (SHELL-6): IN-PROJECT new intent -> directive -> project-face governance card -> switch ----
+        # The exact user retest criterion #3: in the project surface, bare
+        # "新建工程" must (1) hit the deterministic project-face intent route
+        # (directive, NOT an LLM free-text "要确认"), (2) auto-execute via the
+        # bridge, (3) surface the in-page governance 3-key card IN THE PROJECT
+        # SURFACE (in-project switch => governance guaranteed - the SHELL-6
+        # invariant: confirmation semantics must come with a clickable face),
+        # (4) 直接切换 executes the whole switch chain (close DAW -> kernel
+        # new -> project surface again with the new draft name).
+        Write-Step "R$round L3b: SHELL-6 in-project new intent -> directive -> project governance card -> switch"
+        $projNew = Invoke-CdpPhase -Phase "project-chat-new" -OutFile "r${round}_cdp_project_chat_new.json"
+        $roundMeta.inproject_new_directive = $projNew.directive_headline
+        $roundMeta.inproject_new_governance = $projNew.governance
+        $status = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 4 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_project_new.json")
+        if (-not $status.godot_running) { throw "R$round L3b: godot not running after in-project new switch" }
+        # attempt1 lesson (run_full_20261115_233410): a kernel new-project draft is
+        # materialized as an Unsaved.vit draft (same face as L1c/L1c2) until saved —
+        # the draft-name real-name chain is card 363 (KERNEL-NEWPROJ-NAME-1), not
+        # asserted here. What IS asserted: the titlebar context REFRESHED away from
+        # fixture_a to the new draft (surface stays mounted; no reload - sentinel).
+        $projNewReady = Invoke-CdpPhase -Phase "probe-project-ready" -OutFile "r${round}_cdp_project_new_ready.json" -ExpectName "Unsaved"
+        if ($projNewReady.context_name -match "fixture_a") { throw "R$round L3b: titlebar still on fixture_a after in-page switch (context refresh missing): $($projNewReady.context_name)" }
+        $stateNew = Get-HttpJson -Url "http://127.0.0.1:$AgentPort/agent/state" -TimeoutSec 5
+        if ($stateNew.ok) {
+            $stateNewJson = $stateNew.body | ConvertFrom-Json
+            $roundMeta.agent_current_project_after_inproject_new = [string]$stateNewJson.current_project.path
+            if ($roundMeta.agent_current_project_after_inproject_new -match "fixture_a") { throw "R$round L3b: /agent/state still on fixture_a after switch: $($roundMeta.agent_current_project_after_inproject_new)" }
+        } else {
+            throw "R$round L3b: /agent/state unreachable after in-project new switch"
+        }
+        $roundMeta.inproject_new_context_name = $projNewReady.context_name
+        if ($projNewReady.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round L3b: sentinel changed after in-page switch (reload!)" }
+        Write-Ok ("R$round L3b: in-project new chain end-to-end (directive=" + $projNew.directive_headline + " governance=" + $projNew.governance + " context=" + $projNewReady.context_name + ", launch_count=4, agent off fixture_a)")
+
         # ---- R-L4: close DAW -> back to launcher (same window) ----
         Write-Step "R$round L4: POST /vitshell/close-daw -> Godot exits -> launcher back (same window)"
         $closeDaw = Get-HttpPost -Url "$StatusBase/vitshell/close-daw" -TimeoutSec 5
@@ -966,9 +1020,10 @@ for ($round = 1; $round -le $Rounds; $round++) {
             throw ("R$round governance keys unexpected: save=$($gov.save) switch=$($gov.switch) cancel=$($gov.cancel)")
         }
         $null = Invoke-CdpPhase -Phase "click-governance-switch" -OutFile "r${round}_cdp_gov_click_2.json"
-        # SHELL-5: launch 1 = L1c intent new, launch 2 = L1c2 button new,
-        # launch 3 = fixture_a open, this governed fixture_b open = 4.
-        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 4 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
+        # SHELL-5/6: launch 1 = L1c intent new, launch 2 = L1c2 button new,
+        # launch 3 = fixture_a open, launch 4 = L3b in-project new switch,
+        # this governed fixture_b open = 5.
+        $status2 = Wait-StatusLaunchCount -StatusUrl $StatusUrl -MinExpect 5 -TimeoutSec $OpenChainTimeoutSec -ArtifactPath (Join-Path $RunRoot "r${round}_status_opened_2.json")
         $null = Invoke-CdpPhase -Phase "probe-governance-done" -OutFile "r${round}_cdp_gov_done.json"
         $govDone = Get-Content (Join-Path $RunRoot "r${round}_cdp_gov_done.json") -Raw -Encoding UTF8 | ConvertFrom-Json
         if ($govDone.sentinel -ne $roundMeta.no_reload_sentinel) { throw "R$round sentinel changed after governed open (reload!)" }
