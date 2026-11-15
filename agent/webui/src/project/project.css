@@ -124,8 +124,10 @@
 }
 
 /* 线程内的复合控件统一左对齐限宽（对话流行宽约 36 汉字语义）。
- * 用户消息例外（P1 保真）：S5 定稿=用户消息右对齐无色块（§8.1 对齐区分）——
- * 344 Message 原语默认 canvas 气泡，此处仅 surface 层覆盖，344 文件不动。 */
+ * 用户消息例外（2026-11-15 用户修订，原 P1「右对齐无色块」口径作废）：右对齐
+ * + 阴影框标识（1px 灰边+柔影+极浅底，复用 v5.1 空间修订令牌，与 launcher
+ * surface 同款；SPEC-V5 §8.1 修订依据引裁定档案）——344 Message 原语默认
+ * canvas 气泡，此处仅 surface 层覆盖，344 文件不动。 */
 .v5-project-thread .v5-macro,
 .v5-project-thread .v5-status-card,
 .v5-project-ab {
@@ -133,12 +135,17 @@
   width: min(680px, 100%);
 }
 
+/* 用户消息阴影框：令牌/内边距与 launcher 一致；盒贴内容右收（宽度改上限
+ * min(36em,100%)，不再强制满宽——可见框下短消息满宽会出现大片空框）；
+ * 行高/换行沿用 344 原语（line-height 1.65 / overflow-wrap 由基类承担）。 */
 .v5-project-thread .v5-message--user {
   align-self: flex-end;
-  width: min(36em, 100%);
-  background: transparent;
-  padding: 0;
-  border-radius: 0;
+  max-width: min(36em, 100%);
+  background: var(--v5-read-bg);
+  padding: 6px 10px;
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  box-shadow: var(--v5-shadow-macro-card);
   text-align: right;
 }
 

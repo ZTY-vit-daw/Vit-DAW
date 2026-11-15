@@ -1,0 +1,67 @@
+{
+  "run": "UI-MSG-SHADOWBOX-1 user message shadowbox render smoke",
+  "date": "2026-11-15T13:08:18.974Z",
+  "ruling": "coord/decisions/2026-11-15-user-message-shadowbox-ruling.md",
+  "surfaces": {
+    "launcher": {
+      "url": "http://127.0.0.1:5391/app/gallery.html?surface=launcher",
+      "userMsgCount": 2,
+      "userMsgFrame": {
+        "alignSelf": "flow-end",
+        "textAlign": "right",
+        "borderStyle": "solid",
+        "borderWidth": "1px",
+        "boxShadow": "rgba(0, 0, 0, 0.18) 0px 1px 2px 0px, rgba(21, 36, 54, 0.12) 0px 6px 16px 0px",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "paddingTop": "6px",
+        "maxWidth": "640px"
+      },
+      "assistantMsgFrame": {
+        "alignSelf": "flow-start",
+        "textAlign": "start",
+        "borderStyle": "none",
+        "borderWidth": "0px",
+        "boxShadow": "none",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "paddingTop": "0px",
+        "maxWidth": "640px"
+      }
+    },
+    "project": {
+      "url": "http://127.0.0.1:5391/app/gallery.html?surface=project",
+      "userMsgCount": 1,
+      "userMsgFrame": {
+        "alignSelf": "flow-end",
+        "textAlign": "right",
+        "borderStyle": "solid",
+        "borderWidth": "1px",
+        "boxShadow": "rgba(0, 0, 0, 0.18) 0px 1px 2px 0px, rgba(21, 36, 54, 0.12) 0px 6px 16px 0px",
+        "backgroundColor": "rgb(255, 255, 255)",
+        "paddingTop": "6px",
+        "maxWidth": "min(576px, 100%)"
+      },
+      "vitMsgFrame": {
+        "alignSelf": "auto",
+        "textAlign": "start",
+        "borderStyle": "none",
+        "borderWidth": "0px",
+        "boxShadow": "none",
+        "backgroundColor": "rgba(0, 0, 0, 0)",
+        "paddingTop": "0px",
+        "maxWidth": "576px"
+      }
+    }
+  },
+  "failures": [],
+  "screenshots": [
+    "D:\\Vit_DAW_wt_msgsb1\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\launcher-fixture-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_msgsb1\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\launcher-fixture-full.png",
+    "D:\\Vit_DAW_wt_msgsb1\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\project-fixture-viewport-1440x900.png",
+    "D:\\Vit_DAW_wt_msgsb1\\coord\\runs\\UI-MSG-SHADOWBOX-1\\screens\\project-fixture-full.png"
+  ],
+  "foundationReports": {
+    "launcher": "D:\\Vit_DAW_wt_msgsb1\\coord\\runs\\UI-LAUNCHER-1\\render-smoke-launcher-report.json",
+    "project": "D:\\Vit_DAW_wt_msgsb1\\coord\\runs\\UI-PROJECT-1\\render-smoke-project-report.json"
+  },
+  "result": "PASS"
+}

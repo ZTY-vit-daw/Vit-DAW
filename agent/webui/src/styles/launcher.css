@@ -211,8 +211,9 @@
   overflow-y: auto;
 }
 
-/* 消息（UI-VISUAL-FIDELITY-1 L4）：S5 消息板语言——只靠对齐区分（用户右 / Vit 左），
- * 不加色块徽章；正文 16px（SPEC §6 对话消息）。 */
+/* 消息（UI-VISUAL-FIDELITY-1 L4；2026-11-15 用户修订）：S5 消息板语言——用户右对齐
+ * + 阴影框标识（1px 灰边+柔影，复用 v5.1 空间修订令牌，见 SPEC-V5 §8.1 修订依据），
+ * Vit 消息维持左对齐无框；正文 16px（SPEC §6 对话消息）。 */
 .v5-launcher-msg {
   max-width: 640px;
   padding: 0;
@@ -224,11 +225,21 @@
   overflow-wrap: anywhere;
 }
 
+/* 用户消息阴影框（用户裁定 2026-11-15：输入内容须有阴影框标识区分来源）：
+ * 1px 灰边 --v5-ui-border + v5.1 宏卡柔影 --v5-shadow-macro-card（不新造令牌），
+ * 极浅底 --v5-read-bg 贴阅读面 #F0F1F2；内边距保证文字离框，行高/换行沿用基类
+ * （max-width 640px 含框——.v5-design * box-sizing:border-box（components.css），不裁切）。 */
 .v5-launcher-msg--user {
   align-self: flex-end;
   text-align: right;
+  padding: 6px 10px;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  box-shadow: var(--v5-shadow-macro-card);
 }
 
+/* Vit 消息维持无框（用户裁定：仅用户消息加标识）。 */
 .v5-launcher-msg--assistant {
   align-self: flex-start;
 }
