@@ -9871,6 +9871,24 @@ func normalizeCommandArgs(spec tools.CommandSpec, cmd map[string]any, requestCon
 		copyBoolAlias(cmd, "enabled", "click", "value")
 	case "set_tempo":
 		copyFirstNonEmpty(cmd, "bpm", "tempo", "value")
+	case "set_time_signature":
+		// KERNEL-TIMESIG-1: models often emit the W01 wire form ("2/4") as a
+		// single field; split it into the kernel's integer pair. Only integer-
+		// parseable parts are filled in — anything else stays absent so the
+		// kernel's fail-closed validation rejects it (no coercion here).
+		copyFirstNonEmpty(cmd, "numerator", "num", "beats_per_bar")
+		copyFirstNonEmpty(cmd, "denominator", "denom", "note_value")
+		if raw := firstString(cmd, "time_signature", "meter"); raw != "" && isEmptyValue(cmd["numerator"]) {
+			parts := strings.Split(strings.TrimSpace(raw), "/")
+			if len(parts) == 2 {
+				if n, err := strconv.Atoi(strings.TrimSpace(parts[0])); err == nil {
+					if d, err := strconv.Atoi(strings.TrimSpace(parts[1])); err == nil {
+						cmd["numerator"] = n
+						cmd["denominator"] = d
+					}
+				}
+			}
+		}
 	case "seek":
 		copyFirstNonEmpty(cmd, "time", "position_seconds", "seconds", "value")
 	case "move_clip":

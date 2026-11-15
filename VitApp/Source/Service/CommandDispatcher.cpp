@@ -12,6 +12,7 @@
 #include "ProjectService.h"
 #include "PluginRackControlService.h"
 #include "SendRouteService.h"
+#include "TimeSignatureService.h"
 #include "PluginLoadState.h"
 #include "TrackGroupService.h"
 #include "TiledSpectrogramBaker.h"
@@ -2303,6 +2304,7 @@ CommandDispatcher::CommandDispatcher (EditGetter editGetter,
     transportAudioService = std::make_unique<TransportAudioService> (getEdit, autoPersist, production);
     pluginRackControlService = std::make_unique<PluginRackControlService> (getEdit, autoPersist, getCurrentProjectPath, engine);
     sendRouteService = std::make_unique<SendRouteService> (getEdit, autoPersist);
+    timeSignatureService = std::make_unique<TimeSignatureService> (getEdit, autoPersist);
     auditionPreviewService = std::make_unique<AuditionPreviewService> (engine, getEdit, publishMessage);
     registerBuiltinCommands();
 }
@@ -2688,6 +2690,19 @@ void CommandDispatcher::registerBuiltinCommands()
     handlers.emplace ("set_tempo", [this] (const juce::DynamicObject& object, const juce::String& raw)
     {
         return handleSetTempo (object, raw);
+    });
+
+    // KERNEL-TIMESIG-1: set the project time signature (time sig 0 of the
+    // engine tempo sequence — the same store music_context reads). Same
+    // risk/persist tier as set_tempo: integer numerator/denominator validated
+    // fail-closed (1..64 each) before any state is touched, explicit
+    // markAsChanged + governance-aware auto-persist funnel. Creation-time
+    // application (new_project payload) lives in VitHeadlessService and
+    // shares TimeSignatureService's parse/apply helpers.
+    handlers.emplace ("set_time_signature", [this] (const juce::DynamicObject& object, const juce::String& raw)
+    {
+        return timeSignatureService != nullptr ? timeSignatureService->handleSetTimeSignature (object, raw)
+                                               : makeErrorReply ("Time signature service unavailable");
     });
 
     // GEN-CTX-KEYFIELD-1: set/clear the project key signature. Stored as the

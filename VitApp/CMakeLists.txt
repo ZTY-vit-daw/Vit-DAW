@@ -224,6 +224,8 @@ set(VITAPP_SOURCE_FILES
     Source/Service/PluginRackControlService.h
     Source/Service/SendRouteService.cpp
     Source/Service/SendRouteService.h
+    Source/Service/TimeSignatureService.cpp
+    Source/Service/TimeSignatureService.h
     Source/Service/PluginListHygiene.cpp
     Source/Service/PluginListHygiene.h
     Source/Service/TrackService.cpp

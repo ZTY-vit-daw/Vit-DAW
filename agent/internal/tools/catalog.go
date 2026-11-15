@@ -391,6 +391,8 @@ func argHint(commandName string) string {
 		return "track_id:string"
 	case "set_tempo":
 		return "bpm:number"
+	case "set_time_signature":
+		return "numerator:int(1..64) denominator:int(1..64)"
 	case "set_project_key":
 		return "root:note_name(string A-G with optional #)|midi_pitch(int 0..127) scale:one_of[major,minor,ionian,dorian,phrygian,lydian,mixolydian,aeolian,locrian,melodicMinor,harmonicMinor] XOR clear:boolean"
 	case "set_project_style_note":
@@ -1149,6 +1151,12 @@ func defaultSpecs() []CommandSpec {
 		spec("toggle_click", "transport.toggle_click", "transport", "Toggle the metronome click.", RiskDirect, false, false, false, false),
 		spec("set_click", "transport.set_click", "transport", "Set metronome click state.", RiskDirect, false, false, false, false),
 		spec("set_tempo", "transport.set_tempo", "transport", "Set project tempo.", RiskUndoable, true, true, false, true),
+		// KERNEL-TIMESIG-1: project meter (time sig 0 of the engine tempo
+		// sequence — the same store music_context.time_signature reads).
+		// Aligned with the set_tempo tier: undoable project mutation, no
+		// confirmation gate, refresh after. Persisted engine-native, old
+		// projects default 4/4 (§11).
+		spec("set_time_signature", "transport.set_time_signature", "transport", "Set the project time signature (project meter, persisted and disclosed via music_context.time_signature; integer numerator/denominator 1..64 each, fail-closed on anything else).", RiskUndoable, true, true, false, true),
 		spec("start_recording", "transport.record.start", "transport", "Start recording.", RiskDirect, false, false, false, false),
 		spec("stop_recording", "transport.record.stop", "transport", "Stop recording.", RiskDirect, false, false, false, true),
 
