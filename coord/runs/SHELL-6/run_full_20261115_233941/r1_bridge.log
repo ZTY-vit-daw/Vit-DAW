@@ -1,0 +1,49 @@
+2026-11-15T23:40:26.433 [LauncherBridge] surface_ready
+2026-11-15T23:40:31.567 [LauncherBridge] directive.received {"request_id":"webui_launcher_br_mwi046vk","action":"new_project"}
+2026-11-15T23:40:31.574 [LauncherBridge] governance.none {"reason":"no current project"}
+2026-11-15T23:40:31.580 [LauncherBridge] godot.spawn {"pid":32380}
+2026-11-15T23:40:35.515 [LauncherBridge] launch.ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+2026-11-15T23:40:35.515 [LauncherBridge] result {"request_id":"webui_launcher_br_mwi046vk","status":"opened","action":"new_project","message":"已进入工程（新工程_1115_2340）"}
+2026-11-15T23:40:35.518 [LauncherBridge] surface_ack
+2026-11-15T23:40:39.160 [LauncherBridge] godot.exit {"exit_code":0}
+2026-11-15T23:40:39.160 [LauncherBridge] surface_ack
+2026-11-15T23:40:39.162 [LauncherBridge] surface_ready
+2026-11-15T23:40:40.121 [LauncherBridge] directive.received {"request_id":"webui_launcher_br_mwi04dh5","action":"new_project"}
+2026-11-15T23:40:40.128 [LauncherBridge] governance.required {"request_id":"webui_launcher_br_mwi04dh5","current_project":"C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261115T154033_7ee4ed7b\\Unsaved.vit","state_error":""}
+2026-11-15T23:40:40.148 [LauncherBridge] governance.choice {"choice":"switch"}
+2026-11-15T23:40:40.163 [LauncherBridge] godot.spawn {"pid":18076}
+2026-11-15T23:40:44.111 [LauncherBridge] launch.ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+2026-11-15T23:40:44.111 [LauncherBridge] result {"request_id":"webui_launcher_br_mwi04dh5","status":"opened","action":"new_project","message":"已进入工程（新工程_1115_2340）"}
+2026-11-15T23:40:44.112 [LauncherBridge] surface_ack
+2026-11-15T23:40:45.090 [LauncherBridge] godot.exit {"exit_code":0}
+2026-11-15T23:40:45.090 [LauncherBridge] surface_ack
+2026-11-15T23:40:45.092 [LauncherBridge] surface_ready
+2026-11-15T23:40:46.074 [LauncherBridge] smoke.file_dialog.bypass {"chain_index":0}
+2026-11-15T23:40:46.081 [LauncherBridge] governance.required {"request_id":"webui_launcher_br_mwi04i2i","current_project":"C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261115T154041_dfe4ac7f\\Unsaved.vit","state_error":""}
+2026-11-15T23:40:46.792 [LauncherBridge] governance.choice {"choice":"switch"}
+2026-11-15T23:40:46.795 [LauncherBridge] godot.spawn {"pid":21716}
+2026-11-15T23:40:50.648 [LauncherBridge] launch.ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+2026-11-15T23:40:50.648 [LauncherBridge] result {"request_id":"webui_launcher_br_mwi04i2i","status":"opened","action":"open_project","message":"已进入工程（D:\\Vit_DAW_wt_shell6\\coord\\runs\\SHELL-6\\run_full_20261115_233941\\fixtures\\fixture_a.vit）"}
+2026-11-15T23:40:50.649 [LauncherBridge] surface_ack
+2026-11-15T23:40:54.138 [LauncherBridge] directive.received {"request_id":"webui_launcher_br_mwi04oai","action":"new_project"}
+2026-11-15T23:40:54.152 [LauncherBridge] governance.required {"request_id":"webui_launcher_br_mwi04oai","current_project":"D:\\Vit_DAW_wt_shell6\\coord\\runs\\SHELL-6\\run_full_20261115_233941\\fixtures\\fixture_a.vit","state_error":""}
+2026-11-15T23:40:54.195 [LauncherBridge] governance.choice {"choice":"switch"}
+2026-11-15T23:40:54.195 [LauncherBridge] daw.close.begin
+2026-11-15T23:40:54.362 [LauncherBridge] godot.exit {"exit_code":0}
+2026-11-15T23:40:54.362 [LauncherBridge] surface_ack
+2026-11-15T23:40:54.366 [LauncherBridge] surface_ready
+2026-11-15T23:40:54.409 [LauncherBridge] daw.close.done
+2026-11-15T23:40:54.413 [LauncherBridge] godot.spawn {"pid":29576}
+2026-11-15T23:40:58.396 [LauncherBridge] launch.ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+2026-11-15T23:40:58.396 [LauncherBridge] result {"request_id":"webui_launcher_br_mwi04oai","status":"opened","action":"new_project","message":"已进入工程（新工程_1115_2340）"}
+2026-11-15T23:40:58.397 [LauncherBridge] surface_ack
+2026-11-15T23:40:59.470 [LauncherBridge] godot.exit {"exit_code":0}
+2026-11-15T23:40:59.471 [LauncherBridge] surface_ack
+2026-11-15T23:40:59.475 [LauncherBridge] surface_ready
+2026-11-15T23:41:00.464 [LauncherBridge] smoke.file_dialog.bypass {"chain_index":1}
+2026-11-15T23:41:00.475 [LauncherBridge] governance.required {"request_id":"webui_launcher_br_mwi04t68","current_project":"C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261115T154056_7e89f9ba\\Unsaved.vit","state_error":""}
+2026-11-15T23:41:01.105 [LauncherBridge] governance.choice {"choice":"switch"}
+2026-11-15T23:41:01.109 [LauncherBridge] godot.spawn {"pid":25948}
+2026-11-15T23:41:04.946 [LauncherBridge] launch.ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+2026-11-15T23:41:04.946 [LauncherBridge] result {"request_id":"webui_launcher_br_mwi04t68","status":"opened","action":"open_project","message":"已进入工程（D:\\Vit_DAW_wt_shell6\\coord\\runs\\SHELL-6\\run_full_20261115_233941\\fixtures\\fixture_b.vit）"}
+2026-11-15T23:41:04.947 [LauncherBridge] surface_ack
