@@ -62,7 +62,14 @@ const ExampleConfig = `{
       "dialect": "yue_local",
       "base_url": "http://127.0.0.1:8087",
       "api_key": "",
-      "extra_params": { "seed": 1234 }
+      "extra_params": { "seed": 1234 },
+      "engine": {
+        "command": "E:/AI/YuE2/yue-server.exe",
+        "args": [],
+        "working_dir": "E:/AI/YuE2",
+        "ready_timeout_seconds": 300,
+        "poll_interval_seconds": 2
+      }
     }
   ]
 }`
@@ -132,9 +139,49 @@ type ProviderConfig struct {
 	MaxArtifactBytes      int64   `json:"max_artifact_bytes,omitempty"`
 	DownloadDir           string  `json:"download_dir,omitempty"`
 
+	// Engine is the minimal self-managed engine supervisor config
+	// (GEN-YUE-WIRE-1, audit H6 item 6): when the engine surface is not
+	// reachable, the provider may declare how to start it. The supervisor
+	// only manages processes it started itself; an already-running engine
+	// is reused and reported as external.
+	Engine *EngineConfig `json:"engine,omitempty"`
+
 	// EnvKeyApplied marks that the credential came from the per-provider
 	// env override (diagnostics only, no secret material).
 	EnvKeyApplied bool `json:"-"`
+}
+
+// EngineConfig declares how to bring a local engine process up on demand
+// (zero manual service: no user commands, no manual env setup).
+type EngineConfig struct {
+	// Command is the executable to run (e.g. the engine binary itself or a
+	// powershell wrapper: "powershell.exe" with args
+	// ["-NoProfile","-ExecutionPolicy","Bypass","-File", ...]).
+	Command string `json:"command"`
+	// Args are the command arguments.
+	Args []string `json:"args,omitempty"`
+	// WorkingDir for the engine process (engine deployments usually need it).
+	WorkingDir string `json:"working_dir,omitempty"`
+	// Env overlays the process environment (PATH additions, model roots...).
+	Env map[string]string `json:"env,omitempty"`
+	// ReadyTimeoutSeconds bounds the start-to-ready wait (default 300).
+	ReadyTimeoutSeconds int `json:"ready_timeout_seconds,omitempty"`
+	// PollIntervalSeconds between readiness probes (default 2).
+	PollIntervalSeconds float64 `json:"poll_interval_seconds,omitempty"`
+}
+
+func (e *EngineConfig) readyTimeout() int {
+	if e.ReadyTimeoutSeconds > 0 {
+		return e.ReadyTimeoutSeconds
+	}
+	return 300
+}
+
+func (e *EngineConfig) pollInterval() float64 {
+	if e.PollIntervalSeconds > 0 {
+		return e.PollIntervalSeconds
+	}
+	return 2
 }
 
 // fileConfig mirrors the on-disk JSON shape.
