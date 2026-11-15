@@ -126,7 +126,11 @@ def http_json(method: str, url: str, body: Optional[Dict[str, Any]] = None, time
 
 
 def sha256_file(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    # Canonical-form hash: normalize CRLF->LF before hashing so the pinned
+    # template hash is stable across git autocrlf checkout modes (the
+    # generator emits LF; git checkouts may rewrite to CRLF on disk).
+    data = path.read_bytes().replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()
 
 
 def rows_of(value: Any) -> List[Dict[str, Any]]:
@@ -195,7 +199,7 @@ class Runner:
 
     def track_by_name(self, name: str) -> Optional[Dict[str, Any]]:
         for track in self.kernel_tracks():
-            if str(track.get("name", "")) == name:
+            if str(track.get("name") or track.get("track_name") or "") == name:
                 return track
         return None
 
@@ -393,6 +397,7 @@ def main() -> int:
     parser.add_argument("--artifacts-dir", required=True)
     parser.add_argument("--agent-log", default="")
     parser.add_argument("--telemetry-path", default="")
+    parser.add_argument("--output", required=True, help="summary json path")
     args = parser.parse_args()
 
     artifacts = Path(args.artifacts_dir)
@@ -441,15 +446,21 @@ def main() -> int:
         return runner.fail(EXIT_ENV, "B1", f"/agent/ui/state read failed: {exc}")
     runner.summary["phases"]["B1_ui_state"] = ui_state
     project = ui_state.get("project") if isinstance(ui_state.get("project"), dict) else {}
+    history = ui_state.get("project_history") if isinstance(ui_state.get("project_history"), dict) else {}
     ui_tracks = []
     for t in ui_tracks_of(ui_state):
         name = str(t.get("name", "") or t.get("track_name", "") or "")
         if name:
             ui_tracks.append(name)
-    b1_identity = bool(project.get("project_uuid"))
+    # Session-activation identity: the opened copy is the active project path
+    # and the bound project uuid is the template uuid (BindProjectIdentity-
+    # level evidence, journey1 same seam).
+    b1_identity = (str(project.get("project_path", "")) == str(project_copy.resolve())
+                   and str(history.get("project_uuid", "")) == str(manifest.get("template_project_uuid", "")))
     b1_tracks = all(name in ui_tracks for name in TEMPLATE_TRACK_NAMES)
     runner.record("B1_normal_load", b1_identity and b1_tracks,
-                  {"project_uuid": project.get("project_uuid"), "ui_tracks": ui_tracks,
+                  {"project_path": project.get("project_path"),
+                   "project_uuid": history.get("project_uuid"), "ui_tracks": ui_tracks,
                    "load_status": load_response.get("status")})
     if not (b1_identity and b1_tracks):
         return runner.fail(EXIT_DEFECT, "B1", "session activation evidence incomplete (identity/tracks)")
@@ -560,15 +571,26 @@ def main() -> int:
         return runner.fail(EXIT_DEFECT, "B4", f"edit differential below threshold: {diff}")
 
     # ---- B5: save + reopen via normal chains ----------------------------
-    saved_hash_before = sha256_file(project_copy)
+    # Production save semantics: normalizeProjectPathForSave rewrites ANY
+    # project path to the .vit extension, so save_project on the .xml copy
+    # persists to an encrypted lesson_project.vit sibling (VitProjectFile.cpp
+    # normalizeProjectPathForSave; clear-XML sidecar only with
+    # VIT_DUMP_CLEAR_XML=1). The leg therefore reopens the actual .vit the
+    # kernel reports — the real user save/reopen form.
     save = zmq_command(args.kernel_zmq, {"cmd": "save_project"})
     if str(save.get("status", "")) != "ok":
         return runner.fail(EXIT_DEFECT, "B5", f"save_project failed: {save}")
+    saved_path = Path(str(save.get("project_path") or save.get("current_project_path") or ""))
     time.sleep(1.0)
-    saved_hash_after = sha256_file(project_copy)
-    runner.summary["phases"]["B5_save"] = {"reply": save, "hash_before": saved_hash_before,
-                                           "hash_after": saved_hash_after}
-    ok_reopen, reopen_response = runner.agent_open(project_copy)
+    if not saved_path.exists() or saved_path.stat().st_size <= 0:
+        return runner.fail(EXIT_DEFECT, "B5", f"saved project file missing/empty: {saved_path}")
+    saved_is_vit = saved_path.suffix.lower() == ".vit"
+    saved_hash = sha256_file(saved_path)
+    runner.summary["phases"]["B5_save"] = {"reply_project_path": str(saved_path),
+                                           "saved_is_vit": saved_is_vit,
+                                           "saved_sha256": saved_hash,
+                                           "saved_bytes": saved_path.stat().st_size}
+    ok_reopen, reopen_response = runner.agent_open(saved_path)
     if not ok_reopen:
         return runner.fail(EXIT_DEFECT, "B5",
                            f"reopen via agent tool face failed: {json.dumps(reopen_response, ensure_ascii=False)[:400]}")
@@ -586,8 +608,12 @@ def main() -> int:
     keys_reopened = sorted(note_key(n) for n in notes_reopened)
     b5_readback = keys_after == keys_reopened
     runner.record("B5_readback_equality", b5_readback,
-                  {"notes_saved": len(keys_after), "notes_reopened": len(keys_reopened)})
+                  {"notes_saved": len(keys_after), "notes_reopened": len(keys_reopened),
+                   "reopened_file": str(saved_path)})
     if not b5_readback:
+        runner.summary["phases"]["B5_keys_after"] = [list(k) for k in keys_after]
+        runner.summary["phases"]["B5_keys_reopened"] = [list(k) for k in keys_reopened]
+        runner.save()
         return runner.fail(EXIT_DEFECT, "B5", "note readback mismatch after save+reopen")
 
     probe_melody_reopened = runner.probe_track(melody2_id, "melody_reopened")
@@ -599,8 +625,10 @@ def main() -> int:
     if not b5_sound:
         return runner.fail(EXIT_DEFECT, "B5", "reopened melody probe silent")
 
-    # ---- B6: config persistence ----------------------------------------
-    tracks_final = {str(t.get("name", "")): t for t in runner.kernel_tracks()}
+    # ---- B6: config persistence (reopened state + snapshot face) --------
+    tracks_final = {}
+    for t in runner.kernel_tracks():
+        tracks_final[str(t.get("name") or t.get("track_name") or "")] = t
     tracks_ok = all(name in tracks_final for name in TEMPLATE_TRACK_NAMES)
     plugin_rows = {}
     for name in (MELODY_TRACK_NAME, GROOVE_TRACK_NAME, "我的八小节主题"):
@@ -609,22 +637,28 @@ def main() -> int:
         plugin_rows[name] = plugins
     instruments_ok = all(SURGE_NAME in plugin_rows[name] for name in plugin_rows)
 
-    saved_xml = project_copy.read_text(encoding="utf-8")
+    # Kernel production snapshot face: the authoritative persisted view of the
+    # reopened project (works for encrypted .vit projects where direct file
+    # text assertions are impossible).
+    snap = zmq_command(args.kernel_zmq, {"cmd": "project_snapshot_export"})
+    snapshot_xml = str(snap.get("snapshot_xml") or "")
+    (artifacts / "reopened_snapshot.xml").write_text(snapshot_xml, encoding="utf-8")
     pins = {
-        "timesig_2_4": '<TIMESIG numerator="2" denominator="4"' in saved_xml,
-        "tempo_80": 'bpm="80.0"' in saved_xml,
-        "key_c": 'vit_music_key_signature="C"' in saved_xml,
-        "groove_channel_10": 'channelNumber="10"' in saved_xml,
-        "edited_pitch_saved": f'p="{EDIT_PITCH_TO}"' in saved_xml,
-        "placeholder_pitch_gone_from_first_note": True,
+        "timesig_2_4": '<TIMESIG numerator="2" denominator="4"' in snapshot_xml,
+        "tempo_80": re.search(r'<TEMPO startBeat="0\.0" bpm="80\.0"', snapshot_xml) is not None,
+        "key_c": 'vit_music_key_signature="C"' in snapshot_xml,
+        "groove_channel_10": 'channelNumber="10"' in snapshot_xml,
+        "edited_pitch_saved": f'p="{EDIT_PITCH_TO}"' in snapshot_xml,
+        "surge_blocks": snapshot_xml.count('name="Surge XT"') >= 3,
+        "surge_states_pinned": snapshot_xml.count('vit_template_role="instrument"') >= 3,
     }
-    b6 = tracks_ok and instruments_ok and all(pins.values())
+    b6 = tracks_ok and instruments_ok and saved_is_vit and all(pins.values())
     runner.record("B6_config_persist", b6,
                   {"tracks_ok": tracks_ok, "instruments_ok": instruments_ok,
-                   "plugin_rows": plugin_rows, "xml_pins": pins})
+                   "saved_is_vit": saved_is_vit, "plugin_rows": plugin_rows, "snapshot_pins": pins})
     if not b6:
         return runner.fail(EXIT_DEFECT, "B6", f"config persistence mismatch: tracks={tracks_ok} "
-                                              f"instruments={instruments_ok} pins={pins}")
+                                              f"instruments={instruments_ok} saved_is_vit={saved_is_vit} pins={pins}")
 
     # ---- B7: no privilege escalation ------------------------------------
     agent_log_path = Path(args.agent_log) if args.agent_log else None

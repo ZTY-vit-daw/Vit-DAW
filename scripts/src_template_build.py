@@ -319,7 +319,9 @@ def main() -> int:
     target.write_text(template, encoding="utf-8", newline="\n")
     print("template written:", target)
     print("bytes:", target.stat().st_size)
-    print("sha256:", hashlib.sha256(target.read_bytes()).hexdigest())
+    # Canonical-form hash (LF): stable across git autocrlf checkout modes.
+    canonical = target.read_bytes().replace(b"\r\n", b"\n")
+    print("sha256(canonical LF):", hashlib.sha256(canonical).hexdigest())
     print("surge state sha256:", surge["state_sha256"])
     print("surge identifier: VST3-Surge XT-{0}-{1}".format(surge["uniqueId"], surge["uid"]))
     return 0

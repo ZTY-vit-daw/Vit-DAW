@@ -134,9 +134,9 @@ func TestValidateDetectsMediaReference(t *testing.T) {
 }
 
 // patchManifestHash rewrites template_sha256 in the copied manifest to the
-// given file content hash so load-time hash verification passes.
+// canonical (LF-normalized) content hash so load-time verification passes.
 func patchManifestHash(dir string, data []byte) error {
-	sum := sha256Sum(data)
+	sum := sha256Sum(bytes.ReplaceAll(data, []byte("\r\n"), []byte("\n")))
 	manifestPath := filepath.Join(dir, ManifestFile)
 	raw, err := os.ReadFile(manifestPath)
 	if err != nil {
