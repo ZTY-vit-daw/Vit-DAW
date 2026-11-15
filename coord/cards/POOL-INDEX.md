@@ -166,6 +166,6 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 池序 | 卡 ID | 状态 |
 |---|---|---|
 | 369 | G0-SCORE-SPIKE-1 | todo（谱面库选型 spike——展演关键路径去风险：候选打分+≤2 候选最小 spike+主开发卡草案；**已确认候领取**） |
-| 370 | G0-LEGAME-CONTRACT-1 | todo（W01 乐局设计源契约冻结草案 vit.legame_design.v0——分层 schema+level_card 迁移契约+裁定项清单；**已确认候领取**） |
+| 370 | G0-LEGAME-CONTRACT-1 | doing（GLM-5.3-Flash 执行流领取 2026-11-15 深夜，基线 9cc3048c，主工作树 main——W01 乐局设计源契约冻结草案 vit.legame_design.v0；P0） |
 | 371 | G0-STACKGATE-1 | todo（单栈验收口径冻结 DG1-DG3——能力关/集成关/渲染手测关定义；**已确认候领取**） |
 | 372 | GEN-YUE-WIRE-1 | todo（YuE2 成曲链真实接线——审计 H6 六项：MIDI→方言/prompt 映射/纯器乐/请求卫生/后台 job/引擎托管；烟测候栈位；**已确认候领取**） |
