@@ -71,3 +71,4 @@ VF5 在真实装配面不可用（npm/许可意外）→取证上交；治理粒
 - **承接路由**：A7/A8（出声+差分断言）→**377 卡**（373/375 已合入，解锁补完）；D1（XML-boot 加轨 save 丢轨）+D2（save 后 clip_id 披露降级至重开）+D3（agent 消毒面剥 project_path 影响面板）→**378 取证/修复卡**（域外锚点未扩修纪律正确）。
 - **用户手测节点 M4**（谱面手感抽检）候用户——DG3 M 清单。
 - 采纳：VF5 静态进主包（懒加载候后续）与单 clip 定位边界如实登记。
+- **合并事故补记（主管如实）**：M1-M5 cherry-pick 链在两次冲突处理中丢失三件（cursor.ts/cursor.test.ts/App.tsx 锚点属性），主检出构建红+vitest 跌至 376——系统域比对后从分支终态补齐（两个 fix 提交），npm install 补依赖，**复验 build+vitest 668/668+render 全 PASS**。教训：多提交链 cherry-pick 后必须即时跑构建门再推远端。
