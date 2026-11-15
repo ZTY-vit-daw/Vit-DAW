@@ -1,0 +1,5 @@
+# jsdom 无 canvas 的 VexFlow 文本测量告警（非致命；渲染正常）
+告警行数: 3208
+样本:
+Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)
+Element: No context for txtCanvas. Returning empty text metrics.
