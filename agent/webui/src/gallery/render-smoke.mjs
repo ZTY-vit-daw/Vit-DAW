@@ -36,6 +36,12 @@
  *     fixture 面自挂导致烟测无法拦截本缺陷；
  *  c) 本卡工件：coord/runs/UI-SPRITE-MOUNT-1/{render-smoke-appentry-report.json,
  *     screens/}；launcher/project 两面截图另存本卡 screens（345/346 原路径不变）。
+ * UI-MSG-SHADOWBOX-1（362）扩展：用户消息阴影框标识渲染断言（用户裁定 2026-11-15）——
+ *  a) launcher/project 两 fixture 面新增 computed 断言：用户消息（.v5-launcher-msg--user /
+ *     .v5-project-thread .v5-message--user）边框 solid ≥1px + box-shadow 非空 + 右对齐
+ *     维持；--assistant/--vit 无框负断言（无边框+无阴影，防回归）；
+ *  b) 两面汇总报告 + 两面截图落 coord/runs/UI-MSG-SHADOWBOX-1/
+ *     {render-smoke-shadowbox-report.json, screens/}（345/346/361 原路径不变）。
  * 全离线 fixture（零真实端点请求）；344/345/346 的断言与工件路径不变。
  */
 
@@ -59,6 +65,9 @@ const projectScreensDir = resolve(projectOutDir, "screens");
 // UI-SPRITE-MOUNT-1（361）：本卡工件目录（真实入口渲染烟测报告 + 两面截图）。
 const spriteMountOutDir = resolve(repoRoot, "coord/runs/UI-SPRITE-MOUNT-1");
 const spriteMountScreensDir = resolve(spriteMountOutDir, "screens");
+// UI-MSG-SHADOWBOX-1（362）：用户消息阴影框渲染烟测工件目录（两面 computed 断言报告 + 两面截图）。
+const shadowboxOutDir = resolve(repoRoot, "coord/runs/UI-MSG-SHADOWBOX-1");
+const shadowboxScreensDir = resolve(shadowboxOutDir, "screens");
 
 /** 与 src/design/sprite.tsx 同源（23 symbol）。 */
 const SYMBOL_IDS = [
@@ -600,6 +609,27 @@ async function main() {
     out.emptyText = $("[data-launcher-drawer-empty]")?.textContent ?? "";
     // UI-SPRITE-MOUNT-1（361）：sprite 图标实件计数（recents/结果卡经 ProjectBadge→Icon）
     out.iconElements = $$("svg.v5-icon[data-graphic='icon']").length;
+    // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框标识 computed 断言数据（1px 灰边+柔影
+    // 非空、右对齐维持；--assistant 无框负断言数据）。
+    const msgFrameOf = (el) => {
+      if (!el) return null;
+      const cs = getComputedStyle(el);
+      return {
+        alignSelf: cs.alignSelf,
+        textAlign: cs.textAlign,
+        borderStyle: cs.borderTopStyle,
+        borderWidth: cs.borderTopWidth,
+        boxShadow: cs.boxShadow,
+        backgroundColor: cs.backgroundColor,
+        paddingTop: cs.paddingTop,
+        maxWidth: cs.maxWidth,
+      };
+    };
+    const launcherUserMsgs = within(".v5-launcher-msg--user");
+    const launcherAsstMsgs = within(".v5-launcher-msg--assistant");
+    out.userMsgCount = launcherUserMsgs.length;
+    out.userMsgFrame = msgFrameOf(launcherUserMsgs[0] ?? null);
+    out.assistantMsgFrame = msgFrameOf(launcherAsstMsgs[0] ?? null);
     return out;
   });
 
@@ -658,6 +688,30 @@ async function main() {
     (ldom.iconElements ?? 0) >= 1,
     `iconElements=${ldom.iconElements}`
   );
+  // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框标识（computed 边框+柔影非空，防回归）
+  const msgBoxShadowPresent = (v) => typeof v === "string" && v !== "" && v !== "none";
+  // 注：本 Chromium 对 align-self:flex-end 的 computed/used 值报告为 flow-end（对齐
+  // 规范 used value 序列化），故接受 flex/flow/self-end 词尾（语义同为「贴交叉轴末端」）。
+  const msgAlignEnd = (v) => typeof v === "string" && /^(flex|flow|self)-end$/.test(v);
+  launcherAssert(
+    "用户消息阴影框标识（边框 solid ≥1px + 柔影非空 + 右对齐维持）",
+    ldom.userMsgCount >= 1 &&
+      ldom.userMsgFrame &&
+      ldom.userMsgFrame.borderStyle === "solid" &&
+      parseFloat(ldom.userMsgFrame.borderWidth) >= 1 &&
+      msgBoxShadowPresent(ldom.userMsgFrame.boxShadow) &&
+      msgAlignEnd(ldom.userMsgFrame.alignSelf) &&
+      ldom.userMsgFrame.textAlign === "right",
+    `count=${ldom.userMsgCount} frame=${JSON.stringify(ldom.userMsgFrame)}`
+  );
+  launcherAssert(
+    "Vit 消息维持无框（无边框+无阴影，用户裁定仅用户消息加标识）",
+    ldom.assistantMsgFrame &&
+      (ldom.assistantMsgFrame.borderStyle === "none" ||
+        parseFloat(ldom.assistantMsgFrame.borderWidth) === 0) &&
+      !msgBoxShadowPresent(ldom.assistantMsgFrame.boxShadow),
+    `frame=${JSON.stringify(ldom.assistantMsgFrame)}`
+  );
 
   const lscan = await scanFn();
   const launcherContrastAssert = (name, ok, detail) => {
@@ -690,6 +744,11 @@ async function main() {
   // UI-SPRITE-MOUNT-1（361）：本卡工件另存（345 路径不变）
   const uispriteLauncherShot = resolve(spriteMountScreensDir, "launcher-fixture-viewport-1440x900.png");
   await page.screenshot({ path: uispriteLauncherShot, type: "png" });
+  // UI-MSG-SHADOWBOX-1（362）：本卡工件另存（345/361 路径不变）
+  const shadowboxLauncherViewport = resolve(shadowboxScreensDir, "launcher-fixture-viewport-1440x900.png");
+  const shadowboxLauncherFull = resolve(shadowboxScreensDir, "launcher-fixture-full.png");
+  await page.screenshot({ path: shadowboxLauncherViewport, type: "png" });
+  await page.screenshot({ path: shadowboxLauncherFull, type: "png", fullPage: true });
 
   const launcherReport = {
     run: "UI-LAUNCHER-1 launcher render smoke",
@@ -779,6 +838,27 @@ async function main() {
     ).length;
     // UI-SPRITE-MOUNT-1（361）：sprite 图标实件计数（标题栏 ProjectBadge/宏卡/输入区 Icon）
     out.iconElements = $$("svg.v5-icon[data-graphic='icon']").length;
+    // UI-MSG-SHADOWBOX-1（362）：工程面用户消息阴影框 computed 断言数据（与 launcher
+    // 同款 1px 灰边+柔影；--vit 无框负断言数据）。
+    const msgFrameOf = (el) => {
+      if (!el) return null;
+      const cs = getComputedStyle(el);
+      return {
+        alignSelf: cs.alignSelf,
+        textAlign: cs.textAlign,
+        borderStyle: cs.borderTopStyle,
+        borderWidth: cs.borderTopWidth,
+        boxShadow: cs.boxShadow,
+        backgroundColor: cs.backgroundColor,
+        paddingTop: cs.paddingTop,
+        maxWidth: cs.maxWidth,
+      };
+    };
+    const projectUserMsgs = within(".v5-message--user");
+    const projectVitMsgs = within(".v5-message--vit");
+    out.userMsgCount = projectUserMsgs.length;
+    out.userMsgFrame = msgFrameOf(projectUserMsgs[0] ?? null);
+    out.vitMsgFrame = msgFrameOf(projectVitMsgs[0] ?? null);
     return out;
   });
 
@@ -808,6 +888,28 @@ async function main() {
     `thread=${pdDom.threadPresent} declared=${pdDom.threadScrollDeclared}`
   );
   projectAssert("消息流在卷（user+vit）", pStateSet(pdDom.messageAuthors).has("user") && pStateSet(pdDom.messageAuthors).has("vit"), JSON.stringify(pdDom.messageAuthors));
+  // UI-MSG-SHADOWBOX-1（362）：工程面用户消息阴影框标识（computed 边框+柔影非空，防回归）
+  const projectBoxShadowPresent = (v) => typeof v === "string" && v !== "" && v !== "none";
+  const projectAlignEnd = (v) => typeof v === "string" && /^(flex|flow|self)-end$/.test(v);
+  projectAssert(
+    "用户消息阴影框标识（边框 solid ≥1px + 柔影非空 + 右对齐维持，与 launcher 同款）",
+    pdDom.userMsgCount >= 1 &&
+      pdDom.userMsgFrame &&
+      pdDom.userMsgFrame.borderStyle === "solid" &&
+      parseFloat(pdDom.userMsgFrame.borderWidth) >= 1 &&
+      projectBoxShadowPresent(pdDom.userMsgFrame.boxShadow) &&
+      projectAlignEnd(pdDom.userMsgFrame.alignSelf) &&
+      pdDom.userMsgFrame.textAlign === "right",
+    `count=${pdDom.userMsgCount} frame=${JSON.stringify(pdDom.userMsgFrame)}`
+  );
+  projectAssert(
+    "Vit 消息维持无框（无边框+无阴影，用户裁定仅用户消息加标识）",
+    pdDom.vitMsgFrame &&
+      (pdDom.vitMsgFrame.borderStyle === "none" ||
+        parseFloat(pdDom.vitMsgFrame.borderWidth) === 0) &&
+      !projectBoxShadowPresent(pdDom.vitMsgFrame.boxShadow),
+    `frame=${JSON.stringify(pdDom.vitMsgFrame)}`
+  );
   projectAssert(
     "宏卡四态",
     pStateSet(pdDom.macroStates).size === 4 &&
@@ -894,6 +996,11 @@ async function main() {
   // UI-SPRITE-MOUNT-1（361）：本卡工件另存（346 路径不变）
   const uispriteProjectShot = resolve(spriteMountScreensDir, "project-fixture-viewport-1440x900.png");
   await page.screenshot({ path: uispriteProjectShot, type: "png" });
+  // UI-MSG-SHADOWBOX-1（362）：本卡工件另存（346/361 路径不变）
+  const shadowboxProjectViewport = resolve(shadowboxScreensDir, "project-fixture-viewport-1440x900.png");
+  const shadowboxProjectFull = resolve(shadowboxScreensDir, "project-fixture-full.png");
+  await page.screenshot({ path: shadowboxProjectViewport, type: "png" });
+  await page.screenshot({ path: shadowboxProjectFull, type: "png", fullPage: true });
 
   const projectReport = {
     run: "UI-PROJECT-1 project render smoke",
@@ -918,6 +1025,42 @@ async function main() {
   };
   const projectReportPath = resolve(projectOutDir, "render-smoke-project-report.json");
   writeFileSync(projectReportPath, JSON.stringify(projectReport, null, 2), "utf-8");
+
+  // UI-MSG-SHADOWBOX-1（362）：用户消息阴影框两面断言汇总报告（launcher+project
+  // computed frame 数据 + 两面 failures；result=两面阴影框断言与其余断言均零失败）。
+  mkdirSync(shadowboxScreensDir, { recursive: true });
+  const shadowboxFailures = [...launcherFailures, ...projectFailures];
+  const shadowboxReport = {
+    run: "UI-MSG-SHADOWBOX-1 user message shadowbox render smoke",
+    date: new Date().toISOString(),
+    ruling:
+      "coord/decisions/2026-11-15-user-message-shadowbox-ruling.md",
+    surfaces: {
+      launcher: {
+        url: launcherUrl,
+        userMsgCount: ldom.userMsgCount,
+        userMsgFrame: ldom.userMsgFrame,
+        assistantMsgFrame: ldom.assistantMsgFrame,
+      },
+      project: {
+        url: projectUrl,
+        userMsgCount: pdDom.userMsgCount,
+        userMsgFrame: pdDom.userMsgFrame,
+        vitMsgFrame: pdDom.vitMsgFrame,
+      },
+    },
+    failures: shadowboxFailures,
+    screenshots: [
+      shadowboxLauncherViewport,
+      shadowboxLauncherFull,
+      shadowboxProjectViewport,
+      shadowboxProjectFull,
+    ],
+    foundationReports: { launcher: launcherReportPath, project: projectReportPath },
+    result: shadowboxFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const shadowboxReportPath = resolve(shadowboxOutDir, "render-smoke-shadowbox-report.json");
+  writeFileSync(shadowboxReportPath, JSON.stringify(shadowboxReport, null, 2), "utf-8");
 
   // ---- 9. UI-LOADING-1（347）：P2 装载生命周期 fixture 页渲染烟测 ----
   // gallery.html?surface=loading 全离线 fixture 渲染（零真实端点请求）；
@@ -1384,6 +1527,10 @@ async function main() {
   console.log(`[test:render] LOADING_RESULT=${loadingReport.result}`);
   console.log(`[test:render] fidelityReport=${fidelityReportPath}`);
   console.log(`[test:render] FIDELITY_RESULT=${fidelityReport.result}`);
+  console.log(`[test:render] shadowboxReport=${shadowboxReportPath}`);
+  console.log(
+    `[test:render] SHADOWBOX_RESULT=${shadowboxReport.result} launcherUserFrame=${JSON.stringify(ldom.userMsgFrame)} projectUserFrame=${JSON.stringify(pdDom.userMsgFrame)}`
+  );
   const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
