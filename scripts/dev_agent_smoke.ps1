@@ -459,6 +459,16 @@ param(
     [switch]$Vit309RtLevel,
     [switch]$Vit309CConsistency,
     [switch]$Vit309DisableBlacklist,
+    # SRC-TEMPLATE-1（373）DG1-B 栈腿：课程固定健康音源模板（Surge XT
+    # state 固化+GM 映射声明+2/4 鼓 groove）正常打开/改音/保存重开真栈
+    # 验证（零 LLM，断言体在 scripts/src_template_smoke.py；关卡契约=
+    # docs/STACKGATE_DG1_DG3_V1.md §3.2 B1-B7）。模板资产=coord/
+    # lesson-designs/music-creation-unit2/templates/melody-drum-v1/（place-copy
+    # 进 run 目录，仓库资产只读）。退出码：0=PASS（B1-B7 全绿）；2=环境
+    # （栈/内核不可达/Surge 缺失前置移交）；4=face_defect（B1-B6 断言失败
+    # 或 B7 越权即停取证上交）。腿需 -StartKernel -RestartAgent（berth 形态，
+    # 不启 UI）。
+    [switch]$SrcTemplateSmoke,
     # LAUNCHER-SMOKE-1 (339)：启动面（AI-first launcher）真栈烟测三腿。断言体在
     # scripts/launcher_flow_smoke.py；§8 口径冻结在 coord/runs/LAUNCHER-SMOKE-1/
     # RUNBOOK.md。腿形：
@@ -1420,7 +1430,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke -or $LauncherFlow) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke -or $SrcTemplateSmoke -or $LauncherFlow) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -9358,6 +9368,57 @@ if ($WaveshellStacklegSmoke) {
     }
     else {
         throw ("waveshell stackleg failed with exit code $waveshellExit (console: " + $waveshellConsolePath + ")")
+    }
+}
+
+if ($SrcTemplateSmoke) {
+    Write-Step "src template DG1-B leg (SRC-TEMPLATE-1 373, zero-LLM, gate=docs/STACKGATE_DG1_DG3_V1.md 3.2 B1-B7)"
+    $srcTemplateScript = Join-Path $RepoRoot "scripts\src_template_smoke.py"
+    if (-not (Test-Path -LiteralPath $srcTemplateScript)) {
+        throw ("src template smoke script missing: " + $srcTemplateScript)
+    }
+    $srcTemplateTemplatePath = Join-Path $RepoRoot "coord\lesson-designs\music-creation-unit2\templates\melody-drum-v1\template.v1.xml"
+    if (-not (Test-Path -LiteralPath $srcTemplateTemplatePath)) {
+        throw ("src template asset missing: " + $srcTemplateTemplatePath)
+    }
+    $srcTemplateArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($srcTemplateArtifactsDir)) {
+        $srcTemplateArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\src_template_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $srcTemplateArtifactsDir)) {
+        New-Item -ItemType Directory -Path $srcTemplateArtifactsDir -Force | Out-Null
+    }
+    # Project isolation: shared GUI-leg isolation block contract
+    # ($SrcTemplateSmoke is in its condition list) — the leg's own open goes to
+    # a place-copied template in the run dir; the kernel startup project stays
+    # on the isolated default copy.
+    $srcTemplatePriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    if ([string]::IsNullOrWhiteSpace($srcTemplatePriorProjectXml)) {
+        throw "src template smoke requires project isolation (VIT_PROJECT_XML unset after the shared isolation block)"
+    }
+    # Zero-LLM telemetry capture for this leg (same shape as edu jam): the
+    # leg asserts stayed-zero via the telemetry rows written in its window.
+    if ([string]::IsNullOrWhiteSpace($env:VIT_AGENT_LLM_TELEMETRY_PATH)) {
+        $srcTemplateTelemetryPath = Join-Path $srcTemplateArtifactsDir "agent_llm_telemetry.jsonl"
+        Set-Item -LiteralPath "env:VIT_AGENT_LLM_TELEMETRY_PATH" -Value $srcTemplateTelemetryPath
+    }
+    $srcTemplateSummaryPath = Join-Path $srcTemplateArtifactsDir "src_template_summary.json"
+    $srcTemplateConsolePath = Join-Path $srcTemplateArtifactsDir "src_template_console.txt"
+    $srcTemplatePythonArgs = @($srcTemplateScript, "--agent-http", $AgentHttp, "--kernel-zmq", ("tcp://127.0.0.1:" + $ZmqReqPort), "--kernel-sub", ("tcp://127.0.0.1:" + $ZmqSubPort), "--template", $srcTemplateTemplatePath, "--artifacts-dir", $srcTemplateArtifactsDir, "--output", $srcTemplateSummaryPath, "--agent-log", $AgentLog, "--telemetry-path", $env:VIT_AGENT_LLM_TELEMETRY_PATH)
+    & python @srcTemplatePythonArgs > $srcTemplateConsolePath 2>&1
+    $srcTemplateExit = $LASTEXITCODE
+    Get-Content -LiteralPath $srcTemplateConsolePath | ForEach-Object { Write-Host $_ }
+    if (-not (Test-Path -LiteralPath $srcTemplateSummaryPath)) {
+        throw ("src template smoke produced no summary artifact (exit code " + $srcTemplateExit + "; console: " + $srcTemplateConsolePath + ")")
+    }
+    if ($srcTemplateExit -eq 0) {
+        Write-Ok ("src template DG1-B PASS: B1-B7 all green (summary: " + $srcTemplateSummaryPath + ")")
+    }
+    elseif ($srcTemplateExit -eq 2) {
+        throw ("src template smoke environment failure - see " + $srcTemplateSummaryPath)
+    }
+    else {
+        throw ("src template smoke failed with exit code $srcTemplateExit (face_defect or B7 violation; see " + $srcTemplateSummaryPath + ")")
     }
 }
 
