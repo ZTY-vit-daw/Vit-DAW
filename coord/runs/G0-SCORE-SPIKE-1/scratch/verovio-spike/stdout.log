@@ -1,0 +1,14 @@
+SPIKE B (Verovio 6.4.1 / MEI): ALL PASS
+{
+  "legs": {
+    "B1_render": "PASS (SVG 14187B；7 note id 全部可寻址；拍号/附点/延音/休止在场)",
+    "B2_timemap": "PASS (12 节点，tstamp 单调；measureOn 锚 3；qstamp 直接可作 beat 坐标；noteId 披露)",
+    "B3_midi": "PASS (SMF 93B division=120；延音链已合并；pitch/start 全等；时值带统一 note-off gap≈0.00833q——W18 须以 MEI 为时值真值)",
+    "B4_edit": "PASS (字符串手术 3 例：删延音对/改时值/去附点，重载重渲染差异正确)"
+  },
+  "timings": {
+    "wasm_init_ms": 93,
+    "render3bars_ms": 32
+  },
+  "assertions": 32
+}

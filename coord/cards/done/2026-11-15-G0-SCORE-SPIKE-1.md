@@ -32,4 +32,16 @@
 - 领取时基线状态：worktree 为 origin/main 全新检出，`git status --short` 干净、`git diff --stat` 空（主检出 D:/Vit_DAW 的既有未提交改动不涉本卡文件域，未触碰）
 - owner：GLM-5.3 执行子代理（ZCode L2 会话）+ PC（Windows，Git Bash）
 - 分支：`coord/369-claim`（领取协调分支）；worktree：`D:/Vit_DAW_wt_369coord`
-- 领取提交：待推后回填
+- 领取提交：`d7d84c94a9e4a87e375b4d242f54cae3d56e0460`（已推 main 并核对远端卡面 owner）
+
+### 回执
+
+- 完成：2026-11-15 23:43（Asia/Shanghai）；零栈（未启 VitApp/Godot/agent 真栈，未占 PC-RUNTIME-STACK，无 run ID）
+- 工件：[coord/runs/G0-SCORE-SPIKE-1/REPORT.md](../../runs/G0-SCORE-SPIKE-1/REPORT.md)（报告三节+内核回读命令面静态盘点+运行口径）+ scratch/ 两候选（vexflow-spike、verovio-spike，node_modules 已 gitignore，未碰生产 src/ 与主仓 package.json）
+- 测试命令与退出码：
+  - `cd coord/runs/G0-SCORE-SPIKE-1/scratch/vexflow-spike && node spike.mjs` → **exit 0**（27 断言）
+  - `cd coord/runs/G0-SCORE-SPIKE-1/scratch/verovio-spike && node spike.mjs` → **exit 0**（32 断言）
+- 结论一句话：**主路线=VexFlow 5（MIT/TS 渲染引擎）+ 自研 beat-grid 记谱模型**（附点/切分/休止/延音编辑→序列化→重推导→重绘、tick→x 游标、模型↔SMF 精确往返全部 spike 亲证）；Verovio（LGPL、edit() 实验性、MIDI 时值带 note-off gap）不进首版编辑链，登记为教材材料 MusicXML 只读显示的可选件；主开发卡草案（SCORE-WORKBENCH-1：文件域/里程碑 M1-M5/风险 R1-R8）在 REPORT §5，可直接发卡。
+- 关键接口锚点（静态盘点）：回读=`get_midi_clip_notes`（notes[]{id,pitch,start,length}，beats 相对 clip）+`music_context`（拍号/速度+单段门）+`current_selection.playhead_seconds`；写入=`apply_midi_note_patch`（ops+time_unit:beats，RiskConfirm）；**无 set_time_signature 生产命令（拍号写入须独立内核卡）**。
+- 端测覆盖边界声明（AGENTS §5）：本卡为零栈勘察卡——验证面=确定性 node 断言（exit 0），**无浏览器渲染面烟测、无真栈烟测**（非目标）；真实出声与渲染面验证属主开发卡 M5。
+- 回执提交：即本次 coord(369) 收口提交（卡移 done/、REPORT+scratch 工件、POOL-INDEX 同批；hash 见 `git log -- coord/cards/done/2026-11-15-G0-SCORE-SPIKE-1.md`）。

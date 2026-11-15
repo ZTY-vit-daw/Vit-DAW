@@ -1,0 +1,16 @@
+{
+  "name": "verovio-spike",
+  "version": "1.0.0",
+  "description": "G0-SCORE-SPIKE-1 Spike B: Verovio 6.4.1 MEI (scratch only, not production)",
+  "main": "index.js",
+  "scripts": {
+    "test": "node spike.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "verovio": "^6.4.1"
+  }
+}

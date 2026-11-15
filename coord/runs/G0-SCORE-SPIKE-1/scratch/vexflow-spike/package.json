@@ -1,0 +1,17 @@
+{
+  "name": "vexflow-spike",
+  "version": "1.0.0",
+  "description": "G0-SCORE-SPIKE-1 Spike A: VexFlow 5 + own beat-grid model (scratch only, not production)",
+  "main": "index.js",
+  "scripts": {
+    "test": "node spike.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "jsdom": "^24.1.3",
+    "vexflow": "^5.0.0"
+  }
+}

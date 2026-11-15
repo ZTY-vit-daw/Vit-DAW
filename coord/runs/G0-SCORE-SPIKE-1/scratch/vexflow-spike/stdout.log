@@ -1,0 +1,17 @@
+SPIKE A (VexFlow 5 + own model): ALL PASS
+{
+  "legs": {
+    "L1_derive": "PASS (附点1/休止窗2/延音组2含跨小节线1)",
+    "L2_edit_insert": "PASS",
+    "L2_edit_delete": "PASS",
+    "L2_edit_resize": "PASS",
+    "L2_edit_dottoggle": "PASS",
+    "L2_edit_roundtrip": "PASS (insert/delete/resize/dot-toggle 四操作，序列化->重解析->重推导->重绘全链)",
+    "L3_cursor": "PASS (tick->x 表 8 项/3 行，行内单调，命中+插值)",
+    "L4_midi_roundtrip": "PASS (模型->SMF(80B)->解析回读：5 音符 pitch/start/length 集合相等)"
+  },
+  "timings": {
+    "render3bars_ms": 36
+  },
+  "assertions": 27
+}
