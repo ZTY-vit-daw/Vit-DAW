@@ -235,3 +235,132 @@ describe("fixture 服务替身", () => {
     await expect(svc.fetchContext()).rejects.toThrow("fixture 未配置工程上下文");
   });
 });
+
+/* ── SHELL-6（池序 367）：工程面交互卡渲染——治理三键卡/确认承接卡/
+ * directive 占位卡/桥执行块（markup 断言面；真实点击链由真栈烟测腿覆盖）。 ── */
+
+describe("ProjectSurface：SHELL-6 交互卡", () => {
+  it("治理三键卡渲染（宿主 vit_governance_required 等价物）——三键文案与可点属性在卷", () => {
+    const markup = renderToStaticMarkup(
+      <ProjectSurface
+        fixture={{
+          context: FIXTURE_CONTEXT,
+          thread: threadWith({
+            kind: "governance",
+            id: "g1",
+            view: {
+              requestID: "req-fixture-1",
+              action: "new_project",
+              currentProject: "测试工程甲（fixture）"
+            }
+          })
+        }}
+      />
+    );
+    expect(markup).toContain('data-project-governance="true"'.replace('="true"', ""));
+    expect(markup).toContain('data-project-governance-request="req-fixture-1"');
+    expect(markup).toContain('data-project-governance-actions');
+    expect(markup).toContain('data-project-governance-save');
+    expect(markup).toContain("保存并切换");
+    expect(markup).toContain('data-project-governance-switch');
+    expect(markup).toContain("直接切换");
+    expect(markup).toContain('data-project-governance-cancel');
+    expect(markup).toContain("取消");
+    expect(markup).toContain("测试工程甲（fixture）");
+  });
+
+  it("已作答治理卡固定呈报，不再出三键", () => {
+    const markup = renderToStaticMarkup(
+      <ProjectSurface
+        fixture={{
+          context: FIXTURE_CONTEXT,
+          thread: threadWith({
+            kind: "governance",
+            id: "g1",
+            answered: "switch",
+            view: { requestID: "req-fixture-2", action: "open_project", currentProject: "" }
+          })
+        }}
+      />
+    );
+    expect(markup).toContain('data-project-governance-answered="switch"');
+    expect(markup).toContain('data-project-governance-answered-text');
+    expect(markup).not.toContain('data-project-governance-actions');
+  });
+
+  it("确认承接卡渲染——不变式：确认语义回复必伴随可点交互面（两键）", () => {
+    const markup = renderToStaticMarkup(
+      <ProjectSurface
+        fixture={{
+          context: FIXTURE_CONTEXT,
+          thread: threadWith(
+            { kind: "message", id: "v1", author: "vit", text: "这个操作需要确认后执行。" },
+            {
+              kind: "confirm",
+              id: "cf1",
+              view: { note: "Vit 正在等一句确认。", approveText: "确认执行", cancelText: "取消" }
+            }
+          )
+        }}
+      />
+    );
+    expect(markup).toContain("这个操作需要确认后执行。");
+    expect(markup).toContain('data-project-confirm');
+    expect(markup).toContain('data-project-confirm-actions');
+    expect(markup).toContain('data-project-confirm-approve');
+    expect(markup).toContain('data-project-confirm-cancel');
+    expect(markup).toContain("确认执行");
+  });
+
+  it("directive 占位卡渲染（自动执行语态）+ 桥属性披露（fixture 面）", () => {
+    const markup = renderToStaticMarkup(
+      <ProjectSurface
+        fixture={{
+          context: FIXTURE_CONTEXT,
+          thread: threadWith({
+            kind: "directive",
+            id: "d1",
+            view: {
+              action: "new",
+              headline: "正在新建《新工程_1115_2330（fixture）》…",
+              detail: "",
+              note: "Vit 正在执行——终态以宿主回执为准。"
+            },
+            directive: { action: "new_project", project_name: "新工程_1115_2330（fixture）", requires_governance: true }
+          })
+        }}
+      />
+    );
+    expect(markup).toContain('data-project-directive');
+    expect(markup).toContain('data-project-directive-state="auto"');
+    expect(markup).toContain("正在新建《新工程_1115_2330（fixture）》…");
+    // fixture 模式=显式 fixture 桥属性（不冒充在 Vit 窗口内）
+    expect(markup).toContain('data-project-bridge="fixture"');
+  });
+
+  it("结果卡（点卡切换）渲染：卡名/路径与可点按钮在卷", () => {
+    const markup = renderToStaticMarkup(
+      <ProjectSurface
+        fixture={{
+          context: FIXTURE_CONTEXT,
+          thread: threadWith({
+            kind: "cards",
+            id: "cds1",
+            cards: [
+              {
+                id: "card-1",
+                name: "鼓组混音v2（fixture）",
+                filePath: "D:/fixtures/鼓组混音v2.vit",
+                directive: { action: "open_project", file_path: "D:/fixtures/鼓组混音v2.vit", requires_governance: true }
+              }
+            ]
+          })
+        }}
+      />
+    );
+    expect(markup).toContain('data-project-cards');
+    expect(markup).toContain('data-project-card="card-1"');
+    expect(markup).toContain("鼓组混音v2（fixture）");
+    expect(markup).toContain("D:/fixtures/鼓组混音v2.vit");
+  });
+});

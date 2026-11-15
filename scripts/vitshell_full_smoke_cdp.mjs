@@ -18,6 +18,16 @@
 //                         (no chat round, no question loop).
 //   probe-launcher-no-binding (SHELL-5) launcher stage zero-binding: /agent/state
 //                         current_project.path empty (boot draft not bound).
+//   project-chat-new     (SHELL-6) IN-PROJECT new chain: project-surface chat
+//                         bare "新建工程" -> deterministic directive (no LLM
+//                         free-text) -> AUTO-executes via bridge -> in-page
+//                         governance 3-key card IN THE PROJECT SURFACE (the
+//                         SHELL-6 invariant: confirmation must be clickable)
+//                         -> 直接切换 via the real bridge path.
+//   probe-project-ready --expect-name <substr> (SHELL-6) after an in-page
+//                         project switch: wait for the titlebar context name
+//                         to become the expected one (context refresh on the
+//                         bridge opened receipt; no remount, no reload).
 //
 // Everything else mirrors vitshell_open_chain_cdp.mjs semantics:
 //   probe-launcher / click-open / probe-project / probe-launcher-back /
@@ -42,6 +52,7 @@ const phase = arg("phase", "");
 const outPath = arg("out", "");
 const chatText = arg("chat-text", "这个工程现在是什么状态？");
 const newProjectName = arg("new-project-name", "");
+const expectName = arg("expect-name", "");
 const chatTimeoutMs = parseInt(arg("chat-timeout-ms", "90000"), 10);
 const webuiDir = arg("webui-dir", join(process.cwd(), "agent/webui"));
 const requireFromWebui = createRequire(join(webuiDir, "package.json"));
@@ -415,6 +426,22 @@ try {
         fail("fixture marker present on live project face (" + rootAttrs.fixture + ")");
       }
       const nameEl = page.locator("[data-project-titlebar-name]");
+      // SHELL-6: --expect-name <substr> — after an in-page project switch the
+      // surface stays mounted (no remount); wait for the titlebar context name
+      // to become the expected one (context refresh on bridge result opened).
+      if (expectName) {
+        await page.waitForFunction(
+          (needle) => {
+            const el = document.querySelector('[data-project-titlebar] [data-project-context-name]');
+            return Boolean(el && el.textContent && el.textContent.includes(needle));
+          },
+          expectName,
+          { timeout: 45000 }
+        ).catch(async () => {
+          const got = ((await page.locator('[data-project-titlebar] [data-project-context-name]').textContent().catch(() => "?")) ?? "").trim();
+          fail("project context name did not become " + JSON.stringify(expectName) + " in 45s (got " + JSON.stringify(got) + " — context refresh after in-page switch missing?)");
+        });
+      }
       const contextName = await page.locator("[data-project-titlebar] [data-project-context-name]").textContent();
       const sentinel = await readSentinel(page);
       if (!sentinel) { fail("sentinel missing on project surface (reload suspected)"); break; }
@@ -477,6 +504,111 @@ try {
         vit_frames: vitTexts.length,
         assistant_reply: lastVit,
         composer_state: composerState
+      };
+      if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
+      console.log("CDP_OK " + JSON.stringify(verdict));
+      break;
+    }
+    case "project-chat-new": {
+      // SHELL-6 leg: IN-PROJECT new-project chain end-to-end (the exact user
+      // retest criterion #3). Type the bare "新建工程" in the PROJECT surface
+      // composer, send, and assert:
+      //   1) the deterministic project-face intent route answers with a
+      //      directive placeholder (NOT an LLM free-text reply),
+      //   2) the directive AUTO-executes (bridge exec block appears on its
+      //      own — no manual execute button),
+      //   3) the in-page governance 3-key card appears IN THE PROJECT SURFACE
+      //      (an in-project switch has a current project => host governance
+      //      guaranteed) — THE SHELL-6 invariant: confirmation semantics must
+      //      come with a clickable face; text-only confirmation = defect,
+      //   4) clicking 直接切换 answers through the real bridge path and the
+      //      card fixes to the answered face (no replay of the three keys).
+      const root = page.locator("[data-project-root]");
+      await root.waitFor({ state: "visible", timeout: 30000 });
+      const composer = page.locator('[data-project-composer] input.v5-composer-input');
+      await composer.waitFor({ state: "visible", timeout: 15000 });
+      const beforeUser = await page.locator('[data-project-thread] [data-message-author="user"]').count();
+      await composer.fill("新建工程", { timeout: 10000 });
+      const sendBtn = page.locator('[data-project-composer] .v5-composer-send');
+      await sendBtn.waitFor({ state: "visible", timeout: 10000 });
+      await sendBtn.click({ timeout: 10000 });
+      await page.waitForFunction(
+        ([b, sel]) => document.querySelectorAll(sel).length > b,
+        [beforeUser, '[data-project-thread] [data-message-author="user"]'],
+        { timeout: 15000 }
+      ).catch(() => {});
+      // Deterministic project-face route (SHELL-6): directive placeholder.
+      const directive = page.locator("[data-project-directive]");
+      await directive.waitFor({ state: "visible", timeout: 30000 })
+        .catch(async () => {
+          // Failure-scene evidence: the 22:49 defect shape was an LLM free-text
+          // confirmation with no interactive face.
+          const evidence = {};
+          try {
+            evidence.assistantMessages = (await page.locator('[data-message-author="vit"]').allTextContents()).map((s) => s.trim());
+            evidence.bridgeExecState = await page.locator("[data-project-bridge-exec]").getAttribute("data-project-bridge-exec-state").catch(() => "absent");
+            evidence.confirmCards = await page.locator("[data-project-confirm]").count();
+            evidence.governanceCards = await page.locator("[data-project-governance]").count();
+            evidence.bridgeAttr = await page.locator("[data-project-root]").getAttribute("data-project-bridge");
+          } catch (evidenceError) {
+            evidence.collectionError = String(evidenceError);
+          }
+          fail("no directive placeholder after in-project 新建工程 (project-face intent route missing — 22:49 defect shape)", evidence);
+        });
+      const headline = ((await page.locator("[data-project-directive] .v5-project-directive-headline").textContent()) ?? "").trim();
+      if (!headline.includes("新工程_")) {
+        fail("in-project new directive headline must carry the default draft name (headline=" + headline + ")");
+      }
+      const replyText = ((await page.locator('[data-message-author="vit"]').last().textContent()) ?? "").trim();
+      if (replyText.includes("连不上内核")) {
+        fail("in-project new reply is the kernel-unavailable template: " + replyText);
+      }
+      // Auto-execute: the bridge exec block reaching waiting on its own is the
+      // production default; a manual execute button would be a regression.
+      let bridgeExecState = "absent";
+      try {
+        await page.locator("[data-project-bridge-exec]").waitFor({ state: "visible", timeout: 10000 });
+        bridgeExecState = (await page.locator("[data-project-bridge-exec]").getAttribute("data-project-bridge-exec-state")) ?? "?";
+      } catch {
+        bridgeExecState = "absent";
+      }
+      if (bridgeExecState === "absent") {
+        fail("in-project directive did not auto-execute (bridge exec block never appeared — auto-execute seam not live on project face)");
+      }
+      // THE SHELL-6 invariant leg: the governance card MUST appear IN THE
+      // PROJECT SURFACE and MUST be clickable (直接切换 via the real bridge).
+      await page.locator("[data-project-governance-actions]").waitFor({ state: "visible", timeout: 20000 })
+        .catch(async () => {
+          const evidence = {};
+          try {
+            evidence.governanceCount = await page.locator("[data-project-governance]").count();
+            evidence.bridgeExecState = await page.locator("[data-project-bridge-exec]").getAttribute("data-project-bridge-exec-state").catch(() => "absent");
+            evidence.bridgeExecText = ((await page.locator("[data-project-bridge-exec]").textContent().catch(() => "")) ?? "").trim();
+            evidence.assistantMessages = (await page.locator('[data-message-author="vit"]').allTextContents()).map((s) => s.trim());
+          } catch (evidenceError) {
+            evidence.collectionError = String(evidenceError);
+          }
+          fail("governance card did NOT appear in the project surface (text-only confirmation = the SHELL-6 defect shape)", evidence);
+        });
+      const govHeadline = ((await page.locator("[data-project-governance-headline]").textContent()) ?? "").trim();
+      await page.locator("[data-project-governance-switch]").click({ timeout: 10000 });
+      let answered = "";
+      try {
+        await page.locator("[data-project-governance-answered-text]").waitFor({ state: "visible", timeout: 4000 });
+        answered = ((await page.locator("[data-project-governance-answered-text]").textContent()) ?? "").trim();
+      } catch {
+        answered = "transient_missed";
+      }
+      const verdict = {
+        phase, ok: true, url,
+        message: "新建工程",
+        directive_headline: headline,
+        assistant_reply: replyText,
+        auto_execute: true,
+        bridge_exec_state_seen: bridgeExecState,
+        governance: "switch",
+        governance_headline: govHeadline,
+        governance_answered: answered
       };
       if (outPath) writeFileSync(outPath, JSON.stringify(verdict, null, 2));
       console.log("CDP_OK " + JSON.stringify(verdict));

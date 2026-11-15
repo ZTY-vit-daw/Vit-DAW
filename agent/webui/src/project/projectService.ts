@@ -14,7 +14,15 @@
  */
 
 import { fetchUIState, sendChat, stopTurn } from "../lib/api";
-import type { ProjectContextView, MacroApplyOutcome, ProjectService } from "./projectData";
+import { cardsToEntries, type LauncherDirective } from "../api/launcher";
+import type { ChatResponse } from "../types";
+import type { ProjectChatOutcome, ProjectContextView, MacroApplyOutcome, ProjectService } from "./projectData";
+
+/**
+ * SHELL-6：工程面消费的 chat 回执子集——types.ts ChatResponse 尚未声明
+ * launcher_directive（345 域字段），此处局部扩展（域外零改动）。
+ */
+type ProjectChatResponse = ChatResponse & { launcher_directive?: LauncherDirective | null };
 
 export function createProjectConversationID(now: number = Date.now()): string {
   return `webui_project_${now.toString(36)}`;
@@ -53,11 +61,17 @@ export function createProjectLiveService(): ProjectService {
       if (!view) throw new Error("agent 尚未装载工程上下文");
       return view;
     },
-    async sendMessage(text: string): Promise<string> {
-      const response = await sendChat({ conversation_id: conversationID, message: text });
+    async sendMessage(text: string): Promise<ProjectChatOutcome> {
+      const response = (await sendChat({ conversation_id: conversationID, message: text })) as ProjectChatResponse;
       if (response.error) throw new Error(response.error);
-      const reply = (response.reply ?? "").trim();
-      return reply || "Vit 没有返回内容——换个说法再试一次。";
+      // SHELL-6：完整回执载荷——directive/cards/确认协议位原样透传（呈现与
+      // 执行语义归 projectThreadItemsFromOutcome 单点映射）。
+      return {
+        text: (response.reply ?? "").trim() || "Vit 没有返回内容——换个说法再试一次。",
+        directive: response.launcher_directive ?? null,
+        cards: cardsToEntries(response.project_result_cards),
+        needsConfirmation: Boolean(response.needs_confirmation)
+      };
     },
     async stopReply(): Promise<void> {
       await stopTurn({ conversation_id: conversationID, reason: "webui_project_surface_stop" });
