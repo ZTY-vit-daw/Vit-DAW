@@ -49,7 +49,7 @@ VF5 在真实装配面不可用（npm/许可意外）→取证上交；治理粒
 
 ## 回执
 
-（逐 M 回填）
+- **M1 完成**（commit 93a414d8 @ port/score-workbench-1 已推）：DERIVATION_RULES.md v1 成文（R1 切分/R2 符号表+休止填充表/R3 延音链；R1.5 整小节归并=不做，W18 候裁定）+model.ts（fail-honest 网格校验/序列化往返）+derive.ts（4/4、3/4 支持面）+render.ts（VF5 薄适配，唯一 vexflow import 点；tick→x 行表+命中检测）。测试：scoreworkbench 34 例全绿（jsdom env 文件头注释成文）；三门= vitest 632/632（基线 598 亲测+34 新增）/npm run build exit 0/go 不涉。VF5 类型面新漂移实证：Voice 参数 camelCase（numBeats/beatValue）——适配层吸收，另 Renderer 容器类型收窄 HTMLDivElement。
 
 ## 验收
 
