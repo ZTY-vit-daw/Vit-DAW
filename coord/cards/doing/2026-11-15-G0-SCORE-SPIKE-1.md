@@ -23,4 +23,13 @@
 
 报告三节（盘点打分/spike 证据/实施卡草案）；候选结论可支撑主管直接发主开发卡。
 
-## 领取/回执/验收：待回填
+## 领取/回执/验收
+
+### 领取
+
+- 时间：2026-11-15 23:21（Asia/Shanghai）
+- origin/main 基线：`9cc3048ccdda11c3f889476ebfd85eea3cd46c25`
+- 领取时基线状态：worktree 为 origin/main 全新检出，`git status --short` 干净、`git diff --stat` 空（主检出 D:/Vit_DAW 的既有未提交改动不涉本卡文件域，未触碰）
+- owner：GLM-5.3 执行子代理（ZCode L2 会话）+ PC（Windows，Git Bash）
+- 分支：`coord/369-claim`（领取协调分支）；worktree：`D:/Vit_DAW_wt_369coord`
+- 领取提交：待推后回填
