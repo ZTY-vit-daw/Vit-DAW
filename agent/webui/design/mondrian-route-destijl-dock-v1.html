@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>板B · 风格派空间 dock — 施罗德住宅式工作区</title>
+<style>
+:root{
+  --ink:#111318; --paper:#fff; --canvas:#f4f4f1; --warm:#f6f4ec; --hair:#c9c9c3; --muted:#656565;
+  --blue:#1557d6; --blue-dark:#0f43aa; --blue-soft:#e8efff; --blue-inp:#dbe6fc; --blue-lt:#73b8f5;
+  --red:#e63426; --red-gd:#db1215; --yellow:#ffd42a; --green:#1a8d5b; --purple:#a78bfa;
+  --dark:#2e3437; --dark2:#1d2122; --grid:#3a4246; --gridm:#4a545a; --dim:#8a959c;
+  --mono:Consolas,"SFMono-Regular",Menlo,monospace;
+  --hshadow:7px 7px 0 rgba(17,17,17,.12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1600px;height:1000px;overflow:hidden}
+body{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--paper);position:relative}
+.plane{position:absolute;background:var(--paper);border:2px solid var(--ink)}
+.smallcaps{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--muted)}
+
+/* ===== 顶部走带 ===== */
+.tp{position:absolute;top:0;left:0;right:0;height:56px;background:var(--paper);border-bottom:2px solid var(--ink);
+  display:flex;align-items:center;gap:12px;padding:0 12px}
+.mark{position:relative;width:40px;height:38px;overflow:hidden;border:2px solid var(--ink);background:var(--paper);flex:none}
+.mark strong{position:absolute;inset:0 13px 13px 0;display:grid;place-items:center;
+  border-right:2px solid var(--ink);border-bottom:2px solid var(--ink);color:#fff;background:var(--blue);font-size:15px;font-weight:900}
+.mark i{position:absolute;bottom:0;left:0;width:12px;height:13px;border-top:2px solid var(--ink);border-right:2px solid var(--ink);background:var(--red-gd)}
+.mark b{position:absolute;bottom:0;right:0;width:13px;height:13px;border-top:2px solid var(--ink);border-left:2px solid var(--ink);background:var(--yellow)}
+.tp b.pj{font-size:13px}.tp .mono{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.tp .tc{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:1px}
+.tdiv{width:2px;height:26px;background:#d8dee8}
+.tbtn{width:28px;height:28px;border:2px solid var(--ink);background:var(--paper);display:grid;place-items:center;font-size:11px}
+.tbtn.on{background:var(--blue);color:#fff}
+.spacer{flex:1}
+.rec{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;color:var(--red-gd)}
+.rec::before{content:"";width:9px;height:9px;background:var(--red-gd)}
+
+/* ===== Rack 平面 ===== */
+.rack{left:0;top:62px;width:312px;height:700px;padding:12px}
+.rhead{height:30px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink)}
+.card{position:relative;left:0;width:288px;height:118px;margin-top:14px;background:var(--warm);
+  border:1px solid var(--ink);border-radius:2px;z-index:1}
+.card .t{height:22px;display:flex;align-items:center;justify-content:space-between;padding:0 8px;
+  border-bottom:1px solid var(--ink);font-size:11px;font-weight:700}
+.card .t small{font-family:var(--mono);font-size:9px;font-weight:400}
+.prow{display:flex;align-items:center;gap:6px;padding:5px 8px 0}
+.prow label{width:52px;font-size:10px;color:var(--muted)}
+.prow .slot{flex:1;height:1px;background:var(--hair)}
+.prow code{font-family:var(--mono);font-size:10px}
+.card::before,.card::after{content:"";position:absolute;top:22px;width:8px;height:8px}
+.card::before{left:-5px;background:var(--ink)}
+.card::after{right:-5px;background:var(--blue)}
+.card.sel{border:2px solid var(--red-gd);box-shadow:0 0 0 4px rgba(219,18,21,.16)}
+.ghost{margin-top:14px;width:288px;height:56px;border:1px dashed var(--hair);display:grid;place-items:center;
+  font-size:11px;color:var(--muted)}
+.cables{position:absolute;inset:0;z-index:0;pointer-events:none}
+
+/* ===== 中央视口 ===== */
+.center{left:318px;top:62px;width:920px;height:700px;background:var(--dark);
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 111px,#3a4246 111px 112px),
+    repeating-linear-gradient(90deg,transparent 0 27px,rgba(58,66,70,.5) 27px 28px)}
+.tabs{position:absolute;top:12px;left:12px;display:flex}
+.tab{padding:5px 12px;font-size:11px;font-weight:700;border:2px solid var(--ink);background:var(--paper);margin-right:-2px}
+.tab.on{background:var(--yellow)}
+.glane{position:absolute;left:0;width:920px;border-bottom:1px solid #24292c}
+.gclip{position:absolute;border-left:2px solid rgba(17,19,24,.5)}
+.gclip.y{background:rgba(255,212,42,.28)}
+.gclip.b{background:rgba(115,184,245,.25)}
+.gclip.p{background:rgba(246,244,236,.18)}
+.gph{position:absolute;top:44px;bottom:16px;width:2px;background:#fff;z-index:3}
+.gph::before{content:"";position:absolute;top:-2px;left:-8px;width:18px;height:12px;background:var(--red-gd);border:2px solid var(--ink)}
+.vinfo{position:absolute;left:14px;bottom:10px;font-family:var(--mono);font-size:10px;color:var(--dim)}
+
+/* ===== Agent 列 ===== */
+.agentcol{left:1244px;top:62px;width:356px;height:700px;padding:12px;display:flex;flex-direction:column}
+.ahead{height:30px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink)}
+.dot{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;color:var(--green)}
+.dot::before{content:"";width:7px;height:7px;background:var(--green)}
+.uinp{margin-top:14px;background:var(--blue-inp);border:2px solid var(--ink);padding:9px 10px;font-size:12.5px}
+.uinp small{display:block;margin-top:5px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+.acard{position:relative;margin-top:26px;background:var(--paper);border:2px solid var(--ink);
+  box-shadow:var(--hshadow);padding:20px 12px 12px}
+.atab{position:absolute;top:-17px;left:10px;background:var(--blue-soft);border:2px solid var(--ink);border-bottom:none;
+  border-radius:3px 3px 0 0;padding:3px 9px 4px;font-size:11px;font-weight:700;letter-spacing:.5px}
+.chead{display:flex;align-items:center;gap:6px;margin:2px 0 8px}
+.rtag{font-size:10px;font-weight:700;border:2px solid var(--ink);background:var(--paper);padding:2px 6px;white-space:nowrap}
+.chip{margin-left:auto;font-size:10px;font-weight:700;padding:3px 8px;border:2px solid var(--ink);
+  background:var(--blue);color:#fff;white-space:nowrap}
+.cbody{font-family:var(--mono);font-size:11px;margin-bottom:10px}
+.tapes{display:flex;gap:8px}
+.tape{flex:1;min-width:0;display:flex;align-items:center;gap:7px;border:2px solid var(--ink);background:var(--paper);
+  padding:6px 8px;min-height:34px}
+.tape.active{border-color:var(--blue);background:#f7faff}
+.tptag{flex:none;width:20px;height:20px;display:grid;place-items:center;border:2px solid var(--ink);
+  font-family:var(--mono);font-size:11px;font-weight:700;background:var(--paper)}
+.tape.active .tptag{background:var(--blue);border-color:var(--blue-dark);color:#fff}
+.wave{flex:1;min-width:20px;height:14px;display:flex;align-items:center;gap:2px;overflow:hidden}
+.wave i{flex:none;width:2px;background:#c9d4ea}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.vbtn{border:2px solid var(--ink);background:var(--paper);font-size:11px;font-weight:700;padding:8px 2px;white-space:nowrap}
+.trust{display:flex;align-items:center;gap:8px;background:var(--yellow);border:2px solid var(--ink);
+  box-shadow:3px 3px 0 rgba(17,17,17,.16);padding:8px 10px;font-size:11.5px;font-weight:700;margin-top:20px}
+.traj{margin-top:18px}
+.traj .row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--hair)}
+.traj .row b{font-family:var(--mono);font-size:11px;width:22px}
+.traj .row span{font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.composer{margin-top:auto;display:flex;gap:8px}
+.cinp{flex:1;height:36px;border:2px solid var(--ink);background:var(--paper);display:flex;align-items:center;
+  padding:0 10px;font-size:12px;color:var(--muted)}
+.csend{width:36px;height:36px;border:2px solid var(--ink);background:var(--blue);color:#fff;display:grid;place-items:center;font-size:13px}
+
+/* ===== 混音台 ===== */
+.mixer{left:0;top:768px;width:1238px;height:232px;padding:10px 12px}
+.mhead{height:26px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ink)}
+.mbody{display:flex;height:170px;margin-top:4px}
+.scale{width:26px;flex:none;position:relative}
+.scale span{position:absolute;right:4px;font-family:var(--mono);font-size:8.5px;color:var(--muted)}
+.fader{flex:1;position:relative;border-right:1px solid var(--hair)}
+.fader .nm{position:absolute;top:2px;left:6px;font-size:10px;font-weight:700;white-space:nowrap}
+.fader .nm small{display:block;font-family:var(--mono);font-size:8px;color:var(--muted);font-weight:400}
+.fader .slot{position:absolute;left:50%;top:26px;bottom:22px;width:2px;background:var(--ink);transform:translateX(-50%)}
+.fader .h{position:absolute;left:50%;transform:translateX(-50%);width:16px;height:22px;background:var(--paper);
+  border:2px solid var(--ink)}
+.fader .h i{position:absolute;top:0;left:0;right:0;height:6px;display:block}
+.fader .db{position:absolute;bottom:2px;left:6px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+.fader.master{border-right:none;border-left:2px solid var(--ink);flex:1.35}
+
+/* ===== 效果器抽屉（半开） ===== */
+.drawerslot{left:1244px;top:768px;width:356px;height:232px;background:var(--canvas);border:2px solid var(--ink)}
+.closedmark{position:absolute;right:8px;top:34px;bottom:34px;width:240px;border:1px dashed var(--hair)}
+.closedmark small{position:absolute;top:4px;right:4px;font-family:var(--mono);font-size:8.5px;color:var(--muted)}
+.drawer{position:absolute;left:-4px;top:10px;bottom:10px;width:300px;background:var(--paper);
+  border:2px solid var(--ink);box-shadow:var(--hshadow);padding:10px 10px 10px 18px}
+.grip{position:absolute;left:-2px;top:50%;transform:translateY(-50%);width:8px;height:52px;background:var(--ink)}
+.dhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dhead b{font-size:12px}
+.dhead span{font-family:var(--mono);font-size:11px}
+.dsearch{height:30px;border:2px solid var(--ink);display:flex;align-items:center;padding:0 8px;
+  font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.prow2{display:flex;align-items:center;gap:8px;padding:8px 2px;border-bottom:1px solid var(--hair)}
+.prow2 .nmb{flex:1;min-width:0}
+.prow2 .nmb b{display:block;font-size:11.5px;white-space:nowrap}
+.prow2 .nmb small{font-family:var(--mono);font-size:8.5px;color:var(--muted)}
+.prow2 .ld{width:22px;height:22px;border:2px solid var(--ink);background:var(--blue);color:#fff;
+  display:grid;place-items:center;font-size:10px;font-weight:700}
+.ftag{position:absolute;right:8px;bottom:4px;font-family:var(--mono);font-size:9.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="tp">
+  <div class="mark"><strong>V</strong><i></i><b></b></div>
+  <b class="pj">5.26 草稿</b>
+  <div class="tdiv"></div>
+  <span class="mono">120.0 BPM · 4/4</span>
+  <div class="tdiv"></div>
+  <span class="tc">00:00:57:12</span>
+  <button class="tbtn">■</button>
+  <button class="tbtn on">▶</button>
+  <div class="spacer"></div>
+  <span class="mono">LUFS −14.2</span>
+  <span class="rec">REC</span>
+</div>
+
+<div class="plane rack">
+  <div class="rhead"><span class="smallcaps">RACK</span><span class="smallcaps">B2 处理后 · 4 节点</span></div>
+  <svg class="cables" width="312" height="700" viewBox="0 0 312 700">
+    <path d="M305 74 L326 74 L326 206 L14 206" stroke="#111318" stroke-width="2" fill="none"/>
+    <path d="M306 206 L326 206 L326 338 L14 338" stroke="#111318" stroke-width="2" fill="none"/>
+    <path d="M306 338 L326 338 L326 470 L14 470" stroke="#111318" stroke-width="2" fill="none"/>
+    <path d="M150 162 L150 470 L14 470" stroke="#a78bfa" stroke-width="2" fill="none" stroke-dasharray="6 4"/>
+  </svg>
+  <div class="card" style="margin-top:14px">
+    <div class="t" style="background:var(--yellow)">Vocal Comp<small>Z1 · CLIP</small></div>
+    <div class="prow"><label>Thr</label><span class="slot"></span><code>−18.0 dB</code></div>
+    <div class="prow"><label>Ratio</label><span class="slot"></span><code>2.8 : 1</code></div>
+    <div class="prow"><label>Attack</label><span class="slot"></span><code>12 ms</code></div>
+  </div>
+  <div class="card">
+    <div class="t" style="background:var(--warm)">Tape Sat<small>Z3</small></div>
+    <div class="prow"><label>Drive</label><span class="slot"></span><code>24 %</code></div>
+    <div class="prow"><label>Mix</label><span class="slot"></span><code>18 %</code></div>
+  </div>
+  <div class="card">
+    <div class="t" style="background:var(--blue-lt)">Delay 1/8<small>Z2</small></div>
+    <div class="prow"><label>Time</label><span class="slot"></span><code>1/8T</code></div>
+    <div class="prow"><label>Fdbk</label><span class="slot"></span><code>32 %</code></div>
+  </div>
+  <div class="card sel">
+    <div class="t" style="background:var(--paper)">Master Bus<small>SEL</small></div>
+    <div class="prow"><label>Out</label><span class="slot"></span><code>−0.8 dB</code></div>
+    <div class="prow"><label>LUFS</label><span class="slot"></span><code>−14.2</code></div>
+  </div>
+  <div class="ghost">+ 添加节点</div>
+</div>
+
+<div class="plane center">
+  <div class="tabs"><span class="tab on">时间线</span><span class="tab">Rack</span><span class="tab">频谱</span></div>
+  <div class="glane" style="top:44px;height:96px"></div>
+  <div class="glane" style="top:140px;height:96px"></div>
+  <div class="glane" style="top:236px;height:150px"></div>
+  <div class="glane" style="top:386px;height:110px"></div>
+  <div class="glane" style="top:496px;height:130px"></div>
+  <div class="gclip y" style="left:120px;top:52px;width:300px;height:80px"></div>
+  <div class="gclip y" style="left:470px;top:52px;width:220px;height:80px"></div>
+  <div class="gclip b" style="left:60px;top:148px;width:560px;height:80px"></div>
+  <div class="gclip b" style="left:60px;top:244px;width:760px;height:134px"></div>
+  <div class="gclip y" style="left:180px;top:394px;width:420px;height:94px"></div>
+  <div class="gclip p" style="left:340px;top:504px;width:340px;height:114px"></div>
+  <div class="gclip y" style="left:700px;top:504px;width:150px;height:114px"></div>
+  <div class="gph" style="left:460px"></div>
+  <div class="vinfo">视口 — 时间线 · 120.0 BPM · 00:00:57:12 · 网格 1/4</div>
+</div>
+
+<div class="plane agentcol">
+  <div class="ahead"><span class="smallcaps">ASK VIT</span><span class="dot">已连接</span></div>
+  <div class="uinp">把副歌的人声再压一点，别太闷。<small>R7 · 用户输入 · 23:38</small></div>
+  <div class="acard">
+    <span class="atab">提案 · D1</span>
+    <div class="chead"><span class="rtag">Vocal Comp</span><span class="rtag">threshold</span><span class="chip">待确认</span></div>
+    <div class="cbody">Thr −18.0 → −21.0 dB · ratio 2.8:1</div>
+    <div class="tapes">
+      <div class="tape"><span class="tptag">A</span><span class="wave"></span><span class="tptag" style="border:none;font-size:9px">00:12</span></div>
+      <div class="tape active"><span class="tptag">B</span><span class="wave"></span><span class="tptag" style="border:none;font-size:9px">00:12</span></div>
+    </div>
+    <div class="vgrid"><button class="vbtn">A 更好 · 回滚</button><button class="vbtn">B 更好 · 保留</button></div>
+  </div>
+  <div class="trust">信任锚 — 试听 A/B 生效 · 可回滚 R6</div>
+  <div class="traj">
+    <div class="smallcaps" style="margin-bottom:4px">轨迹 · R7</div>
+    <div class="row"><b>R5</b><span>装载 Vocal Comp → 出候选 2</span></div>
+    <div class="row"><b>R6</b><span>试听渲染 ×2 → 等待裁决</span></div>
+    <div class="row"><b>R7</b><span>提案 D1 已生成 → 待确认</span></div>
+  </div>
+  <div class="composer"><div class="cinp">向 Vit 说…</div><div class="csend">▸</div></div>
+</div>
+
+<div class="plane mixer">
+  <div class="mhead"><span class="smallcaps">MIXER</span><span class="smallcaps">−14.2 LUFS · 真峰 +0.8 dBTP</span></div>
+  <div class="mbody">
+    <div class="scale" id="scale"></div>
+    <div class="fader"><span class="nm">主唱<small>AUD</small></span><span class="slot"></span><span class="h" style="bottom:46px"><i style="background:var(--yellow)"></i></span><span class="db">−3.2</span></div>
+    <div class="fader"><span class="nm">和声<small>AUD</small></span><span class="slot"></span><span class="h" style="bottom:79px"><i style="background:var(--yellow)"></i></span><span class="db">−8.0</span></div>
+    <div class="fader"><span class="nm">鼓组<small>MIDI</small></span><span class="slot"></span><span class="h" style="bottom:68px"><i style="background:var(--blue-lt)"></i></span><span class="db">−5.5</span></div>
+    <div class="fader"><span class="nm">贝斯<small>MIDI</small></span><span class="slot"></span><span class="h" style="bottom:71px"><i style="background:var(--blue-lt)"></i></span><span class="db">−6.8</span></div>
+    <div class="fader"><span class="nm">Pad<small>AUD</small></span><span class="slot"></span><span class="h" style="bottom:107px"><i style="background:var(--yellow)"></i></span><span class="db">−12.0</span></div>
+    <div class="fader"><span class="nm">FX 湿链<small>BUS</small></span><span class="slot"></span><span class="h" style="bottom:130px"><i style="background:var(--warm)"></i></span><span class="db">−15.4</span></div>
+    <div class="fader"><span class="nm">Rev<small>BUS</small></span><span class="slot"></span><span class="h" style="bottom:148px"><i style="background:var(--warm)"></i></span><span class="db">−18.0</span></div>
+    <div class="fader"><span class="nm">Bus<small>Σ</small></span><span class="slot"></span><span class="h" style="bottom:38px"><i style="background:var(--warm)"></i></span><span class="db">−2.0</span></div>
+    <div class="fader master"><span class="nm">MASTER<small>Σ</small></span><span class="slot" style="width:3px"></span><span class="h" style="bottom:35px;width:20px"><i style="background:var(--red-gd)"></i></span><span class="db">−0.8</span></div>
+  </div>
+</div>
+
+<div class="drawerslot">
+  <div class="closedmark"><small>闭合位</small></div>
+  <div class="drawer">
+    <span class="grip"></span>
+    <div class="dhead"><b>效果器搜索</b><span>▣</span></div>
+    <div class="dsearch">compressor…</div>
+    <div class="prow2"><div class="nmb"><b>FET Compressor</b><small>VST3 · Z1 域</small></div><span class="ld">载</span></div>
+    <div class="prow2"><div class="nmb"><b>Tape Drive</b><small>VST3 · Z3 域</small></div><span class="ld">载</span></div>
+    <div class="prow2" style="border-bottom:none"><div class="nmb"><b>1/8 PingPong</b><small>VST3 · Z2 域</small></div><span class="ld">载</span></div>
+  </div>
+  <span class="ftag">施罗德隔墙 · 半开</span>
+</div>
+
+<div class="ftag" style="right:8px;bottom:2px;color:#fff;opacity:.9">板B · 风格派空间 — 可动隔墙 / 正交线缆 / 白隙平面 · v1</div>
+
+<script>
+(function(){
+  var hs=[6,10,4,12,8,14,5,9,12,6,11,7,13,4,10,8];
+  document.querySelectorAll('.wave').forEach(function(w){
+    for(var i=0;i<16;i++){var b=document.createElement('i');b.style.height=hs[i]+'px';w.appendChild(b);}
+  });
+  var sc=document.getElementById('scale');
+  [['0',6],['6',46],['12',86],['18',126],['24',160]].forEach(function(t){
+    var s=document.createElement('span');s.textContent='−'+t[0];s.style.top=t[1]+'px';sc.appendChild(s);
+  });
+})();
+</script>
+</body>
+</html>

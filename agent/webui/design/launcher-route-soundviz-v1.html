@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Vit-DAW · AI-First 启动面 — Cinematic Sound-Viz Dark · 三联样图</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Noto+Sans+SC:wght@300;400;500;700&family=Sora:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============ tokens ============ */
+:root{
+  --bg:#000;--fg:#fff;
+  --dim:rgba(255,255,255,.6);--dim2:rgba(255,255,255,.48);
+  --line:rgba(255,255,255,.15);--line2:rgba(255,255,255,.08);
+  --blue:#5B6CFF;--violet:#9D5CFF;
+  --grad:linear-gradient(90deg,#5B6CFF,#9D5CFF);
+  --sans:'Sora','Noto Sans SC',sans-serif;
+  --body:'Inter','Noto Sans SC','Microsoft YaHei',sans-serif;
+  --mono:'Space Mono','Noto Sans SC',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000}
+body{min-height:100vh;overflow-x:hidden;font-family:var(--body);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+button{background:none;border:0;color:inherit;cursor:pointer;font:inherit}
+input{font:inherit}
+:focus-visible{outline:1px solid #8F7BFF;outline-offset:2px}
+::selection{background:rgba(91,108,255,.4)}
+.mono{font-family:var(--mono)}
+.ic{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+/* ============ stage / triptych ============ */
+.stage{display:flex;gap:40px;width:max-content;margin:0 auto;padding:44px 0 64px;transform-origin:top center}
+.col{width:1440px;flex:0 0 1440px}
+.colhead{display:flex;justify-content:space-between;align-items:baseline;margin:0 2px 16px}
+.colhead b{font:600 13px/1 var(--sans);letter-spacing:.3em;color:rgba(255,255,255,.9)}
+.colhead span{font:400 9px/1 var(--mono);letter-spacing:.22em;color:var(--dim2)}
+.panel{position:relative;width:1440px;height:900px;background:#000;border:1px solid rgba(255,255,255,.09);overflow:hidden}
+/* ============ shared chrome: top bar ============ */
+.bar{position:absolute;top:0;left:0;right:0;height:64px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;z-index:6}
+.mark{display:flex;align-items:center;gap:14px;font:600 13px/1 var(--sans);letter-spacing:.34em;color:#fff}
+.mark em{font:400 8px/1 var(--mono);font-style:normal;letter-spacing:.3em;color:var(--dim2);border:1px solid var(--line);padding:4px 8px 3px}
+.bmeta{font-size:10px;letter-spacing:.24em;color:var(--dim2)}
+/* ============ A: greeting ============ */
+.greet{position:absolute;top:150px;left:80px;right:80px;text-align:center;z-index:2}
+.presence{display:inline-flex;align-items:center;gap:10px;font:400 11px/1 var(--mono);letter-spacing:.3em;color:var(--dim)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--grad);box-shadow:0 0 10px rgba(139,102,255,.8);animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.55);opacity:.55}}
+.greet h1{font:300 64px/1.15 var(--sans);letter-spacing:.08em;color:#fff;margin:28px 0 20px}
+.greet p{font:300 24px/1.5 var(--sans);letter-spacing:.05em;color:rgba(255,255,255,.85)}
+.hl{color:#fff;font-weight:500;background:linear-gradient(90deg,rgba(91,108,255,.9),rgba(157,92,255,.9)) left bottom/100% 1px no-repeat;padding-bottom:8px}
+/* ============ shared: composer ============ */
+.composer{position:absolute;left:50%;top:420px;transform:translateX(-50%);width:880px;z-index:4}
+.cmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.badge{display:inline-flex;align-items:center;gap:8px;font:400 10px/1 var(--mono);letter-spacing:.3em;color:var(--dim)}
+.badge i{width:5px;height:5px;border-radius:50%;background:var(--grad)}
+.hint{font:400 9px/1 var(--mono);letter-spacing:.18em;color:var(--dim2)}
+.inputrow{display:flex;align-items:stretch;height:62px;border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.02);border-radius:3px;transition:border-color .25s,box-shadow .25s}
+.inputrow:focus-within{border-color:rgba(255,255,255,.5);box-shadow:0 0 24px rgba(91,108,255,.15)}
+.inputrow input{flex:1;min-width:0;background:none;border:0;outline:0;color:#fff;font-size:15px;letter-spacing:.02em;padding:0 22px}
+.inputrow input::placeholder{color:rgba(255,255,255,.52)}
+.send{width:62px;display:grid;place-items:center;color:var(--dim);border-left:1px solid var(--line);transition:.25s}
+.send:hover{color:#fff;background:rgba(255,255,255,.05)}
+.send .ic{width:16px;height:16px}
+.inputrow.disabled{opacity:.45;pointer-events:none}
+.docked{top:auto;bottom:74px}
+/* ============ A: project result cards ============ */
+.cards{position:absolute;left:80px;right:80px;top:570px;z-index:2}
+.clabel{display:flex;align-items:center;gap:14px;font-size:10px;letter-spacing:.26em;color:var(--dim2);margin-bottom:14px}
+.clabel .rule{flex:1;height:1px;background:var(--line2)}
+.cardrow{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.pcard{position:relative;height:92px;border:1px solid var(--line);padding:16px 18px;display:flex;flex-direction:column;justify-content:space-between;transition:.25s;background:rgba(255,255,255,.015)}
+.pcard:hover{border-color:rgba(139,120,255,.6);transform:translateY(-2px);background:rgba(91,108,255,.05)}
+.pcard h3{font:500 16px/1.2 var(--sans);letter-spacing:.03em;color:#fff}
+.pcard time{font-size:10px;letter-spacing:.12em;color:var(--dim2)}
+.open{position:absolute;top:15px;right:16px;display:inline-flex;align-items:center;gap:5px;font-size:10px;letter-spacing:.2em;color:var(--dim);transition:.25s}
+.pcard:hover .open{color:#fff}
+.open .ic{width:11px;height:11px}
+.ptag{position:absolute;top:-7px;left:14px;font-size:8px;letter-spacing:.3em;color:transparent;background:var(--grad);-webkit-background-clip:text;background-clip:text}
+/* ============ waveform band / tape handle ============ */
+.waveband{position:absolute;left:0;right:0;bottom:50px;height:132px;z-index:1}
+.waveband svg,.ribbon svg,.centerb svg{width:100%;height:100%;display:block}
+.tape{position:absolute;left:0;right:0;bottom:0;height:50px;border-top:1px solid var(--line2);display:flex;align-items:center;justify-content:center;gap:12px;font:400 11px/1 var(--mono);letter-spacing:.4em;color:rgba(255,255,255,.5);transition:.25s;z-index:6}
+.tape:hover{color:rgba(255,255,255,.9)}
+.grips{display:flex;gap:4px;margin-right:6px}
+.grips i{width:1px;height:10px;background:var(--line);transition:.25s}
+.tape:hover .grips i{background:rgba(255,255,255,.6)}
+.tri{width:9px;height:9px;fill:currentColor;margin-left:-4px}
+.tcount{position:absolute;right:40px;font-size:9px;letter-spacing:.2em;color:var(--dim2)}
+.tape.dim{color:rgba(255,255,255,.35)}
+/* ============ B: transition ============ */
+.ghost{top:118px;opacity:.08;pointer-events:none}
+.ghostcard{opacity:.08;pointer-events:none}
+.centerb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;padding-top:330px;z-index:3}
+.centerb .wB{width:760px;height:190px}
+.eyebrow{margin-top:36px;font-size:10px;letter-spacing:.4em;color:var(--dim2)}
+.sysline{margin-top:18px;font:300 30px/1.4 var(--sans);letter-spacing:.06em;color:#fff}
+.syssub{margin-top:14px;font-size:9px;letter-spacing:.14em;color:var(--dim2)}
+.prog{width:300px;height:2px;background:rgba(255,255,255,.12);margin-top:28px}
+.prog i{display:block;height:100%;width:58%;background:var(--grad)}
+/* ============ C: DAW ============ */
+.daw{display:flex;flex-direction:column}
+.transport{position:relative;flex:0 0 60px;display:flex;align-items:center;gap:24px;padding:0 24px 0 28px;border-bottom:1px solid var(--line);z-index:7;background:#000}
+.tleft{display:flex;align-items:center;gap:14px;min-width:0}
+.mark.sm{font-size:11px;letter-spacing:.3em}
+.proj{font:500 13px/1 var(--sans);letter-spacing:.08em;color:#fff;padding-left:14px;border-left:1px solid var(--line)}
+.saved{display:inline-flex;align-items:center;gap:6px;font-size:8px;letter-spacing:.2em;color:var(--dim2)}
+.saved i{width:4px;height:4px;border-radius:50%;background:var(--grad)}
+.path{font-size:9px;letter-spacing:.06em;color:var(--dim2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:190px}
+.tcgroup{display:flex;align-items:center;gap:8px;margin:0 auto}
+.tbtn{width:30px;height:30px;display:grid;place-items:center;color:var(--dim);transition:.2s;border-radius:2px}
+.tbtn:hover{color:#fff;background:rgba(255,255,255,.06)}
+.tbtn .ic{width:15px;height:15px}
+.play{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid transparent;background:linear-gradient(#000,#000) padding-box,var(--grad) border-box;transition:.25s;margin:0 2px}
+.play:hover{box-shadow:0 0 16px rgba(139,102,255,.45)}
+.play svg{width:14px;height:14px}
+.vsep{width:1px;height:18px;background:var(--line);margin:0 12px}
+.tc{font-size:15px;letter-spacing:.08em;color:#fff}
+.tcm{font-size:9px;letter-spacing:.14em;color:var(--dim2)}
+.tright{display:flex;align-items:center;gap:20px}
+.mmeter{display:flex;align-items:center;gap:8px;font-size:8px;letter-spacing:.24em;color:var(--dim2)}
+.mk{display:flex;gap:2px;align-items:flex-end;height:20px}
+.mk b{width:3px;background:var(--grad);opacity:.9}
+.chattoggle{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.14em;color:var(--dim);border:1px solid var(--line);padding:7px 13px;border-radius:2px;transition:.25s}
+.chattoggle:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+.chattoggle.on{color:#fff;border-color:rgba(139,102,255,.55)}
+.chattoggle svg{width:15px;height:15px}
+.livedot{width:5px;height:5px;border-radius:50%;background:var(--grad);box-shadow:0 0 8px rgba(157,92,255,.8)}
+/* --- tracks / timeline --- */
+.dawbody{flex:1;display:flex;min-height:0}
+.tracks{flex:0 0 230px;border-right:1px solid var(--line);display:flex;flex-direction:column}
+.trhead{flex:0 0 30px;display:flex;align-items:center;padding:0 16px;font-size:8px;letter-spacing:.3em;color:var(--dim2);border-bottom:1px solid var(--line2)}
+.tr{flex:1;position:relative;border-bottom:1px solid var(--line2);padding:16px 26px 16px 16px;display:flex;flex-direction:column;gap:10px;justify-content:center}
+.tr:last-child{border-bottom:0}
+.trname{font:500 15px/1 var(--sans);letter-spacing:.06em;color:rgba(255,255,255,.92)}
+.trsub{font-size:8px;letter-spacing:.22em;color:var(--dim2);margin-top:6px}
+.trctl{display:flex;gap:6px}
+.tg{width:18px;height:18px;display:grid;place-items:center;font:400 8px/1 var(--mono);color:var(--dim2);border:1px solid var(--line);border-radius:2px;transition:.2s}
+.tg:hover{color:#fff;border-color:rgba(255,255,255,.4)}
+.tg.on{color:#C9B4FF;border-color:rgba(157,92,255,.6)}
+.meter{position:absolute;top:16px;bottom:16px;right:10px;width:3px;background:rgba(255,255,255,.06);display:flex;align-items:flex-end}
+.meter b{width:100%;background:var(--grad);opacity:.85}
+.timeline{flex:1;display:flex;flex-direction:column;min-width:0}
+.ruler{flex:0 0 30px;position:relative;border-bottom:1px solid var(--line2);font-size:9px;color:var(--dim2)}
+.ruler span{position:absolute;top:9px;transform:translateX(-50%);letter-spacing:.08em}
+.ruler span:first-child{transform:none}
+.lanes{flex:1;position:relative;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),rgba(255,255,255,.05) calc(10% - 1px),rgba(255,255,255,.05) 10%)}
+.lane{height:25%;position:relative}
+.lane+.lane{border-top:1px solid rgba(255,255,255,.045)}
+.clip{position:absolute;top:14px;bottom:14px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.045);display:flex;flex-direction:column;border-radius:2px;overflow:hidden;transition:border-color .2s}
+.clip:hover{border-color:rgba(255,255,255,.45)}
+.cname{flex:0 0 auto;padding:7px 10px 0;font-size:8px;letter-spacing:.24em;color:var(--dim2)}
+.cw{flex:1;margin:4px 8px 8px;color:rgba(255,255,255,.4)}
+.cw svg{width:100%;height:100%;display:block}
+.clip.accent{border-color:rgba(157,92,255,.4);background:rgba(122,88,255,.06)}
+.clip.accent .cw{color:rgba(177,140,255,.7)}
+.clip.accent .cname{color:rgba(196,170,255,.75)}
+.clip.sel{border:1px solid transparent;background:linear-gradient(#0B0B14,#0B0B14) padding-box,var(--grad) border-box;box-shadow:0 0 18px rgba(122,92,255,.22)}
+.clip.sel .cname{color:rgba(255,255,255,.75)}
+.clip.sel .cw{color:rgba(255,255,255,.62)}
+.playhead{position:absolute;top:0;bottom:0;left:61%;width:1px;background:linear-gradient(180deg,#5B6CFF,#9D5CFF);z-index:5;box-shadow:0 0 10px rgba(139,102,255,.5)}
+.playhead::before{content:'';position:absolute;top:0;left:-4.5px;border:5px solid transparent;border-top:6px solid #9D6CFF}
+/* --- side-mounted chat window (same bloodline) --- */
+.chatdock{flex:0 0 380px;border-left:1px solid var(--line);display:flex;flex-direction:column;background:rgba(255,255,255,.015);min-height:0}
+.ribbon{flex:0 0 44px;border-bottom:1px solid var(--line2)}
+.msgs{flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:20px;padding:20px 26px 22px;min-height:0}
+.folded{display:flex;align-items:center;gap:10px;font-size:8px;letter-spacing:.26em;color:rgba(255,255,255,.32);margin-bottom:auto;white-space:nowrap}
+.folded::after{content:'';flex:1;height:1px;background:var(--line2)}
+.m .role{display:flex;align-items:center;gap:7px;font-size:9px;letter-spacing:.3em;color:var(--dim2);margin-bottom:8px}
+.m .rdot{width:4px;height:4px;border-radius:50%;background:var(--grad)}
+.m.mu p{font-size:13px;line-height:1.7;color:var(--dim)}
+.m.ma p{font-size:13.5px;line-height:1.8;color:rgba(255,255,255,.9)}
+.m.ma b{font-weight:500;color:#fff}
+.divider{display:flex;align-items:center;gap:12px;font-size:9px;letter-spacing:.22em;color:var(--dim);white-space:nowrap}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--line)}
+.ccomp{position:static;transform:none;width:auto;padding:14px 26px 22px;border-top:1px solid var(--line2)}
+.ccomp .inputrow{height:52px}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="gw" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5B6CFF"/><stop offset="1" stop-color="#9D5CFF"/>
+    </linearGradient>
+    <filter id="blur6" x="-30%" y="-300%" width="160%" height="700%"><feGaussianBlur stdDeviation="6"/></filter>
+  </defs>
+</svg>
+
+<main class="stage" id="stage">
+
+  <!-- ================= 态A · 启动台 ================= -->
+  <section class="col">
+    <header class="colhead"><b>态A — 启动台</b><span>STATE A · LAUNCHER · 1440×900</span></header>
+    <div class="panel" id="pA">
+      <header class="bar">
+        <div class="mark">VIT·DAW<em>AI-FIRST</em></div>
+        <div class="mono bmeta">LAUNCHER · 23:47</div>
+      </header>
+      <section class="greet">
+        <div class="presence"><i class="dot"></i>搭档在场</div>
+        <h1>我在。</h1>
+        <p>最近的工程是<span class="hl">《小星星乐局》</span>——想从哪开始？</p>
+      </section>
+      <section class="composer">
+        <div class="cmeta"><span class="badge"><i></i>启动台</span><span class="hint">ENTER 发送 · SHIFT+ENTER 换行</span></div>
+        <div class="inputrow">
+          <input type="text" placeholder="跟搭档说说今天想做什么…" aria-label="对话输入">
+          <button class="send" aria-label="发送"><svg viewBox="0 0 14 14" class="ic"><path d="M7 12V2M3 6l4-4 4 4"/></svg></button>
+        </div>
+      </section>
+      <section class="cards">
+        <div class="clabel mono">最近工程 · 来自搭档<i class="rule"></i></div>
+        <div class="cardrow">
+          <article class="pcard"><span class="ptag mono">最近</span>
+            <h3>小星星乐局</h3><time class="mono">修改于 11-08 23:12</time>
+            <span class="open mono">打开<svg viewBox="0 0 12 12" class="ic"><path d="M3 9 9 3M4.5 3H9v4.5"/></svg></span>
+          </article>
+          <article class="pcard">
+            <h3>ProQ3 裸控实验</h3><time class="mono">修改于 11-05 01:44</time>
+            <span class="open mono">打开<svg viewBox="0 0 12 12" class="ic"><path d="M3 9 9 3M4.5 3H9v4.5"/></svg></span>
+          </article>
+          <article class="pcard">
+            <h3>鼓组混音 v2</h3><time class="mono">修改于 10-30 19:02</time>
+            <span class="open mono">打开<svg viewBox="0 0 12 12" class="ic"><path d="M3 9 9 3M4.5 3H9v4.5"/></svg></span>
+          </article>
+        </div>
+      </section>
+      <div class="waveband"><svg id="wA" viewBox="0 0 1440 132" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+      <footer class="tape">
+        <span class="grips"><i></i><i></i><i></i></span>磁带流
+        <svg viewBox="0 0 12 12" class="tri" aria-hidden="true"><path d="M3 2l7 4-7 4z"/></svg>
+        <span class="tcount mono">11 个工程 · 全功能备用</span>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ================= 态B · 进入中 ================= -->
+  <section class="col">
+    <header class="colhead"><b>态B — 进入中</b><span>STATE B · OPENING · 1440×900</span></header>
+    <div class="panel" id="pB">
+      <header class="bar">
+        <div class="mark">VIT·DAW<em>AI-FIRST</em></div>
+        <div class="mono bmeta">LAUNCHER → PROJECT · 23:47</div>
+      </header>
+      <section class="greet ghost">
+        <div class="presence"><i class="dot"></i>搭档在场</div>
+        <h1>我在。</h1>
+        <p>最近的工程是<span class="hl">《小星星乐局》</span>——想从哪开始？</p>
+      </section>
+      <section class="cards ghostcard">
+        <div class="clabel mono">最近工程 · 来自搭档<i class="rule"></i></div>
+        <div class="cardrow">
+          <article class="pcard"><h3>小星星乐局</h3><time class="mono">修改于 11-08 23:12</time></article>
+          <article class="pcard"><h3>ProQ3 裸控实验</h3><time class="mono">修改于 11-05 01:44</time></article>
+          <article class="pcard"><h3>鼓组混音 v2</h3><time class="mono">修改于 10-30 19:02</time></article>
+        </div>
+      </section>
+      <section class="centerb">
+        <svg id="wB" class="wB" viewBox="0 0 760 190" preserveAspectRatio="none" aria-hidden="true"></svg>
+        <div class="eyebrow mono">LAUNCHER → PROJECT</div>
+        <div class="sysline">正在打开<span class="hl">《小星星乐局》</span>…</div>
+        <div class="syssub mono">D:/VitProjects/小星星乐局/小星星乐局.vit</div>
+        <div class="prog"><i></i></div>
+      </section>
+      <section class="composer docked">
+        <div class="cmeta"><span class="badge"><i></i>启动台</span></div>
+        <div class="inputrow disabled">
+          <input type="text" placeholder="正在打开工程，稍候…" disabled>
+        </div>
+      </section>
+      <footer class="tape dim">
+        <span class="grips"><i></i><i></i><i></i></span>磁带流
+        <svg viewBox="0 0 12 12" class="tri" aria-hidden="true"><path d="M3 2l7 4-7 4z"/></svg>
+      </footer>
+    </div>
+  </section>
+
+  <!-- ================= 态C · 工程内 ================= -->
+  <section class="col">
+    <header class="colhead"><b>态C — 工程内</b><span>STATE C · IN PROJECT · 1440×900</span></header>
+    <div class="panel daw" id="pC">
+      <header class="transport">
+        <div class="tleft">
+          <span class="mark sm">VIT·DAW</span>
+          <span class="proj">小星星乐局</span>
+          <span class="saved mono"><i></i>已保存 23:59</span>
+          <span class="path mono">D:/VitProjects/小星星乐局</span>
+        </div>
+        <div class="tcgroup">
+          <button class="tbtn" aria-label="回到片段开头"><svg viewBox="0 0 16 16" class="ic"><path d="M3.5 2.5v11M12.5 3l-7 5 7 5z"/></svg></button>
+          <button class="play" aria-label="播放"><svg viewBox="0 0 16 16"><path d="M5.5 3.4 12 8l-6.5 4.6z" fill="#fff"/></svg></button>
+          <button class="tbtn" aria-label="跳到片段结尾"><svg viewBox="0 0 16 16" class="ic"><path d="M12.5 2.5v11M3.5 3l7 5-7 5z"/></svg></button>
+          <span class="vsep"></span>
+          <span class="tc mono">00:42:13.06</span>
+          <span class="tcm mono">BAR 25 · 120.0 BPM · 4/4</span>
+        </div>
+        <div class="tright">
+          <span class="mmeter mono">MASTER<span class="mk"><b style="height:62%"></b><b style="height:48%"></b></span></span>
+          <button class="chattoggle on">
+            <svg viewBox="0 0 16 16" fill="none" stroke="url(#gw)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 8h1.6l1.5-5 2.2 10L8.6 5l1.4 3h1.6"/></svg>
+            对话<i class="livedot"></i>
+          </button>
+        </div>
+      </header>
+      <div class="dawbody">
+        <aside class="tracks">
+          <div class="trhead mono">轨道 · 4</div>
+          <div class="tr">
+            <div><div class="trname">人声</div><div class="trsub mono">VOCAL · STEREO</div></div>
+            <div class="trctl"><span class="tg">M</span><span class="tg">S</span></div>
+            <i class="meter"><b style="height:58%"></b></i>
+          </div>
+          <div class="tr">
+            <div><div class="trname">鼓组</div><div class="trsub mono">DRUMS · STEREO</div></div>
+            <div class="trctl"><span class="tg">M</span><span class="tg on">S</span></div>
+            <i class="meter"><b style="height:74%"></b></i>
+          </div>
+          <div class="tr">
+            <div><div class="trname">贝斯</div><div class="trsub mono">BASS · MONO</div></div>
+            <div class="trctl"><span class="tg">M</span><span class="tg">S</span></div>
+            <i class="meter"><b style="height:44%"></b></i>
+          </div>
+          <div class="tr">
+            <div><div class="trname">合成器</div><div class="trsub mono">SYNTH · STEREO</div></div>
+            <div class="trctl"><span class="tg on">M</span><span class="tg">S</span></div>
+            <i class="meter"><b style="height:63%"></b></i>
+          </div>
+        </aside>
+        <main class="timeline">
+          <div class="ruler mono">
+            <span style="left:1px">1</span><span style="left:10%">5</span><span style="left:20%">9</span><span style="left:30%">13</span><span style="left:40%">17</span><span style="left:50%">21</span><span style="left:60%">25</span><span style="left:70%">29</span><span style="left:80%">33</span><span style="left:90%">37</span>
+          </div>
+          <div class="lanes">
+            <div class="lane">
+              <div class="clip" style="left:20%;width:20%"><span class="cname mono">主唱_T3</span><i class="cw"></i></div>
+              <div class="clip sel" style="left:60%;width:20%"><span class="cname mono">主唱_T4</span><i class="cw"></i></div>
+            </div>
+            <div class="lane">
+              <div class="clip" style="left:.8%;width:97%"><span class="cname mono">鼓组_整段</span><i class="cw"></i></div>
+            </div>
+            <div class="lane">
+              <div class="clip" style="left:10%;width:40%"><span class="cname mono">贝斯_L2</span><i class="cw"></i></div>
+              <div class="clip" style="left:60%;width:30%"><span class="cname mono">贝斯_L3</span><i class="cw"></i></div>
+            </div>
+            <div class="lane">
+              <div class="clip accent" style="left:25%;width:45%"><span class="cname mono">合成器_PAD</span><i class="cw"></i></div>
+            </div>
+            <div class="playhead"></div>
+          </div>
+        </main>
+        <aside class="chatdock">
+          <div class="ribbon"><svg id="wC" viewBox="0 0 380 44" preserveAspectRatio="none" aria-hidden="true"></svg></div>
+          <div class="msgs">
+            <div class="folded mono">启动台对话 · 已折叠</div>
+            <div class="m mu"><div class="role mono">你</div><p>打开小星星乐局，继续上周的。</p></div>
+            <div class="divider mono">进入工程 · 《小星星乐局》</div>
+            <div class="m ma"><div class="role mono"><i class="rdot"></i>搭档</div><p>已进入《小星星乐局》。接着上局：<b>找错音（3/7）</b>——继续或问我都行。</p></div>
+          </div>
+          <div class="composer ccomp">
+            <div class="cmeta"><span class="badge"><i></i>工程 · 小星星乐局</span><span class="hint">ENTER 发送</span></div>
+            <div class="inputrow">
+              <input type="text" placeholder="继续找错音，或问点什么…" aria-label="对话输入">
+              <button class="send" aria-label="发送"><svg viewBox="0 0 14 14" class="ic"><path d="M7 12V2M3 6l4-4 4 4"/></svg></button>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+/* ---- fit triptych to viewport (screenshot at 4400x1050 renders 1:1) ---- */
+var stage=document.getElementById('stage');
+function fit(){var s=Math.min(1,(window.innerWidth-20)/4400);stage.style.transform=s<1?'scale('+s+')':'none';}
+window.addEventListener('resize',fit);
+if(window.ResizeObserver){new ResizeObserver(fit).observe(document.documentElement);}
+fit();
+
+/* ---- deterministic waveform generator (partner heartbeat motif) ---- */
+var NS='http://www.w3.org/2000/svg';
+function rng(seed){var s=seed>>>0;return function(){s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
+function el(n,a){var e=document.createElementNS(NS,n),k;for(k in a)e.setAttribute(k,a[k]);return e;}
+function waveD(w,h,env,seed){
+  var r=rng(seed),n=Math.max(24,Math.round(w/9)),pts=[],i,t,p,sm;
+  for(i=0;i<=n;i++){t=i/n;pts.push(Math.max(.03,Math.min(1,env(t)*(0.45+0.55*r()))));}
+  for(p=0;p<2;p++){sm=pts.slice();for(i=1;i<n;i++)pts[i]=(sm[i-1]+sm[i]*2+sm[i+1])/4;}
+  var c=h/2,d='M0,'+c.toFixed(1);
+  for(i=0;i<=n;i++)d+='L'+(i*w/n).toFixed(1)+','+(c-pts[i]*(c-2)).toFixed(1);
+  for(i=n;i>=0;i--)d+='L'+(i*w/n).toFixed(1)+','+(c+pts[i]*(c-2)).toFixed(1);
+  return d+'Z';
+}
+function waveSVG(id,w,h,env,seed,glow){
+  var svg=document.getElementById(id);if(!svg)return;
+  var d=waveD(w,h,env,seed);
+  if(glow)svg.appendChild(el('path',{d:d,fill:'none',stroke:'url(#gw)','stroke-width':7,opacity:.28,filter:'url(#blur6)'}));
+  svg.appendChild(el('path',{d:d,fill:'url(#gw)','fill-opacity':.13,stroke:'url(#gw)','stroke-width':1.3,'stroke-opacity':.95}));
+}
+function envA(t){var b=Math.sin(Math.PI*t),h=Math.exp(-Math.pow((t-.36)/.13,2))*.22;return Math.min(1,.14+.86*b+h);} /* full presence band */
+function envB(t){return .05+.95*Math.exp(-Math.pow((t-.5)/.15,2));} /* converged toward center */
+function envC(t){return .3+.7*Math.sin(Math.PI*t);} /* compact ribbon */
+waveSVG('wA',1440,132,envA,20261109,true);
+waveSVG('wB',760,190,envB,7,true);
+waveSVG('wC',380,44,envC,99,false);
+
+/* convergence node at the heart of state B */
+var wb=document.getElementById('wB');
+if(wb){
+  wb.appendChild(el('circle',{cx:380,cy:95,r:20,fill:'none',stroke:'#9D6CFF','stroke-opacity':.12}));
+  wb.appendChild(el('circle',{cx:380,cy:95,r:10,fill:'none',stroke:'#9D6CFF','stroke-opacity':.3}));
+  wb.appendChild(el('circle',{cx:380,cy:95,r:6,fill:'#9D6CFF',opacity:.5,filter:'url(#blur6)'}));
+  wb.appendChild(el('circle',{cx:380,cy:95,r:2.8,fill:'#BFAAFF'}));
+}
+
+/* mini waveforms inside timeline clips */
+var cws=document.querySelectorAll('.cw'),i,j,r,svg,pts,x,y;
+for(i=0;i<cws.length;i++){
+  r=rng(47+i*7);svg=el('svg',{viewBox:'0 0 300 60',preserveAspectRatio:'none'});pts='';
+  for(j=0;j<=60;j++){x=j*5;y=30-(r()*2-1)*26*Math.min(1,j/6,(60-j)/6);pts+=x+','+y.toFixed(1)+' ';}
+  svg.appendChild(el('polyline',{points:pts.trim(),fill:'none',stroke:'currentColor','stroke-width':1,'vector-effect':'non-scaling-stroke'}));
+  cws[i].appendChild(svg);
+}
+})();
+</script>
+</body>
+</html>

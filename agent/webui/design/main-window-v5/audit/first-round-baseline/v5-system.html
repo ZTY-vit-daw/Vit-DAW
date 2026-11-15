@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vit 设计令牌与图标集</title>
+<style>
+:root{
+  --ink:#090B0E;--paper:#F6F4EC;--warm:#FBF9F1;--canvas:#E8E4D7;
+  --blue:#065BC7;--blue-lt:#73B8F5;--red:#DB1214;--yellow:#FACC1A;--dark:#14181C;
+  --text-2:#4A4F55;--text-3:#62666B;--text-2d:#A9ADB1;--text-3d:#8D9195;
+  --line:rgba(9,11,14,.14);--line-dark:rgba(246,244,236,.14);--scrim:rgba(9,11,14,.12);
+  --shadow-window:0 12px 32px rgba(9,11,14,.18),0 32px 80px rgba(9,11,14,.22);
+  --shadow-popover:0 8px 24px rgba(9,11,14,.18);
+  --sans:Inter,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;--mono:Consolas,monospace;
+  --t-caption:13px;--t-secondary:14px;--t-body:16px;--t-title:18px;--t-key:22px;--t-screen:28px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:40px;--s8:48px;--s9:64px;
+  --border-structural:2px;--border-control:1.5px;--border-divider:1px;--radius-control:4px;--radius-surface:0px;
+}
+*{box-sizing:border-box}body{margin:0;background:var(--canvas);color:var(--ink);font:400 var(--t-body)/1.65 var(--sans);font-variant-numeric:tabular-nums;letter-spacing:0}
+main{width:1440px;display:flex;flex-direction:column;gap:40px}section{width:1440px;background:var(--paper);padding:48px 64px}
+h1,h2,h3,p{margin:0}h1{font-size:var(--t-screen);line-height:1.3;font-weight:700}h2{font-size:var(--t-key);line-height:1.25;font-weight:700}h3{font-size:var(--t-title);line-height:1.4;font-weight:600}
+header{display:flex;justify-content:space-between;align-items:end;margin-bottom:32px}header p{color:var(--text-2);font-size:var(--t-secondary)}.sub{color:var(--text-2);font-size:var(--t-secondary);margin-top:8px}.caption{font-size:var(--t-caption);line-height:1.5;color:var(--text-3)}
+table{width:100%;border-collapse:collapse;text-align:left;font-size:var(--t-secondary);line-height:1.55}th{font-size:var(--t-caption);font-weight:400;color:var(--text-2);padding:12px 16px;border-bottom:1px solid var(--line)}td{padding:10px 16px;border-bottom:1px solid var(--line);vertical-align:middle}th:first-child,td:first-child{padding-left:0}th:last-child,td:last-child{padding-right:0}
+.token-name{font-size:var(--t-body);font-weight:600}.token-code{display:block;font-size:var(--t-caption);font-family:var(--sans);font-weight:400;color:var(--text-2)}.token-value{font-family:var(--mono);font-size:var(--t-secondary)}
+.token-cell{display:flex;align-items:center;gap:16px}.swatch{width:32px;height:32px;flex:none;border:1px solid var(--line)}.contrast-demo{display:inline-block;padding:4px 12px;font-size:var(--t-body);min-width:80px;text-align:center}.ratio{font-family:var(--mono);font-size:var(--t-secondary);margin-left:8px}
+.section-row{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:40px}.section-row h3{margin-bottom:16px}.type-row{display:flex;justify-content:space-between;gap:24px;align-items:baseline;min-height:40px;border-bottom:1px solid var(--line)}.type-row>span:last-child{font:13px/1.5 var(--sans);color:var(--text-2);white-space:nowrap}
+.spacing{display:flex;gap:16px;align-items:end;margin:24px 0}.space-unit{display:flex;align-items:center;flex-direction:column;gap:8px;font-size:13px;color:var(--text-2)}.space-unit i{display:block;background:var(--text-2);width:24px}
+.geometry{font-size:14px;color:var(--text-2);line-height:1.8}.geometry strong{font-weight:600;color:var(--ink)}
+.interaction{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:32px}.interaction>div{background:var(--warm);padding:20px}.interaction h3{margin-bottom:16px}.example-control{border:1.5px solid var(--ink);border-radius:4px;background:var(--paper);padding:8px 16px;color:var(--ink);font:600 16px/1.5 var(--sans)}.example-control.selected{border:2px solid var(--ink);background:var(--warm)}.example-control.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}.example-control.disabled{border:1.5px dashed var(--text-3);color:var(--text-3)}.example-control.focus{outline:2px solid var(--ink);outline-offset:2px}.interaction p{font-size:13px;color:var(--text-2);line-height:1.5;margin-top:16px}
+.adaptation{margin-top:24px;padding:20px 24px;background:var(--canvas);display:grid;grid-template-columns:1fr 1fr;gap:40px;font-size:14px;color:var(--text-2)}.adaptation strong{color:var(--ink);font-weight:600}
+.decisions{margin-top:32px;border-top:1px solid var(--line);padding-top:24px}.decisions h3{margin-bottom:16px}.decision-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px}.decision-grid p{font-size:14px;color:var(--text-2);margin-top:8px}.dim-options{display:flex;gap:12px;margin-top:12px}.dim-options span{display:block;padding:8px 16px;background:var(--dark);color:var(--paper);font-size:14px}.dim-options span:nth-child(1){box-shadow:inset 0 0 0 80px rgba(9,11,14,.08)}.dim-options span:nth-child(2){box-shadow:inset 0 0 0 80px var(--scrim)}.dim-options span:nth-child(3){box-shadow:inset 0 0 0 80px rgba(9,11,14,.16)}
+svg{display:block}.sprite{position:absolute;width:0;height:0;overflow:hidden}.icon{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;overflow:visible}.solid{fill:currentColor;stroke:none}.selected-fill{fill:var(--icon-fill,none)}.is-selected{--icon-fill:currentColor;--icon-mark:var(--icon-bg,var(--warm))}.detail{stroke:var(--icon-mark,currentColor)}.alert-mark{fill:var(--icon-mark,currentColor);stroke:none}.knockout{fill:var(--icon-bg,var(--paper));stroke:none}
+.construction{display:grid;grid-template-columns:240px 1fr 480px;gap:40px;align-items:center;margin-bottom:32px}.grid-art{background:var(--warm);width:240px;height:240px}.grid-art .grid-line{stroke:var(--line);stroke-width:.1}.grid-art .active-area{stroke:var(--text-3);stroke-width:.1;fill:none;stroke-dasharray:.3 .3}.construction p{font-size:14px;color:var(--text-2);margin-top:12px}.construction h3{margin-bottom:12px}.family{display:flex;gap:24px;align-items:center}.family .icon{width:32px;height:32px}.family-note{font-size:13px;color:var(--text-2);margin-top:16px}
+.icon-matrix{table-layout:fixed}.icon-matrix col:first-child{width:208px}.icon-matrix td,.icon-matrix th{padding:6px 8px;text-align:center}.icon-matrix td:first-child,.icon-matrix th:first-child{text-align:left;padding-left:0}.icon-matrix .name-cell{font-size:14px;line-height:1.4}.name-cell span{display:block;color:var(--text-3);font-size:13px}.icon-matrix .group-head{padding:12px 4px;font-size:14px;color:var(--ink)}.icon-matrix .deep{background:var(--dark);color:var(--paper);--icon-bg:var(--dark)}.icon-matrix .deep-label{background:var(--dark);color:var(--paper)}.icon-matrix .size-label{font-size:13px;color:var(--text-2)}.icon-matrix .deep.size-label{color:var(--text-2d)}
+.icon-sample{width:44px;height:36px;display:flex;justify-content:center;align-items:center;margin:auto;border:2px solid transparent;border-radius:4px}.icon-sample.is-selected{color:var(--ink);background:var(--warm);border-color:var(--ink);--icon-bg:var(--warm)}
+.logo-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:32px}.logo-theme{padding:24px;background:var(--warm)}.logo-theme.deep{background:var(--dark);color:var(--paper);--icon-bg:var(--dark)}.logo-theme.mono{background:var(--ink);color:var(--paper);--icon-bg:var(--ink)}.logo-theme h3{margin-bottom:20px}.logo-sizes{display:flex;align-items:end;gap:28px}.logo-size{display:flex;align-items:center;flex-direction:column;gap:12px}.logo-size span{font-size:13px}.state-strip{display:flex;justify-content:space-between;align-items:center;margin-top:24px;padding:24px;background:var(--canvas)}.state-strip>div{display:flex;align-items:center;gap:16px;font-size:14px}.state-strip .icon{width:24px;height:24px}.logo-state{position:relative;display:block}.logo-state:after{content:"";position:absolute;right:-2px;bottom:1px;width:8px;height:8px;border:1px solid var(--ink);border-radius:50%;background:var(--state)}.disabled-icons{display:flex;align-items:center;gap:24px;margin-top:24px;color:var(--text-3)}.disabled-icons p{font-size:14px;color:var(--text-2)}
+</style>
+</head>
+<body>
+<main>
+<section id="s4" aria-labelledby="token-title">
+  <header><div><h1 id="token-title">S4　设计令牌</h1><p class="sub">颜色回答状态，墨线组织结构，留白让工作面安静。</p></div><p>第一轮 / 2026-11-14</p></header>
+  <table aria-label="颜色令牌与实测对比度">
+    <thead><tr><th>令牌 / 色值</th><th>角色与使用边界</th><th>实际前景 / 背景</th><th>实测对比度</th></tr></thead>
+    <tbody id="color-rows"></tbody>
+  </table>
+  <div style="margin-top:24px"><h3>浅底文字 / 三种表面</h3><table aria-label="浅底文字的全部表面对比度"><thead><tr><th>前景</th><th>paper</th><th>warm</th><th>canvas</th></tr></thead><tbody id="text-contrasts"></tbody></table></div>
+  <div class="section-row">
+    <div><h3>字阶</h3><div id="type-scale"></div><p class="caption" style="margin-top:16px">全站 Inter / Segoe UI / Microsoft YaHei / PingFang SC。<br>中文正文字距 0；正文行宽不超过约 36 个汉字。Consolas 只用于数值、时间码与键帽。</p></div>
+    <div><h3>间距与形状</h3><div class="spacing" id="spacing-scale"></div><div class="geometry"><strong>网格</strong>　8px 基准，4px 细部。<br><strong>2px 墨线</strong>　仅窗口外框、抽屉主分区、当前选中。<br><strong>1.5px 墨线</strong>　次按钮。<strong>1px 浅线</strong>　其他分隔。<br><strong>圆角</strong>　面 0px；交互控件 4px；状态点为圆。<br><strong>窗口柔影</strong>　0 12px 32px 墨色 18% ＋ 0 32px 80px 墨色 22%。<br><strong>弹出层柔影</strong>　0 8px 24px 墨色 18%。卡片无阴影。<br><strong>图标</strong>　24×24 网格，2px 描边；16 / 20 / 24px。<br><strong>DAW 压暗</strong>　墨色 12%（样图取值，见下方待裁定）。</div></div>
+  </div>
+  <div class="interaction">
+    <div><h3>选中</h3><button class="example-control selected">温暖</button><p>2px 墨框 ＋ warm。<br>墨 / warm：<span data-ratio="ink,warm"></span></p></div>
+    <div><h3>主动作</h3><button class="example-control primary">应用</button><p>墨底纸字，不借状态色。<br>paper / ink：<span data-ratio="paper,ink"></span></p></div>
+    <div><h3>键盘焦点</h3><button class="example-control focus">对比 A/B</button><p>2px 外框，外偏 2px。<br>ink / paper：<span data-ratio="ink,paper"></span></p></div>
+    <div><h3>禁用</h3><button class="example-control disabled" disabled>对比 A/B</button><p>弱文字 ＋ 虚线边。<br>text-3 / paper：<span data-ratio="text-3,paper"></span></p></div>
+  </div>
+  <div class="adaptation"><p><strong>状态色不是交互色。</strong> 黄仅做墨字或墨图形的底；深底安全态用浅蓝；深底红仅做实心面或 ≥3px 图形。每屏状态色区块 ≤5，中性面积 ≥85%。</p><p><strong>叠加层也参与对比度。</strong> 12% 墨色覆盖后的 DAW：paper / dark 为 <span id="dim-main"></span>，最弱 text-3d / dark 为 <span id="dim-weak"></span>。浅分隔线仅组织图形，不承载文字。</p></div>
+  <div class="decisions" aria-label="待用户裁定的选项">
+    <h3>待裁定 / 样图不构成决策</h3>
+    <div class="decision-grid">
+      <div><strong>DAW 沉后的压暗幅度</strong><div class="dim-options"><span>8% / 保留细节</span><span>12% / 本轮样图</span><span>16% / 更强分层</span></div><p>弱文字实测：<span id="dim-candidates"></span>。16% 必须把弱文字提高至 text-2d；本轮 12% 仅为样图取值，等用户选定。</p></div>
+      <div><strong>A/B 准备完成后如何开始</strong><p>选项 A：完成后由用户点击「对比 A/B」。<br>选项 B：用户先确认，完成后自动开始试听。</p><p>本轮只呈现渲染中的按钮与轨迹，未实现或选定完成后的播放行为。</p></div>
+    </div>
+  </div>
+</section>
+<section id="s3" aria-labelledby="icons-title">
+  <header><div><h1 id="icons-title">S3　图标集</h1><p class="sub">20 枚功能图标 ＋ 小尺寸磁带标志。原创构造，形状先于颜色。</p></div><p>默认描边 / 选中实心</p></header>
+  <div class="construction">
+    <svg class="grid-art icon" viewBox="0 0 24 24" aria-label="24 格构造网格"><g id="construction-grid"></g><rect class="active-area" x="2" y="2" width="20" height="20"/><use href="#i-vit"/></svg>
+    <div><h3>统一构造</h3><p>24×24 网格，20×20 活动区。<br>2px 描边，平头端点，直角连接。<br>矩形、直线、四分之一圆与半圆；<br>必要的斜线限制在 45°。</p><p>默认 20px；16px 用于紧凑位置；<br>24px 用于强调。选中仍是浅底墨框，<br>图标内的实心形提供第二道编码。</p></div>
+    <div><h3>同一盘磁带，两种尺寸资产</h3><div class="family"><svg class="icon" aria-label="小尺寸 Vit 标志"><use href="#i-vit"/></svg><div id="tape-family" aria-label="原始磁带图形，96 乘 64 像素"></div></div><p class="family-note">i-vit 保留壳体、窗口与双带盘；去掉标签线。<br>右侧为原封不动的 tapeSVG，绝不缩到 48px 以下。</p></div>
+  </div>
+  <table class="icon-matrix" aria-label="所有图标的尺寸与主题矩阵">
+    <colgroup><col><col span="12"></colgroup>
+    <thead><tr><th class="group-head">含义 / 标识</th><th class="group-head" colspan="3">浅底 / 默认</th><th class="group-head" colspan="3">浅底 / 选中</th><th class="group-head deep-label" colspan="3">深底 / 默认</th><th class="group-head deep-label" colspan="3">深底 / 选中</th></tr><tr id="matrix-sizes"><th></th></tr></thead>
+    <tbody id="icon-rows"></tbody>
+  </table>
+  <div class="logo-strip" id="logo-strip"></div>
+  <div class="state-strip" aria-label="四种状态的黑白形状编码">
+    <div><svg class="icon"><use href="#i-idle"/></svg><span>待机 / 静止中心</span></div><div><svg class="icon"><use href="#i-busy"/></svg><span>变化中 / 阶梯前进</span></div><div><svg class="icon"><use href="#i-done"/></svg><span>完成 / 核验折线</span></div><div><svg class="icon"><use href="#i-alert"/></svg><span>出错 / 菱形感叹</span></div>
+  </div>
+  <div class="state-strip" aria-label="Vit 标志的状态点叠加">
+    <div><span class="logo-state" style="--state:var(--text-2)"><svg class="icon"><use href="#i-vit"/></svg></span><span>待机</span></div><div><span class="logo-state" style="--state:var(--yellow)"><svg class="icon"><use href="#i-vit"/></svg></span><span>变化中</span></div><div><span class="logo-state" style="--state:var(--blue)"><svg class="icon"><use href="#i-vit"/></svg></span><span>完成</span></div><div><span class="logo-state" style="--state:var(--red)"><svg class="icon"><use href="#i-vit"/></svg></span><span>出错</span></div>
+  </div>
+  <div class="disabled-icons"><svg class="icon"><use href="#i-new"/></svg><svg class="icon"><use href="#i-open"/></svg><svg class="icon"><use href="#i-ab"/></svg><p>禁用统一 text-3；交互控件同时配虚线边。状态叠加仅改变右下角小点，标志本体保持墨色。</p></div>
+</section>
+</main>
+<svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><defs>
+<symbol id="i-new" viewBox="0 0 24 24"><path class="selected-fill" d="M3 3H15V9H21V21H3Z"/><path d="M3 3H15V9H21V21H3Z"/><path class="detail" d="M9 11V19M5 15H13"/><path d="M17 3V7H21"/></symbol>
+<symbol id="i-open" viewBox="0 0 24 24"><path class="selected-fill" d="M3 8V5H10V8H21V20H3Z"/><path d="M3 8V5H10V8H21V20H3ZM3 11H21"/></symbol>
+<symbol id="i-minimize" viewBox="0 0 24 24"><path d="M3 18H21"/><path class="selected-fill" d="M3 16H21V18H3Z"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M3 12H20M12 4L20 12 12 20"/><path class="selected-fill" d="M11 5L18 12 11 19Z"/></symbol>
+<symbol id="i-stop" viewBox="0 0 24 24"><path d="M7 3H3V21H7M17 3H21V21H17"/><rect class="selected-fill" x="8" y="8" width="8" height="8"/><rect x="8" y="8" width="8" height="8"/></symbol>
+<symbol id="i-track" viewBox="0 0 24 24"><path class="selected-fill" d="M3 4H7V20H3Z"/><path d="M3 4H21V20H3ZM7 4V20M10 8H18M10 12H21M10 16H16"/></symbol>
+<symbol id="i-bus" viewBox="0 0 24 24"><path d="M3 4H9V10H3ZM15 4H21V10H15ZM6 10V14H18V10M12 14V20M7 20H17"/><path class="selected-fill" d="M3 4H9V10H3ZM15 4H21V10H15Z"/></symbol>
+<symbol id="i-fx" viewBox="0 0 24 24"><path d="M3 3H21V21H3ZM5 15H9V9H15V15H19"/><path class="selected-fill" d="M9 9H15V15H9Z"/></symbol>
+<symbol id="i-macro" viewBox="0 0 24 24"><path d="M5 3V21M12 3V21M19 3V21M2 8H8M9 16H15M16 10H22"/><path class="selected-fill" d="M3 6H7V10H3ZM10 14H14V18H10ZM17 8H21V12H17Z"/></symbol>
+<symbol id="i-ab" viewBox="0 0 24 24"><path d="M3 7H9V19H3ZM15 5H21V17H15ZM4 3H11L14 6M20 21H13L10 18"/><path class="selected-fill" d="M3 7H9V19H3Z"/></symbol>
+<symbol id="i-play" viewBox="0 0 24 24"><path class="selected-fill" d="M7 5L14 12 7 19Z"/><path d="M7 5L14 12 7 19Z"/></symbol>
+<symbol id="i-record" viewBox="0 0 24 24"><path class="solid" d="M12 5A7 7 0 0 1 19 12A7 7 0 0 1 12 19A7 7 0 0 1 5 12A7 7 0 0 1 12 5Z"/></symbol>
+<symbol id="i-render" viewBox="0 0 24 24"><path d="M12 3V15M6 9L12 15 18 9M3 15V21H21V15"/><path class="selected-fill" d="M8 17H16V20H8Z"/></symbol>
+<symbol id="i-undo" viewBox="0 0 24 24"><path d="M10 3L4 9 10 15M4 9H14A6 6 0 0 1 20 15V20H12"/><path class="selected-fill" d="M4 9H10V15Z"/></symbol>
+<symbol id="i-snapshot" viewBox="0 0 24 24"><path d="M3 8V3H8M16 3H21V8M21 16V21H16M8 21H3V16M7 7H17V17H7Z"/><rect class="selected-fill" x="7" y="7" width="10" height="10"/></symbol>
+<symbol id="i-attach" viewBox="0 0 24 24"><path d="M8 3H3V21H8M16 3H21V21H16M7 12H17M12 7L17 12 12 17"/><path class="selected-fill" d="M12 8L16 12 12 16Z"/></symbol>
+<symbol id="i-idle" viewBox="0 0 24 24"><path d="M11 3H3V11M13 21H21V13"/><rect class="solid" x="10" y="10" width="4" height="4"/><path class="selected-fill" d="M3 3H8V8H3ZM16 16H21V21H16Z"/></symbol>
+<symbol id="i-busy" viewBox="0 0 24 24"><path d="M3 20H9V14H15V8H21M5 14V20M11 8V14M17 2V8"/><rect class="solid" x="18" y="3" width="4" height="4"/><path class="selected-fill" d="M3 17H8V20H3ZM9 11H14V14H9Z"/></symbol>
+<symbol id="i-done" viewBox="0 0 24 24"><path d="M10 3H3V21H21V14M7 11L12 16 21 7"/><path class="selected-fill" d="M3 17H8V21H3Z"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5L20.5 12 12 20.5 3.5 12Z"/><path class="selected-fill" d="M12 3.5L20.5 12 12 20.5 3.5 12Z"/><path class="alert-mark" d="M11 7H13V13H11ZM11 15H13V17H11Z"/></symbol>
+<symbol id="i-vit" viewBox="0 0 24 24"><rect class="selected-fill" x="3" y="6" width="18" height="12"/><rect x="3" y="6" width="18" height="12"/><rect class="knockout" x="6" y="9" width="12" height="6"/><rect x="6" y="9" width="12" height="6"/><path class="solid" d="M10.5 12A1.5 1.5 0 0 1 9 13.5A1.5 1.5 0 0 1 7.5 12A1.5 1.5 0 0 1 9 10.5A1.5 1.5 0 0 1 10.5 12ZM16.5 12A1.5 1.5 0 0 1 15 13.5A1.5 1.5 0 0 1 13.5 12A1.5 1.5 0 0 1 15 10.5A1.5 1.5 0 0 1 16.5 12Z"/></symbol>
+</defs></svg>
+<script>
+const C={ink:'#090B0E',paper:'#F6F4EC',warm:'#FBF9F1',canvas:'#E8E4D7',blue:'#065BC7','blue-lt':'#73B8F5',red:'#DB1214',yellow:'#FACC1A',dark:'#14181C','text-2':'#4A4F55','text-3':'#62666B','text-2d':'#A9ADB1','text-3d':'#8D9195'};
+const rgb=h=>h.match(/[a-f\d]{2}/gi).map(v=>parseInt(v,16));
+const lum=v=>v.map(x=>{x/=255;return x<=.04045?x/12.92:((x+.055)/1.055)**2.4}).reduce((s,x,i)=>s+x*[.2126,.7152,.0722][i],0);
+const ratio=(a,b)=>{let x=lum(a),y=lum(b);return(Math.max(x,y)+.05)/(Math.min(x,y)+.05)};
+const cr=(a,b)=>ratio(rgb(C[a]),rgb(C[b])).toFixed(2)+':1';
+const rows=[
+['ink','主文字 / 结构','浅底主文字、主按钮、Vit 身份','ink','paper'],
+['paper','主面','对话工作面；深底主文字','paper','dark'],
+['warm','抬起的面','输入框、交互选项；当前选中项底色','ink','warm'],
+['canvas','凹下的面','抽屉、桌面、中性分区','ink','canvas'],
+['dark','DAW 工作面','沉后音频工作区','paper','dark'],
+['text-2','浅底次文字','说明、次要动作','text-2','paper'],
+['text-3','浅底弱文字','时间戳、占位符；canvas 上仅 ≥16px','text-3','canvas'],
+['text-2d','深底次文字','轨道与设备的次要信息','text-2d','dark'],
+['text-3d','深底弱文字','DAW 次要刻度、辅助信息','text-3d','dark'],
+['yellow','变化中 / 需留意','当前步骤的小面积底色；不可作浅底文字','ink','yellow'],
+['blue','安全 / 已完成','已应用、已保存、可撤销','paper','blue'],
+['blue-lt','深底安全态','仅在深底替代 blue','blue-lt','dark'],
+['red','出错 / 不可逆','危险确认、录音、削波','paper','red']
+];
+document.querySelector('#color-rows').innerHTML=rows.map(([token,name,role,fg,bg])=>`<tr><td><div class="token-cell"><i class="swatch" style="background:var(--${token})"></i><div class="token-name">${name}<span class="token-code">--${token}　<span class="token-value">${C[token]}</span></span></div></div></td><td>${role}</td><td><span class="contrast-demo" style="color:var(--${fg});background:var(--${bg})">声音</span><span class="token-code" style="display:inline;margin-left:12px">${fg} / ${bg}</span></td><td class="token-value">${cr(fg,bg)}</td></tr>`).join('');
+document.querySelector('#text-contrasts').innerHTML=['ink','text-2','text-3'].map(fg=>`<tr><td>${fg}</td>${['paper','warm','canvas'].map(bg=>`<td class="token-value">${cr(fg,bg)}</td>`).join('')}</tr>`).join('');
+const type=[['说明与时间戳',13,400,1.5],['次要文字',14,400,1.55],['对话正文',16,400,1.65],['正文强调、按钮',16,600,1.65],['鼓组总线 · 染色',18,600,1.4],['温暖',22,700,1.25],['继续上次的工作',28,700,1.3]];
+document.querySelector('#type-scale').innerHTML=type.map(([text,size,weight,line])=>`<div class="type-row"><span style="font-size:${size}px;font-weight:${weight};line-height:${line}">${text}</span><span>${size}px / ${weight} / ${line}</span></div>`).join('');
+document.querySelector('#spacing-scale').innerHTML=[4,8,12,16,24,32,40,48,64].map(n=>`<div class="space-unit"><i style="height:${n}px"></i><span>${n}</span></div>`).join('');
+document.querySelectorAll('[data-ratio]').forEach(el=>{el.textContent=cr(...el.dataset.ratio.split(','))});
+const dim=(v,a=.12)=>rgb(v).map((x,i)=>x*(1-a)+rgb(C.ink)[i]*a);
+document.querySelector('#dim-main').textContent=ratio(dim(C.paper),dim(C.dark)).toFixed(2)+':1';
+document.querySelector('#dim-weak').textContent=ratio(dim(C['text-3d']),dim(C.dark)).toFixed(2)+':1';
+document.querySelector('#dim-candidates').textContent=[.08,.12,.16].map(a=>`${a*100}% = ${ratio(dim(C['text-3d'],a),dim(C.dark,a)).toFixed(2)}:1`).join('；');
+window.tokenContrasts=rows.map(([token,name,role,fg,bg])=>({token,fg,bg,ratio:cr(fg,bg)}));
+const icons=[['new','新建工程'],['open','打开文件夹'],['minimize','最小化窗口'],['send','发送'],['stop','停止生成或执行'],['track','轨道'],['bus','总线 / 编组'],['fx','效果器'],['macro','宏'],['ab','A/B 对比'],['play','播放'],['record','录音'],['render','渲染 / 导出'],['undo','撤销 / 回到快照'],['snapshot','快照'],['attach','引用时间区间或轨道'],['idle','待机'],['busy','变化中'],['done','完成'],['alert','出错'],['vit','Vit 小尺寸磁带标志']];
+document.querySelector('#matrix-sizes').innerHTML+=[0,1,2,3].map(group=>[16,20,24].map(n=>`<th class="size-label ${group>1?'deep':''}">${n}px</th>`).join('')).join('');
+document.querySelector('#icon-rows').innerHTML=icons.map(([id,name])=>`<tr><td class="name-cell">${name}<span>i-${id}</span></td>${[0,1,2,3].map(group=>[16,20,24].map(size=>`<td class="${group>1?'deep':''}"><span class="icon-sample ${group%2?'is-selected':''}"><svg class="icon" style="width:${size}px;height:${size}px" aria-label="${name}"><use href="#i-${id}"/></svg></span></td>`).join('')).join('')}</tr>`).join('');
+document.querySelector('#construction-grid').innerHTML=Array.from({length:25},(_,n)=>`<path class="grid-line" d="M${n} 0V24M0 ${n}H24"/>`).join('');
+document.querySelector('#logo-strip').innerHTML=[['浅底',''],['深底','deep'],['单色 / 高对比','mono']].map(([label,theme])=>`<div class="logo-theme ${theme}"><h3>${label}</h3><div class="logo-sizes">${[16,20,24,32].map(size=>`<div class="logo-size"><svg class="icon" style="width:${size}px;height:${size}px" aria-label="Vit ${size} 像素"><use href="#i-vit"/></svg><span>${size}px</span></div>`).join('')}</div></div>`).join('');
+var INK="#090B0E",WIN="#FBF9F1",HUB="#FAFAF2",ACC="#1A1A1F",TINT="#E6E6E6";
+function tapeSVG(w,h,a){ // a=atmos 可为 null（默认灰壳满盘）
+  var bx=2,by=2,bw=w-4,bh=h-4;
+  var wx=bx+8,wy=by+8,ww=bw-16,wh=bh-26;
+  var cy=wy+wh/2,c1x=wx+ww*0.28,c2x=wx+ww*0.72;
+  var r=Math.min(wh*0.3,22);
+  var d1=a?r*(0.34+0.5*a.L):r, d2=a?r*(0.34+0.5*a.R):r;
+  var labelY=by+bh-12;
+  var bodyFill=a?rgba(a.c1,0.62):TINT;
+  var s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+" "+h+'">';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="'+bodyFill+'"/>';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="'+WIN+'"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  [[c1x,d1],[c2x,d2]].forEach(function(reel){
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+reel[1]+'" fill="'+ACC+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+(r*0.32)+'" fill="'+HUB+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  });
+  s+='<line x1="'+(bx+10)+'" y1="'+labelY+'" x2="'+(bx+bw-10)+'" y2="'+labelY+'" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<line x1="'+(bx+10)+'" y1="'+(labelY+6)+'" x2="'+(bx+bw*0.55)+'" y2="'+(labelY+6)+'" stroke="rgba(31,36,43,0.6)" stroke-width="1"/>';
+  return s+"</svg>";
+}
+function rgba(c,alpha){return "rgba("+c[0]+","+c[1]+","+c[2]+","+alpha+")";}
+document.querySelector('#tape-family').innerHTML=tapeSVG(96,64,null);
+</script>
+</body>
+</html>

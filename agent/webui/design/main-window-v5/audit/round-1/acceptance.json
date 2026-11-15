@@ -1,0 +1,5498 @@
+{
+  "round": "round-1",
+  "viewport": [
+    1440,
+    900
+  ],
+  "files": {
+    "system": {
+      "minFont": 13,
+      "minContrast": 4.545,
+      "contrastFailures": [],
+      "contrasts": [
+        {
+          "text": "S4　设计令牌",
+          "ratio": 17.892,
+          "size": 28,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "颜色回答状态，墨线组织结构，留白让工作面安静。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "第一轮 / 2026-11-14",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "令牌 / 色值",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "角色与使用边界",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "实际前景 / 背景",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "实测对比度",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "主文字 / 结构--ink　#090B0E",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--ink　#090B0E",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#090B0E",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "浅底主文字、主按钮、Vit 身份",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "ink / paper",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "17.89:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "主面--paper　#F6F4EC",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--paper　#F6F4EC",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#F6F4EC",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "对话工作面；深底主文字",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 16.2,
+          "size": 16,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "paper / dark",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "16.20:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "抬起的面--warm　#FBF9F1",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--warm　#FBF9F1",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#FBF9F1",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "输入框、交互选项；当前选中项底色",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 18.692,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "ink / warm",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "18.69:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "凹下的面--canvas　#E8E4D7",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--canvas　#E8E4D7",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#E8E4D7",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "抽屉、桌面、中性分区",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 15.49,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "ink / canvas",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "15.49:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "DAW 工作面--dark　#14181C",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--dark　#14181C",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#14181C",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "沉后音频工作区",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 16.2,
+          "size": 16,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "paper / dark",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "16.20:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "浅底次文字--text-2　#4A4F55",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--text-2　#4A4F55",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#4A4F55",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "说明、次要动作",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 7.506,
+          "size": 16,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "text-2 / paper",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "7.51:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "浅底弱文字--text-3　#62666B",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--text-3　#62666B",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#62666B",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "时间戳、占位符；canvas 上仅 ≥16px",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 4.545,
+          "size": 16,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "text-3 / canvas",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "4.55:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "深底次文字--text-2d　#A9ADB1",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--text-2d　#A9ADB1",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#A9ADB1",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "轨道与设备的次要信息",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 7.9,
+          "size": 16,
+          "foreground": [
+            169,
+            173,
+            177
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "text-2d / dark",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "7.90:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "深底弱文字--text-3d　#8D9195",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--text-3d　#8D9195",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#8D9195",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "DAW 次要刻度、辅助信息",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 5.621,
+          "size": 16,
+          "foreground": [
+            141,
+            145,
+            149
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "text-3d / dark",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "5.62:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "变化中 / 需留意--yellow　#FACC1A",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--yellow　#FACC1A",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#FACC1A",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "当前步骤的小面积底色；不可作浅底文字",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 12.87,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            250,
+            204,
+            26
+          ]
+        },
+        {
+          "text": "ink / yellow",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "12.87:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "安全 / 已完成--blue　#065BC7",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--blue　#065BC7",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#065BC7",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "已应用、已保存、可撤销",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 5.729,
+          "size": 16,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            6,
+            91,
+            199
+          ]
+        },
+        {
+          "text": "paper / blue",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "5.73:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "深底安全态--blue-lt　#73B8F5",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--blue-lt　#73B8F5",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#73B8F5",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "仅在深底替代 blue",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 8.413,
+          "size": 16,
+          "foreground": [
+            115,
+            184,
+            245
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "blue-lt / dark",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "8.41:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "出错 / 不可逆--red　#DB1214",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "--red　#DB1214",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "#DB1214",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "危险确认、录音、削波",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "声音",
+          "ratio": 4.641,
+          "size": 16,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            219,
+            18,
+            20
+          ]
+        },
+        {
+          "text": "paper / red",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "4.64:1",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "字阶",
+          "ratio": 17.892,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "说明与时间戳",
+          "ratio": 17.892,
+          "size": 13,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "13px / 400 / 1.5",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "次要文字",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "14px / 400 / 1.55",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "对话正文",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "16px / 400 / 1.65",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "正文强调、按钮",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "16px / 600 / 1.65",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "鼓组总线 · 染色",
+          "ratio": 17.892,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "18px / 600 / 1.4",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "温暖",
+          "ratio": 17.892,
+          "size": 22,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "22px / 700 / 1.25",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "继续上次的工作",
+          "ratio": 17.892,
+          "size": 28,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "28px / 700 / 1.3",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "全站 Inter / Segoe UI / Microsoft YaHei / PingFang SC。中文正文字距 0；正文行宽不超过约 36 个汉字。Con",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "间距与形状",
+          "ratio": 17.892,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "4",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "8",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "12",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "16",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "24",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "32",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "40",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "48",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "64",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "网格　8px 基准，4px 细部。2px 墨线　仅窗口外框、抽屉主分区、当前选中。1.5px 墨线　次按钮。1px 浅线　其他分隔。圆角　面 0px；交互控件 ",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "网格",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "2px 墨线",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "1.5px 墨线",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "1px 浅线",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "圆角",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "窗口柔影",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "弹出层柔影",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "图标",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "DAW 压暗",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "选中",
+          "ratio": 18.692,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "温暖",
+          "ratio": 18.692,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "2px 墨框 ＋ warm。墨 / warm：18.69:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "18.69:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "主动作",
+          "ratio": 18.692,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "应用",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "墨底纸字，不借状态色。paper / ink：17.89:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "17.89:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "键盘焦点",
+          "ratio": 18.692,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "对比 A/B",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "2px 外框，外偏 2px。ink / paper：17.89:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "17.89:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "禁用",
+          "ratio": 18.692,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "对比 A/B",
+          "ratio": 5.25,
+          "size": 16,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "弱文字 ＋ 虚线边。text-3 / paper：5.25:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "5.25:1",
+          "ratio": 7.841,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "状态色不是交互色。 黄仅做墨字或墨图形的底；深底安全态用浅蓝；深底红仅做实心面或 ≥3px 图形。每屏状态色区块 ≤5，中性面积 ≥85%。",
+          "ratio": 6.498,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "状态色不是交互色。",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "叠加层也参与对比度。 12% 墨色覆盖后的 DAW：paper / dark 为 12.68:1，最弱 text-3d / dark 为 4.61:1。浅分隔线",
+          "ratio": 6.498,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "叠加层也参与对比度。",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "12.68:1",
+          "ratio": 6.498,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "4.61:1",
+          "ratio": 6.498,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "待裁定 / 样图不构成决策",
+          "ratio": 17.892,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "DAW 沉后的压暗幅度",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "8% / 保留细节",
+          "ratio": 16.2,
+          "size": 14,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "12% / 本轮样图",
+          "ratio": 16.2,
+          "size": 14,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "16% / 更强分层",
+          "ratio": 16.2,
+          "size": 14,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "弱文字实测：8% = 4.93:1；12% = 4.61:1；16% = 4.30:1。16% 必须把弱文字提高至 text-2d；本轮 12% 仅为样图取值，",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "8% = 4.93:1；12% = 4.61:1；16% = 4.30:1",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "A/B 准备完成后如何开始",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "选项 A：完成后由用户点击「对比 A/B」。选项 B：用户先确认，完成后自动开始试听。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "本轮只呈现渲染中的按钮与轨迹，未实现或选定完成后的播放行为。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "S3　图标集",
+          "ratio": 17.892,
+          "size": 28,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "20 枚功能图标 ＋ 小尺寸磁带标志。原创构造，形状先于颜色。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "默认描边 / 选中实心",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "统一构造",
+          "ratio": 17.892,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "24×24 网格，20×20 活动区。2px 描边，平头端点，直角连接。矩形、直线、四分之一圆与半圆；必要的斜线限制在 45°。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "默认 20px；16px 用于紧凑位置；24px 用于强调。选中仍是浅底墨框，图标内的实心形提供第二道编码。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "同一盘磁带，两种尺寸资产",
+          "ratio": 17.892,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-vit 保留壳体、窗口与双带盘；去掉标签线。右侧为原封不动的 tapeSVG，绝不缩到 48px 以下。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "含义 / 标识",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "浅底 / 默认",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "浅底 / 选中",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "深底 / 默认",
+          "ratio": 16.2,
+          "size": 14,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "深底 / 选中",
+          "ratio": 16.2,
+          "size": 14,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "16px",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "20px",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "24px",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "16px",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "20px",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "24px",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "16px",
+          "ratio": 7.9,
+          "size": 13,
+          "foreground": [
+            169,
+            173,
+            177
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "20px",
+          "ratio": 7.9,
+          "size": 13,
+          "foreground": [
+            169,
+            173,
+            177
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "24px",
+          "ratio": 7.9,
+          "size": 13,
+          "foreground": [
+            169,
+            173,
+            177
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "16px",
+          "ratio": 7.9,
+          "size": 13,
+          "foreground": [
+            169,
+            173,
+            177
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "20px",
+          "ratio": 7.9,
+          "size": 13,
+          "foreground": [
+            169,
+            173,
+            177
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "24px",
+          "ratio": 7.9,
+          "size": 13,
+          "foreground": [
+            169,
+            173,
+            177
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "新建工程i-new",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-new",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "打开文件夹i-open",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-open",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "最小化窗口i-minimize",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-minimize",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "发送i-send",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-send",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "停止生成或执行i-stop",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-stop",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "轨道i-track",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-track",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "总线 / 编组i-bus",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-bus",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "效果器i-fx",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-fx",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "宏i-macro",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-macro",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "A/B 对比i-ab",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-ab",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "播放i-play",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-play",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "录音i-record",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-record",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "渲染 / 导出i-render",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-render",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "撤销 / 回到快照i-undo",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-undo",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "快照i-snapshot",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-snapshot",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "引用时间区间或轨道i-attach",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-attach",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "待机i-idle",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-idle",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "变化中i-busy",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-busy",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "完成i-done",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-done",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "出错i-alert",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-alert",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "Vit 小尺寸磁带标志i-vit",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "i-vit",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "浅底",
+          "ratio": 18.692,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "16px",
+          "ratio": 18.692,
+          "size": 13,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "20px",
+          "ratio": 18.692,
+          "size": 13,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "24px",
+          "ratio": 18.692,
+          "size": 13,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "32px",
+          "ratio": 18.692,
+          "size": 13,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "深底",
+          "ratio": 16.2,
+          "size": 18,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "16px",
+          "ratio": 16.2,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "20px",
+          "ratio": 16.2,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "24px",
+          "ratio": 16.2,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "32px",
+          "ratio": 16.2,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            20,
+            24,
+            28
+          ]
+        },
+        {
+          "text": "单色 / 高对比",
+          "ratio": 17.892,
+          "size": 18,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "16px",
+          "ratio": 17.892,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "20px",
+          "ratio": 17.892,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "24px",
+          "ratio": 17.892,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "32px",
+          "ratio": 17.892,
+          "size": 13,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "待机 / 静止中心",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "变化中 / 阶梯前进",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "完成 / 核验折线",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "出错 / 菱形感叹",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "待机",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "变化中",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "完成",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "出错",
+          "ratio": 15.49,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "禁用统一 text-3；交互控件同时配虚线边。状态叠加仅改变右下角小点，标志本体保持墨色。",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        }
+      ],
+      "clipping": [],
+      "symbols": [
+        "i-new",
+        "i-open",
+        "i-minimize",
+        "i-send",
+        "i-stop",
+        "i-track",
+        "i-bus",
+        "i-fx",
+        "i-macro",
+        "i-ab",
+        "i-play",
+        "i-record",
+        "i-render",
+        "i-undo",
+        "i-snapshot",
+        "i-attach",
+        "i-idle",
+        "i-busy",
+        "i-done",
+        "i-alert",
+        "i-vit"
+      ],
+      "missingIcons": [],
+      "statusBlocks": [],
+      "sections": [
+        "s4",
+        "s3"
+      ],
+      "tokenContrasts": [
+        {
+          "token": "ink",
+          "fg": "ink",
+          "bg": "paper",
+          "ratio": "17.89:1"
+        },
+        {
+          "token": "paper",
+          "fg": "paper",
+          "bg": "dark",
+          "ratio": "16.20:1"
+        },
+        {
+          "token": "warm",
+          "fg": "ink",
+          "bg": "warm",
+          "ratio": "18.69:1"
+        },
+        {
+          "token": "canvas",
+          "fg": "ink",
+          "bg": "canvas",
+          "ratio": "15.49:1"
+        },
+        {
+          "token": "dark",
+          "fg": "paper",
+          "bg": "dark",
+          "ratio": "16.20:1"
+        },
+        {
+          "token": "text-2",
+          "fg": "text-2",
+          "bg": "paper",
+          "ratio": "7.51:1"
+        },
+        {
+          "token": "text-3",
+          "fg": "text-3",
+          "bg": "canvas",
+          "ratio": "4.55:1"
+        },
+        {
+          "token": "text-2d",
+          "fg": "text-2d",
+          "bg": "dark",
+          "ratio": "7.90:1"
+        },
+        {
+          "token": "text-3d",
+          "fg": "text-3d",
+          "bg": "dark",
+          "ratio": "5.62:1"
+        },
+        {
+          "token": "yellow",
+          "fg": "ink",
+          "bg": "yellow",
+          "ratio": "12.87:1"
+        },
+        {
+          "token": "blue",
+          "fg": "paper",
+          "bg": "blue",
+          "ratio": "5.73:1"
+        },
+        {
+          "token": "blue-lt",
+          "fg": "blue-lt",
+          "bg": "dark",
+          "ratio": "8.41:1"
+        },
+        {
+          "token": "red",
+          "fg": "paper",
+          "bg": "red",
+          "ratio": "4.64:1"
+        }
+      ],
+      "windowRatio": NaN,
+      "dialogFont": [],
+      "radii": [],
+      "heavyBorders": [],
+      "iconSpecimenCount": 252,
+      "tapeExact": true,
+      "externalReferences": [],
+      "sha256": "df99eba2ed9241a5ae3a2ea24d47d1b1a8f0e26418566a1332da5459b8fc6a2c",
+      "pageErrors": [],
+      "externalRequests": []
+    },
+    "product": {
+      "minFont": 13,
+      "minContrast": 4.609,
+      "contrastFailures": [],
+      "contrasts": [
+        {
+          "text": "鼓组混音 v2",
+          "ratio": 12.684,
+          "size": 14,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "已保存",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "文件",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "编辑",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "轨道",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "视图",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "0009 : 01 : 000",
+          "ratio": 12.684,
+          "size": 22,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "96.0BPM　　4/4",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "96.0",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "轨道",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "底鼓",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "军鼓",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "闭镲",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "头顶麦",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "房间麦",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 6.356,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "其余 8 条轨道",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "1",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "5",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "9",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "13",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "17",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "21",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "25",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "29",
+          "ratio": 4.609,
+          "size": 14,
+          "foreground": [
+            125.16,
+            128.92,
+            132.8
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 6.921,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "底鼓",
+          "ratio": 6.921,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "军鼓",
+          "ratio": 6.921,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "闭镲",
+          "ratio": 6.921,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "头顶麦",
+          "ratio": 6.921,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "房间麦",
+          "ratio": 6.921,
+          "size": 13,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "总线均衡",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "已启用",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "磁带饱和",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "温暖",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "染色压缩",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "已启用",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "房间混响",
+          "ratio": 12.684,
+          "size": 16,
+          "foreground": [
+            217.56,
+            216.04,
+            209.36
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "发送",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "6 条轨道已选中",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "循环区间 9–17 小节",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "48 kHz / 24 位",
+          "ratio": 6.356,
+          "size": 14,
+          "foreground": [
+            149.8,
+            153.56,
+            157.44
+          ],
+          "background": [
+            18.68,
+            22.44,
+            26.32
+          ]
+        },
+        {
+          "text": "鼓组混音 v2",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "新建工程",
+          "ratio": 15.49,
+          "size": 13,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "打开文件夹",
+          "ratio": 15.49,
+          "size": 13,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            232,
+            228,
+            215
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "6 条轨道",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "引用轨道",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "让鼓组暖一点，保留底鼓的冲击。",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "我保留了底鼓的起音，让高频更柔和。试试「温暖」。",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "鼓组总线 · 染色",
+          "ratio": 18.692,
+          "size": 18,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "已应用",
+          "ratio": 5.985,
+          "size": 14,
+          "foreground": [
+            6,
+            91,
+            199
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "温暖",
+          "ratio": 18.692,
+          "size": 22,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "高频柔和，鼓声更厚",
+          "ratio": 7.841,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "明亮",
+          "ratio": 17.892,
+          "size": 22,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "镲片清晰，空气更足",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "紧实",
+          "ratio": 17.892,
+          "size": 22,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "低频收紧，起音集中",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "应用",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "存为我的快照",
+          "ratio": 18.692,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            251,
+            249,
+            241
+          ]
+        },
+        {
+          "text": "已保存快照 14:07 ·",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "14:07",
+          "ratio": 7.506,
+          "size": 13,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "撤销",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "已读取鼓组总线",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "0.2 秒",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "已应用「温暖」",
+          "ratio": 7.506,
+          "size": 14,
+          "foreground": [
+            74,
+            79,
+            85
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "0.4 秒",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "正在渲染对比 A/B",
+          "ratio": 17.892,
+          "size": 14,
+          "foreground": [
+            9,
+            11,
+            14
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "对比 A/B",
+          "ratio": 5.25,
+          "size": 16,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "准备好后可对比",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        },
+        {
+          "text": "停止",
+          "ratio": 17.892,
+          "size": 16,
+          "foreground": [
+            246,
+            244,
+            236
+          ],
+          "background": [
+            9,
+            11,
+            14
+          ]
+        },
+        {
+          "text": "改动会保存为快照，可随时撤销。",
+          "ratio": 5.25,
+          "size": 13,
+          "foreground": [
+            98,
+            102,
+            107
+          ],
+          "background": [
+            246,
+            244,
+            236
+          ]
+        }
+      ],
+      "clipping": [],
+      "symbols": [
+        "i-new",
+        "i-open",
+        "i-minimize",
+        "i-send",
+        "i-stop",
+        "i-track",
+        "i-bus",
+        "i-fx",
+        "i-macro",
+        "i-ab",
+        "i-play",
+        "i-record",
+        "i-render",
+        "i-undo",
+        "i-snapshot",
+        "i-attach",
+        "i-idle",
+        "i-busy",
+        "i-done",
+        "i-alert",
+        "i-vit"
+      ],
+      "missingIcons": [],
+      "statusBlocks": [
+        {
+          "state": "red",
+          "meaning": "录音"
+        },
+        {
+          "state": "yellow",
+          "meaning": "Vit 正在准备对比 A/B"
+        },
+        {
+          "state": "blue",
+          "meaning": "已应用"
+        },
+        {
+          "state": "blue",
+          "meaning": "快照已保存"
+        },
+        {
+          "state": "yellow",
+          "meaning": "正在渲染对比 A/B"
+        }
+      ],
+      "sections": [],
+      "tokenContrasts": null,
+      "windowRatio": 0.6,
+      "dialogFont": [
+        "16px",
+        "16px"
+      ],
+      "radii": [
+        {
+          "tag": "BUTTON",
+          "cls": "record",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "busy-dot",
+          "radius": "50%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "minimize",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "rail-action",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "rail-action",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "macro-option",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "macro-option",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "macro-option",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "text-button",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "FORM",
+          "cls": "composer",
+          "radius": "4px"
+        },
+        {
+          "tag": "TEXTAREA",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary",
+          "radius": "4px"
+        }
+      ],
+      "heavyBorders": [
+        {
+          "cls": "vit-window",
+          "side": "Top"
+        },
+        {
+          "cls": "vit-window",
+          "side": "Right"
+        },
+        {
+          "cls": "vit-window",
+          "side": "Bottom"
+        },
+        {
+          "cls": "vit-window",
+          "side": "Left"
+        },
+        {
+          "cls": "project-rail",
+          "side": "Right"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Top"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Right"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Bottom"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Left"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Top"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Right"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Bottom"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Left"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Top"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Right"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Bottom"
+        },
+        {
+          "cls": "macro-option",
+          "side": "Left"
+        }
+      ],
+      "forbiddenWords": [],
+      "neutralPixelFraction": 0.988667,
+      "reducedMotionAnimations": 0,
+      "tapeExact": true,
+      "externalReferences": [],
+      "sha256": "3e14ab5607d90f4903a2de4e8120b0f90b6344b6a5962f6e4190fdb07c127f57",
+      "pageErrors": [],
+      "externalRequests": []
+    }
+  },
+  "errors": []
+}

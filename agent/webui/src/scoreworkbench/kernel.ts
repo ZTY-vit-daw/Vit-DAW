@@ -50,6 +50,10 @@ export function createNoKernelBridge(): ScoreKernelBridge {
 // invoke 注入缝（测试用）；生产走 lib/api invokeAgent（/agent/invoke 生产缝）。
 export type InvokeFn = (payload: { tool?: string; args?: JsonRecord; confirmed?: boolean; source?: string }) => Promise<AgentInvokeResponse>;
 
+// 桥工厂：面板持有 clip 选择（多 clip 工程=常态——课程模板/演示工程多轨多 clip；
+// 桥内 clipID 参与 harness 的 track/clip 目标解析，多 clip 无指定=harness 正确拒绝）。
+export type ScoreKernelBridgeFactory = (options: AgentScoreBridgeOptions) => ScoreKernelBridge;
+
 export type AgentScoreBridgeOptions = {
   clipID?: string;
   trackID?: string;

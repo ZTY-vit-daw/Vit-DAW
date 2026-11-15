@@ -1,0 +1,17 @@
+{
+  "system": {
+    "minFont": 13,
+    "minContrast": 4.545,
+    "clipping": [],
+    "failures": [],
+    "pageErrors": []
+  },
+  "product": {
+    "minFont": 13,
+    "minContrast": 5.25,
+    "clipping": [],
+    "failures": [],
+    "pageErrors": []
+  }
+}
+PASS

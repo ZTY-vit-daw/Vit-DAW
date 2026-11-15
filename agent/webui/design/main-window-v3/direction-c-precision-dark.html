@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>方向 C · 精密暗色仪器派 — Vit 对话流主窗口 v3</title>
+<style>
+/* ============ 令牌（未改动） ============ */
+:root{
+  --ink:#090B0E; --paper:#F6F4EC; --warm:#FBF9F1; --canvas:#E8E4D7;
+  --blue:#065BC7; --blue-lt:#73B8F5; --red:#DB1214; --yellow:#FACC1A; --dark:#14181C;
+  --hair:rgba(255,255,255,0.08); --hair2:rgba(255,255,255,0.14);
+  --txt:#E3E9EF; --txt2:#AAB6C2; --txt3:#8C99A6;
+  --sans:Inter,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+  --mono:Consolas,"SFMono-Regular",Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{background:#05070A}
+body{width:4400px;font-family:var(--sans);color:var(--txt);-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono)}
+b{font-weight:600}
+
+/* ============ 页头 ============ */
+.pagehead{height:92px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 28px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.pagehead h1{font-size:21px;font-weight:600;letter-spacing:0.08em;color:var(--paper)}
+.pagehead .sub{font-size:13px;color:var(--txt3);margin-top:5px;letter-spacing:0.1em}
+.pagehead .meta{font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.12em;text-align:right;line-height:1.7}
+.sec{padding-bottom:26px}
+.sec-t{font-family:var(--mono);font-size:13px;letter-spacing:0.3em;color:var(--txt3);
+  padding:30px 28px 16px;border-bottom:1px solid rgba(255,255,255,0.05);margin-bottom:24px}
+.sec-t em{font-style:normal;color:var(--txt2)}
+
+/* ============ 三屏联版 ============ */
+.triptych{display:flex;gap:28px;padding:0 12px}
+.fig{width:1440px}
+.screen{width:1440px;height:900px;position:relative;overflow:hidden;border-radius:10px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.10),0 14px 50px rgba(0,0,0,0.55)}
+.figcap{padding:14px 6px 0;display:flex;gap:14px;align-items:baseline}
+.figcap b{font-family:var(--mono);font-size:14px;letter-spacing:0.18em;color:var(--paper);white-space:nowrap}
+.figcap span{font-size:13px;color:var(--txt3);letter-spacing:0.04em;line-height:1.6}
+
+/* ============ 暗场（Z0） ============ */
+.field{position:absolute;inset:0;background:
+  radial-gradient(130% 95% at 50% 26%, #1B232C 0%, #131A21 38%, #0C1116 72%, #080B0F 100%)}
+.field::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(120% 120% at 50% 50%, transparent 52%, rgba(3,5,7,0.6) 100%);pointer-events:none}
+.shade{position:absolute;inset:0;pointer-events:none}
+.shade-soft{background:radial-gradient(115% 105% at 50% 44%, rgba(5,8,11,0) 42%, rgba(5,8,11,0.62) 100%)}
+.shade-mid{background:radial-gradient(115% 105% at 50% 44%, rgba(5,8,11,0) 38%, rgba(5,8,11,0.7) 100%)}
+.shade-deep{background:radial-gradient(115% 105% at 50% 44%, rgba(5,8,11,0) 34%, rgba(5,8,11,0.74) 100%)}
+
+/* ============ 玻璃面板（Z2） ============ */
+.panel{position:absolute;display:flex;flex-direction:column;overflow:hidden;border-radius:14px;
+  background:
+   linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.012) 30%, rgba(255,255,255,0.006) 70%, rgba(255,255,255,0.02) 100%),
+   linear-gradient(180deg, rgba(30,38,48,0.88) 0%, rgba(23,30,38,0.9) 55%, rgba(18,24,31,0.92) 100%);
+  border:1px solid rgba(255,255,255,0.10);
+  box-shadow:
+   inset 0 1px 0 rgba(255,255,255,0.10),
+   inset 0 -1px 0 rgba(0,0,0,0.5),
+   0 2px 6px rgba(0,0,0,0.5),
+   0 30px 80px rgba(0,0,0,0.55),
+   0 80px 160px rgba(0,0,0,0.42)}
+.panel::before{content:"";position:absolute;left:26px;right:26px;top:0;height:1px;z-index:5;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.34),transparent)}
+.panel.glass{backdrop-filter:blur(18px) saturate(0.85) brightness(0.9)}
+
+.p-head{flex:0 0 56px;display:flex;align-items:center;gap:14px;padding:0 22px;border-bottom:1px solid var(--hair)}
+.bay{display:inline-flex;align-items:center;justify-content:center;position:relative;
+  background:linear-gradient(180deg,#1E262F,#121820);
+  border:1px solid rgba(255,255,255,0.07);border-radius:6px;
+  box-shadow:inset 0 2px 5px rgba(0,0,0,0.55), inset 0 -1px 0 rgba(255,255,255,0.05)}
+.tape{display:block;line-height:0}
+.tape svg{display:block}
+.p-word{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:0.42em;color:var(--paper)}
+.p-ctx{font-size:13px;color:var(--txt3);letter-spacing:0.14em;border-left:1px solid var(--hair2);padding-left:14px}
+.p-tools{margin-left:auto;display:flex;gap:20px}
+.p-tools span{font-size:12px;color:var(--txt3);letter-spacing:0.14em}
+
+/* 信号灯 */
+.lamp{width:8px;height:8px;border-radius:50%;flex:0 0 auto;background:#242E38;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,0.2)}
+.lamp.on-b{background:var(--blue-lt);box-shadow:0 0 0 3px rgba(115,184,245,0.14)}
+.lamp.on-y{background:var(--yellow);box-shadow:0 0 0 3px rgba(250,204,26,0.13)}
+.lamp.on-r{background:var(--red);box-shadow:0 0 0 3px rgba(219,18,20,0.18)}
+
+/* ============ 对话流 ============ */
+.p-flow{flex:1;padding:20px 26px 14px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+.msg{max-width:100%}
+.msg .who{display:flex;align-items:center;gap:10px;margin-bottom:7px}
+.msg .who b{font-family:var(--mono);font-size:12px;font-weight:400;letter-spacing:0.24em;color:var(--txt2)}
+.msg .who span{font-family:var(--mono);font-size:12px;letter-spacing:0.08em;color:var(--txt3)}
+.msg .who i{flex:1;height:1px;background:var(--hair)}
+.msg p{font-size:15px;line-height:1.7;color:var(--txt)}
+.msg.user p{color:var(--canvas)}
+.chips{display:flex;gap:10px;flex-wrap:wrap}
+.chip{height:34px;padding:0 16px;display:inline-flex;align-items:center;gap:9px;
+  border:1px solid var(--hair2);border-radius:17px;font-size:14px;color:var(--txt2);
+  background:rgba(255,255,255,0.02)}
+.chip i{width:5px;height:5px;border-radius:50%;background:#3A4550}
+.chip.primary{border-color:rgba(115,184,245,0.5);color:var(--paper)}
+.chip.primary i{background:var(--blue-lt)}
+
+/* 输入槽 */
+.p-input{flex:0 0 auto;margin:0 22px 20px;height:56px;border:1px solid var(--hair2);border-radius:10px;
+  background:rgba(0,0,0,0.28);box-shadow:inset 0 2px 6px rgba(0,0,0,0.45);
+  display:flex;align-items:center;padding:0 8px 0 18px;gap:12px}
+.p-input .ph{flex:1;font-size:14px;color:var(--txt3);letter-spacing:0.02em}
+.send{height:38px;padding:0 18px;display:inline-flex;align-items:center;gap:9px;border-radius:8px;
+  border:1px solid rgba(115,184,245,0.55);background:rgba(6,91,199,0.16);
+  color:var(--blue-lt);font-family:var(--mono);font-size:13px;letter-spacing:0.2em}
+.send i{width:6px;height:6px;background:var(--blue-lt)}
+.p-input.paused{border-color:var(--hair);background:rgba(0,0,0,0.36)}
+.itag{font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.18em;
+  border:1px solid var(--hair);border-radius:4px;padding:4px 10px}
+
+/* ============ 卡片（面板内凹模块） ============ */
+.card{border:1px solid var(--hair);border-radius:10px;background:rgba(0,0,0,0.26);
+  box-shadow:inset 0 1px 0 rgba(0,0,0,0.5), inset 0 0 0 1px rgba(0,0,0,0.2);padding:14px 18px}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.card-title{font-size:14px;font-weight:600;color:var(--paper);letter-spacing:0.06em}
+.card-tag{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.14em}
+
+/* 状态控件（待机→进行中→完成） */
+.steps{display:flex;margin-bottom:12px}
+.step{flex:1;padding:0 14px}
+.step+.step{border-left:1px solid var(--hair)}
+.step .sd{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.sdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.step.done .sdot{background:rgba(246,244,236,0.5)}
+.step.now .sdot{background:var(--blue-lt);box-shadow:0 0 0 3px rgba(115,184,245,0.14)}
+.step.todo .sdot{background:transparent;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.24)}
+.slabel{font-size:13px}
+.step.done .slabel{color:var(--txt2)}
+.step.now .slabel{color:var(--paper)}
+.step.todo .slabel{color:var(--txt3)}
+.snote{font-size:12px;color:var(--txt3);line-height:1.5}
+.sprog{height:6px;border-radius:2px;background:rgba(255,255,255,0.07);position:relative;overflow:hidden;margin-bottom:7px}
+.sprog i{position:absolute;top:0;bottom:0;left:0;width:64%;
+  background:linear-gradient(90deg,rgba(115,184,245,0.45),rgba(115,184,245,0.95))}
+.sprog::after{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(9,11,14,0.85) 9px 11px)}
+.sprog-meta{font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.1em}
+
+/* 宏卡（仪器语言：信号色档位 + 分段 LED 强度条） */
+.gears{display:flex;border:1px solid var(--hair2);border-radius:8px;overflow:hidden;background:rgba(0,0,0,0.3);margin-bottom:12px}
+.gear{flex:1;height:42px;display:flex;align-items:center;justify-content:center;gap:9px;
+  font-size:14px;letter-spacing:0.3em;text-indent:0.3em;color:var(--txt3)}
+.gear+.gear{border-left:1px solid var(--hair)}
+.gear .gd{width:6px;height:6px;border-radius:50%;background:#313B46;text-indent:0}
+.gear.on{background:rgba(6,91,199,0.2);color:var(--paper);
+  box-shadow:inset 0 0 0 1px rgba(115,184,245,0.38)}
+.gear.on .gd{background:var(--blue-lt);box-shadow:0 0 0 3px rgba(115,184,245,0.14)}
+.macro-body{display:flex;gap:20px;align-items:center;margin-bottom:10px}
+.knobbox{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px}
+.knob-label{font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.12em}
+.meters{flex:1}
+.mrow{display:flex;align-items:center;gap:12px;margin:7px 0}
+.mlabel{flex:0 0 80px;font-size:13px;color:var(--txt2)}
+.mbar{flex:1;height:8px;border-radius:2px;background:rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.mbar i{position:absolute;top:0;bottom:0;left:0;
+  background:linear-gradient(90deg,rgba(115,184,245,0.4),rgba(115,184,245,0.95))}
+.mbar::after{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 7px,rgba(9,11,14,0.9) 7px 9px)}
+.mnote{flex:0 0 74px;font-size:12px;color:var(--txt3);text-align:right}
+.macro-cap{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:10px}
+.macro-cap b{color:var(--paper)}
+.macro-acts{display:flex;gap:10px}
+.mbtn{height:34px;padding:0 16px;display:inline-flex;align-items:center;gap:8px;border-radius:8px;
+  border:1px solid rgba(115,184,245,0.55);background:rgba(6,91,199,0.16);
+  color:var(--blue-lt);font-size:13px;letter-spacing:0.08em}
+.mbtn i{width:6px;height:6px;background:var(--blue-lt)}
+.mbtn.ghost{border:1px solid var(--hair2);background:transparent;color:var(--txt2)}
+
+/* 注意卡 */
+.warn p{font-size:14px;color:var(--txt2);line-height:1.6}
+.wled{display:inline-flex;gap:2px;margin-left:12px;vertical-align:middle}
+.wled i{width:4px;height:11px;background:rgba(255,255,255,0.08);border-radius:1px}
+.wled i.on{background:rgba(246,244,236,0.5)}
+.wled i.y{background:var(--yellow)}
+
+/* ============ 态A · 磁带抽屉（已展开的暗场档案条） ============ */
+.drawer{position:absolute;border-radius:12px;z-index:6;
+  background:linear-gradient(180deg,#11161D,#0C1117);
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:0 24px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.07)}
+.dr-head{display:flex;align-items:center;padding:14px 22px 4px}
+.dr-t{font-family:var(--mono);font-size:13px;letter-spacing:0.22em;color:var(--txt2)}
+.dr-acts{margin-left:auto;display:flex;gap:18px}
+.dr-acts b{font-size:13px;font-weight:400;color:var(--txt2);letter-spacing:0.08em}
+.dr-row{display:flex;gap:16px;padding:8px 22px 14px}
+.tcard{flex:1;display:flex;align-items:center;gap:14px;padding:11px 14px;
+  border:1px solid var(--hair);border-radius:10px;background:rgba(255,255,255,0.015);position:relative}
+.tcard-t{display:flex;flex-direction:column;gap:4px}
+.tcard-n{font-size:14px;color:var(--paper);letter-spacing:0.02em}
+.tcard-m{font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.06em}
+.ttag{position:absolute;top:10px;right:12px;font-family:var(--mono);font-size:12px;
+  color:var(--txt3);letter-spacing:0.14em;border:1px solid var(--hair);border-radius:4px;padding:2px 8px}
+.dr-handle{position:absolute;left:50%;bottom:-15px;transform:translateX(-50%);
+  width:200px;height:26px;border-radius:0 0 8px 8px;background:#0B1015;
+  border:1px solid rgba(255,255,255,0.08);border-top:1px solid rgba(255,255,255,0.18);
+  display:flex;align-items:center;justify-content:center;gap:8px}
+.dr-handle i{width:1px;height:8px;background:rgba(255,255,255,0.22)}
+.dr-handle span{font-size:12px;color:var(--txt3);letter-spacing:0.2em;margin-left:4px}
+
+/* ============ 态C · 顶缘抽屉缝（收拢态） ============ */
+.seam{position:absolute;top:0;left:0;right:0;height:48px;z-index:6;
+  background:linear-gradient(180deg,#0B0F14,#0E1319);
+  border-bottom:1px solid rgba(255,255,255,0.10);box-shadow:0 2px 0 rgba(0,0,0,0.4);
+  display:flex;align-items:flex-start;justify-content:center}
+.seam-tab{height:30px;display:flex;align-items:center;gap:16px;padding:0 20px;
+  background:rgba(0,0,0,0.32);border:1px solid var(--hair);border-top:none;border-radius:0 0 8px 8px;
+  box-shadow:inset 0 -3px 5px rgba(0,0,0,0.4)}
+.grip{display:inline-flex;gap:4px}
+.grip i{width:1px;height:9px;background:rgba(255,255,255,0.26)}
+.seam-n{font-size:13px;color:var(--txt2);letter-spacing:0.1em}
+.seam-div{width:1px;height:14px;background:var(--hair2)}
+.seam-act{font-size:13px;font-weight:400;color:var(--txt2);letter-spacing:0.1em}
+
+/* ============ DAW 沉后层（Z1） ============ */
+.daw{position:absolute;inset:0;background:#0D1218}
+.dawrise{position:absolute;inset:0;transform:scale(0.93);
+  filter:brightness(0.74) saturate(0.72) blur(2px)}
+.dawsunk{position:absolute;inset:0;filter:brightness(0.62) saturate(0.68) blur(1.2px)}
+.daw-top{position:absolute;top:0;left:0;right:0;height:56px;
+  background:linear-gradient(180deg,#151C24,#11171E);border-bottom:1px solid rgba(255,255,255,0.08);
+  display:flex;align-items:center;padding:0 18px;gap:14px}
+.dpro{display:flex;align-items:center;gap:10px;font-size:13px;color:#A9B4C0;letter-spacing:0.04em}
+.tbtn{width:34px;height:30px;border:1px solid rgba(255,255,255,0.14);border-radius:6px;
+  display:inline-flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.03)}
+.trec{border-color:rgba(219,18,20,0.55)}
+.dtime{margin-left:12px;font-family:var(--mono);font-size:13px;color:#C6CFD9;letter-spacing:0.08em}
+.dmaster{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:12px;color:#7E8B98;letter-spacing:0.14em}
+.ledh{display:inline-flex;gap:2px}
+.ledh i{width:5px;height:12px;background:rgba(255,255,255,0.08);border-radius:1px}
+.ledh i.on{background:rgba(246,244,236,0.5)}
+.ledh i.y{background:var(--yellow)}
+.ledh i.r{background:var(--red)}
+.daw-tracks{position:absolute;top:86px;left:0;width:260px;bottom:0;
+  background:rgba(9,13,17,0.6);border-right:1px solid rgba(255,255,255,0.07)}
+.trk{position:absolute;left:0;right:0;height:52px;display:flex;align-items:center;
+  padding:0 14px;gap:12px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.trk-n{flex:1;font-size:13px;color:#93A0AD;letter-spacing:0.03em;white-space:nowrap}
+.ledv{display:inline-flex;flex-direction:column-reverse;gap:2px}
+.ledv i{width:13px;height:3px;background:rgba(255,255,255,0.08)}
+.ledv i.on{background:rgba(246,244,236,0.5)}
+.ledv i.y{background:var(--yellow)}
+.ledv i.r{background:var(--red)}
+.daw-tl{position:absolute;top:86px;left:260px;right:0;bottom:0}
+.ruler{position:absolute;top:0;left:0;right:0;height:30px;border-bottom:1px solid rgba(255,255,255,0.08)}
+.rnum{position:absolute;top:0;height:30px;display:flex;align-items:center;
+  font-family:var(--mono);font-size:12px;color:#66727E}
+.rregion{position:absolute;top:0;height:30px;display:flex;align-items:center;justify-content:flex-end;
+  padding-right:12px;border-left:1px solid rgba(255,255,255,0.1);
+  font-size:12px;color:#6F7C89;letter-spacing:0.24em}
+.lane{position:absolute;left:0;right:0;height:52px;border-bottom:1px solid rgba(255,255,255,0.05)}
+.clip{position:absolute;top:8px;bottom:8px;background:#1A222C;border:1px solid rgba(255,255,255,0.1);
+  border-radius:3px;overflow:hidden}
+.clip i{position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,0.055) 0 1px,transparent 1px 8px)}
+.clip.hot{border-color:rgba(250,204,26,0.45)}
+.playhead{position:absolute;top:0;bottom:0;width:1px;background:var(--blue-lt)}
+.playhead::before{content:"";position:absolute;top:0;left:-3px;width:7px;height:7px;
+  background:var(--blue-lt);border-radius:1px}
+
+/* ============ 态A · 启动页残影（沉底背景） ============ */
+.ghost{position:absolute;inset:0;filter:blur(3px) brightness(0.6) saturate(0.7);opacity:0.55}
+.g-mark{position:absolute;left:80px;top:64px;font-family:var(--mono);font-size:46px;
+  font-weight:700;letter-spacing:0.5em;color:#3C4753}
+.g-block{position:absolute;border:1px solid rgba(255,255,255,0.07);border-radius:10px;
+  background:rgba(255,255,255,0.014)}
+.g-tile{position:absolute;display:flex;align-items:center;gap:14px;padding:16px 18px;
+  border:1px solid rgba(255,255,255,0.07);border-radius:10px;background:rgba(13,18,24,0.7)}
+.g-name{font-size:14px;color:#7E8B98}
+.g-nav{position:absolute;right:44px;top:120px;display:flex;flex-direction:column;gap:18px;
+  font-size:13px;color:#556270;letter-spacing:0.3em;writing-mode:vertical-rl}
+
+/* ============ 态B · icon 三态分镜带 ============ */
+.bband{position:absolute;left:56px;right:56px;bottom:20px;height:182px;z-index:7;
+  border:1px solid rgba(255,255,255,0.09);border-radius:12px;background:rgba(8,11,15,0.72);
+  backdrop-filter:blur(8px);display:flex;align-items:center;padding:0 28px;gap:22px}
+.bband-title{flex:0 0 128px}
+.bband-title b{display:block;font-family:var(--mono);font-size:13px;letter-spacing:0.2em;color:var(--txt2);line-height:1.7}
+.bband-title em{font-style:normal;font-size:12px;color:var(--txt3);letter-spacing:0.1em;line-height:1.6;display:block;margin-top:4px}
+.ifrz{flex:0 0 auto;display:flex;flex-direction:column;align-items:center}
+.ifrz-l{display:flex;align-items:center;gap:8px;margin-top:9px}
+.ifrz-l b{font-size:13px;color:var(--paper);letter-spacing:0.14em;font-weight:400}
+.ifrz-l span{font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.06em}
+.ifrz-arrow{font-family:var(--mono);font-size:17px;color:#4A5560;flex:0 0 auto;padding:0 2px}
+.bband-note{margin-left:auto;flex:0 0 236px;font-size:12px;color:var(--txt3);line-height:1.7;letter-spacing:0.03em}
+.tprog{width:118px;height:6px;margin-top:9px;border-radius:2px;background:rgba(255,255,255,0.07);
+  position:relative;overflow:hidden}
+.tprog i{position:absolute;top:0;bottom:0;left:0;width:64%;
+  background:linear-gradient(90deg,rgba(115,184,245,0.45),rgba(115,184,245,0.95))}
+.tprog::after{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(9,11,14,0.85) 9px 11px)}
+.miniarc{display:inline-flex;vertical-align:middle;margin-right:2px}
+
+/* ============ 过渡分镜 ============ */
+.frames{display:flex;justify-content:space-between;padding:0 12px}
+.frwrap{width:1008px}
+.fr{width:1008px;height:630px;position:relative;overflow:hidden;border-radius:8px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.10),0 12px 44px rgba(0,0,0,0.5)}
+.dawwrap{position:absolute;left:50%;top:50%;width:1440px;height:900px}
+.f2 .dawwrap{transform:translate(-50%,-50%) scale(0.46);
+  filter:brightness(0.5) saturate(0.7) blur(2.5px);opacity:0.78}
+.f3 .dawwrap{transform:translate(-50%,-50%) scale(0.63);
+  filter:brightness(0.6) saturate(0.7) blur(1px);opacity:0.86}
+.f4 .dawwrap{transform:translate(-50%,-50%) scale(0.7);
+  filter:brightness(0.62) saturate(0.68) blur(1px)}
+.frcap{padding:14px 6px 0}
+.frcap b{display:block;font-family:var(--mono);font-size:14px;letter-spacing:0.16em;color:var(--paper);margin-bottom:6px}
+.frcap p{font-size:13px;color:var(--txt3);line-height:1.65;letter-spacing:0.02em}
+.frcap p .mono{color:var(--txt2)}
+/* 分镜小面板 */
+.mp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;
+  border-radius:12px;overflow:hidden;padding:16px 20px;
+  background:linear-gradient(180deg,rgba(30,38,48,0.88),rgba(19,25,32,0.92));
+  border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(12px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.1),0 20px 60px rgba(0,0,0,0.55)}
+.mp::before{content:"";position:absolute;left:20px;right:20px;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent)}
+.mp-h{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--hair);margin-bottom:12px}
+.mp-h b{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0.4em;color:var(--paper)}
+.mp-c{font-size:12px;color:var(--txt3);letter-spacing:0.16em;border-left:1px solid var(--hair2);padding-left:12px}
+.mp-b{flex:1;font-size:14px;line-height:1.7;color:var(--txt)}
+.mp-b em{font-style:normal;font-family:var(--mono);font-size:12px;letter-spacing:0.22em;color:var(--txt3);
+  display:block;margin-bottom:6px}
+.mp-i{margin-top:12px;height:38px;border:1px solid var(--hair2);border-radius:8px;background:rgba(0,0,0,0.28);
+  display:flex;align-items:center;padding:0 14px;font-size:13px;color:var(--txt3)}
+
+/* ============ 附页：收起态 + 注记 ============ */
+.aux{display:flex;justify-content:space-between;padding:0 12px}
+.aux-card{border:1px solid rgba(255,255,255,0.08);border-radius:10px;background:#0A0E12;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.05)}
+.ac-t{font-family:var(--mono);font-size:13px;letter-spacing:0.22em;color:var(--txt2);
+  padding:18px 24px 4px}
+.ac-d{font-size:13px;color:var(--txt3);line-height:1.7;padding:8px 24px 0;letter-spacing:0.02em}
+.collap{width:720px;height:450px;position:relative;overflow:hidden;border-radius:8px;margin:16px 24px 20px;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.1)}
+.dawhalf{position:absolute;inset:0;filter:brightness(0.85) saturate(0.85) blur(0.4px)}
+.handle{position:absolute;right:0;top:0;bottom:0;width:44px;display:flex;flex-direction:column;
+  align-items:center;padding:14px 0;gap:12px;
+  background:linear-gradient(180deg,rgba(32,40,50,0.92),rgba(20,26,33,0.94));
+  border-left:1px solid rgba(255,255,255,0.14);backdrop-filter:blur(14px);
+  box-shadow:inset 1px 1px 0 rgba(255,255,255,0.08),-8px 0 30px rgba(0,0,0,0.45)}
+.handle b{writing-mode:vertical-rl;font-size:15px;font-weight:400;letter-spacing:0.4em;color:var(--paper)}
+.handle .cnt{font-family:var(--mono);font-size:12px;color:var(--txt3);letter-spacing:0.1em}
+.lgrow{display:flex;align-items:flex-start;gap:14px;padding:14px 24px 0}
+.lgrow .lamp{margin-top:5px}
+.lg-name{font-size:14px;color:var(--paper);letter-spacing:0.1em;white-space:nowrap}
+.lg-desc{font-size:13px;color:var(--txt3);line-height:1.65}
+.lg-rule{margin:18px 24px 0;border-top:1px solid var(--hair);padding:14px 0 20px;
+  font-size:13px;color:var(--txt2);line-height:1.75}
+.lg-rule .mono{color:var(--txt3)}
+.mat{display:flex;gap:16px;padding:14px 24px 0;align-items:flex-start}
+.sw{flex:0 0 66px;height:46px;border-radius:6px;border:1px solid var(--hair)}
+.sw1{background:radial-gradient(120% 100% at 50% 26%,#1B232C 0%,#0C1116 75%)}
+.sw2{background:#0D1218;position:relative;overflow:hidden}
+.sw2 i{position:absolute;inset:6px 8px;background:#161E27;border-radius:2px;filter:blur(0.6px)}
+.sw3{background:linear-gradient(180deg,rgba(36,45,56,0.95),rgba(20,26,33,0.98));position:relative}
+.sw3::before{content:"";position:absolute;left:8px;right:8px;top:0;height:1px;background:rgba(255,255,255,0.4)}
+.sw4{background:linear-gradient(180deg,rgba(32,40,50,0.95),rgba(20,26,33,0.98));
+  border-left:2px solid rgba(255,255,255,0.18)}
+.mat-t{font-size:14px;color:var(--paper);letter-spacing:0.08em;margin-bottom:3px}
+.mat-d{font-size:13px;color:var(--txt3);line-height:1.6}
+.foot{padding:34px 28px 44px;font-family:var(--mono);font-size:12px;color:#5A6570;letter-spacing:0.24em;
+  border-top:1px solid rgba(255,255,255,0.05);margin-top:30px}
+</style>
+</head>
+<body>
+
+<header class="pagehead">
+  <div>
+    <h1>方向 C · 精密暗色仪器派</h1>
+    <p class="sub">一块悬浮在暗场中的精密玻璃面板 —— 材质分层、仪表级对齐；令牌色只作信号灯（蓝·活动 / 黄·注意 / 红·录制），克制不发光</p>
+  </div>
+  <div class="meta">VIT 对话流主窗口 v3 · 三方向之一 · 2026-11-13<br>锚点未动：Mondrian 令牌色板 + TapeIconArt 磁带结构</div>
+</header>
+
+<!-- ============ 01 三态联版 ============ -->
+<section class="sec">
+  <div class="sec-t">01 · 三态联版 <em>— 每屏 1440 × 900 · Z0 暗场 / Z1 沉后界面 / Z2 玻璃面板</em></div>
+  <div class="triptych">
+
+    <!-- 态A 启动台 -->
+    <figure class="fig">
+      <div class="screen">
+        <div class="field"></div>
+        <div class="ghost">
+          <div class="g-mark">VIT</div>
+          <div class="g-block" style="left:1020px;top:88px;width:360px;height:210px"></div>
+          <div class="g-block" style="left:64px;top:250px;width:270px;height:220px"></div>
+          <div class="g-nav">工程 · 乐器 · 总线 · 导出</div>
+          <div class="g-tile" style="left:64px;bottom:64px">
+            <span class="bay" style="width:96px;height:62px"><span class="tape" data-tape data-w="84" data-h="52"></span></span>
+            <span class="g-name">《鼓组混音 v2》</span>
+          </div>
+          <div class="g-tile" style="right:64px;bottom:64px">
+            <span class="bay" style="width:96px;height:62px"><span class="tape" data-tape data-w="84" data-h="52"></span></span>
+            <span class="g-name">《小星星乐局》</span>
+          </div>
+        </div>
+        <div class="shade shade-soft"></div>
+
+        <div class="panel" style="left:370px;top:92px;width:700px;height:560px">
+          <div class="p-head">
+            <span class="bay" style="width:72px;height:48px"><span class="tape" data-tape data-w="64" data-h="40"></span></span>
+            <span class="p-word">VIT</span>
+            <span class="p-ctx">启动台 · 无工程</span>
+            <span class="p-tools"><span>磁带</span><span>历史</span><span>设置</span></span>
+          </div>
+          <div class="p-flow">
+            <div class="msg">
+              <div class="who"><b>VIT</b><span>21:58</span><i></i></div>
+              <p>晚上好，我是 Vit。从下面拉出一盘磁带，或者直接告诉我你今天想写什么。</p>
+            </div>
+            <div class="chips">
+              <span class="chip primary"><i></i>新建空白工程</span>
+              <span class="chip"><i></i>打开《鼓组混音 v2》</span>
+              <span class="chip"><i></i>先聊聊这首歌的想法</span>
+            </div>
+          </div>
+          <div class="p-input">
+            <span class="ph">对 Vit 说点什么，或从下方磁带库选择一盘</span>
+            <span class="send">发送<i></i></span>
+          </div>
+        </div>
+
+        <div class="drawer" style="left:280px;top:680px;width:880px;height:178px">
+          <div class="dr-head">
+            <span class="dr-t">磁带库 · 本机 3 盘</span>
+            <span class="dr-acts"><b>新建空白工程</b><b>打开本地工程…</b></span>
+          </div>
+          <div class="dr-row">
+            <div class="tcard">
+              <span class="bay" style="width:116px;height:74px"><span class="tape" data-tape data-w="104" data-h="64"></span></span>
+              <div class="tcard-t"><span class="tcard-n">《小星星乐局》</span><span class="tcard-m">6 轨 · 88 BPM · 前天 23:40</span></div>
+            </div>
+            <div class="tcard">
+              <span class="bay" style="width:116px;height:74px"><span class="tape" data-tape data-w="104" data-h="64"></span></span>
+              <div class="tcard-t"><span class="tcard-n">《ProQ3 裸控实验》</span><span class="tcard-m">单轨 · 参考通道 · 前天 21:05</span></div>
+            </div>
+            <div class="tcard">
+              <span class="ttag">上次打开</span>
+              <span class="bay" style="width:116px;height:74px"><span class="tape" data-tape data-w="104" data-h="64"></span></span>
+              <div class="tcard-t"><span class="tcard-n">《鼓组混音 v2》</span><span class="tcard-m">8 轨 · 92 BPM · 昨天 22:10</span></div>
+            </div>
+          </div>
+          <div class="dr-handle"><i></i><i></i><i></i><span>收起磁带库</span></div>
+        </div>
+      </div>
+      <figcaption class="figcap"><b>A · 启动台</b><span>对话窗为主体居中悬浮（700px）；磁带库是已拉开的暗场档案抽屉，把手在下缘；启动页沉为模糊暗底的背景层。</span></figcaption>
+    </figure>
+
+    <!-- 态B 进入中 -->
+    <figure class="fig">
+      <div class="screen">
+        <div class="field"></div>
+        <div class="dawrise" data-daw></div>
+        <div class="shade shade-mid"></div>
+
+        <div class="panel glass" style="left:317px;top:104px;width:806px;height:496px">
+          <div class="p-head">
+            <span class="bay" style="width:72px;height:48px"><span class="tape" data-tape data-w="64" data-h="40"></span></span>
+            <span class="p-word">VIT</span>
+            <span class="p-ctx">进入中 — 《鼓组混音 v2》</span>
+            <span class="p-tools"><span>磁带</span><span>历史</span><span>设置</span></span>
+          </div>
+          <div class="p-flow">
+            <div class="msg user">
+              <div class="who"><b>我</b><span>22:03</span><i></i></div>
+              <p>打开《鼓组混音 v2》。</p>
+            </div>
+            <div class="card status">
+              <div class="card-head">
+                <span class="lamp on-b"></span>
+                <span class="card-title">进入工程</span>
+                <span class="card-tag">T+2.4s · 界面从面板后方升起</span>
+              </div>
+              <div class="steps">
+                <div class="step done">
+                  <div class="sd"><span class="sdot"></span><span class="slabel">待机</span></div>
+                  <div class="snote">磁带舱装带完成</div>
+                </div>
+                <div class="step now">
+                  <div class="sd"><span class="sdot"></span><span class="slabel">进行中</span></div>
+                  <div class="snote">GUI 自面板后方升起、展开</div>
+                </div>
+                <div class="step todo">
+                  <div class="sd"><span class="sdot"></span><span class="slabel">完成</span></div>
+                  <div class="snote">对话窗落主窗位</div>
+                </div>
+              </div>
+              <div class="sprog"><i></i></div>
+              <div class="sprog-meta">界面升起 64% · 完成后回到输入</div>
+            </div>
+          </div>
+          <div class="p-input paused">
+            <span class="ph">界面升起中 · 输入暂歇…</span>
+            <span class="itag">暂歇</span>
+          </div>
+        </div>
+
+        <div class="bband">
+          <div class="bband-title">
+            <b>分镜 · 磁带 icon 三态</b>
+            <em>暗场中的舱窗 = 背光显示</em>
+          </div>
+          <div class="ifrz">
+            <span class="bay" style="width:140px;height:94px"><span class="tape" data-tape data-flat data-name="鼓组混音 v2" data-l="0.95" data-r="0.95" data-w="118" data-h="76"></span></span>
+            <div class="ifrz-l"><i class="lamp"></i><b>待机</b><span>满盘静置</span></div>
+          </div>
+          <span class="ifrz-arrow">→</span>
+          <div class="ifrz">
+            <span class="bay" style="width:140px;height:94px"><span class="tape" data-tape data-flat data-name="鼓组混音 v2" data-l="0.32" data-r="0.68" data-w="118" data-h="76"></span></span>
+            <div class="tprog"><i></i></div>
+            <div class="ifrz-l"><i class="lamp on-b"></i><b>进行中</b><span><span class="miniarc" data-arc data-d="24" data-pct="0.64"></span>走带 64%</span></div>
+          </div>
+          <span class="ifrz-arrow">→</span>
+          <div class="ifrz">
+            <span class="bay" style="width:140px;height:94px"><span class="tape" data-tape data-flat data-name="鼓组混音 v2" data-l="0.12" data-r="0.9" data-w="118" data-h="76"></span></span>
+            <div class="ifrz-l"><i class="lamp"></i><b>完成</b><span>走带归位 · 灯熄</span></div>
+          </div>
+          <div class="bband-note">舱窗常亮作背光；进行中两侧带轮不对称前进（供带收小、收带涨大），LED 计数条与弧形表针同步扫过；完成时走带归位、灯熄。icon 结构线未改动。</div>
+        </div>
+      </div>
+      <figcaption class="figcap"><b>B · 进入中</b><span>磁带舱灯转蓝，DAW 自面板后方升起（0.93 倍 · 2px 景深模糊）；对话流内出现状态控件，输入暂歇；下缘为 icon 三态分镜。</span></figcaption>
+    </figure>
+
+    <!-- 态C 工程内 -->
+    <figure class="fig">
+      <div class="screen">
+        <div class="field"></div>
+        <div class="dawsunk" data-daw></div>
+        <div class="shade shade-deep"></div>
+
+        <div class="seam">
+          <div class="seam-tab">
+            <span class="grip"><i></i><i></i><i></i></span>
+            <span class="seam-n">磁带库 · 3 盘</span>
+            <span class="seam-div"></span>
+            <b class="seam-act">新建</b>
+            <b class="seam-act">打开</b>
+          </div>
+        </div>
+
+        <div class="panel glass" style="left:389px;top:86px;width:662px;height:728px">
+          <div class="p-head">
+            <span class="bay" style="width:72px;height:48px"><span class="tape" data-tape data-w="64" data-h="40"></span></span>
+            <span class="p-word">VIT</span>
+            <span class="p-ctx">《鼓组混音 v2》 · 鼓组总线</span>
+            <span class="p-tools"><span>磁带</span><span>历史</span><span>设置</span></span>
+          </div>
+          <div class="p-flow" style="gap:14px;padding-top:16px">
+            <div class="msg">
+              <div class="who"><b>VIT</b><span>22:14</span><i></i></div>
+              <p>已进入《鼓组混音 v2》。八轨鼓组与贝斯就位，时间线停在副歌入口。</p>
+            </div>
+            <div class="msg user">
+              <div class="who"><b>我</b><span>22:15</span><i></i></div>
+              <p>副歌的低鼓有点抢戏，把整组收紧一点。</p>
+            </div>
+            <div class="msg">
+              <div class="who"><b>VIT</b><span>22:15</span><i></i></div>
+              <p>已切到「紧实」档——低频给军鼓让位，瞬态收拢，整组更粘连。这档的形状：</p>
+              <div class="card macro" style="margin-top:12px">
+                <div class="card-head">
+                  <span class="lamp on-b"></span>
+                  <span class="card-title">效果器宏 · 鼓组总线</span>
+                  <span class="card-tag">宏快照 · 03</span>
+                </div>
+                <div class="gears">
+                  <span class="gear"><span class="gd"></span>温暖</span>
+                  <span class="gear"><span class="gd"></span>明亮</span>
+                  <span class="gear on"><span class="gd"></span>紧实</span>
+                </div>
+                <div class="macro-body">
+                  <div class="knobbox">
+                    <span data-knob data-deg="40"></span>
+                    <span class="knob-label">单钮 · 绑定三处</span>
+                  </div>
+                  <div class="meters">
+                    <div class="mrow"><span class="mlabel">低频密度</span><span class="mbar"><i style="width:62%"></i></span><span class="mnote">让位军鼓</span></div>
+                    <div class="mrow"><span class="mlabel">瞬态冲击</span><span class="mbar"><i style="width:44%"></i></span><span class="mnote">收得干净</span></div>
+                    <div class="mrow"><span class="mlabel">整组粘连</span><span class="mbar"><i style="width:78%"></i></span><span class="mnote">更靠近</span></div>
+                  </div>
+                </div>
+                <div class="macro-cap"><b>紧实</b> —— 低频收拢、瞬态变硬、整组更靠近；像把鼓按进一间小房间。</div>
+                <div class="macro-acts">
+                  <span class="mbtn"><i></i>A/B 试听</span>
+                  <span class="mbtn ghost">回到温暖</span>
+                </div>
+              </div>
+            </div>
+            <div class="card warn">
+              <div class="card-head" style="margin-bottom:6px">
+                <span class="lamp on-y"></span>
+                <span class="card-title">注意 · 吊镲 右</span>
+                <span class="wled"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="y"></i><i class="y"></i></span>
+              </div>
+              <p>连续四小节贴近削波。可以让「房间麦」多承担一点空气感，吊镲自然让位。</p>
+            </div>
+          </div>
+          <div class="p-input" style="margin-bottom:18px">
+            <span class="ph">和 Vit 聊这段混音…</span>
+            <span class="send">发送<i></i></span>
+          </div>
+        </div>
+      </div>
+      <figcaption class="figcap"><b>C · 工程内</b><span>面板收缩至 46% 主窗位、垂直居中；四周暗场环带露出沉后 DAW；磁带库收拢为顶缘抽屉缝（保留新建/打开）；宏卡以信号色档位与分段强度条呈现。</span></figcaption>
+    </figure>
+
+  </div>
+</section>
+
+<!-- ============ 02 过渡分镜 ============ -->
+<section class="sec">
+  <div class="sec-t">02 · 沉后展开过渡分镜 <em>— Z 轴叙事：面板自暗场浮现 / GUI 升起后沉层 · 每帧 1008 × 630（0.7×）</em></div>
+  <div class="frames">
+
+    <div class="frwrap">
+      <div class="fr f1">
+        <div class="field"></div>
+        <div class="mp" style="width:820px;height:470px">
+          <div class="mp-h">
+            <span class="bay" style="width:72px;height:48px"><span class="tape" data-tape data-w="64" data-h="40"></span></span>
+            <b>VIT</b><span class="mp-c">启动台 → 进入中</span>
+          </div>
+          <div class="mp-b"><em>VIT · 22:03</em>磁带舱已装带，随时可以进入《鼓组混音 v2》。</div>
+          <div class="mp-i">对 Vit 说点什么…</div>
+        </div>
+      </div>
+      <div class="frcap">
+        <b>帧 1 · 对话窗满幅</b>
+        <p><span class="mono">Z0 暗场 + Z2 面板（88% 宽）</span>。GUI 尚不存在，面板是暗场中唯一被点亮的主体；缓动：起点帧，无运动。</p>
+      </div>
+    </div>
+
+    <div class="frwrap">
+      <div class="fr f2">
+        <div class="field"></div>
+        <div class="dawwrap" data-daw></div>
+        <div class="shade shade-mid"></div>
+        <div class="mp" style="width:820px;height:470px">
+          <div class="mp-h">
+            <span class="bay" style="width:72px;height:48px"><span class="tape" data-tape data-w="64" data-h="40"></span></span>
+            <b>VIT</b><span class="mp-c">进入中 · T+2.4s</span>
+          </div>
+          <div class="mp-b"><em>状态控件 · 进行中</em>磁带舱装带完成，界面正从面板后方升起；对话窗保持满幅与全亮度。</div>
+          <div class="mp-i">界面升起中 · 输入暂歇…</div>
+        </div>
+      </div>
+      <div class="frcap">
+        <b>帧 2 · GUI 升起</b>
+        <p>GUI 自 Z0 升向 Z1：<span class="mono">scale 0.46 → 0.63 · 亮度 0.5 → 0.6 · 模糊 2.5px → 1px</span>；缓动 <span class="mono">cubic-bezier(0.22,1,0.36,1)</span> 600ms。面板保持满幅，边缘透出模糊轮廓。</p>
+      </div>
+    </div>
+
+    <div class="frwrap">
+      <div class="fr f3">
+        <div class="field"></div>
+        <div class="dawwrap" data-daw></div>
+        <div class="shade shade-deep"></div>
+        <div class="mp" style="width:660px;height:450px">
+          <div class="mp-h">
+            <span class="bay" style="width:72px;height:48px"><span class="tape" data-tape data-w="64" data-h="40"></span></span>
+            <b>VIT</b><span class="mp-c">落位沉后 · T+3.1s</span>
+          </div>
+          <div class="mp-b"><em>状态控件 · 进行中</em>界面到达满幅并沉定到对话窗之后，边缘暗化渐显；面板开始收缩。</div>
+          <div class="mp-i">界面沉层中 · 输入暂歇…</div>
+        </div>
+      </div>
+      <div class="frcap">
+        <b>帧 3 · GUI 落位沉后</b>
+        <p>GUI 到达 Z1 满幅并沉定（边缘 vignette 二次压暗）；面板开始收缩 <span class="mono">86% → 46%</span>，落影逐层加深表达「沉」；缓动 480ms 减速曲线。</p>
+      </div>
+    </div>
+
+    <div class="frwrap">
+      <div class="fr f4">
+        <div class="field"></div>
+        <div class="dawwrap" data-daw></div>
+        <div class="shade shade-deep"></div>
+        <div class="mp" style="width:464px;height:500px">
+          <div class="mp-h">
+            <span class="bay" style="width:72px;height:48px"><span class="tape" data-tape data-w="64" data-h="40"></span></span>
+            <b>VIT</b><span class="mp-c">主窗位</span>
+          </div>
+          <div class="mp-b"><em>VIT · 22:14</em>已进入《鼓组混音 v2》。八轨就位，时间线停在副歌入口。</div>
+          <div class="mp-i">和 Vit 聊这段混音…</div>
+        </div>
+      </div>
+      <div class="frcap">
+        <b>帧 4 · 主窗位</b>
+        <p>面板 46% 垂直居中，四周暗场环带露出沉后 DAW；景深由面板 backdrop 模糊与暗场 vignette 共同承担。最终 Z 序：<span class="mono">Z0 暗场 &lt; Z1 GUI &lt; Z2 面板</span>。</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ 03 收起态 + 注记 ============ -->
+<section class="sec">
+  <div class="sec-t">03 · 收起态小样与规格注记 <em>— 让位机制 · 信号灯规则 · 材质分层</em></div>
+  <div class="aux">
+
+    <div class="aux-card" style="width:720px">
+      <div class="ac-t">收起态小样 · 0.5×</div>
+      <div class="collap">
+        <div class="dawhalf" data-daw></div>
+        <div class="shade shade-soft"></div>
+        <div class="seam" style="height:30px">
+          <div class="seam-tab" style="height:24px;gap:12px;padding:0 16px">
+            <span class="grip"><i></i><i></i><i></i></span>
+            <span class="seam-n" style="font-size:12px">磁带库 · 3 盘</span>
+            <span class="seam-div"></span>
+            <b class="seam-act" style="font-size:12px">新建</b>
+            <b class="seam-act" style="font-size:12px">打开</b>
+          </div>
+        </div>
+        <div class="handle">
+          <i class="lamp on-b"></i>
+          <b>对话</b>
+          <span class="cnt">3</span>
+        </div>
+      </div>
+      <div class="ac-d">用户编辑 DAW 时，面板整体没入右缘：只剩 44px 玻璃把手（蓝灯 + 计数 3），点击即浮出；顶缘抽屉缝保留新建 / 打开入口；DAW 回到 85% 亮度与全锐度。</div>
+    </div>
+
+    <div class="aux-card" style="width:1780px">
+      <div class="ac-t">信号色语义 · 仪表灯规则</div>
+      <div class="lgrow"><span class="lamp on-b"></span>
+        <div><div class="lg-name">蓝 · 活动</div>
+        <div class="lg-desc">播放头 / 状态控件「进行中」/ 激活宏档位 / 发送钮 / 磁带舱灯（工程就绪）。暗场上取 --blue-lt 保证 4.5:1 以上可读。</div></div>
+      </div>
+      <div class="lgrow"><span class="lamp on-y"></span>
+        <div><div class="lg-name">黄 · 注意</div>
+        <div class="lg-desc">峰值偏热轨道（吊镲 右）/ 削波预警卡。只在出现真实风险时点亮，不做装饰。</div></div>
+      </div>
+      <div class="lgrow"><span class="lamp on-r"></span>
+        <div><div class="lg-name">红 · 录制</div>
+        <div class="lg-desc">transport 录制臂与总线表顶部段。本组图未进入录制态，红灯仅在 DAW 层驻留待命。</div></div>
+      </div>
+      <div class="lg-rule">灯语规则：信号灯直径 <span class="mono">8px</span>，外圈以纸色细环替位发光；同一时刻至多一盏主灯；信号色仅作小面积高精度使用，不做大面积铺色、不做霓虹外发光。宏卡强度条为分段 LED，只表「多少」、不标数值——宏影响不暴露原始参数。</div>
+    </div>
+
+    <div class="aux-card" style="width:1780px">
+      <div class="ac-t">材质与层 · Z 序</div>
+      <div class="mat"><span class="sw sw1"></span>
+        <div><div class="mat-t">Z0 暗场</div>
+        <div class="mat-d">--dark / --ink 族的深空径向场：中心 26% 处微亮，边缘 -35% 亮度；有作者意图的仪器暗场，无纹理、无霓虹。</div></div>
+      </div>
+      <div class="mat"><span class="sw sw2"></span>
+        <div><div class="mat-t">Z1 沉后 GUI</div>
+        <div class="mat-d">全栈去饱和 30% · 亮度 62% · <span class="mono">1.2px</span> 景深模糊；边缘由暗场 vignette 二次压暗，表达「沉到面板之后」。</div></div>
+      </div>
+      <div class="mat"><span class="sw sw3"></span>
+        <div><div class="mat-t">Z2 玻璃面板</div>
+        <div class="mat-d"><span class="mono">18px</span> backdrop 模糊 + 顶部 1px 棱线高光 + 三层落影（<span class="mono">6 / 80 / 160px</span>）；圆角 14px，半透明暗玻璃基底，无外发光。</div></div>
+      </div>
+      <div class="mat" style="padding-bottom:20px"><span class="sw sw4"></span>
+        <div><div class="mat-t">Z3 把手与缝</div>
+        <div class="mat-d">收拢态只留 44px 玻璃把手条与顶缘抽屉缝；排版：Consolas 计量数字 / Inter + 雅黑正文；标签字距 <span class="mono">0.2em</span>；正文 15px、对比度 ≥ 7:1，标签 ≥ 12px。</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="foot">方向 C · 精密暗色仪器派 — 三态联版 / 过渡分镜 / icon 三态 / 收拢抽屉 / 宏卡 / 沉后 DAW · 完</div>
+
+<script>
+/* ====== TapeIconArt 逐字复刻（spec §3，结构未动） ====== */
+var INK="#090B0E",WIN="#FBF9F1",HUB="#FAFAF2",ACC="#1A1A1F",TINT="#E6E6E6";
+function rgba(hex,a){var n=parseInt(hex.slice(1),16);return "rgba("+((n>>16)&255)+","+((n>>8)&255)+","+(n&255)+","+a+")";}
+function tapeSVG(w,h,a){ // a=atmos 可为 null（默认灰壳满盘）
+  var bx=2,by=2,bw=w-4,bh=h-4;
+  var wx=bx+8,wy=by+8,ww=bw-16,wh=bh-26;
+  var cy=wy+wh/2,c1x=wx+ww*0.28,c2x=wx+ww*0.72;
+  var r=Math.min(wh*0.3,22);
+  var d1=a?r*(0.34+0.5*a.L):r, d2=a?r*(0.34+0.5*a.R):r;
+  var labelY=by+bh-12;
+  var bodyFill=a?rgba(a.c1,0.62):TINT;
+  var s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+" "+h+'">';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="'+bodyFill+'"/>';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="'+WIN+'"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  [[c1x,d1],[c2x,d2]].forEach(function(reel){
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+reel[1]+'" fill="'+ACC+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+(r*0.32)+'" fill="'+HUB+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  });
+  s+='<line x1="'+(bx+10)+'" y1="'+labelY+'" x2="'+(bx+bw-10)+'" y2="'+labelY+'" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<line x1="'+(bx+10)+'" y1="'+(labelY+6)+'" x2="'+(bx+bw*0.55)+'" y2="'+(labelY+6)+'" stroke="rgba(31,36,43,0.6)" stroke-width="1"/>';
+  return s+"</svg>";
+}
+/* 工程名 FNV-1a → 暗场仪表壳色对（v2 移植思路，色值按暗场去饱和定制） */
+function fnv1a(str){var h=2166136261;for(var i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h>>>0;}
+var PAIRS=[{c1:"#5E6672",c2:"#9DA9B6"},{c1:"#71614F",c2:"#B4A48C"},{c1:"#4F6058",c2:"#8FB2A0"},{c1:"#5F5568",c2:"#A89CB9"},{c1:"#6D5661",c2:"#B993A5"}];
+function tapeAtmo(name,L,R){var p=PAIRS[fnv1a(name)%PAIRS.length];return {c1:p.c1,c2:p.c2,L:(L===null||L===undefined)?0.5:+L,R:(R===null||R===undefined)?0.5:+R};}
+
+/* ====== 旋钮（单钮多参） ====== */
+function knobSVG(sz,deg){
+  var c=sz/2,r=c-9,s='';
+  s+='<svg width="'+sz+'" height="'+sz+'" viewBox="0 0 '+sz+' '+sz+'">';
+  s+='<defs><radialGradient id="kg'+deg+'" cx="50%" cy="28%" r="85%"><stop offset="0%" stop-color="#26313D"/><stop offset="100%" stop-color="#0E1319"/></radialGradient></defs>';
+  s+='<circle cx="'+c+'" cy="'+c+'" r="'+(c-2)+'" fill="url(#kg'+deg+')" stroke="rgba(255,255,255,0.13)"/>';
+  for(var i=0;i<=8;i++){
+    var a=(-135+i*33.75-90)*Math.PI/180;
+    s+='<line x1="'+(c+Math.cos(a)*(r+2)).toFixed(1)+'" y1="'+(c+Math.sin(a)*(r+2)).toFixed(1)+'" x2="'+(c+Math.cos(a)*(r+7)).toFixed(1)+'" y2="'+(c+Math.sin(a)*(r+7)).toFixed(1)+'" stroke="rgba(246,244,236,0.4)" stroke-width="1.5"/>';
+  }
+  var a0=(-135-90)*Math.PI/180, a1=(deg-90)*Math.PI/180;
+  var large=((deg+135)/270)>0.5?1:0;
+  s+='<path d="M '+(c+Math.cos(a0)*r).toFixed(1)+' '+(c+Math.sin(a0)*r).toFixed(1)+' A '+r+' '+r+' 0 '+large+' 1 '+(c+Math.cos(a1)*r).toFixed(1)+' '+(c+Math.sin(a1)*r).toFixed(1)+'" fill="none" stroke="#73B8F5" stroke-width="2.5"/>';
+  s+='<line x1="'+c+'" y1="'+c+'" x2="'+(c+Math.cos(a1)*(r-7)).toFixed(1)+'" y2="'+(c+Math.sin(a1)*(r-7)).toFixed(1)+'" stroke="#F6F4EC" stroke-width="2.5" stroke-linecap="round"/>';
+  s+='<circle cx="'+c+'" cy="'+c+'" r="3.5" fill="#F6F4EC"/>';
+  return s+'</svg>';
+}
+/* 迷你弧形表针（进行中 64%） */
+function arcSVG(d,pct){
+  var r=(d-4)/2,c=d/2,half=Math.PI*r,y=c+1;
+  var arc='M '+(c-r)+' '+y+' A '+r+' '+r+' 0 0 1 '+(c+r)+' '+y;
+  return '<svg width="'+d+'" height="'+(d/2+2)+'" viewBox="0 0 '+d+' '+(d/2+2)+'">'
+    +'<path d="'+arc+'" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="2"/>'
+    +'<path d="'+arc+'" fill="none" stroke="#73B8F5" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="'+(half*pct).toFixed(1)+' '+half.toFixed(1)+'"/></svg>';
+}
+
+/* ====== 沉后 DAW（轨道列表 + 时间线 + transport） ====== */
+function svgPrev(){return '<svg width="14" height="12" viewBox="0 0 14 12"><rect x="1" y="1" width="2" height="10" fill="#A9B4C0"/><path d="M13 1 5 6l8 5z" fill="#A9B4C0"/></svg>';}
+function svgPlay(){return '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 1l9 5-9 5z" fill="#C6CFD9"/></svg>';}
+function svgStop(){return '<svg width="12" height="12" viewBox="0 0 12 12"><rect x="2" y="2" width="8" height="8" fill="#A9B4C0"/></svg>';}
+function svgRec(){return '<svg width="12" height="12" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" fill="#DB1214"/></svg>';}
+var TRACKS=[
+  {n:"底鼓 · 内",m:9,c:[[1,7],[9,7],[17,7],[25,7]]},
+  {n:"底鼓 · 外",m:7,c:[[1,7],[9,7],[17,7],[25,7]]},
+  {n:"军鼓 · 顶部",m:8,c:[[2,6],[10,6],[18,6],[26,6]]},
+  {n:"吊镲 · 左",m:6,c:[[1,15],[17,15]]},
+  {n:"吊镲 · 右",m:10,hot:1,c:[[1,15],[17,15]]},
+  {n:"房间麦",m:5,c:[[1,31]]},
+  {n:"通鼓",m:6,c:[[9,4],[17,3],[25,4]]},
+  {n:"贝斯 DI",m:7,c:[[1,15],[17,15]]}
+];
+function ledV(n){
+  var s='<span class="ledv">';
+  for(var i=12;i>=1;i--){var c=i<=n?(i>10?'on r':(i>8?'on y':'on')):'';s+='<i class="'+c+'"></i>';}
+  return s+'</span>';
+}
+function dawHTML(){
+  var BW=1180/32;
+  var rows='',lanes='';
+  TRACKS.forEach(function(t,i){
+    var y=i*52;
+    rows+='<div class="trk" style="top:'+y+'px"><span class="trk-n">'+t.n+'</span>'+ledV(t.m)+'</div>';
+    var cl=t.c.map(function(cc){
+      return '<div class="clip'+(t.hot?' hot':'')+'" style="left:'+((cc[0]-1)*BW).toFixed(1)+'px;width:'+(cc[1]*BW-5).toFixed(1)+'px"><i></i></div>';
+    }).join('');
+    lanes+='<div class="lane" style="top:'+y+'px">'+cl+'</div>';
+  });
+  var ruler='';
+  for(var b=0;b<8;b++){ruler+='<span class="rnum" style="left:'+(b*4*BW+8).toFixed(1)+'px">'+(b*4+1)+'</span>';}
+  ruler+='<span class="rregion" style="left:0;width:'+(16*BW).toFixed(1)+'px">主歌</span>';
+  ruler+='<span class="rregion" style="left:'+(16*BW).toFixed(1)+'px;width:'+(16*BW).toFixed(1)+'px">副歌</span>';
+  var ledh='';
+  for(var i2=0;i2<24;i2++){var c2=i2<12?'on':(i2<15?'y':(i2<17?'r':''));ledh+='<i class="'+c2+'"></i>';}
+  return '<div class="daw">'
+    +'<div class="daw-top"><span class="lamp on-b"></span><span class="dpro">VIT · 《鼓组混音 v2》</span>'
+    +'<span class="tbtn">'+svgPrev()+'</span><span class="tbtn">'+svgPlay()+'</span><span class="tbtn">'+svgStop()+'</span><span class="tbtn trec">'+svgRec()+'</span>'
+    +'<span class="dtime">017.01.00 · 4/4 · 92 BPM</span>'
+    +'<span class="dmaster">总线<span class="ledh">'+ledh+'</span></span></div>'
+    +'<div class="daw-tracks">'+rows+'</div>'
+    +'<div class="daw-tl"><div class="ruler">'+ruler+'</div>'+lanes
+    +'<div class="playhead" style="left:'+(16*BW).toFixed(1)+'px"></div></div>'
+    +'</div>';
+}
+
+/* ====== 注入 ====== */
+document.querySelectorAll('[data-tape]').forEach(function(el){
+  var w=+el.getAttribute('data-w'),h=+el.getAttribute('data-h');
+  var a=null;
+  if(el.hasAttribute('data-flat')){
+    a=tapeAtmo(el.getAttribute('data-name')||'',el.getAttribute('data-l'),el.getAttribute('data-r'));
+  }
+  el.innerHTML=tapeSVG(w,h,a);
+});
+document.querySelectorAll('[data-daw]').forEach(function(el){el.innerHTML=dawHTML();});
+document.querySelectorAll('[data-knob]').forEach(function(el){
+  el.innerHTML=knobSVG(+el.getAttribute('data-knob')||84,+el.getAttribute('data-deg')||40);
+});
+document.querySelectorAll('[data-arc]').forEach(function(el){
+  el.innerHTML=arcSVG(+el.getAttribute('data-d')||24,+el.getAttribute('data-pct')||0.64);
+});
+</script>
+</body>
+</html>

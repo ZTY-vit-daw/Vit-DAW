@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=4400">
+<title>Vit-DAW · AI-First Launcher — Studio Hardware Panel v1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ============ tokens ============ */
+:root{
+  --bg:#33322D; --panel:#E9E7E1; --panel-2:#F2F0EA; --well:#DAD7CF; --well-2:#CFCCC3;
+  --edge:#C8C4B9; --edge-2:#B3AEA1; --line:#D6D2C8; --ink:#26241F; --ink-2:#565247;
+  --acc:#E8480C; --acc-deep:#BE3A0A; --acc-dim:#8F2B07;
+  --led-off:#39362F; --led-on:#EDE7D6; --meter-bg:#221F1B; --ph:#5C574C;
+  --tv-voc:#B98A5A; --tv-drm:#97A08D; --tv-bs:#8C93A8; --tv-syn:#A79BB0;
+  --fd:'Archivo','Noto Sans SC',sans-serif; --fm:'IBM Plex Mono','Noto Sans SC',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);background-image:radial-gradient(1200px 600px at 50% -8%,rgba(255,255,255,.06),transparent 60%),repeating-linear-gradient(0deg,rgba(0,0,0,.05) 0 1px,transparent 1px 3px);font-family:var(--fd);color:var(--ink)}
+.stage{width:4400px;padding:16px;display:flex;gap:24px}
+.col{width:1440px}
+/* ============ state tags above panels ============ */
+.tag{display:flex;align-items:baseline;gap:14px;margin:2px 6px 10px;color:#CFCBC0}
+.tag b{font:800 15px/1 var(--fm);color:#E9E7E1;border:1px solid #6E6A5F;padding:5px 8px;border-radius:6px;letter-spacing:.08em}
+.tag .t1{font:700 17px/1 var(--fd);color:#E9E7E1;letter-spacing:.04em}
+.tag .t2{font:500 11px/1 var(--fm);color:#96917F;letter-spacing:.22em}
+/* ============ panel shell (shared machine face) ============ */
+.panel{position:relative;width:1440px;height:900px;border-radius:18px;border:1px solid var(--edge-2);background-color:var(--panel);
+  background-image:
+    radial-gradient(circle 6px at 26px 26px,#b7b3a8 0 2.4px,#918D82 2.4px 4.2px,rgba(0,0,0,.16) 4.2px 5.2px,transparent 5.2px),
+    radial-gradient(circle 6px at right 26px top 26px,#b7b3a8 0 2.4px,#918D82 2.4px 4.2px,rgba(0,0,0,.16) 4.2px 5.2px,transparent 5.2px),
+    radial-gradient(circle 6px at left 26px bottom 26px,#b7b3a8 0 2.4px,#918D82 2.4px 4.2px,rgba(0,0,0,.16) 4.2px 5.2px,transparent 5.2px),
+    radial-gradient(circle 6px at right 26px bottom 26px,#b7b3a8 0 2.4px,#918D82 2.4px 4.2px,rgba(0,0,0,.16) 4.2px 5.2px,transparent 5.2px),
+    repeating-linear-gradient(0deg,rgba(0,0,0,.015) 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,rgba(0,0,0,.015) 0 1px,transparent 1px 3px);
+  box-shadow:0 26px 60px rgba(0,0,0,.5),0 4px 12px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.75),inset 0 -2px 0 rgba(0,0,0,.06)}
+.panel.console{display:flex;flex-direction:column}
+/* silk-screen utilities */
+.silk{font:600 11px/1.4 var(--fm);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-2)}
+.silk .cn{letter-spacing:.3em}
+/* device header strip */
+.hd{display:flex;align-items:center;gap:18px;padding:20px 44px 16px;border-bottom:1px solid var(--line)}
+.hd .brand{display:flex;align-items:center;gap:10px;font:800 13px/1 var(--fd);letter-spacing:.22em;color:var(--ink)}
+.hd .brand i{width:11px;height:11px;background:var(--acc);border-radius:2px;box-shadow:inset 0 -2px 0 rgba(0,0,0,.25)}
+.hd .mid{flex:1;text-align:center}
+.hd .sn{display:flex;align-items:center;gap:9px}
+.dot{width:8px;height:8px;border-radius:50%;border:1px solid var(--edge-2);background:#BAB5A9;flex:none}
+.dot.on{background:var(--acc);border-color:var(--acc-dim);box-shadow:0 0 0 2px rgba(232,72,12,.15)}
+.pwr{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 6px rgba(232,72,12,.8)}
+/* flow badge row */
+.badge-row{display:flex;align-items:center;justify-content:space-between;padding:16px 44px 0}
+.badge{display:flex;align-items:center;gap:10px;font:600 12px/1 var(--fm);letter-spacing:.18em;color:var(--ink)}
+.badge .dot{width:9px;height:9px}
+.chip{font:600 10px/1 var(--fm);letter-spacing:.14em;color:var(--acc-deep);border:1px solid var(--acc);border-radius:5px;padding:4px 8px;margin-left:12px}
+/* console body */
+.cbody{flex:1;min-height:0;display:flex;gap:40px;padding:30px 44px 0}
+.chat{flex:1;min-width:0;position:relative}
+.msg-tag{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.msg-tag:after{content:"";flex:1;height:1px;background:var(--line)}
+.opening{font:600 34px/1.5 var(--fd);color:var(--ink);letter-spacing:.01em;max-width:900px}
+.opening .pj{border-bottom:3px solid var(--acc);padding-bottom:1px}
+.etch{position:absolute;right:8px;bottom:6px;font:800 110px/1 var(--fd);color:rgba(38,36,31,.07);letter-spacing:-.02em;user-select:none}
+/* tape-slot project cards */
+.cards{display:flex;flex-direction:column;gap:18px;margin-top:38px;max-width:880px}
+.tape{position:relative;display:flex;align-items:center;gap:22px;height:104px;padding:0 18px 0 14px;background:var(--panel-2);border:1px solid var(--edge);border-radius:12px;box-shadow:0 2px 0 rgba(255,255,255,.7) inset,0 8px 18px rgba(0,0,0,.09);transition:transform .12s ease,box-shadow .12s ease}
+.tape:hover{transform:translateY(-2px);box-shadow:0 2px 0 rgba(255,255,255,.7) inset,0 14px 26px rgba(0,0,0,.14)}
+.reelbox{width:100px;height:72px;border-radius:8px;background:var(--meter-bg);border:1px solid #8F8A7C;box-shadow:inset 0 3px 8px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;gap:6px;flex:none}
+.reelbox svg{width:40px;height:40px}
+.reelbox .rl{stroke:#A29C8D;fill:none;stroke-width:2}.reelbox .rh{fill:#847F72}.reelbox .rc{fill:#B5B0A2}
+.tape-info{min-width:0}
+.tape-name{font:700 19px/1.2 var(--fd);color:var(--ink)}
+.tape-meta{margin-top:7px;font:500 12px/1 var(--fm);color:var(--ink-2);letter-spacing:.05em}
+.tape-idx{position:absolute;top:10px;right:16px;font:600 10px/1 var(--fm);letter-spacing:.2em;color:var(--ink-2)}
+.open-btn{margin-left:auto;flex:none;display:flex;align-items:center;gap:9px;font:700 13px/1 var(--fm);letter-spacing:.16em;color:#fff;background:var(--acc-deep);border:0;border-radius:8px;padding:15px 24px;cursor:pointer;box-shadow:0 4px 0 var(--acc-dim),inset 0 1px 0 rgba(255,255,255,.28);transition:transform .1s ease,box-shadow .1s ease}
+.open-btn:hover{transform:translateY(2px);box-shadow:0 2px 0 var(--acc-dim),inset 0 1px 0 rgba(255,255,255,.28)}
+.open-btn .chev{width:8px;height:10px;color:#F4C9AF}
+/* right rail: presence meter + status */
+.rail{width:212px;flex:none;display:flex;flex-direction:column;gap:24px}
+.meter-wrap{display:flex;gap:12px}
+.meter{display:flex;flex-direction:column-reverse;gap:4px;width:46px;height:252px;padding:7px 6px;background:var(--meter-bg);border:1px solid #8F8A7C;border-radius:7px;box-shadow:inset 0 3px 9px rgba(0,0,0,.6)}
+.meter i{flex:1;border-radius:2px;background:var(--led-off)}
+.meter i.on{background:var(--led-on)}
+.meter i.hi{background:var(--acc)}
+.scale{display:flex;flex-direction:column-reverse;justify-content:space-between;height:252px;padding:4px 0;font:500 9px/1 var(--fm);color:var(--ink-2)}
+.rail .block-title{font:600 11px/1 var(--fm);letter-spacing:.2em;color:var(--ink);margin-bottom:10px;display:flex;justify-content:space-between}
+.rail .state{color:var(--acc-deep)}
+.st{display:flex;align-items:center;gap:9px;font:500 11px/1.9 var(--fm);letter-spacing:.08em;color:var(--ink-2)}
+.st b{margin-left:auto;font-weight:600;color:var(--ink)}
+.knob-block{margin-top:2px;border-top:1px solid var(--line);padding-top:18px;display:flex;align-items:center;gap:16px}
+.knob{width:44px;height:44px;flex:none}
+.kb{fill:#E3E0D7;stroke:var(--edge-2);stroke-width:1.5}
+.kp{stroke:var(--ink);stroke-width:2.6;stroke-linecap:round}
+.knob-v{font:600 12px/1.5 var(--fm);color:var(--ink);letter-spacing:.1em}
+.knob-v small{display:block;font-weight:500;font-size:10px;color:var(--ink-2);letter-spacing:.18em}
+/* input slot */
+.cz{margin:26px 44px 0}
+.cz .lab{display:flex;justify-content:space-between;margin-bottom:9px}
+.slot{height:62px;display:flex;align-items:center;gap:16px;padding:0 10px 0 22px;background:linear-gradient(#D6D3CA,#DEDBD3);border:1px solid var(--edge-2);border-radius:10px;box-shadow:inset 0 3px 7px rgba(0,0,0,.20),inset 0 -1px 0 rgba(255,255,255,.55)}
+.slot .txt{flex:1;font:400 15px/1 var(--fm);color:var(--ph);letter-spacing:.02em;display:flex;align-items:center;gap:2px}
+.caret{width:2px;height:20px;background:var(--acc);margin-left:2px}
+.send{flex:none;display:flex;align-items:center;gap:8px;height:42px;padding:0 16px;font:700 12px/1 var(--fm);letter-spacing:.16em;color:var(--ink);background:linear-gradient(#EFEDE6,#E2DFD6);border:1px solid var(--edge-2);border-radius:8px;box-shadow:0 3px 0 var(--edge-2),inset 0 1px 0 #fff;cursor:pointer}
+.send:hover{transform:translateY(1px);box-shadow:0 2px 0 var(--edge-2),inset 0 1px 0 #fff}
+.send .chev{width:8px;height:10px;color:var(--acc-deep)}
+.slot.hold{opacity:.55}
+.slot.hold .send{filter:grayscale(1);cursor:default}
+/* tape-library drawer handle */
+.drawer{margin:22px 44px 26px;height:58px;display:flex;align-items:center;gap:20px;padding:0 22px;background:var(--panel-2);border:1px solid var(--edge);border-radius:12px;box-shadow:0 2px 0 rgba(255,255,255,.7) inset,0 6px 14px rgba(0,0,0,.08);cursor:pointer}
+.drawer:hover{border-color:var(--edge-2)}
+.grip{width:112px;height:18px;border-radius:5px;background:repeating-linear-gradient(90deg,#A9A498 0 3px,transparent 3px 7px);box-shadow:inset 0 1px 3px rgba(0,0,0,.24)}
+.drawer .dlabel{display:flex;align-items:center;gap:10px;font:700 15px/1 var(--fd);letter-spacing:.08em;color:var(--ink)}
+.drawer .chev{width:9px;height:11px;color:var(--acc-deep);transition:transform .12s ease}
+.drawer:hover .chev{transform:translateX(4px)}
+.drawer .dmeta{margin-left:auto;font:500 11px/1 var(--fm);letter-spacing:.12em;color:var(--ink-2)}
+/* ============ state B: loading deck ============ */
+.loadwell{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+.deck{position:relative;width:840px;height:190px;margin-top:-6px}
+.seat{position:absolute;left:150px;bottom:14px;width:470px;height:100px;border:2px dashed var(--edge-2);border-radius:10px;opacity:.7}
+.groove{position:absolute;left:0;bottom:0;width:100%;height:66px;background:linear-gradient(#24221E,#2E2B26);border-radius:9px;border:1px solid #978F7E;box-shadow:inset 0 7px 12px rgba(0,0,0,.65),0 1px 0 rgba(255,255,255,.6)}
+.groove .mouth{position:absolute;left:14px;right:14px;top:26px;height:4px;border-radius:2px;background:#0F0E0C;box-shadow:0 1px 0 rgba(255,255,255,.06)}
+.groove .gsilk{position:absolute;right:18px;bottom:9px;font:600 9px/1 var(--fm);letter-spacing:.3em;color:#8A8578}
+.cart{position:absolute;left:64px;bottom:30px;width:452px;height:98px;background:var(--panel-2);border:1px solid var(--edge);border-radius:10px;display:flex;align-items:center;gap:16px;padding:0 18px 0 12px;box-shadow:0 20px 32px rgba(0,0,0,.4),0 2px 0 rgba(255,255,255,.7) inset;transform:rotate(-.6deg)}
+.cart .reelbox{width:78px;height:58px}
+.cart .reelbox svg{width:32px;height:32px}
+.cart .cname{font:700 18px/1 var(--fd);color:var(--ink)}
+.cart .cmeta{margin-top:7px;font:500 11px/1 var(--fm);color:var(--ink-2);letter-spacing:.06em}
+.loadtitle{display:flex;align-items:baseline;gap:16px}
+.loadtitle .lt{font:700 30px/1 var(--fd);letter-spacing:.02em}
+.loadtitle .lt .pj{color:var(--acc-deep)}
+.prog{display:flex;align-items:center;gap:5px}
+.prog i{width:28px;height:11px;border-radius:2px;background:var(--led-off);box-shadow:inset 0 1px 2px rgba(0,0,0,.5)}
+.prog i.on{background:var(--led-on)}
+.prog i.cur{background:var(--acc)}
+.prog-meta{font:500 11px/1 var(--fm);letter-spacing:.14em;color:var(--ink-2)}
+.steps{align-self:flex-start;margin-left:10px;font:500 13px/2.1 var(--fm);color:var(--ink-2);letter-spacing:.03em}
+.steps .ok{color:var(--ink);font-weight:600}
+.steps .rc{color:var(--acc-deep);font-weight:600}
+/* ============ state C: DAW ============ */
+.panel.daw{display:flex;flex-direction:column}
+.transport{height:78px;flex:none;display:flex;align-items:center;gap:26px;padding:0 34px;border-bottom:1px solid var(--edge)}
+.tp-title small{display:block;margin-top:6px}
+.tp-keys{display:flex;gap:10px;margin-left:16px}
+.key{width:56px;height:38px;display:flex;align-items:center;justify-content:center;font:700 11px/1 var(--fm);letter-spacing:.14em;color:var(--ink);background:linear-gradient(#EFEDE6,#E0DDD4);border:1px solid var(--edge-2);border-radius:8px;box-shadow:0 3px 0 var(--edge-2),inset 0 1px 0 #fff;cursor:pointer;position:relative}
+.key:hover{transform:translateY(1px);box-shadow:0 2px 0 var(--edge-2),inset 0 1px 0 #fff}
+.key.play{color:var(--acc-deep)}
+.key.play:after{content:"";position:absolute;left:12px;right:12px;bottom:5px;height:3px;border-radius:2px;background:var(--acc)}
+.key.rec{color:var(--acc-deep)}
+.key.rec i{width:7px;height:7px;border-radius:50%;background:var(--acc);margin-right:7px}
+.tp-right{margin-left:auto;text-align:right}
+.tp-right .tc{font:600 20px/1 var(--fm);letter-spacing:.06em;color:var(--ink)}
+.dawbody{flex:1;min-height:0;display:flex}
+/* track list */
+.tracks{width:252px;flex:none;border-right:1px solid var(--edge);padding:16px 0}
+.tracks .th{padding:0 22px 12px;display:flex;justify-content:space-between}
+.trk{height:186px;border-bottom:1px dashed var(--line);padding:16px 20px}
+.trk .r1{display:flex;align-items:center;gap:10px}
+.trk .idx{font:600 11px/1 var(--fm);color:var(--ink-2);letter-spacing:.1em}
+.trk .nm{font:700 16px/1 var(--fd);color:var(--ink)}
+.trk .nm i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:9px;vertical-align:1px}
+.trk .en{font:600 10px/1 var(--fm);letter-spacing:.2em;color:var(--ink-2);margin-top:6px;margin-left:2px}
+.ms{margin-left:auto;display:flex;gap:6px}
+.ms b{width:22px;height:20px;display:flex;align-items:center;justify-content:center;font:700 10px/1 var(--fm);color:var(--ink-2);background:linear-gradient(#EFEDE6,#E0DDD4);border:1px solid var(--edge-2);border-radius:5px;box-shadow:0 2px 0 var(--edge-2)}
+.ms b.on{background:var(--acc-deep);color:#fff;border-color:var(--acc-dim)}
+.trk .r2{display:flex;align-items:center;gap:14px;margin-top:16px}
+.trk .knob{width:38px;height:38px}
+.trk .pv{font:500 10px/1 var(--fm);color:var(--ink-2);letter-spacing:.1em}
+.mini{display:flex;gap:3px;margin-left:auto}
+.mini i{width:9px;height:14px;border-radius:1.5px;background:var(--led-off)}
+.mini i.on{background:var(--led-on)}
+.trk .r3{margin-top:14px;display:flex;justify-content:space-between}
+/* timeline */
+.tl{flex:none;width:806px;overflow:hidden;position:relative;background:
+  repeating-linear-gradient(90deg,rgba(0,0,0,.075) 0 1px,transparent 1px 100px),
+  repeating-linear-gradient(90deg,rgba(0,0,0,.028) 0 1px,transparent 1px 25px),
+  linear-gradient(rgba(255,255,255,.32),rgba(255,255,255,.32))}
+.ruler{position:absolute;top:0;left:0;right:0;height:34px;border-bottom:1px solid var(--edge);background:rgba(255,255,255,.5)}
+.ruler span{display:block;float:left;width:100px;height:34px;line-height:34px;text-indent:8px;font:500 11px/34px var(--fm);color:var(--ink-2);border-left:1px solid rgba(0,0,0,.075)}
+.lanes{position:absolute;top:34px;left:0;right:0;bottom:0;padding:14px 0}
+.lane{position:relative;height:168px;margin-bottom:12px}
+.lane:after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:1px;background:var(--line)}
+.clip{position:absolute;top:8px;height:150px;background:#F0ECE3;border:1px solid var(--edge);border-left-width:4px;border-radius:7px;box-shadow:0 3px 8px rgba(0,0,0,.10),inset 0 1px 0 #fff;padding:8px 10px;overflow:hidden;cursor:grab}
+.clip:hover{border-color:var(--edge-2);box-shadow:0 6px 14px rgba(0,0,0,.16),inset 0 1px 0 #fff}
+.clip .ch{display:flex;justify-content:space-between;font:600 10px/1 var(--fm);letter-spacing:.12em;color:var(--ink-2);margin-bottom:5px}
+.clip .ch b{color:var(--ink);font-weight:600}
+.clip svg{width:100%;height:104px;display:block}
+.c-voc{border-left-color:var(--tv-voc)}.c-drm{border-left-color:var(--tv-drm)}.c-bs{border-left-color:var(--tv-bs)}.c-syn{border-left-color:var(--tv-syn)}
+.playhead{position:absolute;top:0;bottom:0;left:420px;width:0;border-left:2px solid var(--acc);z-index:5;pointer-events:none}
+.playhead:before{content:"09.2";position:absolute;top:6px;left:-1px;transform:translateX(-50%);background:var(--acc);color:#fff;font:700 10px/1 var(--fm);letter-spacing:.1em;padding:4px 7px;border-radius:4px}
+.flag{position:absolute;z-index:6;pointer-events:none}
+.flag .fg{width:10px;height:10px;background:var(--acc);border-radius:2px;transform:rotate(45deg);box-shadow:0 0 0 3px rgba(232,72,12,.18)}
+.flag .fl{position:absolute;top:16px;left:-4px;white-space:nowrap;background:#fff;border:1px solid var(--acc);color:var(--acc-deep);font:700 10px/1 var(--fm);letter-spacing:.08em;padding:4px 7px;border-radius:4px}
+/* side console (same machine) */
+.side{width:380px;flex:none;border-left:1px solid var(--edge-2);display:flex;flex-direction:column;background-color:var(--panel);box-shadow:inset 1px 0 0 rgba(255,255,255,.6)}
+.hd.sm{padding:14px 22px 12px;gap:12px}
+.hd.sm .sn{margin-left:auto}
+.hd.sm .brand{font-size:11px;letter-spacing:.18em}
+.hd.sm .brand i{width:9px;height:9px}
+.badge-row.sm{padding:12px 22px 0}
+.msgs{flex:1;min-height:0;padding:18px 22px;display:flex;flex-direction:column;gap:13px;overflow:hidden}
+.vdiv{display:flex;align-items:center;gap:12px;font:500 11px/1 var(--fm);letter-spacing:.12em;color:var(--ink-2)}
+.vdiv:before,.vdiv:after{content:"";flex:1;height:1px;background:var(--edge-2)}
+.sys{border-left:3px solid var(--acc);background:rgba(232,72,12,.06);border-radius:0 8px 8px 0;padding:10px 14px}
+.sys .who{font:600 10px/1 var(--fm);letter-spacing:.18em;color:var(--ink-2);margin-bottom:7px}
+.sys .bd{font:500 14px/1.65 var(--fd);color:var(--ink)}
+.u{align-self:flex-end;max-width:86%;background:#DFDBD2;border-radius:12px 12px 3px 12px;padding:10px 14px;font:500 14px/1.6 var(--fd);color:var(--ink);box-shadow:0 1px 0 rgba(255,255,255,.6) inset}
+.p{align-self:flex-start;max-width:92%}
+.p .who{font:600 10px/1 var(--fm);letter-spacing:.18em;color:var(--ink-2);margin-bottom:6px}
+.p .bd{font:500 14px/1.6 var(--fd);color:var(--ink)}
+.p .bar-chip{display:inline-block;font:600 11px/1 var(--fm);letter-spacing:.1em;color:var(--acc-deep);border:1px solid var(--acc);border-radius:4px;padding:3px 6px;margin:0 2px;vertical-align:1px}
+.meter-h-row{flex:none;display:flex;align-items:center;gap:12px;padding:12px 22px 4px;border-top:1px solid var(--line)}
+.meter-h{display:flex;gap:3px;flex:1;height:13px}
+.meter-h i{flex:1;border-radius:1.5px;background:var(--led-off)}
+.meter-h i.on{background:var(--led-on)}
+.meter-h i.hi{background:var(--acc)}
+.cz.sm{margin:12px 22px 18px}
+.cz.sm .slot{height:54px}
+/* chevron svg */
+.chev{display:inline-block;vertical-align:middle}
+</style>
+</head>
+<body>
+<!-- shared SVG symbols: tape reel + schematic waveforms -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="reel" viewBox="0 0 44 44">
+    <circle cx="22" cy="22" r="19" class="rl"/><circle cx="22" cy="22" r="4.4" class="rc"/>
+    <circle cx="22" cy="11" r="3.4" class="rh"/><circle cx="12.5" cy="27.5" r="3.4" class="rh"/><circle cx="31.5" cy="27.5" r="3.4" class="rh"/>
+  </symbol>
+  <symbol id="wv-v" viewBox="0 0 260 64"><path fill="#9A8F7C" opacity=".75" d="M0 32 16 26 30 8 44 30 58 14 72 28 86 6 100 26 114 16 128 30 142 8 156 26 170 18 184 30 198 12 212 26 226 20 240 30 254 16 260 32 254 48 240 34 226 44 212 38 198 52 184 34 170 46 156 38 142 56 128 34 114 48 100 38 86 58 72 36 58 50 44 34 30 56 16 38 0 32Z"/></symbol>
+  <symbol id="wv-d" viewBox="0 0 260 64"><path fill="#84887A" opacity=".75" d="M0 32 12 20 26 12 40 22 54 12 68 20 82 6 96 20 110 12 124 22 138 12 152 20 166 6 180 22 194 12 208 20 222 12 236 22 250 14 260 32 250 50 236 42 222 52 208 42 194 52 180 42 166 58 152 44 138 52 124 42 110 52 96 42 82 58 68 44 54 52 40 42 26 52 12 44 0 32Z"/></symbol>
+  <symbol id="wv-b" viewBox="0 0 260 64"><path fill="#7E8496" opacity=".75" d="M0 32 24 24 48 10 60 26 96 12 120 26 150 10 180 26 210 12 236 26 260 32 236 38 210 52 180 38 150 54 120 38 96 52 60 38 48 54 24 40 0 32Z"/></symbol>
+  <symbol id="wv-s" viewBox="0 0 260 64"><path fill="#948C99" opacity=".75" d="M0 32 20 24 44 20 68 26 92 18 116 26 140 20 164 26 188 18 212 26 236 20 260 32 236 44 212 38 188 46 164 38 140 44 116 38 92 46 68 38 44 44 20 40 0 32Z"/></symbol>
+</svg>
+
+<main class="stage">
+
+  <!-- ================= STATE A · LAUNCHER ================= -->
+  <section class="col">
+    <header class="tag"><b>A</b><span class="t1">态A · 启动台</span><span class="t2">STATE A — LAUNCHER · PERSISTENT CHAT</span></header>
+    <div class="panel console">
+      <div class="hd">
+        <div class="brand"><i></i>VIT · PARTNER CONSOLE</div>
+        <div class="mid silk">PC-01 — PARTNER LINK / CH-01</div>
+        <div class="sn"><span class="silk">SN 2611-0332 · FW 0.9.4</span><span class="pwr"></span></div>
+      </div>
+      <div class="badge-row">
+        <div class="badge"><span class="dot on"></span>LAUNCHER · <span class="cn">启动台</span></div>
+        <div class="silk">本次会话 · 2026-11-09 · 09:41</div>
+      </div>
+      <div class="cbody">
+        <div class="chat">
+          <div class="msg-tag"><span class="silk">PARTNER · 09:41</span></div>
+          <p class="opening">我在。最近的工程是<span class="pj">《小星星乐局》</span>——<br>想从哪开始？</p>
+          <div class="cards">
+            <div class="tape">
+              <div class="reelbox"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></div>
+              <div class="tape-info">
+                <div class="tape-name">《小星星乐局》</div>
+                <div class="tape-meta">改于 11-08 21:47 · 4 轨 · 有搭档存档</div>
+              </div>
+              <span class="tape-idx">T-01</span>
+              <button class="open-btn">OPEN · 打开<svg class="chev" viewBox="0 0 8 10"><path d="M1 1l6 4-6 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+            </div>
+            <div class="tape">
+              <div class="reelbox"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></div>
+              <div class="tape-info">
+                <div class="tape-name">《回声练习室》</div>
+                <div class="tape-meta">改于 11-02 18:12 · 7 轨</div>
+              </div>
+              <span class="tape-idx">T-02</span>
+              <button class="open-btn">OPEN · 打开<svg class="chev" viewBox="0 0 8 10"><path d="M1 1l6 4-6 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+            </div>
+          </div>
+          <div class="etch">01</div>
+        </div>
+        <aside class="rail">
+          <div>
+            <div class="block-title">PARTNER<span class="state">LISTENING</span></div>
+            <div class="meter-wrap">
+              <div class="meter"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="scale"><span>0</span><span>-3</span><span>-6</span><span>-12</span><span>-24</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="block-title">STATUS</div>
+            <div class="st"><span class="dot on"></span>AGENT<b>READY</b></div>
+            <div class="st"><span class="dot on"></span>KERNEL<b>READY</b></div>
+            <div class="st"><span class="dot"></span>PROJECT<b>无</b></div>
+            <div class="st"><span class="dot"></span>TAPELIB<b>12</b></div>
+          </div>
+          <div class="knob-block">
+            <svg class="knob" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="kb"/><line x1="22" y1="22" x2="22" y2="7" class="kp" transform="rotate(59 22 22)"/></svg>
+            <div class="knob-v">72<small>搭档音量 / VOL</small></div>
+          </div>
+        </aside>
+      </div>
+      <div class="cz">
+        <div class="lab"><span class="silk">TO PARTNER — CH-01</span><span class="silk">ENTER 发送 · SHIFT+ENTER 换行</span></div>
+        <div class="slot">
+          <div class="txt">跟搭档说说今天想做什么…<span class="caret"></span></div>
+          <button class="send">SEND<svg class="chev" viewBox="0 0 8 10"><path d="M1 1l6 4-6 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+        </div>
+      </div>
+      <div class="drawer">
+        <div class="grip"></div>
+        <div class="dlabel">磁带库<svg class="chev" viewBox="0 0 8 10"><path d="M1 1l6 4-6 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+        <div class="dmeta">12 卷 · 最近 2026-11-08</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATE B · LOADING ================= -->
+  <section class="col">
+    <header class="tag"><b>B</b><span class="t1">态B · 进入中</span><span class="t2">STATE B — OPEN SEQUENCE · NON-MODAL</span></header>
+    <div class="panel console">
+      <div class="hd">
+        <div class="brand"><i></i>VIT · PARTNER CONSOLE</div>
+        <div class="mid silk">PC-01 — PARTNER LINK / CH-01</div>
+        <div class="sn"><span class="silk">SN 2611-0332 · FW 0.9.4</span><span class="pwr"></span></div>
+      </div>
+      <div class="badge-row">
+        <div class="badge"><span class="dot on"></span>LAUNCHER · <span class="cn">启动台</span></div>
+        <div class="silk">打开序列 · 09:42:13</div>
+        <span class="chip">→ PROJECT · 切换中</span>
+      </div>
+      <div class="cbody">
+        <div class="loadwell">
+          <div class="deck">
+            <div class="seat"></div>
+            <div class="groove"><div class="mouth"></div><div class="gsilk">DECK A · T-01</div></div>
+            <div class="cart">
+              <div class="reelbox"><svg><use href="#reel"/></svg><svg><use href="#reel"/></svg></div>
+              <div><div class="cname">《小星星乐局》</div><div class="cmeta">T-01 · 4 轨 · 搭档存档随卷载入</div></div>
+            </div>
+          </div>
+          <div class="loadtitle"><span class="lt">LOADING ·<span class="pj">《小星星乐局》</span></span><span class="silk">OPEN PROJECT — 唯一命中</span></div>
+          <div class="prog"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><i></i><i></i></div>
+          <div class="prog-meta">意图匹配 → OPEN 链 → 工程视图拉起 · 0.9s</div>
+          <div class="steps">
+            <div>&gt; 意图 ·「打开小星星」 → 匹配工程 <span class="ok">1/1</span></div>
+            <div>&gt; launcher_directive → open_project · <span class="ok">kernel ok</span></div>
+            <div>&gt; 场景切换 · 消息流与授权随卷迁移 <span class="rc">▍</span></div>
+          </div>
+        </div>
+        <aside class="rail">
+          <div>
+            <div class="block-title">PARTNER<span class="state">WORKING</span></div>
+            <div class="meter-wrap">
+              <div class="meter"><i class="hi"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+              <div class="scale"><span>0</span><span>-3</span><span>-6</span><span>-12</span><span>-24</span></div>
+            </div>
+          </div>
+          <div>
+            <div class="block-title">STATUS</div>
+            <div class="st"><span class="dot on"></span>AGENT<b>BUSY</b></div>
+            <div class="st"><span class="dot on"></span>KERNEL<b>OPENING</b></div>
+            <div class="st"><span class="dot"></span>TAPELIB<b>12</b></div>
+          </div>
+          <div class="knob-block">
+            <svg class="knob" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="kb"/><line x1="22" y1="22" x2="22" y2="7" class="kp" transform="rotate(59 22 22)"/></svg>
+            <div class="knob-v">72<small>搭档音量 / VOL</small></div>
+          </div>
+        </aside>
+      </div>
+      <div class="cz">
+        <div class="lab"><span class="silk">TO PARTNER — CH-01 · HOLD</span><span class="silk">进入工程中</span></div>
+        <div class="slot hold">
+          <div class="txt">进入工程中——对话稍候，消息流不中断…</div>
+          <button class="send">SEND<svg class="chev" viewBox="0 0 8 10"><path d="M1 1l6 4-6 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+        </div>
+      </div>
+      <div class="drawer">
+        <div class="grip"></div>
+        <div class="dlabel">磁带库<svg class="chev" viewBox="0 0 8 10"><path d="M1 1l6 4-6 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></div>
+        <div class="dmeta">12 卷 · 最近 2026-11-08</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= STATE C · IN PROJECT ================= -->
+  <section class="col">
+    <header class="tag"><b>C</b><span class="t1">态C · 工程内</span><span class="t2">STATE C — PROJECT · SAME CONSOLE, SIDE-MOUNTED</span></header>
+    <div class="panel daw">
+      <div class="transport">
+        <div class="tp-title"><span style="font:700 17px/1 var(--fd)">小星星乐局</span><small class="silk">92 BPM · 4/4 · 44.1 kHz</small></div>
+        <div class="tp-keys">
+          <button class="key">RWD</button><button class="key play">PLAY</button><button class="key">STOP</button><button class="key rec"><i></i>REC</button>
+        </div>
+        <div class="tp-right"><div class="tc">BAR 09.2 · 02:41.3</div><small class="silk" style="margin-top:6px;display:block">LOOP 4 BARS · SNAP 1/4</small></div>
+      </div>
+      <div class="dawbody">
+        <div class="tracks">
+          <div class="th"><span class="silk">TRACKS</span><span class="silk">04</span></div>
+          <div class="trk">
+            <div class="r1"><span class="idx">01</span><span class="nm"><i style="background:var(--tv-voc)"></i>人声</span><div class="ms"><b>M</b><b>S</b></div></div>
+            <div class="en">VOCAL · 主唱</div>
+            <div class="r2"><svg class="knob" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="kb"/><line x1="22" y1="22" x2="22" y2="7" class="kp" transform="rotate(15 22 22)"/></svg><span class="pv">PAN L12</span><div class="mini"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div>
+            <div class="r3"><span class="silk">IN 1 · -6.2 dB</span><span class="silk">CLIP 2</span></div>
+          </div>
+          <div class="trk">
+            <div class="r1"><span class="idx">02</span><span class="nm"><i style="background:var(--tv-drm)"></i>鼓组</span><div class="ms"><b>M</b><b>S</b></div></div>
+            <div class="en">DRUMS · 全长</div>
+            <div class="r2"><svg class="knob" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="kb"/><line x1="22" y1="22" x2="22" y2="7" class="kp" transform="rotate(0 22 22)"/></svg><span class="pv">PAN C</span><div class="mini"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div></div>
+            <div class="r3"><span class="silk">IN 3-4 · -8.8 dB</span><span class="silk">CLIP 1</span></div>
+          </div>
+          <div class="trk">
+            <div class="r1"><span class="idx">03</span><span class="nm"><i style="background:var(--tv-bs)"></i>贝斯</span><div class="ms"><b>M</b><b class="on">S</b></div></div>
+            <div class="en">BASS · 错音检查中</div>
+            <div class="r2"><svg class="knob" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="kb"/><line x1="22" y1="22" x2="22" y2="7" class="kp" transform="rotate(-8 22 22)"/></svg><span class="pv">PAN R4</span><div class="mini"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div></div>
+            <div class="r3"><span class="silk">IN 5 · -9.4 dB</span><span class="silk" style="color:var(--acc-deep)">MARK 1</span></div>
+          </div>
+          <div class="trk">
+            <div class="r1"><span class="idx">04</span><span class="nm"><i style="background:var(--tv-syn)"></i>合成器</span><div class="ms"><b>M</b><b>S</b></div></div>
+            <div class="en">SYNTH · PAD / ARP</div>
+            <div class="r2"><svg class="knob" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" class="kb"/><line x1="22" y1="22" x2="22" y2="7" class="kp" transform="rotate(28 22 22)"/></svg><span class="pv">PAN L6</span><div class="mini"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div></div>
+            <div class="r3"><span class="silk">IN 7-8 · -12.1 dB</span><span class="silk">CLIP 2</span></div>
+          </div>
+        </div>
+        <div class="tl">
+          <div class="ruler"><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span></div>
+          <div class="lanes">
+            <div class="lane">
+              <div class="clip c-voc" style="left:0;width:150px"><div class="ch"><b>主唱 A</b><span>2.4s</span></div><svg preserveAspectRatio="none"><use href="#wv-v"/></svg></div>
+              <div class="clip c-voc" style="left:300px;width:400px"><div class="ch"><b>主唱 B</b><span>6.5s</span></div><svg preserveAspectRatio="none"><use href="#wv-v"/></svg></div>
+            </div>
+            <div class="lane">
+              <div class="clip c-drm" style="left:0;width:800px"><div class="ch"><b>鼓组 · 全长</b><span>LOOP 4</span></div><svg preserveAspectRatio="none"><use href="#wv-d"/></svg></div>
+            </div>
+            <div class="lane">
+              <div class="clip c-bs" style="left:100px;width:700px"><div class="ch"><b>贝斯线</b><span>11.2s</span></div><svg preserveAspectRatio="none"><use href="#wv-b"/></svg></div>
+              <div class="flag" style="left:391px;top:2px"><div class="fg"></div><div class="fl">♭ −1 · BAR 9</div></div>
+            </div>
+            <div class="lane">
+              <div class="clip c-syn" style="left:0;width:200px"><div class="ch"><b>PAD</b><span>3.1s</span></div><svg preserveAspectRatio="none"><use href="#wv-s"/></svg></div>
+              <div class="clip c-syn" style="left:450px;width:350px"><div class="ch"><b>ARP</b><span>5.6s</span></div><svg preserveAspectRatio="none"><use href="#wv-s"/></svg></div>
+            </div>
+            <div class="playhead"></div>
+          </div>
+        </div>
+        <aside class="side">
+        <div class="hd sm">
+          <div class="brand"><i></i>VIT · PARTNER CONSOLE</div>
+          <div class="sn"><span class="silk">PC-01 · SN 0332</span><span class="pwr"></span></div>
+        </div>
+        <div class="badge-row sm">
+          <div class="badge"><span class="dot on"></span>PROJECT · <span class="cn">小星星乐局</span></div>
+          <div class="silk">09:44</div>
+        </div>
+        <div class="msgs">
+          <div class="vdiv">进入工程 · 《小星星乐局》</div>
+          <div class="sys">
+            <div class="who">PARTNER · 09:42 · 桥接播报</div>
+            <div class="bd">已进入《小星星乐局》。接着上局：找错音（3/7）——继续或问我都行。</div>
+          </div>
+          <div class="u">继续。第 4 个错音在哪？</div>
+          <div class="p">
+            <div class="who">PARTNER · 09:44</div>
+            <div class="bd"><span class="bar-chip">BAR 9</span>贝斯低了半音——我在时间线上做了标记，点标记可跳播对照。</div>
+          </div>
+        </div>
+        <div class="meter-h-row">
+          <span class="silk" style="letter-spacing:.14em">PARTNER</span>
+          <div class="meter-h"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i class="hi"></i><i></i></div>
+          <span class="silk" style="color:var(--acc-deep)">ACTIVE</span>
+        </div>
+        <div class="cz sm">
+          <div class="slot">
+            <div class="txt">跟搭档说说下一步…<span class="caret"></span></div>
+            <button class="send">SEND<svg class="chev" viewBox="0 0 8 10"><path d="M1 1l6 4-6 4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></button>
+          </div>
+        </div>
+      </aside>
+      </div>
+    </div>
+  </section>
+
+</main>
+</body>
+</html>

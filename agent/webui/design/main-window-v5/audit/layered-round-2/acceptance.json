@@ -1,0 +1,1519 @@
+{
+  "round": "round-2",
+  "colorStudy": false,
+  "viewport": [
+    1440,
+    900
+  ],
+  "files": {
+    "layered": {
+      "minFont": 13,
+      "minContrast": 5.313,
+      "contrastFailures": [],
+      "contrasts": [
+        {
+          "text": "鼓组混音 v2",
+          "ratio": 13.406,
+          "size": 14,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "已保存",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "文件",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "编辑",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "轨道",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "视图",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "0009 : 01 : 000",
+          "ratio": 13.406,
+          "size": 22,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "96.0BPM　　4/4",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "96.0",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "轨道",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "底鼓",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "军鼓",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "闭镲",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "头顶麦",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "房间麦",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "静音",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "独奏",
+          "ratio": 7.229,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "其余 8 条轨道",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "1",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "5",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "9",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "13",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "17",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "21",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "25",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "29",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 7.541,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            14.4,
+            14.4,
+            14.4
+          ]
+        },
+        {
+          "text": "底鼓",
+          "ratio": 7.541,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            14.4,
+            14.4,
+            14.4
+          ]
+        },
+        {
+          "text": "军鼓",
+          "ratio": 7.541,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            14.4,
+            14.4,
+            14.4
+          ]
+        },
+        {
+          "text": "闭镲",
+          "ratio": 7.541,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            14.4,
+            14.4,
+            14.4
+          ]
+        },
+        {
+          "text": "头顶麦",
+          "ratio": 7.541,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            14.4,
+            14.4,
+            14.4
+          ]
+        },
+        {
+          "text": "房间麦",
+          "ratio": 7.541,
+          "size": 13,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            14.4,
+            14.4,
+            14.4
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "总线均衡",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "已启用",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "磁带饱和",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "温暖",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "染色压缩",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "已启用",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "房间混响",
+          "ratio": 13.406,
+          "size": 16,
+          "foreground": [
+            219.6,
+            219.6,
+            219.6
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "发送",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "6 条轨道已选中",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "循环区间 9–17 小节",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "48 kHz / 24 位",
+          "ratio": 7.229,
+          "size": 14,
+          "foreground": [
+            162,
+            162,
+            162
+          ],
+          "background": [
+            19.8,
+            19.8,
+            19.8
+          ]
+        },
+        {
+          "text": "鼓组混音 v2",
+          "ratio": 18.423,
+          "size": 16,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "新建工程",
+          "ratio": 16.022,
+          "size": 13,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            239,
+            239,
+            239
+          ]
+        },
+        {
+          "text": "打开文件夹",
+          "ratio": 16.022,
+          "size": 13,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            239,
+            239,
+            239
+          ]
+        },
+        {
+          "text": "鼓组总线",
+          "ratio": 16.337,
+          "size": 16,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            236,
+            242,
+            248
+          ]
+        },
+        {
+          "text": "6 条轨道",
+          "ratio": 6.898,
+          "size": 14,
+          "foreground": [
+            85,
+            85,
+            85
+          ],
+          "background": [
+            246,
+            246,
+            246
+          ]
+        },
+        {
+          "text": "引用轨道",
+          "ratio": 17.047,
+          "size": 14,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            246,
+            246,
+            246
+          ]
+        },
+        {
+          "text": "让鼓组暖一点，保留底鼓的冲击。",
+          "ratio": 18.423,
+          "size": 16,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "我保留了底鼓的起音，让高频更柔和。试试「温暖」。",
+          "ratio": 18.423,
+          "size": 16,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "鼓组总线 · 染色",
+          "ratio": 7.615,
+          "size": 18,
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            49,
+            86,
+            125
+          ]
+        },
+        {
+          "text": "已应用 · 可撤销",
+          "ratio": 6.923,
+          "size": 14,
+          "foreground": [
+            244,
+            244,
+            244
+          ],
+          "background": [
+            49,
+            86,
+            125
+          ]
+        },
+        {
+          "text": "温暖",
+          "ratio": 14.852,
+          "size": 22,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            246,
+            231,
+            170
+          ]
+        },
+        {
+          "text": "高频柔和，鼓声更厚",
+          "ratio": 6.708,
+          "size": 14,
+          "foreground": [
+            78,
+            78,
+            78
+          ],
+          "background": [
+            246,
+            231,
+            170
+          ]
+        },
+        {
+          "text": "明亮",
+          "ratio": 18.423,
+          "size": 22,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "镲片清晰，空气更足",
+          "ratio": 8.321,
+          "size": 14,
+          "foreground": [
+            78,
+            78,
+            78
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "紧实",
+          "ratio": 18.423,
+          "size": 22,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "低频收紧，起音集中",
+          "ratio": 8.321,
+          "size": 14,
+          "foreground": [
+            78,
+            78,
+            78
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "应用",
+          "ratio": 18.423,
+          "size": 16,
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            20,
+            20,
+            20
+          ]
+        },
+        {
+          "text": "存为我的快照",
+          "ratio": 16.337,
+          "size": 14,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            236,
+            242,
+            248
+          ]
+        },
+        {
+          "text": "已保存快照 14:07 ·",
+          "ratio": 7.455,
+          "size": 14,
+          "foreground": [
+            85,
+            85,
+            85
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "14:07",
+          "ratio": 7.455,
+          "size": 13,
+          "foreground": [
+            85,
+            85,
+            85
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "撤销",
+          "ratio": 18.423,
+          "size": 16,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "已读取鼓组总线",
+          "ratio": 7.455,
+          "size": 14,
+          "foreground": [
+            85,
+            85,
+            85
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "0.2 秒",
+          "ratio": 7.455,
+          "size": 13,
+          "foreground": [
+            85,
+            85,
+            85
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "已应用「温暖」",
+          "ratio": 7.455,
+          "size": 14,
+          "foreground": [
+            85,
+            85,
+            85
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "0.4 秒",
+          "ratio": 7.455,
+          "size": 13,
+          "foreground": [
+            85,
+            85,
+            85
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "正在渲染对比 A/B",
+          "ratio": 18.423,
+          "size": 14,
+          "foreground": [
+            20,
+            20,
+            20
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "对比 A/B",
+          "ratio": 5.313,
+          "size": 16,
+          "foreground": [
+            102,
+            102,
+            102
+          ],
+          "background": [
+            246,
+            246,
+            246
+          ]
+        },
+        {
+          "text": "准备好后可对比",
+          "ratio": 5.742,
+          "size": 13,
+          "foreground": [
+            102,
+            102,
+            102
+          ],
+          "background": [
+            255,
+            255,
+            255
+          ]
+        },
+        {
+          "text": "停止",
+          "ratio": 18.423,
+          "size": 16,
+          "foreground": [
+            255,
+            255,
+            255
+          ],
+          "background": [
+            20,
+            20,
+            20
+          ]
+        }
+      ],
+      "clipping": [],
+      "symbols": [
+        "i-new",
+        "i-open",
+        "i-minimize",
+        "i-send",
+        "i-stop",
+        "i-track",
+        "i-bus",
+        "i-fx",
+        "i-macro",
+        "i-ab",
+        "i-play",
+        "i-record",
+        "i-render",
+        "i-undo",
+        "i-snapshot",
+        "i-attach",
+        "i-idle",
+        "i-busy",
+        "i-done",
+        "i-alert",
+        "i-vit"
+      ],
+      "missingIcons": [],
+      "statusBlocks": [
+        {
+          "state": "red",
+          "meaning": "录音"
+        },
+        {
+          "state": "yellow",
+          "meaning": "正在渲染对比 A/B"
+        }
+      ],
+      "spatialBlocks": [],
+      "contentAnnotations": [
+        {
+          "level": "safe",
+          "text": "已应用 · 可撤销"
+        }
+      ],
+      "sections": [],
+      "tokenContrasts": null,
+      "windowRatio": 0.6,
+      "dialogFont": [
+        "16px",
+        "16px"
+      ],
+      "radii": [
+        {
+          "tag": "BUTTON",
+          "cls": "record",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "busy-dot",
+          "radius": "50%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "minimize",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "rail-action",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "rail-action",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "context-target",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "level-dot",
+          "radius": "50%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "macro-option tone-warm",
+          "radius": "4px"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "selection-lamp",
+          "radius": "50%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "macro-option tone-bright",
+          "radius": "4px"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "selection-lamp",
+          "radius": "50%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "macro-option tone-tight",
+          "radius": "4px"
+        },
+        {
+          "tag": "SPAN",
+          "cls": "selection-lamp",
+          "radius": "50%"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "text-button",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "FORM",
+          "cls": "composer",
+          "radius": "4px"
+        },
+        {
+          "tag": "TEXTAREA",
+          "cls": "",
+          "radius": "4px"
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary",
+          "radius": "4px"
+        }
+      ],
+      "heavyBorders": [],
+      "forbiddenWords": [],
+      "neutralPixelFraction": 0.956343,
+      "windowColorPixelFraction": 0.073226,
+      "quietReadingSurface": true,
+      "attentionLabelSeparate": true,
+      "controlBoundaries": {
+        "colouredTypography": [],
+        "colouredSurfaces": [],
+        "colouredControlSurfaces": [
+          ".context-target",
+          ".macro-card",
+          ".macro-actions",
+          ".macro-option:nth-child(1)"
+        ],
+        "controlSurfaceColours": [
+          {
+            "selector": ".context-target",
+            "background": "rgb(236, 242, 248)",
+            "border": "rgb(62, 91, 124)"
+          },
+          {
+            "selector": ".macro-card",
+            "background": "rgb(208, 223, 239)",
+            "border": "rgb(62, 91, 124)"
+          },
+          {
+            "selector": ".macro-actions",
+            "background": "rgb(236, 242, 248)",
+            "border": "rgb(158, 180, 204)"
+          },
+          {
+            "selector": ".macro-option:nth-child(1)",
+            "background": "rgb(246, 231, 170)",
+            "border": "rgb(20, 20, 20)"
+          },
+          {
+            "selector": ".macro-option:nth-child(2)",
+            "background": "rgb(255, 255, 255)",
+            "border": "rgb(135, 150, 168)"
+          },
+          {
+            "selector": ".macro-option:nth-child(3)",
+            "background": "rgb(255, 255, 255)",
+            "border": "rgb(135, 150, 168)"
+          }
+        ],
+        "selectedBorder": "2px",
+        "componentBorder": "1px",
+        "displayCount": 3,
+        "curveColours": [
+          "rgb(219, 81, 70)",
+          "rgb(250, 204, 26)",
+          "rgb(115, 184, 245)"
+        ],
+        "graphicContrast": [
+          4.023,
+          10.457,
+          7.55
+        ],
+        "composerGap": 13.15625
+      },
+      "reducedMotionAnimations": 0,
+      "tapeExact": true,
+      "anchoredTokensExact": true,
+      "svgInstances": 28,
+      "externalReferences": [],
+      "sha256": "91193e514ba731e61411540cd1cc3fec8ba878d81bf3dbacd75bcea6205e2e22",
+      "pageErrors": [],
+      "externalRequests": []
+    }
+  },
+  "errors": [
+    "layered study: neutral shell/text, coloured controls, readability or spacing failed"
+  ],
+  "authorizedRuleChange": "User clarified that whole controls may have coloured backgrounds, borders, or content. This study keeps the app shell and typography neutral and gives the target and macro component coloured surfaces, nested boundaries, and restrained relief.",
+  "sharedSpriteExact": true,
+  "sharedTokensExact": true
+}

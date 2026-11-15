@@ -1,0 +1,1008 @@
+{
+  "run": "round-2",
+  "viewport": [
+    1440,
+    900
+  ],
+  "variants": {
+    "baseline": {
+      "minFont": 13,
+      "minContrast": 5.313,
+      "contrastFailures": [],
+      "clipped": [],
+      "controlOverflow": [],
+      "graphicOverflow": 0,
+      "contrast": [
+        {
+          "text": "鼓组混音 v2",
+          "size": 14,
+          "ratio": 13.406
+        },
+        {
+          "text": "已保存",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "文件",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "编辑",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "轨道",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "视图",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "0009 : 01 : 000",
+          "size": 22,
+          "ratio": 13.406
+        },
+        {
+          "text": "96.0BPM　　4/4",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "96.0",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "轨道",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "鼓组总线",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "底鼓",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "军鼓",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "闭镲",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "头顶麦",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "房间麦",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "其余 8 条轨道",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "1",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "5",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "9",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "13",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "17",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "21",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "25",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "29",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "鼓组总线",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "底鼓",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "军鼓",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "闭镲",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "头顶麦",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "房间麦",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "鼓组总线",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "总线均衡",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "已启用",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "磁带饱和",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "温暖",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "染色压缩",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "已启用",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "房间混响",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "发送",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "6 条轨道已选中",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "循环区间 9–17 小节",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "48 kHz / 24 位",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "鼓组混音 v2",
+          "size": 16,
+          "ratio": 18.423
+        },
+        {
+          "text": "新建工程",
+          "size": 13,
+          "ratio": 16.022
+        },
+        {
+          "text": "打开文件夹",
+          "size": 13,
+          "ratio": 16.022
+        },
+        {
+          "text": "鼓组总线",
+          "size": 16,
+          "ratio": 16.337
+        },
+        {
+          "text": "6 条轨道",
+          "size": 14,
+          "ratio": 6.898
+        },
+        {
+          "text": "引用轨道",
+          "size": 14,
+          "ratio": 17.047
+        },
+        {
+          "text": "让鼓组暖一点，保留底鼓的冲击。",
+          "size": 16,
+          "ratio": 18.423
+        },
+        {
+          "text": "我保留了底鼓的起音，让高频更柔和。试试「温暖」。",
+          "size": 16,
+          "ratio": 18.423
+        },
+        {
+          "text": "鼓组总线 · 染色",
+          "size": 18,
+          "ratio": 7.615
+        },
+        {
+          "text": "已应用 · 可撤销",
+          "size": 14,
+          "ratio": 6.923
+        },
+        {
+          "text": "温暖",
+          "size": 22,
+          "ratio": 14.852
+        },
+        {
+          "text": "高频柔和，鼓声更厚",
+          "size": 14,
+          "ratio": 6.708
+        },
+        {
+          "text": "明亮",
+          "size": 22,
+          "ratio": 18.423
+        },
+        {
+          "text": "镲片清晰，空气更足",
+          "size": 14,
+          "ratio": 8.321
+        },
+        {
+          "text": "紧实",
+          "size": 22,
+          "ratio": 18.423
+        },
+        {
+          "text": "低频收紧，起音集中",
+          "size": 14,
+          "ratio": 8.321
+        },
+        {
+          "text": "应用",
+          "size": 16,
+          "ratio": 18.423
+        },
+        {
+          "text": "存为我的快照",
+          "size": 14,
+          "ratio": 16.337
+        },
+        {
+          "text": "已保存快照 14:07 ·",
+          "size": 14,
+          "ratio": 7.455
+        },
+        {
+          "text": "14:07",
+          "size": 13,
+          "ratio": 7.455
+        },
+        {
+          "text": "撤销",
+          "size": 16,
+          "ratio": 18.423
+        },
+        {
+          "text": "已读取鼓组总线",
+          "size": 14,
+          "ratio": 7.455
+        },
+        {
+          "text": "0.2 秒",
+          "size": 13,
+          "ratio": 7.455
+        },
+        {
+          "text": "已应用「温暖」",
+          "size": 14,
+          "ratio": 7.455
+        },
+        {
+          "text": "0.4 秒",
+          "size": 13,
+          "ratio": 7.455
+        },
+        {
+          "text": "正在渲染对比 A/B",
+          "size": 14,
+          "ratio": 18.423
+        },
+        {
+          "text": "对比 A/B",
+          "size": 16,
+          "ratio": 5.313
+        },
+        {
+          "text": "准备好后可对比",
+          "size": 13,
+          "ratio": 5.742
+        },
+        {
+          "text": "停止",
+          "size": 16,
+          "ratio": 18.423
+        }
+      ],
+      "macroVisualizations": [
+        "frequency"
+      ],
+      "macroOptions": 3,
+      "macroRedCurves": 0,
+      "screenDimensions": {
+        "width": 1440,
+        "height": 900
+      },
+      "uiTextColours": [
+        "rgb(20, 20, 20)",
+        "rgb(85, 85, 85)",
+        "rgb(255, 255, 255)",
+        "rgb(244, 244, 244)",
+        "rgb(78, 78, 78)",
+        "rgb(102, 102, 102)"
+      ],
+      "depthStyles": [
+        {
+          "selector": ".vit-window",
+          "border": "2px rgb(20, 20, 20)",
+          "shadow": "rgba(9, 11, 14, 0.18) 0px 12px 32px 0px, rgba(9, 11, 14, 0.22) 0px 32px 80px 0px",
+          "background": "rgb(255, 255, 255)",
+          "radius": "0px"
+        },
+        {
+          "selector": ".macro-card",
+          "border": "1px rgb(62, 91, 124)",
+          "shadow": "rgb(245, 249, 255) 0px 1px 0px 0px inset, rgb(159, 182, 209) 0px -3px 0px 0px inset, rgba(0, 0, 0, 0.1) 0px 2px 4px 0px",
+          "background": "rgb(208, 223, 239)",
+          "radius": "0px"
+        },
+        {
+          "selector": ".macro-options",
+          "border": "1px rgb(140, 164, 191)",
+          "shadow": "rgba(29, 44, 65, 0.1) 0px 1px 2px 0px inset",
+          "background": "rgb(189, 206, 225)",
+          "radius": "0px"
+        },
+        {
+          "selector": ".macro-option[aria-checked=true]",
+          "border": "2px rgb(20, 20, 20)",
+          "shadow": "rgb(255, 247, 213) 0px 1px 0px 0px inset, rgb(215, 196, 126) 0px -2px 0px 0px inset",
+          "background": "rgb(246, 231, 170)",
+          "radius": "4px"
+        },
+        {
+          "selector": ".macro-option[aria-checked=false]",
+          "border": "1px rgb(135, 150, 168)",
+          "shadow": "rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.08) 0px 1px 1px 0px",
+          "background": "rgb(255, 255, 255)",
+          "radius": "4px"
+        },
+        {
+          "selector": ".contour",
+          "border": "1px rgb(16, 19, 24)",
+          "shadow": "rgba(0, 0, 0, 0.4) 0px 1px 3px 0px inset",
+          "background": "rgb(29, 34, 40)",
+          "radius": "0px"
+        }
+      ],
+      "composerGap": 34.15625,
+      "symbolsMissing": [],
+      "pageErrors": [],
+      "network": [],
+      "tapeExact": true,
+      "sha256": "38fb036f571f4833d5fa7c23c950919ce5fb85b67dc2bbda137f9de99d218870",
+      "selectionWorks": true,
+      "animationsUnderReducedMotion": 0
+    },
+    "depth": {
+      "minFont": 13,
+      "minContrast": 5.077,
+      "contrastFailures": [],
+      "clipped": [],
+      "controlOverflow": [],
+      "graphicOverflow": 0,
+      "contrast": [
+        {
+          "text": "鼓组混音 v2",
+          "size": 14,
+          "ratio": 13.406
+        },
+        {
+          "text": "已保存",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "文件",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "编辑",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "轨道",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "视图",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "0009 : 01 : 000",
+          "size": 22,
+          "ratio": 13.406
+        },
+        {
+          "text": "96.0BPM　　4/4",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "96.0",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "轨道",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "鼓组总线",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "底鼓",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "军鼓",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "闭镲",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "头顶麦",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "房间麦",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "静音",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "独奏",
+          "size": 13,
+          "ratio": 7.229
+        },
+        {
+          "text": "其余 8 条轨道",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "1",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "5",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "9",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "13",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "17",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "21",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "25",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "29",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "鼓组总线",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "底鼓",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "军鼓",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "闭镲",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "头顶麦",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "房间麦",
+          "size": 13,
+          "ratio": 7.541
+        },
+        {
+          "text": "鼓组总线",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "总线均衡",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "已启用",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "磁带饱和",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "温暖",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "染色压缩",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "已启用",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "房间混响",
+          "size": 16,
+          "ratio": 13.406
+        },
+        {
+          "text": "发送",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "6 条轨道已选中",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "循环区间 9–17 小节",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "48 kHz / 24 位",
+          "size": 14,
+          "ratio": 7.229
+        },
+        {
+          "text": "鼓组混音 v2",
+          "size": 16,
+          "ratio": 18.423
+        },
+        {
+          "text": "新建工程",
+          "size": 13,
+          "ratio": 15.536
+        },
+        {
+          "text": "打开文件夹",
+          "size": 13,
+          "ratio": 15.536
+        },
+        {
+          "text": "鼓组总线",
+          "size": 16,
+          "ratio": 16.337
+        },
+        {
+          "text": "6 条轨道",
+          "size": 14,
+          "ratio": 7.196
+        },
+        {
+          "text": "引用轨道",
+          "size": 14,
+          "ratio": 17.782
+        },
+        {
+          "text": "让鼓组暖一点，保留底鼓的冲击。",
+          "size": 16,
+          "ratio": 16.29
+        },
+        {
+          "text": "我保留了底鼓的起音，让高频更柔和。试试「温暖」。",
+          "size": 16,
+          "ratio": 16.29
+        },
+        {
+          "text": "鼓组总线 · 染色",
+          "size": 18,
+          "ratio": 7.615
+        },
+        {
+          "text": "已应用 · 可撤销",
+          "size": 14,
+          "ratio": 6.923
+        },
+        {
+          "text": "温暖",
+          "size": 22,
+          "ratio": 14.852
+        },
+        {
+          "text": "高频柔和，鼓声更厚",
+          "size": 14,
+          "ratio": 6.708
+        },
+        {
+          "text": "明亮",
+          "size": 22,
+          "ratio": 18.423
+        },
+        {
+          "text": "镲片清晰，空气更足",
+          "size": 14,
+          "ratio": 8.321
+        },
+        {
+          "text": "紧实",
+          "size": 22,
+          "ratio": 18.423
+        },
+        {
+          "text": "低频收紧，起音集中",
+          "size": 14,
+          "ratio": 8.321
+        },
+        {
+          "text": "应用",
+          "size": 16,
+          "ratio": 18.423
+        },
+        {
+          "text": "存为我的快照",
+          "size": 14,
+          "ratio": 16.483
+        },
+        {
+          "text": "已保存快照 14:07 ·",
+          "size": 14,
+          "ratio": 6.592
+        },
+        {
+          "text": "14:07",
+          "size": 13,
+          "ratio": 6.592
+        },
+        {
+          "text": "撤销",
+          "size": 16,
+          "ratio": 16.29
+        },
+        {
+          "text": "已读取鼓组总线",
+          "size": 14,
+          "ratio": 6.592
+        },
+        {
+          "text": "0.2 秒",
+          "size": 13,
+          "ratio": 6.592
+        },
+        {
+          "text": "已应用「温暖」",
+          "size": 14,
+          "ratio": 6.592
+        },
+        {
+          "text": "0.4 秒",
+          "size": 13,
+          "ratio": 6.592
+        },
+        {
+          "text": "正在渲染对比 A/B",
+          "size": 14,
+          "ratio": 16.29
+        },
+        {
+          "text": "对比 A/B",
+          "size": 16,
+          "ratio": 5.313
+        },
+        {
+          "text": "准备好后可对比",
+          "size": 13,
+          "ratio": 5.077
+        },
+        {
+          "text": "停止",
+          "size": 16,
+          "ratio": 18.423
+        }
+      ],
+      "macroVisualizations": [
+        "frequency"
+      ],
+      "macroOptions": 3,
+      "macroRedCurves": 0,
+      "screenDimensions": {
+        "width": 1440,
+        "height": 900
+      },
+      "uiTextColours": [
+        "rgb(20, 20, 20)",
+        "rgb(85, 85, 85)",
+        "rgb(255, 255, 255)",
+        "rgb(244, 244, 244)",
+        "rgb(78, 78, 78)",
+        "rgb(102, 102, 102)"
+      ],
+      "depthStyles": [
+        {
+          "selector": ".vit-window",
+          "border": "1px rgb(91, 98, 106)",
+          "shadow": "rgba(0, 0, 0, 0.28) 0px 2px 4px 0px, rgba(0, 0, 0, 0.28) 0px 18px 48px 0px, rgba(0, 0, 0, 0.18) 0px 48px 96px 0px",
+          "background": "rgb(255, 255, 255)",
+          "radius": "0px"
+        },
+        {
+          "selector": ".macro-card",
+          "border": "0px rgb(20, 20, 20)",
+          "shadow": "rgba(0, 0, 0, 0.18) 0px 1px 2px 0px, rgba(21, 36, 54, 0.12) 0px 6px 16px 0px",
+          "background": "rgb(212, 225, 239)",
+          "radius": "0px"
+        },
+        {
+          "selector": ".macro-options",
+          "border": "0px rgb(20, 20, 20)",
+          "shadow": "rgba(29, 44, 65, 0.16) 0px 2px 4px 0px inset, rgba(255, 255, 255, 0.7) 0px 1px 0px 0px",
+          "background": "rgb(189, 205, 223)",
+          "radius": "0px"
+        },
+        {
+          "selector": ".macro-option[aria-checked=true]",
+          "border": "2px rgb(37, 37, 37)",
+          "shadow": "rgb(255, 248, 216) 0px 1px 0px 0px inset, rgb(215, 196, 126) 0px -2px 0px 0px inset, rgba(0, 0, 0, 0.1) 0px 1px 2px 0px",
+          "background": "rgb(246, 231, 170)",
+          "radius": "4px"
+        },
+        {
+          "selector": ".macro-option[aria-checked=false]",
+          "border": "1px rgb(155, 168, 183)",
+          "shadow": "rgb(255, 255, 255) 0px 1px 0px 0px inset, rgba(0, 0, 0, 0.12) 0px 1px 2px 0px, rgba(29, 44, 65, 0.1) 0px 4px 8px 0px",
+          "background": "rgb(255, 255, 255)",
+          "radius": "4px"
+        },
+        {
+          "selector": ".contour",
+          "border": "0px rgb(20, 20, 20)",
+          "shadow": "rgba(0, 0, 0, 0.55) 0px 2px 4px 0px inset, rgba(255, 255, 255, 0.8) 0px 1px 0px 0px",
+          "background": "rgb(29, 34, 40)",
+          "radius": "0px"
+        }
+      ],
+      "composerGap": 28.15625,
+      "symbolsMissing": [],
+      "pageErrors": [],
+      "network": [],
+      "tapeExact": true,
+      "sha256": "37cf9295e94422ea361d3985ef72570bd7c01f7159961d146a8e84e4ffcb821e",
+      "selectionWorks": true,
+      "animationsUnderReducedMotion": 0
+    }
+  },
+  "errors": []
+}

@@ -25,8 +25,20 @@ import {
 } from "./edit";
 import { GRID_PER_BEAT, serializeModel, type ScoreModel } from "./model";
 import { hitTest, renderScoreInto, type RenderResult } from "./render";
-import { createNoKernelBridge, type ScoreClipSnapshot, type ScoreKernelBridge } from "./kernel";
+import { cursorPosition, playheadClipBeats } from "./cursor";
+import { createNoKernelBridge, type ScoreClipSnapshot, type ScoreKernelBridgeFactory } from "./kernel";
+import { fetchUIState } from "../lib/api";
+import type { JsonRecord } from "../types";
 import "./scoreworkbench.css";
+
+function firstFinite(...values: unknown[]): number | null {
+  for (const value of values) {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+  return null;
+}
 
 export type ScoreDuration = 1 | 2 | 3 | 4;
 
@@ -50,16 +62,25 @@ const PITCH_OPTIONS = [
 
 type Selection = { kernelId: string; tick: number } | null;
 
+export type ClipOption = { clipID: string; trackID: string; label: string };
+
 export function ScoreWorkbenchPanel({
   initialModel,
   clipLengthBeats: fallbackClipLengthBeats = 8,
-  kernel
+  kernelFactory
 }: {
   initialModel: ScoreModel;
   clipLengthBeats?: number;
-  kernel?: ScoreKernelBridge | null;
+  kernelFactory?: ScoreKernelBridgeFactory | null;
 }) {
-  const activeKernel = kernel ?? null;
+  // clip 选择（多 clip 工程=常态）：shadow 轨表列出 clip；单 clip 自动选中，
+  // 多 clip 显式选择（不自动猜目标——错 clip 写入比多一步选择更糟）。
+  const [clipOptions, setClipOptions] = useState<ClipOption[]>([]);
+  const [clipID, setClipID] = useState("");
+  const activeKernel = useMemo(
+    () => (kernelFactory ? kernelFactory({ clipID: clipID || undefined }) : null),
+    [kernelFactory, clipID]
+  );
   const [buffer, setBuffer] = useState<EditBuffer>(() => createEditBuffer(initialModel));
   const [mode, setMode] = useState<"note" | "rest">("note");
   const [duration, setDurationValue] = useState<ScoreDuration>(2);
@@ -70,8 +91,54 @@ export function ScoreWorkbenchPanel({
   const [applyState, setApplyState] = useState<"idle" | "busy" | "saved" | "error">("idle");
   const [snapshot, setSnapshot] = useState<ScoreClipSnapshot | null>(null);
   const [clipLengthBeats, setClipLengthBeats] = useState(fallbackClipLengthBeats);
+  // M4 随谱游标：playhead 秒轮询（/agent/ui/state ui_context 白名单键）+单 tempo 门内换算。
+  const [playheadSeconds, setPlayheadSeconds] = useState<number | null>(null);
+  const [transportPlaying, setTransportPlaying] = useState(false);
 
-  // M3：agent 桥在场时挂载即回读装载（fail-honest——失败显形，保留本地模型不假成功）。
+  // M5：clip 清单（shadow 轨表）——单 clip 自动选中；失败显形不阻塞本地编辑。
+  useEffect(() => {
+    if (!kernelFactory) {
+      return;
+    }
+    let cancelled = false;
+    fetchUIState()
+      .then((state) => {
+        if (cancelled) {
+          return;
+        }
+        const tracks = Array.isArray(state.tracks) ? state.tracks : [];
+        const options: ClipOption[] = [];
+        tracks.forEach((track, trackIndex) => {
+          const trackID = String((track as JsonRecord).track_id ?? (track as JsonRecord).id ?? "");
+          const trackName = String((track as JsonRecord).name ?? `轨 ${trackIndex + 1}`);
+          const clips = Array.isArray((track as JsonRecord).clips) ? ((track as JsonRecord).clips as JsonRecord[]) : [];
+          clips.forEach((clip, clipIndex) => {
+            const id = String(clip.clip_id ?? clip.id ?? "");
+            if (!id) {
+              return;
+            }
+            const clipName = String(clip.name ?? `clip ${clipIndex + 1}`);
+            options.push({ clipID: id, trackID, label: `${trackName} · ${clipName}` });
+          });
+        });
+        setClipOptions(options);
+        if (options.length === 1) {
+          setClipID(options[0].clipID);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStatus("clip 清单不可得（agent 状态面不可达）——本地编辑仍可用");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kernelFactory]);
+
+  // M3：agent 桥在场时（含换 clip 重建桥）即回读装载（fail-honest——失败显形，
+  // 保留本地模型不假成功；clip 未选时桥带空 clipID，harness 多 clip 拒绝=提示选择）。
   useEffect(() => {
     if (!activeKernel || activeKernel.kind !== "agent") {
       return;
@@ -94,7 +161,7 @@ export function ScoreWorkbenchPanel({
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [activeKernel]);
 
   const svgHostRef = useRef<HTMLDivElement | null>(null);
   const overlayRef = useRef<HTMLDivElement | null>(null);
@@ -112,14 +179,50 @@ export function ScoreWorkbenchPanel({
     return notation.events.filter((event) => event.kernelId === selectedNote.id).map((event) => event.tick);
   }, [notation, selectedNote]);
 
+  // M4：游标轮询（250ms；快照在场才轮询——无 tempo/clip 起点不画游标=单 tempo
+  // fail-honest，不静默错位）。读取缝=/agent/ui/state ui_context（服务端白名单
+  // playhead/current_playhead/transport_position/is_playing 键族）。
+  useEffect(() => {
+    if (!snapshot) {
+      return;
+    }
+    let stopped = false;
+    const tickPlayhead = async () => {
+      try {
+        const state = await fetchUIState();
+        const context = state.ui_context ?? {};
+        const seconds = firstFinite(context.playhead_seconds, context.current_playhead_seconds, context.transport_position_seconds);
+        if (!stopped && seconds !== null) {
+          setPlayheadSeconds(seconds);
+          setTransportPlaying(context.is_playing === true || context.playing === true);
+        }
+      } catch {
+        // 轮询失败静默保留上一位置（面不可达由装载状态显形；不重复报错刷屏）。
+      }
+    };
+    void tickPlayhead();
+    const timer = window.setInterval(() => void tickPlayhead(), 250);
+    return () => {
+      stopped = true;
+      window.clearInterval(timer);
+    };
+  }, [snapshot]);
+
   // 推导重绘：working 变化即重渲染（369 spike 模式：编辑→推导→重绘全链）。
+  // data-score-tick-rows：符号锚点几何可见性（m<measure>:<tick>@<x>,...; 分号分行）——
+  // 渲染面烟测/真栈腿据此换算真实指针点击坐标（点击仍走 pointer 事件管线）。
   useEffect(() => {
     const host = svgHostRef.current;
     if (!host) {
       return;
     }
     const width = host.clientWidth && host.clientWidth > 80 ? host.clientWidth : 340;
-    renderResultRef.current = renderScoreInto(host, buffer.working, { width });
+    const result = renderScoreInto(host, buffer.working, { width });
+    renderResultRef.current = result;
+    const rows = [...result.tickRows.entries()]
+      .map(([measure, row]) => `m${measure}:${row.map(([tick, x]) => `${tick}@${Math.round(x)}`).join(",")}`)
+      .join(";");
+    host.setAttribute("data-score-tick-rows", rows);
   }, [buffer.working]);
 
   const localOffset = useCallback((event: { clientX: number; clientY: number }, element: HTMLElement | null) => {
@@ -323,11 +426,34 @@ export function ScoreWorkbenchPanel({
     setSelection(null);
   }, [activeKernel, applyPatch]);
 
-  const kernelTag = activeKernel ? (activeKernel.kind === "agent" ? "connected" : "local") : "local";
+  const kernelTag = kernelFactory ? "connected" : "local";
+
+  // M4 游标位置（快照+playhead 都在场才换算；clip 外或渲染范围外=不画）。
+  const cursor =
+    snapshot && playheadSeconds !== null && renderResultRef.current
+      ? cursorPosition(
+          renderResultRef.current,
+          playheadClipBeats(playheadSeconds, snapshot.clipStartSeconds, snapshot.tempoBPM),
+          buffer.working.timeSignature.numerator
+        )
+      : null;
 
   return (
-    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""}>
+    <div className="score-workbench" data-score-root data-score-mode={mode} data-score-duration={duration} data-score-dirty={dirty ? "true" : "false"} data-score-kernel={kernelTag} data-score-note-count={buffer.working.notes.length} data-score-selection={selection?.kernelId ?? ""} data-score-status={status} data-score-apply-state={applyState} data-score-model={serializeModel(buffer.working)} data-score-timesig={snapshot?.timeSignatureLabel ?? "local-2/4"} data-score-tempo={snapshot ? String(snapshot.tempoBPM) : ""} data-score-clip-start-seconds={snapshot?.clipStartSeconds ?? ""} data-score-cursor-beat={cursor ? cursor.beat.toFixed(3) : ""} data-score-cursor-playing={transportPlaying ? "true" : "false"} data-score-clip-id={clipID}>
       <div className="score-toolbar">
+        {kernelFactory && (
+          <label className="score-tool score-clip">
+            Clip
+            <select data-score-clip-select value={clipID} onChange={(event) => setClipID(event.currentTarget.value)}>
+              <option value="">（选择 clip）</option>
+              {clipOptions.map((option) => (
+                <option key={option.clipID} value={option.clipID}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <div className="score-tool-group" role="group" aria-label="输入模式">
           <button type="button" className={`score-tool ${mode === "note" ? "active" : ""}`} data-score-mode-note onClick={() => setMode("note")}>
             音符
@@ -370,6 +496,14 @@ export function ScoreWorkbenchPanel({
       </div>
       <div className="score-stage">
         <div className="score-svg-host" ref={svgHostRef} data-score-svg />
+        {cursor && (
+          <div
+            className="score-cursor"
+            data-score-cursor
+            data-score-cursor-measure={cursor.measure}
+            style={{ left: `${cursor.x}px`, top: `${cursor.y}px`, height: `${cursor.height}px` }}
+          />
+        )}
         <div
           className="score-overlay"
           ref={overlayRef}

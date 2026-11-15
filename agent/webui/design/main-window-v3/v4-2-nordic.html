@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Vit 对话流主窗口 v4 · 变体 v4-2 · 瑞典极简升级（Nordic Minimal Up）</title>
+<style>
+/* ============ 令牌（v2 磁带色板，锚点不动） ============ */
+:root{
+  --ink:#090B0E; --paper:#F6F4EC; --warm:#FBF9F1; --canvas:#E8E4D7;
+  --blue:#065BC7; --blue-lt:#73B8F5; --red:#DB1214; --yellow:#FACC1A; --dark:#14181C;
+  /* 派生（北欧呼吸：更轻的墨阶、更松的线） */
+  --canvas-d:#DFD8C4; --mut:#5A564A; --hair:rgba(9,11,14,.16); --hair2:rgba(9,11,14,.42);
+  --line:2px; --line-thin:1.5px;
+  --r-s:4px; --r-m:6px; --r-l:8px;
+  --sans:Inter,"Segoe UI","Microsoft YaHei","PingFang SC",sans-serif;
+  --mono:Consolas,"Cascadia Mono","Courier New",monospace;
+}
+*{box-sizing:border-box}
+html,body{width:4400px;height:1050px;overflow:hidden}
+body{margin:0;background:var(--canvas);font-family:var(--sans);color:var(--ink);display:flex;flex-direction:column}
+button{appearance:none;background:none;border:none;font-family:var(--sans);cursor:default;color:var(--ink)}
+h1,h2,h3,h4,p,b{margin:0;font-weight:inherit}
+svg{display:block}
+.mono{font-family:var(--mono)}
+.vtext{writing-mode:vertical-rl;text-orientation:upright}
+.mut{color:var(--mut)}
+
+/* ============ 打样单页眉 / 页脚 ============ */
+.proof-head{height:44px;flex:0 0 44px;display:flex;align-items:center;gap:28px;padding:0 26px;border-bottom:var(--line) solid var(--ink);background:var(--warm)}
+.proof-head .ph-l{font:12.5px var(--mono);color:var(--mut);letter-spacing:1.5px}
+.proof-head .ph-c{font:700 15px var(--sans);letter-spacing:1.5px}
+.proof-head .ph-c i{font-style:normal;color:var(--blue)}
+.proof-head .ph-r{margin-left:auto;font:12.5px var(--mono);color:var(--mut);letter-spacing:1px}
+.triptych{display:flex;height:900px;flex:0 0 900px}
+.gap{width:40px;flex:0 0 40px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.gap .vtext{font:12px var(--mono);color:var(--mut);letter-spacing:6px}
+.colophon{height:106px;flex:0 0 106px;border-top:var(--line) solid var(--ink);display:flex;gap:34px;padding:12px 26px 0;align-items:flex-start;background:var(--warm)}
+.colophon .cz1{flex:0 0 290px}
+.colophon .cz1 b{display:block;font:700 13.5px var(--sans);letter-spacing:1px}
+.colophon .cz1 span{display:block;margin-top:7px;font:12.5px var(--mono);color:var(--mut);line-height:1.55}
+.colophon .cz2{flex:0 0 240px}
+.colophon .cz2 .swrow{display:flex;align-items:center;gap:9px;margin-bottom:4px;font:12.5px var(--mono);color:var(--ink)}
+.colophon .sw{width:14px;height:14px;border:1px solid var(--hair2);display:inline-block}
+.colophon .cz3{flex:0 1 1120px;font:12.5px/1.6 var(--sans);color:var(--ink)}
+.colophon .cz3 b{color:var(--red);font-weight:700}
+.colophon .cz3 i{font-style:normal;color:var(--blue);font-weight:700}
+.colophon .cz4{flex:0 0 340px;margin-left:auto;text-align:right;font:12.5px var(--mono);color:var(--mut);line-height:1.6}
+
+/* ============ 屏幕通用 ============ */
+.screen{position:relative;width:1440px;flex:0 0 1440px;height:900px;overflow:hidden;outline:1px solid rgba(9,11,14,.5);background:var(--canvas)}
+.deskgrid{position:absolute;inset:0;z-index:0;background-image:
+  linear-gradient(rgba(9,11,14,.05) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(9,11,14,.05) 1px,transparent 1px);
+  background-size:96px 96px}
+.wb{position:absolute;z-index:0}
+.slug{position:absolute;top:16px;right:18px;z-index:50;background:var(--paper);border:var(--line-thin) solid var(--ink);padding:10px 14px;box-shadow:0 6px 18px rgba(20,24,28,.18);max-width:360px}
+.slug b{font:700 14px var(--sans);letter-spacing:.5px;display:block}
+.slug span{font:12.5px/1.55 var(--mono);color:var(--mut);display:block;margin-top:4px}
+.folio{position:absolute;left:0;right:0;text-align:center;font:12px var(--mono);color:var(--mut);letter-spacing:3px;z-index:45}
+.kicker{display:flex;align-items:center;gap:9px;font:700 13px var(--mono);color:var(--blue);letter-spacing:2px}
+.kicker i{width:9px;height:9px;background:var(--blue);display:inline-block}
+.kicker.rd{color:var(--red)}
+.kicker.rd i{background:var(--red)}
+.note-chip{position:absolute;z-index:48;background:var(--paper);border:var(--line-thin) solid var(--ink);padding:7px 11px;font:12.5px/1.5 var(--mono);color:var(--ink);box-shadow:0 4px 12px rgba(20,24,28,.16);display:flex;align-items:center;gap:8px}
+.note-chip i{width:8px;height:8px;flex:0 0 8px;display:inline-block}
+.ldr{position:absolute;z-index:47}
+.ztag{position:absolute;font:12px var(--mono);background:var(--paper);border:1px solid var(--ink);color:var(--ink);padding:1px 6px;z-index:6;letter-spacing:.5px;white-space:nowrap}
+.ztag.dark{background:var(--dark);color:var(--paper);border-color:rgba(246,244,236,.45)}
+
+/* ============ OS 桌面 · 任务栏 ============ */
+.tbar{position:absolute;left:0;right:0;bottom:0;height:40px;background:var(--warm);border-top:var(--line-thin) solid var(--ink);display:flex;align-items:center;gap:12px;padding:0 16px;z-index:40}
+.tbar .start{width:22px;height:22px;background:var(--blue);border-radius:var(--r-s)}
+.titem{display:flex;align-items:center;gap:8px;height:28px;padding:0 12px;border-radius:var(--r-s);border:var(--line-thin) solid var(--hair2);background:var(--paper);position:relative}
+.titem span{font:12.5px var(--sans);color:var(--ink)}
+.titem .ind{position:absolute;left:12px;right:12px;bottom:-7px;height:3px;background:transparent}
+.titem.on .ind{background:var(--blue)}
+.titem.busy .ind{background:var(--yellow)}
+.tbar .clock{margin-left:auto;font:12.5px var(--mono);color:var(--mut);letter-spacing:1px}
+
+/* ============ OS 窗口骨架（双窗口叙事的载体） ============ */
+.oswin{position:absolute;background:var(--paper);border:var(--line) solid var(--ink);box-shadow:0 18px 46px rgba(20,24,28,.26),0 3px 0 rgba(9,11,14,.08);z-index:20;display:flex;flex-direction:column}
+.osbar{height:44px;flex:0 0 44px;display:flex;align-items:center;gap:12px;padding:0 10px 0 16px;border-bottom:var(--line-thin) solid var(--ink);background:var(--warm)}
+.osbar .appmark{width:22px;height:22px;flex:0 0 22px;background:var(--ink);color:var(--paper);font:800 12.5px var(--sans);display:flex;align-items:center;justify-content:center;border-radius:var(--r-s)}
+.osbar .t{font:700 15px var(--sans);letter-spacing:.3px;white-space:nowrap}
+.osbar .path{font:12px var(--mono);color:var(--mut);letter-spacing:.3px;white-space:nowrap}
+.osbar .zchip{margin-left:auto;font:12px var(--mono);background:var(--ink);color:var(--paper);padding:2px 7px;letter-spacing:.5px;white-space:nowrap}
+.winbtns{display:flex;gap:6px;margin-left:10px}
+.osbar .zchip+ .winbtns{margin-left:10px}
+.wbtn{width:34px;height:26px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-s);background:var(--paper);display:flex;align-items:center;justify-content:center}
+.oswin.darkbar-win{background:var(--dark)}
+.darkbar{background:#171B21;border-bottom:1px solid rgba(246,244,236,.16)}
+.darkbar .t{color:rgba(246,244,236,.92)}
+.darkbar .zchip.lt{margin-left:0;background:var(--paper);color:var(--ink)}
+.darkbar .zchip.lt+.t{margin-left:auto}
+.wbtn.dk{border-color:rgba(246,244,236,.38);background:transparent}
+.daw-body{flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column;background:radial-gradient(120% 100% at 18% 0%,#1A1F26 0%,var(--dark) 60%)}
+
+/* ============ 态 A · 启动台 ============ */
+.scrA .wb.yel{left:320px;top:10px;width:240px;height:26px;background:rgba(250,204,26,.5)}
+.scrA .wb.blu{left:1310px;top:120px;width:130px;height:300px;background:rgba(6,91,199,.14)}
+.scrA .wb.red{left:0;top:430px;width:110px;height:150px;background:rgba(219,18,20,.12)}
+.desk-note{position:absolute;left:26px;bottom:42px;z-index:38;font:12.5px/1.7 var(--mono);color:var(--mut);max-width:520px}
+.desk-note b{color:var(--ink);font-weight:400}
+.cspine .band{position:absolute;top:0;left:0;right:0;height:5px;background:var(--sp);border:none}
+.awin{left:180px;top:80px;width:1080px;height:736px}
+.abody{flex:1;min-height:0;display:flex;background:var(--paper)}
+.adrawer{flex:0 0 296px;background:var(--canvas-d);padding:22px 18px 16px;display:flex;flex-direction:column}
+.ad-head{display:flex;align-items:baseline;justify-content:space-between}
+.ad-head b{font:800 19px var(--sans);letter-spacing:1px}
+.ad-head span{font:12.5px var(--mono);color:var(--blue);letter-spacing:1px}
+.ad-rule{height:var(--line);background:var(--ink);margin:12px 0 14px}
+.trow{display:flex;align-items:center;gap:12px;background:var(--paper);border:var(--line-thin) solid var(--hair2);border-radius:var(--r-m);padding:10px 12px;margin-bottom:10px;box-shadow:0 2px 8px rgba(20,24,28,.07)}
+.trow .tcell{flex:1;min-width:0}
+.trow .tname{font:700 16px var(--sans);letter-spacing:.3px;white-space:nowrap}
+.trow .tmeta{font:12.5px var(--mono);color:var(--mut);margin-top:5px;letter-spacing:.3px;white-space:nowrap}
+.trow.hot{background:rgba(250,204,26,.5);border:var(--line) solid var(--ink)}
+.trow .ctag{flex:0 0 auto;background:var(--red);color:var(--paper);font:700 12px var(--sans);padding:3px 8px;letter-spacing:1px}
+.ad-act{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.ad-btn{height:44px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-m);background:var(--paper);display:flex;align-items:center;justify-content:center;gap:9px;font:600 14.5px var(--sans)}
+.ad-note{margin-top:13px;font:12px/1.65 var(--mono);color:var(--mut)}
+.aflow{flex:1;min-width:0;padding:28px 34px 24px;display:flex;flex-direction:column}
+.mast{display:flex;align-items:stretch;gap:22px}
+.mast-l{flex:1;min-width:0;padding-top:6px}
+.mast-l .kicker{margin-bottom:14px}
+.mast-l h1{font:800 66px/1 var(--sans);letter-spacing:-1px}
+.mast-l h1 .dot{color:var(--red)}
+.mast-l .sub{margin-top:12px;font:600 16px var(--sans);color:var(--mut);letter-spacing:.5px}
+.mast-comp{display:flex;gap:10px;flex:0 0 auto}
+.comp-blue{width:212px;background:var(--blue);color:var(--paper);padding:13px 14px;display:flex;flex-direction:column;gap:9px}
+.comp-blue .cap{font:600 12.5px/1.5 var(--sans);letter-spacing:.5px}
+.comp-yel{width:62px;background:var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.comp-yel b{font:800 30px var(--sans)}
+.comp-yel span{font:12px var(--mono);color:var(--ink)}
+.comp-red{width:10px;background:var(--red)}
+.a-rule{height:var(--line);background:var(--ink);margin:20px 0 18px}
+.lead{font:17.5px/1.85 var(--sans);max-width:660px;letter-spacing:.2px}
+.lead b{font-weight:800}
+.chip-head{margin:20px 0 10px;display:flex;align-items:center;gap:9px;font:700 13px var(--mono);color:var(--blue);letter-spacing:2px}
+.chip-head::after{content:"";flex:1;height:1px;background:var(--hair)}
+.chips{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chip{height:58px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-m);background:var(--warm);display:flex;align-items:center;gap:12px;padding:0 16px;font:15.5px var(--sans)}
+.chip i{font:700 13px var(--mono);font-style:normal;color:var(--blue);letter-spacing:1px}
+.chip .ctag{margin-left:auto;background:var(--red);color:var(--paper);font:700 12px var(--sans);padding:3px 8px;letter-spacing:1px}
+.chip.hot{background:rgba(250,204,26,.5);border:var(--line) solid var(--ink)}
+.a-aside{margin-top:18px;border-top:1px solid var(--hair);padding-top:12px;font:14.5px/1.7 var(--sans);color:var(--mut);max-width:640px}
+.a-aside b{font-weight:600;color:var(--ink);border-bottom:1.5px solid rgba(6,91,199,.5)}
+.a-input{margin-top:auto;padding-top:16px}
+.a-field{height:54px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-l);background:var(--warm);display:flex;align-items:center;padding:0 18px}
+.a-field .ph{font:16px var(--sans);color:var(--mut)}
+.caret{display:inline-block;width:2px;height:22px;background:var(--red);margin-left:5px}
+.in-row{display:flex;align-items:center;margin-top:12px}
+.in-row .note{font:12.5px var(--mono);color:var(--mut);letter-spacing:.4px}
+.send{margin-left:auto;background:var(--ink);color:var(--paper);border-radius:var(--r-m);padding:13px 24px;font:700 15.5px var(--sans);letter-spacing:2px;display:inline-flex;align-items:center;gap:10px}
+.folioA{bottom:46px}
+
+/* ============ 态 B · 进入中 ============ */
+.scrB .wb.yel{left:320px;top:10px;width:240px;height:26px;background:rgba(250,204,26,.5)}
+.scrB .wb.blu{left:1310px;top:470px;width:96px;height:190px;background:rgba(6,91,199,.12)}
+.dawrise{z-index:10;box-shadow:0 24px 60px rgba(20,24,28,.4)}
+.dlgwin{z-index:20}
+.dlg-body{flex:1;min-height:0;padding:13px 20px 10px;display:flex;flex-direction:column}
+.dlg-body .msg{margin-top:6px}
+.msg{font:700 17px var(--sans);color:var(--ink);display:flex;align-items:baseline;gap:10px}
+.msg em{font-style:normal;font-family:var(--mono);font-size:12.5px;border:var(--line-thin) solid var(--blue);color:var(--blue);padding:1px 7px;letter-spacing:1px}
+.statecard{border:var(--line-thin) solid var(--ink);background:var(--warm);padding:8px 14px 7px;margin-top:7px}
+.sc-head{display:flex;align-items:baseline;justify-content:space-between}
+.sc-head b{font:800 17px var(--sans);letter-spacing:.5px}
+.sc-head span{font:12.5px var(--mono);color:var(--blue);letter-spacing:1px}
+.sc-legend{font:12.5px var(--mono);color:var(--mut);margin-top:3px}
+.sc-legend b{color:var(--red);font-weight:700}
+.step{display:flex;align-items:center;gap:10px;padding:4px 0;border-top:1px dashed var(--hair)}
+.step:first-of-type{border-top:none}
+.g{width:18px;height:18px;flex:0 0 18px;position:relative}
+.g.done-g{background:var(--ink);display:flex;align-items:center;justify-content:center}
+.g.act-g{border:var(--line) dashed var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center}
+.g.act-g::after{content:"";width:6px;height:6px;background:var(--red)}
+.g.pend-g{border:var(--line-thin) dashed var(--hair2);border-radius:50%}
+.s-name{font:600 16px var(--sans);width:112px;flex:0 0 112px}
+.bar{width:150px;height:6px;background:rgba(9,11,14,.14);position:relative;flex:0 0 150px}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--yellow);display:block}
+.bar i::after{content:"";position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--red)}
+.bar.dim{background:rgba(9,11,14,.07)}
+.s-st{font:12.5px var(--mono);color:var(--mut);margin-left:auto}
+.s-st.red{color:var(--red);font-weight:700}
+.tapepath{display:flex;align-items:center;gap:14px;border-top:1px solid var(--hair2);margin-top:5px;padding-top:6px}
+.tp-lines{flex:1}
+.tp-line{height:12px;position:relative;border-bottom:var(--line-thin) solid var(--hair2)}
+.tp-line::before,.tp-line::after{content:"";position:absolute;top:0;width:9px;height:9px;border:var(--line) solid var(--ink);border-radius:50%;background:var(--warm)}
+.tp-line::before{left:0}
+.tp-line::after{right:0}
+.tp-line i{position:absolute;top:8px;width:7px;height:2px;background:var(--ink)}
+.tp-line i:nth-child(1){left:14%}
+.tp-line i:nth-child(2){left:26%;opacity:.75}
+.tp-line i:nth-child(3){left:37%;opacity:.5}
+.tp-line i:nth-child(4){left:47%;opacity:.3}
+.tp-lab{font:12.5px var(--mono);color:var(--mut);margin-top:6px}
+.tp-lab b{color:var(--ink);font-weight:400}
+.agent{font:16.5px/1.62 var(--sans);margin-top:6px}
+.agent sup{color:var(--red);font-family:var(--mono);font-size:12px}
+.pause{margin-top:auto;border:1px dashed var(--hair2);padding:7px 12px;text-align:center;font:13px var(--mono);color:var(--mut);letter-spacing:1px}
+/* 分镜打样带 */
+.band{position:absolute;left:0;right:0;bottom:0;height:430px;background:var(--warm);border-top:var(--line) solid var(--ink);z-index:30;padding:10px 20px 8px;display:flex;flex-direction:column}
+.band-head{display:flex;justify-content:space-between;align-items:center}
+.band-head .bl{font:700 13px var(--mono);color:var(--blue);letter-spacing:2px}
+.band-head .br{font:12px var(--mono);color:var(--mut);letter-spacing:.5px}
+.row1{display:flex;align-items:flex-start;gap:8px;margin-top:6px}
+.frame{flex:0 0 300px}
+.fsep{flex:0 0 18px;display:flex;align-items:center;justify-content:center;padding-top:60px}
+.stage{height:140px;background:var(--canvas);border:var(--line-thin) solid var(--hair2);position:relative;overflow:hidden;background-image:
+  linear-gradient(rgba(9,11,14,.05) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(9,11,14,.05) 1px,transparent 1px);background-size:32px 32px}
+.m-dlg{position:absolute;background:var(--paper);border:var(--line-thin) solid var(--ink);box-shadow:2px 3px 0 rgba(9,11,14,.15)}
+.m-dlg::before{content:"";position:absolute;left:7px;top:5px;width:26px;height:5px;background:var(--blue)}
+.m-dlg.lines::after{content:"";position:absolute;left:8px;right:8px;bottom:7px;height:5px;background:repeating-linear-gradient(90deg,rgba(9,11,14,.32) 0 26px,transparent 26px 34px)}
+.m-daw{position:absolute;background:#1A1F26;border:var(--line-thin) solid var(--ink);background-image:repeating-linear-gradient(to bottom,transparent 0 9px,rgba(246,244,236,.10) 9px 10px)}
+.m-tbar{position:absolute;left:0;right:0;bottom:0;height:12px;background:var(--warm);border-top:1px solid var(--ink);display:flex;align-items:center;gap:4px;padding:0 6px}
+.m-tbar i{width:6px;height:6px;background:var(--canvas-d);border:1px solid var(--hair2)}
+.m-tbar i.on{background:var(--blue);border-color:var(--blue)}
+.m-tbar i.busy{background:var(--yellow)}
+.marrow{position:absolute;z-index:5}
+.fcap{margin-top:5px}
+.fcap b{display:block;font:700 14px var(--sans);letter-spacing:.3px}
+.fcap span{display:block;font:12px/1.5 var(--mono);color:var(--mut);margin-top:2px;white-space:nowrap}
+.row2{display:flex;align-items:flex-start;gap:22px;margin-top:8px;flex:1;min-height:0}
+.grp{display:flex;flex-direction:column;gap:8px}
+.grp-label{display:flex;align-items:center;gap:8px;font:700 12.5px var(--mono);color:var(--blue);letter-spacing:1.5px}
+.grp-label i{width:7px;height:7px;background:var(--blue);display:inline-block}
+.icells{display:flex;align-items:flex-start;gap:8px}
+.icell{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;flex:0 0 104px}
+.icell label{font:12.5px var(--mono);color:var(--ink);white-space:nowrap}
+.icell label.red{color:var(--red);font-weight:700}
+.doneflag{position:absolute;top:-5px;right:2px;background:var(--red);color:var(--paper);font:700 12px var(--sans);padding:1px 6px;z-index:4}
+.ia{padding-top:30px}
+.gsep{flex:0 0 1px;background:var(--hair2);align-self:stretch;margin-top:4px}
+.stcards{display:flex;gap:12px}
+.stcard{width:250px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-m);background:var(--paper);padding:8px 13px 7px}
+.st-top{display:flex;align-items:center;gap:9px}
+.st-top b{font:700 15.5px var(--sans)}
+.st-top .stx{font:12px var(--mono);color:var(--mut);margin-left:auto}
+.stcard .bar{width:auto;flex:1;margin-top:7px}
+.stcard .bar.bl i{background:var(--blue)}
+.stcard .bar.bl i::after{background:var(--ink)}
+.st-note{font:12px var(--mono);color:var(--mut);margin-top:5px}
+.st-note.red{color:var(--red);font-weight:700}
+.folioB{top:453px}
+
+/* ============ 态 C · 工程内 ============ */
+.cveil{position:absolute;left:16px;top:58px;right:16px;height:828px;z-index:11;pointer-events:none;background:linear-gradient(180deg,rgba(246,244,236,.05) 0%,rgba(9,11,14,.05) 55%,rgba(9,11,14,.18) 100%)}
+.c-anno{position:absolute;z-index:30;background:var(--paper);border:var(--line-thin) solid var(--ink);padding:7px 11px;font:600 13px var(--sans);color:var(--ink);box-shadow:0 5px 14px rgba(20,24,28,.22);display:flex;align-items:center;gap:8px}
+.c-anno i{width:9px;height:9px;flex:0 0 9px;display:inline-block}
+.recess{position:absolute;right:22px;top:170px;width:292px;z-index:30;background:var(--paper);border:var(--line-thin) solid var(--ink);box-shadow:0 14px 34px rgba(20,24,28,.34);padding:13px 15px 12px}
+.recess .rc-head{display:flex;align-items:center;gap:9px}
+.recess .rc-head i{width:9px;height:9px;background:var(--red);display:inline-block;flex:0 0 9px}
+.recess .rc-head b{font:800 13.5px var(--sans);letter-spacing:.4px}
+.rc-tag{font:12px var(--mono);color:var(--blue);letter-spacing:.5px;margin-top:6px}
+.rc-mini{margin-top:10px;height:190px;position:relative;background:#1A1F26;border:1px solid var(--ink);overflow:hidden;background-image:repeating-linear-gradient(to bottom,transparent 0 10px,rgba(246,244,236,.08) 10px 11px)}
+.rc-ztag{position:absolute;left:8px;top:8px;font:12px var(--mono);background:rgba(246,244,236,.92);color:var(--ink);padding:1px 6px;z-index:3}
+.rc-seg{position:absolute;left:12px;right:12px;bottom:56px;height:24px;background:var(--yellow)}
+.rc-seg span{position:absolute;left:8px;top:4px;font:12px var(--mono);color:var(--ink);font-weight:700}
+.rc-bubble{position:absolute;right:10px;bottom:30px;background:var(--yellow);color:var(--ink);font:700 12px var(--sans);padding:4px 9px;border-radius:var(--r-s);box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.rc-bubble::after{content:"";position:absolute;right:18px;bottom:-6px;width:0;height:0;border:6px solid transparent;border-top-color:var(--yellow);border-bottom:none}
+.rc-tbar{position:absolute;left:0;right:0;bottom:0;height:22px;background:var(--warm);border-top:1px solid var(--ink);display:flex;align-items:center;gap:7px;padding:0 8px}
+.rc-tbar .st{width:10px;height:10px;background:var(--blue);border-radius:2px}
+.rc-tbar .it{font:12px var(--sans);color:var(--ink);padding:1px 8px;border:1px solid var(--hair2);border-radius:3px;position:relative}
+.rc-tbar .it.hot{outline:2px solid var(--yellow);outline-offset:1px}
+.rc-tbar .clk{margin-left:auto;font:12px var(--mono);color:var(--mut)}
+.recess .rc-sub{font:12px/1.65 var(--mono);color:var(--mut);margin-top:9px}
+.recess .rc-sub b{color:var(--ink);font-weight:400}
+.rc-anim{margin-top:8px;padding-top:8px;border-top:1px dashed var(--hair);font:12px/1.65 var(--mono);color:var(--mut)}
+.cpanel{position:absolute;left:240px;top:80px;width:880px;height:760px;background:var(--paper);border:var(--line) solid var(--ink);box-shadow:0 26px 64px rgba(20,24,28,.34);z-index:20;display:flex;flex-direction:column}
+.cpanel-body{flex:1;min-height:0;display:flex}
+.cdrail{flex:0 0 64px;background:var(--canvas-d);display:flex;flex-direction:column;align-items:center;padding:10px 0 8px}
+.cdrail .rail-label{font:12px var(--mono);color:var(--mut);letter-spacing:3px}
+.cspines{display:flex;flex-direction:column;gap:6px;margin-top:7px}
+.cspine{width:24px;height:42px;background:var(--paper);border:1px solid var(--hair2);position:relative;display:flex;align-items:center;justify-content:center}
+.cspine .band{position:absolute;top:0;left:0;right:0;height:4px;background:var(--sp)}
+.cspine .vtext{font:600 13px var(--sans);color:var(--ink)}
+.cspine.active{background:rgba(250,204,26,.55);border-color:var(--ink)}
+.cspine.dim{opacity:.75}
+.cdr-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto}
+.cdr-btn{width:44px;height:34px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-m);background:var(--paper);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.cdr-btn b{font:700 13px var(--sans);line-height:1}
+.cdr-btn span{font:12px var(--sans);color:var(--ink);line-height:1.1}
+.cchat{flex:1;min-width:0;padding:18px 24px 14px;display:flex;flex-direction:column}
+.dateline{font:12.5px var(--mono);color:var(--mut);letter-spacing:1.5px}
+.cchat .msg{margin-top:7px;font-size:17px}
+.cchat .agent{margin-top:6px;font-size:16.5px;line-height:1.72}
+.cchat sup.fn{color:var(--red);font-family:var(--mono);font-size:12px}
+.abrow{display:flex;align-items:center;gap:12px;margin-top:8px}
+.abbtn{border:var(--line) solid var(--ink);border-radius:var(--r-m);padding:8px 14px;display:inline-flex;align-items:center;gap:9px;font:700 15px var(--sans);letter-spacing:.5px;background:var(--warm)}
+.rtag{background:var(--red);color:var(--paper);font:700 12px var(--sans);padding:3px 8px;letter-spacing:1px}
+.abrow .mono{font-size:12px;color:var(--mut)}
+.cnote{font:12px var(--mono);color:var(--mut);margin-top:6px;letter-spacing:.3px}
+.c-input{margin-top:auto}
+.c-field{height:42px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-l);background:var(--warm);display:flex;align-items:center;padding:0 16px}
+.c-field .ph{font:16px var(--sans);color:var(--mut)}
+.c-field .caret{height:19px}
+.c-in-row{display:flex;align-items:center;margin-top:7px}
+.c-in-row .note{font:12.5px var(--mono);color:var(--mut)}
+.c-send{margin-left:auto;background:var(--ink);color:var(--paper);border-radius:var(--r-m);padding:9px 20px;font:700 15px var(--sans);letter-spacing:2px;display:inline-flex;align-items:center;gap:9px}
+.cmacro{flex:0 0 366px;margin:16px 20px 16px 0;border:var(--line-thin) solid var(--ink);background:var(--warm);padding:14px 16px 12px;display:flex;flex-direction:column}
+.mf-head{display:flex;align-items:baseline;justify-content:space-between}
+.mf-head b{font:800 17px var(--sans);letter-spacing:.4px}
+.mf-head span{font:12.5px var(--mono);color:var(--blue);letter-spacing:.5px}
+.plist{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.prow{display:flex;align-items:center;gap:12px;border:var(--line-thin) solid var(--hair2);border-radius:var(--r-m);background:var(--paper);padding:10px 14px;position:relative;min-height:54px}
+.prow b{font:800 20px var(--sans);letter-spacing:2px;flex:0 0 auto}
+.prow span{font:12.5px var(--sans);color:var(--mut)}
+.prow.active{background:var(--yellow);border:var(--line) solid var(--ink)}
+.prow.active .utag{position:absolute;top:7px;right:8px;background:var(--red);color:var(--paper);font:700 12px var(--sans);padding:1px 6px}
+.mviz{border-top:1px solid var(--hair);margin-top:12px;padding-top:10px}
+.mcurve{text-align:center}
+.mcurve .axlab{display:block;text-align:right;font:12px var(--mono);color:var(--mut);margin-top:2px}
+.mcells{margin-top:8px}
+.brow{display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.brow>span{flex:0 0 88px;font:600 13px var(--sans)}
+.cells{display:flex;gap:3px}
+.cells i{width:12px;height:12px;border:1px solid var(--hair2)}
+.cells i.f{background:var(--ink);border-color:var(--ink)}
+.hear{font:14px/1.55 var(--sans);color:var(--mut);margin-top:6px}
+.hear .hl{background:rgba(250,204,26,.5);padding:1px 5px;color:var(--ink)}
+.mfoot{margin-top:auto;border-top:1px solid var(--hair);padding-top:8px}
+.mfoot .mono{font-size:12.5px;color:var(--mut);display:block;letter-spacing:.3px}
+.mbtns{display:flex;gap:10px;margin-top:8px}
+.btn-pri{background:var(--ink);color:var(--paper);border-radius:var(--r-m);padding:9px 18px;font:700 15px var(--sans);letter-spacing:1px}
+.btn-gh{border:var(--line-thin) solid var(--hair2);border-radius:var(--r-m);background:var(--paper);padding:9px 14px;font:600 14px var(--sans)}
+.folioC{bottom:0;height:14px;line-height:14px}
+
+/* ============ DAW 内核 mock（v4-2 · d2） ============ */
+.d2root{width:100%;height:100%;display:flex;flex-direction:column;color:#F6F4EC;font-family:var(--sans)}
+.d2-transport{height:54px;flex:0 0 54px;background:#171B21;border-bottom:1px solid rgba(246,244,236,.16);display:flex;align-items:center;gap:12px;padding:0 18px}
+.d2-tb{width:26px;height:26px;border:1px solid rgba(246,244,236,.45);border-radius:var(--r-s);display:flex;align-items:center;justify-content:center}
+.d2-tb.rec i{width:12px;height:12px;background:var(--red);display:block;border-radius:2px}
+.d2-tb .sq{width:11px;height:11px;border:1.5px solid #F6F4EC;display:block}
+.d2-chip{font:12px var(--mono);border:1px solid rgba(246,244,236,.4);color:rgba(246,244,236,.85);padding:3px 9px;border-radius:var(--r-s);letter-spacing:1px}
+.d2-time{font:19px var(--mono);letter-spacing:2px;color:rgba(246,244,236,.95);margin-left:12px}
+.d2-right{margin-left:auto;font:13px var(--mono);color:rgba(246,244,236,.75)}
+.d2-body{flex:1;display:flex;min-height:0;position:relative}
+.d2-tracks{width:226px;flex:0 0 226px;border-right:1px solid rgba(246,244,236,.12);display:flex;flex-direction:column}
+.d2-th{height:22px;flex:0 0 22px;font:12px var(--mono);color:rgba(246,244,236,.68);letter-spacing:2px;padding:4px 0 0 12px;border-bottom:1px solid rgba(246,244,236,.12)}
+.d2-row{height:60px;flex:0 0 60px;border-bottom:1px solid rgba(246,244,236,.08);padding:8px 12px 0 14px;position:relative;display:flex;flex-direction:column;gap:6px}
+.d2-row.bus{background:rgba(115,184,245,.10)}
+.d2-bustab{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue-lt)}
+.d2-top{display:flex;align-items:center;gap:8px}
+.d2-name{font:600 14px var(--sans);color:rgba(246,244,236,.92);white-space:nowrap}
+.d2-name b{font:12px var(--mono);color:rgba(246,244,236,.68);margin-left:7px;font-weight:400;letter-spacing:1px}
+.d2-msr{margin-left:auto;display:flex;gap:3px}
+.d2-msr b{width:17px;height:17px;border:1px solid rgba(246,244,236,.38);font:12px var(--mono);font-weight:400;color:rgba(246,244,236,.75);display:flex;align-items:center;justify-content:center}
+.d2-meter{width:74px;height:6px;background:rgba(246,244,236,.13);position:relative}
+.d2-meter i{position:absolute;left:0;top:0;bottom:0;background:rgba(250,204,26,.88);display:block}
+.d2-meter i u{position:absolute;right:0;top:0;bottom:0;width:4px;background:var(--red);text-decoration:none}
+.d2-tl{flex:1;position:relative;min-width:0;display:flex;flex-direction:column}
+.d2-ruler{height:22px;flex:0 0 22px;display:flex;border-bottom:1px solid rgba(246,244,236,.12)}
+.d2-ruler span{flex:1;border-left:1px solid rgba(246,244,236,.14);font:12px var(--mono);color:rgba(246,244,236,.65);padding:3px 0 0 6px}
+.d2-lanes{flex:1}
+.d2-lane{height:60px;flex:0 0 60px;border-bottom:1px solid rgba(246,244,236,.07);position:relative}
+.clip{position:absolute;top:8px;height:44px;background:rgba(251,249,241,.12);border:1px solid rgba(251,249,241,.34)}
+.clip span{display:inline-block;font:12.5px var(--sans);color:rgba(246,244,236,.9);padding:4px 8px}
+.clip.mini{top:12px;height:34px;background:rgba(251,249,241,.10)}
+.clip.mini:nth-child(odd){background:rgba(251,249,241,.16)}
+.d2-auto{height:38px;flex:0 0 38px;border-top:1px solid rgba(246,244,236,.14);position:relative}
+.d2-al{position:absolute;left:10px;top:5px;font:12px var(--mono);color:rgba(246,244,236,.68);letter-spacing:1px}
+.seg{position:absolute;top:16px;bottom:6px;display:flex;align-items:center}
+.seg span{font:12px var(--mono);padding-left:8px;letter-spacing:1px}
+.seg.b{left:10px;width:calc(50% - 14px);background:rgba(246,244,236,.12)}
+.seg.b span{color:rgba(246,244,236,.82)}
+.seg.a{left:50%;right:10px;background:var(--yellow)}
+.seg.a span{color:var(--ink);font-weight:700}
+.d2-ph{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--red);z-index:3}
+.d2-phflag{position:absolute;left:calc(50% + 8px);top:26px;font:12px var(--mono);color:var(--ink);background:var(--yellow);padding:2px 7px;z-index:4;letter-spacing:1px}
+.d2-rack{width:176px;flex:0 0 176px;border-left:1px solid rgba(246,244,236,.12);display:flex;flex-direction:column;padding-bottom:8px}
+.d2-unit{display:flex;gap:9px;align-items:center;padding:10px 12px;border-bottom:1px solid rgba(246,244,236,.08)}
+.knob{width:16px;height:16px;border:2px solid rgba(246,244,236,.55);border-radius:50%;position:relative;flex:0 0 16px}
+.knob::after{content:"";position:absolute;left:50%;top:1px;width:2px;height:6px;background:rgba(246,244,236,.8);transform:translateX(-50%)}
+.d2-unit b{font:600 13.5px var(--sans);color:rgba(246,244,236,.92);display:block}
+.d2-unit span{font:12px var(--mono);color:rgba(246,244,236,.68);display:block;margin-top:2px}
+.d2-unit.on{background:rgba(250,204,26,.12)}
+.d2-unit.on .knob{border-color:var(--yellow)}
+.d2-unit.on .yl{color:var(--yellow)}
+.d2-fold{margin-top:auto;padding:7px 12px;font:12px var(--mono);color:rgba(246,244,236,.66)}
+.d2-foldhd{height:20px;flex:0 0 20px;font:12px var(--mono);color:rgba(246,244,236,.62);letter-spacing:1px;padding:3px 0 0 12px;border-top:1px solid rgba(246,244,236,.12);background:rgba(246,244,236,.04)}
+.d2-frow{height:18px;flex:0 0 18px;border-bottom:1px dashed rgba(246,244,236,.10)}
+.d2-apptag{font:12px var(--mono);background:var(--yellow);color:var(--ink);padding:1px 6px;margin-left:10px;letter-spacing:.5px}
+.d2-flane{height:18px;flex:0 0 18px;border-bottom:1px dashed rgba(246,244,236,.08);position:relative}
+.d2-flane i{position:absolute;top:4px;height:10px;background:rgba(251,249,241,.07);border:1px solid rgba(251,249,241,.16)}
+.d2-add{margin-top:auto;padding:12px;font:12.5px var(--mono);color:rgba(246,244,236,.62);letter-spacing:1px;border-top:1px dashed rgba(246,244,236,.10)}
+</style>
+</head>
+<body>
+
+<!-- ======== 打样单页眉 ======== -->
+<header class="proof-head">
+  <span class="ph-l">打样单 · PROOF SHEET · B2</span>
+  <span class="ph-c">Vit 对话流主窗口 v4 —— 变体 <i>v4-2 · 瑞典极简升级</i>（Nordic Minimal Up · De Stijl 的骨＋北欧的呼吸）</span>
+  <span class="ph-r">三态联版 · 每屏 1440×900 · 2026-11-14</span>
+</header>
+
+<main class="triptych">
+
+<!-- ================================================================
+     态 A · 启动台 —— 桌面上只有对话窗（独立 OS 窗口），磁带列表为窗内抽屉
+================================================================ -->
+<section class="screen scrA">
+  <div class="deskgrid"></div>
+  <i class="wb yel"></i><i class="wb blu"></i><i class="wb red"></i>
+
+  <div class="slug"><b>态 A · 启动台</b><span>无工程 · 桌面仅一个对话窗 · 独立 OS 窗口</span></div>
+
+  <!-- 窗口标题注记 -->
+  <div class="note-chip" style="left:210px;top:12px"><i style="background:var(--blue)"></i>独立 OS 窗口 · 可最小化 → 任务栏 / Alt-Tab 召回</div>
+  <svg class="ldr" style="left:242px;top:44px" width="12" height="38" viewBox="0 0 12 38"><path d="M6 0 V32 M6 32 L2.5 27 M6 32 L9.5 27" stroke="#090B0E" stroke-width="1.5" fill="none"/></svg>
+  <div class="note-chip" style="left:12px;top:150px"><i style="background:var(--yellow)"></i>窗内抽屉 · 磁带列表</div>
+  <svg class="ldr" style="left:178px;top:162px" width="14" height="10" viewBox="0 0 14 10"><path d="M0 5 H9 M5.5 1.5 L10 5 L5.5 8.5" stroke="#090B0E" stroke-width="1.5" fill="none"/></svg>
+
+  <!-- OS 任务栏 -->
+  <div class="tbar">
+    <span class="start"></span>
+    <div class="titem on"><span>Vit · 对话工作台</span><i class="ind"></i></div>
+    <span class="clock">21:47 · EN</span>
+  </div>
+  <div class="desk-note">OS 桌面 —— 双窗口架构：<b>对话窗</b>与 <b>DAW</b> 各自独立成窗，本屏仅对话窗，占主位。</div>
+
+  <!-- 对话窗 · 独立 OS 窗口 -->
+  <div class="oswin awin">
+    <div class="osbar">
+      <span class="appmark">V</span>
+      <span class="t">Vit — 对话工作台</span>
+      <span class="path">会话 · 未命名 · 无工程</span>
+      <div class="winbtns">
+        <span class="wbtn"><svg width="12" height="2" viewBox="0 0 12 2"><rect width="12" height="2" fill="#090B0E"/></svg></span>
+        <span class="wbtn"><svg width="11" height="11" viewBox="0 0 11 11"><rect x="1" y="1" width="9" height="9" fill="none" stroke="#090B0E" stroke-width="1.5"/></svg></span>
+        <span class="wbtn"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 1 L10 10 M10 1 L1 10" stroke="#090B0E" stroke-width="1.5"/></svg></span>
+      </div>
+    </div>
+    <div class="abody">
+      <!-- 窗内抽屉 · 磁带目录（展开态） -->
+      <aside class="adrawer">
+        <div class="ad-head"><b>磁带目录</b><span>TAPE LIST · 三盘</span></div>
+        <div class="ad-rule"></div>
+        <div class="trow">
+          <span class="ticon" data-tape="小星星乐局" data-w="54" data-h="38"></span>
+          <div class="tcell"><div class="tname">《小星星乐局》</div><div class="tmeta">单轨钢琴 · 11-12 22:41</div></div>
+        </div>
+        <div class="trow">
+          <span class="ticon" data-tape="ProQ3 裸控实验" data-w="54" data-h="38"></span>
+          <div class="tcell"><div class="tname">《ProQ3 裸控实验》</div><div class="tmeta">插件实验 · 11-09 15:02</div></div>
+        </div>
+        <div class="trow hot">
+          <span class="ticon" data-tape="鼓组混音 v2" data-w="54" data-h="38"></span>
+          <div class="tcell"><div class="tname">《鼓组混音 v2》</div><div class="tmeta">14 轨 · 昨天 23:47</div></div>
+          <span class="ctag">续听</span>
+        </div>
+        <div class="ad-act">
+          <button class="ad-btn"><svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 1 V12 M1 6.5 H12" stroke="#090B0E" stroke-width="1.8"/></svg>新建空白工程</button>
+          <button class="ad-btn"><svg width="15" height="12" viewBox="0 0 15 12"><path d="M1 1.5 H6 L8 3.5 H14 V11 H1 Z" fill="none" stroke="#090B0E" stroke-width="1.4"/></svg>打开本地工程文件夹</button>
+        </div>
+        <div class="ad-note">抽屉可收拢为窗内左缘窄栏<br>—— 收拢形态见 态 C · 工程内。</div>
+      </aside>
+      <!-- 对话流主体 -->
+      <div class="aflow">
+        <div class="mast">
+          <div class="mast-l">
+            <div class="kicker"><i></i>开台白 · 第 40 期 · 冬</div>
+            <h1>Vit<span class="dot">.</span></h1>
+            <div class="sub">对话即工作台 —— AI-FIRST 数字音频工作台</div>
+          </div>
+          <div class="mast-comp">
+            <div class="comp-blue">
+              <span class="ticon" data-tape="_brand" data-w="92" data-h="64"></span>
+              <span class="cap">对话即工作台<br>AI-FIRST DAW · 对话窗＝主窗口</span>
+            </div>
+            <div class="comp-yel"><b>40</b><span>期</span></div>
+            <div class="comp-red"></div>
+          </div>
+        </div>
+        <div class="a-rule"></div>
+        <p class="lead"><b>你好，我是 Vit。</b>把想做的声音直接说给我——开轨道、排效果器、跑 A/B 渲染，这些活儿都归我。你只管听，再告诉我：哪里还差点意思。</p>
+        <div class="chip-head">栏目 · 快速开始</div>
+        <div class="chips">
+          <div class="chip"><i>01</i>新建一个空白工程</div>
+          <div class="chip"><i>02</i>打开本地工程文件夹</div>
+          <div class="chip hot"><i>03</i>继续写《鼓组混音 v2》<span class="ctag">续听</span></div>
+          <div class="chip"><i>04</i>问问：压缩器到底在压什么</div>
+        </div>
+        <div class="a-aside">上期批注：军鼓的房间感已收窄半步——这次想接着调哪里？</div>
+        <div class="a-input">
+          <div class="a-field"><span class="ph">对 Vit 说说今天想做的声音……</span><span class="caret"></span></div>
+          <div class="in-row">
+            <span class="note">Enter 发送 · Shift+Enter 换行 · 上下文随工程自动带上</span>
+            <button class="send">发送<svg width="15" height="11" viewBox="0 0 15 11"><path d="M0 5.5 H12 M8 1.5 L12.5 5.5 L8 9.5" stroke="#F6F4EC" stroke-width="1.7" fill="none"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="folio folioA">— 1 · 启动台 · 桌面视角 —</div>
+</section>
+
+<div class="gap">
+  <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" fill="none" stroke="#5A564A"/><path d="M9 0 V18 M0 9 H18" stroke="#5A564A" stroke-width="1"/></svg>
+  <span class="vtext">翻页</span>
+</div>
+
+<!-- ================================================================
+     态 B · 进入中 —— DAW 窗口自对话窗身后升起；下栏两组分镜
+================================================================ -->
+<section class="screen scrB">
+  <div class="deskgrid"></div>
+  <i class="wb yel"></i><i class="wb blu"></i>
+
+  <div class="slug"><b>态 B · 进入中</b><span>DAW 窗口自对话窗身后升起 · 对话窗置顶全程可见 · 分镜见下栏</span></div>
+
+  <!-- Z 序图例 -->
+  <div class="note-chip" style="left:24px;top:196px"><i style="background:var(--red)"></i>打开态 Z 序：对话窗 TOP · DAW BELOW</div>
+
+  <!-- OS 任务栏（两项） -->
+  <div class="tbar">
+    <span class="start"></span>
+    <div class="titem on"><span>Vit · 对话工作台</span><i class="ind"></i></div>
+    <div class="titem busy"><span>VitApp DAW · 启动中</span><i class="ind"></i></div>
+    <span class="clock">21:48 · EN</span>
+  </div>
+
+  <!-- DAW 窗口（Z 底层，自身后升起） -->
+  <div class="oswin darkbar-win dawrise" style="left:700px;top:110px;width:700px;height:330px">
+    <div class="osbar darkbar">
+      <i class="zchip lt">Z0 · BELOW</i>
+      <span class="t">VitApp DAW — 《鼓组混音 v2》 · Godot 前端</span>
+      <div class="winbtns">
+        <span class="wbtn dk"><svg width="12" height="2" viewBox="0 0 12 2"><rect width="12" height="2" fill="#F6F4EC"/></svg></span>
+        <span class="wbtn dk"><svg width="11" height="11" viewBox="0 0 11 11"><rect x="1" y="1" width="9" height="9" fill="none" stroke="#F6F4EC" stroke-width="1.5"/></svg></span>
+        <span class="wbtn dk"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 1 L10 10 M10 1 L1 10" stroke="#F6F4EC" stroke-width="1.5"/></svg></span>
+      </div>
+    </div>
+    <div class="daw-body"><div id="dawB"></div></div>
+  </div>
+
+  <!-- 对话窗（Z 置顶层） -->
+  <div class="oswin dlgwin" style="left:330px;top:24px;width:700px;height:428px">
+    <div class="osbar">
+      <span class="appmark">V</span>
+      <span class="t">Vit — 对话工作台</span>
+      <span class="path">会话 2 · 《鼓组混音 v2》</span>
+      <i class="zchip">Z1 · TOP</i>
+      <div class="winbtns">
+        <span class="wbtn"><svg width="12" height="2" viewBox="0 0 12 2"><rect width="12" height="2" fill="#090B0E"/></svg></span>
+        <span class="wbtn"><svg width="11" height="11" viewBox="0 0 11 11"><rect x="1" y="1" width="9" height="9" fill="none" stroke="#090B0E" stroke-width="1.5"/></svg></span>
+        <span class="wbtn"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 1 L10 10 M10 1 L1 10" stroke="#090B0E" stroke-width="1.5"/></svg></span>
+      </div>
+    </div>
+    <div class="dlg-body">
+      <div class="kicker rd"><i></i>进入中 · 双窗口 Z 序 · 对话窗全程置顶可见</div>
+      <div class="msg"><em>你</em>继续《鼓组混音 v2》。</div>
+      <div class="statecard">
+        <div class="sc-head"><b>工程装载状态</b><span>STATE · 对话流内状态控件</span></div>
+        <div class="sc-legend">状态机：待机 → <b>进行中</b> → 完成 · 当前：进行中</div>
+        <div class="step">
+          <span class="g done-g"><svg width="11" height="9" viewBox="0 0 11 9"><path d="M1 4.5 L4 7.5 L10 1" stroke="#F6F4EC" stroke-width="2" fill="none"/></svg></span>
+          <span class="s-name">内核 VitApp</span><span class="bar"><i style="width:100%"></i></span><span class="s-st">已连接 · 时钟同步</span>
+        </div>
+        <div class="step">
+          <span class="g act-g"></span>
+          <span class="s-name">Godot 前端</span><span class="bar"><i style="width:64%"></i></span><span class="s-st red">对位中 · 64%</span>
+        </div>
+        <div class="step">
+          <span class="g pend-g"></span>
+          <span class="s-name">会话挂接</span><span class="bar dim"><i style="width:0"></i></span><span class="s-st">待命</span>
+        </div>
+        <div class="tapepath">
+          <span class="ticon" data-tape="鼓组混音 v2" data-w="84" data-h="58" data-mode="play"></span>
+          <div class="tp-lines">
+            <div class="tp-line"><i></i><i></i><i></i><i></i></div>
+            <div class="tp-lab">走带正常 · <b>0:12 / 约 0:20</b> · 带轮 +140°</div>
+          </div>
+        </div>
+      </div>
+      <p class="agent">收到。正在拉起三件套：内核已连上，前端对位到 64%——装载完成后输入自动恢复，上一轮的宏快照我会先摆上台面。</p>
+      <div class="pause">装载期间输入暂歇 —— 完成后自动恢复</div>
+    </div>
+  </div>
+  <div class="folio folioB">— 2 · 进入中 · 两组分镜见下栏 —</div>
+
+  <!-- 分镜打样带：组1 OS 窗口 Z 序四帧 + 组2 磁带 icon 三态 + 状态控件三态 -->
+  <div class="band">
+    <div class="band-head">
+      <span class="bl">分镜打样 STORYBOARD —— 组 1 · OS 窗口 Z 序四帧 ＋ 组 2 · 磁带 icon 三态 / 状态控件三态</span>
+      <span class="br">桌面视角 · 打开/最小化＝OS 窗口级操作（无中间态）· 对话窗 always-on-top 仅在打开态成立 · 缓动为意图值</span>
+    </div>
+    <div class="row1">
+      <div class="frame">
+        <div class="stage">
+          <i class="m-dlg" style="left:12px;right:12px;top:10px;bottom:22px"></i>
+          <div class="m-tbar"><i class="on"></i></div>
+          <span class="ztag" style="left:20px;top:18px">对话窗 · TOP</span>
+          <span class="ztag" style="right:16px;bottom:30px">任务栏 1 项</span>
+        </div>
+        <div class="fcap"><b>① 对话窗满幅独占</b><span>基态 · 任务栏 1 项 · 无缩放</span></div>
+      </div>
+      <div class="fsep"><svg width="16" height="11" viewBox="0 0 16 11"><path d="M0 5.5 H12 M8.5 1.5 L13 5.5 L8.5 9.5" stroke="#5A564A" stroke-width="1.5" fill="none"/></svg></div>
+      <div class="frame">
+        <div class="stage">
+          <i class="m-daw" style="left:56%;right:10px;top:12px;bottom:20px"></i>
+          <i class="m-dlg" style="left:12px;width:50%;top:12px;bottom:24px"></i>
+          <svg class="marrow" style="left:51.5%;top:64px" width="22" height="12" viewBox="0 0 22 12"><path d="M0 6 H17 M13 2 L19 6 L13 10" stroke="#DB1214" stroke-width="1.8" fill="none"/></svg>
+          <span class="ztag dark" style="right:16px;top:18px">DAW · BELOW · 升起中</span>
+          <span class="ztag" style="left:18px;bottom:30px">对话窗 · TOP · 开始收缩</span>
+        </div>
+        <div class="fcap"><b>② DAW 自对话窗身后升起</b><span>scale .94→1 · ease-out 420ms · BELOW</span></div>
+      </div>
+      <div class="fsep"><svg width="16" height="11" viewBox="0 0 16 11"><path d="M0 5.5 H12 M8.5 1.5 L13 5.5 L8.5 9.5" stroke="#5A564A" stroke-width="1.5" fill="none"/></svg></div>
+      <div class="frame">
+        <div class="stage">
+          <i class="m-daw" style="left:10px;right:10px;top:10px;bottom:20px"></i>
+          <i class="m-dlg" style="left:14px;width:46%;top:14px;bottom:26px"></i>
+          <span class="ztag dark" style="right:16px;top:16px">DAW · BELOW · 满幅沉后</span>
+          <span class="ztag" style="left:20px;bottom:32px">对话窗 · TOP · 保持置顶</span>
+        </div>
+        <div class="fcap"><b>③ DAW 落位沉后</b><span>满幅常驻底层 · 对话窗保持前景</span></div>
+      </div>
+      <div class="fsep"><svg width="16" height="11" viewBox="0 0 16 11"><path d="M0 5.5 H12 M8.5 1.5 L13 5.5 L8.5 9.5" stroke="#5A564A" stroke-width="1.5" fill="none"/></svg></div>
+      <div class="frame">
+        <div class="stage">
+          <i class="m-daw" style="left:10px;right:10px;top:10px;bottom:20px"></i>
+          <i class="m-dlg lines" style="left:38%;width:24%;bottom:30px;height:24px;opacity:.9"></i>
+          <svg class="marrow" style="left:30%;top:66px" width="64" height="50" viewBox="0 0 64 50"><path d="M34 0 C 34 24, 16 30, 12 44" stroke="#DB1214" stroke-width="1.6" fill="none" stroke-dasharray="4 3"/><path d="M12 44 L10.5 36 M12 44 L19 40.5" stroke="#DB1214" stroke-width="1.6" fill="none"/></svg>
+          <span class="ztag" style="left:20px;top:16px">对话窗 · 最小化中 → 任务栏</span>
+          <span class="ztag dark" style="right:16px;top:16px">DAW · 全屏接管</span>
+        </div>
+        <div class="fcap"><b>④ 最小化：对话窗退场</b><span>OS 级操作 · 无中间态 · scale 1→.2 飞向任务栏</span></div>
+      </div>
+    </div>
+    <div class="row2">
+      <div class="grp">
+        <div class="grp-label"><i></i>组 2a · 磁带 icon 三态 —— 带轮角与进度弧</div>
+        <div class="icells">
+          <div class="icell">
+            <span class="tape-wrap"><span class="ticon" data-tape="鼓组混音 v2" data-w="80" data-h="56"></span></span>
+            <svg class="dial" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#5A564A"/><line x1="13" y1="2" x2="13" y2="5" stroke="#5A564A"/><line x1="24" y1="13" x2="21" y2="13" stroke="#5A564A"/><line x1="13" y1="24" x2="13" y2="21" stroke="#5A564A"/><line x1="2" y1="13" x2="5" y2="13" stroke="#5A564A"/><line x1="13" y1="13" x2="13" y2="4.5" stroke="#DB1214" stroke-width="2"/><circle cx="13" cy="13" r="1.8" fill="#090B0E"/></svg>
+            <label>待机 · 0°</label>
+          </div>
+          <svg class="ia" width="18" height="13" viewBox="0 0 18 13"><path d="M0 6.5 H13 M9.5 2 L14.5 6.5 L9.5 11" stroke="#5A564A" stroke-width="1.5" fill="none"/></svg>
+          <div class="icell">
+            <span class="tape-wrap" style="position:relative">
+              <span class="ticon" data-tape="鼓组混音 v2" data-w="80" data-h="56" data-mode="play"></span>
+              <svg style="position:absolute;left:50%;top:50%;transform:translate(-50%,-54%)" width="108" height="82" viewBox="0 0 108 82"><circle cx="54" cy="41" r="37" fill="none" stroke="rgba(9,11,14,.15)" stroke-width="2"/><circle cx="54" cy="41" r="37" fill="none" stroke="#DB1214" stroke-width="2.5" stroke-dasharray="148.7 232.5" transform="rotate(-90 54 41)"/></svg>
+            </span>
+            <svg class="dial" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#5A564A"/><line x1="13" y1="2" x2="13" y2="5" stroke="#5A564A"/><line x1="24" y1="13" x2="21" y2="13" stroke="#5A564A"/><line x1="13" y1="24" x2="13" y2="21" stroke="#5A564A"/><line x1="2" y1="13" x2="5" y2="13" stroke="#5A564A"/><line x1="13" y1="13" x2="13" y2="4.5" stroke="#DB1214" stroke-width="2" transform="rotate(140 13 13)"/><circle cx="13" cy="13" r="1.8" fill="#090B0E"/></svg>
+            <label class="red">进行中 · +140°</label>
+          </div>
+          <svg class="ia" width="18" height="13" viewBox="0 0 18 13"><path d="M0 6.5 H13 M9.5 2 L14.5 6.5 L9.5 11" stroke="#5A564A" stroke-width="1.5" fill="none"/></svg>
+          <div class="icell">
+            <span class="tape-wrap" style="position:relative">
+              <span class="ticon" data-tape="鼓组混音 v2" data-w="80" data-h="56"></span>
+              <i class="doneflag">成</i>
+            </span>
+            <svg class="dial" width="26" height="26" viewBox="0 0 26 26"><circle cx="13" cy="13" r="11" fill="none" stroke="#5A564A"/><line x1="13" y1="2" x2="13" y2="5" stroke="#5A564A"/><line x1="24" y1="13" x2="21" y2="13" stroke="#5A564A"/><line x1="13" y1="24" x2="13" y2="21" stroke="#5A564A"/><line x1="2" y1="13" x2="5" y2="13" stroke="#5A564A"/><line x1="13" y1="13" x2="13" y2="4.5" stroke="#DB1214" stroke-width="2" transform="rotate(352 13 13)"/><circle cx="13" cy="13" r="1.8" fill="#090B0E"/></svg>
+            <label>完成 · 回零</label>
+          </div>
+        </div>
+      </div>
+      <div class="gsep"></div>
+      <div class="grp" style="flex:1">
+        <div class="grp-label"><i></i>组 2b · 对话流状态控件三态 —— 待机 → 进行中 → 完成</div>
+        <div class="stcards">
+          <div class="stcard">
+            <div class="st-top"><span class="g pend-g"></span><b>待机</b><span class="stx">IDLE</span></div>
+            <div class="bar dim"><i style="width:0"></i></div>
+            <div class="st-note">等待点选磁带 · 输入可用</div>
+          </div>
+          <div class="stcard">
+            <div class="st-top"><span class="g act-g"></span><b>进行中</b><span class="stx red" style="color:var(--red);font-weight:700">64%</span></div>
+            <div class="bar"><i style="width:64%"></i></div>
+            <div class="st-note red">三件套对位中 · 输入暂歇</div>
+          </div>
+          <div class="stcard">
+            <div class="st-top"><span class="g done-g"><svg width="11" height="9" viewBox="0 0 11 9"><path d="M1 4.5 L4 7.5 L10 1" stroke="#F6F4EC" stroke-width="2" fill="none"/></svg></span><b>完成</b><span class="stx">DONE</span></div>
+            <div class="bar bl"><i style="width:100%"></i></div>
+            <div class="st-note">三件套就绪 · 输入恢复</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="gap">
+  <svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="6" fill="none" stroke="#5A564A"/><path d="M9 0 V18 M0 9 H18" stroke="#5A564A" stroke-width="1"/></svg>
+  <span class="vtext">翻页</span>
+</div>
+
+<!-- ================================================================
+     态 C · 工程内（二态切换）—— 打开态：对话窗＝居中大面板 61%，DAW 沉为四周背景；
+     右缘小样：缩起态（OS 最小化退场，DAW 全屏接管）
+================================================================ -->
+<section class="screen scrC">
+  <div class="deskgrid"></div>
+
+  <div class="slug"><b>态 C · 工程内（二态切换）</b><span>打开态 · 居中大面板 · 缩起态见右缘</span></div>
+
+  <!-- DAW 窗口（Z 底层，四周完整露出） -->
+  <div class="oswin darkbar-win" style="left:14px;top:14px;width:1412px;height:872px">
+    <div class="osbar darkbar">
+      <i class="zchip lt">Z0 · BELOW · 常驻底层</i>
+      <span class="t">VitApp DAW — 《鼓组混音 v2》 · Godot 前端</span>
+      <div class="winbtns">
+        <span class="wbtn dk"><svg width="12" height="2" viewBox="0 0 12 2"><rect width="12" height="2" fill="#F6F4EC"/></svg></span>
+        <span class="wbtn dk"><svg width="11" height="11" viewBox="0 0 11 11"><rect x="1" y="1" width="9" height="9" fill="none" stroke="#F6F4EC" stroke-width="1.5"/></svg></span>
+        <span class="wbtn dk"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 1 L10 10 M10 1 L1 10" stroke="#F6F4EC" stroke-width="1.5"/></svg></span>
+      </div>
+    </div>
+    <div class="daw-body"><div id="dawC"></div></div>
+  </div>
+  <div class="cveil"></div>
+
+  <!-- 底缘注记带 -->
+  <div class="c-anno" style="left:20px;bottom:20px"><i style="background:var(--yellow)"></i>「温暖」已应用到鼓组总线 · 宏卡见对话窗面板</div>
+  <div class="c-anno" style="left:470px;bottom:20px"><i style="background:var(--blue)"></i>二态切换：最小化退场 ⇄ 点按召回 —— 无中间态、无把手、无常驻条</div>
+
+  <!-- 对话窗 · 打开态大面板（约 61% 宽，主导前景） -->
+  <div class="oswin cpanel">
+    <div class="osbar">
+      <span class="appmark">V</span>
+      <span class="t">Vit — 对话工作台</span>
+      <span class="path">会话 2 · 《鼓组混音 v2》</span>
+      <i class="zchip">Z1 · TOP</i>
+      <div class="winbtns">
+        <span class="wbtn"><svg width="12" height="2" viewBox="0 0 12 2"><rect width="12" height="2" fill="#090B0E"/></svg></span>
+        <span class="wbtn"><svg width="11" height="11" viewBox="0 0 11 11"><rect x="1" y="1" width="9" height="9" fill="none" stroke="#090B0E" stroke-width="1.5"/></svg></span>
+        <span class="wbtn"><svg width="11" height="11" viewBox="0 0 11 11"><path d="M1 1 L10 10 M10 1 L1 10" stroke="#090B0E" stroke-width="1.5"/></svg></span>
+      </div>
+    </div>
+    <div class="cpanel-body">
+      <!-- 磁带抽屉 · 收拢态（窗内左缘窄栏，保留新建 / 打开入口） -->
+      <aside class="cdrail">
+        <span class="rail-label vtext">磁带目录</span>
+        <div class="cspines">
+          <div class="cspine dim" style="--sp:var(--blue)"><i class="band"></i><span class="vtext">星</span></div>
+          <div class="cspine dim" style="--sp:#6A6F66"><i class="band"></i><span class="vtext">裸</span></div>
+          <div class="cspine active" style="--sp:var(--yellow)"><i class="band"></i><span class="vtext">鼓</span></div>
+        </div>
+        <div class="cdr-actions">
+          <button class="cdr-btn"><b>＋</b><span>新建</span></button>
+          <button class="cdr-btn"><b>↗</b><span>打开</span></button>
+        </div>
+      </aside>
+      <!-- 工程上下文对话流 -->
+      <div class="cchat">
+        <div class="dateline">—— 今天 14:02 · 第 7 轮 · 96.0 BPM · 4/4 ——</div>
+        <div class="msg"><em>你</em>鼓组整体有点散，我想让它更黏、更靠前一点。</div>
+        <p class="agent">先不动单轨——从鼓组总线的染色入手。「温暖」让底鼓与军鼓贴得更近，镲片自然退后半步。三档宏快照已摆到右侧宏卡，选一档我立刻渲染对照。<sup class="fn">1</sup></p>
+        <div class="msg" style="margin-top:16px"><em>你</em>先听听「温暖」。</div>
+        <p class="agent">已应用到鼓组总线，A/B 渲染完成——背景时间线停在对照点，按空格键直接对比。</p>
+        <div class="abrow">
+          <button class="abbtn"><svg width="11" height="12" viewBox="0 0 11 12"><path d="M1 1 L10 6 L1 11 Z" fill="#DB1214"/></svg>对比试听 A/B</button>
+          <span class="rtag">已渲染 2 遍</span>
+          <span class="mono">同源 · 同窗 · 同路由</span>
+        </div>
+        <div class="cnote">注 1　宏快照＝一组预绑定参数的命名快照 · 可整体替换、随时回退。</div>
+        <div class="c-input">
+          <div class="c-field"><span class="ph">继续对 Vit 说……</span><span class="caret"></span></div>
+          <div class="c-in-row">
+            <span class="note">Enter 发送 · Shift+Enter 换行</span>
+            <button class="c-send">发送<svg width="15" height="11" viewBox="0 0 15 11"><path d="M0 5.5 H12 M8 1.5 L12.5 5.5 L8 9.5" stroke="#F6F4EC" stroke-width="1.7" fill="none"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <!-- 效果器宏卡（对话流控件 · 宏快照语义） -->
+      <div class="cmacro">
+        <div class="mf-head"><b>图 1 · 鼓组总线 · 染色宏快照</b><span>宏 · 一钮多参 · 对话流控件</span></div>
+        <div class="plist">
+          <div class="prow active"><i class="utag">用中</i><b>温暖</b><span>底鼓更近 · 镲片退后</span></div>
+          <div class="prow"><b>明亮</b><span>瞬态更亮 · 空气感上浮</span></div>
+          <div class="prow"><b>紧实</b><span>瞬态收紧 · 低频收腰</span></div>
+        </div>
+        <div class="mviz">
+          <div class="mcurve">
+            <svg width="260" height="83" viewBox="0 0 226 72">
+              <path d="M14 4 V64 H222" stroke="rgba(9,11,14,.4)" stroke-width="1" fill="none"/>
+              <line x1="14" y1="20" x2="222" y2="20" stroke="rgba(9,11,14,.1)" stroke-width="1"/>
+              <line x1="14" y1="36" x2="222" y2="36" stroke="rgba(9,11,14,.1)" stroke-width="1"/>
+              <line x1="14" y1="51" x2="222" y2="51" stroke="rgba(9,11,14,.1)" stroke-width="1"/>
+              <path d="M14 36 C 60 33, 120 25, 222 14" stroke="rgba(6,91,199,.55)" stroke-width="1.4" fill="none" stroke-dasharray="4 4"/>
+              <path d="M14 33 C 80 31, 140 36, 222 42" stroke="rgba(90,86,74,.5)" stroke-width="1.4" fill="none" stroke-dasharray="2 5"/>
+              <path d="M14 28 C 52 20, 74 23, 104 35 S 168 54, 222 57" stroke="#090B0E" stroke-width="2.2" fill="none"/>
+              <circle cx="70" cy="19" r="4" fill="#DB1214"/>
+            </svg>
+            <span class="axlab">频率 低 → 高 · 虚线为另两档</span>
+          </div>
+          <div class="mcells">
+            <div class="brow"><span>低频 · 更厚</span><div class="cells"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></div></div>
+            <div class="brow"><span>中频 · 更稳</span><div class="cells"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="brow"><span>高频 · 收拢</span><div class="cells"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+            <div class="hear">听感：<span class="hl">像给整套鼓蒙了一层薄绒，房间近了半步。</span></div>
+          </div>
+        </div>
+        <div class="mfoot">
+          <span class="mono">驱动 6 个绑定参数 · 应用后自动 A/B · 可整体回退</span>
+          <div class="mbtns">
+            <button class="btn-pri">应用到鼓组总线</button>
+            <button class="btn-gh">另存为我的快照</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 缩起态小样（OS 最小化 · DAW 全屏接管 · 召回注记 M2） -->
+  <div class="recess">
+    <div class="rc-head"><i></i><b>缩起态 · 对话窗最小化退场</b></div>
+    <div class="rc-tag">OS 窗口级操作 · 无中间态 · 无把手、无常驻条</div>
+    <div class="rc-mini">
+      <span class="rc-ztag">DAW 全屏 · 唯一前景</span>
+      <i class="rc-seg"><span>A「温暖」</span></i>
+      <div class="rc-bubble">对话窗已最小化 · 点按召回</div>
+      <div class="rc-tbar"><i class="st"></i><span class="it hot">Vit</span><span class="clk">21:49</span></div>
+    </div>
+    <div class="rc-sub">任务栏条目常亮＋气泡提示；<b>Alt-Tab</b> 或点按气泡即召回，回到打开态。工程内编辑 DAW＝对话窗最小化。</div>
+    <div class="rc-anim">最小化动画（OS 原生）：窗口 scale 1→.2 飞向任务栏条目 · DAW 同步全屏。</div>
+  </div>
+
+  <div class="folio folioC">— 3 · 工程内 · 打开态 ＋ 缩起态小样 —</div>
+</section>
+
+</main>
+
+<!-- ======== 版权页 / 打样信息 ======== -->
+<footer class="colophon">
+  <div class="cz1">
+    <b>联版阅读序 A → B → C</b>
+    <span>OS 窗口 Z 序四帧分镜与 icon / 状态控件三态见 B 屏下栏；缩起态小样见 C 屏右缘</span>
+  </div>
+  <div class="cz2">
+    <div class="swrow"><i class="sw" style="background:#065BC7"></i>蓝 · 结构与注记 #065BC7</div>
+    <div class="swrow"><i class="sw" style="background:#DB1214"></i>红 · 批校与激活 #DB1214</div>
+    <div class="swrow"><i class="sw" style="background:#FACC1A"></i>黄 · 高亮与进行中 #FACC1A</div>
+    <div class="swrow"><i class="sw" style="background:#F6F4EC"></i>暖纸 · 主场底色 #F6F4EC</div>
+  </div>
+  <div class="cz3">
+    诠释母题：<b>北欧家具目录 × De Stijl 骨架</b> —— 色块与骨架保留（可识别度不低于 v4-1），<i>结构线 1.5–2px、局部让位留白</i>（栏间以留白分界）；<i>圆角 4–8px 仅给交互控件</i>，结构面保持直角；暖纸底为主场，密度放松 15–20%。窗口二态：打开＝大面板主导、DAW 沉后；最小化＝整体退场（任务栏 / Alt-Tab 召回）——<b>无中间态、无把手、无常驻条</b>，always-on-top 仅在打开态成立。
+  </div>
+  <div class="cz4">
+    底线：正文 ≥14px · 关键信息再上调一档<br>
+    对比 ≥4.5:1 · 无暗底细灰字 · 半尺寸可辨<br>
+    第 1 版 · 打样 B2 · 4400×1050 · 全中文真实文案
+  </div>
+</footer>
+
+<script>
+/* ================= 资产：TapeIconArt 逐字复刻（spec §3，结构不动） ================= */
+var INK="#090B0E",WIN="#FBF9F1",HUB="#FAFAF2",ACC="#1A1A1F",TINT="#E6E6E6";
+function tapeSVG(w,h,a){ // a=atmos 可为 null（默认灰壳满盘）
+  var bx=2,by=2,bw=w-4,bh=h-4;
+  var wx=bx+8,wy=by+8,ww=bw-16,wh=bh-26;
+  var cy=wy+wh/2,c1x=wx+ww*0.28,c2x=wx+ww*0.72;
+  var r=Math.min(wh*0.3,22);
+  var d1=a?r*(0.34+0.5*a.L):r, d2=a?r*(0.34+0.5*a.R):r;
+  var labelY=by+bh-12;
+  var bodyFill=a?rgba(a.c1,0.62):TINT;
+  var s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+" "+h+'">';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="'+bodyFill+'"/>';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="'+WIN+'"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  [[c1x,d1],[c2x,d2]].forEach(function(reel){
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+reel[1]+'" fill="'+ACC+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+(r*0.32)+'" fill="'+HUB+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  });
+  s+='<line x1="'+(bx+10)+'" y1="'+labelY+'" x2="'+(bx+bw-10)+'" y2="'+labelY+'" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<line x1="'+(bx+10)+'" y1="'+(labelY+6)+'" x2="'+(bx+bw*0.55)+'" y2="'+(labelY+6)+'" stroke="rgba(31,36,43,0.6)" stroke-width="1"/>';
+  return s+"</svg>";
+}
+function rgba(c,alpha){return "rgba("+c[0]+","+c[1]+","+c[2]+","+alpha+")";}
+
+/* 氛围：工程名 → 色对（v2 语义移植；ProQ3 裸控实验保持灰壳满盘） */
+var TAPE_ATMOS={
+  "小星星乐局":{L:.72,R:.8,c1:[6,91,199]},
+  "ProQ3 裸控实验":null,
+  "鼓组混音 v2":{L:.8,R:.8,c1:[250,204,26]}
+};
+document.querySelectorAll("[data-tape]").forEach(function(el){
+  var name=el.getAttribute("data-tape");
+  var a=name==="_brand"?{L:.58,R:.52,c1:[6,91,199]}:TAPE_ATMOS[name]||null;
+  if(a&&el.getAttribute("data-mode")==="play")a={L:.48,R:.86,c1:a.c1};
+  el.innerHTML=tapeSVG(+el.getAttribute("data-w"),+el.getAttribute("data-h"),a);
+});
+
+/* ================= DAW 内核 mock（v4-2 · B 升起 / C 沉后共用） ================= */
+function dawMock(){
+  var tracks=[
+    {bus:1,name:"鼓组总线",tag:"GROUP",m:82},
+    {name:"Kick 底鼓",m:74},
+    {name:"军鼓 Snare",m:68},
+    {name:"HiHat 闭镲",m:52},
+    {name:"Overhead 头顶麦",m:60},
+    {name:"房间麦 Room",m:44}
+  ];
+  var s='<div class="d2root">'
+    +'<div class="d2-transport">'
+    +'<span class="d2-tb rec"><i></i></span>'
+    +'<span class="d2-tb"><svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 1 L11 6 L2 11 Z" fill="#F6F4EC"/></svg></span>'
+    +'<span class="d2-tb"><i class="sq"></i></span>'
+    +'<span class="d2-chip">循环 · 开</span>'
+    +'<span class="d2-time">0001 . 02 . 12</span>'
+    +'<span class="d2-right">96.0 BPM · 4/4 · 48k</span>'
+    +'</div><div class="d2-body"><div class="d2-tracks"><div class="d2-th">轨道 · 14 选 6</div>';
+  tracks.forEach(function(r){
+    s+='<div class="d2-row'+(r.bus?' bus':'')+'">'
+      +(r.bus?'<i class="d2-bustab"></i>':'')
+      +'<div class="d2-top"><span class="d2-name">'+r.name
+      +(r.bus?'<i class="d2-apptag">←「温暖」</i>':(r.tag?'<b>'+r.tag+'</b>':''))+'</span>'
+      +(r.bus?'':'<span class="d2-msr"><b>M</b><b>S</b><b>R</b></span>')+'</div>'
+      +'<div class="d2-meter"><i style="width:'+r.m+'%"><u></u></i></div>'
+      +'</div>';
+  });
+  s+='<div class="d2-foldhd">轨道 07–14 · 已折叠</div>';
+  for(var f=0;f<8;f++)s+='<div class="d2-frow"></div>';
+  s+='<div class="d2-add">＋ 添加轨道</div>';
+  s+='</div><div class="d2-tl"><div class="d2-ruler">';
+  for(var i=1;i<=8;i++)s+='<span>'+i+'</span>';
+  s+='</div><div class="d2-lanes">';
+  tracks.forEach(function(r,idx){
+    if(idx===3){
+      var mini='';
+      for(var k=0;k<8;k++)mini+='<i class="clip mini" style="left:'+(k*12.5)+'%;width:11.2%"></i>';
+      s+='<div class="d2-lane">'+mini+'</div>';
+    }else{
+      var lab=r.bus?'总线 · 鼓组':r.name.split(" ")[0];
+      s+='<div class="d2-lane"><i class="clip" style="left:0;width:99%"><span>'+lab+'</span></i></div>';
+    }
+  });
+  s+='</div>';
+  for(var f2=0;f2<8;f2++){
+    var fl=10+f2*5.5,fw=26+(f2*17)%38;
+    s+='<div class="d2-flane"><i style="left:'+fl+'%;width:'+fw+'%"></i></div>';
+  }
+  s+='<div class="d2-auto"><span class="d2-al">A/B 对照区间</span>'
+    +'<i class="seg b"><span>B 原始</span></i><i class="seg a"><span>A「温暖」</span></i></div>'
+    +'<div class="d2-ph"></div><div class="d2-phflag">A/B 对照点</div></div>';
+  s+='<div class="d2-rack"><div class="d2-th">鼓组总线 · 机架</div>'
+    +'<div class="d2-unit"><i class="knob"></i><div><b>染色压缩</b><span>总线后级</span></div></div>'
+    +'<div class="d2-unit on"><i class="knob"></i><div><b>磁带饱和</b><span class="yl">宏驱动 ·「温暖」</span></div></div>'
+    +'<div class="d2-unit"><i class="knob"></i><div><b>房间混响</b><span>发送</span></div></div>'
+    +'<div class="d2-unit"><i class="knob"></i><div><b>总线 EQ</b><span>返回</span></div></div>'
+    +'<div class="d2-unit"><i class="knob"></i><div><b>电平表 K-12</b><span>总线监测</span></div></div>'
+    +'<div class="d2-fold">机架链路随总线保存</div></div>';
+  s+='</div></div>';
+  return s;
+}
+document.getElementById("dawB").innerHTML=dawMock();
+document.getElementById("dawC").innerHTML=dawMock();
+</script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>板C · 包豪斯令牌契约 — 从作品到体系</title>
+<style>
+:root{
+  --ink:#111318; --paper:#fff; --canvas:#f4f4f1; --warm:#f6f4ec; --hair:#c9c9c3; --muted:#656565;
+  --blue:#1557d6; --blue-dark:#0f43aa; --blue-soft:#e8efff; --blue-inp:#dbe6fc; --blue-lt:#73b8f5;
+  --red:#e63426; --red-gd:#db1215; --yellow:#ffd42a; --green:#1a8d5b; --purple:#a78bfa;
+  --dark:#2e3437; --mono:Consolas,"SFMono-Regular",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1600px;height:1000px;overflow:hidden}
+body{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--paper);position:relative}
+.smallcaps{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--muted)}
+
+.hd{position:absolute;top:0;left:0;right:0;height:64px;display:flex;align-items:flex-end;
+  justify-content:space-between;padding:0 24px 10px;border-bottom:2px solid var(--ink)}
+.hd h1{font-size:19px;font-weight:900;letter-spacing:.5px}
+.hd .meta{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-align:right;line-height:1.5}
+
+.plates{position:absolute;top:64px;bottom:28px;left:0;right:0;display:grid;
+  grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}
+.plate{padding:16px 24px;position:relative}
+.plate:nth-child(2){border-left:1px solid var(--hair)}
+.plate:nth-child(3){border-top:1px solid var(--hair)}
+.plate:nth-child(4){border-left:1px solid var(--hair);border-top:1px solid var(--hair)}
+.plabel{display:flex;align-items:baseline;gap:10px;margin-bottom:12px}
+.plabel b{font-size:22px;font-weight:900}
+.plabel span{font-size:11px;color:var(--muted)}
+
+/* Plate A 色彩契约 */
+.swrow{display:flex;flex-wrap:wrap;gap:12px 14px}
+.sw{width:92px}
+.sw .c{width:56px;height:56px;border:2px solid var(--ink)}
+.sw .hx{font-family:var(--mono);font-size:9.5px;margin-top:4px}
+.sw .nm{font-size:11px;font-weight:700;margin-top:1px}
+.sw .us{font-size:9.5px;color:var(--muted);line-height:1.3}
+.verdicts{position:absolute;left:24px;right:24px;bottom:14px;display:flex;gap:18px;align-items:center}
+.vitem{display:flex;align-items:center;gap:8px;font-size:10.5px;line-height:1.35}
+.vitem .mini{width:34px;height:34px;border:1px solid var(--hair);flex:none}
+.vitem code{font-family:var(--mono);font-size:9.5px}
+.vitem .x{color:var(--red-gd);font-weight:900;font-size:14px}
+.vitem .ok{color:var(--green);font-weight:900;font-size:14px}
+.flag{border:2px solid var(--red-gd);padding:6px 9px;font-size:10px;line-height:1.4}
+
+/* Plate B 线制 */
+.lrow{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.lsample{width:400px;flex:none}
+.l1{height:2px;background:var(--ink)}
+.l2{height:1px;background:var(--hair)}
+.l3{height:0;border-top:2px dashed var(--purple)}
+.lspec{font-family:var(--mono);font-size:10px;color:var(--muted);line-height:1.5}
+.lspec b{color:var(--ink);font-size:11px}
+.ruler{width:400px;flex:none;height:34px;position:relative;border-bottom:2px solid var(--ink)}
+.ruler span{position:absolute;bottom:0;width:1px;background:var(--ink)}
+.ruler .lab{position:absolute;bottom:-16px;font-family:var(--mono);font-size:9px;color:var(--muted);background:none;width:auto}
+.diag{width:110px;height:52px;border:1px solid var(--hair);position:relative;flex:none;overflow:hidden}
+.diag::before{content:"";position:absolute;left:-8px;top:24px;width:126px;height:2px;background:var(--ink);transform:rotate(-24deg)}
+.diag::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;color:var(--red-gd);font-size:26px;font-weight:900}
+
+/* Plate C 角·影·控件 */
+.ccols{display:flex;gap:26px}
+.ccol .cap{font-family:var(--mono);font-size:9.5px;letter-spacing:2px;color:var(--muted);margin-bottom:10px}
+.cornerA{width:84px;height:84px;border:2px solid var(--ink)}
+.cornerB{width:84px;height:84px;border:2px solid var(--ink);border-radius:2px}
+.cnote{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.5}
+.shd{width:128px;height:84px;background:var(--paper);border:2px solid var(--ink);margin-bottom:20px;position:relative}
+.shd.a{box-shadow:7px 7px 0 rgba(17,17,17,.12)}
+.shd.b{box-shadow:3px 3px 0 rgba(17,17,17,.05)}
+.shd.c{box-shadow:0 12px 26px rgba(17,17,17,.20)}
+.shd .t{position:absolute;top:6px;left:8px;font-family:var(--mono);font-size:9px;color:var(--muted)}
+.shd.c .ban{position:absolute;top:26px;left:22px;transform:rotate(-9deg);border:2px solid var(--red-gd);
+  color:var(--red-gd);font-weight:900;font-size:13px;padding:2px 8px;background:rgba(255,255,255,.85)}
+.vbtn{border:2px solid var(--ink);background:var(--paper);font-size:11.5px;font-weight:700;
+  padding:9px 12px;display:inline-block;margin-bottom:12px}
+.vbtn.hov{border-color:var(--blue);color:var(--blue)}
+.vbtn.prs{transform:translate(1px,1px)}
+.absw{display:flex;border:2px solid var(--ink);background:var(--paper);margin-bottom:12px;width:max-content}
+.absw span{width:32px;font-family:var(--mono);font-weight:700;font-size:11px;padding:6px 0;text-align:center}
+.absw span+span{border-left:2px solid var(--ink)}
+.absw .on{background:var(--blue);color:#fff}
+.chipb{display:inline-block;font-size:10.5px;font-weight:700;padding:4px 9px;border:2px solid var(--ink);
+  background:var(--blue);color:#fff}
+
+/* Plate D 字阶 */
+.tsrow{display:flex;align-items:baseline;gap:14px;border-bottom:1px solid var(--hair);padding:4px 0}
+.tsrow .px{margin-left:auto;font-family:var(--mono);font-size:9.5px;color:var(--muted)}
+.numpanel{background:var(--canvas);border:1px solid var(--hair);padding:14px 16px}
+.numrow{display:flex;align-items:baseline;gap:12px;border-bottom:1px solid var(--hair);padding:6px 0}
+.numrow:last-child{border-bottom:none}
+.numrow b{font-family:var(--mono);font-size:16px;font-weight:700;min-width:170px}
+.numrow span{font-size:10.5px;color:var(--muted)}
+
+.ft{position:absolute;bottom:0;left:0;right:0;height:28px;border-top:1px solid var(--hair);
+  display:flex;align-items:center;justify-content:space-between;padding:0 24px;
+  font-family:var(--mono);font-size:9.5px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <h1>VIT · 蒙德里安路线 — 令牌契约 v1</h1>
+  <div class="meta">对照 vit_mondrian_theme.gd · styles.css Mondrian v1/v2 · rack_node_theme_rules.gd<br>2026-10-24 · 本页为提案，非现状</div>
+</div>
+
+<div class="plates">
+
+  <div class="plate">
+    <div class="plabel"><b>A</b><span>色彩契约 — 语义先行，风格派为壳</span></div>
+    <div class="swrow">
+      <div class="sw"><div class="c" style="background:#111318"></div><div class="hx">#111318</div><div class="nm">墨</div><div class="us">结构线/文字</div></div>
+      <div class="sw"><div class="c" style="background:#fff"></div><div class="hx">#FFFFFF</div><div class="nm">纸</div><div class="us">输出面</div></div>
+      <div class="sw"><div class="c" style="background:#f4f4f1"></div><div class="hx">#F4F4F1</div><div class="nm">画布</div><div class="us">底面·鸟瞰区</div></div>
+      <div class="sw"><div class="c" style="background:#f6f4ec"></div><div class="hx">#F6F4EC</div><div class="nm">暖纸</div><div class="us">DAW 面板</div></div>
+      <div class="sw"><div class="c" style="background:#1557d6"></div><div class="hx">#1557D6</div><div class="nm">蓝</div><div class="us">输入·选中·Z2</div></div>
+      <div class="sw"><div class="c" style="background:#0f43aa"></div><div class="hx">#0F43AA</div><div class="nm">蓝深</div><div class="us">按压态</div></div>
+      <div class="sw"><div class="c" style="background:#e63426"></div><div class="hx">#E63426</div><div class="nm">红</div><div class="us">回滚·告警·clip 选中</div></div>
+      <div class="sw"><div class="c" style="background:#ffd42a"></div><div class="hx">#FFD42A</div><div class="nm">黄</div><div class="us">信任锚·clip 域</div></div>
+      <div class="sw"><div class="c" style="background:#1a8d5b"></div><div class="hx">#1A8D5B</div><div class="nm">绿</div><div class="us">完成（仅语义）</div></div>
+      <div class="sw"><div class="c" style="background:#a78bfa"></div><div class="hx">#A78BFA</div><div class="nm">紫</div><div class="us">控制层虚线</div></div>
+      <div class="sw"><div class="c" style="background:#2e3437"></div><div class="hx">#2E3437</div><div class="nm">暗画布</div><div class="us">编辑视口</div></div>
+      <div class="sw"><div class="c" style="background:#73b8f5"></div><div class="hx">#73B8F5</div><div class="nm">蓝浅</div><div class="us">MIDI·Z2 域</div></div>
+    </div>
+    <div class="verdicts">
+      <div class="vitem"><div class="mini" style="background:#f5f6f8"></div><span class="x">✕</span>
+        <div>双白合一<br><code>#F5F6F8 冷白废止 → #F4F4F1</code></div></div>
+      <div class="vitem"><div class="mini" style="background:#f4f4f1"></div><span class="ok">✓</span>
+        <div>统一暖纸<br><code>DAW 面板 #F6F4EC 同族</code></div></div>
+      <div class="vitem"><div class="flag">现状缺陷：<code>--green:#1557d6</code> ≡ 蓝<br>复位为 <code>#1A8D5B</code>，绿色只作「完成」语义</div></div>
+    </div>
+  </div>
+
+  <div class="plate">
+    <div class="plabel"><b>B</b><span>线制与模数 — 粗墨=结构 · 发丝=数据</span></div>
+    <div class="lrow"><div class="lsample l1"></div>
+      <div class="lspec"><b>结构线 · 2px 墨</b><br>面板边界 / 结构块 / 台账表头</div></div>
+    <div class="lrow"><div class="lsample l2"></div>
+      <div class="lspec"><b>数据线 · 1px 发丝 #C9C9C3</b><br>网格 / 分区 / 表格行 / 轨迹引导线</div></div>
+    <div class="lrow"><div class="lsample l3"></div>
+      <div class="lspec"><b>控制层 · 2px 紫虚线 #A78BFA</b><br>rack 双层模型（信号实线 / 控制虚线）</div></div>
+    <div class="lrow"><div class="ruler" id="ruler"></div>
+      <div class="lspec"><b>模数 · 8px 基</b><br>8 / 16 / 24 / 56 / 112 —— 网格与间距<br>全部取 8 的倍数（112 = 一小节）</div></div>
+    <div class="lrow" style="margin-bottom:0"><div class="diag"></div>
+      <div class="lspec"><b>对角线 · 禁用</b><br>正交系统的边界（1917 年教义）<br>斜线只允许出现在被否决的稿子里</div></div>
+  </div>
+
+  <div class="plate">
+    <div class="plabel"><b>C</b><span>角 · 影 · 控件律</span></div>
+    <div class="ccols">
+      <div class="ccol">
+        <div class="cap">角律（仅两档）</div>
+        <div class="cornerA"></div>
+        <div class="cnote">结构块 · 0°<br>面板/卡片/色块</div>
+        <div class="cornerB" style="margin-top:14px"></div>
+        <div class="cnote">控件内件 · 2px<br>rack 卡片 / 按钮 / 页签</div>
+      </div>
+      <div class="ccol">
+        <div class="cap">影律（仅硬投影）</div>
+        <div class="shd a"><span class="t">7px 7px 0 · 输出卡活动</span></div>
+        <div class="shd b"><span class="t">3px 3px 0 · settled</span></div>
+        <div class="shd c"><span class="t">0 12px 26px 弥散</span><span class="ban">禁 用</span></div>
+      </div>
+      <div class="ccol">
+        <div class="cap">控件族（沿用 Mondrian v2）</div>
+        <div>
+          <span class="vbtn" style="margin-right:10px">提案</span>
+          <span class="vbtn hov">hover 蓝边</span>
+        </div>
+        <div class="absw"><span class="on">A</span><span>B</span><span>C</span><span>D</span></div>
+        <div><span class="chipb">待确认</span></div>
+        <div class="cnote" style="margin-top:12px">按下 = translate(1px,1px)<br>投影位移代替形变</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="plate">
+    <div class="plabel"><b>D</b><span>字阶与数字 — 无衬线 + 制表等宽</span></div>
+    <div style="display:flex;gap:30px">
+      <div style="flex:1">
+        <div class="tsrow" style="font-size:27px;font-weight:900">Vit 混音由证据开始<span class="px">27 · 展示</span></div>
+        <div class="tsrow" style="font-size:16px;font-weight:700">轨道名 / 卡片标题 / 台账数值<span class="px">16 · 强</span></div>
+        <div class="tsrow" style="font-size:13px">正文 / 消息 / 按钮文字<span class="px">13 · 正文</span></div>
+        <div class="tsrow" style="font-size:12px">辅助说明 / 参数行<span class="px">12 · 辅</span></div>
+        <div class="tsrow" style="font-size:11px;color:var(--muted)">页签 / 标签 / 时间码小字<span class="px">11 · 标签</span></div>
+        <div class="tsrow" style="border-bottom:none;font-family:var(--mono);font-size:10px;color:var(--muted)">mono: 参数 / 时间码 / 台账 / hex —— Consolas 栈<span class="px">10 · 数据</span></div>
+      </div>
+      <div style="width:400px">
+        <div class="numpanel">
+          <div class="numrow"><b>00:00:57:12</b><span>小节 30 · 拍 2</span></div>
+          <div class="numrow"><b>−14.2 LUFS</b><span>副歌目标 −14 · RLM</span></div>
+          <div class="numrow"><b>+0.8 dBTP</b><span>真峰余量</span></div>
+          <div class="numrow"><b>120.0 BPM</b><span>4/4 恒定</span></div>
+          <div class="numrow"><b>R3 · 14 步</b><span>104.8 s · 2 回执待</span></div>
+        </div>
+        <div class="cnote" style="margin-top:10px">数字一律制表等宽、小数点对齐；<br>负号用 −（U+2212），不用连字符。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="ft">
+  <span>单一令牌源 = 复活的 traceui.css（唯一源）· 收敛卡的前置产出</span>
+  <span>板C · 包豪斯步 — 从作品到体系 · v1 · 2026-10-24</span>
+</div>
+
+<script>
+(function(){
+  var r=document.getElementById('ruler');
+  for(var x=0;x<=392;x+=8){
+    var s=document.createElement('span');
+    s.style.left=x+'px'; s.style.height=(x%56===0?'16px':'7px');
+    r.appendChild(s);
+  }
+  [['8',4],['56',52],['112',108],['224',220],['392',376]].forEach(function(t){
+    var l=document.createElement('span');l.className='lab';l.textContent=t[0];l.style.left=t[1]+'px';r.appendChild(l);
+  });
+})();
+</script>
+</body>
+</html>

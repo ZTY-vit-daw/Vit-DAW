@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Vit 对话流主窗口 v3 · 方向 B —— 硬件设备面板派（Teenage Engineering 参照）</title>
+<!--
+  ============================================================
+  方向 B · 硬件设备面板派（TE 参照）
+  母题：对话窗＝一台 AI 磁带机的操作面板。
+  骨架：态C 主窗位＝底部横向设备条（全宽 · 高 38%）；
+        磁带抽屉＝面板右端卡带仓（插带槽 + 抽屉把手）；
+        过渡＝"开机 / 舱门"叙事。
+  令牌：Mondrian 磁带色板（锁定）→ 轴色编码：蓝=对话 黄=宏信号 红=录制/写入 灰=功能。
+  必画元素自查（SPEC §2）：
+  [1] 三态联版  .screen.sA / .sB / .sC
+  [2] 沉后展开过渡分镜  .band1（4 帧，Z 层 + 缓动标注）
+  [3] icon 三态分镜  .sB 内 iconstrip + .band2 rowA；对话流内状态控件实例 .band2 rowB + sB LCD 实况
+  [4] 磁带抽屉收拢态  .sC .bay（插带槽/半入仓/把手/新磁带/打开工程）+ sC 右上"收起态小样"
+  [5] 效果器宏控件  .sC .macro-mod（宏选择器排＝实体档位开关）
+  [6] DAW 背景  .sC .daw-full（轨道列表/时间线/transport，沉后暗化）+ sB 升起中 DAW
+  ============================================================
+-->
+<style>
+:root{
+  --ink:#090B0E; --paper:#F6F4EC; --warm:#FBF9F1; --canvas:#E8E4D7;
+  --blue:#065BC7; --blue-lt:#73B8F5; --red:#DB1214; --yellow:#FACC1A; --dark:#14181C;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#C9C6B7;}
+body{width:4400px;font-family:'Inter','Microsoft YaHei','PingFang SC',sans-serif;color:var(--ink);}
+.mono{font-family:Consolas,'Microsoft YaHei','Courier New',monospace;}
+.silk{font:700 12px/1.4 Consolas,'Microsoft YaHei',monospace;letter-spacing:.13em;color:rgba(9,11,14,.74);}
+
+/* ---------- 页眉 ---------- */
+.pagehead{width:4400px;height:64px;background:var(--ink);color:var(--paper);display:flex;align-items:center;gap:22px;padding:0 36px;}
+.pagehead .sq{width:14px;height:14px;background:var(--yellow);border:2px solid var(--paper);}
+.pagehead h1{font-size:19px;font-weight:800;letter-spacing:.02em;}
+.pagehead .sub{font:700 13px/1.4 Consolas,'Microsoft YaHei',monospace;color:rgba(246,244,236,.82);letter-spacing:.06em;}
+.pagehead .legend{margin-left:auto;display:flex;align-items:center;gap:14px;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;color:rgba(246,244,236,.85);}
+.pagehead .legend i{display:inline-block;width:11px;height:11px;border:1.5px solid var(--paper);margin-right:5px;vertical-align:-1px;}
+.i-blue{background:var(--blue);} .i-yellow{background:var(--yellow);} .i-red{background:var(--red);} .i-gray{background:#4A5058;}
+
+/* ---------- 三屏联版 ---------- */
+.screens{display:flex;gap:40px;padding-top:26px;}
+.screen{width:1440px;height:900px;position:relative;overflow:hidden;flex:none;
+  background:var(--canvas);border:2px solid var(--ink);box-shadow:0 6px 0 rgba(9,11,14,.5);
+  background-image:radial-gradient(rgba(9,11,14,.05) 1px,transparent 1.2px);background-size:15px 15px;}
+.stag{position:absolute;z-index:60;top:14px;left:16px;display:flex;align-items:center;gap:10px;}
+.stag b{background:var(--ink);color:var(--paper);font:800 13px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.12em;padding:7px 12px;border-radius:3px;}
+.stag span{background:rgba(251,249,241,.92);border:1.5px solid var(--ink);color:var(--ink);font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.08em;padding:6px 10px;border-radius:3px;}
+.zchip{position:absolute;z-index:55;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.06em;padding:5px 9px;border-radius:3px;}
+.zc-ink{background:var(--ink);color:var(--paper);}
+.zc-blue{background:var(--dark);color:var(--blue-lt);border:1.5px solid var(--blue-lt);}
+.zc-yellow{background:var(--yellow);color:var(--ink);border:1.5px solid var(--ink);}
+
+/* ---------- 设备机壳（TE 面板质感） ---------- */
+.dev{position:absolute;background:linear-gradient(180deg,#FCFAF3 0%,var(--paper) 58%,#EEEBDC 100%);
+  border:2.5px solid var(--ink);border-radius:12px;
+  box-shadow:0 5px 0 rgba(9,11,14,.9),0 30px 60px rgba(9,11,14,.24);}
+.screw{position:absolute;width:11px;height:11px;border-radius:50%;z-index:30;
+  background:radial-gradient(circle at 35% 30%,#FFFDF6,#D9D5C4 62%,#B4B0A0);
+  border:1.5px solid rgba(9,11,14,.6);}
+.screw::after{content:"";position:absolute;left:1px;right:1px;top:50%;margin-top:-1px;height:1.8px;background:rgba(9,11,14,.62);transform:rotate(37deg);}
+.screw.s2::after{transform:rotate(-24deg);} .screw.s3::after{transform:rotate(78deg);} .screw.s4::after{transform:rotate(10deg);}
+.vents{width:64px;height:12px;background:repeating-linear-gradient(90deg,rgba(9,11,14,.28) 0 2.5px,transparent 2.5px 7px);border-radius:2px;}
+.led{width:10px;height:10px;border-radius:50%;border:1.5px solid rgba(9,11,14,.72);display:inline-block;}
+.led.ly{background:var(--yellow);box-shadow:0 0 7px rgba(250,204,26,.85);}
+.led.lb{background:var(--blue-lt);box-shadow:0 0 7px rgba(115,184,245,.85);}
+.led.lo{background:#3D434A;}
+.dev-top{display:flex;align-items:center;gap:14px;padding:0 18px;border-bottom:2px solid rgba(9,11,14,.16);}
+.brandplate{background:var(--ink);color:var(--paper);font:800 15px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.1em;padding:7px 12px;border-radius:4px;}
+.brandplate em{font-style:normal;color:var(--yellow);}
+.zonetag{font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.14em;color:rgba(9,11,14,.72);}
+.ledgrp{margin-left:auto;display:flex;align-items:center;gap:8px;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.7);}
+
+/* ---------- LCD（点阵对话显示区） ---------- */
+.lcd{position:relative;background:var(--dark);border:2px solid var(--ink);border-radius:7px;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(115,184,245,.14),inset 0 3px 14px rgba(0,0,0,.68),0 2px 0 rgba(9,11,14,.8);}
+.lcd::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(115,184,245,.09) 1px,transparent 1.2px);background-size:7px 7px;z-index:5;pointer-events:none;}
+.lcd::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px);z-index:6;pointer-events:none;}
+.lcd>*{position:relative;z-index:7;}
+.lcdhead{display:flex;align-items:center;gap:10px;padding:10px 16px 0;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.14em;color:var(--blue-lt);}
+.lcdhead .r{margin-left:auto;color:rgba(251,249,241,.6);display:flex;align-items:center;gap:7px;}
+.lcdbody{padding:10px 16px 12px;display:flex;flex-direction:column;gap:9px;height:calc(100% - 30px);}
+.bubble{max-width:94%;padding:9px 13px;border:1.5px solid;border-radius:6px;font-size:14px;line-height:1.55;}
+.b-agent{border-color:rgba(115,184,245,.55);background:rgba(115,184,245,.10);color:var(--paper);}
+.b-user{border-color:rgba(250,204,26,.5);background:rgba(250,204,26,.07);color:var(--paper);margin-left:auto;}
+.b-user .who,.b-agent .who{display:block;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.14em;margin-bottom:5px;}
+.b-agent .who{color:var(--blue-lt);} .b-user .who{color:var(--yellow);text-align:right;}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:2px;}
+.chip{display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border:1.5px solid rgba(115,184,245,.6);border-radius:4px;
+  font:700 13px/1 Consolas,'Microsoft YaHei',monospace;color:var(--blue-lt);background:rgba(115,184,245,.08);}
+.chip::before{content:"▸";color:var(--yellow);}
+.lcdhint{margin-top:auto;font:700 12px/1.5 Consolas,'Microsoft YaHei',monospace;letter-spacing:.08em;color:rgba(251,249,241,.62);}
+.caret{display:inline-block;width:9px;height:15px;background:var(--yellow);vertical-align:-2px;margin-left:6px;}
+.lcdscroll{position:absolute;right:6px;top:34px;bottom:16px;width:6px;background:rgba(251,249,241,.10);border-radius:3px;z-index:8;}
+.lcdscroll i{position:absolute;top:6%;height:48%;width:100%;background:rgba(115,184,245,.62);border-radius:3px;}
+
+/* ---------- 实体按键 ---------- */
+.key{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex:none;
+  font:700 13px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.06em;
+  padding:10px 14px;border:2px solid var(--ink);border-radius:5px;color:var(--ink);
+  background:linear-gradient(180deg,#FFFEF8,var(--warm));
+  box-shadow:0 3px 0 var(--ink),inset 0 1px 0 #FFFFFF;}
+.key.k-blue{background:linear-gradient(180deg,#2E79D8,var(--blue));color:var(--paper);}
+.key.k-yellow{background:linear-gradient(180deg,#FDD84B,var(--yellow));color:var(--ink);}
+.key.k-red{background:linear-gradient(180deg,#E8403E,var(--red));color:var(--paper);}
+.key.k-gray{background:linear-gradient(180deg,#F0EDDF,var(--canvas));}
+.key.sm{padding:7px 10px;font-size:12px;box-shadow:0 2px 0 var(--ink),inset 0 1px 0 #FFFFFF;}
+.keygrp{display:flex;gap:9px;align-items:center;}
+
+/* ---------- 输入舱（走带插口式输入槽） ---------- */
+.inputslot{flex:1;display:flex;align-items:center;gap:12px;height:46px;padding:0 15px;
+  background:#0F1216;border:2px solid var(--ink);border-radius:5px;
+  box-shadow:inset 0 3px 10px rgba(0,0,0,.8),inset 0 0 0 1px rgba(115,184,245,.10);}
+.inputslot .ph{font:400 14px/1 Consolas,'Microsoft YaHei',monospace;color:rgba(251,249,241,.68);}
+.inputslot.dim .ph{color:rgba(251,249,241,.4);}
+.inputslot .caret{width:8px;height:16px;}
+
+/* ---------- 卡带仓（磁带抽屉） ---------- */
+.bay{position:relative;background:linear-gradient(180deg,#EAE6D7,var(--canvas));border:2px solid rgba(9,11,14,.82);border-radius:9px;
+  box-shadow:inset 0 2px 8px rgba(9,11,14,.22),inset 0 -1px 0 rgba(255,255,255,.75);
+  display:flex;flex-direction:column;gap:9px;padding:12px 14px;}
+.bayhead{display:flex;align-items:center;gap:9px;}
+.slip{height:13px;border-radius:3px;background:linear-gradient(180deg,#918D7D,#56534A);box-shadow:inset 0 2px 3px rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.7);}
+.tcard{display:flex;align-items:center;gap:11px;background:var(--warm);border:2px solid var(--ink);border-radius:6px;
+  padding:8px 11px;box-shadow:0 2px 0 rgba(9,11,14,.72);}
+.tcard .tname{font-size:14px;font-weight:800;letter-spacing:.02em;}
+.tcard .tsub{font:700 12px/1.5 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.66);letter-spacing:.04em;}
+.tcard .tgo{margin-left:auto;font:800 12px/1 Consolas,'Microsoft YaHei',monospace;color:var(--blue);letter-spacing:.1em;white-space:nowrap;}
+.tcard.active{box-shadow:0 2px 0 rgba(9,11,14,.72),0 0 0 2.5px var(--blue);}
+.drawerhandle{position:absolute;right:5px;top:34%;width:15px;height:76px;background:var(--ink);border-radius:7px;
+  display:flex;align-items:center;justify-content:center;gap:4px;flex-direction:column;}
+.drawerhandle i{display:block;width:7px;height:2px;background:rgba(246,244,236,.85);border-radius:1px;}
+.baywell{position:relative;height:148px;background:linear-gradient(180deg,#DEDAC9,#D2CEBC);border:2px solid rgba(9,11,14,.65);
+  border-radius:7px;box-shadow:inset 0 3px 9px rgba(9,11,14,.3);overflow:hidden;}
+.baywell .tp{position:absolute;left:50%;top:26px;transform:translateX(-50%) rotate(-6deg);}
+.baywell .welltag{position:absolute;left:9px;bottom:7px;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.12em;color:rgba(9,11,14,.62);}
+
+/* ---------- 轴色图例 ---------- */
+.axislegend{display:flex;align-items:center;gap:15px;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.08em;color:rgba(9,11,14,.72);}
+.axislegend i{display:inline-block;width:11px;height:11px;border:1.5px solid var(--ink);margin-right:6px;vertical-align:-1px;}
+
+/* ---------- 磁带 icon 容器 ---------- */
+.tp{position:relative;display:inline-block;flex:none;}
+
+/* ---------- DAW 背景（沉后层） ---------- */
+.daw{position:absolute;display:flex;flex-direction:column;background:var(--dark);overflow:hidden;}
+.daw-menubar{height:38px;flex:none;background:#101418;border-bottom:1px solid rgba(251,249,241,.14);display:flex;align-items:center;gap:18px;padding:0 18px;
+  font-size:13px;font-weight:600;color:rgba(251,249,241,.88);}
+.daw-menubar .r{margin-left:auto;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;color:rgba(251,249,241,.55);letter-spacing:.08em;}
+.daw-mid{flex:1;display:flex;min-height:0;}
+.daw-tracks{width:188px;flex:none;border-right:1px solid rgba(251,249,241,.12);display:flex;flex-direction:column;}
+.trow{flex:1;display:flex;align-items:center;gap:9px;padding:0 12px;border-bottom:1px solid rgba(251,249,241,.08);}
+.trow .tdot{width:9px;height:9px;border-radius:50%;flex:none;border:1px solid rgba(9,11,14,.8);}
+.trow .tname{font-size:13px;font-weight:700;color:rgba(251,249,241,.92);white-space:nowrap;}
+.trow .tbtn{margin-left:auto;display:flex;gap:4px;}
+.trow .tbtn i{font:800 12px/1 Consolas,'Microsoft YaHei',monospace;font-style:normal;color:rgba(251,249,241,.62);
+  border:1px solid rgba(251,249,241,.3);border-radius:3px;padding:3px 4px;}
+.daw-lanes{flex:1;display:flex;flex-direction:column;position:relative;}
+.ruler{height:26px;flex:none;border-bottom:1px solid rgba(251,249,241,.12);display:flex;align-items:center;padding-left:8px;}
+.ruler b{flex:1;font:700 12px/1 Consolas,monospace;color:rgba(251,249,241,.42);font-weight:700;}
+.lane{flex:1;position:relative;border-bottom:1px solid rgba(251,249,241,.07);
+  background-image:linear-gradient(90deg,rgba(251,249,241,.065) 1px,transparent 1px);background-size:12.5% 100%;}
+.clip{position:absolute;top:9px;bottom:9px;border:1.5px solid rgba(9,11,14,.85);border-radius:3px;
+  display:flex;align-items:center;padding:0 9px;font:700 12px/1 'Microsoft YaHei',sans-serif;color:var(--ink);white-space:nowrap;overflow:hidden;}
+.daw-transport{height:52px;flex:none;background:#0D1114;border-top:1px solid rgba(251,249,241,.15);display:flex;align-items:center;gap:16px;padding:0 18px;}
+.tbtn2{width:34px;height:28px;border:1.5px solid rgba(251,249,241,.4);border-radius:4px;background:#161B21;
+  display:flex;align-items:center;justify-content:center;font-size:13px;color:rgba(251,249,241,.9);}
+.tbtn2.rec{color:var(--red);border-color:rgba(219,18,20,.6);}
+.tbtn2 .tri{width:0;height:0;border-left:9px solid currentColor;border-top:6px solid transparent;border-bottom:6px solid transparent;margin-left:2px;}
+.tbtn2 .sq2{width:9px;height:9px;background:currentColor;}
+.tbtn2 .dot2{width:11px;height:11px;border-radius:50%;background:var(--red);}
+.tval{font:700 14px/1 Consolas,monospace;color:rgba(251,249,241,.92);letter-spacing:.06em;}
+.tlab{font:700 12px/1 'Microsoft YaHei',sans-serif;color:rgba(251,249,241,.55);}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--yellow);opacity:.92;z-index:4;}
+.playhead::before{content:"";position:absolute;top:0;left:-5px;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid var(--yellow);}
+
+/* 沉后处理 */
+.dawveil{position:absolute;left:0;right:0;top:0;z-index:6;pointer-events:none;
+  background:linear-gradient(180deg,rgba(9,11,14,.46),rgba(9,11,14,.30) 52%,rgba(9,11,14,.52));}
+.dawveil::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 50% 46%,transparent 42%,rgba(9,11,14,.34) 100%);}
+.daw-sunk{filter:blur(1.1px) saturate(.8) brightness(.94);}
+
+/* ---------- 态B 专用 ---------- */
+.daw-rise{border:2px solid var(--ink);border-radius:9px;box-shadow:0 34px 70px rgba(9,11,14,.4),0 8px 0 rgba(9,11,14,.35);}
+.risearrow{position:absolute;z-index:20;font:800 15px/1 Consolas,monospace;color:var(--ink);
+  background:var(--yellow);border:2px solid var(--ink);padding:6px 9px;border-radius:4px;box-shadow:0 2px 0 var(--ink);}
+.seamled{position:absolute;top:-2px;left:9%;right:9%;height:4px;background:var(--yellow);border-radius:2px;z-index:31;
+  box-shadow:0 0 9px rgba(250,204,26,.6);}
+.selfcheck{background:linear-gradient(180deg,#F0EDDF,var(--canvas));border:2px solid rgba(9,11,14,.82);border-radius:8px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8);padding:12px 14px;display:flex;flex-direction:column;gap:9px;}
+.selfcheck .row{display:flex;align-items:center;gap:10px;font:700 13px/1 'Microsoft YaHei',sans-serif;color:var(--ink);}
+.selfcheck .row .st{margin-left:auto;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.62);}
+.iconstrip{position:absolute;display:flex;align-items:center;gap:22px;}
+.iconstrip .ig{display:flex;flex-direction:column;align-items:center;gap:5px;}
+.iconstrip .ig .lb{font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.06em;color:rgba(9,11,14,.75);white-space:nowrap;}
+.iconstrip .iarr{font:800 22px/1 Consolas,monospace;color:rgba(9,11,14,.5);}
+
+/* ---------- 态C 设备条（主窗位） ---------- */
+.devbar{position:absolute;left:0;right:0;bottom:0;height:350px;z-index:10;
+  background:linear-gradient(180deg,#FCFAF3 0%,var(--paper) 58%,#EEE9D8 100%);
+  border-top:2.5px solid var(--ink);border-radius:14px 14px 0 0;
+  box-shadow:0 -16px 38px rgba(9,11,14,.5),inset 0 2px 0 rgba(255,255,255,.8);
+  display:flex;gap:14px;padding:12px 18px 14px;}
+.devbar .brandcol{width:70px;flex:none;display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:6px;
+  border-right:2px solid rgba(9,11,14,.14);}
+.devbar .brandcol .vlogo{writing-mode:vertical-rl;font:800 15px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.24em;color:var(--ink);}
+.devbar .brandcol .vlogo em{font-style:normal;color:var(--blue);}
+.devbar .brandcol .vlegend{margin-top:auto;writing-mode:vertical-rl;font:700 12px/1.5 Consolas,'Microsoft YaHei',monospace;letter-spacing:.1em;color:rgba(9,11,14,.6);}
+.devbar .centercol{flex:1.5;display:flex;flex-direction:column;gap:9px;min-width:0;}
+.devbar .macromod{width:292px;flex:none;}
+.devbar .baycol{width:254px;flex:none;}
+.keysrow{display:flex;align-items:center;gap:8px;height:32px;flex:none;}
+.keysrow .ledgrp{margin-left:auto;}
+
+/* ---------- 宏选择器模块（实体档位开关隐喻） ---------- */
+.macromod{background:linear-gradient(180deg,#FBF9F1,#F0EDDF);border:2px solid var(--ink);border-radius:9px;
+  box-shadow:inset 0 1px 0 #FFFFFF,0 3px 0 rgba(9,11,14,.85);
+  padding:11px 13px;display:flex;flex-direction:column;gap:9px;}
+.mm-head{display:flex;align-items:center;gap:9px;}
+.mm-head .t{font:800 14px/1 'Microsoft YaHei',sans-serif;letter-spacing:.04em;}
+.mm-note{font:700 12px/1.4 Consolas,'Microsoft YaHei',monospace;letter-spacing:.05em;color:rgba(9,11,14,.6);}
+.mc-zone{position:relative;height:66px;flex:none;}
+.mc-labels{position:absolute;left:0;right:0;top:0;height:22px;}
+.mc-labels span{position:absolute;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.1em;color:rgba(9,11,14,.6);transform:translateX(-50%);}
+.mc-labels span.on{background:var(--ink);color:var(--yellow);padding:5px 9px;border-radius:3px;transform:translateX(-50%);letter-spacing:.14em;}
+.mc-track{position:absolute;left:0;right:0;top:28px;height:26px;background:#171B20;border-radius:13px;border:2px solid var(--ink);
+  box-shadow:inset 0 3px 7px rgba(0,0,0,.8);}
+.mc-track .tick{position:absolute;top:50%;width:2px;height:10px;margin-top:-5px;background:rgba(115,184,245,.4);}
+.mc-lever{position:absolute;top:22px;width:46px;height:38px;background:linear-gradient(180deg,#FFFEF8,#EFECDC);
+  border:2px solid var(--ink);border-radius:5px;box-shadow:0 3px 0 var(--ink);
+  display:flex;align-items:center;justify-content:center;gap:3px;transform:translateX(-50%);}
+.mc-lever i{display:block;width:2.5px;height:18px;background:var(--yellow);border:1px solid rgba(9,11,14,.55);}
+.mc-ledrow{position:absolute;left:0;right:0;top:53px;}
+.mc-ledrow .d{line-height:0;}
+.mc-ledrow .d{position:absolute;transform:translateX(-50%);}
+.mc-influence{display:flex;gap:11px;align-items:stretch;}
+.mc-scope{width:126px;height:74px;flex:none;background:var(--dark);border:2px solid var(--ink);border-radius:5px;
+  box-shadow:inset 0 0 0 1px rgba(115,184,245,.12),inset 0 2px 8px rgba(0,0,0,.6);position:relative;overflow:hidden;}
+.mc-scope .cap{position:absolute;left:7px;bottom:5px;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.1em;color:rgba(251,249,241,.6);z-index:3;}
+.mc-meters{flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:2px 0;}
+.mc-meters .m{display:flex;align-items:center;gap:8px;font:700 12.5px/1 'Microsoft YaHei',sans-serif;color:var(--ink);}
+.mc-meters .dots{margin-left:auto;display:flex;gap:3px;}
+.mc-meters .dots i{width:8px;height:8px;border-radius:50%;border:1.5px solid rgba(9,11,14,.7);}
+.mc-meters .dots i.f{background:var(--yellow);}
+.mc-actions{display:flex;align-items:center;gap:8px;margin-top:auto;}
+.mc-actions .silk{margin-left:auto;}
+
+/* ---------- 态C 右上：收起态小样 ---------- */
+.collapse-demo{position:absolute;top:16px;right:16px;z-index:40;width:252px;background:var(--warm);
+  border:2px solid var(--ink);border-radius:8px;box-shadow:0 5px 0 rgba(9,11,14,.8),0 16px 30px rgba(9,11,14,.3);padding:10px 12px;}
+.collapse-demo .stage{position:relative;height:102px;background:var(--dark);border:1.5px solid rgba(9,11,14,.85);border-radius:5px;overflow:hidden;margin:8px 0 7px;}
+.collapse-demo .lane{height:20px;}
+.collapse-demo .lane .clip{top:4px;bottom:4px;}
+.collapse-demo .handle{position:absolute;right:0;top:0;bottom:0;width:34px;background:var(--ink);
+  display:flex;align-items:center;justify-content:center;}
+.collapse-demo .handle span{writing-mode:vertical-rl;font:800 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.22em;color:var(--yellow);}
+.collapse-demo .cap{font:700 12px/1.5 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.72);letter-spacing:.04em;}
+
+/* ---------- 下方分镜带 ---------- */
+.band{margin-top:26px;padding:0 70px;}
+.bandhead{display:flex;align-items:baseline;gap:16px;margin-bottom:13px;}
+.bandhead .no{background:var(--ink);color:var(--paper);font:800 13px/1 Consolas,'Microsoft YaHei',monospace;padding:6px 10px;border-radius:3px;letter-spacing:.1em;}
+.bandhead h2{font-size:18px;font-weight:800;letter-spacing:.02em;}
+.bandhead .n{font:700 12.5px/1.4 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.8);letter-spacing:.04em;}
+.band1 .frames{display:flex;gap:52px;}
+.tframe{flex:1;min-width:0;}
+.tscene{position:relative;height:294px;background:var(--canvas);border:2px solid var(--ink);border-radius:8px;overflow:hidden;
+  background-image:radial-gradient(rgba(9,11,14,.05) 1px,transparent 1.2px);background-size:15px 15px;}
+.tnote{padding:9px 4px 0;}
+.tnote .t{font-size:14.5px;font-weight:800;}
+.tnote .d{font:700 12px/1.65 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.8);letter-spacing:.02em;margin-top:3px;}
+/* 分镜内的迷你设备 / 迷你 DAW */
+.mdev{position:absolute;background:linear-gradient(180deg,#FCFAF3,#EFECDE);border:2px solid var(--ink);border-radius:9px;box-shadow:0 4px 0 rgba(9,11,14,.85);}
+.mdev .mlcd{position:absolute;background:var(--dark);border:1.5px solid var(--ink);border-radius:4px;}
+.mdev .mbay{position:absolute;background:#E6E2D2;border:1.5px solid rgba(9,11,14,.75);border-radius:4px;}
+.mdev .mkeys{position:absolute;display:flex;gap:6px;}
+.mkey{width:30px;height:13px;border:1.5px solid var(--ink);border-radius:2.5px;background:var(--warm);box-shadow:0 1.5px 0 var(--ink);}
+.mkey.b{background:var(--blue);} .mkey.y{background:var(--yellow);} .mkey.r{background:var(--red);} .mkey.g{background:var(--canvas);}
+.mdaw{position:absolute;background:var(--dark);border:2px solid var(--ink);border-radius:6px;overflow:hidden;box-shadow:0 18px 40px rgba(9,11,14,.35);}
+.mdaw .mbar{position:absolute;left:0;right:0;height:14px;background:#101418;border-bottom:1px solid rgba(251,249,241,.14);}
+.mdaw .mrow{position:absolute;left:12px;right:12px;height:16px;background:#1B2026;border:1px solid rgba(251,249,241,.14);border-radius:2px;}
+.mdaw .mclip{position:absolute;top:2px;bottom:2px;border-radius:2px;opacity:.9;border:1px solid rgba(9,11,14,.7);}
+.mdaw .mtrans{position:absolute;left:0;right:0;bottom:0;height:18px;background:#0D1114;border-top:1px solid rgba(251,249,241,.16);}
+.mdaw .mph{position:absolute;top:14px;bottom:18px;width:2px;background:var(--yellow);opacity:.9;}
+.mveil{position:absolute;background:rgba(9,11,14,.42);pointer-events:none;}
+
+/* ---------- band2 ---------- */
+.band2 .rowA,.band2 .rowB{display:flex;gap:20px;align-items:stretch;}
+.band2 .rowA{margin-bottom:16px;}
+.band2 .intro{width:252px;flex:none;display:flex;flex-direction:column;gap:8px;padding:10px 12px;
+  background:var(--warm);border:2px solid var(--ink);border-radius:8px;box-shadow:0 3px 0 rgba(9,11,14,.7);}
+.band2 .intro .t{font-size:15px;font-weight:800;line-height:1.4;}
+.band2 .intro .d{font:700 12px/1.65 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.7);}
+.ifram{flex:1;min-width:0;height:196px;background:var(--canvas);border:2px solid var(--ink);border-radius:8px;
+  display:flex;align-items:center;gap:20px;padding:0 24px;
+  background-image:radial-gradient(rgba(9,11,14,.05) 1px,transparent 1.2px);background-size:15px 15px;}
+.ifram .ic{position:relative;flex:none;}
+.ifram .txt .st{font-size:16px;font-weight:800;display:flex;align-items:center;gap:9px;}
+.ifram .txt .d{font:700 12.5px/1.7 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.74);margin-top:5px;}
+.ifram .idx{position:absolute;top:10px;right:12px;font:800 13px/1 Consolas,'Microsoft YaHei',monospace;color:rgba(9,11,14,.45);letter-spacing:.1em;}
+.iarr{width:30px;flex:none;text-align:center;font:800 24px/1 Consolas,monospace;color:rgba(9,11,14,.5);}
+.scard{flex:1;min-width:0;height:186px;position:relative;background:var(--dark);border:2px solid var(--ink);border-radius:8px;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(115,184,245,.13),inset 0 2px 12px rgba(0,0,0,.6);}
+.scard::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(115,184,245,.09) 1px,transparent 1.2px);background-size:7px 7px;z-index:5;pointer-events:none;}
+.scard>*{position:relative;z-index:7;}
+.scard .hd{display:flex;align-items:center;gap:9px;padding:11px 16px 0;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.14em;color:var(--blue-lt);}
+.scard .hd .r{margin-left:auto;display:flex;align-items:center;gap:7px;color:rgba(251,249,241,.6);}
+.scard .bd{display:flex;gap:15px;align-items:center;padding:10px 16px 0;}
+.scard .tx .st{font-size:15.5px;font-weight:800;color:var(--paper);}
+.scard .tx .steps{font:700 12.5px/1.75 Consolas,'Microsoft YaHei',monospace;color:rgba(251,249,241,.8);margin-top:5px;white-space:pre-line;}
+.scard .tx .steps b{color:var(--yellow);font-weight:700;}
+.scard .tx .steps u{color:var(--blue-lt);text-decoration:none;}
+.scard .prog{position:absolute;left:16px;right:16px;bottom:14px;height:12px;background:#0A0D10;border:1.5px solid rgba(251,249,241,.25);border-radius:6px;overflow:hidden;}
+.scard .prog i{position:absolute;left:0;top:0;bottom:0;background:var(--yellow);}
+.scard .prog .tick{position:absolute;top:0;bottom:0;width:1.5px;background:rgba(251,249,241,.28);}
+.scard .plab{position:absolute;right:16px;bottom:32px;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.08em;color:rgba(251,249,241,.66);}
+.pagefoot{height:44px;display:flex;align-items:center;padding:0 70px;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;letter-spacing:.06em;color:rgba(9,11,14,.78);gap:20px;}
+</style>
+</head>
+<body>
+
+<header class="pagehead">
+  <span class="sq"></span>
+  <h1>Vit 主窗口 v3 · 方向 B —— 硬件设备面板派</h1>
+  <span class="sub">母题：对话窗＝AI 磁带机操作面板 ｜ 参照 Teenage Engineering OP-1 / TP-7 / EP-133 ｜ 态C 主窗位＝底部横向设备条（全宽 · 高 38%）</span>
+  <div class="legend">
+    <span><i class="i-blue"></i>蓝＝对话</span>
+    <span><i class="i-yellow"></i>黄＝宏信号</span>
+    <span><i class="i-red"></i>红＝录制/写入</span>
+    <span><i class="i-gray"></i>灰＝功能</span>
+  </div>
+</header>
+
+<main>
+<!-- ============ 三态联版 ============ -->
+<section class="screens">
+
+  <!-- ================= 态 A · 启动台 ================= -->
+  <article class="screen sA">
+    <div class="stag"><b>态 A ｜ 启动台</b><span>无工程 · 对话窗为主体 · 磁带抽屉展开</span></div>
+    <div class="silk" style="position:absolute;top:16px;right:20px;z-index:60;">VIT — AI 音频工作站 · v3.0 主窗口重设计</div>
+    <!-- 工程图纸式底纹：巨大磁带轮虚线 -->
+    <div style="position:absolute;left:-160px;top:120px;width:640px;height:640px;border:2px dashed rgba(9,11,14,.09);border-radius:50%;"></div>
+    <div style="position:absolute;right:-140px;bottom:-190px;width:560px;height:560px;border:2px dashed rgba(9,11,14,.09);border-radius:50%;"></div>
+
+    <!-- 主设备：AI 磁带机 -->
+    <div class="dev" style="left:130px;top:172px;width:1180px;height:572px;">
+      <span class="screw" style="top:9px;left:10px;"></span><span class="screw s2" style="top:9px;right:10px;"></span>
+      <span class="screw s3" style="bottom:9px;left:10px;"></span><span class="screw s4" style="bottom:9px;right:10px;"></span>
+      <div class="dev-top" style="height:46px;">
+        <span class="brandplate">VIT<em>·</em>7</span>
+        <span class="zonetag">AI 磁带机 · 主对话窗</span>
+        <span class="vents"></span>
+        <span class="zonetag">01 对话台</span>
+        <div class="ledgrp"><span class="led ly"></span>电源<span class="led lb"></span>对话<span class="led lo"></span>录制</div>
+      </div>
+      <div style="display:flex;gap:16px;padding:14px 18px;height:438px;">
+        <!-- 01 对话显示（LCD） -->
+        <div class="lcd" style="flex:1.5;">
+          <div class="lcdhead">01 对话显示 · 就绪 <span class="r"><span class="led lo" style="width:8px;height:8px;"></span>REC 待机</span></div>
+          <div class="lcdbody">
+            <div class="bubble b-agent"><span class="who">VIT</span>我是 Vit，一台会搭工程的磁带机。说出你的想法，我来开工程、挂效果、做 A/B——你只管听。</div>
+            <div class="chips">
+              <span class="chip">起一段 92 BPM 的鼓组</span>
+              <span class="chip">把人声修干净些</span>
+              <span class="chip">新建空白工程</span>
+            </div>
+            <div class="lcdhint">点选快捷意图，或在下方输入舱打字 · 回车＝录制到磁带<span class="caret"></span></div>
+          </div>
+          <div class="lcdscroll"><i></i></div>
+        </div>
+        <!-- 02 磁带抽屉 · 展开 -->
+        <div class="bay" style="width:392px;flex:none;">
+          <div class="bayhead"><span class="zonetag">02 磁带抽屉 · 展开</span><span class="zonetag" style="margin-left:auto;color:var(--blue);">点按装入 ▸</span></div>
+          <div class="slip"></div>
+          <div class="tcard"><span class="tp" data-w="96" data-h="66" data-a="star"></span>
+            <span><span class="tname">《小星星乐局》</span><br><span class="tsub">92 BPM · 5 轨 · 3′12″</span></span>
+            <span class="tgo">装入 ›</span></div>
+          <div class="tcard"><span class="tp" data-w="96" data-h="66" data-a="proq"></span>
+            <span><span class="tname">《ProQ3 裸控实验》</span><br><span class="tsub">128 BPM · 2 轨 · 1′47″</span></span>
+            <span class="tgo">装入 ›</span></div>
+          <div class="tcard"><span class="tp" data-w="96" data-h="66" data-a="drum"></span>
+            <span><span class="tname">《鼓组混音 v2》</span><br><span class="tsub">92 BPM · 8 轨 · 4′05″</span></span>
+            <span class="tgo">装入 ›</span></div>
+          <div class="keygrp" style="margin-top:2px;">
+            <span class="key k-blue sm">＋ 新磁带</span>
+            <span class="key k-gray sm">打开工程…</span>
+          </div>
+          <div class="drawerhandle"><i></i><i></i><i></i></div>
+          <div class="zonetag" style="position:absolute;right:28px;bottom:9px;">抽屉把手 · 向左收拢</div>
+        </div>
+      </div>
+      <!-- 底排：功能键 + 输入舱 -->
+      <div style="display:flex;align-items:center;gap:12px;padding:2px 18px 14px;">
+        <div class="keygrp">
+          <span class="key k-blue">对话</span>
+          <span class="key k-gray">时间线</span>
+          <span class="key k-gray">效果器</span>
+          <span class="key k-gray">参考轨</span>
+        </div>
+        <div class="inputslot"><span class="ph">描述你的声音想法，回车送到磁带机…</span><span class="caret"></span></div>
+        <span class="key k-blue">发送</span>
+      </div>
+      <div style="display:flex;justify-content:flex-end;padding:0 20px 12px;">
+        <div class="axislegend"><span><i class="i-blue" style="border-color:var(--ink);background:var(--blue);"></i>对话</span><span><i style="background:var(--yellow);"></i>宏信号</span><span><i style="background:var(--red);"></i>录制/写入</span><span><i style="background:var(--canvas);"></i>功能</span><span style="margin-left:8px;">—— 轴色编码，全机统一</span></div>
+      </div>
+    </div>
+
+    <div class="silk" style="position:absolute;left:22px;bottom:16px;z-index:60;">方向 B · 硬件设备面板派 ｜ 面板分区：01 对话台（LCD＋输入舱）/ 02 磁带抽屉 / 功能键排 ｜ 令牌锁定：Mondrian 磁带色板</div>
+  </article>
+
+  <!-- ================= 态 B · 进入中 ================= -->
+  <article class="screen sB">
+    <div class="stag"><b>态 B ｜ 进入中</b><span>开机 / 舱门叙事 —— DAW 自对话窗后方升起（Z 轴，非页面切换）</span></div>
+    <div class="silk" style="position:absolute;top:16px;right:20px;z-index:60;">Z 层：DAW z=5 ｜ 面板 z=10 ｜ 时序：舱门 LED 160ms → 升起 480ms ease-out → 沉后 560ms</div>
+
+    <!-- 升起中的 DAW（后方 z=5） -->
+    <div class="daw daw-rise" data-daw style="left:100px;top:36px;width:1240px;height:520px;z-index:5;"></div>
+    <span class="risearrow" style="left:14px;top:230px;">↑ 升起</span>
+    <span class="risearrow" style="right:14px;top:230px;">升起 ↑</span>
+    <span class="zchip zc-blue" style="left:6px;top:194px;">z=5 · 升起中</span>
+
+    <!-- 对话设备面板（前方 z=10） -->
+    <div class="dev" style="left:70px;top:520px;width:1300px;height:284px;z-index:10;">
+      <div class="seamled"></div>
+      <span class="screw" style="top:9px;left:10px;"></span><span class="screw s2" style="top:9px;right:10px;"></span>
+      <span class="screw s4" style="bottom:9px;right:10px;"></span>
+      <div class="dev-top" style="height:44px;">
+        <span class="brandplate">VIT<em>·</em>7</span>
+        <span class="zonetag">舱门开启中 · GUI 升起</span>
+        <span class="vents"></span>
+        <div class="ledgrp"><span class="led ly"></span>电源<span class="led ly"></span>舱门<span class="led lb"></span>对话</div>
+      </div>
+      <div style="display:flex;gap:16px;padding:13px 18px;height:238px;">
+        <!-- 01 LCD：对话流内状态控件（进行中 · 实况） -->
+        <div class="lcd" style="flex:1;">
+          <div class="lcdhead">01 对话显示 · 唤醒监视 <span class="r"><span class="led lb" style="width:8px;height:8px;"></span>输入暂歇</span></div>
+          <div class="lcdbody" style="gap:10px;">
+            <div class="bubble b-agent" style="max-width:100%;"><span class="who">VIT</span>工程唤醒中，输入暂歇——好了我会叫你。</div>
+            <div style="display:flex;align-items:center;gap:16px;background:rgba(115,184,245,.07);border:1.5px solid rgba(115,184,245,.4);border-radius:6px;padding:10px 14px;">
+              <span class="tp" data-w="76" data-h="52" data-a="run" data-angle="38" data-arc="0.66"></span>
+              <span style="flex:1;">
+                <span style="display:block;font-size:15px;font-weight:800;color:var(--paper);">唤醒工程《小星星乐局》</span>
+                <span style="display:block;font:700 12.5px/1.8 Consolas,'Microsoft YaHei',monospace;color:rgba(251,249,241,.82);margin-top:4px;">
+                  <b style="color:var(--yellow);">✓</b> 内核已装载　　<u style="color:var(--blue-lt);text-decoration:none;">▸ 工程文件挂载中…</u>　　○ 音频引擎待命</span>
+              </span>
+              <span style="flex:none;text-align:right;">
+                <span style="display:block;font:800 20px/1 Consolas,monospace;color:var(--yellow);">2/3</span>
+                <span style="display:block;font:700 12px/1 Consolas,'Microsoft YaHei',monospace;color:rgba(251,249,241,.6);margin-top:5px;letter-spacing:.1em;">走带式进度</span>
+              </span>
+            </div>
+            <div style="height:9px;background:#0A0D10;border:1.5px solid rgba(251,249,241,.25);border-radius:5px;overflow:hidden;position:relative;">
+              <i style="position:absolute;left:0;top:0;bottom:0;width:66%;background:var(--yellow);"></i>
+            </div>
+          </div>
+          <div class="lcdscroll"><i style="height:20%;"></i></div>
+        </div>
+        <!-- 开机自检面板 -->
+        <div class="selfcheck" style="width:292px;flex:none;">
+          <span class="zonetag">开机自检 · 磁带舱</span>
+          <div class="row"><span class="led ly"></span>供电<span class="st">正常</span></div>
+          <div class="row"><span class="led ly"></span>内核<span class="st">已装载</span></div>
+          <div class="row"><span class="led lb"></span>舱门<span class="st">开启中 · 升起 82%</span></div>
+          <div class="row"><span class="led lo"></span>录制<span class="st">待命</span></div>
+        </div>
+      </div>
+    </div>
+    <span class="zchip zc-ink" style="left:580px;top:540px;">z=10 · 对话面板 · 全程可见</span>
+
+    <!-- 磁带 icon 三态分镜（横排，本屏内） -->
+    <div class="iconstrip" style="left:70px;right:70px;top:812px;height:84px;">
+      <span class="zonetag" style="flex:none;">磁带 icon<br>三态分镜</span>
+      <span class="ig"><span class="tp" data-w="90" data-h="62" data-angle="0"></span><span class="lb">待机 · 轮位 0°</span></span>
+      <span class="iarr">→</span>
+      <span class="ig"><span class="tp" data-w="90" data-h="62" data-a="run" data-angle="38" data-arc="0.66"></span><span class="lb">进行中 · 38°/帧 步进 · 走带 ▸</span></span>
+      <span class="iarr">→</span>
+      <span class="ig"><span class="tp" data-w="90" data-h="62" data-a="done" data-angle="76" data-arc="1" data-check="1"></span><span class="lb">完成 · 磁带就位 · LED 常亮</span></span>
+      <span class="zonetag" style="margin-left:auto;flex:none;">点击工程 = 按下「装入」键 → icon 待机动画 → 进行中动画</span>
+    </div>
+  </article>
+
+  <!-- ================= 态 C · 工程内 ================= -->
+  <article class="screen sC">
+    <div class="stag"><b>态 C ｜ 工程内</b><span>DAW 沉于后方 · 对话窗＝底部横向设备条（主窗位 · 全宽 · 高 38%）</span></div>
+
+    <!-- DAW 背景（沉后 z=1） -->
+    <div class="daw daw-sunk" data-daw style="left:0;top:0;right:0;height:552px;border-radius:0;z-index:1;"></div>
+    <div class="dawveil" style="height:552px;z-index:6;"></div>
+
+    <!-- 03 底部横向设备条 -->
+    <div class="devbar">
+      <span class="screw" style="top:8px;left:8px;"></span><span class="screw s2" style="top:8px;right:8px;"></span>
+      <span class="screw s3" style="bottom:8px;left:8px;"></span><span class="screw s4" style="bottom:8px;right:8px;"></span>
+
+      <!-- 品牌柱 -->
+      <div class="brandcol">
+        <span class="led ly" title="电源"></span>
+        <span class="vlogo">VIT<em>·</em>7</span>
+        <span class="vlegend">蓝＝对话 · 黄＝宏 · 红＝录</span>
+      </div>
+
+      <!-- 01 对话显示 + 输入舱 -->
+      <div class="centercol">
+        <div class="keysrow">
+          <span class="key k-blue sm">对话</span>
+          <span class="key k-gray sm">历史</span>
+          <span class="key k-gray sm">A/B 对比</span>
+          <span class="key k-gray sm">导出</span>
+          <div class="ledgrp"><span class="led ly"></span>电源<span class="led lb"></span>对话<span class="led lo"></span>录制</div>
+        </div>
+        <div class="lcd" style="flex:1;">
+          <div class="lcdhead">01 对话显示 · 工程内 <span class="r">《小星星乐局》 · 92 BPM · 5 轨</span></div>
+          <div class="lcdbody" style="gap:8px;">
+            <div class="bubble b-user" style="max-width:78%;"><span class="who">你</span>副歌有点闷，想亮一点，但别刺。</div>
+            <div class="bubble b-agent" style="max-width:92%;"><span class="who">VIT</span>明白。我把宏切到「明亮」——音头更清楚、高频打开、低频骨架保持。先听 A/B，满意再写入。 <span style="font:700 12px/1 Consolas,'Microsoft YaHei',monospace;color:var(--yellow);letter-spacing:.08em;">▸ 控件卡 → 右侧 02</span></div>
+          </div>
+          <div class="lcdscroll"><i style="height:38%;"></i></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex:none;">
+          <div class="inputslot" style="height:44px;"><span class="ph">继续描述，或按「宏」直接调快照…</span><span class="caret"></span></div>
+          <span class="key k-yellow sm">宏</span>
+          <span class="key k-blue sm">发送</span>
+        </div>
+      </div>
+
+      <!-- 02 宏选择器 · 效果快照（控件卡＝宏选择器排） -->
+      <div class="macromod">
+        <div class="mm-head"><span class="zonetag">02 宏选择器</span><span class="t">效果快照</span><span class="led ly" style="margin-left:auto;" title="激活"></span></div>
+        <div class="mm-note">一档＝一组预绑定参数 · 切换不打断播放 · 不显示数值</div>
+        <div class="mc-zone">
+          <div class="mc-labels">
+            <span style="left:14%;">温暖</span>
+            <span class="on" style="left:50%;">明亮</span>
+            <span style="left:86%;">紧实</span>
+          </div>
+          <div class="mc-track"><i class="tick" style="left:14%;"></i><i class="tick" style="left:50%;"></i><i class="tick" style="left:86%;"></i></div>
+          <div class="mc-ledrow"><span class="d" style="left:14%;"><span class="led lo" style="width:8px;height:8px;"></span></span><span class="d" style="left:50%;"><span class="led ly" style="width:8px;height:8px;"></span></span><span class="d" style="left:86%;"><span class="led lo" style="width:8px;height:8px;"></span></span></div>
+          <div class="mc-lever" style="left:50%;"><i></i><i></i><i></i></div>
+        </div>
+        <div class="mc-influence">
+          <div class="mc-scope">
+            <svg width="122" height="70" viewBox="0 0 122 70" style="position:absolute;left:0;top:0;">
+              <path d="M4 58 C 26 54, 40 50, 58 42 C 82 31, 100 20, 118 12 L 118 66 L 4 66 Z" fill="rgba(250,204,26,.85)" stroke="#090B0E" stroke-width="2"/>
+              <line x1="4" y1="66" x2="118" y2="66" stroke="#73B8F5" stroke-width="1.4" stroke-opacity=".5"/>
+            </svg>
+            <span class="cap">频谱重心 → 高</span>
+          </div>
+          <div class="mc-meters">
+            <span class="m">音头清晰<span class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i></i></span></span>
+            <span class="m">高频空气<span class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i><i class="f"></i></span></span>
+            <span class="m">低频骨架<span class="dots"><i class="f"></i><i class="f"></i><i class="f"></i><i></i><i></i></span></span>
+          </div>
+        </div>
+        <div class="mc-actions">
+          <span class="key k-red sm">写入宏快照</span>
+          <span class="key k-gray sm">A/B 听一遍</span>
+          <span class="silk">当前档 · 明亮</span>
+        </div>
+      </div>
+
+      <!-- 03 磁带仓（抽屉收拢态） -->
+      <div class="bay baycol">
+        <div class="bayhead"><span class="zonetag">03 磁带仓 · 已收拢</span><span class="zonetag" style="margin-left:auto;">边缘把手</span></div>
+        <div class="baywell">
+          <div class="slip" style="margin:7px 9px 0;"></div>
+          <span class="tp" data-w="140" data-h="94" data-a="star"></span>
+          <span class="welltag">《小星星乐局》 · 半入仓 · 待弹出</span>
+        </div>
+        <div class="keygrp">
+          <span class="key k-gray sm">弹出</span>
+          <span class="key k-blue sm">＋ 新磁带</span>
+        </div>
+        <span class="key k-gray sm" style="align-self:flex-start;">打开工程…</span>
+        <div class="drawerhandle"><i></i><i></i><i></i></div>
+        <div class="zonetag" style="position:absolute;right:28px;bottom:9px;">拉出＝展开抽屉</div>
+      </div>
+    </div>
+    <span class="zchip zc-ink" style="left:690px;top:514px;">z=10 · 设备条主窗位 · 高 38%</span>
+    <span class="zchip zc-blue" style="left:930px;top:514px;">z=5 · DAW 沉后 · 暗化 0.42 + 景深 1px</span>
+
+    <!-- 收起态小样：对话窗缩为右缘把手条 -->
+    <div class="collapse-demo">
+      <div class="bayhead"><span class="zonetag">对话窗 · 收起态小样</span></div>
+      <div class="stage">
+        <div class="lane" style="background-image:linear-gradient(90deg,rgba(251,249,241,.07) 1px,transparent 1px);background-size:12.5% 100%;"><i class="clip" style="left:4%;width:30%;background:rgba(115,184,245,.5);"></i></div>
+        <div class="lane" style="background-image:linear-gradient(90deg,rgba(251,249,241,.07) 1px,transparent 1px);background-size:12.5% 100%;"><i class="clip" style="left:38%;width:30%;background:rgba(250,204,26,.55);"></i></div>
+        <div class="lane" style="background-image:linear-gradient(90deg,rgba(251,249,241,.07) 1px,transparent 1px);background-size:12.5% 100%;border-bottom:none;"><i class="clip" style="left:4%;width:64%;background:rgba(219,18,20,.45);"></i></div>
+        <div class="handle"><span>VIT · 唤出</span></div>
+      </div>
+      <div class="cap">编辑 DAW 时让位——设备条缩为右缘把手条，点按唤出。</div>
+    </div>
+  </article>
+</section>
+
+<!-- ============ 分镜带 1 · 沉后展开过渡（开机 / 舱门叙事） ============ -->
+<section class="band band1">
+  <div class="bandhead">
+    <span class="no">分镜 1</span>
+    <h2>沉后展开过渡 · 四帧关键帧（开机 / 舱门叙事）</h2>
+    <span class="n">对话窗＝设备面板：上电自检 → 舱门开启 → 工程磁带（DAW）自舱内升起落位沉后 → 面板滑至底部主窗位。全程对话面板可见，输入暂歇。</span>
+  </div>
+  <div class="frames">
+
+    <div class="tframe">
+      <div class="tscene">
+        <span class="zchip zc-ink" style="left:12px;top:12px;">帧 1</span>
+        <span class="zchip zc-ink" style="right:12px;top:12px;">z=10 对话面板 · 满幅</span>
+        <div class="mdev" style="left:150px;top:52px;width:700px;height:190px;">
+          <div class="mlcd" style="left:16px;top:16px;width:428px;height:118px;"></div>
+          <div class="mbay" style="right:16px;top:16px;width:212px;height:118px;"></div>
+          <div class="mkeys" style="left:16px;bottom:16px;"><span class="mkey b"></span><span class="mkey g"></span><span class="mkey g"></span><span class="mkey g"></span></div>
+          <div class="mkeys" style="right:16px;bottom:16px;"><span class="mkey y"></span><span class="mkey r"></span></div>
+        </div>
+        <span class="silk" style="position:absolute;left:12px;bottom:10px;">仅对话设备 · 输入暂歇未开始</span>
+      </div>
+      <div class="tnote">
+        <div class="t">帧 1 · 满幅对话 —— 面板即主窗</div>
+        <div class="d">Z：对话面板 z=10（前景唯一实体层）<br>状态：态A 布局原样，用户点下「装入」键<br>缓动：静帧起点 · 自检 LED 序列 0–160ms</div>
+      </div>
+    </div>
+
+    <div class="tframe">
+      <div class="tscene">
+        <span class="zchip zc-ink" style="left:12px;top:12px;">帧 2</span>
+        <span class="zchip zc-blue" style="right:12px;top:12px;">z=5 DAW · 升起中</span>
+        <div class="mdaw" style="left:84px;top:26px;width:838px;height:216px;">
+          <div class="mbar"></div>
+          <div class="mrow" style="top:28px;"><span class="mclip" style="left:2%;width:30%;background:var(--blue-lt);"></span><span class="mclip" style="left:45%;width:50%;background:var(--blue);opacity:.75;"></span></div>
+          <div class="mrow" style="top:56px;"><span class="mclip" style="left:2%;width:94%;background:rgba(219,18,20,.75);"></span></div>
+          <div class="mrow" style="top:84px;"><span class="mclip" style="left:45%;width:50%;background:var(--yellow);"></span></div>
+          <div class="mph" style="left:44%;"></div>
+          <div class="mtrans"></div>
+        </div>
+        <span class="risearrow" style="left:44px;top:100px;">↑</span>
+        <span class="risearrow" style="right:44px;top:100px;">↑</span>
+        <div class="mdev" style="left:150px;top:126px;width:700px;height:158px;">
+          <div class="seamled" style="left:8%;right:8%;"></div>
+          <div class="mlcd" style="left:14px;top:14px;width:428px;height:92px;"></div>
+          <div class="mbay" style="right:14px;top:14px;width:212px;height:92px;"></div>
+          <div class="mkeys" style="left:14px;bottom:12px;"><span class="mkey b"></span><span class="mkey g"></span><span class="mkey g"></span></div>
+        </div>
+        <span class="zchip zc-yellow" style="left:560px;top:96px;">舱门 LED 先亮 160ms</span>
+      </div>
+      <div class="tnote">
+        <div class="t">帧 2 · 舱门开启 —— GUI 自面板后方升起</div>
+        <div class="d">Z：DAW z=5，translateZ(-220px→0) ｜ 面板 z=10 保持前景<br>缓动：升起 480ms ease-out，与舱门 LED 错帧 120ms<br>对话流内：状态控件 待机→进行中（走带式进度）</div>
+      </div>
+    </div>
+
+    <div class="tframe">
+      <div class="tscene">
+        <span class="zchip zc-ink" style="left:12px;top:12px;">帧 3</span>
+        <span class="zchip zc-blue" style="right:12px;top:12px;">z=5 DAW · 落位沉后</span>
+        <div class="mdaw" style="left:24px;top:16px;width:958px;height:246px;">
+          <div class="mbar"></div>
+          <div class="mrow" style="top:28px;"><span class="mclip" style="left:2%;width:30%;background:var(--blue-lt);"></span><span class="mclip" style="left:45%;width:50%;background:var(--blue);opacity:.75;"></span></div>
+          <div class="mrow" style="top:60px;"><span class="mclip" style="left:2%;width:94%;background:rgba(219,18,20,.75);"></span></div>
+          <div class="mrow" style="top:92px;"><span class="mclip" style="left:45%;width:50%;background:var(--yellow);"></span></div>
+          <div class="mrow" style="top:124px;"><span class="mclip" style="left:2%;width:94%;background:var(--canvas);opacity:.5;"></span></div>
+          <div class="mph" style="left:44%;"></div>
+          <div class="mtrans"></div>
+        </div>
+        <div class="mveil" style="left:24px;top:16px;width:958px;height:246px;"></div>
+        <div class="mdev" style="left:186px;top:118px;width:636px;height:164px;">
+          <div class="mlcd" style="left:14px;top:14px;width:390px;height:96px;"></div>
+          <div class="mbay" style="right:14px;top:14px;width:192px;height:96px;"></div>
+          <div class="mkeys" style="left:14px;bottom:12px;"><span class="mkey b"></span><span class="mkey g"></span><span class="mkey g"></span></div>
+        </div>
+        <span class="zchip zc-yellow" style="left:540px;top:288px;">面板 y+420px · 下滑让位</span>
+      </div>
+      <div class="tnote">
+        <div class="t">帧 3 · 落位沉后 —— DAW 到位，面板下滑</div>
+        <div class="d">Z：DAW z=5 沉定 + 暗化 0.42 起 ｜ 面板 z=10 沿 y 轴下滑<br>缓动：面板 560ms cubic-bezier(.2,.8,.2,1)（先快后缓落座）<br>DAW 到位后追加景深：blur 0→1.1px 渐入</div>
+      </div>
+    </div>
+
+    <div class="tframe">
+      <div class="tscene">
+        <span class="zchip zc-ink" style="left:12px;top:12px;">帧 4</span>
+        <span class="zchip zc-blue" style="right:12px;top:12px;">z=5 DAW · 沉后背景</span>
+        <div class="mdaw" style="left:2px;top:2px;width:1002px;height:182px;">
+          <div class="mbar"></div>
+          <div class="mrow" style="top:26px;"><span class="mclip" style="left:2%;width:30%;background:var(--blue-lt);"></span><span class="mclip" style="left:45%;width:50%;background:var(--blue);opacity:.75;"></span></div>
+          <div class="mrow" style="top:56px;"><span class="mclip" style="left:2%;width:94%;background:rgba(219,18,20,.75);"></span></div>
+          <div class="mrow" style="top:86px;"><span class="mclip" style="left:45%;width:50%;background:var(--yellow);"></span></div>
+          <div class="mph" style="left:44%;"></div>
+          <div class="mtrans"></div>
+        </div>
+        <div class="mveil" style="left:2px;top:2px;width:1002px;height:182px;opacity:.85;"></div>
+        <div class="mdev" style="left:2px;top:186px;width:1002px;height:102px;border-radius:9px 9px 4px 4px;">
+          <div class="mlcd" style="left:14px;top:12px;width:452px;height:76px;"></div>
+          <div class="mbay" style="left:486px;top:12px;width:206px;height:76px;"></div>
+          <div class="mbay" style="left:706px;top:12px;width:190px;height:76px;background:#F6F2E2;"></div>
+          <div class="mkeys" style="right:14px;top:12px;"><span class="mkey b"></span><span class="mkey y"></span><span class="mkey g"></span><span class="mkey r"></span></div>
+        </div>
+        <span class="silk" style="position:absolute;left:12px;bottom:8px;">终态 = 态C · 输入恢复</span>
+      </div>
+      <div class="tnote">
+        <div class="t">帧 4 · 主窗位 —— 底部设备条就座</div>
+        <div class="d">Z：设备条 z=10 · 高 38% · 全宽 ｜ DAW z=5 暗化 0.42 + 景深<br>缓动：落座回弹 80ms（cubic-bezier(.34,1.4,.64,1) 局部）<br>状态控件→完成 · 对话流恢复输入 · 磁带仓收拢为边缘把手</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 分镜带 2 · icon 三态 + 对话流状态控件 ============ -->
+<section class="band band2">
+  <div class="bandhead">
+    <span class="no">分镜 2</span>
+    <h2>磁带 icon 三态动画 ＋ 对话流内状态控件（agent 启动路径）</h2>
+    <span class="n">轮位角度差＝旋转帧差；壳体染色＝工程气氛色；进度弧走右带轮。状态控件是输入暂歇期间对话流里的唯一活跃件。</span>
+  </div>
+
+  <div class="rowA">
+    <div class="intro">
+      <span class="t">磁带 icon · 三态分镜</span>
+      <span class="d">待机：灰壳满盘，轮位静止<br>进行中：带轮步进旋转 + 进度弧<br>完成：弧闭合，黄 LED 常亮<br>壳体染色 = 工程气氛色（蓝）</span>
+      <span class="d" style="margin-top:auto;color:rgba(9,11,14,.55);">icon 结构 = TapeIconArt 逐字复刻（SPEC §3），仅叠加轮辐/进度弧注记层。</span>
+    </div>
+    <div class="ifram">
+      <span class="idx">01 待机</span>
+      <span class="tp ic" data-w="150" data-h="100" data-angle="0"></span>
+      <span class="txt">
+        <span class="st">待机</span>
+        <span class="d">轮位 0° · 带轮满盘<br>灰壳（TINT）· 无染色<br>出现于：点击工程前 0–120ms</span>
+      </span>
+    </div>
+    <span class="iarr">→</span>
+    <div class="ifram">
+      <span class="idx">02 进行中</span>
+      <span class="tp ic" data-w="150" data-h="100" data-a="run" data-angle="38" data-arc="0.66"></span>
+      <span class="txt">
+        <span class="st">进行中</span>
+        <span class="d">轮位 38°/帧 步进 · 走带方向 ▸<br>供带轮变小 / 收带轮变大<br>进度弧 0→320° · 壳体染工程色</span>
+      </span>
+    </div>
+    <span class="iarr">→</span>
+    <div class="ifram">
+      <span class="idx">03 完成</span>
+      <span class="tp ic" data-w="150" data-h="100" data-a="done" data-angle="76" data-arc="1" data-check="1"></span>
+      <span class="txt">
+        <span class="st">完成</span>
+        <span class="d">轮位 76° 停驻 · 进度弧闭合<br>黄色 LED 常亮 + 就位标记<br>对话恢复输入 · 480ms 后淡出</span>
+      </span>
+    </div>
+  </div>
+
+  <div class="rowB">
+    <div class="intro">
+      <span class="t">对话流内 · 状态控件实例</span>
+      <span class="d">agent 启动路径：<br>点工程 → 控件出现在对话流<br>待机 → 进行中 → 完成<br>走带式进度 · 不打断对话历史</span>
+      <span class="d" style="margin-top:auto;color:rgba(9,11,14,.55);">进行中实况见态B 屏 LCD（01 对话显示）。</span>
+    </div>
+    <div class="scard">
+      <div class="hd">状态控件 · 待机 <span class="r"><span class="led lo" style="width:8px;height:8px;"></span>等待</span></div>
+      <div class="bd">
+        <span class="tp" data-w="76" data-h="52" data-angle="0"></span>
+        <span class="tx">
+          <span class="st">等待工程信号</span>
+          <span class="steps">○ 内核装载　　○ 工程挂载　　○ 引擎待命</span>
+        </span>
+      </div>
+      <span class="plab">进度 0 · 轮位 0°</span>
+      <div class="prog"><i style="width:0;"></i><b class="tick" style="left:33%;"></b><b class="tick" style="left:66%;"></b></div>
+    </div>
+    <div class="scard">
+      <div class="hd">状态控件 · 进行中 <span class="r"><span class="led lb" style="width:8px;height:8px;"></span>走带中</span></div>
+      <div class="bd">
+        <span class="tp" data-w="76" data-h="52" data-a="run" data-angle="38" data-arc="0.66"></span>
+        <span class="tx">
+          <span class="st">唤醒工程《小星星乐局》</span>
+          <span class="steps"><b>✓</b> 内核装载　　<u>▸ 工程挂载中…</u>　　○ 引擎待命</span>
+        </span>
+      </div>
+      <span class="plab">进度 2/3 · 轮位 38°</span>
+      <div class="prog"><i style="width:66%;"></i><b class="tick" style="left:33%;"></b><b class="tick" style="left:66%;"></b></div>
+    </div>
+    <div class="scard">
+      <div class="hd">状态控件 · 完成 <span class="r"><span class="led ly" style="width:8px;height:8px;"></span>就绪</span></div>
+      <div class="bd">
+        <span class="tp" data-w="76" data-h="52" data-a="done" data-angle="76" data-arc="1" data-check="1"></span>
+        <span class="tx">
+          <span class="st">工程已就绪 · 进入对话</span>
+          <span class="steps"><b>✓</b> 内核装载　　<b>✓</b> 工程挂载　　<b>✓</b> 引擎在线</span>
+        </span>
+      </div>
+      <span class="plab">进度 3/3 · 轮位 76°</span>
+      <div class="prog"><i style="width:100%;"></i><b class="tick" style="left:33%;"></b><b class="tick" style="left:66%;"></b></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="pagefoot">
+  <span>方向 B · 硬件设备面板派 —— 对话窗＝AI 磁带机操作面板</span>
+  <span>骨架：态C 底部横向设备条（全宽 · 38%）｜ 抽屉＝卡带仓（插带槽＋边缘把手）｜ 过渡＝开机/舱门叙事</span>
+  <span>令牌：Mondrian 磁带色板（SPEC §3，未改）｜ 磁带 icon：TapeIconArt 逐字复刻（未改结构，仅叠加轮辐/进度弧注记层）</span>
+</footer>
+
+<script>
+/* ===== 共用资产：rgba 助手（atmos 染色需要） ===== */
+function rgba(hex,a){var n=hex.replace('#','');var r=parseInt(n.substr(0,2),16),g=parseInt(n.substr(2,2),16),b=parseInt(n.substr(4,2),16);return 'rgba('+r+','+g+','+b+','+a+')';}
+
+/* ===== SPEC §3 资产：TapeIconArt 逐字复刻（不得更改） ===== */
+var INK="#090B0E",WIN="#FBF9F1",HUB="#FAFAF2",ACC="#1A1A1F",TINT="#E6E6E6";
+function tapeSVG(w,h,a){ // a=atmos 可为 null（默认灰壳满盘）
+  var bx=2,by=2,bw=w-4,bh=h-4;
+  var wx=bx+8,wy=by+8,ww=bw-16,wh=bh-26;
+  var cy=wy+wh/2,c1x=wx+ww*0.28,c2x=wx+ww*0.72;
+  var r=Math.min(wh*0.3,22);
+  var d1=a?r*(0.34+0.5*a.L):r, d2=a?r*(0.34+0.5*a.R):r;
+  var labelY=by+bh-12;
+  var bodyFill=a?rgba(a.c1,0.62):TINT;
+  var s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+" "+h+'">';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="'+bodyFill+'"/>';
+  s+='<rect x="'+bx+'" y="'+by+'" width="'+bw+'" height="'+bh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="'+WIN+'"/>';
+  s+='<rect x="'+wx+'" y="'+wy+'" width="'+ww+'" height="'+wh+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  [[c1x,d1],[c2x,d2]].forEach(function(reel){
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+reel[1]+'" fill="'+ACC+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+(r*0.32)+'" fill="'+HUB+'"/>';
+    s+='<circle cx="'+reel[0]+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+INK+'" stroke-width="2"/>';
+  });
+  s+='<line x1="'+(bx+10)+'" y1="'+labelY+'" x2="'+(bx+bw-10)+'" y2="'+labelY+'" stroke="'+INK+'" stroke-width="2"/>';
+  s+='<line x1="'+(bx+10)+'" y1="'+(labelY+6)+'" x2="'+(bx+bw*0.55)+'" y2="'+(labelY+6)+'" stroke="rgba(31,36,43,0.6)" stroke-width="1"/>';
+  return s+"</svg>";
+}
+// 气 atmosphere：工程名 FNV-1a 哈希→色对（v2 移植；需要时可用，非必需）
+
+/* ===== 本方向叠加层：轮辐（旋转帧差）＋进度弧＋就位标记（不改 icon 结构，仅注记） ===== */
+function tapeOverlay(w,h,o){
+  o=o||{};
+  var bx=2,by=2,bw=w-4,bh=h-4;
+  var wx=bx+8,wy=by+8,ww=bw-16,wh=bh-26;
+  var cy=wy+wh/2,c1x=wx+ww*0.28,c2x=wx+ww*0.72;
+  var r=Math.min(wh*0.3,22);
+  var ang=(o.angle||0)*Math.PI/180;
+  var d1=o.a?r*(0.34+0.5*o.a.L):r, d2=o.a?r*(0.34+0.5*o.a.R):r;
+  var s='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" style="position:absolute;left:0;top:0;pointer-events:none;">';
+  function hub(cx,d){
+    if(d<6) return;
+    var sr=d*0.62;
+    for(var k=0;k<3;k++){
+      var a2=ang+k*Math.PI/3;
+      s+='<line x1="'+(cx-sr*Math.cos(a2)).toFixed(1)+'" y1="'+(cy-sr*Math.sin(a2)).toFixed(1)+'" x2="'+(cx+sr*Math.cos(a2)).toFixed(1)+'" y2="'+(cy+sr*Math.sin(a2)).toFixed(1)+'" stroke="#FAFAF2" stroke-width="1.4" stroke-opacity="0.9"/>';
+    }
+  }
+  hub(c1x,d1); hub(c2x,d2);
+  if(o.arc!=null){
+    var R=Math.min(d2+5,r+4), frac=Math.max(0,Math.min(1,o.arc));
+    if(frac>=0.999){
+      s+='<circle cx="'+c2x.toFixed(1)+'" cy="'+cy.toFixed(1)+'" r="'+R.toFixed(1)+'" fill="none" stroke="#FACC1A" stroke-width="3"/>';
+    }else if(frac>0.02){
+      var st=-Math.PI/2, en=st+frac*2*Math.PI;
+      var x1=c2x+R*Math.cos(st), y1=cy+R*Math.sin(st);
+      var x2=c2x+R*Math.cos(en), y2=cy+R*Math.sin(en);
+      s+='<path d="M '+x1.toFixed(1)+' '+y1.toFixed(1)+' A '+R.toFixed(1)+' '+R.toFixed(1)+' 0 '+(frac>0.5?1:0)+' 1 '+x2.toFixed(1)+' '+y2.toFixed(1)+'" fill="none" stroke="#FACC1A" stroke-width="3" stroke-linecap="round"/>';
+    }
+  }
+  if(o.check){
+    s+='<circle cx="'+(w-13)+'" cy="13" r="9.5" fill="#FACC1A" stroke="#090B0E" stroke-width="2"/>';
+    s+='<path d="M '+(w-17.5)+' 13 L '+(w-14.5)+' 16.2 L '+(w-8.8)+' 10" fill="none" stroke="#090B0E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+  return s+'</svg>';
+}
+
+/* ===== 工程气氛色（示例工程，静态指定） ===== */
+var ATMOS={
+  star:{L:0.18,R:0.62,c1:'#065BC7'},   /* 小星星乐局 */
+  proq:{L:0.72,R:0.28,c1:'#FACC1A'},   /* ProQ3 裸控实验 */
+  drum:{L:0.42,R:0.86,c1:'#DB1214'},   /* 鼓组混音 v2 */
+  run:{L:0.12,R:0.88,c1:'#065BC7'},    /* 进行中：供带轮变小 */
+  done:{L:0.5,R:0.5,c1:'#065BC7'}      /* 完成：两轮均分 */
+};
+
+document.querySelectorAll('.tp').forEach(function(el){
+  var w=+el.dataset.w, h=+el.dataset.h;
+  var a=el.dataset.a?ATMOS[el.dataset.a]:null;
+  var html=tapeSVG(w,h,a);
+  html+=tapeOverlay(w,h,{a:a,angle:+(el.dataset.angle||0),arc:el.dataset.arc?+el.dataset.arc:null,check:el.dataset.check!=null});
+  el.innerHTML=html;
+});
+
+/* ===== DAW 背景（态B 升起中 / 态C 沉后），静态构建 ===== */
+function dawHTML(){
+  var tracks=[
+    {n:'主唱',c:'#73B8F5',clips:[[1,32,'主歌'],[45,52,'副歌']]},
+    {n:'和声',c:'#065BC7',clips:[[45,52,'副歌 · 叠唱']]},
+    {n:'鼓组',c:'#DB1214',clips:[[1,96,'节拍 A · 92 BPM']]},
+    {n:'贝斯',c:'#FACC1A',clips:[[1,32,'根音'],[45,52,'副歌 · 根音']]},
+    {n:'合成器铺底',c:'#C9C5B4',clips:[[1,96,'和弦垫']]}
+  ];
+  var s='<div class="daw-menubar">工程《小星星乐局》 <span style="color:rgba(251,249,241,.55);">文件　编辑　混音　视图　帮助</span><span class="r">48kHz · 24bit · 92 BPM · 4/4</span></div>';
+  s+='<div class="daw-mid"><div class="daw-tracks">';
+  tracks.forEach(function(t){
+    s+='<div class="trow"><span class="tdot" style="background:'+t.c+';"></span><span class="tname">'+t.n+'</span><span class="tbtn"><i>静</i><i>独</i></span></div>';
+  });
+  s+='</div><div class="daw-lanes">';
+  s+='<div class="ruler"><b>1</b><b>2</b><b>3</b><b>4</b><b>5</b><b>6</b><b>7</b><b>8</b><b>9</b></div>';
+  tracks.forEach(function(t){
+    s+='<div class="lane">';
+    t.clips.forEach(function(c){
+      s+='<span class="clip" style="left:'+(c[0]-1)+'%;width:'+c[1]+'%;background:'+t.c+';">'+c[2]+'</span>';
+    });
+    s+='</div>';
+  });
+  s+='<div class="playhead" style="left:44%;"></div>';
+  s+='</div></div>';
+  s+='<div class="daw-transport"><span class="tbtn2"><span class="tri"></span></span><span class="tbtn2"><span class="sq2"></span></span><span class="tbtn2 rec"><span class="dot2"></span></span><span class="tval">00:01:24.5</span><span class="tlab">小节 5 · 副歌 A 段</span><span class="tval">92.0 BPM</span><span class="tval">4/4</span><span class="tlab">循环 5–9</span><span class="tlab" style="margin-left:auto;">主输出 0.0 · 监听开</span></div>';
+  return s;
+}
+document.querySelectorAll('[data-daw]').forEach(function(el){ el.innerHTML=dawHTML(); });
+</script>
+</body>
+</html>

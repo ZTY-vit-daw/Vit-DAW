@@ -1,0 +1,62 @@
+{
+  "links": [
+    {
+      "href": "v5-product.html",
+      "exists": true
+    },
+    {
+      "href": "v5-system.html#s7",
+      "exists": true
+    },
+    {
+      "href": "IMPLEMENTATION-HANDOFF.md",
+      "exists": true
+    }
+  ],
+  "reviewTabs": [
+    {
+      "id": "p1",
+      "imageLoaded": true
+    },
+    {
+      "id": "p2",
+      "imageLoaded": true
+    },
+    {
+      "id": "p3",
+      "imageLoaded": true
+    },
+    {
+      "id": "p4",
+      "imageLoaded": true
+    },
+    {
+      "id": "s4",
+      "imageLoaded": true
+    },
+    {
+      "id": "s3",
+      "imageLoaded": true
+    },
+    {
+      "id": "s1",
+      "imageLoaded": true
+    },
+    {
+      "id": "s2",
+      "imageLoaded": true
+    },
+    {
+      "id": "s5",
+      "imageLoaded": true
+    },
+    {
+      "id": "s6",
+      "imageLoaded": true
+    },
+    {
+      "id": "s7",
+      "imageLoaded": true
+    }
+  ]
+}

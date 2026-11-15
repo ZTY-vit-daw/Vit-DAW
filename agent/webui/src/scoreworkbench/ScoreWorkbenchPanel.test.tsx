@@ -8,7 +8,18 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it } from "vitest";
 
+import { vi } from "vitest";
 import { ScoreWorkbenchPanel } from "./ScoreWorkbenchPanel";
+
+// M4 游标测试缝：mock /agent/ui/state 轮询（ui_context 白名单键族）。
+const uiStateMock = vi.fn(async () => ({
+  status: "ok",
+  ui_context: { playhead_seconds: 1.0, is_playing: true }
+}));
+vi.mock("../lib/api", () => ({
+  invokeAgent: async () => ({ status: "error", error: "not under test" }),
+  fetchUIState: () => uiStateMock()
+}));
 import type { ScoreKernelBridge, ApplyPatchOp, KernelBridgeResult } from "./kernel";
 import { deserializeModel, serializeModel, type ScoreModel } from "./model";
 import { beatsPerMeasure } from "./model";
@@ -267,7 +278,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "not under test" }),
       reload: async () => ({ ok: true, value: snapshot })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -284,7 +295,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       applyPatch: async () => ({ ok: false, error: "not under test" }),
       reload: async () => ({ ok: false, error: "analyze_midi_transformations requires a connected kernel" })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -323,7 +334,7 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
       },
       reload: async () => ({ ok: true, value: baseSnapshot })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
@@ -348,13 +359,48 @@ describe("ScoreWorkbenchPanel interactions (M2)", () => {
     expect(root.getAttribute("data-score-kernel")).toBe("connected");
   });
 
+  it("cursor renders from polled playhead with snapshot (M4): beat anchor + playing tag", async () => {
+    const kernelModel: ScoreModel = {
+      timeSignature: { numerator: 2, denominator: 4 },
+      notes: [
+        { id: "kernel-1", pitch: 72, startBeats: 0, lengthBeats: 0.75 },
+        { id: "kernel-2", pitch: 67, startBeats: 0.75, lengthBeats: 0.25 },
+        { id: "kernel-3", pitch: 71, startBeats: 1.5, lengthBeats: 0.5 }
+      ]
+    };
+    const snapshot = { model: kernelModel, clipLengthBeats: 4, tempoBPM: 120, timeSignatureLabel: "2/4", clipStartSeconds: 0.5 };
+    const bridge: ScoreKernelBridge = {
+      kind: "agent",
+      applyPatch: async () => ({ ok: false, error: "not under test" }),
+      reload: async () => ({ ok: true, value: snapshot })
+    };
+    // playhead 1.0s、clip 起点 0.5s、120bpm → clip 内 1 拍
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    const root = rootEl(container);
+    expect(root.getAttribute("data-score-cursor-beat")).toBe("1.000");
+    expect(root.getAttribute("data-score-cursor-playing")).toBe("true");
+    const cursorEl = container.querySelector("[data-score-cursor]");
+    expect(cursorEl).not.toBeNull();
+    expect(cursorEl?.getAttribute("data-score-cursor-measure")).toBe("0");
+    // 无快照（本地模式）不画游标、不轮询错位
+    const localMount = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture }));
+    expect(localMount.container.querySelector("[data-score-cursor]")).toBeNull();
+    expect(rootEl(localMount.container).getAttribute("data-score-cursor-beat")).toBe("");
+  });
+
   it("apply error keeps the buffer and surfaces the error", async () => {
     const bridge: ScoreKernelBridge = {
       kind: "agent",
       applyPatch: async () => ({ ok: false, error: "RiskConfirm rejected" }),
       reload: async () => ({ ok: false, error: "unreachable" })
     };
-    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernel: bridge }));
+    const { container } = mount(createElement(ScoreWorkbenchPanel, { initialModel: fixture, kernelFactory: () => bridge }));
     await act(async () => {
       await Promise.resolve();
     });
