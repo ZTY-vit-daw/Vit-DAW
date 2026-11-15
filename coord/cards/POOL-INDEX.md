@@ -151,4 +151,5 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 357 | SHELL-2 | done 已验收 pass 合入（**主管亲跑全旅程 PASS**：抽屉按钮→零摩擦首开→直启 DAW→同窗切换→页内三键二次开→全树净退+S10 还原；两真缺陷修复采纳；执行侧直推 main 偏差记录——**SHELL-3 解锁**）（启动态桥：抽屉手动按钮+页内治理确认（跟随发起方）+Godot 直启 DAW+关 DAW 回主窗；排 SHELL-1 合入后） |
 | 358 | SHELL-3 | done 已验收 pass 合入（**主腿 3/3 轮 PASS**+失败注入三腿+legacy 腿；手测 v6 放行包在卷——**VitShell 架构全线贯通，候用户手测 v6**；裸双击需 --dev-root 开后续卡候选）（全链真栈烟测+手测 v6 放行；排 SHELL-2 后） |
 | 359 | UI-VISUAL-FIDELITY-1 | done 技术面 pass 合入（[终验=用户目检 v6]；裁切双侧根因：webui 高度链已修+宿主 DPI 移交 SHELL-1；12 项修复+四分辨率烟测段；8 缺口上交清单在卷）（launcher/工程面视觉保真返工对照定稿稿+窗口裁切多分辨率修复；与 SHELL-1 并行，SHELL-2 前合入） |
-| 360 | SHELL-4 | todo（[用户裁定：内核随窗就绪](../decisions/2026-11-15-kernel-ready-at-shell-start-ruling.md)——启动台内核在线+新建/列表/问候真数据+单内核所有权+烟测启动台内核断言腿+磁带流文案对齐；手测 v6 观测 3/5 触发；**候用户触发领取**） |
+| 360 | SHELL-4 | todo（[用户裁定：内核随窗就绪](../decisions/2026-11-15-kernel-ready-at-shell-start-ruling.md)——启动台内核在线+新建/列表/问候真数据+单内核所有权+内核生命周期归属主窗+磁带流文案对齐；手测 v6 观测 3/5 触发；**候用户触发领取**） |
+| 361 | UI-SPRITE-MOUNT-1 | todo（**DesignSprite 全局未挂载→全应用 sprite 图标渲染为空**（发送键黑方块/回复中无指示）；渲染烟测图标断言空转连带修；双图标体系记录；**候用户触发领取**） |
