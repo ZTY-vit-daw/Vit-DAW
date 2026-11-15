@@ -1,0 +1,8 @@
+﻿node : CDP_FAIL {"phase":"probe-project-ready","ok":false,"error":"project context name did not become \"鏂板伐绋媉\" in 45s
+ (got \"Unsaved.vit\" 鈥?context refresh after in-page switch missing?)"}
+所在位置 D:\Vit_DAW_wt_shell6\scripts\vitshell_full_smoke.ps1:313 字符: 44
++     $code = Invoke-NativeLogged -Command { node @nodeArgs } -LogPath  ...
++                                            ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CDP_FAIL {"phas...tch missing?)"}:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

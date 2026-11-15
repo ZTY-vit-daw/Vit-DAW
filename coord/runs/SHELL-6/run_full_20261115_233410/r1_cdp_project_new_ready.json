@@ -1,0 +1,5 @@
+{
+  "phase": "probe-project-ready",
+  "ok": false,
+  "error": "project context name did not become \"新工程_\" in 45s (got \"Unsaved.vit\" — context refresh after in-page switch missing?)"
+}

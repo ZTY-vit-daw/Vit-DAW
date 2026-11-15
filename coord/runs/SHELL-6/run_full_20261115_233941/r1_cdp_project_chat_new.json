@@ -1,0 +1,13 @@
+{
+  "phase": "project-chat-new",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "message": "新建工程",
+  "directive_headline": "正在新建《新工程_1115_2340》…",
+  "assistant_reply": "好——这就新建一个工程（暂名《新工程_1115_2340》，进去后可以改名）并切换过去——如当前工程需要处理，切换确认卡会出现。",
+  "auto_execute": true,
+  "bridge_exec_state_seen": "waiting",
+  "governance": "switch",
+  "governance_headline": "当前工程《D:\\Vit_DAW_wt_shell6\\coord\\runs\\SHELL-6\\run_full_20261115_233941\\fixtures\\fixture_a.vit》还在进行中——切换前要处理它吗？",
+  "governance_answered": "已选择「直接切换」——等待 Vit 执行。"
+}

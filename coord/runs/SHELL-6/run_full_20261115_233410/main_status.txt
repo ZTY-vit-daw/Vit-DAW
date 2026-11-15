@@ -1,0 +1,13 @@
+﻿ M agent/internal/chat/server.go
+ M agent/webui/src/project/ProjectSurface.test.tsx
+ M agent/webui/src/project/ProjectSurface.tsx
+ M agent/webui/src/project/project.css
+ M agent/webui/src/project/projectData.test.ts
+ M agent/webui/src/project/projectData.ts
+ M agent/webui/src/project/projectFixtures.ts
+ M agent/webui/src/project/projectService.ts
+ M scripts/vitshell_full_smoke.ps1
+ M scripts/vitshell_full_smoke_cdp.mjs
+?? agent/internal/chat/project_flow.go
+?? agent/internal/chat/project_flow_test.go
+?? coord/runs/SHELL-6/

@@ -1,0 +1,7 @@
+{
+  "phase": "probe-launcher-no-binding",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "current_project_path": "",
+  "current_project_uuid": "vitproj_853676cf0f4d4c9e9f8373cf90f5e5fb"
+}
