@@ -73,6 +73,19 @@ param(
     # save/reload 往返+clear_project/undo/redo 往返正例；断言体在
     # scripts/settempo_persist_smoke.py，内核 ZMQ 命令面直连）。
     [switch]$SetTempoPersistSmoke,
+    # SCORE-WORKBENCH-1 (374) M5: DG1-A berth leg (docs/STACKGATE_DG1_DG3_V1.md
+    # section 3.1). Assertion body = scripts/score_workbench_smoke.mjs: a real
+    # Chromium drives the REAL webui score panel at /app/ against this berth
+    # stack; every mutation goes through the production seams (browser ->
+    # /agent/invoke -> harness -> kernel ZMQ). Assertions A1-A6 per STACKGATE
+    # 3.1 (write/read equality, id mapping stability, symbol coverage,
+    # 4/4 disclosure, saved-after-verify, save/reopen round-trip). A7/A8 (real
+    # sound + diff) are recorded as skipped-pending-373: offline render needs an
+    # enabled instrument on the MIDI track (VitProductionCoordinator refuses a
+    # bare MIDI track), and the sound-source line is SRC-TEMPLATE-1. Leg needs
+    # the kernel stack after -StartKernel plus -RestartAgent; recents config is
+    # snapshotted before and hash-verified back after (AGENTS.md section 10).
+    [switch]$ScoreWorkbenchSmoke,
     # PCA-REVERB-PROMOTION-1（卡 150）：时域混响族 PCA 准入晋升战役腿（全确定性
     # 零 LLM）。断言体在 scripts/pca_reverb_promotion_smoke.py：对兼容矩阵
     # reverb 可证件（首件 Abbey Road Plates Stereo）逐件走既有认证作业流
@@ -1420,7 +1433,7 @@ Assert-DraftRootIsolation
 # VIT_PROJECT_XML always wins; the journey berth keeps its own workspace
 # isolation untouched (this block never runs in scenario mode).
 $GuiLegProjectIsolation = $null
-if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke -or $LauncherFlow) -and -not $ScenarioMode) {
+if (($SendRouteGuiSmoke -or $AutomationDatachanGuiSmoke -or $TrackSourceProbe -or $TrackParamDescriptorSmoke -or $AutomationAgentChainSmoke -or $AutomationIntentChainSmoke -or $AutomationCardButtonSmoke -or $AutomationLLMRouteSmoke -or $ChatAuthStampSmoke -or $TrackPluginDiscloseSmoke -or $B4AblationSmoke -or $EduTransformSmoke -or $EduJamSmoke -or $WaveshellStacklegSmoke -or $ScoreWorkbenchSmoke -or $LauncherFlow) -and -not $ScenarioMode) {
     $guiLegPriorProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
     if (-not [string]::IsNullOrWhiteSpace($guiLegPriorProjectXml)) {
         Write-Ok ("GUI leg project isolation: caller-provided VIT_PROJECT_XML wins: " + $guiLegPriorProjectXml)
@@ -9063,6 +9076,68 @@ if ($SetTempoPersistSmoke) {
         throw ("settempo persist smoke passed but summary artifact missing: " + $settempoSummaryPath)
     }
     Write-Ok ("settempo persist smoke passed (kernel command face; summary: " + $settempoSummaryPath + ")")
+}
+
+if ($ScoreWorkbenchSmoke) {
+    Write-Step "score workbench DG1-A berth smoke (SCORE-WORKBENCH-1 / STACKGATE 3.1)"
+    # AGENTS.md section 10 recents discipline: the kernel rewrites the
+    # user-global recents on save/open. Snapshot before the leg, restore and
+    # hash-verify after; a restore mismatch is an environment interrupt (the
+    # leg fails, never silently passes).
+    $scoreWbRecentsConfig = Join-Path $env:APPDATA "Vit-DAW\global_project_config.json"
+    $scoreWbRecentsBackup = ""
+    $scoreWbRecentsBeforeHash = ""
+    $scoreWbRecentsExisted = Test-Path -LiteralPath $scoreWbRecentsConfig
+    if ($scoreWbRecentsExisted) {
+        $scoreWbArtifactsDir0 = $RunArtifactsDir
+        if ([string]::IsNullOrWhiteSpace($scoreWbArtifactsDir0)) {
+            $scoreWbArtifactsDir0 = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\score_workbench_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+        }
+        New-Item -ItemType Directory -Path $scoreWbArtifactsDir0 -Force | Out-Null
+        $scoreWbRecentsBackup = Join-Path $scoreWbArtifactsDir0 "global_project_config.before.json"
+        Copy-Item -LiteralPath $scoreWbRecentsConfig -Destination $scoreWbRecentsBackup -Force
+        $scoreWbRecentsBeforeHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $scoreWbRecentsConfig).Hash
+        Write-Ok ("score wb recents snapshot: " + $scoreWbRecentsBackup + " sha256=" + $scoreWbRecentsBeforeHash.Substring(0, 12))
+    }
+    else {
+        Write-WarnLine "score wb recents config absent (fresh machine shape); no snapshot to restore"
+    }
+
+    $scoreWbScript = Join-Path $RepoRoot "scripts\score_workbench_smoke.mjs"
+    if (-not (Test-Path -LiteralPath $scoreWbScript)) {
+        throw ("score workbench smoke script missing: " + $scoreWbScript)
+    }
+    $scoreWbArtifactsDir = $RunArtifactsDir
+    if ([string]::IsNullOrWhiteSpace($scoreWbArtifactsDir)) {
+        $scoreWbArtifactsDir = Join-Path $RepoRoot ("VitApp\Workspace\Artifacts\smoke\score_workbench_" + (Get-Date -Format "yyyyMMdd_HHmmss"))
+    }
+    if (-not (Test-Path -LiteralPath $scoreWbArtifactsDir)) {
+        New-Item -ItemType Directory -Path $scoreWbArtifactsDir -Force | Out-Null
+    }
+    $scoreWbSummaryPath = Join-Path $scoreWbArtifactsDir "score_workbench_summary.json"
+    $scoreWbConsolePath = Join-Path $scoreWbArtifactsDir "score_workbench_console.txt"
+    & node $scoreWbScript --agent-http $AgentHttp --artifacts-dir $scoreWbArtifactsDir > $scoreWbConsolePath 2>&1
+    $scoreWbExit = $LASTEXITCODE
+    Get-Content -LiteralPath $scoreWbConsolePath | ForEach-Object { Write-Host $_ }
+
+    # Recents restore happens regardless of the leg verdict (kernel already
+    # wrote it by the time the leg ran); a mismatch after restore is env-interrupt.
+    if ($scoreWbRecentsExisted -and (Test-Path -LiteralPath $scoreWbRecentsBackup)) {
+        Copy-Item -LiteralPath $scoreWbRecentsBackup -Destination $scoreWbRecentsConfig -Force
+        $scoreWbRecentsAfterHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $scoreWbRecentsConfig).Hash
+        if ($scoreWbRecentsAfterHash -ne $scoreWbRecentsBeforeHash) {
+            throw ("score wb recents restore mismatch: before=" + $scoreWbRecentsBeforeHash + " after=" + $scoreWbRecentsAfterHash + " (environment interrupt; recents left restored from snapshot)")
+        }
+        Write-Ok ("score wb recents restored and hash-verified: " + $scoreWbRecentsAfterHash.Substring(0, 12))
+    }
+
+    if ($scoreWbExit -ne 0) {
+        throw ("score workbench smoke failed with exit code $scoreWbExit (console: " + $scoreWbConsolePath + ")")
+    }
+    if (-not (Test-Path -LiteralPath $scoreWbSummaryPath)) {
+        throw ("score workbench smoke passed but summary artifact missing")
+    }
+    Write-Ok ("score workbench DG1-A berth smoke passed (browser + agent invoke face; summary: " + $scoreWbSummaryPath + ")")
 }
 
 if ($AutomationAgentChainSmoke) {
