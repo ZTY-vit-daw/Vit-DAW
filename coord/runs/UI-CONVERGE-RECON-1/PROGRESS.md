@@ -26,4 +26,4 @@
 1. 执行的命令+退出码：领取 2 次 git commit+push（78a00a7b、2ff2690d，ead600e6..2ff2690d 推送成功，exit 0）；npm test exit 0；其余 grep/wc/sed 只读命令全部 exit 0。
 2. 产物路径：coord/runs/UI-CONVERGE-RECON-1/REPORT.md（七节报告）+ 本 PROGRESS.md + 卡面回执（coord/cards/done/2026-11-15-UI-CONVERGE-RECON-1.md）。
 3. 遇到的问题：无阻断问题。两处登记项：Godot 仓收编点 A（重试导航裸 URL 残留）、test:render 段数口径（8 段 vs 卡面六段）——均为决策侧裁定项，见 REPORT 节 5 与卡面回执。
-4. 断了几次：0（感知范围内无重派）。
+4. 断了几次：0（感知范围内无重派）；中途被顶掉 1 次（远端 444d9a55=367 SHELL-6 领取提交），按领取协议 `git pull --no-rebase` 产生 POOL-INDEX.md 一处冲突（367/368 两行），手工并档（367 取对方 doing 态、368 取本卡 done 态）后 merge commit 273e035b 重推成功（444d9a55..273e035b）。全程 commit 链：78a00a7b→2ff2690d→f9b8c9be→7643f92d→273e035b（merge）。
