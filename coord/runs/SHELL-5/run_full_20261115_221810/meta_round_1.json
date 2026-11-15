@@ -1,0 +1,46 @@
+﻿{
+    "round":  1,
+    "started_at_utc":  "2026-11-15T14:20:02Z",
+    "recents_seeded_sha256":  "5F464F63985996E2B080D00323A90CC33771E61B00E88A5C7FF62A86671D2A68",
+    "vitshell_pid":  544,
+    "no_reload_sentinel":  1794752405929,
+    "greeting_text":  "我在。最近的工程是《fixture_a》——想从哪开始？",
+    "recents_count":  "6",
+    "kernel_online":  {
+                          "vitapp_count":  1,
+                          "greeting_recent_count":  7,
+                          "agent_pid":  3188,
+                          "vsphub_count":  1,
+                          "drawer_rows":  6
+                      },
+    "launcher_zero_binding":  {
+                                  "gate_marker_lines":  1,
+                                  "current_project_path":  "",
+                                  "current_project_uuid":  "vitproj_e7bb5b30155c4f02a9e6a294e5ca0567"
+                              },
+    "result":  "FAIL",
+    "error":  "CDP phase probe-project-ready failed (exit 1, see r1_cdp_new_ready.json.log)",
+    "failure_class":  "assertion_failure",
+    "failure_diag":  {
+                         "vitshell_alive":  true,
+                         "main_window_title":  "Vit",
+                         "threads":  10,
+                         "vit_webview_processes":  6,
+                         "port_7878":  [
+                                           "state=Established pid=3188 proc=VitAgent",
+                                           "state=Listen pid=3188 proc=VitAgent",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=Established pid=3188 proc=VitAgent",
+                                           "state=TimeWait pid=0 proc=Idle"
+                                       ],
+                         "port_7879":  [
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=Listen pid=544 proc=VitShell"
+                                       ]
+                     },
+    "finished_at_utc":  "2026-11-15T14:21:00Z"
+}

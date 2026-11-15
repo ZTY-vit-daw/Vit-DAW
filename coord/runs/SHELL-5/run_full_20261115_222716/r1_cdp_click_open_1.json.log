@@ -1,0 +1,8 @@
+﻿node : CDP_FAIL {"phase":"click-open","ok":false,"error":"locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b
+[2m  - waiting for locator('[data-launcher-choose-file]') to be visible\u001b[22m\n"}
+所在位置 D:\Vit_DAW_wt_shell5\scripts\vitshell_full_smoke.ps1:295 字符: 44
++     $code = Invoke-NativeLogged -Command { node @nodeArgs } -LogPath  ...
++                                            ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CDP_FAIL {"phas...e\u001b[22m\n"}:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

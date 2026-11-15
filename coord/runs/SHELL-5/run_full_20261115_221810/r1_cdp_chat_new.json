@@ -1,0 +1,12 @@
+{
+  "phase": "launcher-chat-new",
+  "ok": true,
+  "url": "http://127.0.0.1:7878/app/?surface=launcher",
+  "message": "新建工程",
+  "new_project_name": "(default)",
+  "directive_headline": "正在新建《新工程_1115_2220》…",
+  "assistant_reply": "好——这就新建一个工程（暂名《新工程_1115_2220》，进去后可以改名）并进入。",
+  "auto_execute": true,
+  "bridge_exec_state_seen": "waiting",
+  "governance": "none"
+}

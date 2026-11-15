@@ -1,0 +1,53 @@
+﻿閫傜敤浜?.NET Framework MSBuild 鐗堟湰 18.4.0+6e61e96ac
+
+  1>Checking Build System
+  Building Custom Rule D:/Godot/project/vit-daw-frontend_wt_shell5/VitShell/CMakeLists.txt
+  main.cpp
+D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\main.cpp(495,31): warning C4996: '_wfopen': This function or variable may be unsafe. Consider using _wfopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\build\VitShell.vcxproj]
+  agent_manager.cpp
+  file_dialog.cpp
+  godot_manager.cpp
+C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18): warning C4244: 鈥?鈥? 浠庘€渃onst wchar_t鈥濊浆鎹㈠埌鈥渃har鈥濓紝鍙兘涓㈠け鏁版嵁 [D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\build\VitShell.vcxproj]
+  (缂栬瘧婧愭枃浠垛€?./godot_manager.cpp鈥?
+      C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xutility(4924,18):
+      妯℃澘瀹炰緥鍖栦笂涓嬫枃(鏈€鏃╃殑瀹炰緥鍖栦笂涓嬫枃)涓?
+          D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\godot_manager.cpp(125,59):
+          鏌ョ湅瀵规鍦ㄧ紪璇戠殑鍑芥暟 妯℃澘 瀹炰緥鍖栤€渟td::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string<std::_String_const_iterator<std::_String_val<std::_Simple_types<_Elem>>>,0>(_Iter,_Iter,const _Alloc &)鈥濈殑寮曠敤
+          with
+          [
+              _Elem=wchar_t,
+              _Iter=std::_String_const_iterator<std::_String_val<std::_Simple_types<wchar_t>>>,
+              _Alloc=std::allocator<char>
+          ]
+              D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\godot_manager.cpp(125,20):
+              璇峰弬闃?"vitshell::GodotManager::Start" 涓 "std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string" 鐨勭涓€涓紩鐢?
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(862,17):
+          鏌ョ湅瀵规鍦ㄧ紪璇戠殑鍑芥暟 妯℃澘 瀹炰緥鍖栤€渧oid std::basic_string<char,std::char_traits<char>,std::allocator<char>>::_Construct_from_iter<const wchar_t*,const wchar_t*,_Size_type>(_Iter,const _Sent,_Size)鈥濈殑寮曠敤
+          with
+          [
+              _Size_type=unsigned __int64,
+              _Iter=const wchar_t *,
+              _Sent=const wchar_t *,
+              _Size=unsigned __int64
+          ]
+          C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\include\xstring(1018,18):
+          鏌ョ湅瀵规鍦ㄧ紪璇戠殑鍑芥暟 妯℃澘 瀹炰緥鍖栤€淿OutIt *std::_Copy_n_unchecked4<const wchar_t*,_Size,char*>(_InIt,_SizeTy,_OutIt)鈥濈殑寮曠敤
+          with
+          [
+              _OutIt=char *,
+              _Size=unsigned __int64,
+              _InIt=const wchar_t *,
+              _SizeTy=unsigned __int64
+          ]
+  
+  launcher_bridge.cpp
+D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\launcher_bridge.cpp(55,30): warning C4996: 'sscanf': This function or variable may be unsafe. Consider using sscanf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\build\VitShell.vcxproj]
+  status_server.cpp
+  vit_webview_host_core.cpp
+D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\shared\vit_webview_host_core.cpp(713,5): warning C4996: 'wcsncpy': This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\build\VitShell.vcxproj]
+D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\shared\vit_webview_host_core.cpp(724,5): warning C4996: 'wcsncpy': This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\build\VitShell.vcxproj]
+D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\shared\vit_webview_host_core.cpp(725,5): warning C4996: 'wcsncpy': This function or variable may be unsafe. Consider using wcsncpy_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details. [D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\build\VitShell.vcxproj]
+  姝ｅ湪鐢熸垚浠ｇ爜...
+  VitShell.vcxproj -> D:\Godot\project\vit-daw-frontend_wt_shell5\VitShell\build\Release\VitShell.exe
+  Copying WebView2Loader.dll next to VitShell.exe
+  Building Custom Rule D:/Godot/project/vit-daw-frontend_wt_shell5/VitShell/CMakeLists.txt

@@ -1,0 +1,71 @@
+
+>>> Preflight: stack idle + occupancy re-read
+  [OK] stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy names SHELL-5
+
+>>> Artifacts: D:\Vit_DAW_wt_shell5\coord\runs\SHELL-5\run_full_20261115_221810
+  [OK] recents snapshot taken (1264B72B98189FD7...)
+  [OK] fixtures copied (source sha256=AC0CE2E81C12E6F1...)
+
+>>> Build VitShell.exe (cmake VS x64 Release)
+  [OK] VitShell build exit 0
+
+>>> Build isolated VitAgent.exe (worktree source)
+  [OK] agent build exit 0
+
+>>> webui dist build (worktree source: SHELL-2 launcher face + 346 project face)
+  [OK] webui build exit 0
+
+>>> Kernel/hub binaries into isolated worktree paths (main-checkout build, zero C++ diff)
+  [OK] kernel/hub staged (sha256 EDA7E1797C7B.../B10CC4129506...)
+
+>>> Godot --import pre-run (worktree project caches)
+  [OK] godot import ok
+
+>>> Legacy leg: godot --import --check-only + start_page env-gate structural checks
+  [OK] legacy leg pass (F5 path structurally intact, declarative)
+
+>>> Immediate recheck (<=60s before stack start)
+  [OK] clean
+
+>>> F1 bad-agent-exe: --agent-exe nonexistent -> in-window error page, zero Godot
+  [OK] CDP probe-error-page pass
+  [OK] F1 pass: phase=error, in-window error page (detail=agent exe not found: D:/nonexistent_shell3_badagent/VitAgent...), VitShell alive, zero Godot
+
+>>> F2 occupied-port: 7878 taken by script socket -> agent cannot bind -> error page, zero Godot
+  [NOTE] F2 error detail: agent process exited before becoming ready
+  [OK] CDP probe-error-page pass
+  [OK] F2 pass: phase=error, in-window error page, VitShell alive, zero Godot
+  [OK] F2 occupier released after VitShell exit; ports bindable again
+
+>>> F3 webview2-off: WEBVIEW2_BROWSER_EXECUTABLE_FOLDER -> dead dir -> probe fail -> system error box
+  [OK] F3 pass: probe failed -> process holds system error dialog (title=Vit), no status server, no agent, zero Godot
+
+>>> Immediate recheck #2 (<=60s before main rounds)
+  [OK] clean
+
+>>> Main journey round 1/3
+
+>>> R1 L0: cold start (zero Godot assert pre+post ready)
+  [OK] recents seeded with fixture_a head (deterministic greeting; sha256=5F464F639859...)
+  [OK] R1 cold start: phase=ready, zero Godot across the whole cold-start window
+
+>>> R1 L1: launcher surface real data (live greeting, no fixture face)
+  [OK] CDP probe-launcher pass
+  [OK] CDP probe-launcher-data pass
+  [OK] R1 launcher data: greeting=我在。最近的工程是《fixture_a》——想从哪开始？... recents=6
+
+>>> R1 L1b: kernel online at launcher (VitApp+VspHub alive, agent-owned)
+  [OK] CDP probe-launcher-kernel-online pass
+  [OK] R1 L1b: kernel online at launcher (VitApp=1 VspHub=1 agent-owned; greeting real data recents=7)
+
+>>> R1 L1e: SHELL-5 launcher stage zero-binding (/agent/state + agent log)
+  [OK] CDP probe-launcher-no-binding pass
+  [OK] R1 L1e: launcher stage zero-binding (path empty, uuid disclosed unbound, activated-lines=0, gate-marker=1)
+
+>>> R1 L1c: name-less new intent auto-executes (launcher chat -> kernel create -> enter project)
+  [OK] CDP launcher-chat-new pass
+  [FAIL] R1 FAIL: CDP phase probe-project-ready failed (exit 1, see r1_cdp_new_ready.json.log) - diag={"vitshell_alive":true,"main_window_title":"Vit","threads":10,"vit_webview_processes":6,"port_7878":["state=Established pid=3188 proc=VitAgent","state=Listen pid=3188 proc=VitAgent","state=TimeWait pid=0 proc=Idle","state=Established pid=3188 proc=VitAgent","state=TimeWait pid=0 proc=Idle"],"port_7879":["state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=Listen pid=544 proc=VitShell"]}
+  [OK] boot drafts cleaned (2 created by this run, all removed)
+
+FAIL: vitshell_full_smoke run_full_20261115_221810 (legacy=pass, failureLegsOk=True, rounds=0/3)
+artifacts: D:\Vit_DAW_wt_shell5\coord\runs\SHELL-5\run_full_20261115_221810

@@ -1,0 +1,13 @@
+﻿node : CDP_FAIL {"phase":"probe-project-ready","ok":false,"error":"project surface not ready in 45s","evidence":{"proje
+ctState":"error","contextName":"鈥?,"contextLoading":0,"contextError":"agent 灏氭湭瑁呰浇宸ョ▼涓婁笅鏂囬噸璇?,"launcherRootStill":0,"lo
+adingCard":0,"uiStateRaw":{"status":200,"body":"{\"agent_plan\":{\"goal_id\":\"goal_6c14c8bd09aa9cd1\",\"run_id\":\"run
+_8e21ee48c8e2ac87\",\"status\":\"completed\",\"summary\":\"鏂板缓宸ョ▼\",\"project_history\":{\"active_branch\":\"main\",\"a
+ctive_node_id\":\"\",\"active_worktree\":\"\",\"available\":true,\"branches\":{},\"commit_count\":0,\"conversation_grap
+h\":{\"project_path\":\"C:\\\\Users\\\\timoz\\\\AppData\\\\Local\\\\Vit\\\\ProjectHistory\\\\drafts\\\\draft_20261115T1
+42009_6f7aa2fc\\\\Unsaved.vit\",\"pro"}}}
+所在位置 D:\Vit_DAW_wt_shell5\scripts\vitshell_full_smoke.ps1:295 字符: 44
++     $code = Invoke-NativeLogged -Command { node @nodeArgs } -LogPath  ...
++                                            ~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (CDP_FAIL {"phas...vit\",\"pro"}}}:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

@@ -1,0 +1,29 @@
+﻿{
+    "vitshell_alive":  true,
+    "main_window_title":  "Vit",
+    "threads":  12,
+    "vit_webview_processes":  6,
+    "port_7878":  [
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=Listen pid=6924 proc=VitAgent",
+                      "state=Established pid=6924 proc=VitAgent",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=Established pid=6924 proc=VitAgent",
+                      "state=Established pid=6924 proc=VitAgent"
+                  ],
+    "port_7879":  [
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=Listen pid=4740 proc=VitShell",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle",
+                      "state=TimeWait pid=0 proc=Idle"
+                  ]
+}

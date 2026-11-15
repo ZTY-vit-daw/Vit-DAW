@@ -1,0 +1,28 @@
+2026-11-15T22:33:55 [WARN] [pca-native-seed] family=generation_shell bundle=C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3 seed failed: processor attestation: inspect plug-in path: GetFileAttributesEx C:\Users\timoz\Library\Audio\Plug-Ins\VST3\GenShell.vst3: The system cannot find the path specified.
+2026-11-15T22:33:55 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-15T22:33:55 [INFO] HTTP agent API listening on http://127.0.0.1:7878
+2026-11-15T22:33:55 [INFO] VitAgent started req=tcp://127.0.0.1:5555 sub=tcp://127.0.0.1:5556 udp_to=4444 udp_from=4445
+2026-11-15T22:33:55 [INFO] VSP realtime publisher enabled client=vit.agent.realtime_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-15T22:33:55 [INFO] runtimehost: enabled dev_root=D:\Vit_DAW_wt_shell5 kernel=tcp://127.0.0.1:5555 hub_health=http://127.0.0.1:8787/health
+2026-11-15T22:33:55 [INFO] VSP realtime publisher enabled client=vit.agent.transport_publisher hub=http://127.0.0.1:8787/vsp
+2026-11-15T22:33:55 [INFO] control loop started: UDP:4445 -> tcp://127.0.0.1:5555
+2026-11-15T22:33:55 [WARN] VSP Hub registration pending url=http://127.0.0.1:8787/vsp attempt=1 error=Post "http://127.0.0.1:8787/vsp": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.
+2026-11-15T22:33:55 [INFO] runtimehost: VspHub not reachable (Get "http://127.0.0.1:8787/health": dial tcp 127.0.0.1:8787: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-15T22:33:55 [INFO] runtimehost: spawned hub pid=3020 (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-15T22:33:56 [INFO] [webui] serving root=D:\Vit_DAW_wt_shell5\agent\webui\dist index_mod=2026-11-15T22:33:08+08:00 assets=gallery-Bab2VMUL.js,gallery-CY77NL5L.css,main-DR6t8dtt.css,main-U3I8n6r8.js,sprite-CD68GLEY.js,sprite-Dk0dBzQ6.css build_mark=project-aware-mondrian-workbench-v1-20260713
+2026-11-15T22:33:56 [INFO] runtimehost: VspHub ready (D:/Vit_DAW/agent/bin/VspHub.exe)
+2026-11-15T22:33:56 [INFO] runtimehost: kernel not reachable (kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connectex: No connection could be made because the target machine actively refused it.) -> spawn path
+2026-11-15T22:33:56 [INFO] runtimehost: spawned kernel pid=19732 (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-15T22:33:56 [INFO] [timing] kernel.vsp_state_snapshot ms=250 reason=state_summary err=true
+2026-11-15T22:33:56 [WARN] [harness] VSP shadow refresh after state_summary failed, falling back to legacy state: kernel dial tcp://127.0.0.1:5555: zmq4: could not dial to "tcp://127.0.0.1:5555" (retry=250ms): dial tcp 127.0.0.1:5555: connectex: No connection could be made because the target machine actively refused it.
+2026-11-15T22:33:57 [INFO] telemetry thread started: tcp://127.0.0.1:5556 -> UDP:4444
+2026-11-15T22:33:57 [INFO] runtimehost: kernel ready (D:/Vit_DAW/VitApp/build/VitApp_artefacts/Release/VitApp.exe)
+2026-11-15T22:33:57 [INFO] [timing] kernel.send_command ms=255 command=get_project_state reason=state_summary err=false
+2026-11-15T22:33:57 [INFO] [shadow] initialized tracks=11 project_path="" replayed_deltas=0
+2026-11-15T22:33:57 [INFO] [timing] harness.refresh_shadow ms=515 reason=state_summary status=ok err=false
+2026-11-15T22:33:57 [INFO] [media_refs] ms=0 conversation=webui_launcher_mwhxqk04 user_paths=0 reply_names=0 files=0 folders=0 mentions_media=false artifacts=0
+2026-11-15T22:33:57 [INFO] [chat.artifacts] conversation=webui_launcher_mwhxqk04 response_artifacts=0 request_artifacts=0 executed=0 reply_len=81
+2026-11-15T22:33:57 [INFO] [workspace] launcher scope kept (boot draft not activated) project="C:\\Users\\timoz\\AppData\\Local\\Vit\\ProjectHistory\\drafts\\draft_20261115T143356_bfca245e\\Unsaved.vit" uuid=vitproj_e7bb5b30155c4f02a9e6a294e5ca0567
+2026-11-15T22:33:57 [INFO] [continuation.wake] declined has_scheduled_work=false executor=false workspace=<none>
+2026-11-15T22:33:57 [INFO] [timing] http.chat total_ms=1552 conversation=webui_launcher_mwhxqk04 message_len=15
+2026-11-15T22:33:57 [INFO] VitAgent registered with VSP Hub url=http://127.0.0.1:8787/vsp session_id=sess_kernel_1794753237911_518148477 type=session.hello_ack

@@ -1,0 +1,93 @@
+
+>>> Preflight: stack idle + occupancy re-read
+  [OK] stack clean (processes=0, TCP 7878/7879/8787/5555 + UDP 4445 free), occupancy names SHELL-5
+
+>>> Artifacts: D:\Vit_DAW_wt_shell5\coord\runs\SHELL-5\run_full_20261115_222716
+  [OK] recents snapshot taken (1264B72B98189FD7...)
+  [OK] fixtures copied (source sha256=AC0CE2E81C12E6F1...)
+
+>>> Build VitShell.exe (cmake VS x64 Release)
+  [OK] VitShell build exit 0
+
+>>> Build isolated VitAgent.exe (worktree source)
+  [OK] agent build exit 0
+
+>>> webui dist build (worktree source: SHELL-2 launcher face + 346 project face)
+  [OK] webui build exit 0
+
+>>> Kernel/hub binaries into isolated worktree paths (main-checkout build, zero C++ diff)
+  [OK] kernel/hub staged (sha256 EDA7E1797C7B.../B10CC4129506...)
+
+>>> Godot --import pre-run (worktree project caches)
+  [OK] godot import ok
+
+>>> Legacy leg: godot --import --check-only + start_page env-gate structural checks
+  [OK] legacy leg pass (F5 path structurally intact, declarative)
+
+>>> Immediate recheck (<=60s before stack start)
+  [OK] clean
+
+>>> Immediate recheck #2 (<=60s before main rounds)
+  [OK] clean
+
+>>> Main journey round 1/3
+
+>>> R1 L0: cold start (zero Godot assert pre+post ready)
+  [OK] recents seeded with fixture_a head (deterministic greeting; sha256=529AA4C680EC...)
+  [OK] R1 cold start: phase=ready, zero Godot across the whole cold-start window
+
+>>> R1 L1: launcher surface real data (live greeting, no fixture face)
+  [OK] CDP probe-launcher pass
+  [OK] CDP probe-launcher-data pass
+  [OK] R1 launcher data: greeting=我在。最近的工程是《fixture_a》——想从哪开始？... recents=6
+
+>>> R1 L1b: kernel online at launcher (VitApp+VspHub alive, agent-owned)
+  [OK] CDP probe-launcher-kernel-online pass
+  [OK] R1 L1b: kernel online at launcher (VitApp=1 VspHub=1 agent-owned; greeting real data recents=7)
+
+>>> R1 L1e: SHELL-5 launcher stage zero-binding (/agent/state + agent log)
+  [OK] CDP probe-launcher-no-binding pass
+  [OK] R1 L1e: launcher stage zero-binding (path empty, uuid disclosed unbound, activated-lines=0, gate-marker=1)
+
+>>> R1 L1c: name-less new intent auto-executes (launcher chat -> kernel create -> enter project)
+  [OK] CDP launcher-chat-new pass
+  [OK] CDP probe-project-ready pass
+  [OK] R1 L1c: name-less new intent entered end-to-end (context=Unsaved.vit, launch_count=1)
+
+>>> R1 L1c2: close DAW -> launcher back -> ＋新建 direct new -> enter project
+
+
+phase              : ready
+error              : 
+vitshell_pid       : 4740
+window_hwnd        : 6817462
+window_title       : Vit
+agent_pid          : 6924
+agent_running      : True
+agent_url          : http://127.0.0.1:7878
+agent_exe          : D:\Vit_DAW_wt_shell5\agent\bin\VitAgent.exe
+agent_cwd          : D:\Vit_DAW_wt_shell5\agent
+current_url        : http://127.0.0.1:7878/app/?surface=launcher
+document_ready     : complete
+navigation_loading : False
+started_at_utc     : 2026-11-15T14:27:32Z
+surface            : launcher
+chain_state        : opened
+chain_detail       : res://vit_dock/scenes/VitDockRoot.tscn
+godot_pid          : 2368
+godot_running      : False
+godot_exe          : D:/Godot/Godot_v4.6.1-stable_win64_console.exe
+godot_project_dir  : D:/Godot/project/vit-daw-frontend_wt_shell5
+launch_count       : 1
+
+  [OK] CDP probe-launcher-back pass
+  [OK] CDP launcher-button-new pass
+  [OK] CDP probe-project-ready pass
+  [OK] R1 L1c2: ＋新建 direct new entered end-to-end (context=Unsaved.vit, launch_count=2; kernel survived VitApp=1 VspHub=1)
+
+>>> R1 L2: drawer open (fixture A) -> agent open chain -> Godot direct-launch
+  [FAIL] R1 FAIL: CDP phase click-open failed (exit 1, see r1_cdp_click_open_1.json.log) - diag={"vitshell_alive":true,"main_window_title":"Vit","threads":12,"vit_webview_processes":6,"port_7878":["state=TimeWait pid=0 proc=Idle","state=Listen pid=6924 proc=VitAgent","state=Established pid=6924 proc=VitAgent","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=Established pid=6924 proc=VitAgent","state=Established pid=6924 proc=VitAgent"],"port_7879":["state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=Listen pid=4740 proc=VitShell","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle","state=TimeWait pid=0 proc=Idle"]}
+  [OK] boot drafts cleaned (3 created by this run, all removed)
+
+FAIL: vitshell_full_smoke run_full_20261115_222716 (legacy=pass, failureLegsOk=True, rounds=0/3)
+artifacts: D:\Vit_DAW_wt_shell5\coord\runs\SHELL-5\run_full_20261115_222716

@@ -1,0 +1,58 @@
+﻿{
+    "round":  1,
+    "started_at_utc":  "2026-11-15T14:27:32Z",
+    "recents_seeded_sha256":  "529AA4C680EC6D80230AC959C92F10BC2575AF83445E6D524808067DF148493D",
+    "vitshell_pid":  4740,
+    "no_reload_sentinel":  1794752856335,
+    "greeting_text":  "我在。最近的工程是《fixture_a》——想从哪开始？",
+    "recents_count":  "6",
+    "kernel_online":  {
+                          "vitapp_count":  1,
+                          "greeting_recent_count":  7,
+                          "agent_pid":  6924,
+                          "vsphub_count":  1,
+                          "drawer_rows":  6
+                      },
+    "launcher_zero_binding":  {
+                                  "gate_marker_lines":  1,
+                                  "current_project_path":  "",
+                                  "current_project_uuid":  "vitproj_e7bb5b30155c4f02a9e6a294e5ca0567"
+                              },
+    "new_project_intent":  "name-less auto-exec",
+    "new_project_context_name":  "Unsaved.vit",
+    "kernel_survives_daw_close_after_new":  true,
+    "button_new_context_name":  "Unsaved.vit",
+    "result":  "FAIL",
+    "error":  "CDP phase click-open failed (exit 1, see r1_cdp_click_open_1.json.log)",
+    "failure_class":  "assertion_failure",
+    "failure_diag":  {
+                         "vitshell_alive":  true,
+                         "main_window_title":  "Vit",
+                         "threads":  12,
+                         "vit_webview_processes":  6,
+                         "port_7878":  [
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=Listen pid=6924 proc=VitAgent",
+                                           "state=Established pid=6924 proc=VitAgent",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=Established pid=6924 proc=VitAgent",
+                                           "state=Established pid=6924 proc=VitAgent"
+                                       ],
+                         "port_7879":  [
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=Listen pid=4740 proc=VitShell",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle",
+                                           "state=TimeWait pid=0 proc=Idle"
+                                       ]
+                     },
+    "finished_at_utc":  "2026-11-15T14:28:06Z"
+}

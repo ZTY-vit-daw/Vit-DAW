@@ -1,0 +1,7 @@
+2026-11-15T22:20:02.727 [LauncherBridge] surface_ready
+2026-11-15T22:20:07.689 [LauncherBridge] directive.received {"request_id":"webui_launcher_br_mwhx8sqx","action":"new_project"}
+2026-11-15T22:20:07.697 [LauncherBridge] governance.none {"reason":"no current project"}
+2026-11-15T22:20:07.702 [LauncherBridge] godot.spawn {"pid":26852}
+2026-11-15T22:20:12.008 [LauncherBridge] launch.ok {"scene":"res://vit_dock/scenes/VitDockRoot.tscn"}
+2026-11-15T22:20:12.008 [LauncherBridge] result {"request_id":"webui_launcher_br_mwhx8sqx","status":"opened","action":"new_project","message":"已进入工程（新工程_1115_2220）"}
+2026-11-15T22:20:12.011 [LauncherBridge] surface_ack
