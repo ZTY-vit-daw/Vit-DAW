@@ -169,3 +169,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 370 | G0-LEGAME-CONTRACT-1 | done 已验收 pass（技术面）——[docs/LEGAME_DESIGN_CONTRACT_V0.md](../../docs/LEGAME_DESIGN_CONTRACT_V0.md) 34 节+覆盖 119/119；**R1-R6 候用户裁定（主管整理带建议裁定单）**；W01-A/B/C 实施卡候裁定回填后发 |
 | 371 | G0-STACKGATE-1 | done 已验收 pass 合入（[docs/STACKGATE_DG1_DG3_V1.md](../../docs/STACKGATE_DG1_DG3_V1.md)=现行关卡契约——DG1 三能力关/DG2 旅程 J1-J10/DG3 渲染手测 M1-M4+卡面引用模板；锚点抽核真实；CURRENT-STATE 索引登记随 gate） |
 | 372 | GEN-YUE-WIRE-1 | doing（2026-11-15 深夜领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_yue1` 分支 `port/gen-yue-wire-1`，基线 3997e11b；零栈段先行，真栈+真实生成烟测腿候栈第 2 位） |
+| 373 | SRC-TEMPLATE-1 | todo（课程固定健康音源模板——旋律音源+辅助律动鼓预设+可移植模板包+DG1-B 过关（PCA 无越权红线）；真栈验证候栈位（367→372→本卡）；**已确认候领取**） |
