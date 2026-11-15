@@ -25,6 +25,17 @@
  * 渲染烟测——状态卡四态/三步轨迹/磁带带量三帧/完成回执/错误中断路径/装载门
  * 输入禁用-恢复/无假倒计时 DOM 断言 + 扫描 + 截图；工件落
  * coord/runs/UI-LOADING-1/{render-smoke-loading-report.json, screens/*.png}。
+ * UI-SPRITE-MOUNT-1（361）扩展：
+ *  a) 图标断言去空转化——gallery/launcher/project/loading 四 fixture 面与
+ *     fidelity 两 live 面全部新增「sprite 图标元素（svg.v5-icon[data-graphic=icon]）
+ *     计数 ≥1」与「图形对比度检查集合非空（graphics ≥1）」断言；此前图形 ≥3:1
+ *     断言在集合为空时空过（graphicChecks=0 仍 PASS），无法拦截图标缺席；
+ *  b) 新增真实入口渲染烟测段（§11，index.html → src/main.tsx → App）——断言
+ *     .v5-sprite 恰一次挂载 + 23 symbol 全在 + sprite.css 生效（计算宽 0px/
+ *     absolute）+ use[href^=#i-] 全部可解析；修复前真实入口不挂 sprite，
+ *     fixture 面自挂导致烟测无法拦截本缺陷；
+ *  c) 本卡工件：coord/runs/UI-SPRITE-MOUNT-1/{render-smoke-appentry-report.json,
+ *     screens/}；launcher/project 两面截图另存本卡 screens（345/346 原路径不变）。
  * 全离线 fixture（零真实端点请求）；344/345/346 的断言与工件路径不变。
  */
 
@@ -45,6 +56,9 @@ const launcherScreensDir = resolve(launcherOutDir, "screens");
 // UI-PROJECT-1（346）：工程内主窗渲染烟测工件独立落卡目录（344/345 产物路径不变）。
 const projectOutDir = resolve(repoRoot, "coord/runs/UI-PROJECT-1");
 const projectScreensDir = resolve(projectOutDir, "screens");
+// UI-SPRITE-MOUNT-1（361）：本卡工件目录（真实入口渲染烟测报告 + 两面截图）。
+const spriteMountOutDir = resolve(repoRoot, "coord/runs/UI-SPRITE-MOUNT-1");
+const spriteMountScreensDir = resolve(spriteMountOutDir, "screens");
 
 /** 与 src/design/sprite.tsx 同源（23 symbol）。 */
 const SYMBOL_IDS = [
@@ -191,6 +205,8 @@ async function main() {
     out.disabledApplyButtons = $$(
       "[data-gallery='macro-cards'] .v5-btn--primary:disabled"
     ).length;
+    // UI-SPRITE-MOUNT-1（361）：sprite 图标实件计数（去空转断言的计数面）
+    out.iconElements = $$("svg.v5-icon[data-graphic='icon']").length;
     return out;
   }, SYMBOL_IDS);
 
@@ -199,6 +215,13 @@ async function main() {
   };
 
   domAssert("sprite mounted", dom.spriteMounted, ".v5-sprite 不存在");
+  // UI-SPRITE-MOUNT-1（361）：图标实件 ≥1——sprite 挂载必须伴随至少一枚
+  // svg.v5-icon[data-graphic=icon] 实件（防「挂载存在但引用全空」退化）。
+  domAssert(
+    "sprite 图标实件 ≥1",
+    (dom.iconElements ?? 0) >= 1,
+    `iconElements=${dom.iconElements}`
+  );
   domAssert(
     "23 symbols",
     dom.symbolCount === 23 && JSON.stringify(dom.symbolIdsInDom) === JSON.stringify(dom.expectedIds),
@@ -444,6 +467,13 @@ async function main() {
     if (!ok) failures.push(`CONTRAST: ${name} — ${detail}`);
   };
   contrastAssert("正文 ≥4.5:1", scan.text.length === 0, JSON.stringify(scan.text.slice(0, 6)));
+  // UI-SPRITE-MOUNT-1（361）：去空转——图形检查集合必须非空，否则「图形 ≥3:1」
+  // 在零图形页面上空过（本缺陷逃逸口）。
+  contrastAssert(
+    "图形检查集合非空",
+    scan.graphics.length >= 1,
+    `graphics=${scan.graphics.length}`
+  );
   contrastAssert(
     "图形 ≥3:1",
     !scan.graphicsFail || scan.graphicsFail.length === 0,
@@ -568,6 +598,8 @@ async function main() {
     out.drawerErrorRetryButtons = $$("[data-launcher-drawer-retry]").length;
     out.emptySample = !!$('[data-launcher-sample="empty"] [data-drawer-state="empty"]');
     out.emptyText = $("[data-launcher-drawer-empty]")?.textContent ?? "";
+    // UI-SPRITE-MOUNT-1（361）：sprite 图标实件计数（recents/结果卡经 ProjectBadge→Icon）
+    out.iconElements = $$("svg.v5-icon[data-graphic='icon']").length;
     return out;
   });
 
@@ -620,12 +652,23 @@ async function main() {
     `agent=${ldom.errorSample} retry=${ldom.errorRetryButtons} drawerRetry=${ldom.drawerErrorRetryButtons}`
   );
   launcherAssert("空态样例", ldom.emptySample && ldom.emptyText.includes("还没有"), ldom.emptyText);
+  // UI-SPRITE-MOUNT-1（361）：图标实件 ≥1 + 图形检查集合非空（去空转）
+  launcherAssert(
+    "sprite 图标实件 ≥1",
+    (ldom.iconElements ?? 0) >= 1,
+    `iconElements=${ldom.iconElements}`
+  );
 
   const lscan = await scanFn();
   const launcherContrastAssert = (name, ok, detail) => {
     if (!ok) launcherFailures.push(`LAUNCHER-CONTRAST: ${name} — ${detail}`);
   };
   launcherContrastAssert("正文 ≥4.5:1", lscan.text.length === 0, JSON.stringify(lscan.text.slice(0, 6)));
+  launcherContrastAssert(
+    "图形检查集合非空",
+    lscan.graphics.length >= 1,
+    `graphics=${lscan.graphics.length}`
+  );
   launcherContrastAssert(
     "图形 ≥3:1",
     !lscan.graphicsFail || lscan.graphicsFail.length === 0,
@@ -644,6 +687,9 @@ async function main() {
   const launcherFullShot = resolve(launcherScreensDir, "launcher-full.png");
   await page.screenshot({ path: launcherViewportShot, type: "png" });
   await page.screenshot({ path: launcherFullShot, type: "png", fullPage: true });
+  // UI-SPRITE-MOUNT-1（361）：本卡工件另存（345 路径不变）
+  const uispriteLauncherShot = resolve(spriteMountScreensDir, "launcher-fixture-viewport-1440x900.png");
+  await page.screenshot({ path: uispriteLauncherShot, type: "png" });
 
   const launcherReport = {
     run: "UI-LAUNCHER-1 launcher render smoke",
@@ -731,6 +777,8 @@ async function main() {
     out.appliedWithoutSelection = $$("[data-macro-state='applied']").filter(
       (el) => !el.querySelector(".v5-macro-option.is-selected")
     ).length;
+    // UI-SPRITE-MOUNT-1（361）：sprite 图标实件计数（标题栏 ProjectBadge/宏卡/输入区 Icon）
+    out.iconElements = $$("svg.v5-icon[data-graphic='icon']").length;
     return out;
   });
 
@@ -808,12 +856,23 @@ async function main() {
     `disabled=${JSON.stringify(pdDom.composerPlaceholders)} busy=${JSON.stringify(pdDom.busyPlaceholders)}`
   );
   projectAssert("上下文错误态 + 重试", pdDom.contextError && pdDom.contextRetry >= 1, `error=${pdDom.contextError} retry=${pdDom.contextRetry}`);
+  // UI-SPRITE-MOUNT-1（361）：图标实件 ≥1 + 图形检查集合非空（去空转）
+  projectAssert(
+    "sprite 图标实件 ≥1",
+    (pdDom.iconElements ?? 0) >= 1,
+    `iconElements=${pdDom.iconElements}`
+  );
 
   const pscan = await scanFn();
   const projectContrastAssert = (name, ok, detail) => {
     if (!ok) projectFailures.push(`PROJECT-CONTRAST: ${name} — ${detail}`);
   };
   projectContrastAssert("正文 ≥4.5:1", pscan.text.length === 0, JSON.stringify(pscan.text.slice(0, 6)));
+  projectContrastAssert(
+    "图形检查集合非空",
+    pscan.graphics.length >= 1,
+    `graphics=${pscan.graphics.length}`
+  );
   projectContrastAssert(
     "图形 ≥3:1",
     !pscan.graphicsFail || pscan.graphicsFail.length === 0,
@@ -832,6 +891,9 @@ async function main() {
   const projectFullShot = resolve(projectScreensDir, "project-full.png");
   await page.screenshot({ path: projectViewportShot, type: "png" });
   await page.screenshot({ path: projectFullShot, type: "png", fullPage: true });
+  // UI-SPRITE-MOUNT-1（361）：本卡工件另存（346 路径不变）
+  const uispriteProjectShot = resolve(spriteMountScreensDir, "project-fixture-viewport-1440x900.png");
+  await page.screenshot({ path: uispriteProjectShot, type: "png" });
 
   const projectReport = {
     run: "UI-PROJECT-1 project render smoke",
@@ -910,6 +972,8 @@ async function main() {
     // 无假倒计时：页面文本不出现预计/剩余/倒计时
     out.countdownText = $$("body *").filter((el) => el.children.length === 0 && /预计|剩余|倒计时/.test(el.textContent ?? "")).length;
     out.inputDisabledSample = !!$("[data-project-composer-state='disabled']");
+    // UI-SPRITE-MOUNT-1（361）：sprite 图标实件计数（done 步骤/完成回执 Icon）
+    out.iconElements = $$("svg.v5-icon[data-graphic='icon']").length;
     return out;
   });
 
@@ -949,12 +1013,23 @@ async function main() {
   );
   loadingAssert("装载中输入禁用声明在卷（data-loading-input-disabled）", ldDom.inputDisabledFlags >= 1, `flags=${ldDom.inputDisabledFlags}`);
   loadingAssert("无假倒计时文案（预计/剩余/倒计时）", ldDom.countdownText === 0, `countdown=${ldDom.countdownText}`);
+  // UI-SPRITE-MOUNT-1（361）：图标实件 ≥1 + 图形检查集合非空（去空转）
+  loadingAssert(
+    "sprite 图标实件 ≥1",
+    (ldDom.iconElements ?? 0) >= 1,
+    `iconElements=${ldDom.iconElements}`
+  );
 
   const ldscan = await scanFn();
   const loadingContrastAssert = (name, ok, detail) => {
     if (!ok) loadingFailures.push(`LOADING-CONTRAST: ${name} — ${detail}`);
   };
   loadingContrastAssert("正文 ≥4.5:1", ldscan.text.length === 0, JSON.stringify(ldscan.text.slice(0, 6)));
+  loadingContrastAssert(
+    "图形检查集合非空",
+    ldscan.graphics.length >= 1,
+    `graphics=${ldscan.graphics.length}`
+  );
   loadingContrastAssert(
     "图形 ≥3:1",
     !ldscan.graphicsFail || ldscan.graphicsFail.length === 0,
@@ -1071,6 +1146,16 @@ async function main() {
       if (fscan.tooSmall.length > 0) {
         surfFailures.push(`tooSmall=${JSON.stringify(fscan.tooSmall.slice(0, 4))}`);
       }
+      // UI-SPRITE-MOUNT-1（361）：live 形态面同验——图标实件 ≥1 + 图形检查集合非空
+      const fIcons = await vpPage.evaluate(
+        () => document.querySelectorAll("svg.v5-icon[data-graphic='icon']").length
+      );
+      if (fIcons < 1) {
+        surfFailures.push(`iconElements=${fIcons} < 1`);
+      }
+      if (fscan.graphics.length < 1) {
+        surfFailures.push(`graphics=${fscan.graphics.length}（图形对比度检查集合为空）`);
+      }
       if (vpExternal.length > 0) {
         surfFailures.push(`external=${JSON.stringify(vpExternal.slice(0, 4))}`);
       }
@@ -1123,6 +1208,8 @@ async function main() {
         clipIssues: fscan.clipped,
         textContrastMin: fscan.textMin,
         tooSmall: fscan.tooSmall,
+        iconElements: fIcons,
+        graphicChecks: fscan.graphics.length,
         externalRequests: vpExternal,
         visibilityRects: vis.rects,
         screenshot: shot,
@@ -1149,6 +1236,137 @@ async function main() {
   const fidelityReportPath = resolve(fidelityOutDir, "render-smoke-fidelity-report.json");
   writeFileSync(fidelityReportPath, JSON.stringify(fidelityReport, null, 2), "utf-8");
 
+  // ---- 11. UI-SPRITE-MOUNT-1（361）：真实入口渲染烟测（index.html → src/main.tsx → App） ----
+  // 背景：v5 sprite（DesignSprite + sprite.css）此前只在 gallery fixture 面挂载
+  // （gallery/main.tsx 各面自挂），真实入口从不挂载 → 全应用 <use href="#i-*">
+  // 落空（发送键黑方块/回复中无指示）；fixture 面烟测因自挂而无法拦截本缺陷。
+  // 本段加载真实入口（离线：agent API 走同源相对路径，fetch 失败=错误态，
+  // .app-shell 同步渲染不受影响），断言：
+  //  ①.app-shell 渲染（真实入口可达）
+  //  ②.v5-sprite 恰一次挂载（本卡修复面——挂载回归守卫）
+  //  ③23 symbol 全在且 id 与 sprite.tsx 同源清单一致
+  //  ④sprite.css 生效：.v5-sprite 计算样式 absolute + 0×0（不导入会退化为
+  //    默认 300×150 裸 svg = 样式泄漏级故障）
+  //  ⑤页面内所有 use[href^=#i-] 引用全部可解析（主 surface 为 lucide 内联
+  //    图标体系，use 计数可为 0；>0 时逐一核对 symbol 存在）
+  //  ⑥零外部请求（真实入口 API 走同源相对路径）
+  // 工件：coord/runs/UI-SPRITE-MOUNT-1/{render-smoke-appentry-report.json,
+  // screens/appentry-viewport-1440x900.png, screens/appentry-full.png}。
+  const appFailures = [];
+  const appNotes = [];
+  mkdirSync(spriteMountScreensDir, { recursive: true });
+  const appUrl = `${base.replace(/\/$/, "").replace("localhost", "127.0.0.1")}/`;
+  appNotes.push(`appUrl=${appUrl}`);
+  const appRequests = [];
+  const onAppRequest = (r) => appRequests.push(r.url());
+  page.on("request", onAppRequest);
+  try {
+    await page.goto(appUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
+    await page.waitForSelector(".app-shell", { timeout: 30000 });
+    await page.waitForTimeout(300);
+    const appOrigin = new URL(page.url()).origin;
+    const appExternalRequests = appRequests.filter((u) => {
+      if (u.startsWith("data:") || u.startsWith("blob:")) return false;
+      return !u.startsWith(appOrigin);
+    });
+    const appDom = await page.evaluate((ids) => {
+      const $ = (sel) => document.querySelector(sel);
+      const $$ = (sel) => [...document.querySelectorAll(sel)];
+      const sprite = $(".v5-sprite");
+      const out = {};
+      out.appShellPresent = !!$(".app-shell");
+      out.spriteCount = $$(".v5-sprite").length;
+      out.spriteMounted = !!sprite;
+      out.symbolCount = sprite ? sprite.querySelectorAll("symbol").length : 0;
+      out.symbolIdsInDom = sprite
+        ? [...sprite.querySelectorAll("symbol")].map((s) => s.id).sort()
+        : [];
+      out.expectedIds = [...ids].sort();
+      const cs = sprite ? getComputedStyle(sprite) : null;
+      out.spriteCss = cs
+        ? { position: cs.position, width: cs.width, height: cs.height, overflow: cs.overflow }
+        : null;
+      const uses = $$("use[href^='#i-']");
+      out.spriteUseCount = uses.length;
+      out.unresolvedUses = uses.filter((u) => {
+        const id = (u.getAttribute("href") ?? "").slice(1);
+        return !(sprite && sprite.querySelector(`symbol[id="${id}"]`));
+      }).length;
+      return out;
+    }, SYMBOL_IDS);
+
+    const appAssert = (name, ok, detail) => {
+      if (!ok) appFailures.push(`APPENTRY: ${name} — ${detail}`);
+    };
+    appAssert("app-shell 渲染（真实入口离线可达）", appDom.appShellPresent, "缺 .app-shell");
+    appAssert(
+      ".v5-sprite 恰一次挂载（真实入口）",
+      appDom.spriteCount === 1,
+      `spriteCount=${appDom.spriteCount}`
+    );
+    appAssert(
+      "23 symbols（真实入口）",
+      appDom.symbolCount === 23 &&
+        JSON.stringify(appDom.symbolIdsInDom) === JSON.stringify(appDom.expectedIds),
+      `count=${appDom.symbolCount} ids=${JSON.stringify(appDom.symbolIdsInDom)}`
+    );
+    appAssert(
+      "sprite.css 生效（absolute + 0×0，非裸 svg 300×150）",
+      appDom.spriteCss?.position === "absolute" &&
+        appDom.spriteCss?.width === "0px" &&
+        appDom.spriteCss?.height === "0px",
+      JSON.stringify(appDom.spriteCss)
+    );
+    appAssert(
+      "use 引用全部可解析",
+      appDom.unresolvedUses === 0,
+      `unresolved=${appDom.unresolvedUses}/${appDom.spriteUseCount}`
+    );
+    appAssert(
+      "零外部请求（真实入口 API 同源相对路径）",
+      appExternalRequests.length === 0,
+      JSON.stringify(appExternalRequests.slice(0, 6))
+    );
+    appNotes.push(`spriteUseCount=${appDom.spriteUseCount}（主 surface=lucide 内联体系，可为 0）`);
+
+    const appViewportShot = resolve(spriteMountScreensDir, "appentry-viewport-1440x900.png");
+    const appFullShot = resolve(spriteMountScreensDir, "appentry-full.png");
+    await page.screenshot({ path: appViewportShot, type: "png" });
+    await page.screenshot({ path: appFullShot, type: "png", fullPage: true });
+
+    const appReport = {
+      run: "UI-SPRITE-MOUNT-1 real entry render smoke",
+      date: new Date().toISOString(),
+      url: appUrl,
+      viewport: "1440x900@1",
+      externalRequestCount: appExternalRequests.length,
+      externalRequests: appExternalRequests,
+      dom: appDom,
+      notes: appNotes,
+      screenshots: [appViewportShot, appFullShot],
+      fixtureReports: {
+        foundation: reportPath,
+        launcher: launcherReportPath,
+        project: projectReportPath,
+        loading: loadingReportPath,
+        fidelity: fidelityReportPath,
+      },
+      result: appFailures.length === 0 ? "PASS" : "FAIL",
+    };
+    writeFileSync(
+      resolve(spriteMountOutDir, "render-smoke-appentry-report.json"),
+      JSON.stringify(appReport, null, 2),
+      "utf-8"
+    );
+    console.log(`[test:render] appentryReport=${resolve(spriteMountOutDir, "render-smoke-appentry-report.json")}`);
+    console.log(`[test:render] APPENTRY_RESULT=${appReport.result}`);
+  } catch (err) {
+    appFailures.push(`APPENTRY: 真实入口加载/断言异常 — ${String(err)}`);
+    console.log(`[test:render] APPENTRY_RESULT=FAIL`);
+  } finally {
+    page.off("request", onAppRequest);
+  }
+
   await browser.close();
   await server.close();
 
@@ -1166,7 +1384,7 @@ async function main() {
   console.log(`[test:render] LOADING_RESULT=${loadingReport.result}`);
   console.log(`[test:render] fidelityReport=${fidelityReportPath}`);
   console.log(`[test:render] FIDELITY_RESULT=${fidelityReport.result}`);
-  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures];
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);
