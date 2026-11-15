@@ -139,6 +139,7 @@ import {
 import { DeclarativeInteractionCard, declarativeCardFromAction } from "./interactionCardKit";
 // SCORE-WORKBENCH-1（374）：谱面工作台页签装配（三点最小接线之一）。
 import { ScoreWorkbenchPanel } from "./scoreworkbench/ScoreWorkbenchPanel";
+import { createAgentScoreBridge } from "./scoreworkbench/kernel";
 import { defaultScoreModel } from "./scoreworkbench/model";
 import { SessionFlowSidebar } from "./SessionFlowSidebar";
 import {
@@ -7230,12 +7231,16 @@ function Workbench({
   onRefresh: () => Promise<void>;
   checkoutBlocked: boolean;
 }) {
+  // SCORE-WORKBENCH-1（374）：谱面桥按 Workbench 生命周期建一次（挂载回读+apply 走
+  // /agent/invoke 生产缝；多 clip 工程由桥 fail-honest 报错，clip 选择 UI 候后续卡）。
+  const scoreKernelBridge = useMemo(() => createAgentScoreBridge(), []);
   if (activeTab === "history") {
     return <HistoryPane uiState={uiState} onRefresh={onRefresh} checkoutBlocked={checkoutBlocked} />;
   }
   if (activeTab === "score") {
-    // SCORE-WORKBENCH-1：谱面工作台页签（本地编辑缓冲+显式 apply；内核桥 M3 接线）。
-    return <ScoreWorkbenchPanel initialModel={defaultScoreModel()} />;
+    // SCORE-WORKBENCH-1：谱面工作台页签——M3 接入 agent 桥（挂载即回读装载，
+    // apply=单次 confirmed replace_region；无内核环境 fail-honest 显形）。
+    return <ScoreWorkbenchPanel initialModel={defaultScoreModel()} kernel={scoreKernelBridge} />;
   }
   if (activeTab === "macro") {
     return (
