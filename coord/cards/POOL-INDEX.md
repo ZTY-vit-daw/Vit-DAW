@@ -171,4 +171,4 @@ C5 设计（E 前置=主总线处理）→ E 批次 → F rubric；E2E-WEBUI-1/J
 | 372 | GEN-YUE-WIRE-1 | done 已验收 pass 合入（**H6 六项真栈证成 W0-W8**：MIDI→方言/prompt 映射/纯器乐/请求卫生/后台 job/引擎托管；C1 逐音 16/16+C8 双版 WAV；W9=已知概率边界裁定在卡；**用户听核 M1 候用户**——WAV 在 run downloads） |
 | 373 | SRC-TEMPLATE-1 | doing（2026-11-15 23:5x 领取，GLM-5.3 L2 执行子代理/PC，worktree `D:/Vit_DAW_wt_src1` 分支 `port/src-template-1`，基线 430b234b；零栈段先行（模板/单测/装置/RUNBOOK），DG1-B 真栈腿候栈第 3 位（372 后）） |
 | 374 | SCORE-WORKBENCH-1 | doing（2026-11-16 00:1x 领取：owner GLM-5.3 L2 执行子代理/PC，worktree `C:/Users/timoz/wt_score1`（D 盘净空不足落 C 盘）分支 `port/score-workbench-1`，基线 fea0829a；M1→M5 顺序执行，装配点=App.tsx WorkbenchTab 三点接线；真栈腿候栈 372 占用中→373 DG1-B→本卡） |
-| 375 | KERNEL-TIMESIG-1 | todo（内核 set_time_signature+创建时 2/4 应用+持久回读一致（§11 兼容硬性）；373 域锚定=VitApp 零占用亲证→已解锁；真栈腿候栈（373→本卡）；**已确认候领取**） |
+| 375 | KERNEL-TIMESIG-1 | doing（2026-11-16 00:1x 领取：owner GLM-5.3 L2 执行子代理/PC，worktree `C:/Users/timoz/wt_timesig`（D 盘净空不足落 C 盘）分支 `port/kernel-timesig-1`，基线 409435e2；内核 set_time_signature+创建时 2/4 应用+§11 旧工程往返；零栈段先行，真栈腿候栈 373 DG1-B→本卡） |
