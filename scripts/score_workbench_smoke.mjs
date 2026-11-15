@@ -37,13 +37,15 @@ function parseArgs() {
     agentHttp: process.env.SCORE_AGENT_HTTP || "http://127.0.0.1:7878",
     artifactsDir: process.env.SCORE_ARTIFACTS_DIR || "",
     screenshotDir: "",
-    timeoutMs: 60000
+    timeoutMs: 60000,
+    projectXml: process.env.SCORE_PROJECT_XML || ""
   };
   const argv = process.argv.slice(2);
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--agent-http") args.agentHttp = argv[++i];
     else if (argv[i] === "--artifacts-dir") args.artifactsDir = argv[++i];
     else if (argv[i] === "--timeout-ms") args.timeoutMs = Number(argv[++i]);
+    else if (argv[i] === "--project-xml") args.projectXml = argv[++i];
   }
   if (!args.artifactsDir) {
     args.artifactsDir = join(process.cwd(), "score_workbench_run_" + new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14));
@@ -302,11 +304,21 @@ async function main() {
       "ids drifted after apply");
 
     // ---- P4 A6 save -> reopen -> reload round-trip ----
+    // Project path truth: the sanitized agent get_project_state strips
+    // project_path (userVisibleState), so the berth passes the isolation
+    // VIT_PROJECT_XML (the exact project file the kernel booted with) through
+    // --project-xml. Fallbacks kept for other call shapes.
     const stateResult = await invoke("get_project_state", {});
     const projectObj = stateResult.project && typeof stateResult.project === "object" ? stateResult.project : {};
     const projectPath = String(
-      projectObj.file_path || projectObj.path || stateResult.project_path || stateResult.current_project_path || ""
+      args.projectXml ||
+        projectObj.file_path ||
+        projectObj.path ||
+        stateResult.project_path ||
+        stateResult.current_project_path ||
+        ""
     );
+    summary.project_path_source = args.projectXml ? "arg(--project-xml=VIT_PROJECT_XML)" : "agent get_project_state fallbacks";
     await invoke("save_project", {}, true);
     const savedNotes = await readKernelNotes(clipID, trackID);
     const savedSet = noteSetOf(savedNotes);

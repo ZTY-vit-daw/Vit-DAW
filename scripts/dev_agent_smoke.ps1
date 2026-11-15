@@ -9116,7 +9116,8 @@ if ($ScoreWorkbenchSmoke) {
     }
     $scoreWbSummaryPath = Join-Path $scoreWbArtifactsDir "score_workbench_summary.json"
     $scoreWbConsolePath = Join-Path $scoreWbArtifactsDir "score_workbench_console.txt"
-    & node $scoreWbScript --agent-http $AgentHttp --artifacts-dir $scoreWbArtifactsDir > $scoreWbConsolePath 2>&1
+    $scoreWbProjectXml = [System.Environment]::GetEnvironmentVariable("VIT_PROJECT_XML", "Process")
+    & node $scoreWbScript --agent-http $AgentHttp --artifacts-dir $scoreWbArtifactsDir --project-xml $scoreWbProjectXml > $scoreWbConsolePath 2>&1
     $scoreWbExit = $LASTEXITCODE
     Get-Content -LiteralPath $scoreWbConsolePath | ForEach-Object { Write-Host $_ }
 
