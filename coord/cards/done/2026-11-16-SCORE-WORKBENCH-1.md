@@ -63,3 +63,11 @@ VF5 在真实装配面不可用（npm/许可意外）→取证上交；治理粒
 ## 验收
 
 （决策侧回填）
+
+### 验收（主管 2026-11-16 晨）
+
+- 裁定：**pass**——M1-M5 全里程碑亲核：vitest **668/668**（598+70）主管复跑+build+render 六段；**DG1-A 真栈 run_dg1a_20261116_0455 控制台亲证 PASS**（十五断言 A1-A6 全绿；A7/A8 skipped-pending-373 如实）；中断-续跑记录在卷（M1-M4 断点零丢失）；栈/S10/零 LLM 合规。
+- 合入：M1-M5+工件链 cherry-pick→main（76838672..2862f1bc，合并 3ea8117a；ps1 透传缝四方并集=SrcTemplate+LauncherFlow+Timesig+ScoreWorkbench）。
+- **承接路由**：A7/A8（出声+差分断言）→**377 卡**（373/375 已合入，解锁补完）；D1（XML-boot 加轨 save 丢轨）+D2（save 后 clip_id 披露降级至重开）+D3（agent 消毒面剥 project_path 影响面板）→**378 取证/修复卡**（域外锚点未扩修纪律正确）。
+- **用户手测节点 M4**（谱面手感抽检）候用户——DG3 M 清单。
+- 采纳：VF5 静态进主包（懒加载候后续）与单 clip 定位边界如实登记。
