@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // YuE ABC dialect score conversion (GEN-YUE-WIRE-1, audit H6 item 1).
@@ -707,4 +708,71 @@ func readNoteUnits(s string, i int) (units, adv int, err error) {
 		j++ // tie marker is timing-neutral at line scope
 	}
 	return length, j - i, nil
+}
+
+// YueSectionTagLyrics extracts the score's % section comments and renders
+// them as the official instrumental lyric form (YuE repo
+// skills/yue2-music/instrumental lyric_tags): one "[Title Case]" tag per
+// section, blank-line separated, with a trailing newline. Bool=false when
+// the score carries no section comments (the official equivalent there is
+// empty lyrics). This is a lyric-tags channel only — no sung words are ever
+// generated here.
+func YueSectionTagLyrics(abc string) (string, bool) {
+	var tags []string
+	for _, raw := range strings.Split(strings.ReplaceAll(abc, "\r\n", "\n"), "\n") {
+		line := strings.TrimSpace(raw)
+		if strings.HasPrefix(line, "% ") {
+			tags = append(tags, "["+yueTitleCase(strings.TrimSpace(line[2:]))+"]")
+		}
+	}
+	if len(tags) == 0 {
+		return "", false
+	}
+	return strings.Join(tags, "\n\n") + "\n", true
+}
+
+// yueTitleCase mirrors Python str.title() for section labels: a letter that
+// follows a non-letter is uppercased, every other letter is lowercased
+// ("pre-chorus" -> "Pre-Chorus", "VERSE" -> "Verse").
+func yueTitleCase(s string) string {
+	prevLetter := false
+	return strings.Map(func(r rune) rune {
+		letter := unicode.IsLetter(r)
+		out := r
+		if letter && !prevLetter {
+			out = unicode.ToUpper(r)
+		} else if letter {
+			out = unicode.ToLower(r)
+		}
+		prevLetter = letter
+		return out
+	}, s)
+}
+
+// YueVocalHasChords reports whether the score's Vocal voice carries in-bar
+// quoted chord annotations. This is the official instrumental recipe's cot
+// derivation (YuE repo skills/yue2-music/instrumental validate_request):
+// chords on the resting Vocal voice select cot=full, a bare resting Vocal
+// voice (our converter's form — chords ride the Ins melody) selects
+// cot=melody.
+func YueVocalHasChords(abc string) bool {
+	inVocal := false
+	for _, raw := range strings.Split(strings.ReplaceAll(abc, "\r\n", "\n"), "\n") {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "%") || strings.HasPrefix(line, "w:") {
+			continue
+		}
+		if strings.HasPrefix(line, "V:") {
+			fields := strings.Fields(strings.TrimPrefix(line, "V:"))
+			inVocal = len(fields) > 0 && fields[0] == "Vocal"
+			continue
+		}
+		if !inVocal || (len(line) > 1 && line[1] == ':') {
+			continue // other voices and header fields carry no cot signal
+		}
+		if strings.Contains(line, "\"") {
+			return true
+		}
+	}
+	return false
 }

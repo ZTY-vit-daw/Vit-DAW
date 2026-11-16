@@ -177,7 +177,10 @@ func TestGenJobsLifecycleYueLocal(t *testing.T) {
 		t.Fatalf("converted dialect score not dispatched: %q", abc)
 	}
 	style, _ := submitted["style"].(string)
-	if !strings.Contains(style, "欢快的钢琴独奏") || !strings.Contains(style, "instrumental") {
+	// YUE-INSTRUMENTAL-PATH-1: the style is normalized to the official
+	// instrumental recipe ("Instrumental, " prefix + no-voice conditions), so
+	// the check is case-insensitive and still requires the user prompt text.
+	if !strings.Contains(style, "欢快的钢琴独奏") || !strings.Contains(strings.ToLower(style), "instrumental") {
 		t.Fatalf("style mapping lost: %q", style)
 	}
 	if _, ok := submitted["prompt"]; ok {

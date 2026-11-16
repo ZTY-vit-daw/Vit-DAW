@@ -2,6 +2,7 @@ package genapi
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 )
@@ -16,12 +17,18 @@ import (
 //   - style: explicit style_tags win; otherwise the raw user prompt text is
 //     mapped verbatim into the style channel (translation to English tags is
 //     the caller's runtime concern, disclosed in the actions list).
-//   - instrumental: the style gains an "instrumental" tag and the ABC score's
-//     Vocal voice is rested (equal-length rests, chords preserved) — REQUEST-
-//     SIDE conditioning only. The YuE2 engine has no instrumental switch and
-//     un-lyriced generation may still produce sung vocals (run_20261116_
-//     000009 forensics: SheetSage2 readback found sustained Vocal melody in
-//     the vocal-rested render); engine-side muting is NOT guaranteed.
+//   - instrumental (YUE-INSTRUMENTAL-PATH-1, official recipe equivalence):
+//     the style is normalized to the official instrumental form ("Instrumental, "
+//     prefix + no vocals/no singing/no choir/no spoken words conditions +
+//     trailing period), the score's % sections become section-tag lyrics (the
+//     official lyrics discipline: empty or exact tags, never sung words), the
+//     cot mode is derived from the Vocal voice's chords (full/melody), and
+//     the ABC score's Vocal voice is rested (equal-length rests, chords
+//     preserved). This is REQUEST-SIDE conditioning only. The YuE2 engine has
+//     no instrumental switch: it may still sing, and the effect of the
+//     official style conditions on the yue2.cpp engine has no local evidence
+//     yet (run_20261116_000009 forensics: the bare English word
+//     "instrumental" showed no suppression) — user listening stays the gate.
 //   - score: a YueScoreInput (student clip notes) converts to the dialect
 //     score when no explicit ABC was provided.
 //
@@ -75,13 +82,32 @@ func YuePrepareRequest(req GenerationRequest, opts YuePrepareOptions) (YuePrepar
 		res.Actions = append(res.Actions, "style: derived verbatim from the user prompt (yue_local has no free-prompt channel; translate to English tags upstream if needed)")
 	}
 
-	// 3) Instrumental conditioning: style tag + Vocal voice resting.
+	// 3) Instrumental conditioning: official-recipe style normalization +
+	// section-tag lyrics + cot derivation + Vocal voice resting. All of it is
+	// request-side; the engine has no instrumental switch and may still sing
+	// (YUE-VOCAL-FORENSICS-1; suppression effect on yue2.cpp unproven).
 	if res.Request.Instrumental {
-		if !yueStyleHasTag(style, "instrumental") {
-			style = strings.TrimSpace(strings.TrimSpace(style) + ", instrumental")
-		}
-		res.Actions = append(res.Actions, "style: instrumental tag added (instrumental switch requested; yue_local has no instrumental parameter, engine-side muting not guaranteed — un-lyriced generation may still produce vocals)")
+		style = yueNormalizeInstrumentalStyle(style)
+		res.Actions = append(res.Actions, "style: normalized to the official instrumental recipe (\"Instrumental, \" prefix, no vocals/no singing/no choir/no spoken words conditions; yue_local has no instrumental parameter, engine-side muting not guaranteed — the engine may still produce vocals)")
 		if strings.TrimSpace(res.Request.ABC) != "" {
+			// Official lyrics discipline: empty or exactly the score's
+			// section tags; sung words never ride an instrumental request.
+			if tags, has := YueSectionTagLyrics(res.Request.ABC); has {
+				if strings.TrimSpace(res.Request.Lyrics) == "" {
+					res.Request.Lyrics = tags
+					res.Actions = append(res.Actions, "lyrics: section tags generated from the score's % comments (official instrumental recipe; no sung words)")
+				} else {
+					res.Actions = append(res.Actions, "lyrics: request lyrics kept as provided — the official recipe allows only empty or exact section tags; sung words may summon vocals (real-stack listening gate)")
+				}
+			}
+			// Official cot derivation: chords on the resting Vocal voice
+			// select cot=full, a bare resting Vocal selects cot=melody.
+			derived := "melody"
+			if YueVocalHasChords(res.Request.ABC) {
+				derived = "full"
+			}
+			res.Request.COT = derived
+			res.Actions = append(res.Actions, "cot: derived from the score's Vocal chords ("+derived+"; official instrumental recipe)")
 			rested, changed, rerr := RestYueVocalPart(res.Request.ABC)
 			if rerr != nil {
 				return res, fmt.Errorf("instrumental conditioning failed: %w", rerr)
@@ -99,6 +125,11 @@ func YuePrepareRequest(req GenerationRequest, opts YuePrepareOptions) (YuePrepar
 		if tag != "" && !yueStyleHasTag(style, tag) {
 			style = strings.TrimSpace(style + ", " + tag)
 		}
+	}
+	if res.Request.Instrumental && !strings.HasSuffix(style, ".") {
+		// Official recipe closes the style with a period (after StyleExtra,
+		// which has no official counterpart and rides before the closer).
+		style += "."
 	}
 	res.Request.StyleTags = style
 
@@ -122,6 +153,34 @@ func yueStyleHasTag(style, tag string) bool {
 	return false
 }
 
+// yueInstrumentalPrefix matches a style that already opens with the word
+// "instrumental" (official prepare: re.match(r'^instrumental\b', re.I)).
+var yueInstrumentalPrefix = regexp.MustCompile(`(?i)^instrumental\b`)
+
+// yueNormalizeInstrumentalStyle mirrors the official instrumental recipe's
+// style normalization (YuE repo skills/yue2-music/instrumental prepare):
+// an empty style becomes "Expressive instrumental music", trailing
+// punctuation is stripped, the "Instrumental, " prefix is added unless the
+// style already opens with the word, and each missing no-voice condition is
+// appended in the official order. The trailing period is the caller's job
+// (it closes the style after StyleExtra appends).
+func yueNormalizeInstrumentalStyle(style string) string {
+	style = strings.TrimSpace(style)
+	if style == "" {
+		style = "Expressive instrumental music"
+	}
+	style = strings.TrimRight(style, ".,")
+	if !yueInstrumentalPrefix.MatchString(style) {
+		style = "Instrumental, " + style
+	}
+	for _, cond := range []string{"no vocals", "no singing", "no choir", "no spoken words"} {
+		if !strings.Contains(strings.ToLower(style), cond) {
+			style += ", " + cond
+		}
+	}
+	return style
+}
+
 // YueDispatchedSummary builds the "what actually got sent" disclosure for a
 // prepared yue_local request: the style string in full, score/lyrics sizes
 // and head preview, the pinned engine baseline with effective extra_params,
@@ -143,6 +202,9 @@ func YueDispatchedSummary(req GenerationRequest, cfg ProviderConfig) map[string]
 	}
 	sort.Strings(dropped)
 	cot, steps, format := any("full"), any(32), any("wav16")
+	if s := strings.TrimSpace(req.COT); s != "" {
+		cot = s
+	}
 	if v, ok := effective["cot"]; ok {
 		cot = v
 	}
@@ -155,7 +217,7 @@ func YueDispatchedSummary(req GenerationRequest, cfg ProviderConfig) map[string]
 	summary := map[string]any{
 		"style":       req.StyleTags,
 		"lyrics":      strings.TrimSpace(req.Lyrics) != "",
-		"lyrics_chars": len(strings.TrimSpace(req.Lyrics)),
+		"lyrics_chars": len(req.Lyrics), // verbatim (official tags carry a trailing newline)
 		"abc_chars":   len([]rune(abc)),
 		"abc_head":    abcHead,
 		"duration":    req.DurationSeconds,

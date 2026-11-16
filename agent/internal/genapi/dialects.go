@@ -201,24 +201,34 @@ func sunoRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) ma
 // in-bar quoted chords + % section comments — naive ABC loses the melody,
 // YUE2-ABC-ADHERENCE-1) plus lyrics and an English style-tag string; free
 // prompt text, tempo/key/count/title have no request field and surface as
-// limitations instead of being silently dropped. cot/steps/output_format are
-// pinned to the locally validated baseline (cot=full, steps=32, wav16) and
-// can be overridden per provider via extra_params (e.g. seed,
-// synth_batch_size, semantic_tokens replay). The student's own abc/style/
-// lyrics fields are protected: a provider's fixed extra_params cannot
+// limitations instead of being silently dropped. steps/output_format are
+// pinned to the locally validated baseline (steps=32, wav16); cot defaults
+// to the validated "full" baseline and is overridden by the request's COT
+// when YuePrepareRequest derived it from the score (official instrumental
+// recipe, YUE-INSTRUMENTAL-PATH-1). extra_params still win (e.g. seed,
+// cot, synth_batch_size, semantic_tokens replay). The student's own abc/
+// style/lyrics fields are protected: a provider's fixed extra_params cannot
 // override them (audit H6 item 4) — protected keys are skipped here and
 // disclosed via Limitations.
 func yueRequestBuilder(d dialect, req GenerationRequest, cfg ProviderConfig) map[string]any {
+	cot := "full"
+	if s := strings.TrimSpace(req.COT); s != "" {
+		cot = s
+	}
 	body := map[string]any{
-		"cot":           "full",
+		"cot":           cot,
 		"steps":         32,
 		"output_format": "wav16",
 	}
 	if s := strings.TrimSpace(req.StyleTags); s != "" {
 		body["style"] = s
 	}
-	if l := strings.TrimSpace(req.Lyrics); l != "" {
-		body["lyrics"] = l
+	// Lyrics ride verbatim when non-empty: the official instrumental recipe's
+	// section-tag form carries a trailing newline (instrumental.py
+	// lyric_tags), and a trimmed variant would silently diverge from the
+	// recipe the engine conditions on.
+	if strings.TrimSpace(req.Lyrics) != "" {
+		body["lyrics"] = req.Lyrics
 	}
 	if a := strings.TrimSpace(req.ABC); a != "" {
 		body["abc"] = a
@@ -361,7 +371,7 @@ func (p ProviderConfig) Limitations(req GenerationRequest) []string {
 			out = append(out, "musical_key: yue_local has no key parameter; put K: in the ABC score (hard control, 100% key match in local probes)")
 		}
 		if req.Instrumental {
-			out = append(out, "instrumental: yue_local has no instrumental switch; rest the Vocal part in the ABC score and use an instrumental style")
+			out = append(out, "instrumental: yue_local has no instrumental switch; the request carries the official instrumental conditioning (normalized style, section-tag lyrics, derived cot, rested Vocal score) but the engine may still sing — user listening is the acceptance gate (YUE-VOCAL-FORENSICS-1; suppression effect on yue2.cpp unproven)")
 		}
 		if req.Count > 1 {
 			out = append(out, "count: the local engine runs --max-batch=1 (one song per request); use synth_batch_size via provider extra_params for acoustic variations")
