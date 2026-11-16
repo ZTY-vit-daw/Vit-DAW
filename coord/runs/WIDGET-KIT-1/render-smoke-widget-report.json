@@ -1,6 +1,6 @@
 {
   "run": "WIDGET-KIT-1 widgets render smoke",
-  "date": "2026-11-16T13:12:19.313Z",
+  "date": "2026-11-16T13:16:28.412Z",
   "url": "http://127.0.0.1:5391/app/gallery.html?surface=widgets",
   "viewport": "1440x900@1",
   "reducedMotion": "reduce",

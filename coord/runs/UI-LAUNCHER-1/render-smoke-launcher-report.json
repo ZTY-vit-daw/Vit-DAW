@@ -1,6 +1,6 @@
 {
   "run": "UI-LAUNCHER-1 launcher render smoke",
-  "date": "2026-11-16T13:12:06.653Z",
+  "date": "2026-11-16T13:16:15.845Z",
   "url": "http://127.0.0.1:5391/app/gallery.html?surface=launcher",
   "viewport": "1440x900@1",
   "reducedMotion": "reduce",

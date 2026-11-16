@@ -1,6 +1,6 @@
 {
   "run": "UI-LOADING-1 loading render smoke",
-  "date": "2026-11-16T13:12:08.830Z",
+  "date": "2026-11-16T13:16:18.014Z",
   "url": "http://127.0.0.1:5391/app/gallery.html?surface=loading",
   "viewport": "1440x900@1",
   "reducedMotion": "reduce",
