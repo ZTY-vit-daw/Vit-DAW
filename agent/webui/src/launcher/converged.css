@@ -1,0 +1,339 @@
+/*
+ * CONVERGE-SHELL-1（387）：收敛壳专有装修（作用域 .v5-converged-launcher）。
+ *
+ * 组成：
+ *  1. 366 磁带卡（TapeCardFace）：recents 工程条目本身=磁带盒造型整卡；三类结构
+ *     节点（壳 data-tape-shell / 窗 data-tape-window / 带轮 data-tape-reel）+底标
+ *     文本位（data-tape-label：主标=工程名，副标=路径）。冻结令牌与几何比例
+ *     镜像自 components/ProjectBadge.tsx（365）＝main-window-v3/SPEC.md §3 逐字：
+ *     壳填充 rgba(c1,0.62)、墨描边、暖纸窗、深盘+浅毂（毂比 0.32r）、带量公式
+ *     d=r*(0.34+0.5*fill)。对比度红线：墨字在暖纸底标上 ≥13:1；图形（墨描边/
+ *     深盘对窗底）≥3:1（render-smoke converged 段实测）。
+ *  2. chat 域对话流组件的作用域化覆盖（MessageStream/Composer 原样式服务 MainApp
+ *     全屏布局——styles.css 全局面）：流内嵌（去绝对定位/去流锚高度/去面板留白），
+ *     字号压 13px 红线（.message-meta 12px→13px），用户消息按 2026-11-15 阴影框
+ *     裁定（右对齐+1px 灰边+柔影，同 v5-launcher-msg--user 语言）。
+ *  3. Composer 输入门（greeting 读取中 pointer-events 门，对齐旧壳 disabled 语义）。
+ *
+ * 纪律：不改 styles.css / launcher.css 业务规则；本文件只服务收敛壳作用域。
+ * 建议词面/文案零改动（LAUNCHER_SUGGESTIONS 沿用）。
+ */
+
+/* ── 冻结令牌镜像（数值=ProjectBadge.tsx TAPE_* 逐字；勿改值，改值须过 SPEC-V5 §7.3）── */
+.v5-converged-launcher {
+  --tape-ink: #090b0e;
+  --tape-win: #fbf9f1;
+  --tape-hub: #fafaf2;
+  --tape-acc: #1a1a1f;
+  --tape-tint: #e6e6e6;
+}
+
+/* ═══════════════ 366 磁带卡（TapeCardFace）═══════════════ */
+
+.v5-converged-recent {
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--v5-radius-control);
+}
+
+/* 卡=磁带盒壳：氛围填充（--tape-shell-fill 由 TapeCardFace 注入 rgba(c1,0.62)）+
+ * 2px 墨描边（冻结源结构笔触）。 */
+.v5-tape-card-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 100%;
+  padding: 7px;
+  background: var(--tape-shell-fill);
+  border: 2px solid var(--tape-ink);
+  border-radius: 5px;
+}
+
+/* 磁带窗：暖纸底 + 2px 墨描边；双带轮锚在窗宽 28%/72%（冻结源比例）。 */
+.v5-tape-card-window {
+  position: relative;
+  height: 36px;
+  background: var(--tape-win);
+  border: 2px solid var(--tape-ink);
+  border-radius: 3px;
+}
+
+/* 带轮：墨环 + 深盘（带量）+ 浅毂（0.32r）。 */
+.v5-tape-card-reel {
+  position: absolute;
+  top: 50%;
+  width: 24px;
+  height: 24px;
+  margin-top: -12px;
+  border: 2px solid var(--tape-ink);
+  border-radius: 50%;
+}
+
+.v5-tape-card-reel[data-tape-side="l"] {
+  left: 28%;
+  transform: translateX(-50%);
+}
+
+.v5-tape-card-reel[data-tape-side="r"] {
+  left: 72%;
+  transform: translateX(-50%);
+}
+
+.v5-tape-card-reel-disc {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  background: var(--tape-acc);
+  border-radius: 50%;
+}
+
+.v5-tape-card-reel-hub {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 32%;
+  height: 32%;
+  background: var(--tape-hub);
+  border-radius: 50%;
+}
+
+/* 底标=暖纸标签条：主标工程名（14/600）+ 副标路径（13 mono）。墨字在暖纸底上
+ * 对比度 ≥13:1；路径副标用全强度深墨（冻结源 0.6 浅墨是 1px 线，文字不可降）。 */
+.v5-tape-card-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 6px;
+  background: rgba(251, 249, 241, 0.88);
+  border-radius: 2px;
+}
+
+.v5-tape-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--tape-ink);
+  overflow-wrap: anywhere;
+}
+
+.v5-tape-card-path {
+  font: 400 13px / 1.4 var(--v5-font-mono);
+  color: #1f242b;
+  overflow-wrap: anywhere;
+}
+
+/* 对话流建议卡工程位（compact 档：窗/带轮缩一档，结构三类节点不缺）。 */
+.v5-converged-card {
+  display: block;
+  padding: 0;
+  background: transparent;
+}
+
+.v5-converged-card .v5-tape-card-shell--compact {
+  gap: 4px;
+  padding: 6px;
+}
+
+.v5-converged-card .v5-tape-card-shell--compact .v5-tape-card-window {
+  height: 28px;
+}
+
+.v5-converged-card .v5-tape-card-shell--compact .v5-tape-card-reel {
+  width: 18px;
+  height: 18px;
+  margin-top: -9px;
+}
+
+/* ═══════════════ chat 域对话流组件作用域化（MessageStream）═══════════════ */
+
+/* 说明：MessageStream/Composer 的基础样式在 styles.css（MainApp 全局面）。gallery
+ * fixture 页不加载 styles.css（345 起的全局反向污染防线），故本文件把收敛壳实际
+ * 消费的规则**作用域化补齐**（真实入口 styles.css 也在场，本文件按选择器特异性
+ * 覆盖其为壳内形态——两处加载均成立，styles.css 零改动）。 */
+
+/* MainApp 的 .message-stream 是全屏滚动区（flex:1 + padding + auto 滚动）；收敛壳
+ * 的滚动区是 .v5-launcher-thread（data-scroll-intentional 声明），流本体只做内容列。 */
+.v5-converged-launcher .message-stream {
+  flex: 0 0 auto;
+  overflow: visible;
+  padding: 0;
+}
+
+/* 流尾锚是 MainApp 绝对定位 composer 的预留（min-height 132px）——收敛壳 composer
+ * 在流外常规布局，锚必须归零，否则每段流尾多出 132px 空洞。 */
+.v5-converged-launcher .message-scroll-anchor {
+  min-height: 0;
+}
+
+.v5-converged-launcher .message-row {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  margin-bottom: 0;
+}
+
+.v5-converged-launcher .message-avatar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--v5-ui-plate);
+  color: var(--v5-ui-muted);
+}
+
+.v5-converged-launcher .message-body {
+  min-width: 0;
+}
+
+.v5-converged-launcher .message-body p {
+  font-size: var(--v5-t-body);
+  line-height: 1.65;
+  color: var(--v5-ui-text);
+  overflow-wrap: anywhere;
+}
+
+/* 13px 红线：MainApp meta 12px / 模式徽 10px 在收敛壳升到 13px（v5 最小字号纪律）。 */
+.v5-converged-launcher .message-meta {
+  font-size: 13px;
+}
+
+.v5-converged-launcher .message-meta b {
+  font-size: 13px;
+}
+
+/* 用户消息阴影框裁定（2026-11-15，v5-launcher-msg--user 同语言）：右对齐 + 头像列
+ * 换边 + 正文 1px 灰边/柔影/极浅底。Vit 消息维持无框（--assistant 无覆盖即无框）。 */
+.v5-converged-launcher .message-row.user {
+  grid-template-columns: minmax(0, 1fr) 34px;
+}
+
+.v5-converged-launcher .message-row.user .message-avatar {
+  order: 2;
+}
+
+.v5-converged-launcher .message-row.user .message-body {
+  text-align: right;
+}
+
+.v5-converged-launcher .message-row.user .message-body > p {
+  display: inline-block;
+  max-width: 100%;
+  padding: 6px 10px;
+  text-align: left;
+  background: var(--v5-read-bg);
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  box-shadow: var(--v5-shadow-macro-card);
+  overflow-wrap: anywhere;
+}
+
+/* ═══════════════ chat 域对话流组件作用域化（Composer）═══════════════ */
+
+/* MainApp 的 .composer 是绝对定位浮层（left/right/bottom 22px + z-30）；收敛壳把
+ * 输入区落回常规流（v5 输入条语言：read-bg 底 + ui-border + 宏卡柔影）。 */
+.v5-converged-launcher .composer {
+  position: static;
+  inset: auto;
+  z-index: auto;
+  display: flex;
+  flex-direction: column;
+  max-height: none;
+  margin: 0;
+  overflow: visible;
+  border: 1px solid var(--v5-ui-border);
+  border-radius: var(--v5-radius-control);
+  background: var(--v5-read-bg);
+  box-shadow: var(--v5-shadow-macro-card);
+  font-size: 14px;
+}
+
+.v5-converged-launcher .composer .composer-main {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  min-width: 0;
+}
+
+.v5-converged-launcher .composer .composer-main textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 34px;
+  max-height: 140px;
+  resize: none;
+  padding: 4px 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--v5-ui-text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.v5-converged-launcher .composer .composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.v5-converged-launcher .composer .composer-toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* launcher 卷不支持的输入区 affordance（上传/模式菜单/权限档位）不呈现——
+ * chat/Composer 是共享组件（零改动），launcher 语义在壳层裁剪，不做死按钮。 */
+.v5-converged-launcher .composer .composer-menu-host,
+.v5-converged-launcher .composer .authority-select {
+  display: none;
+}
+
+/* 发送钮：v5 墨色主钮语言（v5 单色纪律），紧凑档。 */
+.v5-converged-launcher .composer .send-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 6px 12px;
+  border: 1px solid var(--v5-ui-text);
+  border-radius: var(--v5-radius-control);
+  color: var(--v5-read-bg);
+  background: var(--v5-ui-text);
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.v5-converged-launcher .composer .send-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+/* greeting 读取中输入门（对齐旧壳 TextField disabled 语义）。 */
+.v5-converged-launcher [data-composer-gated="true"] .composer-main {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* 建议区与输入区之间留呼吸（composer 由 form 换成包裹 div，恢复 12px 栅格）。 */
+.v5-converged-composer {
+  flex: 0 0 auto;
+}
+
+/* ═══════════════ launcher.css 12px 残留在收敛壳升到 13px（红线）═══════════════ */
+
+.v5-converged-launcher .v5-launcher-governance-note,
+.v5-converged-launcher .v5-launcher-governance-answered,
+.v5-converged-launcher .v5-launcher-bridge-note {
+  font-size: 13px;
+}
+
+/* ═══════════════ gallery fixture 样例架（非 fill 帧）═══════════════ */
+/* live 入口恒 fill（height:100% 撑满视口）；gallery 样例帧=620px 定高窗，收敛壳
+ * 样例内容（对话流全条目+输入区）高于定高时以内容自然高度呈现，线程滚动交给
+ * fill 形态的 data-scroll-intentional 声明。 */
+.v5-converged-launcher .v5-launcher-frame:not(.v5-launcher-frame--fill) {
+  height: auto;
+}

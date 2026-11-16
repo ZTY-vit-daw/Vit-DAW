@@ -111,7 +111,10 @@ import { emptyTaskTrajectoryState, reduceTaskTrajectoryForConversation } from ".
 import { loadSessionFlowMainID, mainConversationDefaultTitle, saveSessionFlowMainID } from "./sessionFlow";
 // UI-LAUNCHER-1（345）：启动台 surface。App.tsx 仅做 surface 分发最小改动——
 // launcher 面的实现全部在 src/launcher/**（原 App 主体更名为 MainApp，行为零变化）。
-import { LauncherSurface } from "./launcher/LauncherSurface";
+// CONVERGE-SHELL-1（387）：launcher 面换挂收敛壳 ConvergedLauncher（数据流/桥协议
+// 平移 + chat 域对话流复用 + 366 磁带卡落位）；旧 LauncherSurface 保留至
+// CONVERGE-CLEANUP-1（gallery fixture 面仍消费它，施工图 §7.2 双轨）。
+import { ConvergedLauncher } from "./launcher/ConvergedLauncher";
 // UI-ENTRY-1：入口 surface 切换桥（宿主→React 单向 + React 取证回执）——进工程展开
 // DAW 时宿主通知 React 切 project surface，走内部 setState 零导航零重载（343 不变量）。
 import { postEntrySurfaceAck, subscribeEntrySurface } from "./launcher/entrySurfaceBridge";
@@ -495,7 +498,9 @@ function App() {
     });
   }, []);
   if (surface === "launcher") {
-    return <LauncherSurface fill />;
+    // CONVERGE-SHELL-1（387）替换点（施工图 §4.2 锚 1）：App() 分发逻辑装修不动，
+    // 仅换挂新壳；vit_surface=project 切 ProjectSurface 的既有行为保留。
+    return <ConvergedLauncher fill />;
   }
   if (surface === "project") {
     return (

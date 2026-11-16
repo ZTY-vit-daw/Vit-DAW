@@ -276,6 +276,8 @@ v4 两版（`../main-window-v3/v4-1-refined.html`、`v4-2-refined.html`）的问
 > - **≥48px 仍走冻结 `tapeSVG` 几何**（`main-window-v3/SPEC.md` §3 逐字，结构不动）。
 > - 氛围色＝工程名 FNV-1a 哈希（§7.4，`tape_atmosphere.gd` 确定性移植）；无工程名＝中性灰壳满盘（冻结源 null 氛围语义）。
 
+> **v5.1.2 修订（2026-11-16，用户裁定 b 案「工程条目本身=磁带盒形态」，落位卡 CONVERGE-SHELL-1/池序 387）**：启动台（收敛壳 `ConvergedLauncher`）的**工程条目卡片本身做成磁带盒造型**——不是「图标 + 文字行」，而是整卡磁带盒：卡=壳（氛围填充 `rgba(c1,0.62)`+墨描边）、窗（暖纸+双带轮：带量公式/毂比逐字同上）、底标位（主标=工程名 14/600，副标=路径 13 mono）——工程名/路径排布进卡结构，血统=旧 Godot 启动页磁带卡（`launcher-route-mondrian-v2.html` 磁带卡）。三类结构节点（壳/窗/带轮）在每个工程条目在场（render-smoke converged 段 DOM 断言在卷）。适用位：recents 工程条目（整卡形态）+ 对话流建议卡工程位（compact 同形态）；`TapeBadge` 小尺寸档保留给下方 §7.3.1 场用位清单的其余小尺寸位。验收口径=用户目检「条目本身就是磁带盒」。
+
 #### 7.3.1 小尺寸工程标志 `i-project` 与 V 品牌标 `i-vit`
 
 > **v5.1 修订**：磁带标志改名为 `i-project`，归工程对象；`i-vit` 改为 V 品牌标，只用于应用图标、任务栏 Vit 条目与系统通知，**不进入对话窗标题栏**。下文“磁带 logo”的旧描述保留为资产来源说明；现行 symbol 以 `round2-sprite.svg` 与 S3 为准。
@@ -289,8 +291,8 @@ v4 两版（`../main-window-v3/v4-1-refined.html`、`v4-2-refined.html`）的问
 
 | 场用位 | 造型 | 代码锚点（webui/src） |
 |---|---|---|
-| 启动台 recents 工程行头像 | 磁带 cassette `TapeBadge`（裁定例外） | `launcher/LauncherSurface.tsx` recents 行 |
-| 启动台建议卡工程位头像 | 磁带 cassette `TapeBadge`（裁定例外） | `launcher/LauncherSurface.tsx` 结果卡 |
+| 启动台 recents 工程条目 | **磁带卡整卡形态**（v5.1.2 b 案，壳/窗/带轮结构节点） | `launcher/ConvergedLauncher.tsx` TapeCardFace（387 收敛壳；旧 `LauncherSurface.tsx` TapeBadge 24px 行保留至 CLEANUP 退役） |
+| 启动台对话流建议卡工程位 | 磁带卡整卡形态（compact 档，v5.1.2） | `launcher/ConvergedLauncher.tsx` TapeCardFace compact |
 | 工程内标题栏工程标 | `i-project`（简化标志保留） | `project/ProjectSurface.tsx` v5-project-titlebar |
 | 对话窗标题栏样例（gallery） | `i-project` | `gallery/main.tsx` titlebar 样例 |
 | S3 规格板尺寸行（gallery） | `i-project` 16/20/24 | `gallery/main.tsx` os-identity |
