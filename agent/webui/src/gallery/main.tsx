@@ -1191,6 +1191,30 @@ function ConvergedFixturePage() {
               mock 后此挂载点出「打开…」并可点击取证 launcher_choose_file 桥路径。 */}
           <ConvergedLauncher />
         </div>
+        <div data-converged-sample="recents-missing">
+          <h2 className="v5-gal-caption">缺失置灰档（LAUNCHER-RECENTS-CLICK-1：agent os.Stat exists=false → 整卡置灰不可点 + 如实注记，列表不失联）</h2>
+          {/* 383 健康度标注样例：exists=false 的条目按生产语义置灰（data-launcher-recent-missing
+              + 按钮 disabled + 注记行）；render-smoke converged 段在此样例上断言。 */}
+          <ConvergedLauncher
+            fixture={{
+              // 短问候（窄列样例：含拉丁词的问候在 3 列样例里有不可断下限会溢出，
+              // 与缺失档断言面无关——主样例保留长问候覆盖；工程名仍带 fixture 自证）。
+              greeting: { status: "ok", launcher: true, reply: "我在。缺失置灰样例。" },
+              drawerState: "ready",
+              drawerEntries: [
+                {
+                  id: "fixture_launcher_project_missing",
+                  kind: "launcher_project",
+                  type: "project_open_candidate",
+                  name: "示例工程丁（fixture）",
+                  filePath: "D:/design-fixtures/示例工程丁.vit",
+                  exists: false,
+                  directive: { action: "open_project", file_path: "D:/design-fixtures/示例工程丁.vit", requires_governance: true }
+                }
+              ]
+            }}
+          />
+        </div>
       </div>
 
       <footer className="v5-gal-footer">

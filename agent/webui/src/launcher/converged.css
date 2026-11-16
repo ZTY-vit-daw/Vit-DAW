@@ -30,11 +30,65 @@
 
 /* ═══════════════ 366 磁带卡（TapeCardFace）═══════════════ */
 
+/* ── LAUNCHER-RECENTS-CLICK-1（383）：磁带卡整卡可点 + 缺失置灰档 ── */
+
+/* 点选承载：磁带卡本身即按钮面（原生 button 装修归零；hover/聚焦=抬升+描边强调，
+ * 对话流结果卡同语言）。列表行改为纵向（整卡按钮 + 缺失注记行）。 */
 .v5-converged-recent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 0;
   background: transparent;
   border: none;
   border-radius: var(--v5-radius-control);
+}
+
+.v5-launcher-recent-open {
+  display: block;
+  width: 100%;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--v5-radius-control);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+.v5-launcher-recent-open:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(9, 11, 14, 0.18);
+}
+
+.v5-launcher-recent-open:focus-visible {
+  outline: 2px solid var(--v5-ui-muted);
+  outline-offset: 2px;
+}
+
+.v5-launcher-recent-open:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.v5-launcher-recent-open:disabled {
+  cursor: not-allowed;
+}
+
+/* 缺失置灰档（agent os.Stat exists=false）：灰度化保持明度对比（对比度红线不降），
+ * 轻降不透明度（墨≈纯黑对暖纸≈纯白，余量充分，render-smoke 实测把关）+注记行。 */
+.v5-converged-recent[data-launcher-recent-missing="true"] .v5-tape-card-shell {
+  filter: grayscale(1);
+  opacity: 0.72;
+}
+
+.v5-launcher-recent-missing-note {
+  display: block;
+  padding: 0 2px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--v5-ui-muted);
 }
 
 /* 卡=磁带盒壳：氛围填充（--tape-shell-fill 由 TapeCardFace 注入 rgba(c1,0.62)）+
