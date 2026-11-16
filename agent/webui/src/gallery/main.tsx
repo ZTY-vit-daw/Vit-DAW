@@ -18,6 +18,8 @@ import {
 import { DESIGN_SYMBOLS, DesignSprite, SPRITE_SYMBOL_IDS } from "../design/sprite";
 import { LauncherSurface, type LauncherThreadItem } from "../launcher/LauncherSurface";
 import { directivePlaceholder } from "../launcher/launcherData";
+// CONVERGE-SHELL-1（387）：收敛壳 fixture 面（366 磁带卡整卡形态 + chat 域对话流复用）。
+import { ConvergedLauncher, type ConvergedThreadItem } from "../launcher/ConvergedLauncher";
 import type { LauncherProjectCard } from "../api/launcher";
 import { ProjectSurface } from "../project/ProjectSurface";
 import { createProjectFixtureService } from "../project/projectFixtures";
@@ -1127,10 +1129,82 @@ function WidgetsFixturePage() {
   );
 }
 
+/* ═══════════ CONVERGE-SHELL-1（387）：收敛壳 fixture 渲染页 ═══════════
+ * gallery.html?surface=converged —— ConvergedLauncher 全离线 fixture（零网络零桥）。
+ * 断言面（render-smoke converged 段）：recents 磁带卡整卡（三类结构节点每行在场）/
+ * 新建/打开/建议/对话流（MessageStream 文本段 + 治理卡 + directive）/Composer 输入区
+ * + v5 令牌生效。所有工程名与回执均为设计 fixture（命名带（fixture）后缀自证）。
+ */
+const CONVERGED_FIXTURE_GOVERNANCE_VIEW = {
+  requestID: "req_gov_fixture_conv_1",
+  action: "open_project",
+  currentProject: "示例工程甲（fixture）"
+};
+
+const CONVERGED_FIXTURE_THREAD: ConvergedThreadItem[] = [
+  { kind: "user", text: "看看最近的工程" },
+  { kind: "assistant", text: "最近的工程有 3 个——点卡片打开，或直接跟我说名字：" },
+  { kind: "cards", cards: LAUNCHER_FIXTURE_CARDS },
+  { kind: "user", text: "打开示例工程甲" },
+  { kind: "assistant", text: "好的，打开《示例工程甲（fixture）》。" },
+  {
+    kind: "directive",
+    view: directivePlaceholder({
+      action: "open_project",
+      file_path: "D:/design-fixtures/示例工程甲.vit",
+      requires_governance: true
+    })!
+  },
+  { kind: "governance", view: CONVERGED_FIXTURE_GOVERNANCE_VIEW }
+];
+
+function ConvergedFixturePage() {
+  return (
+    <div className="v5-design v5-gal-root" data-gallery-page="converged">
+      <DesignSprite />
+      <header className="v5-gal-header">
+        <h1 className="v5-gal-title">Vit 收敛壳 ConvergedLauncher · fixture 渲染页</h1>
+        <p className="v5-gal-note" data-fixture="notice">
+          本页所有工程名与回执均为设计 fixture，不接真实 agent 数据、零桥调用；366
+          磁带卡整卡形态与对话流复用在此核对，真实消费见生产入口 ?surface=launcher。
+        </p>
+      </header>
+
+      <ConvergedLauncher
+        fixture={{
+          greeting: LAUNCHER_FIXTURE_GREETING,
+          drawerState: "ready",
+          drawerEntries: LAUNCHER_FIXTURE_CARDS,
+          thread: CONVERGED_FIXTURE_THREAD
+        }}
+      />
+
+      <div className="v5-gal-launcher-states" data-gallery="converged-states">
+        <div data-converged-sample="empty">
+          <h2 className="v5-gal-caption">空态（还没有最近工程记录）</h2>
+          <ConvergedLauncher fixture={{ greeting: { reply: "我在。还没有最近的工程记录——想从哪开始？" }, drawerState: "empty" }} />
+        </div>
+        <div data-converged-sample="bridge-live">
+          <h2 className="v5-gal-caption">桥面挂载点（live 挂载 + 宿主 chrome.webview mock 注入时「打开…」在场；agent 端点不可达=诚实错误态）</h2>
+          {/* live 挂载（无 fixture prop）：gallery 页无宿主 webview 时桥不可用（345 语义
+              「打开…」不出钮）；render-smoke converged 段用 addInitScript 注入 webview
+              mock 后此挂载点出「打开…」并可点击取证 launcher_choose_file 桥路径。 */}
+          <ConvergedLauncher />
+        </div>
+      </div>
+
+      <footer className="v5-gal-footer">
+        <p>CONVERGE-SHELL-1 · 本页为收敛壳渲染烟测 fixture，不接 App.tsx 业务、不出网。</p>
+      </footer>
+    </div>
+  );
+}
+
 const root = document.getElementById("gallery-root");
 if (root) {
   const surfaceParam = new URLSearchParams(window.location.search).get("surface")?.toLowerCase();
   const launcherFixturePage = surfaceParam === "launcher";
+  const convergedFixturePage = surfaceParam === "converged";
   const projectFixturePage = surfaceParam === "project";
   const loadingFixturePage = surfaceParam === "loading";
   const launcherLiveFixturePage = surfaceParam === "launcher-live";
@@ -1140,6 +1214,8 @@ if (root) {
     <StrictMode>
       {launcherFixturePage ? (
         <LauncherFixturePage />
+      ) : convergedFixturePage ? (
+        <ConvergedFixturePage />
       ) : projectFixturePage ? (
         <ProjectFixturePage />
       ) : loadingFixturePage ? (

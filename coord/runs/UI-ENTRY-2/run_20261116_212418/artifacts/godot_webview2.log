@@ -1,0 +1,13 @@
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+D3D12 12_0 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 4070
+
+[AgentChatWindow] webview2.unavailable {"mode_active":true,"reason":"smoke injection: WebView2 unavailable"}
+WARNING: AgentChatWindow: smoke injection: WebView2 unavailable
+   at: push_warning (core/variant/variant_utility.cpp:1034)
+   GDScript backtrace (most recent call first):
+       [0] _handle_webview2_unavailable (res://app/shell/agent_chat_window.gd:720)
+       [1] _create_window_and_page (res://app/shell/agent_chat_window.gd:133)
+       [2] _ready (res://app/shell/agent_chat_window.gd:106)
+[AgentChatWindow] app.exit {"mode_active":true,"reason":"webview2_unavailable"}
+WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   at: cleanup (core/object/object.cpp:2641)

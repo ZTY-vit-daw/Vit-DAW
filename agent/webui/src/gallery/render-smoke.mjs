@@ -71,6 +71,13 @@
  * coord/runs/WIDGET-KIT-1/{render-smoke-widget-report.json, screens/}
  * （344/345/346/347/361/362/365 路径不变）。fixture 音频全为 data URI（零网络）。
  * 全离线 fixture（零真实端点请求）；344/345/346 的断言与工件路径不变。
+ * CONVERGE-SHELL-1（387）扩展：追加收敛壳 fixture 页（gallery.html?surface=converged）
+ * 渲染烟测——366 磁带卡整卡（recents 每行壳/窗/带轮三类结构节点+底标名/路径 +
+ * 氛围色 FNV-1a computed 核对 + 建议卡 compact 同形态）、对话流复用（MessageStream
+ * 文本段 + 用户阴影框裁定 + 治理三键卡 + directive 自动执行态 + Composer 输入区）、
+ * v5 令牌生效（根类三件 + 令牌解析实色）、打开…桥路径实证（webview mock live 挂载
+ * 点点击 → launcher_choose_file postMessage 捕获）+ 对比度/字号/裁切扫描 + 截图；
+ * 工件落 coord/runs/CONVERGE-SHELL-1/{render-smoke-converged-report.json, screens/}。
  */
 
 import { chromium } from "playwright";
@@ -1964,6 +1971,307 @@ async function main() {
   const widgetsReportPath = resolve(widgetsOutDir, "render-smoke-widget-report.json");
   writeFileSync(widgetsReportPath, JSON.stringify(widgetsReport, null, 2), "utf-8");
 
+  // ---- 14. CONVERGE-SHELL-1（387）：收敛壳 fixture 渲染烟测 ----
+  // gallery.html?surface=converged 全离线 fixture（零真实端点/零桥）。断言面（卡面）：
+  //  ① recents 磁带卡整卡：每个工程条目三类结构节点在场（壳 data-tape-shell ×1 /
+  //    窗 data-tape-window ×1 / 带轮 data-tape-reel ×2）+ 底标文本位（工程名/路径
+  //    排布进卡结构）+ 氛围色=工程名 FNV-1a 哈希（TAPE_PAIRS 逐行核对 computed bg）；
+  //  ② 对话流建议卡工程位同形态（compact 磁带卡，三类节点齐备）；
+  //  ③ 对话流复用：MessageStream 文本段（.message-row user/assistant）+ 治理三键卡
+  //    + directive 自动执行态 + Composer 输入区（textarea+发送钮）在卷；
+  //  ④ v5 令牌生效：根类 v5-design + v5-converged-launcher，--v5-* 令牌解析为实色；
+  //  ⑤ 打开…（桥面）在 webview mock 的 live 挂载点在场，点击经真实桥路径发出
+  //    launcher_choose_file（五 type 面零新增零改名的一枚实证）；
+  //  ⑥ 空态样例 + 全页对比度/字号/裁切扫描 + 零外部请求 + 截图。
+  // 工件：coord/runs/CONVERGE-SHELL-1/{render-smoke-converged-report.json, screens/}。
+  const convergedOutDir = resolve(repoRoot, "coord/runs/CONVERGE-SHELL-1");
+  const convergedScreensDir = resolve(convergedOutDir, "screens");
+  mkdirSync(convergedScreensDir, { recursive: true });
+  const convergedUrl = `${galleryUrl}?surface=converged`;
+  const convergedFailures = [];
+  const convergedNotes = [];
+  convergedNotes.push(`convergedUrl=${convergedUrl}`);
+  const convergedRequests = [];
+  const onConvergedRequest = (r) => convergedRequests.push(r.url());
+  page.on("request", onConvergedRequest);
+  await page.goto(convergedUrl, { waitUntil: "networkidle" });
+  await page.waitForSelector('[data-gallery-page="converged"] [data-launcher-root]');
+  await page.waitForTimeout(200);
+  const convergedOrigin = new URL(page.url()).origin;
+  const convergedExternalRequests = convergedRequests.filter((u) => {
+    if (u.startsWith("data:") || u.startsWith("blob:")) return false;
+    return !u.startsWith(convergedOrigin);
+  });
+  page.off("request", onConvergedRequest);
+
+  const cDom = await page.evaluate(() => {
+    const $ = (sel) => document.querySelector(sel);
+    const $$ = (sel) => [...document.querySelectorAll(sel)];
+    // 就绪全尺寸样例 = 页面首个 launcher root（主 fixture 样例）；桥 mock live 样例
+    // 与空态样例单独按容器取。
+    const rootEl = $$("[data-launcher-root]")[0] ?? null;
+    const within = (sel) => [...(rootEl?.querySelectorAll(sel) ?? [])];
+    const parseRgba = (s) => {
+      const m = /rgba?\(([^)]+)\)/.exec(s ?? "");
+      if (!m) return null;
+      const p = m[1].split(",").map((x) => parseFloat(x.trim()));
+      return p.length >= 3 ? { rgb: p.slice(0, 3), a: p.length > 3 ? p[3] : 1 } : null;
+    };
+    const tapeRowOf = (row) => {
+      const shell = row.querySelector("[data-tape-shell]");
+      const win = row.querySelector("[data-tape-window]");
+      const label = row.querySelector("[data-tape-label]");
+      const reels = [...row.querySelectorAll("[data-tape-reel]")];
+      const shellBg = shell ? getComputedStyle(shell).backgroundColor : "";
+      const name = label?.querySelector("[data-tape-card-name], .v5-tape-card-name")?.textContent?.trim() ?? "";
+      const path = label?.querySelector(".v5-tape-card-path")?.textContent?.trim() ?? "";
+      return {
+        shell: shell ? 1 : 0,
+        window: win ? 1 : 0,
+        reels: reels.length,
+        reelsHaveDisc: reels.every((r) => !!r.querySelector(".v5-tape-card-reel-disc")),
+        reelsHaveHub: reels.every((r) => !!r.querySelector(".v5-tape-card-reel-hub")),
+        label: label ? 1 : 0,
+        name,
+        path,
+        shellFill: parseRgba(shellBg),
+        shellFillRaw: shellBg,
+      };
+    };
+    const out = {};
+    out.rootState = rootEl?.getAttribute("data-launcher-state") ?? "(missing)";
+    out.fixtureMarks = {
+      page: !!$('[data-gallery-page="converged"]'),
+      notice: !!$('[data-fixture="notice"]'),
+      surface: rootEl?.getAttribute("data-fixture") ?? "(missing)",
+    };
+    // v5 令牌生效：根类 + 令牌解析为实色。
+    const rootClassList = rootEl ? [...rootEl.classList] : [];
+    out.v5Classes = {
+      design: rootClassList.includes("v5-design"),
+      converged: rootClassList.includes("v5-converged-launcher"),
+      launcher: rootClassList.includes("v5-launcher"),
+    };
+    const rootStyle = rootEl ? getComputedStyle(rootEl) : null;
+    out.v5Tokens = {
+      readBgVar: rootStyle?.getPropertyValue("--v5-read-bg")?.trim() ?? "",
+      inkVar: rootStyle?.getPropertyValue("--tape-ink")?.trim() ?? "",
+      frameBg: parseRgba($("[data-launcher-frame]") ? getComputedStyle($("[data-launcher-frame]")).backgroundColor : ""),
+    };
+    // 抽屉与磁带卡。
+    out.drawerState = $("[data-launcher-drawer]")?.getAttribute("data-drawer-state") ?? "(missing)";
+    out.recentsCount = within("[data-launcher-recents] > [data-launcher-recent]").length;
+    out.declaredRecentsCount = $("[data-launcher-recents-count]")?.getAttribute("data-launcher-recents-count") ?? "";
+    out.recentsTape = within("[data-launcher-recents] > [data-launcher-recent]").map(tapeRowOf);
+    out.threadCards = within("[data-launcher-card]").map(tapeRowOf);
+    out.newButton = within("[data-launcher-new]").length;
+    out.newButtonMode = $("[data-launcher-new]")?.getAttribute("data-launcher-new-mode") ?? "(missing)";
+    // 对话流复用：MessageStream 文本段 + launcher 专有块 + Composer。
+    out.messageRows = within(".message-row").length;
+    out.userRows = within(".message-row.user").length;
+    out.assistantRows = within(".message-row.assistant").length;
+    out.userRowFrames = within(".message-row.user")
+      .slice(0, 1)
+      .map((row) => {
+        const p = row.querySelector(".message-body > p");
+        if (!p) return null;
+        const cs = getComputedStyle(p);
+        return { border: cs.borderTopStyle, borderWidth: cs.borderTopWidth, shadow: cs.boxShadow };
+      });
+    out.threadPresent = !!$('[data-gallery-page="converged"] [data-launcher-thread]');
+    out.greeting = within("[data-launcher-greeting]").length;
+    out.directiveState = within("[data-launcher-directive]")[0]?.getAttribute("data-launcher-directive-state") ?? "(missing)";
+    out.directiveHeadline = within("[data-launcher-directive] .v5-launcher-directive-headline")[0]?.textContent ?? "";
+    out.governance = within("[data-launcher-governance]").length;
+    out.governanceSave = within("[data-launcher-governance-save]").length;
+    out.governanceSwitch = within("[data-launcher-governance-switch]").length;
+    out.governanceCancel = within("[data-launcher-governance-cancel]").length;
+    out.governanceHeadline = within("[data-launcher-governance-headline]")[0]?.textContent ?? "";
+    out.suggestions = within("[data-launcher-suggestion]").length;
+    out.composerTextarea = within("[data-launcher-input] textarea").length;
+    out.composerSend = within("[data-launcher-input] .send-button").length;
+    // 空态样例。
+    out.emptySample = !!$('[data-converged-sample="empty"] [data-launcher-drawer-empty]');
+    out.emptyText = $('[data-converged-sample="empty"] [data-launcher-drawer-empty]')?.textContent ?? "";
+    // 桥 mock live 样例（打开…钮的挂载点）。
+    const liveRoot = $('[data-converged-sample="bridge-live"] [data-launcher-root]');
+    out.liveRoot = !!liveRoot;
+    out.liveBridgeAttr = liveRoot?.getAttribute("data-launcher-bridge") ?? "(missing)";
+    out.liveChooseFile = liveRoot?.querySelectorAll("[data-launcher-choose-file]").length ?? 0;
+    return out;
+  }, SYMBOL_IDS);
+
+  const convergedAssert = (name, ok, detail) => {
+    if (!ok) convergedFailures.push(`CONVERGED: ${name} — ${detail}`);
+  };
+
+  convergedAssert("收敛壳 root ready + fixture 三标注（页面/notice/surface）", cDom.rootState === "ready" && cDom.fixtureMarks.page && cDom.fixtureMarks.notice && cDom.fixtureMarks.surface === "converged-launcher",
+    `state=${cDom.rootState} marks=${JSON.stringify(cDom.fixtureMarks)}`);
+  convergedAssert("v5 令牌生效（根类三件 + --v5/--tape 令牌解析 + frame 实色）",
+    cDom.v5Classes.design && cDom.v5Classes.converged && cDom.v5Classes.launcher &&
+    cDom.v5Tokens.readBgVar.length > 0 && cDom.v5Tokens.inkVar.length > 0 && cDom.v5Tokens.frameBg !== null,
+    `classes=${JSON.stringify(cDom.v5Classes)} tokens=${JSON.stringify(cDom.v5Tokens)}`);
+  convergedAssert("抽屉 ready + 声明数=DOM 行数=3", cDom.drawerState === "ready" && cDom.recentsCount === 3 && cDom.declaredRecentsCount === "3",
+    `state=${cDom.drawerState} dom=${cDom.recentsCount} declared=${cDom.declaredRecentsCount}`);
+  convergedAssert("新建钮在卷（直连 directive 档）", cDom.newButton === 1 && cDom.newButtonMode === "direct",
+    `new=${cDom.newButton} mode=${cDom.newButtonMode}`);
+  // 366 核心：磁带卡整卡——每行三类结构节点（壳/窗/带轮×2）+底标文本位（名/路径）。
+  convergedAssert(
+    "recents 每行=磁带卡整卡（壳×1/窗×1/带轮×2/底标×1，盘毂齐备）",
+    cDom.recentsTape.length === 3 &&
+      cDom.recentsTape.every((t) => t.shell === 1 && t.window === 1 && t.reels === 2 && t.label === 1 && t.reelsHaveDisc && t.reelsHaveHub),
+    `rows=${JSON.stringify(cDom.recentsTape)}`
+  );
+  convergedAssert(
+    "磁带卡底标=工程名/路径排布进卡结构（每行名+路径非空且带 fixture 标注）",
+    cDom.recentsTape.every((t) => t.name.includes("fixture") && t.path.includes("design-fixtures")),
+    JSON.stringify(cDom.recentsTape.map((t) => ({ name: t.name, path: t.path })))
+  );
+  convergedAssert(
+    "对话流建议卡工程位同形态（compact 磁带卡，三类节点齐备，3/3）",
+    cDom.threadCards.length === 3 && cDom.threadCards.every((t) => t.shell === 1 && t.window === 1 && t.reels === 2 && t.label === 1),
+    `cards=${JSON.stringify(cDom.threadCards.map((t) => ({ shell: t.shell, window: t.window, reels: t.reels, label: t.label })))}`
+  );
+  // 氛围色=工程名哈希（TAPE_PAIRS/FNV-1a 与 launcher 段同源表；computed bg 逐行核对）。
+  const convergedExpectedShells = TAPE_FIXTURE_NAMES.map((n) => {
+    const p = TAPE_PAIRS[tapeHash(n) % 6];
+    return { rgb: [p[0][0], p[0][1], p[0][2]], a: 0.62 };
+  });
+  const shellFillMatches = (fill, expected) =>
+    !!fill && expected.rgb.every((c, i) => fill.rgb[i] === c) && Math.abs(fill.a - expected.a) < 0.01;
+  convergedAssert(
+    "氛围色=工程名 FNV-1a 哈希（recents 磁带卡壳填充 rgba(c1,0.62) 逐行一致）",
+    cDom.recentsTape.length === 3 &&
+      cDom.recentsTape.every((t, i) => shellFillMatches(t.shellFill, convergedExpectedShells[i])),
+    `fills=${JSON.stringify(cDom.recentsTape.map((t) => t.shellFillRaw))} expected=${JSON.stringify(convergedExpectedShells)}`
+  );
+  // 对话流复用（MessageStream/Composer import）。
+  convergedAssert("对话流：MessageStream 文本段（user×2 + assistant×2）", cDom.messageRows === 4 && cDom.userRows === 2 && cDom.assistantRows === 2,
+    `rows=${cDom.messageRows} user=${cDom.userRows} assistant=${cDom.assistantRows}`);
+  convergedAssert(
+    "用户消息阴影框裁定维持（右对齐行 1px 灰边 + 柔影）",
+    cDom.userRowFrames.length === 1 && cDom.userRowFrames[0] &&
+      cDom.userRowFrames[0].border === "solid" && parseFloat(cDom.userRowFrames[0].borderWidth) >= 1 &&
+      typeof cDom.userRowFrames[0].shadow === "string" && cDom.userRowFrames[0].shadow !== "" && cDom.userRowFrames[0].shadow !== "none",
+    JSON.stringify(cDom.userRowFrames)
+  );
+  convergedAssert("问候语 + directive 自动执行态（正在打开《…》…）",
+    cDom.greeting >= 1 && cDom.directiveState === "auto" && cDom.directiveHeadline.startsWith("正在打开《") && cDom.directiveHeadline.endsWith("》…"),
+    `greeting=${cDom.greeting} state=${cDom.directiveState} headline=${cDom.directiveHeadline}`);
+  convergedAssert("治理三键卡在卷（headline+保存/切换/取消）",
+    cDom.governance === 1 && cDom.governanceSave === 1 && cDom.governanceSwitch === 1 && cDom.governanceCancel === 1 &&
+      cDom.governanceHeadline.includes("切换"),
+    `gov=${cDom.governance} save=${cDom.governanceSave} switch=${cDom.governanceSwitch} cancel=${cDom.governanceCancel} headline=${cDom.governanceHeadline}`);
+  convergedAssert("上下文建议 3 个 + Composer 输入区（textarea+发送钮）",
+    cDom.suggestions === 3 && cDom.composerTextarea === 1 && cDom.composerSend === 1,
+    `sug=${cDom.suggestions} textarea=${cDom.composerTextarea} send=${cDom.composerSend}`);
+  convergedAssert("空态样例（还没有最近工程记录）", cDom.emptySample && cDom.emptyText.includes("还没有"), cDom.emptyText);
+  // 打开…（桥面）：live 挂载点在卷（主 pass 无 mock → 桥不可用为 345 诚实语义，
+  // 「打开…」不出钮；桥可用断言在下方 mock pass 做）。
+  convergedAssert("桥面 live 挂载点在卷（无 mock=桥不可用诚实语义）",
+    cDom.liveRoot && cDom.liveBridgeAttr === "unavailable" && cDom.liveChooseFile === 0,
+    `live=${cDom.liveRoot} bridge=${cDom.liveBridgeAttr} choose=${cDom.liveChooseFile}`);
+
+  // ⑤ 桥路径实证：独立 context 注入 chrome.webview mock（生产桥消费面零改动），
+  // live 挂载点桥转可用 → 打开…在场，点击 → postMessage 捕获 launcher_choose_file
+  // 请求（五 type 面零新增零改名的一枚实证）。
+  const convergedBridgeContext = await browser.newContext({
+    viewport: { width: 1440, height: 900 },
+    deviceScaleFactor: 1,
+    reducedMotion: "reduce",
+  });
+  await convergedBridgeContext.addInitScript(() => {
+    window.__launcherPosts = [];
+    window.chrome = {
+      webview: {
+        postMessage: (msg) => {
+          window.__launcherPosts.push(msg);
+        },
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      },
+    };
+  });
+  const convergedBridgePage = await convergedBridgeContext.newPage();
+  try {
+    await convergedBridgePage.goto(convergedUrl, { waitUntil: "networkidle", timeout: 30000 });
+    await convergedBridgePage.waitForSelector('[data-converged-sample="bridge-live"] [data-launcher-choose-file]', { timeout: 15000 });
+    const bridgeDom = await convergedBridgePage.evaluate(() => {
+      const liveRoot = document.querySelector('[data-converged-sample="bridge-live"] [data-launcher-root]');
+      return {
+        bridge: liveRoot?.getAttribute("data-launcher-bridge") ?? "(missing)",
+        choose: liveRoot?.querySelectorAll("[data-launcher-choose-file]").length ?? 0,
+        newMode: liveRoot?.querySelector("[data-launcher-new]")?.getAttribute("data-launcher-new-mode") ?? "(missing)",
+      };
+    });
+    convergedAssert("桥 mock 后 live 挂载点：data-launcher-bridge=available + 打开…/＋新建在场",
+      bridgeDom.bridge === "available" && bridgeDom.choose === 1 && bridgeDom.newMode === "direct",
+      JSON.stringify(bridgeDom));
+    await convergedBridgePage.click('[data-converged-sample="bridge-live"] [data-launcher-choose-file]');
+    await convergedBridgePage.waitForTimeout(300);
+    const posts = await convergedBridgePage.evaluate(() => window.__launcherPosts ?? []);
+    const choosePost = posts.find((p) => p && p.type === "launcher_choose_file");
+    convergedAssert("打开…点击经真实桥路径（postMessage 捕获 launcher_choose_file，request_id 在卷）",
+      !!choosePost && typeof choosePost.request_id === "string" && choosePost.request_id.length > 0,
+      JSON.stringify(posts));
+  } catch (err) {
+    convergedFailures.push(`CONVERGED: 桥路径实证异常 — ${String(err)}`);
+  } finally {
+    await convergedBridgeContext.close();
+  }
+
+  const cscan = await scanFn();
+  const convergedContrastAssert = (name, ok, detail) => {
+    if (!ok) convergedFailures.push(`CONVERGED-CONTRAST: ${name} — ${detail}`);
+  };
+  convergedContrastAssert("正文 ≥4.5:1", cscan.text.length === 0, JSON.stringify(cscan.text.slice(0, 6)));
+  convergedContrastAssert("图形检查集合非空（磁带卡 data-graphic=tape 在卷）", cscan.graphics.length >= 1 &&
+    cscan.graphics.some((g) => g.kind === "tape"),
+  `graphics=${cscan.graphics.length} tape=${cscan.graphics.filter((g) => g.kind === "tape").length}`);
+  convergedContrastAssert("图形 ≥3:1", !cscan.graphicsFail || cscan.graphicsFail.length === 0,
+    JSON.stringify((cscan.graphicsFail ?? []).slice(0, 6)));
+  convergedContrastAssert("最小字号 ≥13px", cscan.tooSmall.length === 0, JSON.stringify(cscan.tooSmall.slice(0, 6)));
+  if (cscan.clipped.length > 0) convergedFailures.push(`CONVERGED-CLIP: 裁切/溢出 ${JSON.stringify(cscan.clipped.slice(0, 6))}`);
+  if (cscan.docScrollWidth > 1440) convergedFailures.push(`CONVERGED-OVERFLOW: 文档横向溢出 scrollWidth=${cscan.docScrollWidth} > 1440`);
+  if (convergedExternalRequests.length > 0)
+    convergedFailures.push(`CONVERGED-NETWORK: fixture 页出现外部请求 ${JSON.stringify(convergedExternalRequests.slice(0, 6))}`);
+
+  // converged 页截图（1440×900 视口 + 全页 + 磁带卡特写）→ 卡目录工件。
+  const convergedViewportShot = resolve(convergedScreensDir, "converged-viewport-1440x900.png");
+  const convergedFullShot = resolve(convergedScreensDir, "converged-full.png");
+  await page.screenshot({ path: convergedViewportShot, type: "png" });
+  await page.screenshot({ path: convergedFullShot, type: "png", fullPage: true });
+  const convergedRecentsShot = resolve(convergedScreensDir, "converged-recents-tape-closeup.png");
+  try {
+    await page.locator("[data-launcher-recents]").first().screenshot({ path: convergedRecentsShot });
+  } catch {
+    convergedNotes.push("recents closeup screenshot failed (non-fatal)");
+  }
+
+  const convergedReport = {
+    run: "CONVERGE-SHELL-1 converged launcher render smoke",
+    date: new Date().toISOString(),
+    url: convergedUrl,
+    viewport: "1440x900@1",
+    reducedMotion: "reduce",
+    externalRequestCount: convergedExternalRequests.length,
+    dom: cDom,
+    textContrastMin: cscan.textMin,
+    graphicChecks: cscan.graphics.length,
+    tapeGraphicChecks: cscan.graphics.filter((g) => g.kind === "tape").length,
+    graphicMinRatio: Math.min(...cscan.graphics.map((g) => g.ratio)),
+    clipIssues: cscan.clipped,
+    docScrollWidth: cscan.docScrollWidth,
+    fontTooSmall: cscan.tooSmall,
+    expectedShells: convergedExpectedShells,
+    failures: convergedFailures,
+    notes: convergedNotes,
+    screenshots: [convergedViewportShot, convergedFullShot, convergedRecentsShot],
+    result: convergedFailures.length === 0 ? "PASS" : "FAIL",
+  };
+  const convergedReportPath = resolve(convergedOutDir, "render-smoke-converged-report.json");
+  writeFileSync(convergedReportPath, JSON.stringify(convergedReport, null, 2), "utf-8");
+
   await browser.close();
   await server.close();
 
@@ -1993,7 +2301,11 @@ async function main() {
   console.log(
     `[test:render] WIDGETS_RESULT=${widgetsReport.result} audioPlayers=${widgetDom.audioPlayers} comparePairs=${widgetDom.comparePairs} cardCollapse=${widgetDom.cardLayoutCollapse} external=${widgetExternalRequests.length}`
   );
-  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures, ...recTapeFailures, ...widgetFailures];
+  console.log(`[test:render] convergedReport=${convergedReportPath}`);
+  console.log(
+    `[test:render] CONVERGED_RESULT=${convergedReport.result} tapeRows=${cDom.recentsTape.length} messageRows=${cDom.messageRows} governance=${cDom.governance} tapeGraphics=${convergedReport.tapeGraphicChecks}`
+  );
+  const allFailures = [...failures, ...launcherFailures, ...projectFailures, ...loadingFailures, ...fidelityFailures, ...appFailures, ...recTapeFailures, ...widgetFailures, ...convergedFailures];
   if (allFailures.length > 0) {
     for (const f of allFailures) console.error(`[test:render] FAIL: ${f}`);
     process.exit(1);
