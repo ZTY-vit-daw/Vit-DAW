@@ -221,3 +221,40 @@ func TestRestYueVocalPart(t *testing.T) {
 		t.Fatalf("rested vocal must parse silent: %#v", vocal)
 	}
 }
+
+// YUE-INSTRUMENTAL-PATH-1 S2 substrate: % section comments -> official
+// section-tag lyric form (title-cased, blank-line separated, trailing \n).
+func TestYueSectionTagLyrics(t *testing.T) {
+	abc := "X:1\nK:G\n% verse\nV: Vocal\n\"G\"z32|\n% pre-chorus\nV: Ins\nc4|\n% OUTRO\nV: Ins\nd4|\n"
+	tags, ok := YueSectionTagLyrics(abc)
+	if !ok {
+		t.Fatalf("sections must be found: %s", abc)
+	}
+	want := "[Verse]\n\n[Pre-Chorus]\n\n[Outro]\n"
+	if tags != want {
+		t.Fatalf("tag form mismatch:\n got %q\nwant %q", tags, want)
+	}
+	if _, ok := YueSectionTagLyrics("X:1\nK:C\nV: Ins\nc4|"); ok {
+		t.Fatalf("sectionless score must report no tags")
+	}
+}
+
+// YUE-INSTRUMENTAL-PATH-1 S4 substrate: cot signal = quoted chords on the
+// Vocal voice's music lines (Ins-line chords and header fields carry no
+// cot signal).
+func TestYueVocalHasChords(t *testing.T) {
+	official := "X:1\nM:4/4\nL:1/32\nK:G\nV: Vocal\n\"G\"z32|\"D7\"z32|\nV: Ins\nd8e6d2B8z8|F8F8=F8z8|\n"
+	if !YueVocalHasChords(official) {
+		t.Fatalf("chord-annotated resting Vocal must report true")
+	}
+	insChords := "X:1\nM:4/4\nL:1/32\nK:C\n% verse\nV: Vocal\nZ2|\nV: Ins\n\"C\"c32|\"G\"e32|\n"
+	if YueVocalHasChords(insChords) {
+		t.Fatalf("Ins-line chords must not select cot=full: %s", insChords)
+	}
+	if YueVocalHasChords("X:1\nK:C\nT:\"quoted title\"\nV: Vocal\nZ1|\n") {
+		t.Fatalf("header fields must not count as Vocal chords")
+	}
+	if YueVocalHasChords("") {
+		t.Fatalf("empty score must report false")
+	}
+}

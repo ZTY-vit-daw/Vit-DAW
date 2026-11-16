@@ -55,6 +55,11 @@ type GenerationRequest struct {
 	MusicalKey      string  // target key, e.g. "C minor"
 	Count           int     // requested candidate count
 	ABC             string  // dialect score notation (ABC; yue_local primary input face)
+	// COT is the yue_local chain-of-thought planning mode ("full"/"melody").
+	// It is derived by YuePrepareRequest from the score's Vocal chords
+	// (official instrumental recipe); other callers leave it empty and the
+	// yue_local builder falls back to its validated "full" baseline.
+	COT string
 }
 
 func (r GenerationRequest) essentiallyEmpty() bool {
