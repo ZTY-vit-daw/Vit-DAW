@@ -1,0 +1,412 @@
+{
+  "schema_version": "score_workbench_smoke.v2-a7a8",
+  "card": "SCORE-DG1A-COMPLETE-1 (completes SCORE-WORKBENCH-1 DG1-A leg)",
+  "gate": "DG1-A (docs/STACKGATE_DG1_DG3_V1.md section 3.1)",
+  "leg_form": "berth (kernel + agent, real browser on /app/)",
+  "started_at": "2026-11-16T12:39:54.722Z",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "kernel_sub": "tcp://127.0.0.1:5556",
+  "thresholds": {
+    "probe_max_abs_min": 0.01,
+    "wav_non_silent_peak": 500,
+    "wav_non_silent_rms": 20,
+    "wav_diff_max_min": 500
+  },
+  "assertions": {
+    "F1-D3-pre-save-effective-path-disclosed": {
+      "pass": false,
+      "detail": "effective_project_path= project_path=\"\""
+    },
+    "F1b-D3-pre-save-project-path-honestly-empty": {
+      "pass": true,
+      "detail": ""
+    },
+    "F2-pre-save-clip-id-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "F3-save-ok": {
+      "pass": true,
+      "detail": ""
+    },
+    "F4-D1-post-save-track-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "F5-D2-post-save-clip-id-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "F6-post-save-notes-readable": {
+      "pass": true,
+      "detail": ""
+    },
+    "F7-D3-post-save-path-bound": {
+      "pass": false,
+      "detail": "project_path=C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_203942\\agent_drafts\\draft_20261116T123946_d4da934f\\Unsaved.vit effective= saved=C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_203942\\agent_drafts\\draft_20261116T123946_d4da934f\\Unsaved.vit"
+    },
+    "F8-reopen-clip-id-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "F9-reopen-notes-readable": {
+      "pass": true,
+      "detail": ""
+    },
+    "A4-timesig-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-load-equality": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-fixture-loaded": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-svg-glyphs": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-dotted": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-rest-window": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-syncopation": {
+      "pass": true,
+      "detail": ""
+    },
+    "A3-cross-bar-tie": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-binding": {
+      "pass": true,
+      "detail": ""
+    },
+    "A1-write-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A5-saved-only-after-verify": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-edit-apply": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-reopen-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A2-id-stable-reopen": {
+      "pass": true,
+      "detail": ""
+    },
+    "A6-panel-reload": {
+      "pass": true,
+      "detail": ""
+    },
+    "A4-template-2-4-disclosed": {
+      "pass": true,
+      "detail": ""
+    },
+    "A7-edit-readback": {
+      "pass": true,
+      "detail": ""
+    },
+    "A7-probe-non-silent": {
+      "pass": true,
+      "detail": ""
+    },
+    "A8-edit-differential": {
+      "pass": true,
+      "detail": ""
+    }
+  },
+  "boundary": [],
+  "failure_class": "assertion_failure",
+  "notes": [
+    "D1（内核·锚点候查）：XML-boot 工程上会话内加轨再 save_project，新轨被丢出工程状态（attempt3/4 实证：track 1039+clip 1042 save 后消失；.vit-boot 不复现）。",
+    "D2（内核·锚点候查）：save_project 后 get_project_state 的 tracks[].clips[].clip_id 披露降级为 null 直至 open_project 重开（agent 面 clip 寻址随之失效；产品影响=谱面面板 save 后至重开间 clip 选择器失源——本腿 A6 用 save→open 序绕开）。",
+    "D3（装置面发现）：agent get_project_state（userVisibleState 消毒面）不披露 project_path/project.file_path——腿经 save_as 目标路径+--project-xml 双源。",
+    "P5 补记（377）：A7/A8 判据复用 373 DG1-B（scripts/src_template_smoke.py B2/B4 同参同阈）；音源=373 模板工程旋律轨 Surge XT（place-copy 进 run 目录，源只读+manifest sha256 对账）。",
+    "D4（377 域外产品缺陷·锚点上交，非 120bpm 工程谱面面板装载崩溃）：链=①内核 get_midi_clip_data 对 80bpm 工程 8 拍 clip 披露 length_seconds=8.0（拍数恒等冒充秒，真值 6.0s；VitApp/Source/Service/MidiService.cpp:1758-1768，time_unit='beats' 标签下 pos.getLength().inSeconds() 未按工程 tempo 换算）；②webui 桥按秒义换算 clipLengthBeats=8*80/60=10.6667（agent/webui/src/scoreworkbench/kernel.ts:131-140 readClipGeometry）；③面板 applyPatch useMemo 渲染期 beatsRoundedToTicks(10.6667) 抛 ModelError(grid_misaligned) 无错误边界→整面板卸载（ScoreWorkbenchPanel.tsx:401+model.ts:96-102）。120bpm 工程下 8*120/60=16 恰整数网格不触发（374 A1-A6 因此未暴露）。最小复现=open 373 模板工程→/app/ 谱面页签→选旋律 clip→[pageerror] score model error [grid_misaligned]: beats=10.666666666666666 not on grid→data-score-root 消失（run_dg1a_20261116_1936/screens/fatal.png+活栈诊断在卷）。本腿 A7/A8 编辑缝因此走 373 B4 逐字同款 agent/kernel tool face mutate_midi_notes（STACKGATE §3.0 装置锚认可缝），不扩修域外层。"
+  ],
+  "save_forensics": {
+    "enabled": true,
+    "faces": [
+      {
+        "label": "pre-save (XML-boot)",
+        "project_path": "",
+        "effective_project_path": "",
+        "audio_track_count": 6,
+        "tracks": [
+          {
+            "track_id": "1007",
+            "clip_ids": [
+              "1011",
+              "1039"
+            ]
+          },
+          {
+            "track_id": "1012",
+            "clip_ids": [
+              "1016"
+            ]
+          },
+          {
+            "track_id": "1017",
+            "clip_ids": [
+              "1021"
+            ]
+          },
+          {
+            "track_id": "1022",
+            "clip_ids": [
+              "1026"
+            ]
+          },
+          {
+            "track_id": "1027",
+            "clip_ids": [
+              "1031"
+            ]
+          },
+          {
+            "track_id": "1032",
+            "clip_ids": [
+              "1036"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "post-add (pre-save)",
+        "project_path": "",
+        "effective_project_path": "",
+        "audio_track_count": 7,
+        "tracks": [
+          {
+            "track_id": "1007",
+            "clip_ids": [
+              "1011",
+              "1039"
+            ]
+          },
+          {
+            "track_id": "1012",
+            "clip_ids": [
+              "1016"
+            ]
+          },
+          {
+            "track_id": "1017",
+            "clip_ids": [
+              "1021"
+            ]
+          },
+          {
+            "track_id": "1022",
+            "clip_ids": [
+              "1026"
+            ]
+          },
+          {
+            "track_id": "1027",
+            "clip_ids": [
+              "1031"
+            ]
+          },
+          {
+            "track_id": "1032",
+            "clip_ids": [
+              "1036"
+            ]
+          },
+          {
+            "track_id": "1040",
+            "clip_ids": [
+              "1043"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "post-save",
+        "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_203942\\agent_drafts\\draft_20261116T123946_d4da934f\\Unsaved.vit",
+        "effective_project_path": "",
+        "audio_track_count": 7,
+        "tracks": [
+          {
+            "track_id": "1007",
+            "clip_ids": [
+              "1011",
+              "1039"
+            ]
+          },
+          {
+            "track_id": "1012",
+            "clip_ids": [
+              "1016"
+            ]
+          },
+          {
+            "track_id": "1017",
+            "clip_ids": [
+              "1021"
+            ]
+          },
+          {
+            "track_id": "1022",
+            "clip_ids": [
+              "1026"
+            ]
+          },
+          {
+            "track_id": "1027",
+            "clip_ids": [
+              "1031"
+            ]
+          },
+          {
+            "track_id": "1032",
+            "clip_ids": [
+              "1036"
+            ]
+          },
+          {
+            "track_id": "1040",
+            "clip_ids": [
+              "1043"
+            ]
+          }
+        ]
+      },
+      {
+        "label": "post-reopen",
+        "project_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_203942\\agent_drafts\\draft_20261116T123946_d4da934f\\Unsaved.vit",
+        "effective_project_path": "",
+        "audio_track_count": 7,
+        "tracks": [
+          {
+            "track_id": "1007",
+            "clip_ids": [
+              "1011",
+              "1039"
+            ]
+          },
+          {
+            "track_id": "1012",
+            "clip_ids": [
+              "1016"
+            ]
+          },
+          {
+            "track_id": "1017",
+            "clip_ids": [
+              "1021"
+            ]
+          },
+          {
+            "track_id": "1022",
+            "clip_ids": [
+              "1026"
+            ]
+          },
+          {
+            "track_id": "1027",
+            "clip_ids": [
+              "1031"
+            ]
+          },
+          {
+            "track_id": "1032",
+            "clip_ids": [
+              "1036"
+            ]
+          },
+          {
+            "track_id": "1040",
+            "clip_ids": [
+              "1043"
+            ]
+          }
+        ]
+      }
+    ],
+    "probe_track_id": "1040",
+    "probe_clip_id": "1043",
+    "saved_path": "C:\\Users\\timoz\\AppData\\Local\\Temp\\VitStackDrafts\\dev_agent_smoke_20261116_203942\\agent_drafts\\draft_20261116T123946_d4da934f\\Unsaved.vit"
+  },
+  "finished_at": "2026-11-16T12:40:23.242Z",
+  "project_path_source": "leg save_as target (fixture.vit); fallback --project-xml=(none)",
+  "p5_template": {
+    "source": "D:\\Vit_DAW_wt_378save\\coord\\lesson-designs\\music-creation-unit2\\templates\\melody-drum-v1\\template.v1.xml",
+    "source_sha256": "a188defd2c852d57e1b18e0a2cb811c9b854c1c8063b54383d191f8dc1f0fb29",
+    "copy": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\realstack_leg\\attempt2\\lesson_project.xml",
+    "copy_sha256": "a188defd2c852d57e1b18e0a2cb811c9b854c1c8063b54383d191f8dc1f0fb29",
+    "manifest_id": "melody-drum-v1"
+  },
+  "p5_handles": {
+    "melody_track_id": "1110",
+    "melody_clip_id": "1111",
+    "melody_plugins": [
+      "Surge XT",
+      "Volume & Pan Plugin",
+      "Level Meter"
+    ]
+  },
+  "p5_edit_seam": "agent/kernel tool face mutate_midi_notes (373 DG1-B B4 verbatim); panel gesture blocked by D4 (out-of-domain defect, anchors in notes)",
+  "p5_music_context": {
+    "tempo_bpm": 80,
+    "tempo_setting_count": 1,
+    "time_sig_setting_count": 1,
+    "time_signature": "2/4",
+    "time_signature_denominator": 4,
+    "time_signature_numerator": 2
+  },
+  "p5_renders": {
+    "before": {
+      "completion": "render_done",
+      "job_id": "3a4da0abf75c431bbb3b9decf8e950e9",
+      "wav_bytes": 2823184,
+      "channels": 2,
+      "width": 2,
+      "frames": 705600,
+      "samples": 1411200,
+      "peak_abs": 14145,
+      "rms_abs": 2457.9
+    },
+    "after": {
+      "completion": "render_done",
+      "job_id": "5396384f06934780a0baeae3880a9fef",
+      "wav_bytes": 2823184,
+      "channels": 2,
+      "width": 2,
+      "frames": 705600,
+      "samples": 1411200,
+      "peak_abs": 13529,
+      "rms_abs": 2322.94
+    },
+    "diff": {
+      "max_abs_diff": 19611
+    },
+    "probe_sum_abs": [
+      36528.111482801134,
+      36506.94381467941
+    ],
+    "probe_sum_abs_rel_delta": 0.0006
+  },
+  "exit_code": 1,
+  "duration_ms": 28509,
+  "clip_id": "1047",
+  "track_id": "1044"
+}

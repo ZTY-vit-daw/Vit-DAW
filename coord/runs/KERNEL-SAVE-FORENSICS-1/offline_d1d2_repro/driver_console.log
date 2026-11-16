@@ -1,0 +1,26 @@
+PASS S1-add-track-ok :: {"status": "ok", "message": "Track added", "track_id": "1037", "track_name": "Track 7"}
+PASS S1-insert-midi-clip-ok :: {"status": "ok", "message": "MIDI clip inserted", "clip_id": "1040", "new_clip_id": "1040", "track_id": "1037", "start_seconds": 0.0, "length_seconds": 2.0}
+PASS S1-add-midi-notes-ok :: {"status": "ok", "message": "MIDI notes added", "clip_id": "1040", "track_id": "1037", "added_count": 4, "inserted_count": 4, "inserted_note_ids": ["note_2716eb418f2b401f9640b54e6b84d35e", "note_f5f58
+PASS S1-pre-save-track-disclosed :: track_id=1037
+PASS S1-pre-save-clip-id-disclosed :: clip_id=1040 clips=[{"id": "1040", "clip_id": null, "clip_type": "midi"}]
+PASS S1-save-ok :: {"status": "ok", "message": "Project saved", "project_lifecycle": "save_as", "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.vit", "current_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.v
+PASS S1-D1-post-save-track-disclosed :: track present
+PASS S1-D1-post-save-clip-id-disclosed :: clip_id=1040
+PASS S1-D1-post-save-notes-readable :: {"status": "ok", "message": "MIDI clip notes", "clip_id": "1040", "track_id": "", "time_unit": "beats", "notes": [{"id": "note_2716eb418f2b401f9640b54e6b84d35e", "start": 0.0, "length": 1.0, "pitch": 
+PASS S2-open-ok :: {"status": "ok", "message": "Project opened", "project_lifecycle": "open", "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.vit", "current_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.vit
+PASS S2-reopen-track-disclosed :: track_id=1037
+PASS S2-reopen-clip-id-disclosed :: clip_id=1040
+PASS S2-reopen-notes-readable :: {"status": "ok", "message": "MIDI clip notes", "clip_id": "1040", "track_id": "", "time_unit": "beats", "notes": [{"id": "note_2716eb418f2b401f9640b54e6b84d35e", "start": 0.0, "length": 1.0, "pitch": 
+PASS S3-add-track-ok :: {"status": "ok", "message": "Track added", "track_id": "1041", "track_name": "Track 8"}
+PASS S3-insert-midi-clip-ok :: {"status": "ok", "message": "MIDI clip inserted", "clip_id": "1044", "new_clip_id": "1044", "track_id": "1041", "start_seconds": 0.0, "length_seconds": 2.0}
+PASS S3-add-midi-notes-ok :: {"status": "ok", "message": "MIDI notes added", "clip_id": "1044", "track_id": "1041", "added_count": 4, "inserted_count": 4, "inserted_note_ids": ["note_6bdb4e38f01745238d97b1bdb1baed67", "note_a4159
+PASS S3-pre-save-clip-id-disclosed :: clip2=1044
+PASS S3-save-ok :: {"status": "ok", "message": "Project saved", "project_lifecycle": "save", "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.vit", "current_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.vit"
+PASS S3-D2-post-save-track-disclosed :: track2=1041
+PASS S3-D2-post-save-clip-id-disclosed :: clip2=1044 clips=[{"id": "1044", "clip_id": null, "clip_type": "midi"}]
+PASS S3-D2-post-save-notes-readable :: {"status": "ok", "message": "MIDI clip notes", "clip_id": "1044", "track_id": "", "time_unit": "beats", "notes": [{"id": "note_6bdb4e38f01745238d97b1bdb1baed67", "start": 0.0, "length": 1.0, "pitch": 
+PASS S3-reopen-ok :: {"status": "ok", "message": "Project opened", "project_lifecycle": "open", "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.vit", "current_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\out1.vit
+PASS S3-reopen-track-disclosed :: track2=1041
+PASS S3-reopen-clip-id-disclosed :: clip2=1044
+PASS S3-reopen-notes-readable :: {"status": "ok", "message": "MIDI clip notes", "clip_id": "1044", "track_id": "", "time_unit": "beats", "notes": [{"id": "note_6bdb4e38f01745238d97b1bdb1baed67", "start": 0.0, "length": 1.0, "pitch": 
+ASSERTS: 25 pass, 0 fail

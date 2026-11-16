@@ -80,6 +80,7 @@ function parseArgs() {
     else if (argv[i] === "--kernel-zmq") args.kernelZmq = argv[++i];
     else if (argv[i] === "--kernel-sub") args.kernelSub = argv[++i];
     else if (argv[i] === "--template-xml") args.templateXml = argv[++i];
+    else if (argv[i] === "--save-forensics") args.saveForensics = true;
   }
   if (!args.artifactsDir) {
     args.artifactsDir = join(process.cwd(), "score_workbench_run_" + new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14));
@@ -121,8 +122,13 @@ const summary = {
   assertions: {},
   boundary: [],
   failure_class: "",
-  notes: []
+  notes: [],
+  // KERNEL-SAVE-FORENSICS-1 (378): D1/D2/D3 probe record (enabled by
+  // --save-forensics; runs before the save_as workaround so the XML-boot
+  // window is intact).
+  save_forensics: { enabled: false, faces: [] }
 };
+if (args.saveForensics) summary.save_forensics.enabled = true;
 
 function log(...parts) {
   console.log("[score-wb]", ...parts);
@@ -425,6 +431,104 @@ async function main() {
     log("agent health:", JSON.stringify(health).slice(0, 120));
   } catch (error) {
     return fail(2, "env-agent", "agent HTTP not reachable: " + error.message);
+  }
+
+  // ---- KERNEL-SAVE-FORENSICS-1 (378) save-forensics probe (D1/D2/D3) -------
+  // Reproduces the SCORE-WORKBENCH-1 attempt3 ordering on the XML-boot project
+  // (in-session add_track/insert_midi_clip -> save_project -> IMMEDIATE
+  // disclosure readback) that the save_as-first workaround below skips, plus
+  // the D3 path-disclosure faces. Must run BEFORE the workaround so the
+  // XML-boot window (empty kernel currentProjectPath) is intact.
+  if (args.saveForensics) {
+    const disclose = async (label) => {
+      const state = await invoke("get_project_state", {});
+      const rows = (Array.isArray(state.tracks) ? state.tracks : []).map((t) => ({
+        track_id: String(t.track_id || t.id || ""),
+        clip_ids: (Array.isArray(t.clips) ? t.clips : []).map((c) => String(c.clip_id || c.id || ""))
+      }));
+      const face = {
+        label,
+        project_path: String(state.project_path ?? ""),
+        effective_project_path: String(state.effective_project_path ?? ""),
+        audio_track_count: rows.length,
+        tracks: rows
+      };
+      summary.save_forensics.faces.push(face);
+      return face;
+    };
+
+    const pre = await disclose("pre-save (XML-boot)");
+    // D3: pre-save the bound path is honestly empty; the kernel discloses the
+    // boot-file fallback under effective_project_path instead.
+    assert("F1-D3-pre-save-effective-path-disclosed", pre.effective_project_path.length > 0,
+      "effective_project_path=" + pre.effective_project_path + " project_path=" + JSON.stringify(pre.project_path));
+    assert("F1b-D3-pre-save-project-path-honestly-empty", pre.project_path === "",
+      "project_path=" + JSON.stringify(pre.project_path));
+
+    const fxTrack = await invoke("add_track", {}, true);
+    const fxTrackID = String(fxTrack.track_id || fxTrack.id || "");
+    const fxClip = await invoke("insert_midi_clip", { track_id: fxTrackID, time_unit: "beats", start: 0, length: 4 }, true);
+    const fxClipID = String(fxClip.clip_id || fxClip.new_clip_id || "");
+    await invoke("add_midi_notes", { track_id: fxTrackID, clip_id: fxClipID, time_unit: "beats", notes: [{ pitch: 60, start: 0, length: 1 }] }, true);
+    summary.save_forensics.probe_track_id = fxTrackID;
+    summary.save_forensics.probe_clip_id = fxClipID;
+
+    const mid = await disclose("post-add (pre-save)");
+    assert("F2-pre-save-clip-id-disclosed",
+      mid.tracks.some((t) => t.track_id === fxTrackID && t.clip_ids.includes(fxClipID)),
+      "track=" + fxTrackID + " clip=" + fxClipID);
+
+    const saved = await invoke("save_project", {}, true);
+    const savedPath = String(saved.project_path || saved.current_project_path || "");
+    summary.save_forensics.saved_path = savedPath;
+    assert("F3-save-ok", String(saved.status || "") === "ok", JSON.stringify(saved).slice(0, 200));
+
+    const post = await disclose("post-save");
+    // D1: the in-session track must survive the save in the disclosed state.
+    assert("F4-D1-post-save-track-disclosed", post.tracks.some((t) => t.track_id === fxTrackID),
+      "track=" + fxTrackID + (post.tracks.some((t) => t.track_id === fxTrackID) ? "" : " (D1 REPRO: dropped)"));
+    // D2: clip ids must stay addressable between save and reopen.
+    assert("F5-D2-post-save-clip-id-disclosed",
+      post.tracks.some((t) => t.track_id === fxTrackID && t.clip_ids.includes(fxClipID)),
+      "clip=" + fxClipID + " (D2 repro if missing)");
+
+    let readbackError = "";
+    let notesOk = false;
+    try {
+      const rows = await readKernelNotes(fxClipID, fxTrackID);
+      notesOk = rows.length === 1;
+    } catch (error) {
+      readbackError = String(error.message).slice(0, 300);
+    }
+    assert("F6-post-save-notes-readable", notesOk, readbackError);
+
+    // D3 post-save: the bound path is disclosed on both keys.
+    assert("F7-D3-post-save-path-bound",
+      savedPath !== "" && post.project_path === savedPath && post.effective_project_path === savedPath,
+      "project_path=" + post.project_path + " effective=" + post.effective_project_path + " saved=" + savedPath);
+
+    if (savedPath) {
+      await invoke("open_project", { file_path: savedPath }, true);
+      const ro = await disclose("post-reopen");
+      assert("F8-reopen-clip-id-disclosed",
+        ro.tracks.some((t) => t.track_id === fxTrackID && t.clip_ids.includes(fxClipID)),
+        "clip=" + fxClipID);
+      try {
+        const rows = await readKernelNotes(fxClipID, fxTrackID);
+        assert("F9-reopen-notes-readable", rows.length === 1, "notes=" + rows.length);
+      } catch (error) {
+        assert("F9-reopen-notes-readable", false, String(error.message).slice(0, 200));
+      }
+    }
+
+    // Drop the probe track so the standard fixture legs below see the normal
+    // demo shape (their own save_as re-materializes the project anyway).
+    try {
+      await invoke("delete_track", { track_id: fxTrackID }, true);
+    } catch (error) {
+      summary.save_forensics.cleanup_warning = String(error.message).slice(0, 200);
+    }
+    writeSummary();
   }
 
   let trackID = "";

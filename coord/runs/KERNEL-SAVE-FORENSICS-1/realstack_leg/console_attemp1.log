@@ -1,0 +1,58 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_203642\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_378save\coord\runs\KERNEL-SAVE-FORENSICS-1\realstack_leg\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_378save
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_378save\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_378save\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_378save\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_378save\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=15268 workdir=D:\Vit_DAW_wt_378save\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_378save\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=302
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=15268
+ok: ZMQ SUB listening: 5556 pid=15268
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=waiting_confirmation message=这个操作需要你确认后才会执行。
+warn: Strip Silence chat confirmation did not complete
+strip.suggest status=ok regions=3 pending=2 error=
+warn: Strip Silence suggest did not produce expected pending apply regions
+
+== score workbench DG1-A berth smoke (SCORE-WORKBENCH-1 / STACKGATE 3.1)
+ok: score wb recents snapshot: D:\Vit_DAW_wt_378save\coord\runs\KERNEL-SAVE-FORENSICS-1\realstack_leg\global_project_config.before.json sha256=807226F4AF3F
+ok: save forensics probe enabled (KERNEL-SAVE-FORENSICS-1 D1/D2/D3; F1-F9 assertions)
+node.exe : file:///D:/Vit_DAW_wt_378save/scripts/score_workbench_smoke.mjs:83
+所在位置 D:\Vit_DAW_wt_378save\scripts\dev_agent_smoke.ps1:9190 字符: 5
++     & node $scoreWbScript @scoreWbScriptArgs > $scoreWbConsolePath 2> ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (file:///D:/Vit_...ch_smoke.mjs:83:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 

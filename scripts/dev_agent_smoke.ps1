@@ -94,6 +94,11 @@ param(
     # the kernel stack after -StartKernel plus -RestartAgent; recents config is
     # snapshotted before and hash-verified back after (AGENTS.md section 10).
     [switch]$ScoreWorkbenchSmoke,
+    # KERNEL-SAVE-FORENSICS-1（378）：D1/D2/D3 取证腿开关——在 ScoreWorkbenchSmoke
+    # 的 save_as-先行装置前插入 attempt3 原序探针（XML-boot 会话内加轨→save→
+    # 即时披露读回）+D3 路径披露面断言（F1-F9，score_workbench_smoke.mjs
+    # --save-forensics 透传）。需与 -ScoreWorkbenchSmoke 同跑（同一 berth）。
+    [switch]$SaveForensicsSmoke,
     # PCA-REVERB-PROMOTION-1（卡 150）：时域混响族 PCA 准入晋升战役腿（全确定性
     # 零 LLM）。断言体在 scripts/pca_reverb_promotion_smoke.py：对兼容矩阵
     # reverb 可证件（首件 Abbey Road Plates Stereo）逐件走既有认证作业流
@@ -9133,6 +9138,10 @@ if ($SetTempoPersistSmoke) {
     Write-Ok ("settempo persist smoke passed (kernel command face; summary: " + $settempoSummaryPath + ")")
 }
 
+if ($SaveForensicsSmoke -and -not $ScoreWorkbenchSmoke) {
+    throw "-SaveForensicsSmoke rides the score workbench berth; pass it together with -ScoreWorkbenchSmoke"
+}
+
 if ($ScoreWorkbenchSmoke) {
     Write-Step "score workbench DG1-A berth smoke (SCORE-WORKBENCH-1 / STACKGATE 3.1)"
     # AGENTS.md section 10 recents discipline: the kernel rewrites the
@@ -9171,7 +9180,14 @@ if ($ScoreWorkbenchSmoke) {
     }
     $scoreWbSummaryPath = Join-Path $scoreWbArtifactsDir "score_workbench_summary.json"
     $scoreWbConsolePath = Join-Path $scoreWbArtifactsDir "score_workbench_console.txt"
-    & node $scoreWbScript --agent-http $AgentHttp --artifacts-dir $scoreWbArtifactsDir > $scoreWbConsolePath 2>&1
+    # 378 SaveForensicsSmoke：--save-forensics 透传（D1/D2 attempt3 原序探针
+    # +D3 披露面；仅与本 berth 同跑，见 param 注释）。
+    $scoreWbScriptArgs = @("--agent-http", $AgentHttp, "--artifacts-dir", $scoreWbArtifactsDir)
+    if ($SaveForensicsSmoke) {
+        $scoreWbScriptArgs += "--save-forensics"
+        Write-Ok "save forensics probe enabled (KERNEL-SAVE-FORENSICS-1 D1/D2/D3; F1-F9 assertions)"
+    }
+    & node $scoreWbScript @scoreWbScriptArgs > $scoreWbConsolePath 2>&1
     $scoreWbExit = $LASTEXITCODE
     Get-Content -LiteralPath $scoreWbConsolePath | ForEach-Object { Write-Host $_ }
 

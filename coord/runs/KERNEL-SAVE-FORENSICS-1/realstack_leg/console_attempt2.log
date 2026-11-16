@@ -1,0 +1,93 @@
+ok: draft root isolation: source=default VIT_HISTORY_DRAFT_ROOT=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_203942\agent_drafts
+ok: GUI leg project isolation: VIT_PROJECT_XML=D:\Vit_DAW_wt_378save\coord\runs\KERNEL-SAVE-FORENSICS-1\realstack_leg\attempt2\default_project.xml (git-clean run-dir copy; deployed default_project.xml stays untouched)
+
+== VitAgent dev smoke
+repo: D:\Vit_DAW_wt_378save
+agent http: http://127.0.0.1:7878
+
+== Build VitAgent
+ok: build passed: D:\Vit_DAW_wt_378save\agent\bin\VitAgent.dev-smoke.exe
+ok: installed agent bin: D:\Vit_DAW_wt_378save\agent\bin\VitAgent.exe
+ok: installed agent root compatibility exe: D:\Vit_DAW_wt_378save\agent\vitagent.exe
+
+== Start kernel
+ok: started kernel: D:\Vit_DAW_wt_378save\VitApp\build\VitApp_artefacts\Release\VitApp.exe pid=15464 workdir=D:\Vit_DAW_wt_378save\VitApp\build\VitApp_artefacts\Release
+
+== Start or reuse agent
+ok: started agent: D:\Vit_DAW_wt_378save\agent\bin\VitAgent.exe
+
+== HTTP state
+ok: tool_count=302
+shadow.initialized=True track_count=6
+
+== Strip Silence tool catalog
+ok: Strip Silence tools are advertised
+
+== Range context smoke
+range_context.stop_reason=range_context_smoke_ok
+range_context.reply=range_context smoke ok: top_level, current_selection, ui_context, prompt_context
+ok: range context survives UI context and chat current_selection merge
+
+== Kernel ports
+ok: ZMQ REQ listening: 5555 pid=15464
+ok: ZMQ SUB listening: 5556 pid=15464
+
+== Project state invoke
+project.state status=ok error=
+
+== Strip Silence agent invoke smoke
+strip.import status=ok error=
+strip.clip_id=1038 track_id=1007
+strip.chat.stop_reason=needs_confirmation
+strip.chat.reply=这个操作需要你确认后才会执行。
+ok: Strip Silence chat route used deterministic suggest without legacy mix routing
+strip.chat.confirm status=ok goal_status=completed message=已执行片段清理：1038 已删除 3 个静音区域。
+ok: Strip Silence chat confirmation executed apply
+strip.chat.cleanup status=ok ids=1038
+
+== score workbench DG1-A berth smoke (SCORE-WORKBENCH-1 / STACKGATE 3.1)
+ok: score wb recents snapshot: D:\Vit_DAW_wt_378save\coord\runs\KERNEL-SAVE-FORENSICS-1\realstack_leg\attempt2\global_project_config.before.json sha256=807226F4AF3F
+ok: save forensics probe enabled (KERNEL-SAVE-FORENSICS-1 D1/D2/D3; F1-F9 assertions)
+[score-wb] agent health: {"service":"VitAgent","status":"ok"}
+[score-wb] F1-D3-pre-save-effective-path-disclosed FAIL effective_project_path= project_path=""
+[score-wb] F1b-D3-pre-save-project-path-honestly-empty PASS
+[score-wb] F2-pre-save-clip-id-disclosed PASS
+[score-wb] F3-save-ok PASS
+[score-wb] F4-D1-post-save-track-disclosed PASS
+[score-wb] F5-D2-post-save-clip-id-disclosed PASS
+[score-wb] F6-post-save-notes-readable PASS
+[score-wb] F7-D3-post-save-path-bound FAIL project_path=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_203942\agent_drafts\draft_20261116T123946_d4da934f\Unsaved.vit effective= saved=C:\Users\timoz\AppData\Local\Temp\VitStackDrafts\dev_agent_smoke_20261116_203942\agent_drafts\draft_20261116T123946_d4da934f\Unsaved.vit
+[score-wb] F8-reopen-clip-id-disclosed PASS
+[score-wb] F9-reopen-notes-readable PASS
+[score-wb] music_context_echo: {"tempo_bpm":120,"tempo_setting_count":1,"time_sig_setting_count":1,"time_signature":"4/4","time_signature_denominator":4,"time_signature_numerator":4}
+[score-wb] playwright: D:\Vit_DAW_wt_378save\agent\webui\node_modules\playwright\index.mjs
+[score-wb] A4-timesig-disclosed PASS
+[score-wb] A1-load-equality PASS
+[score-wb] A3-fixture-loaded PASS
+[score-wb] A3-svg-glyphs PASS
+[score-wb] A3-dotted PASS
+[score-wb] A3-rest-window PASS
+[score-wb] A3-syncopation PASS
+[score-wb] A3-cross-bar-tie PASS
+[score-wb] A2-id-binding PASS
+[score-wb] A1-write-readback PASS
+[score-wb] A5-saved-only-after-verify PASS
+[score-wb] A2-id-stable-edit-apply PASS
+[score-wb] A6-reopen-readback PASS
+[score-wb] A2-id-stable-reopen PASS
+[score-wb] A6-panel-reload PASS
+[score-wb] A4-template-2-4-disclosed PASS
+[score-wb] A7-edit-readback PASS
+[score-wb] A7-probe-non-silent PASS
+[score-wb] A8-edit-differential PASS
+[score-wb] verdict: FAIL (29 assertions)
+ok: score wb recents restored and hash-verified: 807226F4AF3F
+score workbench smoke failed with exit code 1 (console: D:\Vit_DAW_wt_378save\coord\runs\KERNEL-SAVE-FORENSICS-1\realst
+ack_leg\attempt2\score_workbench_console.txt)
+所在位置 D:\Vit_DAW_wt_378save\scripts\dev_agent_smoke.ps1:9206 字符: 9
++         throw ("score workbench smoke failed with exit code $scoreWbE ...
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OperationStopped: (score workbench...ch_console.txt):String) [], RuntimeException
+    + FullyQualifiedErrorId : score workbench smoke failed with exit code 1 (console: D:\Vit_DAW_wt_378save\coord\runs 
+   \KERNEL-SAVE-FORENSICS-1\realstack_leg\attempt2\score_workbench_console.txt)
+ 
