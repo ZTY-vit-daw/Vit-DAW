@@ -5,7 +5,8 @@
 import type { AgentEvent, ChatMessage, ChatResponse, JsonRecord } from "../types";
 import { asRecord, compactJSON, firstArray, stableIDPart, textValue, truthy } from "../lib/util";
 import { isSameMixBoardSession, mixBoardActionSessionID } from "../chat/merge";
-import { agentEventAction, agentEventSourceID, artifactSummariesFrom } from "../App";
+import { agentEventAction, agentEventSourceID } from "../App";
+import { artifactSummariesFrom } from "../media/artifacts";
 import { actionRenderID, isCapabilityProposalInteraction, isComposerInteraction, isDisposableConfirmationPromptText } from "./StandardActionCard";
 import { isMixBoardAction } from "./MixBoardActionCard";
 import { commandSummaryLabel, localizeDisplayText } from "./labels";

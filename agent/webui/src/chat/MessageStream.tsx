@@ -26,7 +26,7 @@ import { isDisposableConfirmationPromptText } from "../actions/StandardActionCar
 import { isMixPlanningDiscussionAction } from "../actions/MixBoardActionCard";
 import { shouldSuppressProposalContent } from "../actions/CapabilityProposalCard";
 import { localizeDisplayText } from "../actions/labels";
-import { ArtifactContextCard } from "../App";
+import { ArtifactContextCard } from "../media/artifacts";
 
 export function MessageStream({
   messages,

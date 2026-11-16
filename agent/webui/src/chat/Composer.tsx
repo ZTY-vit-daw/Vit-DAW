@@ -6,7 +6,8 @@ import type { DawInvoke } from "../daw/parse";
 import { clampComposerInteractionHeight, defaultComposerInteractionHeight } from "../lib/util";
 import { macroControlID } from "../macro/normalize";
 import { ActionCard } from "../actions/ActionCards";
-import { ArtifactContextCard, AuthorityToggle, MacroContextCard } from "../App";
+import { AuthorityToggle, MacroContextCard } from "../App";
+import { ArtifactContextCard } from "../media/artifacts";
 
 export function Composer({
   composerRef,
