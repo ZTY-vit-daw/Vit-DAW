@@ -1,0 +1,124 @@
+{
+ "schema": "kernel_save_forensics_race.v1",
+ "rounds": [
+  {
+   "round": 0,
+   "track": "1037",
+   "clip": "1040",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 1,
+   "track": "1041",
+   "clip": "1044",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 2,
+   "track": "1045",
+   "clip": "1048",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 3,
+   "track": "1049",
+   "clip": "1052",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 4,
+   "track": "1053",
+   "clip": "1056",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 5,
+   "track": "1057",
+   "clip": "1060",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 6,
+   "track": "1061",
+   "clip": "1064",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 7,
+   "track": "1065",
+   "clip": "1068",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 8,
+   "track": "1069",
+   "clip": "1072",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  },
+  {
+   "round": 9,
+   "track": "1073",
+   "clip": "1076",
+   "pre_ok": true,
+   "save_ok": true,
+   "post_track_ok": true,
+   "post_clip_ok": true,
+   "notes_ok": true,
+   "ok": true
+  }
+ ],
+ "poll_stats": {
+  "ui_state": 28,
+  "ui_state_err": 0,
+  "gps": 28,
+  "gps_err": 0,
+  "saw_empty_tracks": 0,
+  "saw_missing_clip": []
+ },
+ "failures": 0
+}

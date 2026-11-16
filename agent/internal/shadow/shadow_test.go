@@ -101,6 +101,44 @@ func TestSummaryPreservesDeterministicTrackAndClipStateRevisions(t *testing.T) {
 	}
 }
 
+func TestSummarySurfacesEffectiveProjectPathFallback(t *testing.T) {
+	// KERNEL-SAVE-FORENSICS-1 D3: a pre-save XML-boot project carries an empty
+	// project_path plus the kernel's effective_project_path boot-file fallback.
+	// The user-visible summary must surface the fallback so invoke consumers
+	// can locate the project before the first save; with the key absent
+	// (older kernels) the bound path is used and empty stays empty.
+	p := New(nil)
+	p.Initialize(map[string]any{
+		"status":                "ok",
+		"project_path":          "",
+		"effective_project_path": "D:/Run/boot/default_project.xml",
+		"tracks":                []any{},
+	})
+	if got := p.Summary()["effective_project_path"]; got != "D:/Run/boot/default_project.xml" {
+		t.Fatalf("effective_project_path fallback missing from summary: %#v", got)
+	}
+
+	saved := New(nil)
+	saved.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": "D:/Run/out.vit",
+		"tracks":       []any{},
+	})
+	if got := saved.Summary()["effective_project_path"]; got != "D:/Run/out.vit" {
+		t.Fatalf("saved project effective_project_path should fall back to bound path, got %#v", got)
+	}
+
+	legacy := New(nil)
+	legacy.Initialize(map[string]any{
+		"status":       "ok",
+		"project_path": "",
+		"tracks":       []any{},
+	})
+	if got := legacy.Summary()["effective_project_path"]; got != "" {
+		t.Fatalf("unsaved legacy project should stay empty, got %#v", got)
+	}
+}
+
 func TestSummaryPreservesAuthoritativeProjectCutMetadata(t *testing.T) {
 	p := New(nil)
 	p.Initialize(map[string]any{

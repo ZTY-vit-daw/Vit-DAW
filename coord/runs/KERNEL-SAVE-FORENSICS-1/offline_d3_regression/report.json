@@ -1,0 +1,1645 @@
+{
+ "schema": "kernel_save_forensics_offline.v1",
+ "started_at": "2026-11-16T20:35:38",
+ "req_url": "tcp://127.0.0.1:5555",
+ "scenarios": {
+  "boot": {
+   "ping": {
+    "status": "ok",
+    "message": "pong"
+   }
+  },
+  "S1": {
+   "pre_save_state": {
+    "status": "ok",
+    "project_path": "",
+    "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\default_project.xml",
+    "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+    "track_rows": [
+     {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1006",
+      "track_name": "Master",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1007",
+      "track_name": "bass",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1011",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1012",
+      "track_name": "drums",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1016",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1017",
+      "track_name": "guitar",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1021",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1022",
+      "track_name": "other",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1026",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1027",
+      "track_name": "piano",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1031",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1032",
+      "track_name": "vocals",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1036",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1037",
+      "track_name": "Track 7",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1040",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     }
+    ],
+    "audio_track_count": 7,
+    "clip_rows_total": 7
+   },
+   "post_save_state": {
+    "status": "ok",
+    "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+    "track_rows": [
+     {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1006",
+      "track_name": "Master",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1007",
+      "track_name": "bass",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1011",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1012",
+      "track_name": "drums",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1016",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1017",
+      "track_name": "guitar",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1021",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1022",
+      "track_name": "other",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1026",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1027",
+      "track_name": "piano",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1031",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1032",
+      "track_name": "vocals",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1036",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1037",
+      "track_name": "Track 7",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1040",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     }
+    ],
+    "audio_track_count": 7,
+    "clip_rows_total": 7
+   },
+   "replies": {
+    "add_track": {
+     "status": "ok",
+     "message": "Track added",
+     "track_id": "1037",
+     "track_name": "Track 7"
+    },
+    "insert_midi_clip": {
+     "status": "ok",
+     "message": "MIDI clip inserted",
+     "clip_id": "1040",
+     "new_clip_id": "1040",
+     "track_id": "1037",
+     "start_seconds": 0.0,
+     "length_seconds": 2.0
+    },
+    "add_midi_notes": {
+     "status": "ok",
+     "message": "MIDI notes added",
+     "clip_id": "1040",
+     "track_id": "1037",
+     "added_count": 4,
+     "inserted_count": 4,
+     "inserted_note_ids": [
+      "note_f8fa001a04c24299b2ead046945a15e4",
+      "note_f13722d75d00468d83447c1e7e54117c",
+      "note_beeec82dbb2b4ef6abfc03fc26bf1443",
+      "note_75f74b365f8842069c228bedb97cf3eb"
+     ],
+     "notes": [
+      {
+       "id": "note_f8fa001a04c24299b2ead046945a15e4",
+       "start": 0.0,
+       "length": 1.0,
+       "pitch": 60,
+       "velocity": 90,
+       "channel": 1
+      },
+      {
+       "id": "note_f13722d75d00468d83447c1e7e54117c",
+       "start": 1.0,
+       "length": 0.5,
+       "pitch": 62,
+       "velocity": 80,
+       "channel": 1
+      },
+      {
+       "id": "note_beeec82dbb2b4ef6abfc03fc26bf1443",
+       "start": 1.5,
+       "length": 0.5,
+       "pitch": 64,
+       "velocity": 80,
+       "channel": 1
+      },
+      {
+       "id": "note_75f74b365f8842069c228bedb97cf3eb",
+       "start": 2.0,
+       "length": 2.0,
+       "pitch": 67,
+       "velocity": 85,
+       "channel": 1
+      }
+     ]
+    },
+    "save_project": {
+     "status": "ok",
+     "message": "Project saved",
+     "project_lifecycle": "save_as",
+     "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "current_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+     "project_id": "vitproj_826e108414da4143b99e26b8ca582446",
+     "source_project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+     "parent_project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb"
+    },
+    "post_save_get_midi_clip_notes": {
+     "status": "ok",
+     "note_count": 4
+    }
+   }
+  },
+  "S2": {
+   "reopen_state": {
+    "status": "ok",
+    "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+    "track_rows": [
+     {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1006",
+      "track_name": "Master",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1007",
+      "track_name": "bass",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1011",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1012",
+      "track_name": "drums",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1016",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1017",
+      "track_name": "guitar",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1021",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1022",
+      "track_name": "other",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1026",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1027",
+      "track_name": "piano",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1031",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1032",
+      "track_name": "vocals",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1036",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1037",
+      "track_name": "Track 7",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1040",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     }
+    ],
+    "audio_track_count": 7,
+    "clip_rows_total": 7
+   },
+   "replies": {
+    "open_project": {
+     "status": "ok",
+     "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit"
+    },
+    "reopen_state": {
+     "status": "ok",
+     "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+     "track_rows": [
+      {
+       "track_id": "1002",
+       "track_name": "Arranger",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1003",
+       "track_name": "Chord",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1004",
+       "track_name": "Marker",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1005",
+       "track_name": "Tempo",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1006",
+       "track_name": "Master",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1007",
+       "track_name": "bass",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1011",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1012",
+       "track_name": "drums",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1016",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1017",
+       "track_name": "guitar",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1021",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1022",
+       "track_name": "other",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1026",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1027",
+       "track_name": "piano",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1031",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1032",
+       "track_name": "vocals",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1036",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1037",
+       "track_name": "Track 7",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1040",
+         "clip_id": null,
+         "clip_type": "midi"
+        }
+       ]
+      }
+     ],
+     "audio_track_count": 7,
+     "clip_rows_total": 7
+    },
+    "reopen_get_midi_clip_notes": {
+     "status": "ok",
+     "note_count": 4
+    }
+   }
+  },
+  "S3": {
+   "pre_save_state": {
+    "status": "ok",
+    "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+    "track_rows": [
+     {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1006",
+      "track_name": "Master",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1007",
+      "track_name": "bass",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1011",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1012",
+      "track_name": "drums",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1016",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1017",
+      "track_name": "guitar",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1021",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1022",
+      "track_name": "other",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1026",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1027",
+      "track_name": "piano",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1031",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1032",
+      "track_name": "vocals",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1036",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1037",
+      "track_name": "Track 7",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1040",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     },
+     {
+      "track_id": "1041",
+      "track_name": "Track 8",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1044",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     }
+    ],
+    "audio_track_count": 8,
+    "clip_rows_total": 8
+   },
+   "post_save_state": {
+    "status": "ok",
+    "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+    "track_rows": [
+     {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1006",
+      "track_name": "Master",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1007",
+      "track_name": "bass",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1011",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1012",
+      "track_name": "drums",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1016",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1017",
+      "track_name": "guitar",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1021",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1022",
+      "track_name": "other",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1026",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1027",
+      "track_name": "piano",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1031",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1032",
+      "track_name": "vocals",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1036",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1037",
+      "track_name": "Track 7",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1040",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     },
+     {
+      "track_id": "1041",
+      "track_name": "Track 8",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1044",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     }
+    ],
+    "audio_track_count": 8,
+    "clip_rows_total": 8
+   },
+   "reopen_state": {
+    "status": "ok",
+    "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+    "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+    "track_rows": [
+     {
+      "track_id": "1002",
+      "track_name": "Arranger",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1003",
+      "track_name": "Chord",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1004",
+      "track_name": "Marker",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1005",
+      "track_name": "Tempo",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1006",
+      "track_name": "Master",
+      "is_audio_track": false,
+      "clips": []
+     },
+     {
+      "track_id": "1007",
+      "track_name": "bass",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1011",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1012",
+      "track_name": "drums",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1016",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1017",
+      "track_name": "guitar",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1021",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1022",
+      "track_name": "other",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1026",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1027",
+      "track_name": "piano",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1031",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1032",
+      "track_name": "vocals",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1036",
+        "clip_id": null,
+        "clip_type": "wave"
+       }
+      ]
+     },
+     {
+      "track_id": "1037",
+      "track_name": "Track 7",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1040",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     },
+     {
+      "track_id": "1041",
+      "track_name": "Track 8",
+      "is_audio_track": true,
+      "clips": [
+       {
+        "id": "1044",
+        "clip_id": null,
+        "clip_type": "midi"
+       }
+      ]
+     }
+    ],
+    "audio_track_count": 8,
+    "clip_rows_total": 8
+   },
+   "replies": {
+    "add_track": {
+     "status": "ok",
+     "message": "Track added",
+     "track_id": "1041",
+     "track_name": "Track 8"
+    },
+    "insert_midi_clip": {
+     "status": "ok",
+     "message": "MIDI clip inserted",
+     "clip_id": "1044",
+     "new_clip_id": "1044",
+     "track_id": "1041",
+     "start_seconds": 0.0,
+     "length_seconds": 2.0
+    },
+    "add_midi_notes": {
+     "status": "ok",
+     "message": "MIDI notes added",
+     "clip_id": "1044",
+     "track_id": "1041",
+     "added_count": 4,
+     "inserted_count": 4,
+     "inserted_note_ids": [
+      "note_b5a488284e434287a29f33cf4d53533e",
+      "note_2d81399b72944bfb93f0ec2b55a1abc5",
+      "note_010f8ad94095469798b7e9539334d60d",
+      "note_7df39c99aaee44abbda56501ba0e3c45"
+     ],
+     "notes": [
+      {
+       "id": "note_b5a488284e434287a29f33cf4d53533e",
+       "start": 0.0,
+       "length": 1.0,
+       "pitch": 60,
+       "velocity": 90,
+       "channel": 1
+      },
+      {
+       "id": "note_2d81399b72944bfb93f0ec2b55a1abc5",
+       "start": 1.0,
+       "length": 0.5,
+       "pitch": 62,
+       "velocity": 80,
+       "channel": 1
+      },
+      {
+       "id": "note_010f8ad94095469798b7e9539334d60d",
+       "start": 1.5,
+       "length": 0.5,
+       "pitch": 64,
+       "velocity": 80,
+       "channel": 1
+      },
+      {
+       "id": "note_7df39c99aaee44abbda56501ba0e3c45",
+       "start": 2.0,
+       "length": 2.0,
+       "pitch": 67,
+       "velocity": 85,
+       "channel": 1
+      }
+     ]
+    },
+    "pre_save_state": {
+     "status": "ok",
+     "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+     "track_rows": [
+      {
+       "track_id": "1002",
+       "track_name": "Arranger",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1003",
+       "track_name": "Chord",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1004",
+       "track_name": "Marker",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1005",
+       "track_name": "Tempo",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1006",
+       "track_name": "Master",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1007",
+       "track_name": "bass",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1011",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1012",
+       "track_name": "drums",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1016",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1017",
+       "track_name": "guitar",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1021",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1022",
+       "track_name": "other",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1026",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1027",
+       "track_name": "piano",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1031",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1032",
+       "track_name": "vocals",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1036",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1037",
+       "track_name": "Track 7",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1040",
+         "clip_id": null,
+         "clip_type": "midi"
+        }
+       ]
+      },
+      {
+       "track_id": "1041",
+       "track_name": "Track 8",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1044",
+         "clip_id": null,
+         "clip_type": "midi"
+        }
+       ]
+      }
+     ],
+     "audio_track_count": 8,
+     "clip_rows_total": 8
+    },
+    "save_project": {
+     "status": "ok",
+     "message": "Project saved",
+     "project_lifecycle": "save",
+     "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "current_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+     "project_id": "vitproj_826e108414da4143b99e26b8ca582446"
+    },
+    "post_save_state": {
+     "status": "ok",
+     "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+     "track_rows": [
+      {
+       "track_id": "1002",
+       "track_name": "Arranger",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1003",
+       "track_name": "Chord",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1004",
+       "track_name": "Marker",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1005",
+       "track_name": "Tempo",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1006",
+       "track_name": "Master",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1007",
+       "track_name": "bass",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1011",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1012",
+       "track_name": "drums",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1016",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1017",
+       "track_name": "guitar",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1021",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1022",
+       "track_name": "other",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1026",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1027",
+       "track_name": "piano",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1031",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1032",
+       "track_name": "vocals",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1036",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1037",
+       "track_name": "Track 7",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1040",
+         "clip_id": null,
+         "clip_type": "midi"
+        }
+       ]
+      },
+      {
+       "track_id": "1041",
+       "track_name": "Track 8",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1044",
+         "clip_id": null,
+         "clip_type": "midi"
+        }
+       ]
+      }
+     ],
+     "audio_track_count": 8,
+     "clip_rows_total": 8
+    },
+    "post_save_get_midi_clip_notes": {
+     "status": "ok",
+     "note_count": 4
+    },
+    "open_project": {
+     "status": "ok"
+    },
+    "reopen_state": {
+     "status": "ok",
+     "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "effective_project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit",
+     "project_uuid": "vitproj_826e108414da4143b99e26b8ca582446",
+     "track_rows": [
+      {
+       "track_id": "1002",
+       "track_name": "Arranger",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1003",
+       "track_name": "Chord",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1004",
+       "track_name": "Marker",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1005",
+       "track_name": "Tempo",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1006",
+       "track_name": "Master",
+       "is_audio_track": false,
+       "clips": []
+      },
+      {
+       "track_id": "1007",
+       "track_name": "bass",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1011",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1012",
+       "track_name": "drums",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1016",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1017",
+       "track_name": "guitar",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1021",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1022",
+       "track_name": "other",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1026",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1027",
+       "track_name": "piano",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1031",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1032",
+       "track_name": "vocals",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1036",
+         "clip_id": null,
+         "clip_type": "wave"
+        }
+       ]
+      },
+      {
+       "track_id": "1037",
+       "track_name": "Track 7",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1040",
+         "clip_id": null,
+         "clip_type": "midi"
+        }
+       ]
+      },
+      {
+       "track_id": "1041",
+       "track_name": "Track 8",
+       "is_audio_track": true,
+       "clips": [
+        {
+         "id": "1044",
+         "clip_id": null,
+         "clip_type": "midi"
+        }
+       ]
+      }
+     ],
+     "audio_track_count": 8,
+     "clip_rows_total": 8
+    },
+    "reopen_get_midi_clip_notes": {
+     "status": "ok",
+     "note_count": 4
+    }
+   }
+  }
+ },
+ "asserts": [
+  {
+   "name": "S1-add-track-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"Track added\", \"track_id\": \"1037\", \"track_name\": \"Track 7\"}"
+  },
+  {
+   "name": "S1-insert-midi-clip-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI clip inserted\", \"clip_id\": \"1040\", \"new_clip_id\": \"1040\", \"track_id\": \"1037\", \"start_seconds\": 0.0, \"length_seconds\": 2.0}"
+  },
+  {
+   "name": "S1-add-midi-notes-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI notes added\", \"clip_id\": \"1040\", \"track_id\": \"1037\", \"added_count\": 4, \"inserted_count\": 4, \"inserted_note_ids\": [\"note_f8fa001a04c24299b2ead046945a15e4\", \"note_f1372"
+  },
+  {
+   "name": "S1-pre-save-track-disclosed",
+   "pass": true,
+   "detail": "track_id=1037"
+  },
+  {
+   "name": "S1-pre-save-clip-id-disclosed",
+   "pass": true,
+   "detail": "clip_id=1040 clips=[{\"id\": \"1040\", \"clip_id\": null, \"clip_type\": \"midi\"}]"
+  },
+  {
+   "name": "S1-D3-pre-save-effective-path-disclosed",
+   "pass": true,
+   "detail": "effective=D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\default_project.xml project_path="
+  },
+  {
+   "name": "S1-save-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"Project saved\", \"project_lifecycle\": \"save_as\", \"project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\out1.vit\", \"current_project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\"
+  },
+  {
+   "name": "S1-D1-post-save-track-disclosed",
+   "pass": true,
+   "detail": "track present"
+  },
+  {
+   "name": "S1-D1-post-save-clip-id-disclosed",
+   "pass": true,
+   "detail": "clip_id=1040"
+  },
+  {
+   "name": "S1-D3-post-save-paths-bound",
+   "pass": true,
+   "detail": "project_path=D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit effective=D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d3_regression\\out1.vit"
+  },
+  {
+   "name": "S1-D1-post-save-notes-readable",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI clip notes\", \"clip_id\": \"1040\", \"track_id\": \"\", \"time_unit\": \"beats\", \"notes\": [{\"id\": \"note_f8fa001a04c24299b2ead046945a15e4\", \"start\": 0.0, \"length\": 1.0, \"pitch\": "
+  },
+  {
+   "name": "S2-open-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"Project opened\", \"project_lifecycle\": \"open\", \"project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\out1.vit\", \"current_project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\ou"
+  },
+  {
+   "name": "S2-reopen-track-disclosed",
+   "pass": true,
+   "detail": "track_id=1037"
+  },
+  {
+   "name": "S2-reopen-clip-id-disclosed",
+   "pass": true,
+   "detail": "clip_id=1040"
+  },
+  {
+   "name": "S2-reopen-notes-readable",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI clip notes\", \"clip_id\": \"1040\", \"track_id\": \"\", \"time_unit\": \"beats\", \"notes\": [{\"id\": \"note_f8fa001a04c24299b2ead046945a15e4\", \"start\": 0.0, \"length\": 1.0, \"pitch\": "
+  },
+  {
+   "name": "S3-add-track-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"Track added\", \"track_id\": \"1041\", \"track_name\": \"Track 8\"}"
+  },
+  {
+   "name": "S3-insert-midi-clip-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI clip inserted\", \"clip_id\": \"1044\", \"new_clip_id\": \"1044\", \"track_id\": \"1041\", \"start_seconds\": 0.0, \"length_seconds\": 2.0}"
+  },
+  {
+   "name": "S3-add-midi-notes-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI notes added\", \"clip_id\": \"1044\", \"track_id\": \"1041\", \"added_count\": 4, \"inserted_count\": 4, \"inserted_note_ids\": [\"note_b5a488284e434287a29f33cf4d53533e\", \"note_2d813"
+  },
+  {
+   "name": "S3-pre-save-clip-id-disclosed",
+   "pass": true,
+   "detail": "clip2=1044"
+  },
+  {
+   "name": "S3-save-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"Project saved\", \"project_lifecycle\": \"save\", \"project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\out1.vit\", \"current_project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\out"
+  },
+  {
+   "name": "S3-D2-post-save-track-disclosed",
+   "pass": true,
+   "detail": "track2=1041"
+  },
+  {
+   "name": "S3-D2-post-save-clip-id-disclosed",
+   "pass": true,
+   "detail": "clip2=1044 clips=[{\"id\": \"1044\", \"clip_id\": null, \"clip_type\": \"midi\"}]"
+  },
+  {
+   "name": "S3-D2-post-save-notes-readable",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI clip notes\", \"clip_id\": \"1044\", \"track_id\": \"\", \"time_unit\": \"beats\", \"notes\": [{\"id\": \"note_b5a488284e434287a29f33cf4d53533e\", \"start\": 0.0, \"length\": 1.0, \"pitch\": "
+  },
+  {
+   "name": "S3-reopen-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"Project opened\", \"project_lifecycle\": \"open\", \"project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\out1.vit\", \"current_project_path\": \"D:\\\\Vit_DAW_wt_378save\\\\coord\\\\runs\\\\KERNEL-SAVE-FORENSICS-1\\\\offline_d3_regression\\\\ou"
+  },
+  {
+   "name": "S3-reopen-track-disclosed",
+   "pass": true,
+   "detail": "track2=1041"
+  },
+  {
+   "name": "S3-reopen-clip-id-disclosed",
+   "pass": true,
+   "detail": "clip2=1044"
+  },
+  {
+   "name": "S3-reopen-notes-readable",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"message\": \"MIDI clip notes\", \"clip_id\": \"1044\", \"track_id\": \"\", \"time_unit\": \"beats\", \"notes\": [{\"id\": \"note_b5a488284e434287a29f33cf4d53533e\", \"start\": 0.0, \"length\": 1.0, \"pitch\": "
+  }
+ ],
+ "finished_at": "2026-11-16T20:35:38",
+ "exit_code": 0
+}

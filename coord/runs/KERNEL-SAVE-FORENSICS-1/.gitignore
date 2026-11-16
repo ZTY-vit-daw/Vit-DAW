@@ -1,0 +1,14 @@
+# 运行时重物不入库（AGENTS §12，374/377 先例）：
+# 内核运行时拼装目录（VitApp.exe 二进制，sha256 在 stack 登记与回执：
+#   基线 7C45E745AB58BFE2 / D3 修复后 66001D546F1752AE）、agent 草稿树、
+#   WAV 派生重物（计量/差分数值在 attempt summary json）、隔离工程副本、
+#   vit_history 派生态。小体积 .vit 工程容器（≤21KB）作为取证证据入库。
+kernel_runtime/
+agent_drafts/
+vit_history/
+.vit_derived/
+Workspace/
+*.wav
+*.exe
+default_project.xml
+lesson_project.xml

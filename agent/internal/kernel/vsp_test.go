@@ -19,6 +19,38 @@ func TestLegacyStateFromVSPPayloadPreservesProjectWorkspaceIdentity(t *testing.T
 	}
 }
 
+func TestLegacyStateFromVSPPayloadProjectsEffectiveProjectPathFallback(t *testing.T) {
+	// KERNEL-SAVE-FORENSICS-1 D3: a pre-save XML-boot project discloses an
+	// empty project_path plus the kernel's effective_project_path (boot XML
+	// fallback). The legacy-state projection must surface the fallback at
+	// the top level so invoke consumers can locate the project before the
+	// first save.
+	state := legacyStateFromVSPPayload(map[string]any{
+		"project": map[string]any{
+			"project_path": "", "effective_project_path": "D:/Run/boot/default_project.xml",
+			"project_uuid": "vitproj_boot",
+		},
+		"tracks": []any{},
+	})
+	if state["effective_project_path"] != "D:/Run/boot/default_project.xml" {
+		t.Fatalf("effective_project_path fallback missing from VSP state: %+v", state)
+	}
+	// The bound path stays authoritative and is not overwritten by the fallback.
+	if bound := state["project_path"]; bound != "" {
+		t.Fatalf("project_path should stay empty pre-save, got %q", bound)
+	}
+
+	// Saved project: both keys present and distinct in meaning.
+	saved := legacyStateFromVSPPayload(map[string]any{
+		"project": map[string]any{
+			"project_path": "D:/Run/out.vit", "effective_project_path": "D:/Run/out.vit",
+		},
+	})
+	if saved["effective_project_path"] != "D:/Run/out.vit" || saved["project_path"] != "D:/Run/out.vit" {
+		t.Fatalf("saved project identity missing: %+v", saved)
+	}
+}
+
 func TestParseVSPStateResultProjectsAuthoritativeCutMetadataIntoLegacyState(t *testing.T) {
 	result := parseVSPStateResult(map[string]any{
 		"type":          "state.snapshot",

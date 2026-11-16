@@ -1,0 +1,25 @@
+{
+  "schema_version": "score_workbench_smoke.v2-a7a8",
+  "card": "SCORE-DG1A-COMPLETE-1 (completes SCORE-WORKBENCH-1 DG1-A leg)",
+  "gate": "DG1-A (docs/STACKGATE_DG1_DG3_V1.md section 3.1)",
+  "leg_form": "berth (kernel + agent, real browser on /app/)",
+  "started_at": "2026-11-16T12:38:46.283Z",
+  "agent_http": "http://127.0.0.1:7878",
+  "kernel_zmq": "tcp://127.0.0.1:5555",
+  "kernel_sub": "tcp://127.0.0.1:5556",
+  "thresholds": {
+    "probe_max_abs_min": 0.01,
+    "wav_non_silent_peak": 500,
+    "wav_non_silent_rms": 20,
+    "wav_diff_max_min": 500
+  },
+  "assertions": {},
+  "boundary": [],
+  "failure_class": "",
+  "notes": [],
+  "save_forensics": {
+    "enabled": false,
+    "faces": []
+  },
+  "finished_at": "2026-11-16T12:38:46.284Z"
+}

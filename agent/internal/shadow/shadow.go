@@ -191,8 +191,15 @@ func (p *Project) Summary() map[string]any {
 
 	project, _ := cloneMap(engine["project"]).(map[string]any)
 	out := map[string]any{
-		"initialized":          p.initialized,
-		"project_path":         cleanSummaryText(firstNonNilValue(engine["project_path"], project["project_path"])),
+		"initialized": p.initialized,
+		"project_path": cleanSummaryText(firstNonNilValue(engine["project_path"], project["project_path"])),
+		// KERNEL-SAVE-FORENSICS-1 D3: the kernel discloses the boot-file
+		// fallback under effective_project_path (a pre-save XML-boot project
+		// has an empty project_path); surface it on the user-visible summary
+		// so invoke consumers can locate the project before the first save.
+		// Falls back to the bound path for kernels that predate the key
+		// (empty stays empty -- no fabricated path).
+		"effective_project_path": cleanSummaryText(firstNonNilValue(engine["effective_project_path"], project["effective_project_path"], engine["project_path"], project["project_path"])),
 		"project_uuid":         cleanSummaryText(firstNonNilValue(engine["project_uuid"], project["project_uuid"], engine["project_id"])),
 		"project_id":           cleanSummaryText(firstNonNilValue(engine["project_uuid"], project["project_uuid"], engine["project_id"])),
 		"parent_project_uuid":  cleanSummaryText(firstNonNilValue(engine["parent_project_uuid"], project["parent_project_uuid"])),

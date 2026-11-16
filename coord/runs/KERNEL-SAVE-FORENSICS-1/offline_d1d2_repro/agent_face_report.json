@@ -1,0 +1,385 @@
+{
+ "schema": "kernel_save_forensics_agent_face.v1",
+ "started_at": "2026-11-16T20:21:33",
+ "steps": [
+  {
+   "name": "add_track",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "insert_midi_clip",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "add_midi_notes",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "get_project_state.pre",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "save_project",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "get_project_state.post",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "get_midi_clip_notes.post",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "open_project",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "get_project_state.reopen",
+   "status": "ok",
+   "error": null
+  },
+  {
+   "name": "get_midi_clip_notes.reopen",
+   "status": "ok",
+   "error": null
+  }
+ ],
+ "asserts": [
+  {
+   "name": "A-add-track-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"agent_action_id\": \"act_c8e8e4fe2916d8b7\", \"tool\": \"track.add\", \"command_name\": \"add_track\", \"risk_level\": \"undoable\", \"requires_confirmation\": false, \"undo_label\": \"Agent: add_track\""
+  },
+  {
+   "name": "A-insert-midi-clip-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"agent_action_id\": \"act_b337bf12449a8353\", \"tool\": \"midi.insert_clip\", \"command_name\": \"insert_midi_clip\", \"risk_level\": \"confirm\", \"requires_confirmation\": false, \"undo_label\": \"Agen"
+  },
+  {
+   "name": "A-add-midi-notes-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"agent_action_id\": \"act_f28f29a4a793b1ff\", \"tool\": \"midi.legacy_add_notes\", \"command_name\": \"add_midi_notes\", \"risk_level\": \"confirm\", \"requires_confirmation\": false, \"undo_label\": \"A"
+  },
+  {
+   "name": "A-pre-save-track-disclosed",
+   "pass": true,
+   "detail": "track=1037"
+  },
+  {
+   "name": "A-pre-save-clip-disclosed",
+   "pass": true,
+   "detail": "clip=1040 rows=[{\"track_id\": \"1007\", \"name\": \"bass\", \"clip_ids\": [\"1011\"]}, {\"track_id\": \"1012\", \"name\": \"drums\", \"clip_ids\": [\"1016\"]}, {\"track_id\": \"1017\", \"name\": \"guitar\", \"clip_ids\": [\"1021\"]}, {\"track_id\": \"1022\", \"name\": \"other\", \"clip_ids\": [\"1026\"]}, {\"track_id\": \"1027\", \"name\": \"piano\", \"clip_ids\": [\"1031\"]}, {\"track_id\": \"1032\", \"name\": \"vocals\", \"clip_ids\": [\"1036\"]}, {\"track_id\": \"1037\", \"name\": \"Track 7\", \"clip_ids\": [\"1040\"]}]"
+  },
+  {
+   "name": "A-save-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"agent_action_id\": \"act_02e3ba60382755a7\", \"tool\": \"project.save\", \"command_name\": \"save_project\", \"risk_level\": \"confirm\", \"requires_confirmation\": false, \"result\": {\"agent_history_generation\": \"save_20261116T122134_2c960adb\", \"command_ack\": {\"ack\": {\"message\": \"Project saved\", \"stage\": \"completed\"}, \"command\": \"legacy.command\", \"legacy_command\": \"save_project\", \"resync_hint\": tr"
+  },
+  {
+   "name": "A-D1-post-save-track-disclosed",
+   "pass": true,
+   "detail": "track=1037"
+  },
+  {
+   "name": "A-D1-post-save-clip-disclosed",
+   "pass": true,
+   "detail": "clip=1040 rows=[{\"track_id\": \"1007\", \"name\": \"bass\", \"clip_ids\": [\"1011\"]}, {\"track_id\": \"1012\", \"name\": \"drums\", \"clip_ids\": [\"1016\"]}, {\"track_id\": \"1017\", \"name\": \"guitar\", \"clip_ids\": [\"1021\"]}, {\"track_id\": \"1022\", \"name\": \"other\", \"clip_ids\": [\"1026\"]}, {\"track_id\": \"1027\", \"name\": \"piano\", \"clip_ids\": [\"1031\"]}, {\"track_id\": \"1032\", \"name\": \"vocals\", \"clip_ids\": [\"1036\"]}, {\"track_id\": \"1037\", \"name\": \"Track 7\", \"clip_ids\": [\"1040\"]}]"
+  },
+  {
+   "name": "A-D1-post-save-notes-readable",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"agent_action_id\": \"act_61f70b869bb372eb\", \"tool\": \"midi.read_notes\", \"command_name\": \"get_midi_clip_notes\", \"risk_level\": \"direct\", \"requires_confirmation\": false, \"result\": {\"clip_id\": \"1040\", \"command_ack\": {\"ack\": {\"message\": \"MIDI clip notes\", \"stage\": \"completed\"}, \"command\": "
+  },
+  {
+   "name": "A-reopen-ok",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"agent_action_id\": \"act_7dde54aa117b4065\", \"tool\": \"project.open\", \"command_name\": \"open_project\", \"risk_level\": \"confirm\", \"requires_confirmation\": false, \"result\": {\"agent_history_generation\": \"save_20261116T122134_2c960adb\", \"command_ack\": {\"ack\": {\"message\": \"Project opened\", \"s"
+  },
+  {
+   "name": "A-reopen-track-disclosed",
+   "pass": true,
+   "detail": "track=1037"
+  },
+  {
+   "name": "A-reopen-clip-disclosed",
+   "pass": true,
+   "detail": "clip=1040"
+  },
+  {
+   "name": "A-reopen-notes-readable",
+   "pass": true,
+   "detail": "{\"status\": \"ok\", \"agent_action_id\": \"act_9b1a94e8e7f4f69b\", \"tool\": \"midi.read_notes\", \"command_name\": \"get_midi_clip_notes\", \"risk_level\": \"direct\", \"requires_confirmation\": false, \"result\": {\"clip_id\": \"1040\", \"command_ack\": {\"ack\": {\"message\": \"MIDI clip notes\", \"stage\": \"completed\"}, \"command\": "
+  }
+ ],
+ "pre_save_face": {
+  "keys": [
+   "analysis_manifest",
+   "delta_seq_gaps",
+   "graph_revision",
+   "groups",
+   "initialized",
+   "last_delta_seq",
+   "latest_change",
+   "nodes_by_uid",
+   "observability",
+   "orphan_uid_keys",
+   "parent_project_uuid",
+   "pending_job_data",
+   "project_epoch",
+   "project_health",
+   "project_id",
+   "project_observe",
+   "project_path",
+   "project_revision",
+   "project_uuid",
+   "snapshot_hash",
+   "state_epoch",
+   "status",
+   "track_count",
+   "track_group_count",
+   "track_groups",
+   "tracks",
+   "user_track_count",
+   "vsp"
+  ],
+  "track_rows": [
+   {
+    "track_id": "1007",
+    "name": "bass",
+    "clip_ids": [
+     "1011"
+    ]
+   },
+   {
+    "track_id": "1012",
+    "name": "drums",
+    "clip_ids": [
+     "1016"
+    ]
+   },
+   {
+    "track_id": "1017",
+    "name": "guitar",
+    "clip_ids": [
+     "1021"
+    ]
+   },
+   {
+    "track_id": "1022",
+    "name": "other",
+    "clip_ids": [
+     "1026"
+    ]
+   },
+   {
+    "track_id": "1027",
+    "name": "piano",
+    "clip_ids": [
+     "1031"
+    ]
+   },
+   {
+    "track_id": "1032",
+    "name": "vocals",
+    "clip_ids": [
+     "1036"
+    ]
+   },
+   {
+    "track_id": "1037",
+    "name": "Track 7",
+    "clip_ids": [
+     "1040"
+    ]
+   }
+  ],
+  "audio_track_count": 7,
+  "project_path": "",
+  "project_uuid": "vitproj_ce9e36c7cc6f49fe9cf11db23fe5deeb",
+  "project_epoch": "epoch_241b862ff0b05428"
+ },
+ "saved_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\agent_drafts\\draft_20261116T122134_0e20ea2c\\Unsaved.vit",
+ "post_save_face": {
+  "keys": [
+   "analysis_manifest",
+   "delta_seq_gaps",
+   "graph_revision",
+   "groups",
+   "initialized",
+   "last_delta_seq",
+   "nodes_by_uid",
+   "observability",
+   "orphan_uid_keys",
+   "parent_project_uuid",
+   "pending_job_data",
+   "project_epoch",
+   "project_health",
+   "project_id",
+   "project_observe",
+   "project_path",
+   "project_revision",
+   "project_uuid",
+   "snapshot_hash",
+   "state_epoch",
+   "status",
+   "track_count",
+   "track_group_count",
+   "track_groups",
+   "tracks",
+   "user_track_count",
+   "vsp"
+  ],
+  "track_rows": [
+   {
+    "track_id": "1007",
+    "name": "bass",
+    "clip_ids": [
+     "1011"
+    ]
+   },
+   {
+    "track_id": "1012",
+    "name": "drums",
+    "clip_ids": [
+     "1016"
+    ]
+   },
+   {
+    "track_id": "1017",
+    "name": "guitar",
+    "clip_ids": [
+     "1021"
+    ]
+   },
+   {
+    "track_id": "1022",
+    "name": "other",
+    "clip_ids": [
+     "1026"
+    ]
+   },
+   {
+    "track_id": "1027",
+    "name": "piano",
+    "clip_ids": [
+     "1031"
+    ]
+   },
+   {
+    "track_id": "1032",
+    "name": "vocals",
+    "clip_ids": [
+     "1036"
+    ]
+   },
+   {
+    "track_id": "1037",
+    "name": "Track 7",
+    "clip_ids": [
+     "1040"
+    ]
+   }
+  ],
+  "audio_track_count": 7,
+  "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\agent_drafts\\draft_20261116T122134_0e20ea2c\\Unsaved.vit",
+  "project_uuid": "vitproj_552156ace6e24ab2b2f83d2ebd441ded",
+  "project_epoch": "epoch_e3a1e98a677d7a46"
+ },
+ "reopen_face": {
+  "keys": [
+   "analysis_manifest",
+   "delta_seq_gaps",
+   "graph_revision",
+   "groups",
+   "initialized",
+   "last_delta_seq",
+   "latest_change",
+   "nodes_by_uid",
+   "observability",
+   "orphan_uid_keys",
+   "parent_project_uuid",
+   "pending_job_data",
+   "project_epoch",
+   "project_health",
+   "project_id",
+   "project_observe",
+   "project_path",
+   "project_revision",
+   "project_uuid",
+   "snapshot_hash",
+   "state_epoch",
+   "status",
+   "track_count",
+   "track_group_count",
+   "track_groups",
+   "tracks",
+   "user_track_count",
+   "vsp"
+  ],
+  "track_rows": [
+   {
+    "track_id": "1007",
+    "name": "bass",
+    "clip_ids": [
+     "1011"
+    ]
+   },
+   {
+    "track_id": "1012",
+    "name": "drums",
+    "clip_ids": [
+     "1016"
+    ]
+   },
+   {
+    "track_id": "1017",
+    "name": "guitar",
+    "clip_ids": [
+     "1021"
+    ]
+   },
+   {
+    "track_id": "1022",
+    "name": "other",
+    "clip_ids": [
+     "1026"
+    ]
+   },
+   {
+    "track_id": "1027",
+    "name": "piano",
+    "clip_ids": [
+     "1031"
+    ]
+   },
+   {
+    "track_id": "1032",
+    "name": "vocals",
+    "clip_ids": [
+     "1036"
+    ]
+   },
+   {
+    "track_id": "1037",
+    "name": "Track 7",
+    "clip_ids": [
+     "1040"
+    ]
+   }
+  ],
+  "audio_track_count": 7,
+  "project_path": "D:\\Vit_DAW_wt_378save\\coord\\runs\\KERNEL-SAVE-FORENSICS-1\\offline_d1d2_repro\\agent_drafts\\draft_20261116T122134_0e20ea2c\\Unsaved.vit",
+  "project_uuid": "vitproj_552156ace6e24ab2b2f83d2ebd441ded",
+  "project_epoch": "epoch_e3a1e98a677d7a46"
+ },
+ "finished_at": "2026-11-16T20:21:34"
+}

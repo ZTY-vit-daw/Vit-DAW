@@ -332,7 +332,11 @@ func legacyStateFromVSPPayload(payload map[string]any) map[string]any {
 	}
 	if project := mapFromAny(payload["project"]); len(project) > 0 {
 		out["project"] = project
-		for _, key := range []string{"project_path", "project_uuid", "parent_project_uuid", "analysis_manifest"} {
+		// KERNEL-SAVE-FORENSICS-1 D3: effective_project_path is the kernel's
+		// boot-file fallback disclosure (a pre-save XML-boot project has an
+		// empty project_path); project it to the top level like project_path
+		// so invoke consumers read one key regardless of save state.
+		for _, key := range []string{"project_path", "effective_project_path", "project_uuid", "parent_project_uuid", "analysis_manifest"} {
 			if _, ok := out[key]; !ok && project[key] != nil {
 				out[key] = cloneAny(project[key])
 			}
