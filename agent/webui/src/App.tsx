@@ -227,6 +227,41 @@ export * from "./lib/util";
 // 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
 // confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
 import {
+  noteSessionSeedMessages,
+  historyMessagesFromUIState,
+  removeDisposableConfirmationPromptMessages,
+  mergeRestoredChatMessages,
+  mergeAssistantMessageIntoChat,
+  upsertPersistentMixBoardMessage,
+  messageMixBoardAction,
+  isSameMixBoardSession,
+  mixBoardActionSessionID,
+} from "./chat/merge";
+export * from "./chat/merge";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
+  initialMessage,
+  resolveHistorySyncMessages,
+  migrateStoredConversationScope,
+  messagesOrIntro,
+  hasMeaningfulChatMessages,
+  createConversationID,
+  scopedConversationRuntimeKey,
+  loadStoredScopedConversationID,
+  saveStoredScopedConversationID,
+  serverConversationIDFromContinuations,
+  resolveScopedConversationID,
+  conversationMessagesStorageKey,
+  loadStoredConversationMessages,
+  saveStoredConversationMessages,
+} from "./chat/storage";
+export * from "./chat/storage";
+// T9-PRE-1A-1（施工图 §3.1 批 1）：出域模块 re-export 兼容层——import 供 MainApp 既有
+// 引用零改动，export * 保持 App 命名面兼容；App 侧对出域函数的跨域引用（动作标签/
+// confirmation 域）经此往返，1e 卡移动 actions 域后剪断。
+import {
   HistoryTreeNode,
   HistoryBranchRow,
   HistoryWorktreeRow,
@@ -327,8 +362,6 @@ const browserBridgeChannel = "ask_vit_browser";
 const externalBrowserChannel = "ask_vit_external_browser";
 const agentMutationBridgeChannel = "ask_vit_agent_mutations";
 const defaultExternalBrowserURL = "https://www.bing.com/";
-const conversationMessagesStoragePrefix = "ask_vit_conversation_messages";
-const conversationScopedIDStoragePrefix = "ask_vit_conversation_id_scope";
 const attachedArtifactStorageKey = "ask_vit_attached_artifact";
 const defaultRightPanelWidth = 390;
 const minRightPanelWidth = 280;
@@ -363,16 +396,6 @@ export const multimodalRouteMeta: Array<{ key: string; label: string; hint: stri
   { key: "video_browser", label: "视频/浏览器理解", hint: "WebView2 页面与视频上下文" },
   { key: "embeddings", label: "Embedding / 检索", hint: "历史、媒体和工程语义检索" }
 ];
-
-const initialMessage: ChatMessage = {
-  id: "intro",
-  role: "assistant",
-  content: "Ask Vit 就绪。",
-  createdAt: Date.now(),
-  lifecycle: "durable",
-  persistence: "local",
-  message_kind: "assistant"
-};
 
 /**
  * UI-LAUNCHER-1（345）：surface 分发入口。launcher 面独立组件（自带数据加载，
@@ -3832,7 +3855,7 @@ function mixBoardPeakRmsLabel(summary: JsonRecord): string {
   return textValue(waveform.status, "未接入");
 }
 
-function isMixBoardAction(action: JsonRecord): boolean {
+export function isMixBoardAction(action: JsonRecord): boolean {
   const kind = textValue(action.kind ?? action.type, "").toLowerCase();
   const type = textValue(action.type, "").toLowerCase();
   const workflow = textValue(action.workflow, "").toLowerCase();
@@ -4252,7 +4275,7 @@ function ProjectResultCard({ action, respondingActionID, onInvoke, uiState }: Ac
   );
 }
 
-function isProjectResultAction(action: JsonRecord): boolean {
+export function isProjectResultAction(action: JsonRecord): boolean {
   return textValue(action.kind ?? action.type, "").toLowerCase() === "project_result";
 }
 
@@ -4732,11 +4755,11 @@ function StandardActionCard({
   );
 }
 
-function actionRenderID(action: JsonRecord): string {
+export function actionRenderID(action: JsonRecord): string {
   return textValue(action.id ?? action.interaction_id ?? action.plan_id ?? action.title ?? action.type ?? action.kind, "");
 }
 
-function resolveInteractionInMessages(messages: ChatMessage[], interactionID: string, actionID: string, response: ChatResponse): ChatMessage[] {
+export function resolveInteractionInMessages(messages: ChatMessage[], interactionID: string, actionID: string, response: ChatResponse): ChatMessage[] {
   const id = interactionID.trim();
   if (!id) {
     return messages;
@@ -4825,7 +4848,7 @@ function isDisposableInteractionCarrierMessage(
   return dismissesConfirmation && isDisposableConfirmationPromptText(message.content);
 }
 
-function isDisposableConfirmationPromptMessage(message: ChatMessage): boolean {
+export function isDisposableConfirmationPromptMessage(message: ChatMessage): boolean {
   if (message.status === "error" || message.artifacts?.length) {
     return false;
   }
@@ -4836,7 +4859,7 @@ function isDisposableConfirmationPromptMessage(message: ChatMessage): boolean {
   return actions.length === 0 || actions.some((action) => isApprovalPromptAction(action) || isConfirmationAction(action) || isComposerInteraction(action));
 }
 
-function isDisposableConfirmationPromptText(content: string): boolean {
+export function isDisposableConfirmationPromptText(content: string): boolean {
   const text = content.trim();
   if (!text) {
     return false;
@@ -5049,7 +5072,7 @@ function latestComposerInteraction(messages: ChatMessage[], dismissedIDs: string
 // 兜底——覆盖事件未达与刷新竞态两个窗口，应答后 pending 消失即自动撤卡；
 // F3 起按 conversation_id 归属过滤，他会话的 stale pending 卡不再挤占新会话 composer。
 
-function isComposerInteraction(action: JsonRecord): boolean {
+export function isComposerInteraction(action: JsonRecord): boolean {
 	if (textValue(action._ui_source, "") !== "interaction") {
     return false;
   }
@@ -5082,7 +5105,7 @@ function isComposerInteraction(action: JsonRecord): boolean {
   return true;
 }
 
-function isCapabilityProposalInteraction(action: JsonRecord): boolean {
+export function isCapabilityProposalInteraction(action: JsonRecord): boolean {
   const payload = interactionPayload(action);
   const presentation = asRecord(payload.proposal_presentation ?? action.proposal_presentation);
   const kind = textValue(action.kind, "").toLowerCase();
@@ -5090,7 +5113,7 @@ function isCapabilityProposalInteraction(action: JsonRecord): boolean {
   return kind === "proposal_approval" || type === "proposal_approval" || textValue(presentation.schema_version, "") === "vit.proposal_presentation.v1";
 }
 
-function hasPendingComposerInteraction(messages: ChatMessage[]): boolean {
+export function hasPendingComposerInteraction(messages: ChatMessage[]): boolean {
   return messages.some((message) => (message.actions ?? []).map(asRecord).some(isComposerInteraction));
 }
 
@@ -5859,7 +5882,7 @@ function actionTone(action: JsonRecord, isInteractive: boolean): "info" | "atten
   return "info";
 }
 
-function isConfirmationAction(action: JsonRecord): boolean {
+export function isConfirmationAction(action: JsonRecord): boolean {
   if (isMixTreatmentPendingAction(action)) {
     return false;
   }
@@ -5879,7 +5902,7 @@ function isConfirmationAction(action: JsonRecord): boolean {
   );
 }
 
-function isPendingInteractionAction(action: JsonRecord): boolean {
+export function isPendingInteractionAction(action: JsonRecord): boolean {
   return isConfirmationAction(action) || isMixTreatmentPendingAction(action) || isComposerInteraction(action);
 }
 
@@ -6407,7 +6430,7 @@ function interactionPayloadForAction(interaction: JsonRecord, action: JsonRecord
 
 
 
-function interactionPayload(action: JsonRecord): JsonRecord {
+export function interactionPayload(action: JsonRecord): JsonRecord {
   return asRecord(action.payload ?? action.data);
 }
 
@@ -8925,7 +8948,7 @@ function assistantMessageFromResponse(response: ChatResponse): ChatMessage {
   });
 }
 
-function confirmationFallbackActionsFromResponse(response: ChatResponse): JsonRecord[] {
+export function confirmationFallbackActionsFromResponse(response: ChatResponse): JsonRecord[] {
   const planID = textValue(response.plan_id, "");
   if (!planID || !responseNeedsConfirmationFallback(response)) {
     return [];
@@ -9176,7 +9199,7 @@ function firstNonEmptyRecord(...records: JsonRecord[]): JsonRecord {
 }
 
 
-function interactionActionsFrom(...values: unknown[]): JsonRecord[] {
+export function interactionActionsFrom(...values: unknown[]): JsonRecord[] {
   const seen = new Set<string>();
   const out: JsonRecord[] = [];
   values.forEach((value) => {
@@ -9197,7 +9220,7 @@ function interactionActionsFrom(...values: unknown[]): JsonRecord[] {
   return out;
 }
 
-function artifactSummariesFrom(...values: unknown[]): ArtifactSummary[] {
+export function artifactSummariesFrom(...values: unknown[]): ArtifactSummary[] {
   const seen = new Set<string>();
   const out: ArtifactSummary[] = [];
   values.forEach((value) => {
@@ -9241,666 +9264,6 @@ function artifactHistoryScopeKeyFromUIState(uiState: AgentUIState | null): strin
     activeWorktree || "main",
     activeBranch || "main"
   ].join("::");
-}
-
-// CONTRACT-3/C3：history-sync 的消息解析纯函数（恢复优先级统一实现）——
-// 任务状态以 runtime snapshot 为权威、过程轨迹以事件流为权威、终局以
-// Project History 为恢复权威：
-// - switch：真工程切换照旧清流（回落问候语），旧工程终局不带入新工程；
-// - initial：刷新/首锚以 Project History 为恢复权威并幂等带回事件路径终局
-//   （GUI-1 ② 语义）；但空 Project History 不得覆盖已恢复/已回放的终局流
-//   （C3：刷新后终局消息不消失——终局由服务端事件重放先行交付时锚定滞后）；
-// - evolution/none：同会话演进只合并（保留在流消息与事件 seq 投影）。
-export function resolveHistorySyncMessages(input: {
-  changeKind: HistoryScopeChangeKind;
-  current: ChatMessage[];
-  historyMessages: ChatMessage[];
-}): ChatMessage[] {
-  const hasPendingInteraction = hasPendingComposerInteraction(input.current);
-  const baseMessages = hasPendingInteraction ? input.current : removeDisposableConfirmationPromptMessages(input.current);
-  if (input.changeKind === "switch") {
-    return messagesOrIntro(input.historyMessages);
-  }
-  if (input.changeKind === "initial") {
-    if (!hasMeaningfulChatMessages(input.historyMessages) && hasMeaningfulChatMessages(input.current)) {
-      return input.current;
-    }
-    return messagesOrIntro(appendChainResultMessages(input.historyMessages, input.current.filter(isChainResultChatMessage)));
-  }
-  return mergeChatMessages(baseMessages, input.historyMessages);
-}
-
-// CONTRACT-3：演进后重新锚定存储桶——把旧 scope 桶里的已存消息合并进新桶，
-// 会话 id 一并迁移（旧桶保留作回退，不删除）。
-export function migrateStoredConversationScope(previousScope: string, nextScope: string, conversationID: string): void {
-  if (!previousScope || !nextScope || previousScope === nextScope) {
-    return;
-  }
-  const continuingConversationID = conversationID || loadStoredScopedConversationID(previousScope);
-  if (!continuingConversationID) {
-    return;
-  }
-  // CONV-ID-BOOT-1（2026-09-14）：新桶已锚定到「另一个会话」时不得覆写锚定。
-  // 首拍 scope 未物化造出的随机会话 id 走到这里，会把真实 scope 桶里用户
-  // 上一会话的锚整个抹掉——刷新后裸启动再也回不到原会话（轨迹块/A-B 卡/
-  // 收据全灭）。空桶或同值重写照常落锚；消息与台账按 (会话 id, scope) 分桶
-  // 迁移，不碰被锚定会话自己的数据。
-  const existingNextAnchor = loadStoredScopedConversationID(nextScope);
-  if (!existingNextAnchor || existingNextAnchor === continuingConversationID) {
-    saveStoredScopedConversationID(nextScope, continuingConversationID);
-  }
-  // TRAJ-IMPL-3：回执行台账与消息存档同一条迁移语义（scope 演进 = 同一会话换桶，
-  // 旧桶保留作回退不删除）。漏了这一步，scope 演进后的刷新会看不见演进前的回执行。
-  const previousReceipts = loadTurnReceipts(continuingConversationID, previousScope);
-  if (previousReceipts.length > 0) {
-    const mergedReceipts = mergeTurnReceipts(loadTurnReceipts(continuingConversationID, nextScope), previousReceipts);
-    persistTurnReceipts(continuingConversationID, nextScope, mergedReceipts);
-  }
-  const previousMessages = loadStoredConversationMessages(continuingConversationID, previousScope);
-  if (previousMessages.length === 0) {
-    return;
-  }
-  const existingMessages = loadStoredConversationMessages(continuingConversationID, nextScope);
-  const merged = mergeStoredScopeMessages(existingMessages, previousMessages);
-  if (merged.length > 0) {
-    saveStoredConversationMessages(continuingConversationID, nextScope, merged);
-  }
-}
-
-function mergeStoredScopeMessages(existingMessages: ChatMessage[], previousMessages: ChatMessage[]): ChatMessage[] {
-  return durableMessagesForStorage(mergeChatMessages(existingMessages, previousMessages)).filter(
-    (message) => message.id !== "intro"
-  );
-}
-
-function messagesOrIntro(messages: ChatMessage[]): ChatMessage[] {
-  if (messages.length > 0) {
-    return messages;
-  }
-  return [{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }];
-}
-
-export function hasMeaningfulChatMessages(messages: ChatMessage[]): boolean {
-  return messages.some((message) => {
-    // CONV-ID-BOOT-1（2026-09-14）：开机问候由 messagesOrIntro 克隆成
-    // intro_<ts>_<rand>（不是整串 "intro"）。旧排除只匹配整串 id，问候被计成
-    // 有效消息，演进拍的采纳守卫（不劫持现役会话）因此在裸启动上永远误触：
-    // 存档锚定不被回读，fall-through 迁移把真实 scope 桶覆写成新随机会话 id
-    // ——刷新后轨迹块/A-B 卡/收据全灭的独占根因。
-    if (message.role === "assistant" && (message.id === "intro" || message.id.startsWith("intro_"))) {
-      return false;
-    }
-    return textValue(message.content, "").trim() !== "" || (message.actions?.length ?? 0) > 0 || (message.artifacts?.length ?? 0) > 0;
-  });
-}
-
-function createConversationID(): string {
-  return `webui_${Date.now().toString(36)}`;
-}
-
-function conversationScopedIDStorageKey(scope: string): string {
-  return `${conversationScopedIDStoragePrefix}:${stableIDPart(scope)}`;
-}
-
-function scopedConversationRuntimeKey(scope: string, conversationID: string): string {
-  return `${stableIDPart(scope)}:${stableIDPart(conversationID || "latest")}`;
-}
-
-export function loadStoredScopedConversationID(scope: string): string {
-  if (typeof window === "undefined" || !scope) {
-    return "";
-  }
-  try {
-    return window.localStorage.getItem(conversationScopedIDStorageKey(scope))?.trim() ?? "";
-  } catch {
-    return "";
-  }
-}
-
-export function saveStoredScopedConversationID(scope: string, conversationID: string): void {
-  if (typeof window === "undefined" || !scope || !conversationID) {
-    return;
-  }
-  try {
-    window.localStorage.setItem(conversationScopedIDStorageKey(scope), conversationID);
-  } catch {
-    // Scoped local history is best-effort; the backend Project History remains authoritative.
-  }
-}
-
-// REFRESH-VANISH-2（2026-09-15）：空 storage 裸开（Godot webview 面板销毁重建丢
-// localStorage 的用户形态）时的服务端会话身份兜底。服务端没有「当前会话」直读面，
-// 但 runtimeStatus.continuations 投影行携带 conversation_id + project_path/uuid +
-// updated_at——按 scope 匹配取最新行即得权威会话身份；事件缓冲（/agent/events）按
-// 该 id 键控，采纳它即可经 since=0 全量回放重建轨迹块/A-B 卡（消息面走 uiState
-// 服务端历史恢复、不依赖本地 storage，这正是「消息在、轨迹无」的分裂成因）。
-export function serverConversationIDFromContinuations(continuations: unknown, parts: HistoryScopeParts): string {
-  if (!Array.isArray(continuations)) {
-    return "";
-  }
-  const scopePath = normalizeServerContinuationPath(parts.projectPath || parts.rootProjectPath);
-  const scopeUUID = (parts.projectUUID || "").trim().toLowerCase();
-  if (!scopePath && !scopeUUID) {
-    return "";
-  }
-  let bestID = "";
-  let bestAt = "";
-  for (const raw of continuations) {
-    const row = asRecord(raw);
-    const conversationID = textValue(row.conversation_id, "").trim();
-    if (!conversationID) {
-      continue;
-    }
-    const rowPath = normalizeServerContinuationPath(row.project_path);
-    const rowUUID = textValue(row.project_uuid, "").trim().toLowerCase();
-    const scopeMatched = (scopePath !== "" && rowPath === scopePath) || (scopeUUID !== "" && rowUUID === scopeUUID);
-    if (!scopeMatched) {
-      continue;
-    }
-    const updatedAt = textValue(row.updated_at, "");
-    // 同刻并列时按会话 id 决胜：选择只由数据决定，不依赖服务端列表顺序。
-    if (!bestID || updatedAt > bestAt || (updatedAt === bestAt && conversationID > bestID)) {
-      bestID = conversationID;
-      bestAt = updatedAt;
-    }
-  }
-  return bestID;
-}
-
-function normalizeServerContinuationPath(value: unknown): string {
-  return textValue(value, "").trim().replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase();
-}
-
-// REFRESH-VANISH-2：scope 会话身份的统一解析链（initial/switch 引导与 evolution
-// 锚定候选共用）。优先级：URL 绑定 > 本地锚定 > 服务端兜底 > 新建。服务端兜底
-// 只在本地映射缺失时生效（storage 正常形态零行为变化）；evolution 调用侧传
-// url="" fresh=""，把链退化为「本地锚定 || 服务端兜底」的锚定候选。
-export function resolveScopedConversationID(input: {
-  urlConversationID: string;
-  storedScopedConversationID: string;
-  serverConversationID: string;
-  freshConversationID: string;
-}): string {
-  for (const value of [input.urlConversationID, input.storedScopedConversationID, input.serverConversationID, input.freshConversationID]) {
-    const trimmed = value.trim();
-    if (trimmed) {
-      return trimmed;
-    }
-  }
-  return "";
-}
-
-function conversationMessagesStorageKey(conversationID: string, scope = ""): string {
-  const id = stableIDPart(conversationID || "latest");
-  const scoped = scope ? `:${stableIDPart(scope)}` : "";
-  return `${conversationMessagesStoragePrefix}:${id}${scoped}`;
-}
-
-export function loadStoredConversationMessages(conversationID: string, scope = ""): ChatMessage[] {
-  if (typeof window === "undefined" || !conversationID || !scope) {
-    return [];
-  }
-  try {
-    const raw = window.localStorage.getItem(conversationMessagesStorageKey(conversationID, scope));
-    if (!raw) {
-      return [];
-    }
-    const parsed = JSON.parse(raw);
-    return firstArray(asRecord(parsed).messages ?? parsed).map(sanitizeStoredChatMessage).filter(Boolean) as ChatMessage[];
-  } catch {
-    // Ignore corrupt local history and let Project History hydrate what it can.
-    return [];
-  }
-}
-
-export function saveStoredConversationMessages(conversationID: string, scope: string, messages: ChatMessage[]): void {
-  if (typeof window === "undefined" || !conversationID || !scope) {
-    return;
-  }
-  const rows = durableMessagesForStorage(messages)
-    .filter((message) => message.id !== "intro")
-    .slice(-120)
-    .map(sanitizeChatMessageForStorage);
-  if (rows.length === 0) {
-    return;
-  }
-  const payload = JSON.stringify({
-    schema_version: "ask_vit_conversation_messages.v2",
-    conversation_id: conversationID,
-    scope,
-    saved_at: new Date().toISOString(),
-    messages: rows
-  });
-  try {
-    window.localStorage.setItem(conversationMessagesStorageKey(conversationID, scope), payload);
-  } catch {
-    // Local history is best-effort; Project History remains the durable backend record.
-  }
-}
-
-function sanitizeChatMessageForStorage(message: ChatMessage): ChatMessage {
-  return durableMessage({
-    id: textValue(message.id, uniqueID("stored_msg")),
-    source_id: textValue(message.source_id, ""),
-    role: message.role,
-    content: textValue(message.content, ""),
-    mode: message.mode,
-    artifacts: message.artifacts ?? [],
-    actions: (message.actions ?? []).map(asRecord).filter((action) => Object.keys(action).length > 0),
-    createdAt: Number.isFinite(message.createdAt) ? message.createdAt : Date.now(),
-    status: message.status,
-    lifecycle: message.lifecycle,
-    persistence: message.persistence,
-    message_kind: message.message_kind,
-    turn_id: message.turn_id,
-    logical_message_id: message.logical_message_id,
-    supersedes: message.supersedes
-  });
-}
-
-function sanitizeStoredChatMessage(value: unknown): ChatMessage | null {
-  const row = asRecord(value);
-  const roleText = textValue(row.role, "assistant");
-  const role: ChatMessage["role"] = roleText === "user" || roleText === "system" ? roleText : "assistant";
-  const content = textValue(row.content, "");
-  const actions = firstArray(row.actions).map(asRecord).filter((action) => Object.keys(action).length > 0);
-  const artifacts = artifactSummariesFrom(row.artifacts);
-  if (!content && actions.length === 0 && artifacts.length === 0) {
-    return null;
-  }
-  const createdAt = Number(row.createdAt ?? row.created_at);
-  const candidate: ChatMessage = {
-    id: textValue(row.id, uniqueID("stored_msg")),
-    source_id: textValue(row.source_id, ""),
-    role,
-    content,
-    mode: textValue(row.mode, "") as AgentMode,
-    artifacts,
-    actions,
-    createdAt: Number.isFinite(createdAt) ? createdAt : Date.now(),
-    status: chatMessageStatusFromStored(row.status),
-    lifecycle: textValue(row.lifecycle, "") as ChatMessage["lifecycle"],
-    persistence: textValue(row.persistence, "") as ChatMessage["persistence"],
-    message_kind: textValue(row.message_kind, "") as ChatMessage["message_kind"],
-    turn_id: textValue(row.turn_id, ""),
-    logical_message_id: textValue(row.logical_message_id, ""),
-    supersedes: firstArray(row.supersedes).map((item) => textValue(item, "")).filter(Boolean)
-  };
-  if (isLegacyTransientMessage(candidate) || !isDurableMessage(candidate)) {
-    return null;
-  }
-  return durableMessage(candidate);
-}
-
-function chatMessageStatusFromStored(value: unknown): ChatMessage["status"] {
-  const status = textValue(value, "sent").toLowerCase();
-  if (status === "pending" || status === "error") {
-    return status;
-  }
-  return "sent";
-}
-
-// VITNOTE-NOTESTREAM-2：切换到 note 会话时的消息种子——note 问答不经 webui 发送
-//（本地桶无消息、/agent/events 无轨迹），从 note_sessions 投影行回放问答对；非
-// note 会话/无投影行回落常规开机问候（既有恢复效应接管）。fail-open：异形行按空处理。
-export function noteSessionSeedMessages(targetConversationID: string, noteSessions: JsonRecord[] | undefined): ChatMessage[] {
-  const intro = () => [{ ...initialMessage, id: uniqueID("intro"), createdAt: Date.now() }];
-  const target = targetConversationID.trim();
-  if (!target || !Array.isArray(noteSessions)) {
-    return intro();
-  }
-  const row = noteSessions.find((candidate) => textValue(candidate.conversation_id, "") === target);
-  if (!row) {
-    return intro();
-  }
-  const messages: ChatMessage[] = [];
-  for (const raw of firstArray(row.messages)) {
-    const record = asRecord(raw);
-    const content = textValue(record.content ?? record.text, "");
-    const roleText = textValue(record.role, "").toLowerCase();
-    if (!content || (roleText !== "user" && roleText !== "assistant")) {
-      continue;
-    }
-    const created = Date.parse(textValue(record.created_at, ""));
-    messages.push({
-      id: uniqueID("vitnote"),
-      role: roleText === "user" ? "user" : "assistant",
-      content,
-      createdAt: Number.isFinite(created) ? created : Date.now(),
-      lifecycle: "durable",
-      persistence: "project_history"
-    });
-  }
-  return messages.length > 0 ? messages : intro();
-}
-
-function historyMessagesFromUIState(uiState: AgentUIState | null): ChatMessage[] {
-  const projectHistory = asRecord(uiState?.project_history);
-  const rows = firstArray(projectHistory.conversation_messages);
-  const artifacts = uiState?.artifacts ?? [];
-  const messages: ChatMessage[] = [];
-  rows.forEach((raw, index) => {
-    const row = asRecord(raw);
-    const content = textValue(row.content ?? row.text ?? row.text_preview, "");
-    if (!content) {
-      return;
-    }
-    const sourceID = textValue(row.node_id ?? row.id, `history_${index}`);
-    const roleText = textValue(row.role ?? row.kind, "assistant").toLowerCase();
-    const role: ChatMessage["role"] = roleText === "user" || roleText === "ask" ? "user" : "assistant";
-    if (role === "assistant" && isDisposableConfirmationPromptText(content)) {
-      return;
-    }
-    const created = Date.parse(textValue(row.created_at, ""));
-    const messageData = asRecord(row.message_data);
-    const workflowData = asRecord(messageData.workflow_data);
-    const messageInteractions = interactionActionsFrom(messageData.interaction_requests);
-    const historyResponse: ChatResponse = {
-      reply: content,
-      needs_confirmation: truthy(messageData.needs_confirmation),
-      plan_id: textValue(messageData.plan_id, ""),
-      preview: textValue(messageData.preview, ""),
-      workflow: textValue(messageData.workflow, ""),
-      workflow_data: workflowData,
-      proposal_presentation: asRecord(messageData.proposal_presentation ?? workflowData.proposal_presentation),
-      interaction_requests: firstArray(messageData.interaction_requests).map(asRecord),
-      message_kind: textValue(row.message_kind, "") as ChatResponse["message_kind"],
-      lifecycle: "durable",
-      persistence: "project_history"
-    };
-    const historyFallbackActions = messageInteractions.some(isPendingInteractionAction)
-      ? []
-      : confirmationFallbackActionsFromResponse(historyResponse);
-    const actions =
-      role === "assistant"
-        ? [
-            ...messageInteractions,
-            ...historyFallbackActions,
-            ...firstArray(row.project_result_cards)
-              .map(asRecord)
-              .filter((card) => Object.keys(card).length > 0)
-              .map((card, cardIndex) => ({
-                ...card,
-                _ui_source: "project_result",
-                kind: "project_result",
-                type: "project_result",
-                id: textValue(card.id, `history_project_result_${sourceID}_${cardIndex}`)
-              }))
-          ]
-        : [];
-    const messageArtifacts = artifactSummariesFrom(row.artifacts);
-    const protocol = historyMessageProtocol(row, role);
-    const historyMessage = durableMessage({
-      id: `history_${sourceID}`,
-      role,
-      content,
-      artifacts: messageArtifacts,
-      actions,
-      createdAt: Number.isFinite(created) ? created : Date.now() + index,
-      status: "sent",
-      ...protocol
-    }, { persistence: "project_history" });
-    if (isDurableMessage(historyMessage)) {
-      messages.push(historyMessage);
-    }
-  });
-  return settleSupersededInteractionFamilies(resolveCompletedTurnProposals(resolveSupersededMessages(messages)));
-}
-
-function removeDisposableConfirmationPromptMessages(messages: ChatMessage[]): ChatMessage[] {
-  return messages.filter((message) => !isDisposableConfirmationPromptMessage(message));
-}
-
-function mergeChatMessages(current: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
-  if (incoming.length === 0) {
-    return current;
-  }
-  const base = current.length === 1 && current[0].id === "intro" ? [] : current;
-  return settleSupersededInteractionFamilies(resolveCompletedTurnProposals(mergeMessageCollections(base, incoming, chatMessageKeys, mergeChatMessage)));
-}
-
-// FIX-BUCKET-SAVE-RACE-1：restore 合流核（自 restore 效应体抽出，供 reload 桶
-// save/restore 管线的回归测试直接驱动）。现流无有效消息（裸启动只有问候克隆）
-// 时以桶内容起流；否则桶内容并回现流（去重/收口语义同 mergeChatMessages）。
-export function mergeRestoredChatMessages(current: ChatMessage[], storedMessages: ChatMessage[]): ChatMessage[] {
-  if (!hasMeaningfulChatMessages(current)) {
-    return messagesOrIntro(storedMessages);
-  }
-  return mergeChatMessages(storedMessages, current);
-}
-
-function mergeAssistantMessageIntoChat(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {
-  return messageMixBoardAction(incoming) ? upsertPersistentMixBoardMessage(current, incoming) : mergeChatMessages(current, [incoming]);
-}
-
-function upsertPersistentMixBoardMessage(current: ChatMessage[], incoming: ChatMessage): ChatMessage[] {
-  const incomingAction = messageMixBoardAction(incoming);
-  if (!incomingAction) {
-    return mergeChatMessages(current, [incoming]);
-  }
-  const incomingSessionID = mixBoardActionSessionID(incomingAction);
-  let replaced = false;
-  let inserted = false;
-  const next = current.flatMap((message) => {
-    const actions = (message.actions ?? []).map(asRecord);
-    if (actions.length === 0) {
-      return [message];
-    }
-    const mixActions = actions.filter(isMixBoardAction);
-    if (mixActions.length === 0) {
-      return [message];
-    }
-    const sessionMatches = mixActions.some((action) => isSameMixBoardSession(action, incomingAction, incomingSessionID));
-    const shouldReplaceHere = !replaced && (sessionMatches || !incomingSessionID);
-    if (!shouldReplaceHere) {
-      const remaining = actions.filter((action) => !isMixBoardAction(action));
-      if (remaining.length === 0 && !message.artifacts?.length && !message.content.trim()) {
-        return [];
-      }
-      return [{ ...message, actions: remaining }];
-    }
-    replaced = true;
-    inserted = true;
-    const mergedActions = actions.map((action) => (isMixBoardAction(action) ? incomingAction : action));
-    return [{
-      ...message,
-      content: incoming.content || message.content,
-      mode: incoming.mode || message.mode,
-      artifacts: mergeArtifacts(message.artifacts ?? [], incoming.artifacts ?? []),
-      actions: mergedActions,
-      status: incoming.status
-    }];
-  });
-  if (inserted) {
-    return next;
-  }
-  const stripped = next.filter((message) => {
-    const actions = (message.actions ?? []).map(asRecord);
-    return !actions.some(isMixBoardAction);
-  });
-  return mergeChatMessages(stripped, [incoming]);
-}
-
-function messageMixBoardAction(message: ChatMessage): JsonRecord | null {
-  return firstArray(message.actions).map(asRecord).find(isMixBoardAction) ?? null;
-}
-
-function isSameMixBoardSession(action: JsonRecord, incomingAction: JsonRecord, incomingSessionID: string): boolean {
-  if (!isMixBoardAction(action)) {
-    return false;
-  }
-  const existingSessionID = mixBoardActionSessionID(action);
-  if (incomingSessionID && existingSessionID) {
-    return incomingSessionID === existingSessionID;
-  }
-  return actionRenderID(action) === actionRenderID(incomingAction);
-}
-
-function mixBoardActionSessionID(action: JsonRecord): string {
-  const payload = interactionPayload(action);
-  const session = asRecord(payload.mix_session ?? action.mix_session);
-  const observationEnvelope = asRecord(payload.mix_observation ?? action.mix_observation);
-  const observation = asRecord(observationEnvelope.observation);
-  const mixboard = asRecord(observationEnvelope.mixboard);
-  return textValue(
-    session.mix_session_id ??
-      observation.mix_session_id ??
-      mixboard.mix_session_id ??
-      payload.mix_session_id ??
-      action.mix_session_id,
-    ""
-  );
-}
-
-function mergeChatMessage(existing: ChatMessage, incoming: ChatMessage): ChatMessage {
-  return {
-    ...incoming,
-    ...existing,
-    source_id: existing.source_id || incoming.source_id,
-    lifecycle: existing.lifecycle === "durable" || incoming.lifecycle === "durable" ? "durable" : existing.lifecycle ?? incoming.lifecycle,
-    persistence: existing.persistence === "project_history" || incoming.persistence === "project_history"
-      ? "project_history"
-      : existing.persistence ?? incoming.persistence,
-    message_kind: inferMessageKind(existing) === "proposal" || inferMessageKind(incoming) === "proposal"
-      ? "proposal"
-      : existing.message_kind ?? incoming.message_kind,
-    turn_id: existing.turn_id || incoming.turn_id,
-    logical_message_id: existing.logical_message_id || incoming.logical_message_id,
-    supersedes: Array.from(new Set([...(existing.supersedes ?? []), ...(incoming.supersedes ?? [])])),
-    artifacts: mergeArtifacts(existing.artifacts ?? [], incoming.artifacts ?? []),
-    actions: mergeMessageActions(existing.actions ?? [], incoming.actions ?? []),
-    createdAt: Math.min(existing.createdAt, incoming.createdAt),
-    status: existing.status === "error" || incoming.status === "error" ? "error" : existing.status ?? incoming.status
-  };
-}
-
-export function mergeMessageActions(current: JsonRecord[], incoming: JsonRecord[]): JsonRecord[] {
-  if (current.length === 0) {
-    return incoming;
-  }
-  if (incoming.length === 0) {
-    return current;
-  }
-  const byKey = new Map<string, JsonRecord>();
-  const order: string[] = [];
-  [...current, ...incoming].forEach((action, index) => {
-    const key = actionMergeKey(action, index);
-    const existing = byKey.get(key);
-    if (existing) {
-      byKey.set(key, mergeActionRecord(existing, action));
-      return;
-    }
-    byKey.set(key, action);
-    order.push(key);
-  });
-  return order.map((key) => byKey.get(key)).filter((action): action is JsonRecord => Boolean(action));
-}
-
-function mergeActionRecord(existing: JsonRecord, incoming: JsonRecord): JsonRecord {
-  if (isComposerInteraction(existing) && !isComposerInteraction(incoming)) {
-    return existing;
-  }
-  // FIX-CONFIRM-CARD-1 ②：已结算的交互动作不得从 incoming 复活子按钮。结算
-  // 写入口径一律摘按钮（resolveInteractionInMessages / guard 盖章 / 回合终结
-  // 与同族替代结算），existing.actions 为空是"已结算"而非"缺按钮数据"；旧
-  // 回退取 incoming.actions 会把死卡复活成可点击形态（点击命中 server 4022
-  // 过期口径——E2E K1/K2 实证：settle 后的二次同键合并与台账盖章版合并均
-  // 触发）。已结算形态以 existing 为权威终稿。
-  if (isSettledInteractionRecord(existing)) {
-    return existing;
-  }
-  return {
-    ...incoming,
-    ...existing,
-    actions: firstArray(existing.actions).length > 0 ? existing.actions : incoming.actions
-  };
-}
-
-function isSettledInteractionRecord(action: JsonRecord): boolean {
-  if (textValue(action._ui_source, "") !== "interaction") {
-    return false;
-  }
-  if (textValue(action.resolved_action_id, "") !== "") {
-    return true;
-  }
-  const status = textValue(action.status ?? action.stage, "").toLowerCase();
-  return isConsumedInteractionStatus(status) ||
-    status.includes("complete") ||
-    status.includes("cancel") ||
-    status.includes("fail");
-}
-
-function actionMergeKey(action: JsonRecord, index: number): string {
-  if (isCapabilityProposalInteraction(action)) {
-    const proposalID = proposalActionIdentity(action);
-    if (proposalID) {
-      return `proposal:${proposalID}`;
-    }
-  }
-  return actionRenderID(action) || stableActionIdentity(action) || `${textValue(action._ui_source, "action")}:${index}`;
-}
-
-function stableActionIdentity(action: JsonRecord): string {
-  const source = textValue(action._ui_source, "action");
-  const payload = asRecord(action.result ?? action.payload);
-  const tool = textValue(action.tool ?? payload.tool, "");
-  const command = textValue(action.command_name ?? action.cmd ?? action.command ?? payload.command_name ?? payload.cmd ?? payload.command, "");
-  const status = textValue(action.status ?? payload.status, "");
-  const objectID = textValue(
-    action.tool_call_id ??
-      action.agent_action_id ??
-      payload.tool_call_id ??
-      payload.agent_action_id ??
-      payload.track_id ??
-      payload.clip_id ??
-      payload.plugin_id ??
-      payload.new_clip_id ??
-      payload.created_clip_id,
-    ""
-  );
-  if (objectID) {
-    return `${source}:${tool || command || "action"}:${objectID}:${status}`;
-  }
-  const preview = textValue(
-    action.preview ??
-      action.body ??
-      action.title ??
-      payload.message ??
-      payload.summary ??
-      payload.preview,
-    ""
-  ).slice(0, 120);
-  if (tool || command || status || preview) {
-    return `${source}:${tool || command || "action"}:${status}:${preview}`;
-  }
-  return "";
-}
-
-function chatMessageKeys(message: ChatMessage): string[] {
-  const actions = (message.actions ?? []).map(asRecord);
-  const actionKeys = actions
-    .filter(isMessageMergeKeyAction)
-    .map((action) => actionRenderID(action))
-    .filter(Boolean);
-  const keys: string[] = messageProtocolIdentityKeys(message);
-  if (message.id) {
-    keys.push(`id:${message.id}`);
-  }
-  if (actionKeys.length > 0) {
-    keys.push(`actions:${message.role}:${actionKeys.join("|")}`);
-  }
-  if (!actions.some(isProjectResultAction) && (actionKeys.length === 0 || inferMessageKind(message) === "proposal")) {
-    keys.push(`text:${message.role}:${message.content}`);
-  }
-  return Array.from(new Set(keys));
-}
-
-function isMessageMergeKeyAction(action: JsonRecord): boolean {
-  if (isProjectResultAction(action)) {
-    return false;
-  }
-  const source = textValue(action._ui_source, "");
-  return source === "interaction" || isComposerInteraction(action) || isConfirmationAction(action);
 }
 
 export function defaultSettingsConfig(): EngineConfig {
@@ -10324,7 +9687,7 @@ function artifactLooksLikeAdapter(artifact: ArtifactSummary): boolean {
   );
 }
 
-function mergeArtifacts(...groups: ArtifactSummary[][]): ArtifactSummary[] {
+export function mergeArtifacts(...groups: ArtifactSummary[][]): ArtifactSummary[] {
   const byID = new Map<string, ArtifactSummary>();
   groups.flat().forEach((artifact) => {
     if (artifact.id) {
