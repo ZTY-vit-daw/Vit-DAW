@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { authoritySwitchNotice, AuthorityToggle } from "./App";
+import { authoritySwitchNotice, AuthorityToggle } from "./topbar/AuthorityToggle";
 
 function renderToggle(extras: { authorityMode: string; authorityLocked?: boolean }) {
   return renderToStaticMarkup(

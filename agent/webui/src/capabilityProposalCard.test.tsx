@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { CapabilityProposalCard, proposalCardOutcome } from "./App";
+import { CapabilityProposalCard, proposalCardOutcome } from "./actions/CapabilityProposalCard";
 import type { AgentInvokeResponse, JsonRecord } from "./types";
 
 const presentation: JsonRecord = {

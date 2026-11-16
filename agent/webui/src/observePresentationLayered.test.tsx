@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { AssistantTextContent } from "./App";
+import { AssistantTextContent } from "./chat/MessageStream";
 import {
   hasLayeredPresentation,
   ObservePresentationView

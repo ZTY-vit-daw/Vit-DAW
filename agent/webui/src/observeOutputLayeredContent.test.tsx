@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { AssistantTextContent } from "./App";
+import { AssistantTextContent } from "./chat/MessageStream";
 import type { ChatMessage } from "./types";
 
 // OPT-OBSERVE-OUTPUT-1 P1：折叠容器渲染形态（命中谓词=details 默认收起；

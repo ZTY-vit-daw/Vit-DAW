@@ -430,13 +430,16 @@ describe("钉6 水合渲染：活态缺失的回合落成静态收起收据行�
   });
 });
 
+// 386/2b：计划传 receipts 与 TurnReceiptRow 渲染钉点随 MessageStream 出域至 src/chat/MessageStream.tsx——
+// 钉点分拆两文件：App 侧钉终态写入/水合读取，Stream 侧钉计划入参/渲染行；正则逐字不变（数据线不弱化）。
 describe("钉7 App 接线：终态写入 / 水合读取 / 渲染面三处都真的接上了", () => {
   it("写入只在终态收口 effect 里、水合读取走台账、计划传 receipts、渲染用 TurnReceiptRow", () => {
     const appSource = readFileSync(new URL("../App.tsx", import.meta.url), "utf-8");
+    const streamSource = readFileSync(new URL("../chat/MessageStream.tsx", import.meta.url), "utf-8");
     expect(appSource).toMatch(/collectTerminalTurnReceipts\(\{ trajectory: trajectoryState, turnEventMeta, roundSteps \}\)/);
     expect(appSource).toMatch(/const merged = saveTurnReceipts\(conversationID, scope, closed\)/);
     expect(appSource).toMatch(/applyTurnReceipts\(loadTurnReceipts\(conversationID, scope\)\)/);
-    expect(appSource).toMatch(/buildMessageStreamRenderPlan\(\{ messages: visibleMessages, trajectory, turnEventMeta, roundSteps, receipts \}\)/);
-    expect(appSource).toMatch(/<TurnReceiptRow receipt=\{entry\.receipt\} \/>/);
+    expect(streamSource).toMatch(/buildMessageStreamRenderPlan\(\{ messages: visibleMessages, trajectory, turnEventMeta, roundSteps, receipts \}\)/);
+    expect(streamSource).toMatch(/<TurnReceiptRow receipt=\{entry\.receipt\} \/>/);
   });
 });

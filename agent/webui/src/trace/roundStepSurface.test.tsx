@@ -221,19 +221,22 @@ describe("钉D 活动线去重：已归属回合的 item 活动从流底 lane �
   });
 });
 
-describe("钉E 数据线：App.tsx 把步账喂进计划/渲染/活动线（这条线断了会静默退回旧形态）", () => {
+// 386/2b：计划/渲染/lane 钉点随 MessageStream 出域至 src/chat/MessageStream.tsx——
+// 钉点分拆两文件：App 侧钉状态归约，Stream 侧钉计划/渲染/lane；正则逐字不变（数据线不弱化）。
+describe("钉E 数据线：App 状态归约 + MessageStream 计划/渲染/活动线（这条线断了会静默退回旧形态）", () => {
   const appSource = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
+  const streamSource = readFileSync(new URL("../chat/MessageStream.tsx", import.meta.url), "utf8");
 
   it("归约接线 + 计划传参 + 渲染传参 + lane 过滤四段都在", () => {
     expect(appSource).toMatch(/setRoundSteps\(\(current\) => reduceRoundSteps\(current, events\)\)/);
-    expect(appSource).toMatch(/buildMessageStreamRenderPlan\(\{\s*messages:[^)]*roundSteps/);
+    expect(streamSource).toMatch(/buildMessageStreamRenderPlan\(\{\s*messages:[^)]*roundSteps/);
     // FIX-AUDITION-TRAIL-1：lane 过滤钉点迁至 turnGroups.laneVisibleActivities
     // （isUnboundActivity && !isAuditionFamilyActivity——audition 族按身份排除）
-    expect(appSource).toMatch(/laneVisibleActivities\(activities, laneBoundTurnIds, roundBoundKeys\)/);
-    expect(appSource).toMatch(/sessionBoundTurnIds/);
-    expect(appSource).toMatch(/itemSteps=\{round\?\.steps\}/);
-    expect(appSource).toMatch(/totalStepCount=\{round\?\.totalStepCount\}/);
-    expect(appSource).toMatch(/trajectory\.turns\[entry\.turnId\] \?\? roundTurnShell\(round\)/);
+    expect(streamSource).toMatch(/laneVisibleActivities\(activities, laneBoundTurnIds, roundBoundKeys\)/);
+    expect(streamSource).toMatch(/sessionBoundTurnIds/);
+    expect(streamSource).toMatch(/itemSteps=\{round\?\.steps\}/);
+    expect(streamSource).toMatch(/totalStepCount=\{round\?\.totalStepCount\}/);
+    expect(streamSource).toMatch(/trajectory\.turns\[entry\.turnId\] \?\? roundTurnShell\(round\)/);
   });
 });
 

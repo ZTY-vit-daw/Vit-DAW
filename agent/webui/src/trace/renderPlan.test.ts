@@ -231,9 +231,12 @@ describe("UI-FOLLOW-1 回合附属锚定：身份不匹配时按回合槽位入�
     expect(plan.orphanTurnIds).toEqual([]);
   });
 
-  it("数据线：App.tsx 把 turnEventMeta 喂给渲染计划（这条线断了锚定会静默退化回流尾）", () => {
+  // 386/2b：计划调用随 MessageStream 出域至 src/chat/MessageStream.tsx——钉点分拆两文件，
+  // App 侧钉 prop 传递、Stream 侧钉计划入参；两条正则逐字不变（数据线完整性不弱化）。
+  it("数据线：App prop 传递 + MessageStream 计划入参喂 turnEventMeta（这条线断了锚定会静默退化回流尾）", () => {
     const appSource = readFileSync(new URL("../App.tsx", import.meta.url), "utf8");
-    expect(appSource).toMatch(/buildMessageStreamRenderPlan\(\{\s*messages:[^)]*turnEventMeta/);
+    const streamSource = readFileSync(new URL("../chat/MessageStream.tsx", import.meta.url), "utf8");
+    expect(streamSource).toMatch(/buildMessageStreamRenderPlan\(\{\s*messages:[^)]*turnEventMeta/);
     expect(appSource).toMatch(/<MessageStream[\s\S]*?turnEventMeta=\{turnEventMeta\}/);
   });
 

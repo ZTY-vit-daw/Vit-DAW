@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { TopStatusBar } from "./App";
+import { TopStatusBar } from "./topbar/TopStatusBar";
 
 function renderBar() {
   return renderToStaticMarkup(
